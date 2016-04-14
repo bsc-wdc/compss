@@ -1,0 +1,9 @@
+Package: compss-worker
+Version: 
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: openjdk-7-jre
+Replaces: compss-engine
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Worker.

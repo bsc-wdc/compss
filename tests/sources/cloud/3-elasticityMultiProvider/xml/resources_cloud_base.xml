@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceList>
+    <CloudProvider name="BSC1">
+        <Server>https://bscgrid20.bsc.es:11443/</Server>
+        <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+        <ImageList>
+            <Image name="uuid_XX_compss_testing_XX">
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43100</MinPort>
+                        <MaxPort>43110</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </ImageList>
+        <CreationTime>120</CreationTime> <!-- In seconds -->
+        <InstanceTypes>
+            <Resource Name="small">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>1</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>2.0</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+                <Price>0.085</Price>
+            </Resource>
+        </InstanceTypes>
+    </CloudProvider>
+    
+    <CloudProvider name="BSC2">
+        <Server>https://bscgrid20.bsc.es:11443/</Server>
+        <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+        <ImageList>
+            <Image name="uuid_XX_compss_testing_XX">
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43100</MinPort>
+                        <MaxPort>43110</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </ImageList>
+        <CreationTime>120</CreationTime> <!-- In seconds -->
+        <InstanceTypes>
+            <Resource Name="medium">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>2</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>3.0</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+                <Price>0.212</Price>
+            </Resource>
+            <Resource Name="large">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>4</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>4</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+                <Price>0.34</Price>
+            </Resource>
+        </InstanceTypes>
+    </CloudProvider>
+</ResourceList>

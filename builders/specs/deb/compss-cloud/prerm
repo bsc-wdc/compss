@@ -1,0 +1,48 @@
+#!/bin/bash -e
+ 
+  action=$1
+
+  if [ "$action" == "remove" ]; then
+    if [ $# -eq 1 ]; then
+      # Generic remove
+      echo " "
+      echo " * Removing COMPSs Runtime Cloud Resources..."
+      echo " "
+    else 
+      # With favour ($2=in-favour)
+      package=$3
+      newversion=$4
+      echo " "
+      echo " * Removing COMPSs Runtime Cloud Resources in favour to $package - ${newversion}..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then 
+    # Upgrade to new version
+    newversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Runtime Cloud Resources to ${newversion}..."
+    echo " "
+  elif [ "$action" == "deconfigure" ]; then
+    # $2=in-favour
+    installedpackage=$3
+    installedversion=$4
+    echo " "
+    echo " * Deconfiguring COMPSs Runtime Cloud Resources: $installedpacakge - ${installedversion}..."
+    echo " "
+    if [ $# -eq 4 ]; then
+      # Without external removals
+      installedpackage=$3
+      installedversion=$4
+    else
+      # With removals ($5=removing)
+      removedpackage=$6
+      removedversion=$7
+    fi
+  elif [ "$action" == "failed-upgrade" ]; then
+    # Failed upgrade
+    oldversion=$3
+    echo " "
+    echo " * COMPSs Runtime Cloud Resources upgrade from $oldversion failed. Please check errors above."
+    echo " "
+  fi
+

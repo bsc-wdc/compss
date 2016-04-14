@@ -1,0 +1,139 @@
+-----------------------------
+ COMP SUPERSCALAR FRAMEWORK
+-----------------------------
+
+COMP Superscalar (COMPSs) is a programming model which aims to ease the development of applications for distributed infrastructures, such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of applications at execution time.
+
+
+Release number 1.1.1
+Release date: 30-Jul-2013 
+-------------------------
+This is the first public release of the COMP Superscalar Framework.
+
+Implemented features:
+	* Orchestration Element(OE) automatic instrumentation
+		- task creations
+		- data syncronizations
+		- runtime system start and stop
+	* Supported Core Element (CE) types:
+		- regular methods
+		- SOAP webservices (stateless and stateful)
+	* CE constraints definition mechanism
+	* Multi-OE support	
+	* Data version management
+	* Data dependency between tasks detection due to objects or files accessed
+	* Data dependency representation using a directed aciclic graph 
+	* Task scheduling algorithm based on the estimated execution time and data locality
+	* Transparent data management
+	* Job submission to resources
+	* Resource interoperability through JavaGAT
+		- SSH
+		- Grid middlewares: GLite, Globus toolkit
+		- Microsoft Azure
+	* Exploit Cloud's scalability and elasticity
+		- Emotive
+		- Amazon EC2
+		- ROCCI
+		- OpenNebula
+	* Shared Disks support
+	* Detection and deletion of obsolete intermediate files 
+	* Execution progress information:
+		- runtime log
+		- resource usage
+		- web-based interface
+	* Support for traces
+
+Bugfixes:
+
+Known limitations:
+	- No data replicas deletion mechanism
+	- Single master.
+	- Only SOAP webservices implementing the WS-Interoperability standard are supported as Service CEs.
+
+-------------------------------
+
+
+Release number 1.1.2
+Release date: 28-Apr-2014
+-------------------------
+Implemented features:
+ * C/C++ binding.
+ * Python binding.
+ * Integrated Development Environment for COMPSs applications (IDE)
+ * Priority tasks.
+ * New tracing system using the Extrae tool.
+ * Deleting a file within an OE removes all the replicas in the system.
+ * Updated the SSH Trilead adaptor libraries to remove unnecessary sleeps.
+ * Scripts for submission to queue systems (LSF, PBS, Slurm).
+ * Configuration of application directory and library path in project XML file.
+ * Separate logs for resubmitted / rescheduled tasks.
+ * Create a COMPSs sandbox in the workers instead of JavaGAT's
+
+-------------------------------
+
+
+Release number 1.2
+Release date: Nov-2014 
+-------------------------
+Implemented features:
+ * N implementations for task methods, each with its own constraints.
+ * Constraint-aware resource management.
+ * Support for multicore tasks.
+ * Pluggable schedulers: facilitate the addition of new schedulers and policies.
+ * Extended support for objects in C/C++ binding.
+ * Extended IDE for N implementations and deployment through PMES.
+ * Update cloud connector for rOCCI to work with rocci-cli v4.2.5.
+ * Enhance rOCCI connector to compute the real VM creation times.
+ * Extended resources schema to support Virtual Appliances pricing.
+
+ * New LSF GAT adaptor.
+
+ * Deprecated Azure and EMOTIVE Cloud connectors.
+ * Deprecated Azure GAT adaptor.
+
+-------------------------------
+
+
+Release number 1.3
+Release date: Nov-2015
+-------------------------
+New features:
+        * Runtime:
+                - Persistent workers: workers can be deployed on computing nodes and persist during all the application lifetime, reducing runtime overhead.
+                  Previous implementation of workers based on a per task process is still supported.
+                - Enhanced logging system
+                - Interoperable communication layer: different inter-nodes communication protocol is supported by implementing the Adaptor interface (JavaGAT 
+                  and NIO implementations already included)
+                - Simplified cloud connectors interface
+                - JClouds connector
+
+        * Python:
+                - Added constraints support
+                - Enhanced methods support
+                - Lists accepted as a tasks' parameter type
+                - Support for user decorators
+
+        * Tools:
+                - New monitoring tool: with new views, as workload and possibility of visualizing information about previous runs
+                - Enhanced Tracing mechanism
+
+        * Simplified execution scripts
+
+        * Simplified installation on Supercomputers
+
+
+Known Limitations:
+     * Exceptions raised from tasks are not handled by the master
+     * Java tasks must be declared as public
+     * Java objects MUST be serializable or, at least, follow the java beans model
+     * Support limited to SOAP based services
+     * Persistent Workers do NOT isolate task executions in a sandbox
+
+
+For further information please refer to COMPSs User Manual: Application development
+
+-------------------------------
+
+
+Please find more details about the COMP Superscalar framework at: 
+		http://compss.bsc.es/

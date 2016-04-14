@@ -1,0 +1,45 @@
+<project name="SshLsfAdaptor" default="build" basedir=".">
+    <description>Build file for JavaGAT SshLsf Adaptors.</description>
+
+    <property name="gat.location" location="../.." />
+    <property name="engine_path" location="${gat.location}/lib" />
+
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="${gat.location}/lib/adaptors/SshLsfAdaptor" />
+    <property name="java.debug.value" value="true" />
+
+    <property name="build.sysclasspath" value="ignore"/>
+
+    <path id="external_jars">
+	<fileset dir="${engine_path}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <target name="build" depends="clean" description="build the JARs and documentation">
+	<!-- Create the distribution and tmp directory -->
+	<mkdir dir="${lib}" />
+	<mkdir dir="${tmp}" />
+
+	<!-- Compile the java code from ${src} into ${tmp} -->
+	<javac srcdir="${src}" destdir="${tmp}" debug="on">
+	    <classpath refid="external_jars" />
+	</javac>
+
+	<!-- create a list with necessary jar files for the classpaths manifest -->
+	<jar jarfile="${lib}/SshLsfAdaptor.jar" basedir="${tmp}" includes="**">
+	    <manifest>
+		<attribute name="ResourceBrokerCpi-class" value="org.gridlab.gat.resources.cpi.sshlsf.SshLsfResourceBrokerAdaptor" />
+	    </manifest>
+	</jar>
+
+	<delete dir="${tmp}" />
+
+    </target>
+
+    <target name="clean" description="clean up">
+	<delete dir="${tmp}" />
+    </target>
+
+</project>

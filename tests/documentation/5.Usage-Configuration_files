@@ -1,0 +1,70 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Creating a LOCAL Run Configuration ==
+     !!! ATTENTION: IF YOU MODIFY ANY OF THE DEFAULT CONFIGURATION TEMPLATES 
+                    DO NOT OVERWRITE THEM AS OTHER USERS MAY USE IT THROUGH SVN. !!!
+
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (local.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a DEVELOPPEMENT Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+                         JAVA_HOME              MANDATORY
+                         java_apps              OPTIONAL
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (devel_example.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a CLOUD (bscgrid20) Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         user                   OPTIONAL
+                         bscgrid20_user         OPTIONAL
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+			 connector_server       OPTIONAL             
+		         connector_class        OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (cloud.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a CLOUD (VPN) Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         user                   OPTIONAL
+                         target_base_dir        OPTIONAL
+                         logs_location          OPTIONAL
+                         IT_HOME                OPTIONAL
+                         connector_server       OPTIONAL
+                         connector_class        OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (cloudvpn.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+

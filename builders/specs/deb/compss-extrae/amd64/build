@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+  trunk_rel_path=../../../../
+  COMPSs_target=$(pwd)/tmp/opt/COMPSs
+
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Please define \$JAVA_HOME"
+    exit 1
+  fi
+
+  cd ${trunk_rel_path}/dependencies/extrae
+  ./install ${COMPSs_target}/Dependencies/extrae
+  cd -
+

@@ -1,0 +1,82 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage ./update_documentation <version>"
+  echo " "
+
+  exit $exitValue
+}
+ 
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  # Check parameters
+  if [ $# -ne 1 ]; then
+    echo "ERROR: Incorrect number of parameters"
+    usage 1
+  fi
+
+  # Get version parameters
+  version=$1
+  echo "Creating COMPSs ${version} documentation..."
+
+  # Define script variables
+  script_dir=$(pwd)/$(dirname $0)
+  trunk_dir=${script_dir}/../../
+  documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
+
+
+  #---------------------------------------------------------------------
+  # Copy latest files
+  echo "- Copy latest files"
+  svn cp ${documentation_dir}/latest ${documentation_dir}/${version}
+
+  #---------------------------------------------------------------------
+  # Generate PDF files
+  echo "- Generate PDF files"
+  docs=$(ls ${documentation_dir}/${version}/)
+  for doc in ${docs}; do
+    cd ${documentation_dir}/${version}/${doc}
+    latexFile=$(ls *.tex | grep -v configuration.tex) 
+    pdflatex -interaction=nonstopmode ${latexFile}
+    pdflatex -interaction=nonstopmode ${latexFile}
+    pdflatex -interaction=nonstopmode ${latexFile}
+    cd ${script_dir}
+  done
+
+  #---------------------------------------------------------------------
+  # Commit modifications
+  echo "- Commit modifications"
+  cd ${documentation_dir}
+  svn commit -m "Adding documentation new tag ${version}"
+  cd ${script_dir}
+
+  #---------------------------------------------------------------------
+  # Copy documentation
+  echo "- Copy documentation to trunk"
+  allowed_pdfs="COMPSs_Installation_Manual.pdf COMPSs_MareNostrum_Manual.pdf COMPSs_User_Manual_App_Development.pdf COMPSs_User_Manual_App_Exec.pdf"
+  pdfs=$(find ${documentation_dir} -name *.pdf)
+  for doc in ${pdfs}; do
+    docname=$(basename $doc)
+    if [[ *$docname* == ${allowed_pdfs} ]]; then
+      cp $doc ${trunk_dir}/doc/
+    fi
+  done
+
+  #---------------------------------------------------------------------
+  # Commit modifications
+  echo "- Commit trunk modifications"
+  cd ${trunk_dir}/doc/
+  svn commit -m "Adding documentation synchronized for new tag ${version}"
+  cd ${script_dir}
+
+  #---------------------------------------------------------------------
+  # NOTIFY SUCCESS
+  echo " "
+  echo "FINISHED! COMPSs Tag ${version} Documnetation updated"
+  echo " "
+
+  # END
+  exit 0

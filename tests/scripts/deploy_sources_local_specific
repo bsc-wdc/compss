@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+  #Define Global Variables
+  source_base_dir=$1
+  appName=$2
+  appNumber=$3
+  target_base_dir=$4
+
+  if [ $appNumber -lt 10 ]; then 
+     appNumber="0$appNumber"
+  else
+     appNumber="$appNumber"
+  fi
+
+  #Erase current deployment
+  echo "---- Erasing current deployment"
+  rm -rf ${target_base_dir}
+   
+  #Create new deployment structure
+  echo "---- Creating new deployment structure"
+  mkdir ${target_base_dir}
+  mkdir ${target_base_dir}/app$appNumber
+  mkdir ${target_base_dir}/logs
+
+  #Deploying Application
+  echo "---- Deploying Application $appName"
+  #Exception for servicesTest
+  if [ "$appName" = "servicesTest" ]; then
+     mkdir ${target_base_dir}/app08
+     ${source_base_dir}/basic/08-groupService/deploy "${source_base_dir}/basic/groupService" "${target_base_dir}/app08"
+  fi
+
+  #Normal deployment
+  ${source_base_dir}/basic/$appName/deploy "${source_base_dir}/basic/$appName" "${target_base_dir}/app$appNumber"     
+

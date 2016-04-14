@@ -1,0 +1,8 @@
+Package: compss-python-binding
+Version: 
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: compss-bindings-common, python (>= 2.7), libpython2.7
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Python binding.

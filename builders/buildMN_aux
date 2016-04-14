@@ -1,0 +1,205 @@
+#!/bin/bash
+ 
+  #############################################################
+  # Name: buildMN_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum
+  # Parameters: <targetDir> Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  #            EXECUTED FROM buildMN script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildMN_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  scriptDir=$(dirname $0)
+  tmpDir=${scriptDir}/tmp
+  
+  echo "- MN script Dir = ${scriptDir}"
+  echo "- MN tmp Dir    = ${tmpDir}"
+  echo "- MN target Dir = ${targetDir}"
+
+  # Load needed modules on MN
+  echo "- Load modules on MN account"
+  module load PYTHON/2.7.3 BOOST/1.52.0 java/1.7.0u55 PAPI/5.4.1
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Cannot load required modules"
+    exit 1
+  fi
+
+  # CREATE TARGET FOLDER
+  echo "- Create target folder"
+  rm -rf ${targetDir}
+  mkdir -p ${targetDir}
+  mkdir -p ${targetDir}/Doc
+  mkdir -p ${targetDir}/Dependencies
+  mkdir -p ${targetDir}/Dependencies/extrae
+  mkdir -p ${targetDir}/Runtime
+  mkdir -p ${targetDir}/Runtime/configuration
+  mkdir -p ${targetDir}/Runtime/scripts
+  mkdir -p ${targetDir}/Runtime/adaptors
+  mkdir -p ${targetDir}/Runtime/connectors
+  mkdir -p ${targetDir}/Runtime/scheduler
+  mkdir -p ${targetDir}/Tools
+  mkdir -p ${targetDir}/Tools/monitor
+  mkdir -p ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings/bindings-common
+
+  # RUNTIME DEPLOYMENT
+  echo "- Copy Runtime deployment files"
+  #Doc
+  echo "--- Copy docs"
+  find ${tmpDir}/doc/ -name *.html | xargs rm -rf
+  cp -r ${tmpDir}/doc/* ${targetDir}/Doc
+  cp ${tmpDir}/changelog ${targetDir}
+  cp ${tmpDir}/LICENSE ${targetDir}
+  cp ${tmpDir}/NOTICE ${targetDir}
+  cp ${tmpDir}/README ${targetDir}
+  cp ${tmpDir}/RELEASE_NOTES ${targetDir}
+  #Dependencies
+  echo "--- Copy dependencies"
+  cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
+  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/
+  cd ${tmpDir}/dependencies/extrae
+  ./install ${targetDir}/Dependencies/extrae
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install extrae dependency"
+    exit 1
+  fi
+  cd ${scriptDir}
+  #Config
+  echo "--- Copy configuration"
+  find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
+  find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
+  find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
+  cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+  #Scripts
+  echo "--- Copy scripts"
+  cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
+  #Adaptors
+  echo "--- Copy adaptors"
+  find ${tmpDir}/compss/runtime/adaptors -name pom.xml | xargs rm -rf
+  rm -r ${tmpDir}/compss/runtime/adaptors/commons
+  path_source=${tmpDir}/compss/runtime/adaptors
+  path_target=${targetDir}/Runtime/adaptors
+  adaptors=$(ls ${path_source})
+  for adaptor in $adaptors; do
+    mkdir ${path_target}/$adaptor
+    mkdir ${path_target}/$adaptor/master
+    cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
+    if [ -f ${path_source}/$adaptor/master/properties ]; then
+      cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+    fi
+    if [ -d "${path_source}/$adaptor/worker/" ]; then
+      mkdir ${path_target}/$adaptor/worker
+      cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+    fi
+    if [ -f ${path_source}/$adaptor/worker/properties ]; then 
+      cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+    fi
+    if [ -d "${path_source}/$adaptor/scripts/" ]; then
+      mkdir -p ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+      cp -r ${path_source}/$adaptor/scripts/* ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+    fi
+  done
+  #Connectors
+  echo "--- Copy connectors"
+  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")
+  for conn in $connectors; do
+    cp -f $conn ${targetDir}/Runtime/connectors/
+  done
+  #Engine
+  echo "--- Copy engine"
+  cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
+ 
+  # TOOLS DEPLOYMENT
+  echo "- Deploying COMPSs Tools"
+  cd ${tmpDir}
+  tar xzf apache-tomcat.tar.gz
+  cd ${scriptDir}
+  mv ${tmpDir}/apache-tomcat-* ${targetDir}/Tools/monitor/apache-tomcat/
+  rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
+  rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
+  cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/log4j.properties ${targetDir}/Tools/monitor/
+
+  #BINDINGS DEPLOYMENT
+  echo "- Deploying bindings-common files"
+  cd ${tmpDir}/compss/programming_model/bindings/bindings-common
+  ./install_common ${targetDir}/Bindings/bindings-common
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install bindings-common"
+    exit 1
+  fi
+  echo "- Deploying c-binding files"
+  cd ${tmpDir}/compss/programming_model/bindings/c
+  ./install ${targetDir}/Bindings/c
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install C-binding"
+    exit 1
+  fi
+  mkdir -p ${targetDir}/Runtime/scripts/system/c/
+  cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
+  cp ./buildapp ${targetDir}/Runtime/scripts/user/
+  echo "- Deploying python-binding files"
+  cd ${tmpDir}/compss/programming_model/bindings/python
+  ./install ${targetDir}/Bindings/python
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install Python-binding"
+    exit 1
+  fi
+  cd ${scriptDir}
+
+  # ADD RUNCOMPSS TO PROFILE
+  mkdir -p ${targetDir}/etc/profile.d/
+  echo " - Adding runcompss to profile..."
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" > ${targetDir}/etc/profile.d/compss.sh
+  echo " - Runcompss added to user profile"
+  echo " "
+  echo " - Adding compss-engine.jar to profile..."
+  echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> ${targetDir}/etc/profile.d/compss.sh
+  echo " - compss-engine.jar added to user profile"
+  echo " "
+  echo " - Adding c-binaries to profile..."
+  echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> ${targetDir}/etc/profile.d/compss.sh
+  echo " - c-binaries added to user profile"
+  echo " "
+  echo " - Adding PyCOMPSs to user profile..."
+  echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> ${targetDir}/etc/profile.d/compss.sh
+  echo " - PyCOMPSs added to user profile"
+  echo " "
+ 
+  # ADD MONITOR SCRIPT TO ETC
+  echo "- Add monitor script to init.d"
+  mkdir -p ${targetDir}/etc/init.d/
+  cp ${tmpDir}/compss/tools/monitor/scripts/compss-monitor ${targetDir}/etc/init.d/
+  chmod 755 ${targetDir}/etc/init.d/compss-monitor
+
+  # ERASE TMP FILES
+  echo "- Erase tmp files"
+  rm -rf ${tmpDir}
+
+  # SET TARGETDIR PERMISSIONS
+  echo "- Set COMPSs permissions"
+  chmod 775 -R ${targetDir}
+  chmod 777 -R ${targetDir}/Runtime/configuration/
+
+  # END
+  exit 0

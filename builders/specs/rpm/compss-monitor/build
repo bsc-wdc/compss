@@ -1,0 +1,75 @@
+#!/bin/bash -e
+
+  distr=$1
+  mode=$2
+  COMPSS_VERSION=$3
+
+  package_name=compss-monitor
+  trunk_rel_path=../../../../
+
+  echo " "
+  echo "* Erasing previous tmp Files..."
+  rm -rf tmp/
+
+  echo " "
+  echo "* Creating package structure..."
+  mkdir -p tmp/BUILD tmp/RPMS tmp/SOURCES/ tmp/SPECS/ tmp/SRPMS tmp/BUILDROOT
+  mkdir -p tmp/SOURCES/${package_name}-${COMPSS_VERSION}
+
+  echo " "
+  echo "* Downloading apache-tomcat server"
+  echo " "
+  rootDir=$(pwd)
+  target=tmp/SOURCES/${package_name}-${COMPSS_VERSION}/
+  TOMCAT_VER="7.0.65"
+  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  cd ${target}
+  wget $TOMCAT_URL
+  cd ${rootDir}
+
+  echo " "
+  echo "* Packing COMPSs sources..."
+  echo " "
+  cp -rf ${trunk_rel_path}/compss/tools/monitor ${target}
+  cp -rf ${trunk_rel_path}/changelog ${target}
+  cp -rf ${trunk_rel_path}/LICENSE ${target}
+  cp -rf ${trunk_rel_path}/NOTICE ${target}
+  cp -rf ../README ${target}
+  cp -rf ${trunk_rel_path}/RELEASE_NOTES ${target}
+
+  cd tmp/SOURCES/
+  find . -name .svn | xargs rm -rf  #Cleans svn files
+  tar czf ${package_name}-${COMPSS_VERSION}.tar.gz ${package_name}-${COMPSS_VERSION}
+  if [ $? -ne 0 ]; then
+	echo "Error compressing package"
+	exit 1
+  fi
+  cd ../../
+
+  echo " "
+  echo "* Cleaning tmp sources..."
+  rm -rf tmp/SOURCES/${package_name}-${COMPSS_VERSION}/
+
+  echo " "
+  echo "* Copying SPEC file to RPM build path..."
+  echo " "
+  cp ./${package_name}_${mode}.spec tmp/SPECS/
+
+  echo " "
+  echo "* Generating RPM package..."
+  cd tmp/
+  rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_${mode}.spec
+  if [ $? -ne 0 ]; then
+	echo "Error creating rpm";
+	exit 1;
+  fi
+  cd ..
+
+  echo " "
+  echo "* Moving built RPM package to final location..."
+  mkdir -p ${trunk_rel_path}/builders/packages/${distr}/${package_name}
+  mv tmp/RPMS/${mode}/${package_name}-* ${trunk_rel_path}/builders/packages/$distr/${package_name}
+
+  echo " "
+  echo "* Cleaning all tmp files..."
+  rm -r tmp/

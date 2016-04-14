@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs C-Binding from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Bindings/c
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs C-Binding..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs C-Binding from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/Bindings/c" ]; then
+      mv /opt/COMPSs/Bindings/c /tmp/COMPSs_c_binding.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs C-Binding $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_c_binding.bkp" ]; then
+      mv /tmp/COMPSs_c_binding.bkp /opt/COMPSs/Bindings/c
+    fi
+  fi
+

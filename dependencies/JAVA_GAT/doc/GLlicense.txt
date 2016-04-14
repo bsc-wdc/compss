@@ -1,0 +1,58 @@
+                      GRIDLAB OPEN SOURCE LICENSE
+
+
+The GridLab licence allows software to be used by anyone and for any purpose, 
+without restriction. We believe that this is the best way to ensure that Grid 
+technologies gain wide spread acceptance and benefit from a large developer 
+community. 
+
+Copyright (c) 2002 GridLab Consortium. All rights reserved. 
+
+This software includes voluntary contribution made to the EU GridLab Project by
+the Consortium Members: Istytut Chemii Bioorganicznej PAN Poznaskie Centrum 
+Superkomupterowo Sieciowe (PSNC), Pozna, Poland; Max-Planck Institut fuer 
+Gravitationsphysik (AEI), Golm/Potsdam, Germany, Konrad-Zuse-Zentrum fuer 
+Informationstechnik (ZIB), Berlin, Germany; Masaryk University, Brno, Czech 
+Republic; MTA SZTAKI, Budapest, Hungary; Vrije Universiteit (VU), Amsterdam, 
+The Netherlands; ISUFI/High Performance Computing Center (ISUFI/HPCC), Lecce, 
+Italy; Cardiff University, Cardiff, Wales; National Technical University of 
+Athens (NTUA), Athens, Greece; Sun Microsystems Gridware GmbH, Germany; HP 
+Competency Center France 
+
+Installation, use, reproduction, display, modification and redistribution with 
+or without modification, in source and binary forms, is permitted provided that
+the following conditions are met: 
+
+1. Redistributions in either source-code or binary form along with accompanying
+   documentation must retain the above copyright notice, the list of conditions
+   and the following disclaimer. 
+
+2. The names "GAT ­ Grid Application Toolkit", "EU GridLab" or "GridLab" may be
+   used to endorse or promote software, or products derived therefrom.
+
+3. You are under no obligation to provide anyone with bug fixes, patches,
+   upgrades or other modifications, enhancements or derivatives of the 
+   features, functionality or performance of any software you provide under 
+   this license. However, if you publish or distribute your modifications, 
+   enhancements or derivative works without contemporaneously requiring users
+   to enter into a separate written license agreement, then you are deemed to 
+   have granted GridLab Consortium a worldwide, non-exclusive, royalty-free,
+   perpetual license to install, use, reproduce, display, modify, redistribute
+   and sub-license your modifications, enhancements or derivative works, 
+   whether in binary or source code form, under the license stated in this
+   list of conditions.
+
+4. DISCLAIMER
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. THE GRIDLAB CONSORTIUM MAKE 
+NO REPRESNTATION THAT THE SOFTWARE, ITS MODIFICATIONS, ENHANCEMENTS OR 
+DERIVATIVE WORK THEROF WILL NOT INFRINGE PRIVATELY OWNED RIGHTS. IN NO EVENT 
+SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE

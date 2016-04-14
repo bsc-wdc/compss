@@ -1,0 +1,100 @@
+#!/bin/bash
+
+  #--------------------------------------------------------------------------------
+  #Set global variables
+  logs_location=$1
+  base_log_folder=$2
+  COMPSs_exec=$3
+  comm=$4
+  num_test=$5
+  template_id=$6
+  os_type=$7
+  cloud_owner=$8
+
+  cloud_base_dir="$(dirname $0)/apps_cloud"
+  COMPSs_log_folder="${logs_location}/.COMPSs"
+
+  exitValue=0
+
+  #--------------------------------------------------------------------------------
+  echo
+  echo "**Testing Cloud Block App ${num_test}"
+ 
+  if [ "${num_test}" = "all" ]; then
+     app_folders=$(ls ${cloud_base_dir})
+     appCounter=1
+     results=""
+     for app in ${app_folders}; do
+       if [ "$app" != "app01" ]; then               #Test number 1 not allowed in this mode
+         log_folder="${base_log_folder}/$app"
+         mkdir -p ${log_folder}
+         cd ${cloud_base_dir}/$app
+         ./execution ${COMPSs_exec} ${comm} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+         if [ $? -ne 0 ]; then
+            exitValue=1
+            results="${results}1"
+         else
+            results="${results}0"
+         fi
+       else
+         results="${results}0"
+       fi
+       appCounter=$((appCounter+1))
+       # Sleep to avoid interferences between tests
+       sleep 1
+     done
+
+     #Show Result table
+     counter=2
+     pos=0
+     echo
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m   Application Name                                      TEST STATUS"
+     while [ $counter -lt $appCounter ]; do
+       if [ "${results:$pos:1}" == "0" ]; then
+          echo -e "\e[34m [TEST RESULT] Application CLOUD BLOCK $counter ..................... \e[32mOK"
+       else
+          echo -e "\e[34m [TEST RESULT] Application CLOUD BLOCK $counter ..................... \e[31mERROR"
+       fi
+       counter=$((counter+1))
+       pos=$((pos+1))
+     done  
+     echo -e "\e[34m"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------" 
+     echo -e "\e[34mIf there are errors, please check the log files"
+     echo -e "\e[0m"
+  else
+     results=""
+     app="app0${num_test}"
+     log_folder="${base_log_folder}/$app"
+     mkdir -p ${log_folder}
+     cd ${cloud_base_dir}/$app
+     ./execution ${COMPSs_exec} ${comm} "${cloud_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${template_id} ${os_type} ${cloud_owner}
+     if [ $? -ne 0 ]; then
+        exitValue=1
+        results="1"
+     else
+        results="0"
+     fi
+
+     #Show Result table
+     echo
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m   Application Name                                      TEST STATUS"
+     if [ "$results" == "0" ]; then
+        echo -e "\e[34m [TEST RESULT] Application CLOUD BLOCK ${num_test} ..................... \e[32mOK"
+     else
+        echo -e "\e[34m [TEST RESULT] Application CLOUD BLOCK ${num_test} ..................... \e[31mERROR"
+     fi
+     echo -e "\e[34m"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------" 
+     echo -e "\e[34mIf there are errors, please check the log files"
+     echo -e "\e[0m"
+  fi 
+  #--------------------------------------------------------------------------------
+  #EXIT
+  exit $exitValue

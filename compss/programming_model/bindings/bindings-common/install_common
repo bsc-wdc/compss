@@ -1,0 +1,40 @@
+#!/bin/bash
+
+  #Define script variables
+  scriptDir=$(pwd)
+
+  # Check JAVA_HOME
+  if [ -z "${JAVA_HOME}" ]; then
+    echo "Please define \$JAVA_HOME"
+    exit 1
+  fi
+  export JAVA_LIB_DIR=${JAVA_HOME}/jre/lib/amd64/server
+
+  # Install and deploy on scriptDir (for C binding)
+  echo "Install on scriptDir for Bindings compilation"
+  make clean
+  autoreconf --force --install
+  ./configure --prefix=${scriptDir} --libdir=${scriptDir}/lib
+  make
+  make install
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
+
+  # Install and deploy on target
+  if [ $# -eq 1 ]; then
+    echo "Install on target folder"
+    targetDir=$1
+    make clean
+    autoreconf --force --install
+    ./configure --prefix=${targetDir} --libdir=${targetDir}/lib
+    make
+    make install
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
+  fi
+
+  # All ok. Exit
+  exit 0

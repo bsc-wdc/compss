@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	  <Worker Name="localhost">
+            <InstallDir></InstallDir>
+            <WorkingDir>/tmp/WorkerC/</WorkingDir>
+            <AppDir></AppDir>
+            <LimitOfTasks>4</LimitOfTasks>
+          </Worker>
+</Project>
+

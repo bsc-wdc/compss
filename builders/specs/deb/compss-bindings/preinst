@@ -1,0 +1,31 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs Bindings from previous version ${oldversion}..."
+      echo " "
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs Bindings..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Bindings from previous version ${oldversion}..."
+    echo " "
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs Bindings $newversion upgrade aborted. Please check errors above."
+    echo " "
+  fi
+

@@ -1,0 +1,40 @@
+Why the "shared directory" ?
+
+Some instances need to be moved from one adaptor to another. This happens, for
+example, when any globus functionality is used from another adaptor. In 
+particular the classes are:
+
+AXIS and dependencies:
+  axis-1.4.jar
+  commons-discovery.jar
+  commons-logging-1.1.jar
+  jaxrpc.jar
+  mail.jar
+  wsdl4j.jar
+  commons-codec-1.3.jar
+  commons-httpclient-3.0-rc2.jar
+
+Certificates (e.g. security classes): 
+  bcprov-jdk15-133.jar
+  cryptix32.jar
+  cryptix-asn1.jar
+  cryptix.jar
+  puretls.jar
+
+Instances can only be moved from one adaptor to another adaptor, if they where 
+loaded in the same or a common parent classloader. The new classloader model
+is therefore:
+
+superparent --- shared +-- adaptor1
+                       +-- adaptor2
+                       +-- adaptor3
+
+where:
+  superparent 
+    loads the gat engine and the application. 
+  shared 
+    loads all classes where instances may need to be moved between adaptors
+  adaptorX 
+    is the classloader for the particular adaptor. It is important that this 
+    classloader does NOT load any classes where instances are passed to another
+    adaptor.

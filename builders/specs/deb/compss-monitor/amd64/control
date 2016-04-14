@@ -1,0 +1,8 @@
+Package: compss-monitor
+Version: 
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: compss-engine, openjdk-7-jre
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Monitor Tool.

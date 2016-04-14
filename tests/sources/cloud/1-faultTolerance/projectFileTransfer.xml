@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	  <Worker Name="hostDown">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/hostDown/</WorkingDir>
+            <User>baduser</User>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+	  <Worker Name="localhost">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/</WorkingDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+</Project>

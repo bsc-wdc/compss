@@ -1,0 +1,39 @@
+#!/bin/bash
+
+  #Backup hosts
+  echo "** Creating a backup file"
+  cp -f /etc/hosts $(dirname $0)/hosts.backup
+
+  #Setup hosts
+  echo "** Inserting new hosts on /etc/hosts"
+
+  echo "127.0.0.11        outputWriter" >> /etc/hosts    #Shared Disks Test
+  echo "127.0.0.12        outputReader" >> /etc/hosts    #Shared Disks Test
+  echo "127.0.0.13        useless" >> /etc/hosts         #DataLocality Basic Test
+  echo "127.0.0.14        WorkerDynamic" >> /etc/hosts   #Constraints Test
+
+  echo "127.0.0.21        COMPSsWorker01" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
+  echo "127.0.0.22        COMPSsWorker02" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
+  echo "127.0.0.23        COMPSsWorker03" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
+  echo "127.0.0.24        COMPSsWorker04" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
+  echo "127.0.0.25        COMPSsWorker05" >> /etc/hosts   #FREE
+  echo "127.0.0.26        COMPSsWorker06" >> /etc/hosts   #FREE
+  echo "127.0.0.27        COMPSsWorker07" >> /etc/hosts   #FREE
+  echo "127.0.0.28        COMPSsWorker08" >> /etc/hosts   #FREE
+  echo "127.0.0.29        COMPSsWorker09" >> /etc/hosts   #FREE
+  echo "127.0.0.30        COMPSsWorker10" >> /etc/hosts   #FREE
+  echo "127.0.0.31        COMPSsWorker11" >> /etc/hosts   #FREE
+  echo "127.0.0.32        COMPSsWorker12" >> /etc/hosts   #FREE
+  echo "127.0.0.33        COMPSsWorker13" >> /etc/hosts   #FREE
+  echo "127.0.0.34        COMPSsWorker14" >> /etc/hosts   #FREE
+  echo "127.0.0.35        COMPSsWorker15" >> /etc/hosts   #FREE
+  echo "127.0.0.36        COMPSsWorker16" >> /etc/hosts   #FREE
+  echo "127.0.0.37        COMPSsWorker17" >> /etc/hosts   #FREE
+  echo "127.0.0.38        COMPSsWorker18" >> /etc/hosts   #FREE
+  echo "127.0.0.39        COMPSsWorker19" >> /etc/hosts   #FREE
+  echo "127.0.0.40        COMPSsWorker20" >> /etc/hosts   #FREE
+ 
+  #Prompt result
+  echo "All done. Status OK"
+  exit 0
+

@@ -1,0 +1,3590 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>JavaGAT capabilities: File</title>
+</head>
+<body>
+<h1>File adaptors</h1>
+<p>This page shows the capabilities of the adaptors that implement the JavaGAT File object. The table below shows the status of the adaptor, which can be 'done', 'w.i.p' (work in progress) or 'untested' (coding is done, needs testing). Furthermore you can see the implementation level (the percentage of implemented methods), and you can see the details of which methods are actually implemented. There is also a <a href=#overview>per method overview</a> (which adaptors implement a certain method)</p>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>name</th>
+<th>status</th>
+<th>implemented</th>
+</tr>
+<tr>
+<td>LocalFileAdaptor</td>
+<td>done</td>
+<td>93 % [<a href=#LocalFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GridFTPFileAdaptor</td>
+<td>done</td>
+<td>83 % [<a href=#GridFTPFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SftpTrileadFileAdaptor</td>
+<td>done</td>
+<td>74 % [<a href=#SftpTrileadFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>CommandlineSshFileAdaptor</td>
+<td>done</td>
+<td>86 % [<a href=#CommandlineSshFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SshTrileadFileAdaptor</td>
+<td>done</td>
+<td>93 % [<a href=#SshTrileadFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>FTPFileAdaptor</td>
+<td>done</td>
+<td>83 % [<a href=#FTPFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>RFTGT42FileAdaptor</td>
+<td>done</td>
+<td>55 % [<a href=#RFTGT42FileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GT42GridFTPFileAdaptor</td>
+<td>done</td>
+<td>88 % [<a href=#GT42GridFTPFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GliteGuidFileAdaptor</td>
+<td>done</td>
+<td>58 % [<a href=#GliteGuidFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GliteSrmFileAdaptor</td>
+<td>done</td>
+<td>55 % [<a href=#GliteSrmFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GliteLfnFileAdaptor</td>
+<td>done</td>
+<td>86 % [<a href=#GliteLfnFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GT4GridFTPFileAdaptor</td>
+<td>done</td>
+<td>88 % [<a href=#GT4GridFTPFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>RFTGT4FileAdaptor</td>
+<td>done</td>
+<td>55 % [<a href=#RFTGT4FileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SrcToLocalToDestCopyFileAdaptor</td>
+<td>done</td>
+<td>53 % [<a href=#SrcToLocalToDestCopyFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>StreamingFileAdaptor</td>
+<td>done</td>
+<td>55 % [<a href=#StreamingFileAdaptor>details</a>]</td>
+</tr>
+</table>
+<h2><a name=LocalFileAdaptor>LocalFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Local File Adaptor is a simple wrapper around the java.io.File object.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>setReadOnly</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>getCanonicalFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isHidden</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GridFTPFileAdaptor>GridFTPFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GridFTP File Adaptor implements the File object using Globus GSIFTP.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SftpTrileadFileAdaptor>SftpTrileadFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SftpTrilead File Adaptor implements the File object using the SFTP support of the trilead ssh library. Trilead ssh is an open source full java ssh library. On the server side, the 'scp' program must be in the PATH. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=CommandlineSshFileAdaptor>CommandlineSshFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The CommandlineSsh File Adaptor implements the File object using ssh commands.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SshTrileadFileAdaptor>SshTrileadFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SshTrilead File Adaptor implements the File object using the trilead ssh library. Trilead ssh is an open source full java ssh library. On the server side, the 'scp' program must be in the PATH. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>setReadOnly</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isHidden</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=FTPFileAdaptor>FTPFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The FTP File Adaptor implements the File object using FTP.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=RFTGT42FileAdaptor>RFTGT42FileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The RFTGT42 File Adaptor implements the File object on Globus 4.2 using the Globus Reliable File Transfer (RFT) protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>createNewFile</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GT42GridFTPFileAdaptor>GT42GridFTPFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GT42 GridFTP File Adaptor implements the File object for Globus 4.2 using the gsiftp protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>setReadOnly</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GliteGuidFileAdaptor>GliteGuidFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GliteGUID File Adaptor implements the File object for the Glite LFCs, accessed via the guid: scheme.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GliteSrmFileAdaptor>GliteSrmFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GliteSRM File Adaptor implements the File object for the gLite SRM protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>createNewFile</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GliteLfnFileAdaptor>GliteLfnFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GliteLfn File Adaptor implements the File object for the Glite LFCs, accessed via lfn: scheme.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isHidden</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getFileAttributeView</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GT4GridFTPFileAdaptor>GT4GridFTPFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GT4 File Adaptor implements the File object on Globus 4.0 using the Globus COG abstraction kit.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>setReadOnly</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>canRead</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>-</td>
+</tr>
+<tr>
+<td>list</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>isFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=RFTGT4FileAdaptor>RFTGT4FileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The RFTGT4 File Adaptor implements the File object on Globus 4.0 using the Globus Reliable File Transfer (RFT) protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>delete</td>
+<td>-</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>createNewFile</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SrcToLocalToDestCopyFileAdaptor>SrcToLocalToDestCopyFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SrcToLocalToDest File Adaptor only implements the File copy operation, via a local temporary file. Its purpose is to allow copying of a file from one adaptor to another.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>-</td>
+<td>delete</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>createNewFile</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>exists</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=StreamingFileAdaptor>StreamingFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Streaming File Adaptor only implements the File copy operation, by creating a JavaGAT FileInputStream to read the source, and a JavaGAT FileOutputStream to write the destination.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>setReadOnly</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsoluteFile</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalPath</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getCanonicalFile</td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>renameTo</td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canWrite</td>
+</tr>
+<tr>
+<td>-</td>
+<td>length</td>
+</tr>
+<tr>
+<td>getPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>canRead</td>
+</tr>
+<tr>
+<td>-</td>
+<td>delete</td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>move</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>copy</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>lastModified</td>
+</tr>
+<tr>
+<td>getParent</td>
+<td>-</td>
+</tr>
+<tr>
+<td>equals</td>
+<td>-</td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>mkdir</td>
+</tr>
+<tr>
+<td>-</td>
+<td>list</td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td>-</td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td>-</td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isHidden</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getFileAttributeView</td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isDirectory</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>isFile</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>createNewFile</td>
+</tr>
+<tr>
+<td>getName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>getAbsolutePath</td>
+</tr>
+<tr>
+<td>exists</td>
+<td>-</td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toString</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLastModified</td>
+</tr>
+<tr>
+<td>toURL</td>
+<td>-</td>
+</tr>
+</table>
+<a name=overview><h2>Per Method Overview</h2></a>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<td></td>
+<th>Local</th>
+<th>GridF</th>
+<th>SftpT</th>
+<th>Comma</th>
+<th>SshTr</th>
+<th>FTPFi</th>
+<th>RFTGT</th>
+<th>GT42G</th>
+<th>Glite</th>
+<th>Glite</th>
+<th>Glite</th>
+<th>GT4Gr</th>
+<th>RFTGT</th>
+<th>SrcTo</th>
+<th>Strea</th>
+</tr>
+<tr>
+<td>getAbsoluteFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>setReadOnly</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getCanonicalFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getCanonicalPath</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>listFiles</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>renameTo</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getParentFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>canWrite</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>delete</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>canRead</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getPath</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>length</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>recursivelyDeleteDirectory</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>move</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>copy</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>lastModified</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getParent</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>equals</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>mkdirs</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>list</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>isAbsolute</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>compareTo</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>hashcode</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getGATContext</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getFileAttributeView</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>isHidden</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>isDirectory</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>createNewFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>isFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getName</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>exists</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getAbsolutePath</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>deleteOneExit</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>toURI</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>toString</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>toURL</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>setLastModified</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>total</td>
+<td>93 %</td>
+<td>83 %</td>
+<td>74 %</td>
+<td>86 %</td>
+<td>93 %</td>
+<td>83 %</td>
+<td>55 %</td>
+<td>88 %</td>
+<td>58 %</td>
+<td>55 %</td>
+<td>86 %</td>
+<td>88 %</td>
+<td>55 %</td>
+<td>53 %</td>
+<td>55 %</td>
+</tr>
+</table>
+</body>
+</html>

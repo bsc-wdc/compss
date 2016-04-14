@@ -1,0 +1,234 @@
+package integratedtoolkit.types.resources;
+
+import integratedtoolkit.ITConstants;
+import integratedtoolkit.comm.Comm;
+import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.types.COMPSsMaster;
+import integratedtoolkit.types.data.location.URI;
+import integratedtoolkit.util.ErrorManager;
+import java.io.File;
+
+
+public class MasterResource extends Resource {
+
+    protected static final String ERROR_COMPSs_LOG_BASE_DIR = "ERROR: Cannot create .COMPSs base log directory";
+    protected static final String ERROR_APP_OVERLOAD = "ERROR: Cannot erase overloaded directory";
+    protected static final String ERROR_APP_LOG_DIR = "ERROR: Cannot create application log directory";
+    protected static final String ERROR_TEMP_DIR = "ERROR: Cannot create temp directory";
+    protected static final String ERROR_JOBS_DIR = "ERROR: Cannot create jobs directory";
+    protected static final String ERROR_WORKERS_DIR = "ERROR: Cannot create workers directory";
+    protected static final String WARN_FOLDER_OVERLOAD = "WARNING: Reached maximum number of executions for this application. To avoid this warning please clean .COMPSs folder";
+
+    protected static final int MAX_OVERLOAD = 100;		// Maximum number of executions of same application
+
+    private final String userExecutionDirPath;
+
+    private final String COMPSsLogBaseDirPath;
+    private static String appLogDirPath;
+    private static String tempDirPath;
+    private static String jobsDirPath;
+    private static String workersDirPath;
+
+    public MasterResource() {
+        super(new COMPSsMaster());
+
+        //Gets user execution directory
+        userExecutionDirPath = System.getProperty("user.dir");
+
+        //Creates base Runtime structure directories
+        if (System.getProperty(ITConstants.IT_BASE_LOG_DIR) != null) {
+        	if (!System.getProperty(ITConstants.IT_BASE_LOG_DIR).equals("")) {
+        		COMPSsLogBaseDirPath = System.getProperty(ITConstants.IT_BASE_LOG_DIR) + File.separator + ".COMPSs" + File.separator;
+        	} else {
+        		COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
+        	}
+        } else {
+        	COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
+        }
+        
+        if (!new File(COMPSsLogBaseDirPath).exists()) {
+            if (!new File(COMPSsLogBaseDirPath).mkdir()) {
+            	ErrorManager.error(ERROR_COMPSs_LOG_BASE_DIR);
+            }
+        }
+
+        //Load working directory. Different for regular applications and services
+        String appName = System.getProperty(ITConstants.IT_APP_NAME);
+        if (System.getProperty(ITConstants.IT_SERVICE_NAME) != null) {
+            /* SERVICE
+             * - Gets appName
+             * - Overloads the service folder for different executions
+             * - MAX_OVERLOAD raises warning
+             * - Changes working directory to serviceName !!!!
+             */
+            String serviceName = System.getProperty(ITConstants.IT_SERVICE_NAME);
+            int overloadCode = 1;
+            appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+            String oldest = appLogDirPath;
+            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+            	// Check oldest file (for overload if needed)
+            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
+            		oldest = appLogDirPath;
+            	}
+            	// Next step
+                overloadCode = overloadCode + 1;
+                if (overloadCode < 10) {
+                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+                } else {
+                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode) + File.separator;
+                }
+            }
+            if (overloadCode > MAX_OVERLOAD) {
+            	// Select the last modified folder
+            	appLogDirPath = oldest;
+            	
+            	// Overload
+                System.err.println(WARN_FOLDER_OVERLOAD);
+                System.err.println("Overwriting entry: " + appLogDirPath);
+                
+                // Clean previous results to avoid collisions
+                if (!deleteDirectory(new File(appLogDirPath))) {
+                	ErrorManager.error(ERROR_APP_OVERLOAD);
+                }
+            }
+            if (!new File(appLogDirPath).mkdir()) {
+            	ErrorManager.error(ERROR_APP_LOG_DIR);
+            }
+            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+        } else {
+            /* REGULAR APPLICATION
+             * - Gets appName
+             * - Overloads the app folder for different executions
+             * - MAX_OVERLOAD raises warning
+             * - Changes working directory to appName !!!!
+             */
+            int overloadCode = 1;
+            appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+            String oldest = appLogDirPath;
+            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+            	// Check oldest file (for overload if needed)
+            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
+            		oldest = appLogDirPath;
+            	}
+            	// Next step
+                overloadCode = overloadCode + 1;
+                if (overloadCode < 10) {
+                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+                } else {
+                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
+                }
+            }
+            if (overloadCode > MAX_OVERLOAD) {
+            	// Select the last modified folder
+            	appLogDirPath = oldest;
+            	
+            	// Overload
+                System.err.println(WARN_FOLDER_OVERLOAD);
+                System.err.println("Overwriting entry: " + appLogDirPath);
+                
+                // Clean previous results to avoid collisions
+                if (!deleteDirectory(new File(appLogDirPath))) {
+                	ErrorManager.error(ERROR_APP_OVERLOAD);
+                }
+            }
+            if (!new File(appLogDirPath).mkdir()) {
+            	ErrorManager.error(ERROR_APP_LOG_DIR);
+            }
+            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+        }
+
+        /* Create a tmp directory where to store:
+         * - Files whose first opened stream is an input one
+         * - Object files
+         */
+        tempDirPath = appLogDirPath + "tmpFiles" + File.separator;
+        if (!new File(tempDirPath).mkdir()) {
+        	ErrorManager.error(ERROR_TEMP_DIR);
+        }
+
+        /* Create a jobs dir where to store:
+         * - Jobs output files
+         * - Jobs error files
+         */
+        jobsDirPath = appLogDirPath + "jobs" + File.separator;
+        if (!new File(jobsDirPath).mkdir()) {
+        	ErrorManager.error(ERROR_JOBS_DIR);
+        }
+        
+        /* Create a workers dir where to store:
+         * - Worker out files
+         * - Worker error files
+         */
+        workersDirPath = appLogDirPath + "workers" + File.separator;
+        if (!new File(workersDirPath).mkdir()) {
+            System.err.println(ERROR_WORKERS_DIR);
+            System.exit(1);
+        }
+    }
+    
+    private boolean deleteDirectory (File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (null != files){
+                for (File f : files) {
+                    if (f.isDirectory()) {
+                        deleteDirectory(f);
+                    } else {
+                        f.delete();
+                    }
+                }
+            }
+        }
+        return(directory.delete());
+    }
+
+    public String getCOMPSsLogBaseDirPath() {
+        return COMPSsLogBaseDirPath;
+    }
+
+    public String getWorkingDirectory() {
+        return tempDirPath;
+    }
+
+    public String getUserExecutionDirPath() {
+        return userExecutionDirPath;
+    }
+
+    public String getAppLogDirPath() {
+        return appLogDirPath;
+    }
+
+    public String getTempDirPath() {
+        return tempDirPath;
+    }
+
+    public String getJobsDirPath() {
+        return jobsDirPath;
+    }
+    
+    public String getWorkersDirPath() {
+        return workersDirPath;
+    }
+
+    @Override
+    public void setInternalURI(URI u) {
+        for (CommAdaptor adaptor : Comm.getAdaptors().values()) {
+            adaptor.completeMasterURI(u);
+        }
+    }
+
+    @Override
+    public Type getType() {
+        return Type.MASTER;
+    }
+
+    @Override
+    public int compareTo(Resource t) {
+        if (t.getType() == Type.MASTER) {
+            return getName().compareTo(t.getName());
+        } else {
+            return 1;
+        }
+    }
+
+}

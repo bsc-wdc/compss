@@ -1,0 +1,56 @@
+<project name="LoadLevelerAdaptor" default="build" basedir=".">
+    <description>Build file for JavaGAT LoadLeveler Adaptors.</description>
+
+    <property name="gat.location" location="../.." />
+    <property name="engine_path" location="${gat.location}/lib" />
+
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="${gat.location}/lib/adaptors/LoadLevelerAdaptor" />
+    <property name="external" location="external" />
+    <property name="java.debug.value" value="true" />
+
+    <property name="build.sysclasspath" value="ignore"/>
+
+    <path id="external_jars">
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
+	<fileset dir="${engine_path}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <target name="build" depends="clean" description="build the JARs and documentation">
+	<!-- Create the distribution end tmp directory -->
+	<mkdir dir="${lib}" />
+	<mkdir dir="${tmp}" />
+
+	<!-- Compile the java code from ${src} into ${tmp} -->
+	<javac srcdir="${src}" destdir="${tmp}" debug="on">
+	    <classpath refid="external_jars" />
+	</javac>
+
+	<jar jarfile="${lib}/LoadLevelerAdaptor.jar" basedir="${tmp}" includes="**">
+	    <manifest>
+		<attribute name="FileCpi-class" value="org.gridlab.gat.io.cpi.loadleveler.LoadLevelerFileAdaptor" />
+		<attribute name="ResourceBrokerCpi-class" value="org.gridlab.gat.resources.cpi.loadleveler.LoadLevelerResourceBrokerAdaptor" />
+	    </manifest>
+	</jar>
+
+	<!-- Copy external libraries to lib directory -->
+	<copy todir="${lib}">
+	    <fileset dir="${external}">
+		<include name="*.jar" />
+	    </fileset>
+	</copy>
+
+	<delete dir="${tmp}" />
+
+    </target>
+
+    <target name="clean" description="clean up">
+	<delete dir="${tmp}" />
+    </target>
+
+</project>

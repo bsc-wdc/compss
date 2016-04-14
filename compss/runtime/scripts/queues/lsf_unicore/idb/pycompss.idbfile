@@ -1,0 +1,42 @@
+<idb:IDB xmlns:idb="http://www.fz-juelich.de/unicore/xnjs/idb">
+<idb:IDBApplication>
+<idb:ApplicationName>PyCOMPSs</idb:ApplicationName>
+<idb:ApplicationVersion>1.3</idb:ApplicationVersion>
+<idb:Description>PyCOMPSs programming model</idb:Description>
+<jsdl:POSIXApplication xmlns:jsdl="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix">
+<jsdl:Executable>/gpfs/apps/MN3/COMPSs/1.3/Runtime/scripts/queues/lsf_unicore/launch_unicore.sh</jsdl:Executable>
+<jsdl:Argument>$PYCOMPSS_FILE_NAME</jsdl:Argument>
+<jsdl:Argument Default="16">$Tasks_Per_Node</jsdl:Argument>
+<jsdl:Argument Default="0">$Tasks_In_Master</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="scratch gpfs" Default="scratch">$Worker_Working_Dir</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="infiniband ethernet" Default="infiniband">$Network</jsdl:Argument>
+<jsdl:Argument>$Library_Path?</jsdl:Argument>
+<jsdl:Argument>$ClassPath?</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="off info debug" Default="off">$Log_Level</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="true false" Default="false">$Tracing</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="true false" Default="false">$Graph</jsdl:Argument>
+<jsdl:Argument Type="choice" ValidValues="integratedtoolkit.nio.master.NIOAdaptor integratedtoolkit.gat.master.GATAdaptor" Default="integratedtoolkit.nio.master.NIOAdaptor">$Comm</jsdl:Argument>
+<jsdl:Argument Type="filename" Description="PyCOMPSs archive containing the executable code." MimeType="">$PYCOMPSSFILE</jsdl:Argument>
+<jsdl:Argument>$ARGUMENTS?</jsdl:Argument>
+</jsdl:POSIXApplication>
+<idb:PreCommand>source /etc/profile.d/zzz-load-default-modules.sh</idb:PreCommand>
+<idb:PreCommand>source /etc/profile</idb:PreCommand>
+<idb:PreCommand>module load COMPSs/1.3</idb:PreCommand>
+<idb:PreCommand>module load openmpi/1.8.1</idb:PreCommand>
+</idb:IDBApplication>
+
+<idb:IDBApplication>
+<idb:ApplicationName>NeuronsPyCOMPSs</idb:ApplicationName>
+<idb:ApplicationVersion>1.0</idb:ApplicationVersion>
+<idb:Description>Neurons application for PyCOMPSs programming model</idb:Description>
+<jsdl:POSIXApplication xmlns:jsdl="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix">
+<jsdl:Executable>/gpfs/apps/MN3/COMPSs/1.3/Runtime/scripts/queues/lsf_unicore/launch_unicoreApp.sh python /gpfs/projects/bsc19/COMPSs_APPS/neurons/python/neurons_basic /gpfs/projects/bsc19/COMPSs_APPS/neurons/python/neurons_basic/src/ns-data-proc_compss_objects.py</jsdl:Executable>
+<jsdl:Argument Default="1024">$Number_of_fragments</jsdl:Argument>
+<jsdl:Argument Type="filename" Description="Neurons dat file." MimeType="">$NEURONS</jsdl:Argument>
+</jsdl:POSIXApplication>
+<idb:PreCommand>source /etc/profile.d/zzz-load-default-modules.sh</idb:PreCommand>
+<idb:PreCommand>source /etc/profile</idb:PreCommand>
+<idb:PreCommand>module load COMPSs/1.3</idb:PreCommand>
+<idb:PreCommand>module load openmpi/1.8.1</idb:PreCommand>
+</idb:IDBApplication>
+</idb:IDB>

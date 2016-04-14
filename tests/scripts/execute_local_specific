@@ -1,0 +1,52 @@
+#!/bin/bash
+
+  #--------------------------------------------------------------------------------
+  #Set global variables
+  testnum=$1
+  COMPSs_exec=$2
+  comm=$3
+  base_dir=$4
+  COMPSs_log_folder=$5
+  base_log_folder="${base_dir}/logs"
+  exitValue=0
+
+  #--------------------------------------------------------------------------------
+  echo -e "\e[0m"
+  echo -e "\e[34m*******************"
+  echo -e "\e[34m** Testing App $testnum **"
+  echo -e "\e[34m*******************"
+  echo -e "\e[0m"
+
+  if [ $testnum -lt 10 ]; then
+     app_base_dir="${base_dir}/app0$testnum"
+     log_folder="${base_log_folder}/app0$testnum"
+  else 
+     app_base_dir="${base_dir}/app$testnum"
+     log_folder="${base_log_folder}/app$testnum"
+  fi 
+
+  mkdir -p ${log_folder}
+  cd ${app_base_dir}
+  ./execution ${COMPSs_exec} ${comm} ${app_base_dir} ${COMPSs_log_folder} ${log_folder}
+  if [ $? -ne 0 ]; then
+     exitValue=1
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo "   Application Name                                      TEST STATUS"
+     echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[31mERROR"
+  else
+     exitValue=0
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo -e "\e[34m------------------------------------------------------------------------"
+     echo "   Application Name                                      TEST STATUS"
+     echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[32mOK"
+  fi
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------" 
+  echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
+  echo -e "\e[0m"
+
+  #--------------------------------------------------------------------------------
+  #EXIT
+  exit $exitValue
+

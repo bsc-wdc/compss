@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<xsd:element name="Project" type="projectType"/>
+	
+<xsd:complexType name="projectType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+		<xsd:element name="DataNode" type="DataNodeType" minOccurs="0" maxOccurs="unbounded"/>
+		<xsd:element name="Worker" type="workerType" minOccurs="0" maxOccurs="unbounded"/>
+		<xsd:element name="Cloud" type="CloudType" minOccurs="0" maxOccurs="unbounded"/>
+	</xsd:choice>
+</xsd:complexType>
+
+<xsd:complexType name="DataNodeType">
+	<xsd:sequence>
+		<xsd:element name="Protocol" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+		<xsd:element name="User" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+	</xsd:sequence>
+	<xsd:attribute name="Host" type="xsd:string" use="required"/>
+	<xsd:attribute name="Path" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="CloudType">
+	<xsd:sequence>
+		<xsd:element name="InitialVMs" type="xsd:int" minOccurs="0"  maxOccurs="1"/>
+		<xsd:element name="minVMCount" type="xsd:int" minOccurs="0"  maxOccurs="1"/>
+		<xsd:element name="maxVMCount" type="xsd:int" minOccurs="0"  maxOccurs="1"/>
+		<xsd:element name="Provider" type="CloudProviderType" minOccurs="0"  maxOccurs="unbounded"/>
+	</xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="CloudProviderType">
+	<xsd:sequence>
+		<xsd:element name="LimitOfVMs" type="xsd:int" minOccurs="0"  maxOccurs="1"/>
+		<xsd:element name="Property" type="PropertyType" minOccurs="0"  maxOccurs="unbounded"/>
+		<xsd:element name="ImageList" type="imageListType" minOccurs="1"  maxOccurs="1"/>
+		<xsd:element name="InstanceTypes" type="instancesListTypes" minOccurs="1"  maxOccurs="1"/>
+	</xsd:sequence>
+	<xsd:attribute name="name" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="imageListType">
+	<xsd:sequence>
+		<xsd:element name="Image" type="imageType" minOccurs="1"  maxOccurs="unbounded"/>
+	</xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="imageType">
+	<xsd:sequence>
+		<xsd:element name="InstallDir" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="WorkingDir" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="AppDir" type="xsd:string" minOccurs="0"/>
+                <xsd:element name="LibraryPath" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="User" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="CommAdaptor" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="Password" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="Package" type="packageType" minOccurs="0"  maxOccurs="unbounded"/>
+		
+	</xsd:sequence>
+	<xsd:attribute name="name" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="instancesListTypes">
+	<xsd:sequence>
+		<xsd:element name="Resource" type="ResourceType" minOccurs="1"  maxOccurs="unbounded"/>
+	</xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="ResourceType">
+	<xsd:attribute name="name" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+
+<xsd:complexType name="packageType">
+	<xsd:sequence>
+		<xsd:element name="Source" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="Target" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="IncludedSoftware" type="applicationSoftwareType" minOccurs="0"/>
+	</xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="applicationSoftwareType">
+    <xsd:sequence>
+       <xsd:element name="Software" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+</xsd:complexType>
+
+<xsd:complexType name="PropertyType">
+	<xsd:sequence>
+		<xsd:element name="Name" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+		<xsd:element name="Value" type="xsd:string" minOccurs="1"  maxOccurs="1"/>
+	</xsd:sequence>
+	<xsd:attribute name="context" type="xsd:string"/>
+</xsd:complexType>
+
+<xsd:complexType name="workerType">
+	<xsd:sequence>
+		<xsd:element name="InstallDir" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="WorkingDir" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="AppDir" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="LibraryPath" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="User" type="xsd:string" minOccurs="0"/>
+		<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0"/>
+		<xsd:element name="LimitOfJobs" type="xsd:int" minOccurs="0"/>
+		<xsd:element name="MaxClusterSize" type="xsd:int" minOccurs="0"/>
+        <xsd:element name="Adaptors" type="Adaptors" minOccurs="0"/>
+	</xsd:sequence>
+	<xsd:attribute name="Name" type="xsd:string" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="Adaptors">
+	<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="Adaptor" type="Adaptor" />
+	</xsd:sequence>
+</xsd:complexType>
+
+
+<xsd:complexType name="Adaptor">
+    <xsd:all minOccurs="0">
+        <xsd:element name="MinPort" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="MaxPort" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+    </xsd:all>
+    <xsd:attribute ref="name" use="required"/>
+</xsd:complexType>
+
+
+<xsd:attribute name="name">
+    <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="integratedtoolkit.nio.master.NIOAdaptor"/>
+            <xsd:enumeration value="integratedtoolkit.gat.master.GATAdaptor"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:attribute>
+
+</xsd:schema>

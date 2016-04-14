@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <Worker Name="localhost">
+	<InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+	<WorkingDir>/home/jenkins///</WorkingDir>
+	<AppDir>/home/jenkins/jobs/compss_tests/workspace/sources/elasticity/oneProvider/target</AppDir>
+	<User>jenkins</User>
+        <LimitOfTasks>2</LimitOfTasks>
+    </Worker>
+</Project>

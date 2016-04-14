@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs Extrae from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Dependencies/extrae
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs Extrae..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Extrae from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/Dependencies/extrae" ]; then
+      mv /opt/COMPSs/Dependencies/extrae /tmp/COMPSs_extrae.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs Extrae $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_extrae.bkp" ]; then
+      mv /tmp/COMPSs_extrae.bkp /opt/COMPSs/Dependencies/extrae
+    fi
+  fi
+

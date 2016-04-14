@@ -1,0 +1,144 @@
+#!/bin/bash -e
+
+  COMPSs_version=$1
+  distribution=sc
+
+  trunk_rel_path=../../../
+  packages_target=${trunk_rel_path}/builders/packages/
+
+  echo " "
+  echo "* Erasing previous tmp Files..."
+  rm -rf tmp/
+
+  echo " "
+  echo "* Compiling sources..."
+  cd ${trunk_rel_path}
+  mvn -U clean install
+  cd -
+
+  echo " "
+  echo "* Create deployment folders"
+  COMPSs_target=tmp/COMPSs
+  mkdir -p ${COMPSs_target}
+  mkdir -p ${COMPSs_target}/Doc
+  mkdir -p ${COMPSs_target}/Dependencies
+  mkdir -p ${COMPSs_target}/Dependencies/extrae
+  mkdir -p ${COMPSs_target}/Runtime
+  mkdir -p ${COMPSs_target}/Runtime/configuration
+  mkdir -p ${COMPSs_target}/Runtime/scripts
+  mkdir -p ${COMPSs_target}/Runtime/adaptors
+  mkdir -p ${COMPSs_target}/Runtime/connectors
+  mkdir -p ${COMPSs_target}/Runtime/scheduler
+  mkdir -p ${COMPSs_target}/Tools
+  mkdir -p ${COMPSs_target}/Tools/monitor
+  mkdir -p ${COMPSs_target}/Bindings
+  mkdir -p ${COMPSs_target}/Bindings/bindings-common
+
+
+  echo " "
+  echo "* Copy deployment files"
+  #Doc
+  cp -r ${trunk_rel_path}/doc/* ${COMPSs_target}/Doc
+  find ${COMPSs_target}/Doc -name *.html | xargs rm -rf
+  cp ${trunk_rel_path}/changelog ${COMPSs_target}
+  cp ${trunk_rel_path}/LICENSE ${COMPSs_target}
+  cp ${trunk_rel_path}/NOTICE ${COMPSs_target}
+  cp README ${COMPSs_target}
+  cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
+  #Dependencies
+  cp -r ${trunk_rel_path}/dependencies/JAVA_GAT ${COMPSs_target}/Dependencies/
+  cp -r ${trunk_rel_path}/files/paraver ${COMPSs_target}/Dependencies/
+  cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/
+  #Config
+  cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/
+  find ${COMPSs_target}/Runtime/configuration -name src | xargs rm -rf
+  find ${COMPSs_target}/Runtime/configuration -name target | xargs rm -rf
+  find ${COMPSs_target}/Runtime/configuration/ -name pom.xml | xargs rm -f
+  find ${COMPSs_target}/Runtime/configuration/ -name .settings | xargs rm -rf
+  find ${COMPSs_target}/Runtime/configuration/ -name .project | xargs rm -f
+  find ${COMPSs_target}/Runtime/configuration/ -name .classpath | xargs rm -f
+  #Scripts
+  cp -r ${trunk_rel_path}/compss/runtime/scripts/* ${COMPSs_target}/Runtime/scripts/
+  #Adaptors
+  echo "--- Copy adaptors"
+  path_source=${trunk_rel_path}/compss/runtime/adaptors
+  path_target=${COMPSs_target}/Runtime/adaptors
+  adaptors=$(ls ${path_source})
+  for adaptor in $adaptors; do
+    if [ "$adaptor" != "commons" ] && [ "$adaptor" != "pom.xml" ]; then
+      mkdir ${path_target}/$adaptor
+      mkdir ${path_target}/$adaptor/master
+      cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
+      if [ -f ${path_source}/$adaptor/master/properties ]; then
+        cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+      fi
+      if [ -d "${path_source}/$adaptor/worker/" ]; then
+        mkdir ${path_target}/$adaptor/worker
+        cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+      fi
+      if [ -f ${path_source}/$adaptor/worker/properties ]; then
+        cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+      fi
+      if [ -d "${path_source}/$adaptor/scripts/" ]; then
+        mkdir -p ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+        cp -r ${path_source}/$adaptor/scripts/* ${COMPSs_target}/Runtime/scripts/system/adaptors/$adaptor/
+      fi
+    fi
+  done
+  find ${COMPSs_target}/Runtime/adaptors -name pom.xml | xargs rm -f
+  #Connectors
+  echo "--- Copy connectors"
+  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar")
+  for conn in $connectors; do
+    cp -f $conn ${COMPSs_target}/Runtime/connectors/
+  done
+  #Engine
+  cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
+  # TOOLS DEPLOYMENT
+  echo "--- Copy tools"
+  cd tmp/
+  TOMCAT_VER="7.0.65"
+  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  wget $TOMCAT_URL
+  tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
+  cd -
+  mv tmp/apache-tomcat-$TOMCAT_VER ${COMPSs_target}/Tools/monitor/apache-tomcat/
+  rm -rf ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/*
+  rm -f ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/server.xml
+  cp -r ${trunk_rel_path}/compss/tools/monitor/target/*.war ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/
+  cp ${trunk_rel_path}/compss/tools/monitor/target/classes/compss-monitor.conf ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
+  cp ${trunk_rel_path}/compss/tools/monitor/target/classes/server.xml ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
+  cp ${trunk_rel_path}/compss/tools/monitor/target/classes/log4j.properties ${COMPSs_target}/Tools/monitor/
+  #BINDINGS DEPLOYMENT
+  echo "--- Copy bindings-common files"
+  cp -r ${trunk_rel_path}/compss/programming_model/bindings/bindings-common ${COMPSs_target}/Bindings/
+  echo "--- Copy c-binding files"
+  cp -r ${trunk_rel_path}/compss/programming_model/bindings/c ${COMPSs_target}/Bindings/
+  echo "--- Copy python-binding files"
+  cp -r ${trunk_rel_path}/compss/programming_model/bindings/python ${COMPSs_target}/Bindings/
+  #Clean svn files
+  find ${COMPSs_target} -name .svn -print0 | xargs -0 rm -rf  
+
+  #---------------------------------------------------------------------------
+  # Add specific SC install and env files
+  cp install ${COMPSs_target}
+  cp compssenv ${COMPSs_target}
+
+  # Create TAR.GZ
+  echo " "
+  echo "* Packing files..."
+  cd tmp/
+  tar -czf COMPSs_${COMPSs_version}.tar.gz COMPSs
+  cd - 
+
+  # Move to final location  
+  echo " "
+  echo "* Moving package to final location..."
+  mkdir -p ${packages_target}/${distribution} 
+  mv tmp/COMPSs_${COMPSs_version}.tar.gz ${packages_target}/${distribution}
+
+  # Clean COMPSs tmp files
+  echo " "
+  echo "* Cleaning COMPSs tmp files"
+  rm -rf tmp/
+

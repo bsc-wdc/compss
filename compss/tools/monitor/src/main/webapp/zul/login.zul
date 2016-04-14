@@ -1,0 +1,40 @@
+<?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
+<zk>
+	<borderlayout apply="org.zkoss.bind.BindComposer" viewModel="@id('login') @init('com.bsc.compss.ui.Login')">
+		<north border="none" height="125px">
+			<vlayout vflex="1">
+				<include src="/zul/header.zul" />				
+			</vlayout>
+		</north>	
+		<center border="none">
+			<hbox vflex="1" hflex="1" align="center" pack="center" spacing="20px">
+				<vlayout>
+					<window title="COMPSs Monitor Login" border="normal" hflex="min">
+						<vbox hflex="min" align="center">
+							<grid hflex="min">
+								<columns>
+									<column hflex="min" align="right" />
+									<column />
+								</columns>
+								<rows>
+									<row>
+										Username :
+										<textbox id="username" focus="true" width="400px">
+											<attribute name="onOK"><![CDATA[
+						                        Events.sendEvent(new Event("onClick", loginButton, null));
+						                    ]]></attribute>
+										</textbox>
+									</row>
+								</rows>
+							</grid>
+                                                        <label value="Login with the UNIX username or the absolute path of .COMPSs folder you wish to monitor." />
+							<label value="Leave in blank for default configuration values." />
+							<label sclass="warn" value="@load(login.message)" />
+							<button id="loginButton" label="Login" onClick="@command('authenticate', username=username.value)" />
+						</vbox>
+					</window>
+				</vlayout>
+			</hbox>
+		</center>
+	</borderlayout>
+</zk>

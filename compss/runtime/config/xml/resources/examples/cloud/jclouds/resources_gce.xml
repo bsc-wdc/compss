@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceList>
+    <CloudProvider name="google-compute-engine">
+	<Server></Server>
+	<Connector>integratedtoolkit.connectors.jclouds.JClouds</Connector>
+        <ImageList>
+            <Image name="https://www.googleapis.com/compute/v1/projects/GCE-PROJECT-NAME/global/images/IMAGE-NAME">
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43100</MinPort>
+                        <MaxPort>43110</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </ImageList>
+        <CreationTime>120</CreationTime> <!-- In seconds -->
+        <InstanceTypes>
+            <Resource Name="https://www.googleapis.com/compute/v1/projects/GCE-PROJECT-NAME/zones/GCE-ZONE/machineTypes/GCE-VM-TYPE">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>1</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>3.75</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+                <Price>0.085</Price>
+            </Resource>
+        </InstanceTypes>
+    </CloudProvider>
+</ResourceList>

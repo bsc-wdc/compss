@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<Worker Name="bscgrid06.bsc.es">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/localhost/</WorkingDir>
+        </Worker>
+    <Cloud>
+        <InitialVMs>0</InitialVMs>
+        <minVMCount>0</minVMCount>
+        <maxVMCount>2</maxVMCount>
+        <Provider name="google-compute-engine">
+            <LimitOfVMs>3</LimitOfVMs>
+            <Property>
+                <Name>provider</Name>
+                <Value>google-compute-engine</Value>
+            </Property>
+	     <Property>
+                <Name>provider-user-credential</Name>
+		<Value>/PATH/TO/GCE/CREDENTIAL/PROJECT-NAME-CERT-xxxx.json</Value>
+            </Property>
+            <Property>
+                <Name>provider-user</Name>
+                <Value>XXXXXX@developer.gserviceaccount.com</Value>
+            </Property>
+            <Property>
+                <Name>vm-user</Name>
+                <Value>jclouds</Value>
+            </Property>
+	    <Property>
+                <Name>vm-keypair-name</Name>
+                <Value>id_rsa</Value>
+            </Property>
+            <Property>
+                <Name>vm-keypair-location</Name>
+                <Value>/PATH/TO/RSA/KEYS/</Value>
+            </Property>
+	   <Property>
+                <Name>time-slot</Name>
+                <Value>300</Value><!-- secs-->
+            </Property>
+	    <Property>
+                <Name>estimated-creation-time</Name>
+                <Value>100</Value><!-- secs-->
+            </Property> 
+            <ImageList>
+                <Image name="https://www.googleapis.com/compute/v1/projects/PROJECT-NAME/global/images/IMAGE-NAME">
+			<InstallDir>/home/jclouds/COMPSs/Runtime/scripts/system</InstallDir>
+                    	<WorkingDir>/home/jclouds/</WorkingDir>
+			<AppDir>/home/jclouds/</AppDir>
+                    	<User>jclouds</User>
+                    <Package>
+			<Source>/home/rosab/elasticityMultiApp/tgz/elasticityMultiApp.tar.gz</Source>
+                        <Target>/home/jclouds/</Target>
+                    </Package>
+		    <Package>
+                        <Source>/home/rosab/elasticityMultiApp/tgz/COMPSs.tar.gz</Source>
+                        <Target>/home/jclouds/</Target>
+                    </Package>	
+		</Image>
+            </ImageList>
+            <InstanceTypes>
+                <Resource name="https://www.googleapis.com/compute/v1/projects/PROJECT-NAME/zones/GCE-ZONE/machineTypes/GCE-VM-TYPE"/>
+            </InstanceTypes>
+        </Provider>
+    </Cloud>
+</Project>
+

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<groupId>es.bsc.compss.tests</groupId>
+	<artifactId>compss-tests-basic</artifactId>
+	<packaging>pom</packaging>
+    <parent>
+    	<groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+<version>1.4</version>
+        <relativePath>..</relativePath>
+    </parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Tests - Basic</name>
+	<description>COMPSs Framework Tests - Basic Local </description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+		<!-- BLOCK 1 -->
+		<module>01-simple</module>
+		<module>02-basicTypes</module>
+		<module>03-objectTest</module>
+		<module>04-constraintsTest</module>
+		<module>05-priorityTasks</module>
+		<module>06-dataLocality</module>
+		<module>07-sharedDisks</module>
+		<module>08-groupService</module>
+		<module>09-servicesTest</module>
+		<module>10-tracing</module>
+		<module>11-kmeans</module>
+		<module>12-matmul</module>
+		<module>13-sparseLU</module>
+		<!-- module 14 is 14-test_c -->
+		<!-- module 15 is 15-test_python -->
+		<module>16-cache</module>
+		<module>17-errorManagement</module>
+	        <!-- module 18 is 18-basic_python -->
+       	 	<!-- module 19 is 19-advanced_python -->
+        	<!-- module 20 is 20-kmeans_python -->
+		<module>21-concurrent</module>
+		<module>22-advanced_tracing</module>
+	        <!-- Add new modules below. Respect numbering -->
+	</modules>
+</project>

@@ -1,0 +1,731 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_LANGUAGE=java
+DEFAULT_LOG_LEVEL=off
+DEFAULT_LOG_LEVEL_ARGUMENT=debug
+LOG_LEVEL_DEBUG=debug
+LOG_LEVEL_INFO=info
+LOG_LEVEL_OFF=off
+DEFAULT_GRAPH=false
+DEFAULT_GRAPH_ARGUMENT=true
+DEFAULT_TRACING=false
+DEFAULT_TRACING_ARGUMENT=true # 0: activated, 1: basic, 2:advanced
+DEFAULT_MONITORING_INTERVAL=0
+DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
+DEFAULT_TASK_COUNT=50
+DEFAULT_CLASSPATH=$(pwd)
+DEFAULT_LIBRARY_PATH=$(pwd)
+DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
+#DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
+DEFAULT_MASTER_PORT=43000
+DEFAULT_PyOBJECT_SERIALIZE=false
+RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
+
+APPLICATION_ERROR="Error: Application name not provided"
+LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
+JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
+JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+RUNTIME_ERROR="Error running application"
+TMP_FILE_JVM_ERROR="Error: Can't create temporary file for JVM options."
+TRACING_ERROR="Value of option --tracing must be: false, true, basic or advanced"
+
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_opts() {
+/bin/cat <<EOT
+  Tools enablers:
+    --graph=<bool>, --graph, -g             Generation of the complete graph (true/false)
+                                            When no value is provided it is set to ${DEFAULT_GRAPH_ARGUMENT}
+                                            Default: ${DEFAULT_GRAPH}
+    --tracing=<level>, --tracing, -t        Set generation of traces and/or tracing level ( [ true | basic ] | advanced | false)
+                                            True and basic levels will produce the same traces.
+                                            When no value is provided it is set to ${DEFAULT_TRACING_ARGUMENT}
+                                            Default: ${DEFAULT_TRACING}
+    --monitoring=<int>, --monitoring, -m    Period between monitoring samples (milliseconds)
+                                            When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+                                            Default: ${DEFAULT_MONITORING_INTERVAL}
+  Runtime configuration options:
+    --project=<path>                        Path to the project XML file
+                                            Default: ${DEFAULT_PROJECT}
+    --resources=<path>                      Path to the resources XML file
+                                            Default: ${DEFAULT_RESOURCES}
+    --lang=<name>                           Language of the application (java/c/python)
+                                            Default: ${DEFAULT_LANGUAGE}
+    --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
+                                            Default: ${DEFAULT_LOG_LEVEL}
+  Advanced options:
+    --comm=<path>                           Class that implements the adaptor for communications
+                                            Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
+                                            Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+    --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
+                                            Default: Working Directory
+    --classpath=<path>                      Path for the application classes / modules
+                                            Default: Working Directory
+    --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
+                                            Default: User home
+    --uuid=<int>                            Preset an application UUID
+                                            Default: Automatic random generation
+    --master_port=<int>                     Port to run the COMPSs master communications.
+                                            Only for NIO adaptor
+                                            Default: ${DEFAULT_MASTER_PORT}
+    --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
+                                            Default: ${DEFAULT_TASK_COUNT}
+    --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
+                                            Default: None
+    --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
+                                            Default: $DEFAULT_PyOBJECT_SERIALIZE
+
+  Master JVM Options:
+    --Xms<HEAP_SIZE>			    Master JVM initial memory
+					    Default: 
+    --Xmx<HEAP_SIZE>			    Master JVM maximum memory
+					    Default:
+    --Xmn<HEAP_NEWSIZE>			    Master JVM increasing memory size
+					    Default:
+
+
+* Application name:
+    For Java applications:   Fully qualified name of the application
+    For C applications:      Path to the master binary
+    For Python applications: Path to the .py file containing the main program
+
+* Application arguments:
+    Command line arguments to pass to the application. Can be empty.
+
+EOT
+}
+
+usage() {
+  exitValue=$1
+
+  /bin/cat <<EOT
+Usage: $0 [options] application_name application_arguments
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+
+    --opts                                  Show available options
+
+    --version, -v 			    Print COMPSs version
+EOT
+  show_opts
+  exit $exitValue
+}
+
+show_version() {
+  echo "COMPSs version 1.3"
+  echo " "
+}
+
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+
+  echo $error_msg
+  echo " "
+
+  usage 1
+}
+
+# Displays runtime/application errors
+error_msg() {
+  local error_msg=$1
+  
+  # Display error 
+  echo 
+  echo $error_msg
+  echo 
+
+  # Delete tmp dir for initial loggers
+  rm -rf /tmp/$uuid
+  
+  # Exit
+  exit 1
+}
+
+check_env() {
+  #if [ -z "${XML_DIR}" ]; then
+  #  export XML_DIR=$(dirname $0)
+  #fi
+
+  export IT_HOME=$(dirname $0)/../..
+
+  if [ -z "$DEFAULT_PROJECT" ]; then
+    DEFAULT_PROJECT=${IT_HOME}/configuration/xml/projects/project.xml
+  fi
+
+  if [ -z "$DEFAULT_RESOURCES" ]; then
+    DEFAULT_RESOURCES=${IT_HOME}/configuration/xml/resources/resources.xml
+  fi
+
+  if [ -z "${GAT_LOCATION}" ]; then
+    GAT_LOCATION=${IT_HOME}/../Dependencies/JAVA_GAT
+  fi
+
+  if [ -z "${EXTRAE_HOME}" ]; then
+    EXTRAE_HOME=${IT_HOME}/../Dependencies/extrae
+  fi
+
+  if [ -z "${EXTRAE_LIB}" ]; then
+    EXTRAE_LIB=${IT_HOME}/../Dependencies/extrae/lib
+  fi
+
+  if [[ -z "$JAVA_HOME" ]]; then
+    JAVA=java
+  elif [ -f $JAVA_HOME/jre/bin/java ]; then
+    JAVA=$JAVA_HOME/jre/bin/java
+  elif [ -f $JAVA_HOME/bin/java ]; then
+    JAVA=$JAVA_HOME/bin/java
+  else
+    display_error "${JAVA_HOME_ERROR}"
+  fi
+}
+
+get_args() {
+  #Parse COMPSs Options
+  while getopts hvgtmd-: flag; do
+    # Treat the argument
+    case "$flag" in
+      h)
+	# Display help
+	usage 0
+	;;
+      v)
+        # Display version
+        show_version
+        exit
+        ;;
+      g)
+	# Enable graph generation at the end of the execution
+	graph=${DEFAULT_GRAPH_ARGUMENT}
+	;;
+      t)
+	# Enable tracing
+	tracing=${DEFAULT_TRACING_ARGUMENT}
+	;;
+      m)
+	# Enable monitoring with default value
+	monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+	;;
+      d)
+        # Enable debug in log level
+        log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+        ;;
+      -)
+	# Check more complex arguments
+	case "$OPTARG" in
+	  help)
+	    # Display help
+	    usage 0
+	    ;;
+          version)
+            # Show version
+            show_version
+            exit 0
+            ;;
+          opts)
+            # Display help
+            show_opts
+            exit 0
+            ;;
+	  project=*)
+	    # Custom project file
+	    projFile=$(echo $OPTARG | sed -e 's/project=//g')
+	    if [ ! -f $projFile ]; then
+	    	echo "[  WARNING ]: Project XML file '$projFile' could not be found."
+	    fi 
+	    ;;
+	  resources=*)
+	    # Custom resources file
+	    resFile=$(echo $OPTARG | sed -e 's/resources=//g')
+	    if [ ! -f $resFile ]; then
+	    	echo "[ WARNING  ]: Resources XML file '$resFile' could not be found."
+	    fi ;;
+	  lang=*)
+	    # Language selection
+	    lang=$(echo $OPTARG | sed -e 's/lang=//g')
+	    ;;
+          log_level=*)
+            # Enable different log_levels by user selection
+            log_level=$(echo $OPTARG | sed -e 's/log_level=//g')
+            ;;
+          debug*)
+            # Enable debug in log level
+            log_level=${DEFAULT_LOG_LEVEL_ARGUMENT}
+            ;;
+	  graph=*)
+	    # Graph generation at the end of the execution with user option
+	    graph=$(echo $OPTARG | sed -e 's/graph=//g')
+	    ;;
+	  graph*)
+	    # Graph generation at the end of the execution by default arg
+	    graph=${DEFAULT_GRAPH_ARGUMENT}
+	    ;;
+          tracing=*)
+            # Tracing system
+            tracing=$(echo $OPTARG | sed -e 's/tracing=//g')
+            ;;
+          tracing*)
+            # Tracing system
+            tracing=${DEFAULT_TRACING_ARGUMENT}
+            ;;
+	  monitoring=*)
+	    # Value between monitor steps (ms)
+	    monitoring=$(echo $OPTARG | sed -e 's/monitoring=//g')
+	    ;;
+	  monitoring*)
+	    # Value between monitor steps (ms)
+	    monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
+	    ;;
+	  comm=*)
+	    # Communication adaptor main class
+	    comm=$(echo $OPTARG | sed -e 's/comm=//g')
+	    ;;
+	  classpath=*)
+	    # Additional classpath
+	    cp=$(echo $OPTARG | sed -e 's/classpath=//g')
+	    ;;
+	  library_path=*)
+	    # Additional library path
+	    library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
+	    ;;
+          Xms*)
+            # Master JVM option
+            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
+            ;;
+          Xmx*)
+            # Master JVM option
+            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
+            ;;
+          Xmn*)
+            # Master JVM option
+            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
+            ;;
+          base_log_dir=*)
+            # Set a custom base log dir
+            base_log_dir=$(echo $OPTARG | sed -e 's/base_log_dir=//g')
+            ;;
+	  uuid=*)
+            # Preset an Application UUID
+            uuid=$(echo $OPTARG | sed -e 's/uuid=//g')
+            ;;
+          master_port=*)
+            # Preset an Application UUID
+            master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
+            ;;
+          task_count=*)
+            # Maximum task count. Only for bindings
+            task_count=$(echo $OPTARG | sed -e 's/task_count=//g')
+            ;;
+          pythonpath=*)
+            # Additional pythonpath
+            pythonpath=$(echo $OPTARG | sed -e 's/pythonpath=//g')
+            ;;
+          PyObject_serialize=*)
+            # Enable the object to string serialization (only for PyCOMPSs applications)
+            PyObject_serialize=$(echo $OPTARG | sed -e 's/PyObject_serialize=//g')
+            ;;
+	  *)
+	    # Flag didn't match any patern. Raise exception
+	    display_error "Bad argument: $OPTARG"
+	    ;;
+	esac
+	;;
+      *)
+	# Flag didn't match any patern. End of COMPSs flags
+	break
+	;;
+    esac
+  done
+  #Shift COMPSs arguments
+  shift $((OPTIND-1))
+
+  #Parse application name
+  if [[ $# -eq 0 ]]; then
+    display_error "${APPLICATION_ERROR}"
+  else
+    fullAppPath=$1
+    if [ -z "$fullAppPath" ]; then
+      display_error "${APPLICATION_ERROR}"
+    else
+      shift 1
+    fi
+  fi
+
+  #Parse application arguments
+  application_args=$*
+}
+
+check_args() {
+  if [ -z "$projFile" ]; then
+    echo "Using default location for project file: ${DEFAULT_PROJECT}"
+    projFile=${DEFAULT_PROJECT}
+  fi
+
+  if [ -z "$resFile" ]; then
+    echo "Using default location for resources file: ${DEFAULT_RESOURCES}"
+    resFile=${DEFAULT_RESOURCES}
+  fi
+
+  if [ -z "$lang" ]; then
+    lang=${DEFAULT_LANGUAGE}
+  elif [ "$lang" = "java" ]; then
+    lang=java
+  elif [ "$lang" = "c" ]; then
+    lang=c
+  elif [ "$lang" = "python" ]; then
+    lang=python
+  else
+    display_error "${LANGUAGE_ERROR}"
+  fi
+
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_LOG_LEVEL}
+  fi
+
+  if [ -z "$graph" ]; then
+    graph=${DEFAULT_GRAPH}
+  fi
+
+  if [ -z "$tracing" ]; then
+    tracing=0
+  elif [ $tracing == "false" ]; then
+     tracing=0
+  elif [ $tracing == "basic" ] || [ $tracing == "true" ]; then
+    tracing=1
+  elif [ $tracing == "advanced" ]; then
+    tracing=2
+  else
+    display_error "${TRACING_ERROR}"
+  fi
+  if [ $tracing -eq 1 ]; then
+    extraeFile="extrae_basic.xml"
+  elif [ $tracing -eq 2 ]; then
+    extraeFile="extrae_advanced.xml"
+  fi
+  if [ $tracing -gt 0 ]; then
+    export EXTRAE_HOME=${EXTRAE_HOME}
+    export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
+    export EXTRAE_CONFIG_FILE=${IT_HOME}/configuration/xml/tracing/${extraeFile}
+  fi
+
+  if [ -z "$monitoring" ]; then
+    monitoring=${DEFAULT_MONITORING_INTERVAL}
+  else
+    # If monitor as been activated trigger final graph generation and log_level = at least info
+    graph=${DEFAULT_GRAPH_ARGUMENT}
+    if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ] || [ "${log_level}" == "${LOG_LEVEL_OFF}" ]; then
+       log_level=${LOG_LEVEL_INFO}
+    fi
+  fi
+
+  if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
+    itlog4j_file="it-log4j"
+  else
+    itlog4j_file="it-log4j.${log_level}"
+  fi
+
+  if [ -z "$comm" ]; then
+    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
+  fi
+
+  if [ -z "$cp" ]; then
+    cp=${DEFAULT_CLASSPATH}
+    for jar in $(ls ${DEFAULT_CLASSPATH} | grep *.jar); do
+       cp=$cp:${DEFAULT_CLASSPATH}/$jar
+    done
+  else
+    fcp="" 
+    for currcp in ${cp//:/$'\n'}; do
+        if [ ! ${currcp:0:1} == '/' ]; then # Rel paths to abs
+		if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
+			absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
+			file="$(basename "$currcp")"
+			fcp="${fcp}$absdir/$file:"
+		else
+			echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
+		fi
+	else        
+		fcp="${fcp}$currcp:"
+	fi
+    done
+    cp="$fcp"
+    echo "Resolved: $cp"
+  fi          
+        
+  if [ -z "$task_count" ]; then
+    task_count=${DEFAULT_TASK_COUNT}
+  fi
+
+  if [ -z "$library_path" ]; then
+    library_path=${DEFAULT_LIBRARY_PATH}
+  fi
+
+  if [ -z "$uuid" ]; then
+    uuid=$(cat /proc/sys/kernel/random/uuid)
+  fi
+
+  # Options ONLY for PYTHON
+  if [ "$lang" = "python" ]; then
+    if [ -z "$pythonpath" ]; then
+      PYTHONPATH=$PYTHONPATH":$pythonpath"
+    fi
+    export PYTHONPATH
+
+    if [ -z "$PyObject_serialize" ]; then
+      PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
+    fi
+  fi
+}
+
+execute_runtime() {
+  # Create tmp dir for initial loggers configuration
+  mkdir /tmp/$uuid
+
+  # Init COMPSs
+  appName=$(basename "$fullAppPath")
+  echo -e "\n----------------- Executing $appName --------------------------\n"
+  if [ $lang = java ]; then
+    exec_java
+  elif [ $lang = c ]; then
+    exec_c
+  elif [ $lang = python ]; then
+    exec_python
+  fi
+  echo
+  echo ------------------------------------------------------------
+
+  # Delete tmp dir for initial loggers
+  rm -rf /tmp/$uuid
+}
+
+exec_java() {
+  # Export needed variables
+  export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
+
+  # Define command
+  local JAVACMD=$JAVA" \
+    -XX:-UseSplitVerifier \
+    ${jvm_mem_opts} \
+    -XX:+HeapDumpOnOutOfMemoryError \
+    -XX:+PerfDisableSharedMem \
+    -XX:-UsePerfData \
+    -XX:+UseG1GC \
+    -XX:+UseThreadPriorities \
+    -XX:ThreadPriorityPolicy=42 \
+    -classpath ${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH} \
+    -Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file} \
+    -Dit.to.file=false \
+    -Dit.lang=${lang} \
+    -Dit.project.file=${projFile} \
+    -Dit.resources.file=${resFile} \
+    -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd \
+    -Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd \
+    -Dit.appName=${appName} \
+    -Dit.baseLogDir=${base_log_dir} \
+    -Dit.uuid=${uuid} \
+    -Dit.appLogDir=/tmp/${uuid}/ \
+    -Dit.graph=${graph} \
+    -Dit.monitor=${monitoring} \
+    -Dit.tracing=${tracing} \
+    -Dit.script.dir=${IT_HOME}/scripts/system \
+    -Dit.worker.cp=${cp}:${CLASSPATH} \
+    -Dit.comm=${comm} \
+    -Dit.masterPort=${master_port} \
+    -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors \
+    -Dit.gat.broker.adaptor=sshtrilead \
+    -Dit.gat.file.adaptor=sshtrilead"
+
+  if [ $tracing -gt 0 ]; then
+    JAVACMD+=" -agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so"
+    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+  fi
+
+  # Launch application
+  $JAVACMD ${RUNTIME_LOADER} total $fullAppPath $application_args
+  endCode=$?
+  if [ $tracing -gt 0 ]; then
+      unset LD_PRELOAD  # no tracing check because if not set does nothing
+  fi
+  if [ $endCode -ne 0 ]; then
+    error_msg "${RUNTIME_ERROR}"
+  fi
+
+}
+
+exec_c() {
+  # Export needed variables
+  if [ -d ${IT_HOME}/../Bindings/c ]; then
+    local CPP_COMPSS_HOME=${IT_HOME}/../Bindings/c
+    export CPP_PATH=${CPP_COMPSS_HOME}:$cp
+  else
+    export CPP_PATH=$cp
+  fi
+
+  if [ -f ${JAVA_HOME}/jre/lib/amd64/server/libjvm.so ]; then
+    local libjava=${JAVA_HOME}/jre/lib/amd64/server
+  elif [ -f ${JAVA_HOME}/jre/lib/i386/client/libjvm.so ]; then
+    local libjava=${JAVA_HOME}/jre/lib/i386/client
+  else
+    display_error "${JAVA_JRE_ERROR}"
+  fi
+
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib:${IT_HOME}/../Bindings/c/lib
+
+  # Define command
+  local jvm_options_file=$(mktemp)
+  if [ $? -ne 0 ]; then
+    display_error "${TMP_FILE_JVM_ERROR}"
+  fi
+  export JVM_OPTIONS_FILE=${jvm_options_file}
+  /bin/cat >> ${jvm_options_file} << EOT
+#-Xdebug
+#-Xcheck:jni
+#-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
+-XX:-UseSplitVerifier
+${jvm_mem_opts}
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+PerfDisableSharedMem
+-XX:-UsePerfData
+-XX:+UseG1GC
+-XX:+UseThreadPriorities
+-XX:ThreadPriorityPolicy=42
+-Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
+-Dit.to.file=false
+-Dit.lang=${lang}
+-Dit.project.file=${projFile}
+-Dit.resources.file=${resFile}
+-Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
+-Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd
+-Dit.appName=${appName}
+-Dit.constraints.file=$fullAppPath.idl
+-Dit.baseLogDir=${base_log_dir}
+-Dit.uuid=${uuid}
+-Dit.appLogDir=/tmp/${uuid}/
+-Dit.graph=${graph}
+-Dit.monitor=${monitoring}
+-Dit.tracing=${tracing}
+-Dit.script.dir=${IT_HOME}/scripts/system
+-Dit.core.count=${task_count}
+-Dit.worker.cp=${cp}:${CLASSPATH}
+-Dit.comm=${comm}
+-Dit.masterPort=${master_port}
+-Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
+-Dit.gat.broker.adaptor=sshtrilead
+-Dit.gat.file.adaptor=sshtrilead
+EOT
+
+  # Launch application
+  echo -e "\nJVM_OPTION_FILE: $jvm_options_file \n"
+  echo -e "\nIT_HOME: $IT_HOME \n"
+  echo -e "\nArgs: $application_args \n"
+
+  if [ $tracing -gt 0 ]; then
+    /bin/cat >> ${jvm_options_file} << EOT
+-agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so
+EOT
+    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+  fi
+  $fullAppPath $application_args
+  endCode=$?
+  if [ $tracing -gt 0 ]; then
+      unset LD_PRELOAD  # no tracing check because if not set does nothing
+  fi
+  if [ $endCode -ne 0 ]; then
+    error_msg "${RUNTIME_ERROR}"
+  fi
+}
+
+exec_python() {
+  # Export needed variables
+  if [ -d $IT_HOME/../Bindings/python ]; then
+
+    PYCOMPSS_HOME=${IT_HOME}/../Bindings/python
+    export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
+  else
+
+    export PYTHONPATH=$cp:$PYTHONPATH
+  fi
+        # Setup library path
+  if [ -f ${JAVA_HOME}/jre/lib/amd64/server/libjvm.so ]; then
+    local libjava=${JAVA_HOME}/jre/lib/amd64/server
+  elif [ -f ${JAVA_HOME}/jre/lib/i386/client/libjvm.so ]; then
+    local libjava=${JAVA_HOME}/jre/lib/i386/client
+  else
+    display_error "${JAVA_JRE_ERROR}"
+  fi
+
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib
+
+  # Define command
+  local jvm_options_file=`mktemp`
+  if [ $? -ne 0 ]; then
+    display_error "${TMP_FILE_JVM_ERROR}"
+  fi
+  export JVM_OPTIONS_FILE=${jvm_options_file}
+  /bin/cat >> ${jvm_options_file} << EOT
+-XX:-UseSplitVerifier
+${jvm_mem_opts}
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+PerfDisableSharedMem
+-XX:-UsePerfData
+-XX:+UseG1GC
+-XX:+UseThreadPriorities
+-XX:ThreadPriorityPolicy=42
+-Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
+-Dit.to.file=false
+-Dit.lang=${lang}
+-Dit.project.file=${projFile}
+-Dit.resources.file=${resFile}
+-Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
+-Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd
+-Dit.appName=${appName}
+-Dit.baseLogDir=${base_log_dir}
+-Dit.uuid=${uuid}
+-Dit.appLogDir=/tmp/${uuid}/
+-Dit.pythonpath=${pythonpath}
+-Dit.graph=${graph}
+-Dit.monitor=${monitoring}
+-Dit.tracing=${tracing}
+-Dit.script.dir=${IT_HOME}/scripts/system
+-Dit.core.count=${task_count}
+-Dit.worker.cp=${cp}:${CLASSPATH}
+-Dit.comm=${comm}
+-Dit.masterPort=${master_port}
+-Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
+-Dit.gat.broker.adaptor=sshtrilead
+-Dit.gat.file.adaptor=sshtrilead
+EOT
+
+  if [ $tracing -gt 0 ]; then
+    /bin/cat >> ${jvm_options_file} << EOT
+-agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so
+EOT
+    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+  fi
+  # Launch application
+  python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $fullAppPath $application_args
+  endCode=$?
+  if [ $tracing -gt 0 ]; then
+      unset LD_PRELOAD  # no tracing check because if not set does nothing
+  fi
+  if [ $endCode -ne 0 ]; then
+    error_msg "${RUNTIME_ERROR}"
+  fi
+}
+
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+  check_env
+  get_args $*
+  check_args
+  execute_runtime

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<groupId>es.bsc.compss</groupId>
+	<artifactId>compss-trunk</artifactId>
+<version>1.4</version>
+	<packaging>pom</packaging>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Trunk</name>
+	<description>COMPSs Trunk - Framework + Tests</description>
+	<url>http://compss.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+	
+	<!-- PROPERTIES -->
+	<properties>
+<compss.version>1.4</compss.version>
+		
+		<junit.version>4.11</junit.version>
+		
+		<!-- Maven Plugins -->
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>		
+		<maven-shade-plugin.version>2.1</maven-shade-plugin.version>
+		<maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+		<maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+		<maven-war-plugin.version>2.1.1</maven-war-plugin.version>
+		<tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
+		<maven-jaxb2-plugin.version>0.8.0</maven-jaxb2-plugin.version>
+		
+		<!-- Project encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<!-- SOURCE CONTROL MANAGEMENT -->
+        <scm>
+                <connection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk</connection>
+                <developerConnection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk</developerConnection>
+                <url>http://compss.bsc.es/svn/compss/framework/trunk</url>
+        </scm>
+
+        <!-- REPOSITORIES -->
+        <repositories>
+                <repository>
+                        <snapshots>
+                                <enabled>false</enabled>
+                        </snapshots>
+                        <id>central</id>
+                        <name>Central Repository</name>
+                        <url>http://repo1.maven.apache.org/maven2</url>
+                </repository>
+                <repository>
+                        <id>grid-repo</id>
+                        <name>BSC Grid computing and Clusters group</name>
+                        <url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+                </repository>
+        </repositories>
+
+        <pluginRepositories>
+                <pluginRepository>
+                        <releases>
+                                <updatePolicy>never</updatePolicy>
+                        </releases>
+                        <snapshots>
+                                <enabled>false</enabled>
+                        </snapshots>
+                        <id>central</id>
+                        <name>Central Repository</name>
+                        <url>http://repo1.maven.apache.org/maven2</url>
+                </pluginRepository>
+        </pluginRepositories>
+
+        <!-- DISTRIBUTION MANAGEMENT -->
+        <distributionManagement>
+                <repository>
+                        <id>grid-repo</id>
+                        <name>BSC Grid computing and Clusters group</name>
+                        <url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+                </repository>
+        </distributionManagement>    
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>compss</module>
+		<module>tests/sources</module>
+	</modules>
+</project>
+

@@ -1,0 +1,4 @@
+/opt/COMPSs/Tools/monitor/apache-tomcat/conf/context.xml
+/opt/COMPSs/Tools/monitor/apache-tomcat/conf/server.xml
+/opt/COMPSs/Tools/monitor/apache-tomcat/conf/compss-monitor.conf
+/opt/COMPSs/Tools/monitor/log4j.properties

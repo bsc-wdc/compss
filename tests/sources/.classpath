@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="matmul/src"/>
+	<classpathentry kind="src" path="priorityTasks/src"/>
+	<classpathentry kind="src" path="sharedDisks/src"/>
+	<classpathentry kind="src" path="simple/src"/>
+	<classpathentry kind="src" path="sparseLu/src"/>
+	<classpathentry kind="src" path="tracing/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="tracing/bin"/>
+</classpath>

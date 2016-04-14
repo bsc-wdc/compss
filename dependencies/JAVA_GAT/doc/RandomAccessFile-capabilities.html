@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>JavaGAT capabilities: RandomAccessFile</title>
+</head>
+<body>
+<h1>RandomAccessFile adaptors</h1>
+<p>This page shows the capabilities of the adaptors that implement the JavaGAT RandomAccessFile object. The table below shows the status of the adaptor, which can be 'done', 'w.i.p' (work in progress) or 'untested' (coding is done, needs testing). Furthermore you can see the implementation level (the percentage of implemented methods), and you can see the details of which methods are actually implemented. There is also a <a href=#overview>per method overview</a> (which adaptors implement a certain method)</p>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>name</th>
+<th>status</th>
+<th>implemented</th>
+</tr>
+<tr>
+<td>GridFTPRandomAccessFileAdaptor</td>
+<td>done</td>
+<td>93 % [<a href=#GridFTPRandomAccessFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>LocalRandomAccessFileAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#LocalRandomAccessFileAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SftpTrileadRandomAccessFileAdaptor</td>
+<td>done</td>
+<td>93 % [<a href=#SftpTrileadRandomAccessFileAdaptor>details</a>]</td>
+</tr>
+</table>
+<h2><a name=GridFTPRandomAccessFileAdaptor>GridFTPRandomAccessFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GridFTP RandomAccessFile Adaptor implements the RandomAccessFile object using Globus GSIFTP.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>getFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+<tr>
+<td>seek</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getFilePointer</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>skipBytes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>read</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLength</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=LocalRandomAccessFileAdaptor>LocalRandomAccessFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Local RandomAccessFile Adaptor is a simple wrapper around the java.io.RandomAccessFile object.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>getFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+<tr>
+<td>seek</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getFilePointer</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>skipBytes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>read</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>setLength</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SftpTrileadRandomAccessFileAdaptor>SftpTrileadRandomAccessFileAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SftpTrilead RandomAccessFile Adaptor implements the RandomAccessFile object using the SFTP support of the trilead ssh library. Trilead ssh is an open source full java ssh library. On the server side, the 'scp' program must be in the PATH. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>getFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+<tr>
+<td>seek</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getFilePointer</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>length</td>
+<td>-</td>
+</tr>
+<tr>
+<td>skipBytes</td>
+<td>-</td>
+</tr>
+<tr>
+<td>read</td>
+<td>-</td>
+</tr>
+<tr>
+<td>toURI</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>setLength</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+</table>
+<a name=overview><h2>Per Method Overview</h2></a>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<td></td>
+<th>GridF</th>
+<th>Local</th>
+<th>SftpT</th>
+</tr>
+<tr>
+<td>getFile</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>close</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>seek</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getFilePointer</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>write</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>length</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>skipBytes</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>read</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>toURI</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>setLength</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>total</td>
+<td>93 %</td>
+<td>100 %</td>
+<td>93 %</td>
+</tr>
+</table>
+</body>
+</html>

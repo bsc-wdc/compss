@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage ./main_internal_release"
+  echo " "
+
+  exit $exitValue
+}
+
+
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  # baseVersion:	Refers to the main version: v		1.4
+  # Version: 		Refers to the current version: v.month  1.4.2
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  # Get base version from trunk
+  script_dir=$(pwd)/$(dirname $0)
+  trunk_dir=${script_dir}/../../
+  baseVersion=$(cat ${trunk_dir}/pom.xml | grep "compss.version" | tr ">" "\t" | awk {' print $2 '} | tr "<" "\t" | awk {' print $1 '})
+
+  # Compute version
+  month=$(date +"%m")
+  version=${baseVersion}.rc${month}
+
+  # Perform update process
+  commitChanges="false"
+  ./update_trunk_version ${baseVersion} ${version} ${commitChanges}
+  ./update_documentation ${version}
+  ./generate_tag ${version}
+  ./mvn_deploy_tag ${version}
+  ./deploy_tag_to_MN ${version}
+
+  # END
+  echo "ALL SUCCESS!"
+  exit 0
+

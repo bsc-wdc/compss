@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+
+<trace enabled="yes"
+ home="/opt/COMPSs/Dependencies/extrae/"
+ initial-mode="detail"
+ type="paraver"
+ xml-parser-id="Id: xml-parse.c 3682 2015-11-26 14:32:27Z harald $"
+>
+
+  <user-functions enabled="no" list="" exclude-automatic-functions="no">
+  </user-functions>
+
+  <pthread enabled="no">
+    <counters enabled="yes" />
+  </pthread>
+
+  <counters enabled="yes">
+    <cpu enabled="yes" starting-set-distribution="2">
+      <set enabled="yes" domain="all" changeat-time="0">
+        PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_L1_DCM,PAPI_L2_DCM,PAPI_L3_TCM,PAPI_FP_INS
+      </set>
+      <set enabled="yes" domain="all" changeat-time="0">
+        PAPI_TOT_INS,PAPI_TOT_CYC,PAPI_LD_INS,PAPI_SR_INS,PAPI_BR_UCN,PAPI_BR_CN,PAPI_VEC_SP,RESOURCE_STALLS
+        <sampling enabled="no" period="50m">PAPI_TOT_CYC</sampling>
+      </set>
+    </cpu>
+  </counters>
+
+  <storage enabled="no"/>
+
+  <buffer enabled="yes">
+    <size enabled="yes">100000</size>
+    <circular enabled="no"/>
+  </buffer>
+
+  <trace-control enabled="no"/>
+
+  <others enabled="no"/>
+
+  <sampling enabled="no"/>
+
+  <dynamic-memory enabled="no"/>
+
+  <input-output enabled="no"/>
+
+  <merge enabled="no"/> 
+  
+</trace>

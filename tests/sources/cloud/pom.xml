@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<groupId>es.bsc.compss.tests</groupId>
+	<artifactId>compss-tests-cloud</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+                <groupId>es.bsc.compss.tests</groupId>
+		<artifactId>compss-tests</artifactId>
+<version>1.4</version>
+                <relativePath>..</relativePath>
+        </parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Tests - Cloud</name>
+	<description>COMPSs Framework Tests - Cloud</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- PROPERTIES -->
+	<properties>
+                <!-- Cloud settings -->
+                <worker.user>${user.name}</worker.user>
+                <worker.user.home>${user.home}/</worker.user.home>
+                <worker.app.dir>${project.build.directory}/</worker.app.dir>
+                <cloud.owner>jenkins-test</cloud.owner>
+                <cloud.app>${project.name}</cloud.app>
+                <cloud.master.ip>172.16.8.246</cloud.master.ip>
+                <cloud.min.vm>1</cloud.min.vm>
+                <cloud.max.vm>3</cloud.max.vm>
+                <cloud.creation.time>120</cloud.creation.time>
+	</properties>
+    
+	<!-- SUB-MODULES -->
+	<modules>
+		<!-- BLOCK 2 -->
+		<module>1-faultTolerance</module>
+		<module>2-elasticityOneProvider</module>
+		<module>3-elasticityMultiProvider</module>
+		<module>4-elasticityTracing</module>
+	</modules>
+</project>
+ 

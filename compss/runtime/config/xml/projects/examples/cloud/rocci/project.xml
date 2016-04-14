@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <Cloud>
+        <InitialVMs>0</InitialVMs>
+        <minVMCount>0</minVMCount>
+        <maxVMCount>1</maxVMCount>
+        <Provider name="PROVIDERNAME">
+            <LimitOfVMs>1</LimitOfVMs>
+            <Property>
+                <Name>auth</Name>
+                <Value>x509</Value>
+            </Property>
+            <Property>
+                <Name>ca-path</Name>
+                <Value>/etc/grid-security/certificates</Value>
+            </Property>
+            <Property>
+                <Name>user-cred</Name>
+                <Value>/home/user/certs/usercert.pem</Value>
+            </Property>
+            <Property>
+                <Name>password</Name>
+                <Value>MYCERTPASSWORD</Value>
+            </Property>
+            <Property>
+                <Name>owner</Name>
+                <Value>USERNAME</Value>
+            </Property>
+            <Property>
+                <Name>jobname</Name>
+                <Value>MYJOBUUID</Value>
+            </Property>
+         
+             <!-- Optional connector parameters -->
+            <Property>
+                <Name>max-vm-creation-time</Name>
+                <Value>10</Value> <!-- Minutes -->
+
+            </Property>
+            <Property>
+                <Name>max-connection-errors</Name>
+                <Value>15</Value>
+            </Property>
+            <Property>
+                <Name>vm-user</Name>
+                <Value>user</Value>
+            </Property>
+
+            <ImageList>
+                <Image name="VMIMAGENAME">
+                    <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+                    <WorkingDir>/home/user/IT/</WorkingDir>
+                    <User>user</User>
+                    <Package>
+                        <Source>/home/user/apps/APPNAME.tar.gz</Source>
+                        <Target>/home/user/apps</Target>
+                    </Package>
+                </Image>
+            </ImageList>
+            <InstanceTypes>
+                <Resource name="small"/>
+                <Resource name="medium"/>
+                <Resource name="large"/>
+                <Resource name="extra_large"/>
+            </InstanceTypes>
+        </Provider>
+    </Cloud>
+</Project>
+

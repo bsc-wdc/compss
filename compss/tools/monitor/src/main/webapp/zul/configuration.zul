@@ -1,0 +1,72 @@
+<?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
+<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<zk>
+    <window height="100%" border="none" contentStyle="overflow:auto;"
+            apply="org.zkoss.bind.BindComposer"
+            viewModel="@id('cvm') @init('com.bsc.compss.ui.ConfigurationViewModel')">
+		<borderlayout width="100%">
+			<!-- COMPSs Header -->
+			<north border="none" size="20%">
+				<borderlayout>
+					<center border="none">
+						<div>
+							<include src="/zul/header.zul" />		
+						</div>
+					</center>
+					<east border="none" size="20%">
+						<div vflex="1">
+							<include src="/zul/panel.zul" />				
+						</div>
+					</east>
+				</borderlayout>
+			</north>
+	
+	        
+			<!-- Configuration Parameters -->
+			<center border="none">
+				<div vflex="1" hflex="1" align="center">	        
+			        <grid width="40%" model="@bind(cvm.configurations) @template((each.editingStatus) ? 'configParam_editable' : 'configParam_noneditable')" emptyMessage="There are no parameters to configure.">
+						<auxhead>
+							<auxheader label="General Configuration" colspan="3" /> 
+						</auxhead>
+						<auxhead>
+							<auxheader align="center" label="Parameter" />
+							<auxheader align="center" label="Value" />
+							<auxheader align="center" label="Edit" />
+						</auxhead>
+			            <columns visible="false">
+			                <column width="70%"></column>
+			                <column width="15%" align="center"></column>
+			                <column width="15%" align="center"></column>
+			            </columns>
+			            
+			            <template name="configParam_editable">
+			                <row>
+			                	<label value="@load(each.name)" />
+			                	<textbox value="@load(each.value) @save(each.value, before='confirm')" />
+			                	<div>
+			                		<button image="/images/style/confirm.png" onClick="@command('confirm', ConfigParam=each)" />
+			                		<button image="/images/style/discard.png" onClick="@command('changeEditableStatus', ConfigParam=each)" />
+			                	</div>
+			                </row>
+			            </template>
+			            <template name="configParam_noneditable">
+			            	<row>
+			                	<label value="@load(each.name)" />
+			                	<label value="@load(each.value)" />
+								<button image="/images/style/edit.png" onClick="@command('changeEditableStatus', ConfigParam=each)" />
+			                </row>
+			            </template>
+			        </grid>  
+		    	</div>
+			</center>
+			
+			<!-- Footer to go back -->
+			<south border="none" size="20%">
+				<hbox vflex="1" hflex="1" height="20%" align="center" pack="center" spacing="20px">
+					<button label="Back" href="/index.zul" />
+				</hbox>
+			</south>
+		</borderlayout>
+	</window>
+</zk>

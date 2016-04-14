@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+    echo "[  ERROR  ]: Indicate the swarm manager machine name (To know it run 'docker-machine ls, and check for the node with swarm(master) label') as second parameter. For example: 'node1'"
+    exit -1
+fi
+
+(eval $(docker-machine env --swarm $1) ; docker info)

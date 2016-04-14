@@ -1,0 +1,61 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Build instructions ==
+mvn -U clean install                         #Compiles all the application's sources
+                                        
+  ATTENTION: This step is done automatically by running the ./scritps/main script
+
+
+== Execution instructions ==
+          !!! ATTENTION: CONFIGURATION FILES NEED TO BE PERSONALIZED !!!
+                         (SEE Usage-Configuration_files document)
+
+* FOR CLOUD EXECUTION ON JENKINS:
+ ./scripts/main "cloud_jenkins"                 #Executes all tests on all distributions
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH BSCGRID20:
+ ./scripts/main cloud cloud.cfg                 #Executes all cloud tests
+ ./scripts/main cloud_X cloud.cfg               #Executes test cloud number X
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH VPN
+ ./scripts/main cloudvpn cloudvpn.cfg           #Executes all cloud tests
+ ./scripts/main cloudvpn_X cloudvpn.cfg         #Executes test cloud number X
+   ATTENTION: Cloud test number 1 (FaultTolerance) cannot be tested through this mode !!
+
+* FOR LOCAL EXECUTION:
+  ./scripts/main local local.cfg                #Executes all tests on current COMPSs
+  ./scripts/main local_X local.cfg              #Executes test number X on current COMPSs
+
+* FOR DEVELOPPEMENT TESTS EXECUTION:
+./scripts/main devel_FeatureName devel_FN.cfg   #Executes developpement tests on current COMPSs
+
+ NOTE: If your configuration file is stored in ./configurations you can call it only using its name but if it's stored in another location you need to use the absolute path to it.
+
+
+== Result Check instructions ==
+* FOR CLOUD EXECUTION ON JENKINS:
+    Jenkins provides and instense log file.
+    However, to have more information about specific errors check $WORKSPACE/logs folder.
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS:
+    Check the output printed by the execution
+    For further information check $log_folder folder (defined on your configuration file)
+
+* FOR LOCAL EXECUTION:
+    Check ~/${target_base_dir}/logs folder.
+
+* FOR DEVELOPMENT TESTS EXECUTION:
+    Check ~/${target_base_dir}/logs folder.
+
+
+== !!!!!!!!! READ CAREFULLY !!!!!!!!!!!!! ==
+1. The ./scripts/main scripts executes all the needed steps to compile, deploy, run and store logs needed. DO NOT RUN ANY OTHER SCRIPT.
+2. When all tests are finished a result table is shown.
+3. You can find more information about the scpecific workflow of each test at:
+     https://docs.google.com/document/d/14ziDQbh4lEu5fdGUvYo4xwtWQr5Q1XkK7vjZ6_y_HYI
+

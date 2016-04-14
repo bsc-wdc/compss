@@ -1,0 +1,4 @@
+#!/bin/bash
+
+  #Return execution status
+  exit 0

@@ -1,0 +1,408 @@
+#!/bin/bash
+
+  info() {
+     echo "********************************"
+     echo "* Displaying tests information *"
+     echo "********************************"
+     echo "- Usage: ./main <environment> <configuration_file>"
+     echo " "
+     echo "- Available environments:"
+     echo "    - local / local_X"
+     echo "    - devel_Y"
+     echo "    - cloud / cloud_Z"
+     echo "    - cloudvpn"
+     echo " "
+     echo " For further information look the README file or the documentation folder"
+     echo " "
+  }
+
+  numbering() {
+     echo "************************************"
+     echo "* Displaying local tests numbering *"
+     echo "************************************"
+     for entry in $(ls $(pwd)/$(dirname $0)/../sources/basic/); do
+         if [ "$entry" != "pom.xml" ]; then
+            echo "- $entry"
+         fi
+     done
+     echo " "
+     echo " For further information look the README file or the documentation folder"
+     echo " "
+  }
+
+  #-----------------------------------------------------------------------------------------------
+  # GET AND CHECK ENVIRONMENT VALUE
+  environment=$1
+  if [ "${environment}" = "info" ]; then
+     info
+     exit 0
+  fi
+
+  if [ "${environment}" = "numbering" ]; then
+     numbering
+     exit 0
+  fi
+
+  if [ "${environment:0:5}" != "local" ] && [ "${environment:0:5}" != "cloud" ] && [ "${environment:0:5}" != "devel" ]; then
+     echo " "
+     echo "ERROR: BAD ENVIRONMENT PARAMETER."
+     echo " "
+     info
+     exit 1
+  fi
+
+  #-----------------------------------------------------------------------------------------------
+  # EXECUTE TESTS
+  #-----------------------------------------------------------------------------------------------
+
+
+  #-----------------------------------------------------------------------------------------------
+  #LOCAL
+  if [ "${environment:0:5}" == "local" ]; then
+     #Set default environment variables
+     user=$(whoami)
+     if [[ $environment = *_* ]]; then
+        target_base_dir="/home/$user/tests_specific_local"
+     else 
+        target_base_dir="/home/$user/tests_all_local"
+     fi
+     IT_HOME="/opt/COMPSs/Runtime"
+     comm=integratedtoolkit.nio.master.NIOAdaptor
+
+     #Set environment variables from configuration file
+     configuration=$2
+     if [[ $configuration = */* ]]; then
+        source $configuration
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+     else
+        source $(dirname $0)/../configurations/$configuration
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+     fi
+     if [ -z "$JAVA_HOME" ]; then
+        echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
+        exit 1
+     fi 
+
+     #Set the rest of environment variables 
+     source_base_dir="$(pwd)/$(dirname $0)/../sources"
+     COMPSs_log_folder="$HOME/.COMPSs"
+     COMPSs_exec="$IT_HOME/scripts/user/runcompss"
+
+     #Export base variables
+     export IT_HOME=$IT_HOME
+     export JAVA_HOME=$JAVA_HOME
+
+     #Select between one execution or all tests
+     if [[ $environment = *_* ]]; then
+        test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+        #Add 0 on numbers lower than 10
+        if [ $test -lt 10 ]; then
+           test=0$test
+        fi
+
+        #Select appName
+        appName=$(ls ${source_base_dir}/basic/ | grep $test)
+        if [ -z "$appName" ]; then
+           echo "[ERROR] Cannot find source folder"
+           echo "    Allowed folders are: $(ls ${source_base_dir}/basic/)"
+           exit 1
+        fi
+
+        #Compile tests
+        $(dirname $0)/compile_sources_local_specific ${source_base_dir} $appName
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+
+        #Deploy tests
+        $(dirname $0)/deploy_sources_local_specific ${source_base_dir} $appName $test ${target_base_dir}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+     
+        #Erase IT folder
+        echo "---- Erase current .COMPSs folder"
+        rm -rf ${COMPSs_log_folder}
+
+        #Execute tests
+        $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+     else 
+        #Compile tests
+        $(dirname $0)/compile_sources_local ${source_base_dir}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+ 
+        #Deploy tests
+        $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+     
+        # Erase COMPSs log folder
+        echo "---- Erase current .COMPSs folder"
+        rm -rf ${COMPSs_log_folder}
+
+        #Execute tests
+        $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+     fi
+
+     #Exit
+     exit 0
+  fi
+
+  #-----------------------------------------------------------------------------------------------
+  #CLOUD JENKINS
+  if [ "${environment}" = "cloud_jenkins" ]; then
+       # Run cloud test from JENKINS environment
+       
+       #Global exit variable
+       exitValue=0
+
+       #Deploy tests
+       $(dirname $0)/deploy_sources_cloud_jenkins
+       if [ $? -ne 0 ]; then
+          exit 1
+       fi
+
+       #Execute tests
+       $(dirname $0)/execute_cloud_jenkins
+       if [ $? -ne 0 ]; then
+          exitValue=1
+       fi
+
+       #Reset known_hosts state
+       rm -f $HOME/.ssh/known_hosts
+       cp -f $HOME/.ssh/known_hosts.bk $HOME/.ssh/known_hosts
+
+       #Exit
+       exit $exitValue
+   fi
+
+  #-----------------------------------------------------------------------------------------------
+  #CLOUD BSCGRID20
+  if [ "${environment}" = "cloud" ] || [ "${environment:0:6}" = "cloud_" ]; then
+     #Global exit variable
+     exitValue=0
+
+     #Set default environment variables
+     user=$(whoami)
+     bscgrid20_user=user
+     target_base_dir="/home/$user/tests_cloud"
+     IT_HOME="/opt/COMPSs/Runtime"
+     connector_server="https://bscgrid20.bsc.es:11443/"
+     connector_class="integratedtoolkit.connectors.rocci.ROCCI"
+     comm=integratedtoolkit.nio.master.NIOAdaptor
+
+     #Set environment variables from configuration file
+     configuration=$2
+     if [[ $configuration = */* ]]; then
+       source $configuration
+       if [ $? -ne 0 ]; then
+         exit 1
+       fi
+     else
+       source $(dirname $0)/../configurations/$configuration
+       if [ $? -ne 0 ]; then
+         exit 1
+       fi
+     fi
+     if [ -z "$JAVA_HOME" ]; then
+       echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
+       exit 1
+     fi
+
+     #Set the rest of environment variables
+     COMPSs_location="${IT_HOME}/.."
+     COMPSs_exec="${IT_HOME}/scripts/user/runcompss"
+     log_folder="${target_base_dir}/logs"
+     source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
+     cloud_owner="jenkins-test"
+
+     #Export base variables
+     export IT_HOME=$IT_HOME
+     export JAVA_HOME=$JAVA_HOME
+
+     #Compile sources cloud
+     $(dirname $0)/compile_sources_cloud_bscgrid20 ${source_base_dir}
+
+     #Deploy tests
+     $(dirname $0)/deploy_sources_cloud_bscgrid20 ${source_base_dir} ${target_base_dir} ${log_folder} ${cloud_owner} ${connector_server} ${connector_class}
+
+     #Execute tests
+     if [ "${environment}" = "cloud" ]; then
+       num_test="all"
+     else
+       num_test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+     fi
+     $(dirname $0)/execute_cloud_bscgrid20 ${bscgrid20_user} ${COMPSs_location} ${COMPSs_exec} ${comm} ${target_base_dir} ${log_folder} ${num_test}
+     if [ $? -ne 0 ]; then
+       exitValue=1
+     fi
+
+     #Exit
+     exit $exitValue
+  fi
+
+  #-----------------------------------------------------------------------------------------------
+  #CLOUD VPN
+  if [ "${environment:0:8}" = "cloudvpn" ]; then
+     #Global exit variable
+     exitValue=0
+
+     #Set default environment variables
+     user=$(whoami)
+     target_base_dir="/home/$user/tests_cloud_vpn"
+     logs_location="/home/$user"
+     IT_HOME="/opt/COMPSs/Runtime"
+     connector_server="https://bscgrid20.bsc.es:11443/"
+     connector_class="integratedtoolkit.connectors.rocci.ROCCI"
+     comm=integratedtoolkit.nio.master.NIOAdaptor
+
+     #Set environment variables from configuration file
+     configuration=$2
+     if [[ $configuration = */* ]]; then
+       source $configuration
+       if [ $? -ne 0 ]; then
+         exit 1
+       fi
+     else
+       source $(dirname $0)/../configurations/$configuration
+       if [ $? -ne 0 ]; then
+         exit 1
+       fi
+     fi
+     if [ -z "$JAVA_HOME" ]; then
+       echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
+       exit 1
+     fi
+
+     #Set the rest of environment variables
+     COMPSs_location="${IT_HOME}/.."
+     COMPSs_exec="${IT_HOME}/scripts/user/runcompss"
+     source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
+     log_folder="${target_base_dir}/logs"
+     template_id=107
+     vm_type="ubuntu"
+     cloud_owner="jenkins-test"
+     COMPSs_log_folder="$HOME/.COMPSs"
+
+     #Export base variables
+     export IT_HOME=$IT_HOME
+     export JAVA_HOME=$JAVA_HOME
+
+     #Compile sources cloud
+     $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
+
+     #Deploy tests
+     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_class}
+     if [ $? -ne 0 ]; then
+       exit 1
+     fi
+
+     #Get test number to execute
+     if [ "${environment}" = "cloudvpn" ]; then
+       num_test="all"
+     else
+       num_test=$(echo ${environment:9} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+     fi
+     #Check it's not faultTolerance test (not allowed on VPN mode)
+     if [ "${num_test}" = "1" ]; then
+       echo "[ERROR] TEST NUMBER 1 IS NOT ALLOWED ON VPN MODE"
+       exit 1
+     fi
+
+     # Erase COMPSs log folder
+     echo "---- Erase current .COMPSs folder"
+     rm -rf ${COMPSs_log_folder}
+
+     #Execute tests
+     ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${num_test} ${template_id} ${vm_type} ${cloud_owner}
+     if [ $? -ne 0 ]; then
+       exitValue=1
+     fi
+
+     #Exit
+     exit $exitValue
+  fi
+
+  #-----------------------------------------------------------------------------------------------
+  #DEVEL
+  if [ "${environment:0:5}" == "devel" ]; then
+     #Set Default environment variables
+     user=$(whoami)
+     target_base_dir="/home/$user/tests_devel"
+     IT_HOME="/opt/COMPSs/Runtime"
+     java_apps="true" 
+     comm=integratedtoolkit.nio.master.NIOAdaptor
+
+     #Set environment variables from configuration file
+     configuration=$2
+     if [[ $configuration = */* ]]; then
+        source $configuration
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+     else
+        source $(dirname $0)/../configurations/$configuration
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+     fi
+     if [ -z "$JAVA_HOME" ]; then
+        echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
+        exit 1
+     fi
+     
+     #Set the rest of environment variables 
+     source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
+     logs_location="$HOME"
+     COMPSs_log_folder="$HOME/.COMPSs"
+     COMPSs_exec="$IT_HOME/scripts/user/runcompss"
+
+     #Export base variables
+     export IT_HOME=$IT_HOME
+     export JAVA_HOME=$JAVA_HOME
+
+     #Compile tests
+     if [ "$java_apps" == "true" ]; then
+        $(dirname $0)/compile_sources_devel ${source_base_dir}
+        if [ $? -ne 0 ]; then
+           exit 1
+        fi
+     fi 
+
+     #Deploy tests
+     $(dirname $0)/deploy_sources_devel ${source_base_dir} ${target_base_dir}
+     if [ $? -ne 0 ]; then
+        exit 1
+     fi
+
+     # Erase COMPSs log folder
+     echo "---- Erase current COMPSs log folder"
+     rm -rf ${COMPSS_log_folder}
+
+     #Execute tests
+     $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
+     if [ $? -ne 0 ]; then
+        exit 1
+     fi
+
+     #Exit
+     exit 0
+  fi
+
+  #-----------------------------------------------------------------------------------------------
+  # DEFAULT EXIT
+  exit 1
+

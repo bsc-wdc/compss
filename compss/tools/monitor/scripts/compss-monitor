@@ -1,0 +1,165 @@
+#! /bin/sh
+
+configure() {
+  ### Configures the COMPSs Monitor environment ###
+  #Define local variables
+  local configuration_file="compss-monitor.conf"
+
+  #Checking JAVA installation
+  echo "* Checking JAVA Installation..."
+  if [ -z "${JRE_HOME}" ]; then
+    echo "Warning: JRE_HOME not defined"
+    if [ -z "${JAVA_HOME}" ]; then
+      echo "ERROR: JAVA_HOME not defined"
+      echo "  Please define JAVA_HOME or JRE_HOME"
+      exit 1
+    else
+      echo "Info: JAVA_HOME found."
+      echo "  Loading JRE_HOME from JAVA_HOME"
+      JRE_HOME=$JAVA_HOME/jre
+    fi 
+  fi
+  export JRE_HOME
+  echo "   Success"
+
+  #Checking IT_HOME
+  echo "* Checking IT_HOME..."
+  if [ -z "${IT_HOME}" ]; then
+    echo "WARNING: IT_HOME not defined. Trying default location /opt/COMPSs/"
+    if [ -d "/opt/COMPSs/Tools/monitor/apache-tomcat" ]; then
+       export TOMCAT_HOME=/opt/COMPSs/Tools/monitor/apache-tomcat
+    else
+       echo "ERROR: IT_HOME not defined and default location empty"
+       exit 1
+    fi
+  else
+    export TOMCAT_HOME=${IT_HOME}/../Tools/monitor/apache-tomcat
+  fi
+  local configuration_path="${TOMCAT_HOME}/conf/${configuration_file}"
+  echo "   Success"
+
+  #Checking IT_MONITOR
+  echo "* Checking IT_MONITOR..."
+  if [ -z "${IT_MONITOR}" ]; then
+    echo "Warning: IT_MONITOR not defined."
+    if [ -f ${configuration_path} ]; then
+      echo "  Loading from configuration file."
+      varDefinition=$(cat ${configuration_path} | grep "IT_MONITOR")
+      export $varDefinition
+    else
+      echo "Warning: Configuration file not found."
+      echo "  Loading default values"
+      IT_MONITOR=/root/.COMPSs/
+    fi
+  fi
+  echo "     IT_MONITOR=$IT_MONITOR"
+  export IT_MONITOR
+  echo "   Success"
+
+  echo "* Checking COMPSs Monitor Port..."
+  if [ -z "${COMPSs_MONITOR_PORT}" ]; then
+    echo "Warning: COMPSs_MONITOR_PORT not defined."
+    if [ -f ${configuration_path} ]; then
+      echo "  Loading from configuration file."
+      varDefinition=$(cat ${configuration_path} | grep "COMPSs_MONITOR_PORT")
+      export $varDefinition
+    else
+      echo "Warning: Configuration file not found."
+      echo "  Loading default values"
+      COMPSs_MONITOR_PORT=8080
+    fi
+  fi
+  echo "      COMPSs_MONITOR_PORT=$COMPSs_MONITOR_PORT"
+  export COMPSs_MONITOR_PORT
+  echo "   Success"
+
+  echo "* Checking COMPSs Monitor Timeout..."
+  if [ -z "${COMPSs_MONITOR_TIMEOUT}" ]; then
+    echo "Warning: COMPSs_MONITOR_TIMEOUT not defined."
+    if [ -f ${configuration_path} ]; then
+      echo "  Loading from configuration file."
+      varDefinition=$(cat ${configuration_path} | grep "COMPSs_MONITOR_TIMEOUT")
+      export $varDefinition
+    else
+      echo "Warning: Configuration file not found."
+      echo "  Loading default values"
+      COMPSs_MONITOR_TIMEOUT=20000
+    fi
+  fi
+  echo "      COMPSs_MONITOR_TIMEOUT=$COMPSs_MONITOR_TIMEOUT"
+  export COMPSs_MONITOR_TIMEOUT
+  echo "   Success"
+
+  echo "* Configuring COMPSs Monitor service..."
+  BESCONFIG_LOCATION=${TOMCAT_HOME}/../
+  CATALINA_OPTS="-Dlog4j.configuration=file:$BESCONFIG_LOCATION/log4j.properties -DCOMPSs_MONITOR_PORT=$COMPSs_MONITOR_PORT -DCOMPSs_MONITOR_TIMEOUT=$COMPSs_MONITOR_TIMEOUT"
+  export BESCONFIG_LOCATION CATALINA_OPTS
+  PATH=$PATH:/usr/local/bin
+  echo "   Success"
+}
+
+erase() {
+  ### Erases COMPSs Monitor enrionment variables ###
+  unset IT_MONITOR
+  unset TOMCAT_HOME
+  unset COMPSs_MONITOR_PORT
+  unset COMPSs_MONITOR_TIMEOUT
+}
+
+### BEGIN INIT INFO
+# Provides:          monitoring
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: COMPSs Monitor Daemon
+# Description:       COMPSs Monitor Daemon
+### END INIT INFO
+
+# Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
+
+NAME=compss-monitor
+PIDFILE=/var/run/$NAME.pid
+SERVICE=/opt/COMPSs/Tools/monitor/apache-tomcat
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "* Starting COMPSs Monitor"
+    configure
+    sudo -E -H $SERVICE/bin/catalina.sh start
+    ;;
+  stop)
+    echo "* Shutting down COMPSs Monitor"
+    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    ;;
+  restart)
+    echo "* Restarting COMPSs Monitor"
+    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    sleep 4
+    configure
+    sudo -E -H $SERVICE/bin/catalina.sh start
+    ;;
+  reset)
+    echo "* Reset COMPSs Monitor"
+    sudo -E -H $SERVICE/bin/catalina.sh stop > /dev/null 2>&1
+    sleep 4
+    erase
+    configure
+    sudo -E -H $SERVICE/bin/catalina.sh start
+    ;;
+  clean)
+    echo "* Cleaning COMPSs Monitor environment"
+    erase
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME { start | stop | restart | reset | clean }"
+    echo "    If IT_HOME is defined, configuration parameters are taken from \$\{IT_HOME\}/../Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
+    echo "    Otherwise, configuration parameters are taken from /opt/COMPSs/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
+    exit 1
+    ;;
+esac
+
+exit 0
+

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceList>
+    <Resource Name="hostname1.domain.es">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue>Short</Queue>
+            </Host>
+            <Processor>
+                <Architecture>x86_64</Architecture>
+                <Speed>2.5</Speed>
+                <CoreCount>4</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Linux</OSType>
+            </OS>
+            <StorageElement>
+                <Size>250.0</Size>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>4.0</PhysicalSize>
+            </Memory>
+            <ApplicationSoftware>
+                <Software>BLAST</Software>
+            </ApplicationSoftware>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+        	<Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                	<MinPort>43001</MinPort>
+                        <MaxPort>43002</MaxPort>
+                </Adaptor>
+        </Adaptors>
+    </Resource>
+    <Resource Name="hostname2.domain.es">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue>Short</Queue>
+            </Host>
+            <Processor>
+                <Architecture>x86_64</Architecture>
+                <Speed>2.5</Speed>
+                <CoreCount>4</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Linux</OSType>
+            </OS>
+            <StorageElement>
+                <Size>250.0</Size>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>4.0</PhysicalSize>
+            </Memory>
+            <ApplicationSoftware/>
+        </Capabilities>
+        <Requirements/>
+	<Adaptors>
+                <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43003</MinPort>
+                        <MaxPort>43004</MaxPort>
+                </Adaptor>
+        </Adaptors>
+    </Resource>
+</ResourceList>
+

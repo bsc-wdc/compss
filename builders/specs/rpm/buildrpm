@@ -1,0 +1,34 @@
+#!/bin/bash -e
+
+  distribution=$1
+  COMPSs_version=$2
+
+  packages_runtime="compss-engine compss-worker compss-runtime"
+  packages_bindings="compss-bindings-common compss-c-binding compss-python-binding compss-bindings"
+  packages_tools="compss-extrae compss-monitor compss-tools"
+  packages_cloud="compss-cloud"
+  packages="${packages_runtime} ${packages_bindings} ${packages_tools} ${packages_cloud} compss-framework"
+  architectures="x86_64 noarch"
+
+  for pack in $packages; do
+    if [ "$distribution" != "centos" ]; then
+      for arch in $architectures; do
+        echo " "
+        echo " - Building $pack - $arch ..."
+        echo " "
+        cd $pack
+        ./build $distribution $arch $COMPSs_version
+        cd ..
+        echo " "
+      done
+    else
+      echo " "
+      echo " - Building $pack - x86_64 ..."
+      echo " "
+      cd $pack
+      ./build $distribution x86_64 $COMPSs_version
+      cd ..
+      echo " "
+    fi
+  done
+

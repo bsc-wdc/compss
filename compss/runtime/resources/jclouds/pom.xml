@@ -1,0 +1,109 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-jclouds-connector</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-resources</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs jClouds connector</name>
+	<description>COMPSs jClouds Connector</description>
+	<url>http://www.bsc.es</url>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+    
+	<!-- PROPERTIES -->
+	<properties>
+		<jclouds.client.version>0.0.2-SNAPSHOT</jclouds.client.version>
+	</properties>
+
+	<!-- DEPENDENCIES -->
+	<dependencies>
+	  	<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-commons</artifactId>
+			<version>${compss.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc</groupId>
+			<artifactId>jclouds-client</artifactId>
+			<version>${jclouds.client.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+	    </dependency>
+	</dependencies>
+	
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+          						<transformers>
+            						   <!-- Need to make sure jClouds providers play nicely -->
+            							<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+              								<resource>META-INF/services/org.jclouds.apis.ApiMetadata</resource>
+            							</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                                                        <resource>META-INF/services/org.jclouds.providers.ProviderMetadata</resource>
+                                                                </transformer>
+          						</transformers>
+							<finalName>${project.artifactId}</finalName>
+							<filters>
+								<filter>
+									<artifact>*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+										<exclude>META-INF/*.INF</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+	</build>
+</project>

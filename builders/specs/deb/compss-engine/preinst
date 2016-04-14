@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs Runtime Engine from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs Runtime Engine..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Runtime Engine from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/" ]; then
+      mv /opt/COMPSs /tmp/COMPSs.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs Runtime Engine $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs.bkp" ]; then
+      mv /tmp/COMPSs.bkp /opt/COMPSs
+    fi
+  fi
+

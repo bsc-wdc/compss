@@ -1,0 +1,25 @@
+#!/bin/bash -e
+
+  #Get parameters
+  jenkins_job=$1
+  distr=$2
+  release_type=$3
+
+  #---------------------------------------------------------------------------------------------------------------------
+  #Export packages to repository
+  echo -e "\e[0m"
+  echo "************************"
+  echo "*** Export Packages  ***"
+  echo "************************"
+  echo -e "\e[0m"
+  #Export packages
+  echo "--- Exporting packages to repository..."
+  result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${jenkins_job}&distribution=${distr}&type=${release_type}")
+
+  #Check result status
+  if [ "$result" == "DONE"  ]; then
+    echo "      Success"
+    exit 0
+  fi
+  exit 1
+

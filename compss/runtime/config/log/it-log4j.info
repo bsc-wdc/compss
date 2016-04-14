@@ -1,0 +1,113 @@
+#########################################
+###### COMPSs Logger Configuration ######
+#########################################
+
+###### Change default logging level for root: Default = OFF
+log4j.rootLogger=OFF, COMPSs_FILE
+
+
+###### Change default logging for each Runtime Component
+######     log4j.logger.loggerName = Level, Appender
+
+# Integrated Toolkit: Default = INFO
+log4j.logger.integratedtoolkit=INFO, ACON
+log4j.additivity.integratedtoolkit=false
+
+# Loader: Default = INHERITED
+log4j.logger.integratedtoolkit.Loader=INFO, ACON
+log4j.additivity.integratedtoolkit.Loader=false
+
+# Loader Utils: Default = INHERITED
+log4j.logger.integratedtoolkit.LoaderUtils=INFO, COMPSs_FILE
+log4j.additivity.integratedtoolkit.LoaderUtils=false
+
+# API: Default = INHERITED
+log4j.logger.integratedtoolkit.API=, ACON
+log4j.additivity.integratedtoolkit.API=false
+
+# Resources: Default = INFO
+log4j.logger.integratedtoolkit.Resources=INFO, RESOURCES_FILE
+log4j.additivity.integratedtoolkit.Resources=false
+
+# All Components: Default = INFO
+log4j.logger.integratedtoolkit.Components=INFO, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components=false
+
+## Sub-Components: Default = INHERITED
+log4j.logger.integratedtoolkit.Components.TaskProcessor=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskProcessor=false
+
+log4j.logger.integratedtoolkit.Components.TaskDispatcher=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskDispatcher=false
+
+log4j.logger.integratedtoolkit.Components.ResourceManager=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.ResourceManager=false
+
+### Task Processing subcomponents: Default = INHERITED
+log4j.logger.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=false
+
+log4j.logger.integratedtoolkit.Components.TaskProcessor.DataInfoProvider=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskProcessor.DataInfoProvider=false
+
+### Task Dispatching subcomponents: Default = INHERITED
+log4j.logger.integratedtoolkit.Components.TaskDispatcher.TaskScheduler=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskDispatcher.TaskScheduler=false
+
+log4j.logger.integratedtoolkit.Components.TaskDispatcher.JobManager=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskDispatcher.JobManager=false
+
+log4j.logger.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=false
+
+# Connectors: Default = INFO
+log4j.logger.integratedtoolkit.Connectors=INFO, RESOURCES_FILE
+log4j.additivity.integratedtoolkit.Connectors=false
+
+# Connectors Impl: Default = INFO
+log4j.logger.integratedtoolkit.ConnectorsImpl=INFO, COMPSs_FILE
+log4j.additivity.integratedtoolkit.ConnectorsImpl=false
+
+# Worker: Default = OFF
+log4j.logger.integratedtoolkit.Worker=INFO, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Worker=false
+
+# Communication: Default = OFF
+log4j.logger.integratedtoolkit.Communication=INFO, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Communication=false
+
+
+###### Disable all logging for the entire hierarchy
+#log4j.threshold=off 
+
+
+######  Appenders and Layouts
+# ACON: ConsoleAppender, PatternLayout
+log4j.appender.ACON=org.apache.log4j.ConsoleAppender
+log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
+log4j.appender.ACON.layout.ConversionPattern=[%6c{1}]  -  %m%n
+
+# COMPSs_FILE: FileAppender, PatternLayout
+log4j.appender.COMPSs_FILE=org.apache.log4j.FileAppender
+log4j.appender.COMPSs_FILE.append=false
+log4j.appender.COMPSs_FILE.File=${it.appLogDir}/runtime.log
+log4j.appender.COMPSs_FILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.COMPSs_FILE.layout.ConversionPattern=[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n
+
+# RESOURCES_FILE: FileAppender, PatternLayout
+log4j.appender.RESOURCES_FILE=org.apache.log4j.FileAppender
+log4j.appender.RESOURCES_FILE.append=false
+log4j.appender.RESOURCES_FILE.File=${it.appLogDir}/resources.log
+log4j.appender.RESOURCES_FILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.RESOURCES_FILE.layout.ConversionPattern=%m%n
+
+## Syntax
+# - %c : name of logger
+# - %C : name of the class
+# - %L : line number
+# - %m : associated message
+# - %M : method name
+# - %n : platform dependant separator
+# - %r : milliseconds since start of application
+# - %d : date
+

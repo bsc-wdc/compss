@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ $# -lt 4 ]
+then
+echo
+echo "Usage:"
+echo "./pre_instrument.sh app_classpath runtime_inst_dir dest_dir full_class_name method_labels..."
+exit 127
+fi
+
+userDir=~
+scriptDir=`pwd`
+
+appClassPath=$1
+runtimeInstDir=$2
+destDir=$3
+fullAppName=$4
+shift 4
+libDir=$runtimeInstDir/Runtime/
+
+echo -e "\n----------------- Instrumenting $fullAppName --------------------------\n"
+
+cd $destDir
+
+runtimeClassPath=$libDir/compss-engine.jar
+
+java \
+-Dlog4j.configuration=$runtimeInstDir/Runtime/configuration/log/it-log4j.instrument \
+-Dit.to.file=true \
+-classpath $appClassPath:$runtimeClassPath \
+integratedtoolkit.loader.AddOrchestration $fullAppName $@ 
+if [ $? -ne 0 ]; then
+	echo "Error pre-instrumenting class";
+	exit 1;
+fi
+echo
+echo ------------------------------------------------------------

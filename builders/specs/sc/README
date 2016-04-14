@@ -1,0 +1,64 @@
+=============================
+ COMP SUPERSCALAR FRAMEWORK
+=============================
+
+COMP Superscalar (COMPSs) is a programming model which aims to ease the development of applications for distributed infrastructures,
+such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
+applications at execution time.
+
+
+Documentation
+-------------
+COMPSs documentation can be found at http://compss.bsc.es or at the Doc/ folder
+
+  * COMPSs_Installation_Manual.pdf
+
+  * COMPSs_User_Manual_App_Development.pdf
+  * COMPSs_User_Manual_App_Execution.pdf
+
+  * COMPSs_MareNostrum_Manual.pdf
+  * Tracing_Manual.pdf
+
+  * COMPSs_Developer_Manual.pdf
+
+
+Installation
+------------
+1.- Unzip the package
+    $ tar -xvf COMPSs_1.4.tar.gz
+
+2.- Execute the installation script
+    $ cd COMPSs_1.4/; ./install <targetDir>
+
+
+Dependencies
+------------
+In order to successfully run the installation script the following dependencies must be installed:
+- autotools
+- boost
+
+
+Usage
+-----
+To load the COMPSs environment please source the ${COMPSs_INSTALLATION_DIR}/compssenv in the users .bashrc file
+  $ echo "# COMPSs environment" >> ~/.bashrc
+  $ echo "source ${COMPSs_INSTALLATION_DIR}/compssenv" >> ~/.bashrc
+
+To check that your environment has been loaded successfully please run:
+  $ runcompss -v
+
+For further information about how to execute applications please check the COMPSs User Manual available at our
+webpage (http://compss.bsc.es) or under the Doc/ directory.
+ 
+
+Sample Applications
+-------------------
+You can find extended information about COMPSs Sample applications at the Sample_Applications manual available
+at our webpage (http://compss.bsc.es) or at doc/Sample_applications.pdf
+
+
+*************************************
+** Department of Computer Science  **
+** Barcelona Supercomputing Center **
+*************************************
+

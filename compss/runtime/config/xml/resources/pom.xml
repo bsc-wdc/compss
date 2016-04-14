@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-resources-schema</artifactId>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-xml-schemas</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>Resources Schema</name>
+	<description>Resources schema</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+	
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>${maven-jaxb2-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<schemaDirectory>${basedir}</schemaDirectory>
+					<extension>true</extension>
+					<schemaFiles>resource_schema.xsd</schemaFiles>
+					<generateDirectory>${basedir}/src/main/java/</generateDirectory>
+					<generatePackage>integratedtoolkit.types.resources.jaxb</generatePackage>
+					<forceRegenerate>true</forceRegenerate>
+				</configuration>
+			</plugin>
+			
+		</plugins>
+	</build>		
+</project>

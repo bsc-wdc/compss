@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+ 
+	<!-- GENERAL INFORMATION -->
+  	<artifactId>compss-annotations</artifactId>
+  	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+    		<artifactId>compss-pm</artifactId>
+<version>1.4</version>
+    		<relativePath>..</relativePath>
+  	</parent>
+
+
+	<!-- PROJECT INFORMATION -->
+	<name>Programming Model Annotations</name>
+  	<description>COMPSs runtime annotations</description>
+  	<url>http://www.bsc.es</url>
+  
+	<!-- BUILD -->
+  	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+		                </configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

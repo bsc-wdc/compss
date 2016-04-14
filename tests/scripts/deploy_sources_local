@@ -1,0 +1,34 @@
+#!/bin/bash -e
+
+  #Define Global Variables
+  source_base_dir=$1
+  target_base_dir=$2
+
+  #Erase current deployment
+  echo "---- Erasing current deployment"
+  rm -rf ${target_base_dir}
+   
+  #Create new deployment structure
+  echo "---- Creating new deployment structure"
+  mkdir ${target_base_dir}
+  mkdir ${target_base_dir}/apps_basic
+  mkdir ${target_base_dir}/logs
+
+  
+  #TEST BASIC APPS
+  echo "---- Deploying Basic Block Apps"
+  basic_app_folders=$(ls ${source_base_dir}/basic/)
+  counter=1
+  for app in $basic_app_folders; do
+     if [ "$app" != "pom.xml" ]; then
+        if [ $counter -lt 10 ]; then 
+           target="${target_base_dir}/apps_basic/app0$counter"
+        else
+           target="${target_base_dir}/apps_basic/app$counter"
+        fi
+        mkdir $target
+        ${source_base_dir}/basic/$app/deploy "${source_base_dir}/basic/$app" $target
+        counter=$((counter+1))
+     fi
+  done
+

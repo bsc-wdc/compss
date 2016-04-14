@@ -1,0 +1,290 @@
+#!/bin/bash
+
+
+GENERATORS_DIR=$(dirname "$0")/../system/docker/generators
+GENERATE_APP_IMAGE=$GENERATORS_DIR/generate-app-image
+GENERATE_RESOURCES_XML=$GENERATORS_DIR/generate-resources-xml
+GENERATE_PROJECT_XML=$GENERATORS_DIR/generate-project-xml
+GENERATE_COMPOSE_YML=$GENERATORS_DIR/generate-compose-yml
+
+. $GENERATORS_DIR/echo2-function
+
+echo
+
+function showHelp 
+{
+echo -e "\
+::::::::::::::: [  RUNCOMPSS-DOCKER  -  HELP  ] ::::::::::::::::::::::
+
+First of all, remember that in order to use runcompss-docker you must have a working docker swarm,
+and you need to have installed in this computer the docker engine (including docker-machine).
+
+Usage: runcompss-docker --worker-containers=N 
+                        --context-dir='CTX_DIR'
+                        --swarm-manager-name='SM_NAME'
+                        [rest of classic runcompss args]
+                        
+                
+Example: runcompss-docker --worker-containers=5
+                          --context-dir='/home/compss-user/my-app-dir'
+                          --swarm-manager-name='node1'
+                          --classpath=/home/compss-user/my-app-dir/my-app.jar # Here begin classic runcompss arguments...
+                          -d
+                          myPackage.MyApp 3 15
+                          
+Example 2: runcompss-docker --w=2 --c=\$PWD/my-app-dir --s=node1 
+                            --classpath=\$PWD/my-app-dir/my-app.jar -d myPackage.MyApp 2 7
+
+MANDATORY ARGUMENTS:
+ --w, --worker-containers:     Specify the number of worker containers the app will execute on. 
+                               One more container will be created to host the master.
+                                 Example: --worker-containers=2
+
+ --c, --context-dir:           Specify the context directory of the app.
+                               The context directory must contain the needed binaries and input files of the app.
+                                 Example: --context-dir='/home/compss-user/my-app-dir'
+
+ --s, --swarm-manager-name:    Specify the swarm manager machine name.
+                               If you don't know it, you can run 'docker-machine ls'.
+                                 Example: --swarm-manager-name='node1'
+                                
+ --u, --username:              Specify a username of dockerhub, to upload the app image, so the workers can be
+                               able to pull it.
+
+OPTIONAL ARGUMENTS:
+ --n, --no-refresh-app-image:  If this flag is on, the app image won't be uploaded to dockerhub.
+                               Workers won't pull the image either.
+                               Use this flag if the application has not changed since the last running.
+                               The execution will be FASTER.
+  
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+"
+}
+
+function cleanContext 
+{
+    if [ -d "$ABS_CONTEXT" ]
+    then
+        (cd $ABS_CONTEXT ; docker-compose rm -f &> /dev/null)
+        
+        rm $ABS_CONTEXT/Dockerfile &> /dev/null
+        rm $ABS_CONTEXT/docker-compose.yml &> /dev/null
+        rm $ABS_CONTEXT/resources.xml &> /dev/null
+        rm $ABS_CONTEXT/project.xml &> /dev/null
+    fi
+    
+    echo
+}
+
+REFRESH_APP_IMAGES=1  # 0: if nodes have an app-image with the same name, they will use it. 
+                      # 1: nodes will always check if there is a new app-image version uploaded (MUCH SLOWER)
+
+trap "cleanContext ; exit -1" SIGHUP SIGINT SIGTERM EXIT ERR
+
+ALL_ARGS=( "$@" )
+RUNCOMPSS_ARGS=$* # this loop will strip from RUNCOMPSS_ARGS all the runcomps-docker args
+for ARG in "${ALL_ARGS[@]}"
+do
+    # if [ ! -z $(echo $ARG | grep -E "[\-][\-]{0,1}.*(([=].*))?")  ] # Format recognition "--asda=xc2das34"
+    
+    argName="$(echo $ARG | cut -c 3- | cut -d= -f1)"
+    argValue="$(echo $ARG | cut -d= -f2)"
+    
+    RD_GOOD_ARG=0
+    if [ "$argName" = "worker-containers" ] || [ "$argName" = "w" ]; 
+    then     
+        if [ ! -z $(echo $argValue | grep -E "^[1-9][0-9]{0,}$") ]; then
+            NUM_WORKER_CONTAINERS=$argValue
+            RD_GOOD_ARG=1
+        else
+            echo2 "[  ERROR  ]: The --worker-containers argument must be a number >= 1. It's the number of worker containers that runcompss docker will spread across nodes (without taking into account the master container)."
+            echo2 "Run 'runcompss-docker --help' if you need help."
+        fi
+        
+    elif [ "$argName" = "context-dir" ] || [ "$argName" = "c" ];  
+    then
+        if [ -d "$argValue" ]  # If you take out this if, realpath throws an error and runcompss-docker finishes because of the trap.
+        then
+            ABS_CONTEXT=$(realpath "$argValue") 
+            RD_GOOD_ARG=1
+        else
+            ABS_CONTEXT=$argValue
+        fi
+        
+    elif [ "$argName" = "swarm-manager-name" ] || [ "$argName" = "s" ];  
+    then
+        SWARM_MANAGER_MACHINE_NAME="$argValue"
+        RD_GOOD_ARG=1
+        
+    elif [ "$argName" = "username" ] || [ "$argName" = "u" ];   
+    then
+        USERNAME="$argValue"
+        RD_GOOD_ARG=1
+        
+    elif [ "$argName" = "no-refresh-app-image" ] || [ "$argName" = "n" ];   
+    then
+        REFRESH_APP_IMAGES=0
+        RD_GOOD_ARG=1
+    fi
+    
+    if [ "$RD_GOOD_ARG" = "1" ]
+    then # strip it from ALL_ARGS
+        RUNCOMPSS_ARGS=$( echo "$RUNCOMPSS_ARGS" | sed "s|${ARG}||g" )
+    fi
+done
+
+function retrieveResults 
+{
+    echo2 "Retrieving results from master..."
+    echo2 "Extracting results from master container ('$SWARM_MANAGER_MACHINE_NAME') to swarm-manager-machine node... (docker cp)"
+
+    eval $(docker-machine env --swarm $SWARM_MANAGER_MACHINE_NAME)
+    RESULTS_DIR="$(dirname $ABS_CONTEXT)/$(basename $ABS_CONTEXT)-results"
+    rm -rf $RESULTS_DIR &> /dev/null
+    DEBUG_DIR="$RESULTS_DIR/debug"
+    mkdir -p "$DEBUG_DIR"
+    
+    # To get the master container, just check the last created container in swarm-manager, 
+    #  because it's the last one to be created :)
+    #DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | head -n2 | tail -n1 | awk '{print $1}')
+    DOCKER_CONTAINER_MASTER_HASH=$(docker ps -a | grep "$(basename $ABS_CONTEXT)_master" | awk '{print $1}')
+    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:${ABS_CONTEXT}" "${RESULTS_DIR}"
+    docker cp "${DOCKER_CONTAINER_MASTER_HASH}:/root/.COMPSs"  "${DEBUG_DIR}"  &> /dev/null
+    mv "${DEBUG_DIR}/.COMPSs/*" "${DEBUG_DIR}" &> /dev/null; 
+    rm -r "${DEBUG_DIR}/.COMPSs" &> /dev/null
+    
+    if [ ! $?==0 ]; then
+        echo2 "Results could not be retrieved..."
+    fi
+    
+    echo2 "Check the application results in '$RESULTS_DIR'"
+    echo2 "In case you had debug enabled, check: '$DEBUG_DIR'"
+    
+    if [ $?==0 ]; then
+        echo2 "Results successfully retrieved!"
+    else
+        echo2 "Results could not be retrieved..."
+    fi
+}
+
+
+if [ -z $1 ] || [ $1 == "--help" ] || [ $1 == "-h" ]
+then
+    showHelp
+    exit 2
+fi
+
+ALL_GOOD=1
+if [ -z $NUM_WORKER_CONTAINERS ]; then
+    echo2 "[  ERROR  ]: Indicate the number of workers before runcompss args ('--worker-containers=3' for example)"
+    ALL_GOOD=0
+fi
+
+if [ -z $SWARM_MANAGER_MACHINE_NAME ]; then
+    echo2 "[  ERROR  ]: Indicate the swarm manager machine name before runcompss args (To know it run 'docker-machine ls'). ('--swarm-manager-name=master' for example)"
+    ALL_GOOD=0
+fi
+
+if [ -z $ABS_CONTEXT ]; then
+    echo2 "[  ERROR  ]: Indicate the path of the docker context directory before runcompss args ('--context-dir=\"/home/compss-user/my_app\" ')."
+    ALL_GOOD=0
+else
+    if [ ! -d "$ABS_CONTEXT" ]; then
+        echo2 "[  ERROR  ]: The specified context directory '$ABS_CONTEXT' does not exist."
+        ALL_GOOD=0
+    fi
+fi
+
+if [ -z $USERNAME ]; then
+    echo2 "[  ERROR  ]: Indicate your dockerhub username. ('--username=compss-user' for example)."
+    ALL_GOOD=0
+fi
+
+if [ "$ALL_GOOD" = "0" ]
+then
+    #echo2 "[  ERROR  ]: Please, introduce the parameters --worker-containers, --swarm-manager-name, --username and --context-dir, BEFORE runcompss parameters. Maybe you forgot one of them, there is a typo, or you haven't introduced them as the first 4 parameters."
+    echo
+    echo2 "Run 'runcompss-docker --help' if you need help."
+    exit -1
+fi
+    
+    
+# BEFORE CREATING THE APP IMAGE!
+echo2 "Generating resources.xml ..."
+RESOURCES_XML_OUTPUT_FILE="$ABS_CONTEXT/resources.xml"
+$GENERATE_RESOURCES_XML $NUM_WORKER_CONTAINERS  >  $RESOURCES_XML_OUTPUT_FILE 
+echo2 "File resources.xml generated"
+echo2 "Generating project.xml ..."
+PROJECT_XML_OUTPUT_FILE="$ABS_CONTEXT/project.xml"
+$GENERATE_PROJECT_XML $NUM_WORKER_CONTAINERS $ABS_CONTEXT  >  $PROJECT_XML_OUTPUT_FILE
+echo2 "File project.xml generated"
+
+
+echo2 "Creating application image to run on containers..."
+# Create app docker image AND CATCH THE GENERATED IMAGE NAME
+# If there was an older one created, it will be replaced
+CREATED_APP_IMAGE_NAME=$($GENERATE_APP_IMAGE $ABS_CONTEXT $USERNAME) 
+if [ ! $? == 0 ]; then
+    echo2 "There was an error creating the docker app image." 
+    exit -1
+fi 
+echo2 "Application image created."
+
+echo2 "Created app image: '$CREATED_APP_IMAGE_NAME'"
+
+if [[ $REFRESH_APP_IMAGES == 1 ]]
+then
+    echo
+    echo2 "Uploading image to dockerhub, so workers can pull it if they don't have it."
+    echo2 "If workers have the image, you can disable this step using --no-refresh-app-image."
+    echo2 "You will probably have to provide your username, email and password."
+    echo2 "If it is not your first time, docker will detect automatically your configuration, and you just have to press enter."
+        docker login
+        docker push $CREATED_APP_IMAGE_NAME
+    echo2 "Image uploaded"
+    echo
+fi
+
+
+echo2 "Adding to runcompss arguments the --resources and --project, with the auto generated filepaths"
+RUNCOMPSS_ARGS=" --resources=\"$RESOURCES_XML_OUTPUT_FILE\" $RUNCOMPSS_ARGS"
+RUNCOMPSS_ARGS=" --project=\"$PROJECT_XML_OUTPUT_FILE\"  $RUNCOMPSS_ARGS"
+echo2 "'$RUNCOMPSS_ARGS'" 
+echo2 "Paths of resources and project added to runcompss arguments."
+
+
+echo2 "Generating docker-compose.yml file into '$ABS_CONTEXT'..."
+# Create docker-compose.yml
+$GENERATE_COMPOSE_YML $NUM_WORKER_CONTAINERS $ABS_CONTEXT $CREATED_APP_IMAGE_NAME $RUNCOMPSS_ARGS > $ABS_CONTEXT/docker-compose.yml   
+if [ ! $? == 0 ]; then
+    echo "There was an error creating the docker compose yml file." 
+    exit -1
+fi
+
+
+cd $ABS_CONTEXT
+eval $(docker-machine env --swarm $SWARM_MANAGER_MACHINE_NAME)
+if [ $REFRESH_APP_IMAGES == 1 ] 
+then
+    echo2 "Refreshing nodes app images..."
+    docker-compose pull 1>/dev/null
+    echo2 "Worker app images refreshed."
+fi
+
+echo2 "Executing application in swarm manager..."
+
+# RUN APPLICATION !!!!!!!!!!!
+# And in case something fails, retrieve the data/debug files from master ;)
+trap "retrieveResults ; cleanContext ; exit -1" SIGHUP SIGINT SIGTERM EXIT ERR
+docker-compose up            
+
+if [ ! $? == 0 ]; then
+    echo2 "There was an error executing the application. Check the logs or the docker compose output." 
+    exit -1
+fi
+
+#
+
+echo2 "Application finished!"
+
+exit 0

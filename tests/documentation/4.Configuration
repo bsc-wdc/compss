@@ -1,0 +1,94 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Configuration instructions ==
+1. To be able to run all the tests your machine needs to have ALL the packages described on the "Requirements" chapter installed.
+
+2. Your machine needs to add the hosts loopbacks to the /etc/hosts. In order to do this, run the following command as root:
+   $ sudo ./scripts/configure_hosts_insert
+
+ ATTENTION: You only need to run ./configure_hosts_insert once per machine (unless someone updates it).
+
+ You can undo this step and restore your /ets/hosts file running:
+   $ sudo ./scripts/configure_hosts_remove
+
+3. If you pretend to run VPN mode you need:
+   - Install rOcci Client
+   - Configure the bscgrid20-27 VPN
+
+
+== Configure passwordless ssh ==
+This section shows one way to configure the passwordless access to bscgrid20.
+Skip it if you already have passwordless access or you know how to do it.
+
+You only need to execute the following commands on your local machine:
+    $ cd ~/.ssh
+    $ ssh-keygen -t rsa                                    
+       (press enter, enter, enter. Leave all questions empty)
+    $ scp id_rsa.pub ${bscgrid20_user}@bscgrid20.bsc.es:.  
+       (enter your password)
+    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es "cat ~/id_rsa.pub >> ~/.ssh/authorized_keys; rm ~/id_rsa.pub" 
+       (enter your password)
+
+You can check your access by executing the following command:
+    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es
+       (access is granted without asking for any password)
+
+
+== Configure VPN ==
+In the following subsections you can find two ways of configuring your VPN access to bscgrid20-27. It's recommended to use the automatic configuration to avoid multiple csr requests to the bscgrid20 administrator.
+
+In both cases, you need to ask the bscgrid20 administrator to inject your laptop id_dsa.pub key on the jenkins-test's SSH_EXTRA_PUBLIC_KEYS to grant you access to the created VMs.
+
+
+=== Automatic configuration of bscgrid20-27 VPN ===
+This section allows you to enable the bscgrid20-27 VPN using the developper credentials. This credentials are only for developpement purpose and are pre-configured to allow you a easier installation process.
+You can skip this step if you already have the VPN installed.
+   
+INSTALLATION: You only need to execute the following commands as root:
+    $ sudo tar -xvzf ./vpn/bscgrid20.tar.gz -C /etc/openvpn
+    $ sudo tar -xvzf ./vpn/grid-security.tar.gz -C /etc/
+
+TURNING ON VPN:
+    $ sudo sh /etc/openvpn/bscgrid20/on.sh
+
+TURNING OFF VPN:
+    $ sudo sh /etc/openvpn/bscgrid20/off.sh
+
+
+=== Manual configuration of bscgrid20-27 VPN ===
+This section shows one way to configure the bscgrid20-27 VPN manually. It allows you to use your own credentials for bscgrid20-27 but it requires the ca.key (or to ask the bscgrid20-27 administrator for the key signature)
+
+Run the following commands on your local machine to CONFIGURE the VPN:
+    $ sudo tar -xvzf ./vpn/bscgrid20.tar.gz -C /etc/openvpn
+    $ sudo keytool -genkey -alias USERbscgrid20 -keyalg RSA -keystore USERbscgrid20.p12 -storetype pkcs12
+       (Fill some information. Remember PASSWORD)
+    $ sudo openssl pkcs12 -in USERbscgrid20.p12 -nocerts -out USERbscgrid20.key 
+       (Fill all asked fields with PASSWORD)
+    $ sudo openssl req -days 3650 -new -key USERbscgrid20.key -out USERbscgrid20.csr
+       (Fill some information. First one with PASSWORD.)
+    $ sudo openssl x509 -req -days 3650 -in USERbscgrid20.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out USERbscgrid20.crt
+       (You need to ask the bscgrid20-27 administrator for the ca.key)
+    $ sudo echo "PASSWORD" >> pass
+    $ sudo vi bscgrid2XVPN.conf    (change path to your files)
+
+   
+== Configure rOcci client ==
+ rOcci is an external library dependency so for further information you need to check the following URL: https://github.com/EGI-FCTF/rOCCI-cli
+ However, the basic installation for openSuse distribution is described below:
+
+    $ sudo zypper install ruby rubygems ruby-devel openssl-devel gcc gcc-c++
+    $ sudo gem install occi-cli
+    $ wget http://repository.egi.eu/community/software/rocci.cli/4.2.x/releases/sl/6/x86_64/RPMS/occi-cli-4.2.5-2.x86_64.rpm
+    $ sudo rpm -ivh occi-cli-4.2.5-2.x86_64.rpm
+
+ Check your installation with:
+    $ occi -v
+       4.2.5
+ 
+ If you are running a different distribution you can check http://repository.egi.eu/community/software/rocci.cli/4.2.x/releases for different packages
+

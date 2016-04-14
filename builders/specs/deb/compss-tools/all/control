@@ -1,0 +1,8 @@
+Package: compss-tools
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: compss-extrae, compss-monitor
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Tools.

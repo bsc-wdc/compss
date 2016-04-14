@@ -1,0 +1,463 @@
+#!/bin/bash -e
+
+#####################################################################
+# Name:         buildlocal
+# Description:  Script for COMPSs local build
+# Parameters:   
+#		[--monitor]     Enable Monitor installation
+#		[--no-monitor]  Disable Monitor installation
+#		[--bingings]    Enable bindings installation
+#		[--no-bindings] Disable bindings installation
+#		[--tracing]     Enable tracing system installation
+#		[--no-tracing]  Disable tracing system installation
+#		targetDir	COMPSs installation directory
+######################################################################
+
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_MONITOR=true
+DEFAULT_BINDINGS=true
+DEFAULT_TRACING=true
+DEFAULT_TARGET_DIR=/opt/COMPSs
+
+INCORRECT_PARAMETER="Error: No such parameter"
+NO_MONITOR="Warning: No monitor specified. Loading default value"
+NO_BINDINGS="Warning: No bindings specified. Loading default value"
+NO_TRACING="Warning: No tracing specified. Loading default value"
+NO_TARGET_DIR="Warning: No install directory specified. Loading default location"
+
+
+#---------------------------------------------------
+# SET SCRIPT VARIABLES
+#---------------------------------------------------
+scriptDir=$(pwd)/$(dirname $0)
+sourcesDir=$(pwd)/$(dirname $0)/..
+tmpDir=${scriptDir}/tmp
+
+
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+show_opts() {
+/bin/cat <<EOT
+* Options:
+    --help, -h          Print this help message
+
+    --opts              Show available options
+
+    --version, -v       Print COMPSs version
+
+    --monitor		Enable Monitor installation
+    --no-monitor 	Disable Monitor installation
+			Default: ${DEFAULT_MONITOR}
+
+    --bindings		Enable bindings installation
+    --no-bindings       Disable bindings installation
+			Default: ${DEFAULT_BINDINGS}
+
+    --tracing           Enable tracing system installation
+    --no-tracing        Disable tracing system installation
+			Default: ${DEFAULT_TRACING}
+
+* Parameters:
+    targetDir		COMPSs installation directory
+			Default: ${DEFAULT_TARGET_DIR}
+                                            
+EOT
+}
+
+usage() { 
+  exitValue=$1
+  
+  /bin/cat <<EOT
+Usage: $0 [options] targetDir
+EOT
+  show_opts
+  exit $exitValue
+}
+
+show_version() {
+  echo "COMPSs version 1.4"
+  echo " "
+}
+
+# Displays arguments warnings
+display_warning() {
+  local warn_msg=$1
+  echo $warn_msg
+}
+
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+  echo $error_msg
+  
+  echo " "
+  usage 1
+}
+
+
+get_args() {
+  #Parse COMPSs Options
+  while getopts hv-: flag; do 
+    # Treat the argument
+    case "$flag" in
+      h)
+	# Display help
+	usage 0
+	;;
+      v)
+        # Display version
+        show_version
+        exit
+        ;;
+      -)
+	# Check more complex arguments 
+	case "$OPTARG" in
+	  help)
+	    # Display help
+	    usage 0
+	    ;;
+          version)
+            # Show version
+            show_version
+            exit 0
+            ;;
+          opts)
+            # Display help
+            show_opts
+            exit 0
+            ;;
+	  monitor)
+	    # Custom monitor value
+	    monitor=true
+	    ;;
+          no-monitor)
+            # Custom monitor value
+            monitor=false
+            ;;
+          bindings)
+            # Custom bindings value
+            bindings=true
+            ;;
+          no-bindings)
+            # Custom bindings value
+            bindings=false
+            ;;
+          tracing)
+            # Custom tracing value
+            tracing=true
+            ;;
+          no-tracing)
+            # Custom tracing value
+            tracing=false
+            ;;
+	esac
+	;;
+      *)
+	# Flag didn't match any patern. End of COMPSs flags
+	display_error "${INCORRECT_PARAMETER}"
+	break
+	;; 
+    esac
+  done
+  # Shift option arguments
+  shift $((OPTIND-1))
+  
+  # Parse target directory location
+  if [ $# -ne 0 ]; then     
+    targetDir=$1
+  fi
+}
+
+check_args() {
+  if [ -z "$monitor" ]; then
+    display_warning "${NO_MONITOR}"
+    monitor=${DEFAULT_MONITOR}
+  fi
+
+  if [ -z "$bindings" ]; then
+    display_warning "${NO_BINDINGS}" 
+    bindings=${DEFAULT_BINDINGS} 
+  fi
+
+  if [ -z "$tracing" ]; then
+    display_warning "${NO_TRACING}" 
+    tracing=${DEFAULT_TRACING} 
+  fi
+
+  if [ -z "$targetDir" ]; then
+    display_warning "${NO_TARGET_DIR}" 
+    targetDir=${DEFAULT_TARGET_DIR} 
+  fi
+}
+
+warn_and_log_parameters() {
+  # DISPLAY WARNING
+  echo " WARNING: If you want to install COMPSs in a restricted folder"
+  echo "          please run this script with root permissions"
+  echo "    Example: sudo -E ./buildlocal [options] <targetDir>"
+  echo "    !! Remember to export JAVA_HOME on root"
+  sleep 5
+
+  echo "- targetDir  = ${targetDir}"
+  echo "- monitor    = ${monitor}"
+  echo "- bindings   = ${bindings}"
+  echo "- tracing    = ${tracing}"
+  echo "- scriptDir  = ${scriptDir}"
+  echo "- sourceDir  = ${sourcesDir}"
+  echo "- tmpDir     = ${tmpDir}"
+  sleep 5
+}
+
+install() {
+  # COMPILE
+  echo "- Compile sources"
+  cd ${sourcesDir}/compss/
+  mvn -U clean package
+  cd ${scriptDir}
+
+  # COPY TRUNK
+  echo "- Copy trunk to tmpdir"
+  rm -rf ${tmpDir}
+  mkdir -p ${tmpDir}
+  cp ${sourcesDir}/changelog ${tmpDir}
+  cp -r ${sourcesDir}/compss ${tmpDir}
+  cp -r ${sourcesDir}/dependencies ${tmpDir}
+  cp -r ${sourcesDir}/doc ${tmpDir}
+  cp -r ${sourcesDir}/files ${tmpDir}
+  cp ${sourcesDir}/LICENSE ${tmpDir}
+  cp ${sourcesDir}/NOTICE ${tmpDir}
+  cp ${sourcesDir}/pom.xml ${tmpDir}
+  cp ${sourcesDir}/README ${tmpDir}
+  cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
+  find . -name .svn | xargs rm -rf  #Cleans svn files
+
+  # CLEAN TRUNK COMPILATION
+  echo "- Clean sources"
+  cd ${sourcesDir}/compss/
+  mvn -U clean
+  cd ${scriptDir}
+
+  # CREATE TARGET FOLDER
+  echo "- Create target folder"
+  rm -rf ${targetDir}
+  mkdir -p ${targetDir}
+  mkdir -p ${targetDir}/Doc
+  mkdir -p ${targetDir}/Dependencies
+  mkdir -p ${targetDir}/Dependencies/extrae
+  mkdir -p ${targetDir}/Runtime
+  mkdir -p ${targetDir}/Runtime/configuration
+  mkdir -p ${targetDir}/Runtime/scripts
+  mkdir -p ${targetDir}/Runtime/adaptors
+  mkdir -p ${targetDir}/Runtime/connectors
+  mkdir -p ${targetDir}/Runtime/scheduler
+  mkdir -p ${targetDir}/Tools
+  mkdir -p ${targetDir}/Tools/monitor
+  mkdir -p ${targetDir}/Bindings
+  mkdir -p ${targetDir}/Bindings/bindings-common
+
+  # RUNTIME DEPLOYMENT
+  echo "- Copy Runtime deployment files"
+  #Doc
+  echo "--- Copy docs"
+  find ${tmpDir}/doc/ -name *.html | xargs rm -rf
+  cp -r ${tmpDir}/doc/* ${targetDir}/Doc
+  cp ${tmpDir}/changelog ${targetDir}
+  cp ${tmpDir}/LICENSE ${targetDir}
+  cp ${tmpDir}/NOTICE ${targetDir}
+  cp ${tmpDir}/README ${targetDir}
+  cp ${tmpDir}/RELEASE_NOTES ${targetDir}
+
+  #Dependencies
+  echo "--- Copy dependencies"
+  cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
+  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/  
+  if [ "$tracing" == "true" ]; then
+    cd ${tmpDir}/dependencies/extrae
+    ./install ${targetDir}/Dependencies/extrae
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install extrae dependency"
+      exit 1
+    fi
+    cd ${scriptDir}
+  fi
+
+  #Config
+  echo "--- Copy configuration"
+  find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
+  find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
+  find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
+  cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+
+  #Scripts
+  echo "--- Copy scripts"
+  cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
+
+  #Adaptors
+  echo "--- Copy adaptors"
+  find ${tmpDir}/compss/runtime/adaptors -name pom.xml | xargs rm -rf
+  rm -r ${tmpDir}/compss/runtime/adaptors/commons
+  path_source=${tmpDir}/compss/runtime/adaptors
+  path_target=${targetDir}/Runtime/adaptors
+  adaptors=$(ls ${path_source})
+  for adaptor in $adaptors; do
+    mkdir ${path_target}/$adaptor
+    mkdir ${path_target}/$adaptor/master
+    cp ${path_source}/$adaptor/master/*.jar ${path_target}/$adaptor/master
+    if [ -f ${path_source}/$adaptor/master/properties ]; then
+      cp ${path_source}/$adaptor/master/properties ${path_target}/$adaptor/master
+    fi
+    if [ -d "${path_source}/$adaptor/worker/" ]; then
+      mkdir ${path_target}/$adaptor/worker
+      cp ${path_source}/$adaptor/worker/*.jar ${path_target}/$adaptor/worker
+    fi
+    if [ -f ${path_source}/$adaptor/worker/properties ]; then 
+      cp ${path_source}/$adaptor/worker/properties ${path_target}/$adaptor/worker
+    fi
+    if [ -d "${path_source}/$adaptor/scripts/" ]; then
+      mkdir -p ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+      cp -r ${path_source}/$adaptor/scripts/* ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
+    fi
+  done
+
+  #Connectors
+  echo "--- Copy connectors"
+  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")
+  for conn in $connectors; do
+    cp -f $conn ${targetDir}/Runtime/connectors/
+  done
+  #Engine
+  echo "--- Copy engine"
+  cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
+ 
+  # TOOLS DEPLOYMENT
+  echo "- Deploying COMPSs Tools"
+  cd ${tmpDir}
+  TOMCAT_VER="7.0.65"
+  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  wget $TOMCAT_URL
+  tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
+  cd ${scriptDir}
+  mv ${tmpDir}/apache-tomcat-$TOMCAT_VER ${targetDir}/Tools/monitor/apache-tomcat/
+  rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
+  rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
+  cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
+  cp ${tmpDir}/compss/tools/monitor/target/classes/log4j.properties ${targetDir}/Tools/monitor/
+
+  #BINDINGS DEPLOYMENT
+  if [ "${bindings}" == "true" ]; then
+    echo "- Deploying bindings-common files"
+    cd ${tmpDir}/compss/programming_model/bindings/bindings-common
+    ./install_common ${targetDir}/Bindings/bindings-common
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install bindings-common"
+      exit 1
+    fi
+
+    echo "- Deploying c-binding files"
+    cd ${tmpDir}/compss/programming_model/bindings/c
+    ./install ${targetDir}/Bindings/c
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install C-binding"
+      exit 1
+    fi
+    mkdir -p ${targetDir}/Runtime/scripts/system/c/
+    cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
+    cp ./buildapp ${targetDir}/Runtime/scripts/user/
+
+    echo "- Deploying python-binding files"
+    cd ${tmpDir}/compss/programming_model/bindings/python
+    ./install ${targetDir}/Bindings/python
+    if [ $? -ne 0 ]; then
+      echo "ERROR: Failed to install Python-binding"
+      exit 1
+    fi
+    cd ${scriptDir}
+  fi
+
+  # ADD RUNCOMPSS TO PROFILE
+  if [ "$(whoami)" == "root" ]; then
+    # Script has been run as sudo
+    # Insert to profile
+    envFile=/etc/profile.d/compss.sh
+    # Remove any previous version
+    if [ -f "$envFile" ]; then
+      rm $envFile
+    fi 
+  else
+    # Script has been run as normal user
+    # Insert to .bashrc
+    envFile=~/.bashrc
+    # Launch warning
+    echo " "
+    echo "***************************************************************************"
+    echo "* WARNING: Script is not running as sudo. Inserting COMPSs env at .bashrc *"
+    echo "*          COMPSs WILL ONLY BE AVAILABLE FOR USER: $(whoami)              *"
+    echo "***************************************************************************"
+  fi
+
+  echo " - Adding runcompss to profile..."
+  echo "# COMPSs environment variables" >> $envFile
+  echo "export PATH=\$PATH:${targetDir}/Runtime/scripts/user" >> $envFile
+  echo " - Runcompss added to user profile"
+  echo " "
+  echo " - Adding compss-engine.jar to profile..."
+  echo "export CLASSPATH=\$CLASSPATH:${targetDir}/Runtime/compss-engine.jar" >> $envFile
+  echo " - compss-engine.jar added to user profile"
+  echo " "
+  if [ "$bindings" == "true" ]; then
+    echo " - Adding c-binaries to profile..."
+    echo "export PATH=\$PATH:${targetDir}/Bindings/c/bin" >> $envFile
+    echo " - c-binaries added to user profile"
+    echo " "
+    echo " - Adding PyCOMPSs to user profile..."
+    echo "export PYTHONPATH=\$PYTHONPATH:${targetDir}/Bindings/python/" >> $envFile
+    echo " - PyCOMPSs added to user profile"
+    echo " "
+  fi
+
+  # ADD MONITOR SCRIPT TO ETC
+  if [ "$monitor" == "true" ]; then 
+    echo "- Add monitor script to init.d"
+    sudo cp ${tmpDir}/compss/tools/monitor/scripts/compss-monitor /etc/init.d/compss-monitor
+    sudo chmod 755 /etc/init.d/compss-monitor
+
+    system=$(which chkconfig)
+    if [ $? -eq 0 ]; then
+      # Suse based distrs
+      sudo chkconfig --add compss-monitor
+    else 
+      # Debian based distrs
+      sudo update-rc.d compss-monitor defaults
+    fi
+  fi
+ 
+  # ERASE TMP FILES
+  echo "- Erase tmp files"
+  rm -rf ${tmpDir}
+
+  # SET TARGETDIR PERMISSIONS
+  echo "- Set COMPSs permissions"
+  chmod 755 -R ${targetDir}
+  chmod 777 -R ${targetDir}/Runtime/configuration/
+}
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+  get_args $*
+  check_args
+  warn_and_log_parameters
+  install
+
+  # END
+  echo "Congratulations!"
+  echo "COMPSs Runtime Successfully installed!"
+  echo " "
+  exit 0
+

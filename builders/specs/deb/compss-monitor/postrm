@@ -1,0 +1,64 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "remove" ]; then
+    # Remove software
+    update-rc.d -f compss-monitor remove
+    rm -rf /opt/COMPSs/Tools/monitor
+    echo " "
+    echo " * COMPSs Monitor Tool successfully removed"
+    echo " "
+  elif [ "$action" == "purge" ]; then
+    # Purge config files
+    update-rc.d -f compss-monitor remove
+    rm -rf /opt/COMPSs/Tools/monitor
+    echo " "
+    echo " * COMPSs Monitor Tool successfully purged"
+    echo " "
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade software
+    newversion=$2
+    update-rc.d -f compss-monitor remove
+    rm -rf /opt/COMPSs/Tools/monitor
+    echo " "
+    echo " * COMPSs Monitor Tool upgraded to $newversion"
+    echo " "
+  elif [ "$action" == "disappear" ]; then
+    # Disappear
+    overwriter=$2
+    overwriterversion=$3
+    update-rc.d -f compss-monitor remove
+    rm -rf /opt/COMPSs/Tools/monitor
+    echo " "
+    echo " * COMPSs Monitor Tool diappeared due to $overwriter - $overwriterversion"
+    echo "   Please, reinstall COMPSs Monitor Tool if needed"
+    echo " "
+  elif [ "$action" == "failed-upgrade" ]; then
+    # Revert on failed upgrade
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Monitor Tool upgrade failed. Reverting to $oldversion"
+    echo " "
+  elif [ "$action" == "abort-install" ]; then
+    if [ $# -eq 1 ]; then
+      # Abort generic installation
+      echo " "
+      echo " * COMPSs Monitor Tool installation aborted. Please check errors above."
+      echo " "
+    else
+      # Abort reverting to previous version
+      oldversion=$2
+      echo " "
+      echo " * COMPSs Monitor Tool installation aborted. Please check errors above."
+      echo "   Reverting to version $oldversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Abort upgrade reverting to previous version
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Monitor Tool upgrade aborted. Please check errors above."
+    echo "   Reverting to version $oldversion"
+    echo " "
+  fi

@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+  #Obtain parameters
+  output_file=$1 
+  target_log_folder=$2
+  cExpected=$3
+  cGot=$4
+  
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f ${output_log} ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 ${output_file})
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        exit 1
+     fi
+  else
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     exit 1
+  fi
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  result=$(diff $cExpected $cGot)
+
+  # Report result status
+  if [ -n "$result" ]; then
+    echo "[ERROR] The C matrix generated is different than the expected one." | tee -a ${output_file}
+    exit 1
+  fi
+  
+  exit 0

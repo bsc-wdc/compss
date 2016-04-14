@@ -1,0 +1,9 @@
+Package: compss-extrae
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: compss-engine, openjdk-7-jre, automake, libtool, libboost-serialization-dev, libboost-iostreams-dev, gfortran
+Suggests: papi-tools
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: Extrae trace extraction tool.

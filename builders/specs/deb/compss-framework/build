@@ -1,0 +1,59 @@
+#!/bin/bash -e
+
+  distribution=$1
+  arch=$2
+  COMPSs_version=$3
+
+  release_types="unstable testing stable"
+  trunk_rel_path=../../../../
+  packages_target=${trunk_rel_path}/builders/packages/
+  PKGNAME=$(cat $arch/control | grep 'Package:' | tail -n 1 | cut -d ":" -f2- | cut -d " " -f2-)
+
+  echo " "
+  echo "* Erasing previous tmp Files..."
+  rm -rf tmp/
+
+  for rt in ${release_types}; do
+    echo " "
+    echo "* Creating package structure for ${rt}..."
+    mkdir -p tmp/DEBIAN
+    chmod 755 .
+    cp $arch/control tmp/DEBIAN/control
+    cp compat tmp/DEBIAN/compat
+    cp conffiles tmp/DEBIAN/conffiles
+    cp preinst tmp/DEBIAN/preinst
+    cp postinst tmp/DEBIAN/postinst
+    cp prerm tmp/DEBIAN/prerm
+    cp postrm tmp/DEBIAN/postrm
+    PKGVERSION=${COMPSs_version}.${distribution}
+    if [ "$rt" != "stable" ]; then
+      PKGVERSION="${COMPSs_version}.${distribution}-${rt}"
+    fi
+    sed -i '/Version:/cVersion: '${PKGVERSION}'' tmp/DEBIAN/control
+
+    echo "  * Generating md5sums file..." 
+    cd tmp/
+    files=$(find . -type f | grep -v DEBIAN | cat)
+    if [ "${files}" != "" ]; then
+      md5sum ${files} > DEBIAN/md5sums
+    else 
+      touch DEBIAN/md5sums
+    fi
+    cd ../
+    echo Installed-Size: $(du tmp/ | tail -1 | awk '{print $1}') >> tmp/DEBIAN/control
+
+    echo "  * Generating DEB package..."
+    dpkg -b tmp ${PKGNAME}_${PKGVERSION}_${arch}.deb
+    if [ $? -ne 0 ]; then
+      echo "Error creating deb package"
+      exit 1
+    fi
+
+    echo "  * Cleaning all tmp files..."
+    rm -rf tmp
+
+    echo "  * Moving built DEB package to final location..."
+    mkdir -p ${packages_target}/${distribution}/$PKGNAME 
+    mv ${PKGNAME}_${PKGVERSION}_${arch}.deb ${packages_target}/${distribution}/$PKGNAME
+  done
+

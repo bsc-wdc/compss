@@ -1,0 +1,626 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>JavaGAT capabilities: ResourceBroker</title>
+</head>
+<body>
+<h1>ResourceBroker adaptors</h1>
+<p>This page shows the capabilities of the adaptors that implement the JavaGAT ResourceBroker object. The table below shows the status of the adaptor, which can be 'done', 'w.i.p' (work in progress) or 'untested' (coding is done, needs testing). Furthermore you can see the implementation level (the percentage of implemented methods), and you can see the details of which methods are actually implemented. There is also a <a href=#overview>per method overview</a> (which adaptors implement a certain method)</p>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>name</th>
+<th>status</th>
+<th>implemented</th>
+</tr>
+<tr>
+<td>LocalResourceBrokerAdaptor</td>
+<td>done</td>
+<td>60 % [<a href=#LocalResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GlobusResourceBrokerAdaptor</td>
+<td>done</td>
+<td>60 % [<a href=#GlobusResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>WSGT4newResourceBrokerAdaptor</td>
+<td>done</td>
+<td>60 % [<a href=#WSGT4newResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SshTrileadResourceBrokerAdaptor</td>
+<td>done</td>
+<td>60 % [<a href=#SshTrileadResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>CommandlineSshResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#CommandlineSshResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GT42ResourceBrokerAdaptor</td>
+<td>done</td>
+<td>60 % [<a href=#GT42ResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GliteResourceBrokerAdaptor</td>
+<td>done</td>
+<td>40 % [<a href=#GliteResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GridSAMResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#GridSAMResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>KoalaResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#KoalaResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>LocalQResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#LocalQResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SgeResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#SgeResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SshPbsResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#SshPbsResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SshSgeResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#SshSgeResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>UnicoreResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#UnicoreResourceBrokerAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>ZorillaResourceBrokerAdaptor</td>
+<td>done</td>
+<td>20 % [<a href=#ZorillaResourceBrokerAdaptor>details</a>]</td>
+</tr>
+</table>
+<h2><a name=LocalResourceBrokerAdaptor>LocalResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Local ResourceBroker Adaptor implements the ResourceBroker using the Java ProcessBuilder facility.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=GlobusResourceBrokerAdaptor>GlobusResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Globus ResourceBroker Adaptor implements the ResourceBroker object for Globus (non-ws).<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=WSGT4newResourceBrokerAdaptor>WSGT4newResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The WSGT4new ResourceBroker Adaptor implements the ResourceBroker object for Globus-4.0 WS.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=SshTrileadResourceBrokerAdaptor>SshTrileadResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SshTrilead ResourceBroker Adaptor implements the ResourceBroker object using the trilead ssh library. Trilead ssh is an open source full java ssh library. The ssh trilead ResourceBroker adaptor can only submit to single machines, however if you invoke a command like 'qsub' on a headnode, it might result in an application running on multiple machines. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=CommandlineSshResourceBrokerAdaptor>CommandlineSshResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The CommandlineSsh ResourceBroker Adaptor implements the ResourceBroker object using ssh commands.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=GT42ResourceBrokerAdaptor>GT42ResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GT42 ResourceBroker Adaptor implements the ResourceBroker object on Globus 4.2 WS.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=GliteResourceBrokerAdaptor>GliteResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Glite Resourcebroker Adaptor implements the ResourceBroker for gLite WMS job submission.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>findResources</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=GridSAMResourceBrokerAdaptor>GridSAMResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Gridsam ResourceBroker Adaptor implements the ResourceBroker object on Gridsam.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=KoalaResourceBrokerAdaptor>KoalaResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Koala ResourceBroker Adaptor implements the ResourceBroker object on the Koala distributed scheduler.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=LocalQResourceBrokerAdaptor>LocalQResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The LocalQ ResourceBroker Adaptor implements the ResourceBroker object using the Java ProcessBuilder facility, but in contrast with the Local ResourceBroker Adaptor, this one has a job queue and can run a number of jobs simultaneously, see the localq.max.concurrent.jobs preference.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=SgeResourceBrokerAdaptor>SgeResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: This ResourceBroker uses the DRMAA interface to speak to the Sun Grid Engine. It can only be used on a machine, that has SGE installed. There might be link problems using this adaptor, because the adaptor depends on the SGE installation. In particular, the drmaa.jar that's included in the source (adaptors/Sge/external/drmaa.jar) should be compatible with the $SGE_ROOT/lib/$ARCH/libdrmaa.so, which means that they should be compiled for the same java version (also the 32/64 bit should be equal). Furthermore, this adaptor only works if it's executed using the same java version as the one used for compiling drmaa.jar. A small note about the arguments of the executable: the SGE adaptor automatically puts quotes around each argument.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=SshPbsResourceBrokerAdaptor>SshPbsResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: not available<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=SshSgeResourceBrokerAdaptor>SshSgeResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: not available<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=UnicoreResourceBrokerAdaptor>UnicoreResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Unicore ResourceBroker Adaptor implements the ResourceBroker object on Unicore 6.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<h2><a name=ZorillaResourceBrokerAdaptor>ZorillaResourceBrokerAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Zorilla ResourceBroker Adaptor implements the ResourceBroker object on the Zorilla P2P system.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>-</td>
+<td>endMultiJob</td>
+</tr>
+<tr>
+<td>-</td>
+<td>findResources</td>
+</tr>
+<tr>
+<td>-</td>
+<td>beginMultiJob</td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td>-</td>
+</tr>
+<tr>
+<td>-</td>
+<td>reserveResource</td>
+</tr>
+</table>
+<a name=overview><h2>Per Method Overview</h2></a>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<td></td>
+<th>Local</th>
+<th>Globu</th>
+<th>WSGT4</th>
+<th>SshTr</th>
+<th>Comma</th>
+<th>GT42R</th>
+<th>Glite</th>
+<th>GridS</th>
+<th>Koala</th>
+<th>Local</th>
+<th>SgeRe</th>
+<th>SshPb</th>
+<th>SshSg</th>
+<th>Unico</th>
+<th>Zoril</th>
+</tr>
+<tr>
+<td>endMultiJob</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>beginMultiJob</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>findResources</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>submitJob</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>reserveResource</td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+<td><font color=#FF0000><b>X</b></font></td>
+</tr>
+<tr>
+<td>total</td>
+<td>60 %</td>
+<td>60 %</td>
+<td>60 %</td>
+<td>60 %</td>
+<td>20 %</td>
+<td>60 %</td>
+<td>40 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+<td>20 %</td>
+</tr>
+</table>
+</body>
+</html>

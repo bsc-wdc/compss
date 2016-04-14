@@ -1,0 +1,47 @@
+<project name="GATTests" default="build" basedir=".">
+    <description>
+      Build file for GAT tests
+    </description>
+
+    <property name="gat.location" location=".." />
+    <property name="external" location="external" />
+    <property name="src" location="src" />
+    <property name="tmp" location="tmp" />
+    <property name="lib" location="${gat.location}/lib" />
+    <property name="java.debug.value" value="true" />
+	
+    <property name="build.sysclasspath" value="ignore"/>
+
+    <path id="external_jars">
+	<fileset dir="${external}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <path id="lib_jars">
+	<fileset dir="${lib}">
+	    <include name="*.jar" />
+	</fileset>
+    </path>
+
+    <target name="compile" description="compile the source ">
+	<mkdir dir="${tmp}" />
+
+        <!-- Compile the java code from ${src} into ${tmp} -->
+        <javac srcdir="${src}" destdir="${tmp}" debug="on">
+	    <classpath refid="lib_jars" />
+	    <classpath refid="external_jars" />
+        </javac>
+
+        <!-- Put everything in ${tmp} into the GAT.jar file -->
+        <jar jarfile="${lib}/GAT-tests.jar" basedir="${tmp}" />
+
+        <delete dir="${tmp}" />
+    </target>
+
+    <target name="build" description="build everything" depends="clean,compile" />
+
+    <target name="clean" description="clean up">
+        <delete dir="${tmp}" />
+    </target>
+</project>

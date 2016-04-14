@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+  trunk_rel_path=../../../../
+  COMPSs_target=$(pwd)/tmp/opt/COMPSs
+
+  if [ -z "$JAVA_HOME" ]; then
+    echo "Please define \$JAVA_HOME"
+    exit 1
+  fi
+
+  mkdir -p ${COMPSs_target}/Bindings/python
+  cd ${trunk_rel_path}/compss/programming_model/bindings/python
+  ./install ${COMPSs_target}/Bindings/python
+  cd -
+

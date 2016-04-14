@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <Worker Name="hostname1.domain.es">
+        <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+        <WorkingDir>/home/user/</WorkingDir>
+        <User>user</User>
+        <LimitOfTasks>2</LimitOfTasks>
+    </Worker>
+    <Worker Name="hostname2.domain.es">
+        <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+        <WorkingDir>/home/user/</WorkingDir>
+        <User>user</User>
+        <LimitOfTasks>2</LimitOfTasks>
+    </Worker>
+</Project>
+

@@ -1,0 +1,15 @@
+- The PDF included in this directory is old ...
+
+- If you want to reserve more than a single resource, you have to specify a
+  parallel environment, for which you can use SoftwareDescription.JOB_TYPE.
+  The default for this parallel environment is "prun", which works on our
+  system but most likely will not work on yours.
+
+- What a resource actually is depends on the parallel environment. If the
+  allocation rule is "$fill_up", a resource is a single core. If it is
+  "$round_robin", it probably is a node. This all depends on your SGE
+  (and parallel environment) configuration. You can find out which parallel
+  environments there are in your SGE installation through the command
+  "qconf -spl". More information about a specific parallel environment <X>
+  can be obtained by "qconf -sp <X>".
+

@@ -1,0 +1,266 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:element name="ResourceList" type="resourceListType"/>
+
+    <xsd:complexType name="resourceListType">
+        <xsd:sequence>
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+
+                        <xsd:element name="Disk" type="DiskType"/>
+                        <xsd:element name="DataNode" type="DataNodeType"/>
+                        <xsd:element name="Resource" type="resourceTypeWithPorts"/>
+                        <xsd:element name="Service" type="serviceType"/>
+                        <xsd:element name="CloudProvider" type="CloudType"/>
+                </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+ 
+    
+        <xsd:complexType name="DataNodeType">
+        <xsd:sequence>
+                <xsd:element name="Host" type="xsd:string"/>
+                <xsd:element name="Path" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType> 
+    
+    
+    <xsd:complexType name="resourceType">
+        <xsd:sequence>
+            <xsd:element name="Capabilities" type="capabilitiesType"/>
+            <xsd:element name="Requirements" type="requirementsType" minOccurs="0"/>
+            <xsd:element name="Disks" type="SharedDiskListType" minOccurs="0"/>
+            <xsd:element name="Price" type="xsd:float" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="resourceTypeWithPorts">
+        <xsd:sequence>
+            <xsd:element name="Capabilities" type="capabilitiesType"/>
+            <xsd:element name="Requirements" type="requirementsType" minOccurs="0"/>
+            <xsd:element name="Disks" type="SharedDiskListType" minOccurs="0"/>
+            <xsd:element name="Price" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="Adaptors" type="Adaptors"/>
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="capabilitiesType">
+        <xsd:sequence>
+            <xsd:element name="Host" type="hostType" minOccurs="0"/>
+            <xsd:element name="Processor" type="processorType"/>
+            <xsd:element name="OS" type="osType" minOccurs="0"/>
+            <xsd:element name="StorageElement" type="storageElementType"/>
+            <xsd:element name="Memory" type="memoryType"/>
+            <xsd:element name="ApplicationSoftware" type="applicationSoftwareType" minOccurs="0"/>
+            <xsd:element name="Service" type="serviceCapType" minOccurs="0"/>
+            <xsd:element name="VO" type="voType" minOccurs="0"/>
+            <xsd:element name="Cluster" type="clusterType" minOccurs="0"/>
+            <xsd:element name="FileSystem" type="fileSystemType" minOccurs="0"/>
+            <xsd:element name="NetworkAdaptor" type="networkAdaptorType" minOccurs="0"/>
+            <xsd:element name="JobPolicy" type="jobPolicyType" minOccurs="0"/>
+            <xsd:element name="AccessControlPolicy" type="accessControlPolicyType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="hostType">
+        <xsd:sequence>
+            <xsd:element name="TaskCount">
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:int">
+                            <xsd:attribute name="MaxValue" type="xsd:int"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Queue" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="processorType">
+        <xsd:sequence>
+            <xsd:element name="Architecture" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="Speed" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="CPUCount" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="CoreCount" type="xsd:int" default="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="osType">
+        <xsd:sequence>
+            <xsd:element name="OSType" type="OSTypeType" />
+            <xsd:element name="PhysicalMemory" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="VirtualMemory" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="MaxProcessesPerUser" type="xsd:int" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="OSTypeType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Linux"/>
+            <xsd:enumeration value="WindowsXP"/>
+            <xsd:enumeration value="WindowsVista"/>
+            <xsd:enumeration value="Windows7"/>
+            <xsd:enumeration value="Windows"/>
+            <xsd:enumeration value="Mac OS X"/>
+            <xsd:enumeration value="FreeBSD"/>
+            <xsd:enumeration value="SunOS"/>    
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="storageElementType">
+        <xsd:sequence>
+            <xsd:element name="Size" type="xsd:float"/>
+            <xsd:element name="AccessTime" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="STR" type="xsd:float" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="memoryType">
+        <xsd:sequence>
+            <xsd:element name="PhysicalSize" type="xsd:float"/>
+            <xsd:element name="VirtualSize" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="AccessTime" type="xsd:float" minOccurs="0"/>
+            <xsd:element name="STR" type="xsd:float" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="applicationSoftwareType">
+        <xsd:sequence>
+            <xsd:element name="Software" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="serviceCapType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="voType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="clusterType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="fileSystemType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="networkAdaptorType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="jobPolicyType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="accessControlPolicyType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="requirementsType">
+        <xsd:sequence>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SharedDiskListType">
+        <xsd:sequence>
+            <xsd:element name="Disk" type="DiskType" minOccurs="0"  maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DiskType">
+        <xsd:sequence>
+            <xsd:element name="MountPoint" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="Name" type="xsd:string" use="required"/>
+    </xsd:complexType> 
+    
+    
+    <xsd:complexType name="serviceType">
+        <xsd:sequence>
+            <xsd:element name="Name" type="xsd:string"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Namespace" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="Port" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="wsdl" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CloudType">
+        <xsd:sequence>
+            <xsd:element name="Server" type="xsd:string"  minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Port" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Connector" type="xsd:string" minOccurs="1" maxOccurs="1"/> 
+            <xsd:element name="ImageList" type="imageListType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="CreationTime" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="InstanceTypes" type="instanceTypesList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    
+    <xsd:complexType name="imageListType">
+        <xsd:sequence>
+            <xsd:element name="Image" type="imageType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="imageType">
+        <xsd:sequence>
+            <xsd:element name="Architecture" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="OSType" type="OSTypeType" minOccurs="0"  maxOccurs="1"/>
+            <xsd:element name="ApplicationSoftware" type="applicationSoftwareType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="SharedDisks" type="SharedDiskListType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Adaptors" type="Adaptors"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="instanceTypesList">
+        <xsd:sequence>
+            <xsd:element name="Resource" type="resourceType" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Adaptors">
+        <xsd:sequence maxOccurs="unbounded">
+            <xsd:element name="Adaptor" type="Adaptor" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="Adaptor">
+        <xsd:all>
+            <xsd:element name="MinPort" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="MaxPort" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+	    <xsd:element name="BrokerAdaptor" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
+        <xsd:attribute name="name" use="required">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="integratedtoolkit.nio.master.NIOAdaptor"/>
+                    <xsd:enumeration value="integratedtoolkit.gat.master.GATAdaptor"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+    </xsd:complexType>
+
+</xsd:schema>
+

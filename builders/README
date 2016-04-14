@@ -1,0 +1,22 @@
+##########################################
+#                                        #
+#             COMPSs BUILDERS            #
+#                                        # 
+#                                        #
+#  Author: Cristian Ramon-Cortes         #
+#  E-mail: cramonco@bsc.es               #
+#                                        #
+##########################################
+
+Next you will find information about the specific scripts for each building type
+
+- buildpackages
+    * Builds COMPSs RPM and DEB packages
+
+- buildlocal <targetDir>
+    * Builds the current trunk and installs it on a target location.
+    * Needs JAVA_HOME variable to be exported on the environment.
+    * If the target dir is protected you need to execute this script with root mode (remember to export the JAVA_HOME on root)
+
+- buildMN
+    * Builds the current runtime trunk locally, builds the bindings at the MN account and installs both at a target location (in MN).

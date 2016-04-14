@@ -1,0 +1,43 @@
+#########################################
+###### COMPSs Logger Configuration ######
+#########################################
+
+###### Change default logging level for root: Default = OFF
+log4j.rootLogger=OFF, ACON
+
+###### Change default logging for each Runtime Component
+######     log4j.logger.loggerName = Level, Appender
+
+# Integrated Toolkit: Default = INFO
+log4j.logger.integratedtoolkit=OFF, ACON
+log4j.additivity.integratedtoolkit=false
+
+# Loader: Default = INHERITED
+log4j.logger.integratedtoolkit.Loader=INFO, ACON
+log4j.additivity.integratedtoolkit.Loader=false
+
+# Loader Utils: Default = INHERITED
+log4j.logger.integratedtoolkit.LoaderUtils= INFO, ACON
+log4j.additivity.integratedtoolkit.LoaderUtils=false
+
+# API: Default = INHERITED
+log4j.logger.integratedtoolkit.API=INFO, ACON
+log4j.additivity.integratedtoolkit.API=false
+
+
+######  Appenders and Layouts
+# ACON: ConsoleAppender, PatternLayout
+log4j.appender.ACON=org.apache.log4j.ConsoleAppender
+log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
+log4j.appender.ACON.layout.ConversionPattern=[%6c{1}]  -  %m%n
+
+## Syntax
+# - %c : name of logger
+# - %C : name of the class
+# - %L : line number
+# - %m : associated message
+# - %M : method name
+# - %n : platform dependant separator
+# - %r : milliseconds since start of application
+# - %d : date
+

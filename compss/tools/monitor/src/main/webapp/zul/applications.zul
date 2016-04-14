@@ -1,0 +1,22 @@
+<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<zk>
+	<div align="center" apply="org.zkoss.bind.BindComposer" viewModel="@id('avm') @init('com.bsc.compss.ui.ApplicationsViewModel')" >
+		<div height="80%" width="99%" align="start">
+			<radiogroup style="overflow:scroll" onCheck="@command('setSelectedApp', appName=self.selectedItem.label) @global-command('refresh')">  
+		        <grid model="@bind(avm.applications) @template('application')" emptyMessage="There are no applications.">
+		            <columns visible="false">
+		                <column></column>
+		            </columns>
+		            
+		            <template name="application">
+		                <row>
+		                	<radio label="@bind(each.name)" />
+		                </row>
+		            </template>
+		        </grid>
+	        </radiogroup>
+		</div>
+	    <separator />
+		<button label="Refresh" onClick="@command('update') @global-command('refresh')" />
+	</div>
+</zk>

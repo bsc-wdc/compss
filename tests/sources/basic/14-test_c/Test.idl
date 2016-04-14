@@ -1,0 +1,13 @@
+interface TEST 
+{
+	void char_size(in char c, inout File filename);	
+	void string_size(in string s, inout File filename);
+	void int_size(in int i, inout File filename);
+	void short_size(in short si, inout File filename);
+	void long_size(in long li, inout File filename);
+	void float_size(in float f, inout File filename);
+	void double_size(in double d, inout File filename);
+	void boolean_size(in boolean b, inout File filename);
+	void out_parameters(inout char c, inout string s, inout int i, inout short si, inout long li, inout float f, inout double d, inout boolean b, inout File filename);
+	void objects(inout student st);		
+};

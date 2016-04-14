@@ -1,0 +1,164 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'\/scripts\/system<\/InstallDir>' ${base_app_dir}/project_matmul.xml
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/WorkerLocalhost/
+  
+  #----------------------------------------------------------------------------------
+  #Run application 1 - Arrays
+  echo
+  echo "*** RUNNING JAVA APPLICATION MATMUL - Arrays"
+  log_folder="${target_log_folder}/arrays"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/matmul_arrays.outputlog"
+  error_log="${log_folder}/matmul_arrays.errorlog"
+  expectedTime=1200s
+  Ain="${base_app_dir}/java_matmul_A8x8.in"
+  Bin="${base_app_dir}/java_matmul_B8x8.in"
+  CoutExpected="${base_app_dir}/java_matmul_C8x8.out"
+  CoutGot="${log_folder}/C8x8gotArrays.out"
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --lang=java \
+     --classpath=${base_app_dir}/matmul.jar \
+     --debug \
+     --comm=$comm \
+     --project=${base_app_dir}/project_matmul.xml \
+     --resources=${base_app_dir}/resources_matmul.xml \
+     matmul.arrays.Matmul $Ain $Bin $CoutGot > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  ev1=0
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.arrays.Matmul_01/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev1=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.arrays.Matmul_01/* ${log_folder}
+  
+     #Check result
+     ${base_app_dir}/result_arrays ${output_log} ${log_folder} $CoutExpected $CoutGot
+     ev1=$?
+  fi
+ 
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s 
+  
+  #----------------------------------------------------------------------------------
+  #Run application 2 - Objects
+  echo
+  echo "*** RUNNING JAVA APPLICATION MATMUL - Objects"
+  log_folder="${target_log_folder}/objects"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/matmul_objects.outputlog"
+  error_log="${log_folder}/matmul_objects.errorlog"
+  expectedTime=1200s
+  Ain="${base_app_dir}/java_matmul_A8x8.in"
+  Bin="${base_app_dir}/java_matmul_B8x8.in"
+  CoutExpected="${base_app_dir}/java_matmul_C8x8.out"
+  CoutGot="${log_folder}/C8x8gotObjects.out"
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --lang=java \
+     --classpath=${base_app_dir}/matmul.jar \
+     --debug \
+     --comm=$comm \
+     --project=${base_app_dir}/project_matmul.xml \
+     --resources=${base_app_dir}/resources_matmul.xml \
+     matmul.objects.Matmul $Ain $Bin $CoutGot > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  ev2=0
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.objects.Matmul_01/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev2=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.objects.Matmul_01/* ${log_folder}
+    
+     #Check result
+     ${base_app_dir}/result_objects ${output_log} ${log_folder} $CoutExpected $CoutGot
+     ev2=$?
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s
+  
+  #----------------------------------------------------------------------------------
+  #Run application 3 - Files
+  echo
+  echo "*** RUNNING JAVA APPLICATION MATMUL - Files"
+  log_folder="${target_log_folder}/files"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/matmul_files.outputlog"
+  error_log="${log_folder}/matmul_files.errorlog"
+  expectedTime=1200s
+  Ain="${base_app_dir}/java_matmul_A8x8.in"
+  Bin="${base_app_dir}/java_matmul_B8x8.in"
+  CoutExpected="${base_app_dir}/java_matmul_C8x8.out"
+  CoutGot="${log_folder}/C8x8gotFiles.out"
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --lang=java \
+     --classpath=${base_app_dir}/matmul.jar \
+     --debug \
+     --comm=$comm \
+     --project=${base_app_dir}/project_matmul.xml \
+     --resources=${base_app_dir}/resources_matmul.xml \
+     matmul.files.Matmul $Ain $Bin $CoutGot > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  ev3=0
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.files.Matmul_01/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev3=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/matmul.files.Matmul_01/* ${log_folder}
+    
+     #Check result
+     ${base_app_dir}/result_files ${output_log} ${log_folder} $CoutExpected $CoutGot
+     ev3=$?
+  fi
+  
+  
+  #----------------------------------------------------------------------------------
+  #Return execution status
+  if [ $ev1 -gt $ev2 ]; then
+     exitValue=$ev1
+  else
+     if [ $ev2 -gt $ev3 ]; then
+        exitValue=$ev2
+     else
+        exitValue=$ev3
+     fi
+  fi
+  exit $exitValue

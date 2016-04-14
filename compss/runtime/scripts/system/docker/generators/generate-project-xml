@@ -1,0 +1,27 @@
+#!/bin/bash
+
+GENERATORS_DIR=$(dirname "$0")
+. $GENERATORS_DIR/echo2-function
+
+if [ -z $1 ]; then
+    echo2 "[  ERROR  ]: Indicate the number of nodes as first parameter."
+    exit -1
+fi
+
+NUM_WORKERS=$1
+
+echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+echo -e "<Project> \n"
+
+for i in $(seq 1 $NUM_WORKERS)
+do
+    echo -e "\
+        <Worker Name=\"worker$i\"> \n \
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir> \n \
+            <WorkingDir>/tmp/localhost/</WorkingDir> \n \
+            <!--<LimitOfTasks>4</LimitOfTasks>--> \n \
+        </Worker> \n "
+done
+     
+echo "</Project>"
+

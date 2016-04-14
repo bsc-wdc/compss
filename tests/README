@@ -1,0 +1,34 @@
+This is the README for: COMPSs TESTS
+
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Description ==
+This package contains all the designed applications to test a COMPSs version.
+You can find more information in the following documents:
+
+  ./documentation/1.Abstract                  : General description
+
+                 /2.Structure                 : Test structure definition
+
+                 /3.Requirements              : Test installation requirements
+
+                 /4.Configuration             : Test configurations
+
+                 /5.Usage-Configuration_files : HowTo configuration files
+
+                 /6.Usage-Running_tests       : HowTo run test
+
+                 /7.Adding_tests              : HowTo add new tests & developpement tags
+
+                 /README                      : All sections in one document
+
+
+ !!!!!!!!!!!!!!!
+ !! ATTENTION !! PLEASE READ ALL THIS FILES IF YOU HAVEN'T HEARD ABOUT COMPSs TEST PACKAGE
+ !!!!!!!!!!!!!!!
+

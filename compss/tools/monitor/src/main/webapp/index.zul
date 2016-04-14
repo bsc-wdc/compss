@@ -1,0 +1,32 @@
+<?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
+<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<zk>
+	<borderlayout width="100%">
+		<!-- COMPSs Header -->
+		<north border="none" size="20%">
+			<borderlayout>
+				<center border="none">
+					<div>
+						<include src="/zul/header.zul" />		
+					</div>
+				</center>
+				<east border="none" size="20%">
+					<div vflex="1">
+						<include src="/zul/panel.zul" />				
+					</div>
+				</east>
+			</borderlayout>
+		</north>
+		
+		
+		<!-- Application selector -->
+		<west border="normal" width="15%" collapsible="true" autoscroll="true" title="Applications">
+			<include src="/zul/applications.zul" />
+        </west>
+        
+		<!-- COMPSs Monitor -->
+		<center border="none" autoscroll="true">
+			<include src="/zul/monitor.zul" />
+		</center>
+	</borderlayout>
+</zk>

@@ -1,0 +1,5 @@
+<hbox hflex="1" height="20%" align="end" pack="end" spacing="20px">
+		<button label="FAQ" href="/zul/faq.zul" />
+        <button label="Configuration" href="/zul/configuration.zul" />
+        <button label="Logout" apply="org.zkoss.bind.BindComposer" viewModel="@id('login') @init('com.bsc.compss.ui.Login')" onClick="@command('logout')" />
+</hbox>

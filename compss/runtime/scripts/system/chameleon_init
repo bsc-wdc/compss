@@ -1,0 +1,71 @@
+#!/bin/bash
+
+basic_configure() {
+  # Setup SSH keys for user
+  ssh-keygen -t dsa -f /home/cc/.ssh/id_dsa -N ""
+  cat /home/cc/.ssh/id_dsa.pub >> /home/cc/.ssh/authorized_keys
+  chown -R cc:cc /home/cc/.ssh/
+}
+
+extra_configure() {
+  # Set login message
+  /bin/cat > /etc/motd << EOT
+  ____ ___  __  __ ____  ____
+ / ___/ _ \|  \/  |  _ \/ ___| ___
+| |  | | | | |\/| | |_) \___ \/ __|
+| |__| |_| | |  | |  __/ ___) \__ \ 
+ \____\___/|_|  |_|_|   |____/|___/
+
+Welcome to COMPSs v1.3 at Chameleon!
+EOT
+
+  echo "127.0.1.1       COMPSsMaster" >> /etc/hosts
+
+  # Export JAVA_HOME on profile.d
+  echo "export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk" > /etc/profile.d/java.sh
+}
+
+### BEGIN INIT INFO
+# Provides:          chamemelon-compss-setup
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: COMPSs start configuration for Chameleon
+# Description:       COMPSs start configuration for Chameleon
+### END INIT INFO
+
+# Author: Cristian Ramon-Cortes Vilarrodona  <cristian.ramoncortes.at.bsc.es>
+
+NAME=chameleon_init
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    echo "* Starting COMPSs Configuration for Chameleon"
+    basic_configure
+    ;;
+  stop)
+    echo "* Erasing COMPSs Configuration for Chameleon"
+    ;;
+  restart)
+    echo "* Restarting COMPSs Configuration for Chameleon"
+    basic_configure
+    ;;
+  reset)
+    echo "* Reset COMPSs Configuration for Chameleon"
+    basic_configure
+    ;;
+  clean)
+    echo "* Cleaning COMPSs Configuration for Chameleon"
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME { start | stop | restart | reset | clean }"
+    exit 1
+    ;;
+esac
+
+exit 0
+

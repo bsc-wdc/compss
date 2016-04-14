@@ -1,0 +1,39 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Adding a NEW TEST instructions ==
+1. Create your new test application folder (named newTestFolder)
+
+2. Inside newTestFolder add all the files needed to run your application
+
+3. Inside newTestFolder you need to OBLIGATORILY add the following files:
+    - deploy     : describes all the commands needed to deploy your application
+                     !In case of a C-app you need to compile it in this step and only deploy compiled files
+    - execution  : describes all the commands needed to run and check the result of your application
+    - pom.xml    : describes your application dependencies for maven project build
+                     !Only for java applications that need to be maven compiled
+
+3.1. If your application has been tested before, add it to the basic/cloud tests:
+    * cp -r newTestFolder tests/sources/basic/newTestFolder
+                           or
+      cp -r newTestFolder tests/sources/cloud/newTestFolder
+    
+    * Add your module to the base pom.xml:
+       Edit /tests/sources/basic-cloud/pom.xml and add your module to the end of the file
+       !Only if your java application needs to be maven compiled
+
+3.2. If your application hasn't been tested before, it's recommended you use a development tag:
+    * mkdir tests/sources/DEVEL_yourName
+
+    * cp -r newTestFolder tests/sources/devel_newFeature/newTestFolder
+
+    * Create a base pom.xml on /tests/sources/devel_newFeature/pom.xml and add your module
+        !Only for java applications that need to be maven compiled
+
+
+ ATTENTION: For any change it's recomended to look first at the previously done tests. This will allow you to base your new feature on the previous ones (such as deploy, execution, result codes and pom.xml structure)
+

@@ -1,0 +1,69 @@
+#!/bin/bash -e
+  
+  action=$1
+
+  if [ "$action" == "configure" ]; then
+    # Configure new version successfully installed
+    newversion=$1
+
+    # Find JAVA_HOME
+    openjdk=$(dpkg --get-selections | grep -v deinstall | grep openjdk | grep headless | head -n 1 | cut -f1)
+    libjvm=$(dpkg-query -L $openjdk | grep libjvm.so | head -n 1)
+    export JAVA_LIB_DIR=$(dirname $libjvm)
+    if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then
+      export JAVA_HOME="${libjvm/\/jre\/lib\/amd64\/server\/libjvm.so/}"
+    elif test "${libjvm#*/jre/lib/i386/client/libjvm.so}" != "$libjvm"; then
+      export JAVA_HOME="${libjvm/\/jre\/lib\/i386\/client\/libjvm.so/}"
+    elif [ -z $JAVA_HOME ]; then
+      echo "Please define \$JAVA_HOME"
+      exit 1
+    fi
+    echo "Using JAVA_HOME=$JAVA_HOME"
+
+    # Configure
+    echo "   - Configure, compile and install"
+    cd /opt/COMPSs/Bindings/bindings-common
+    ./install_common
+    echo " - COMPSs Bindings-common structure created"
+    echo " "
+
+    echo " - Setting COMPSs Bindings-common permissions..."
+    chmod 755 -R /opt/COMPSs/Bindings/bindings-common
+    echo " - COMPSs Bindings-commmon permissions set"
+    
+    echo " "
+    echo "Congratulations!"
+    echo " * COMPSs Bindings Common $newversion successfully installed!"
+    echo " "
+  elif [ "$action" == "abort-remove" ]; then
+    if [ $# -eq 1 ]; then
+      # Generic abort remove
+      echo " "
+      echo " * Remove aborted."
+      echo " "
+    else 
+      # Abort remove in favour to a given package ($2=in-favour)
+      package=$3
+      newversion=$4
+      echo " "
+      echo " * Remove aborted in favour to $package - $newversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-deconfigure" ]; then
+    # $2=in-favour
+    failedpackage=$3
+    failedversion=$4
+    echo " "
+    echo " * Deconfigure aborted in favour to $failedpackage - $failedversion"
+    echo " "
+    if [ $# -eq 4 ]; then
+      # Without external removals
+      failedpackage=$3
+      failedversion=$4
+    else
+      # With removals ($5=removing)
+      removedpackage=$6
+      removedversion=$7
+    fi
+  fi
+

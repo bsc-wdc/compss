@@ -1,0 +1,192 @@
+\documentclass{scrreprt}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+%\usepackage{listing}
+\usepackage{hyperref}
+
+\begin{document}
+\title{Glite Adapter Readme}
+\author{Thomas Zangerl \and Max Berger}
+\maketitle
+\tableofcontents
+		
+\chapter{VOMS-Proxy Creation}
+
+\section{Frequent errors}
+
+\subsection{"Unknown CA" error}\label{unkn_ca}
+
+The proxy classes report an "Unknown CA" error (Could not get stream from secure socket).
+Probably the VomsProxyManager is missing either your root certificate
+or the root certificate of the server you are communicating with.
+It is best, if you include all needed certificates in ~/.globus/certificates/.
+(e.g. you can copy the /etc/grid-security/certificates directory from an UI machine
+of the VO you are trying to work with to that location).
+
+If this doesn't suffice, you should try to include a file called cog.properties in the ~/.globus/
+directory. The content of this file could be something like this:
+
+\begin{verbatim}
+Java CoG Kit Configuration File
+#Thu Apr 05 15:59:23 CEST 2007
+usercert=~/.globus/usercert.pem
+userkey=~/.globus/userkey.pem
+proxy=/tmp/x509up_u<your user id>
+cacert=/etc/grid-security/certificates/
+ip=<your ip address>
+\end{verbatim}
+
+Also check the vomsHostDN preference value for typos/errors.
+
+\subsection{"Error while setting CRLs"}
+
+Try to create a cog.properties file in ~/.globus and set the cacert property to ~/.globus/certificates.
+This will cause the VOMS Proxy classes not to look for CRLs in /etc/grid-security/certificates
+
+\subsection{"pad block corrupted"}\label{pad_block}
+
+Check whether you have given all necessary information (password, host-dn, location
+of your user-certificate etc., see section \ref{min_voms_config}) as global preferences of the GAT-context.
+
+If you have given all necessary information, check the password you have given, for typos.
+
+\subsection{Could not create VOMS proxy! failed: null:}
+
+See answer in section \ref{pad_block}, maybe you forgot to specify the vomsServerPort preference value.
+
+\section{Preference keys for VOMS Proxy creation}
+
+The \textbf{necessary} preference keys are: \\
+
+\noindent
+\begin{tabular}{|l|p{4cm}|p{4cm}|l|}
+\hline
+vomsHostDN & distinguished name of the VOMS host & /DC=at/DC=uorg /O=org/CN=somesite & compulsory \\
+vomsServerURL & URL of the voms server, without protocol & skurut19.cesnet.cz  & compulsory \\
+vomsServerPort & port on which to connect to the voms server & 7001 & compulsory\\
+VirtualOrganisation & name of the virtual organisation for which the voms proxy is created & voce & compulsory \\
+vomsLifetime & he desired proxy lifetime in seconds & 3600 & optional \\
+\hline
+\end{tabular}
+
+
+Additionally you need a CertificateSecurityContext which points to your user certificate and your user key.
+Add that CertificateSecurityContext to the GATContext.
+
+With the compulsory preferences, the proxy is created with a standard lifetime of 12 hours. If you want to have a different
+lifetime, add the optional vomsLifetime preference key.
+
+Do something like
+
+\begin{verbatim}
+GATContext context = new GATContext();
+CertificateSecurityContext secContext = 
+		new CertificateSecurityContext(new URI(your_key), new URI(your_cert), cert_pwd);
+Preferences globalPrefs = new Preferences();
+globalPrefs.put("vomsServerURL", "voms.cnaf.infn.it");
+...
+context.addPreferences(globalPrefs);
+context.addSecurityContext(secContext);
+\end{verbatim}
+
+\section{Minimum configuration to make VOMS-Proxy creation work}\label{min_voms_config}
+
+\begin{itemize}
+ \item A cog.properties file with lines as in section \ref{unkn_ca}.
+ \item The following global preferences set in the gat context
+ \begin{itemize}
+  \item vomsHostDN
+  \item vomsServerURL
+  \item vomsServerPort
+  \item VirtualOrganisation 
+ \end{itemize}
+\end{itemize}
+
+\section{(Not) reusing the VOMS proxy}
+
+If multiple job submissions to the same VO happen in a small time interval, it is not necessary to create
+a new VOMS proxy for every submission. 
+Hence, if the user sets the system property glite.reuseProxy to true, the system will check, whether a valid VOMS-Proxy
+exists. If such a proxy is found, it is determined, whether the proxy lifetime exceeds the one specified in
+the vomsLifetime property. If the vomsLifetime property is unspecified, it is checked wether the proxy is still
+valid for more than 10 minutes.
+Very frequently, all job submissions of an application will happen within the same VO. In case there is the
+need to submit jobs to multiple VOs, it won't be possible to to reuse the old proxy due to the VO-specific
+attribute certificates stored in the proxy file. 
+
+\chapter{The gLite Resource Broker Adaptor} 
+
+\section{Adaptor-specific system properties}
+
+Indeed, the mechanisms provided by the GAT-API alone did not suffice to provide all the control we found 
+desirable for the adaptor. Hence, a few proprietary properties where introduced. They are useful
+in controlling adaptor behaviour but are by no means necessary if one just wants to use the adaptor.
+Nonetheless, they are documented here.
+ 
+If you want to use them, set them using System.setProperty(); for example write 
+System.setProperty("glite.pollIntervalSecs", "15").
+The following properties are supported:
+
+\begin{itemize}
+ \item glite.pollIntervalSecs - how often should the job lookup thread poll the WMS for job status updates and fire MetricEvents with status updates (value in seconds, default 3 seconds)
+ \item glite.deleteJDL - if this is set to true, the JDL file used for job submission will be deleted when the job is done ("true"/"false", default is "false")
+ \item glite.newProxy - if this is set to true, create a new proxy even if the lifetime of the old is still sufficient
+\end{itemize}
+
+\section{Supported SoftwareDescription attributes}
+
+The minimum supported attributes from the software description seem to be derived from the features
+that RSL (the globus job submission file format) provides. Hence, they are easy to translate to RSL 
+properties.
+However, the format used for glite job submission is JDL and attributes like count or hostCount are
+hard to translate to JDL. Most of the attributes that \textbf{are} supported are not even achieved by the JDL
+format itself, but by adding GLUE requirements.
+Sadly, the JDL format does not provide much of the functionality covered by RSLs, hence many attributes
+remain unsupported.
+ 
+On the other hand, to enable working with the features that the JDL format provides additionally to
+the RSL format, a new attribute was introduced.
+ 
+Set glite.retryCount to some String or Integer in order to use the retry count function of glite.
+
+\section{Setting arbitrary GLUE requirements}
+
+If you would like to specify any GLUE-Requirements that are not covered by the standard set of 
+SoftwareResourceDescription or HardwareResourceDescription keys, you may set glite.other either as
+Software- or HardwareResourceDescription and add a *full* legal GLUE Requirment as entry, such as
+for example \\ \verb+!( other.GlueCEUniqueID == "some_ce_of_your_choice")+.
+
+\chapter{File Management}
+
+Please note that the file management adapters are still to be
+considered experimental. The supported attributes are subject to change!
+
+Supported Schemes are:
+
+\begin{tabular}{ll}
+\bf Schema&\bf Supported\\\hline
+srm&Yes\\
+guid&Yes\\
+lfn&No
+\end{tabular}
+
+Supported attributes are:
+
+\begin{tabular}{lllp{6cm}}
+\bf Preference&\bf Req.&\bf Default&\bf Description\\\hline
+VirtualOrganisation&Yes&& The VO to use\\
+LfcServer&No&from LDAP&Address of the LFC Server\\
+LfcServerPort&No&5010&Port for the LFC Server
+\end{tabular}
+
+Supported operations are:
+
+\begin{tabular}{lllp{6cm}}
+\bf Operation&\bf SRM&\bf Guid&\bf Remarks\\\hline
+copy&Yes&Yes&Supports upload from and download to local files only.\\
+delete&Yes&Yes&\\
+createNewFile&No&Yes&File must be created with {\tt guid:///}. The
+actual guid can be retrieved with the function {\em .toGATURI()}.
+\end{tabular}
+
+\end{document} 

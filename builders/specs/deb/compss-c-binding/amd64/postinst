@@ -1,0 +1,61 @@
+#!/bin/bash -e
+  
+  action=$1
+
+  if [ "$action" == "configure" ]; then
+    # Configure new version successfully installed
+    newversion=$1
+    # Copy scripts
+    mkdir -p /opt/COMPSs/Runtime/scripts/system/c
+    mkdir -p /opt/COMPSs/Runtime/scripts/user
+    cp /opt/COMPSs/Bindings/c/bin/* /opt/COMPSs/Runtime/scripts/system/c
+    cp /opt/COMPSs/Bindings/c/buildapp /opt/COMPSs/Runtime/scripts/user/
+    # Set permissions
+    echo " - Setting COMPSs C-Binding permissions..."
+    chmod 755 -R /opt/COMPSs/Bindings/c
+    chmod 755 -R /opt/COMPSs/Runtime/scripts/system
+    chmod 755 -R /opt/COMPSs/Runtime/scripts/user
+    echo " - COMPSs C-Binding permissions set"
+
+    # Adding c-binaries
+    echo " - Adding c-binaries to profile..."
+    echo "export PATH=\$PATH:/opt/COMPSs/Bindings/c/bin" >> /etc/profile.d/compss.sh
+    echo " - c-binaries added to user profile"
+    echo " "
+
+    echo " "
+    echo "Congratulations!"
+    echo " * COMPSs C-Binding $newversion successfully installed!"
+    echo " "
+  elif [ "$action" == "abort-remove" ]; then
+    if [ $# -eq 1 ]; then
+      # Generic abort remove
+      echo " "
+      echo " * Remove aborted."
+      echo " "
+    else 
+      # Abort remove in favour to a given package ($2=in-favour)
+      package=$3
+      newversion=$4
+      echo " "
+      echo " * Remove aborted in favour to $package - $newversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-deconfigure" ]; then
+    # $2=in-favour
+    failedpackage=$3
+    failedversion=$4
+    echo " "
+    echo " * Deconfigure aborted in favour to $failedpackage - $failedversion"
+    echo " "
+    if [ $# -eq 4 ]; then
+      # Without external removals
+      failedpackage=$3
+      failedversion=$4
+    else
+      # With removals ($5=removing)
+      removedpackage=$6
+      removedversion=$7
+    fi
+  fi
+

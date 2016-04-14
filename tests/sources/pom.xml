@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<groupId>es.bsc.compss.tests</groupId>
+	<artifactId>compss-tests</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-trunk</artifactId>
+<version>1.4</version>
+		<relativePath>../../</relativePath>
+	</parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMP Superscalar Tests</name>
+	<description>COMPSs Framework Tests</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+	
+	<!-- PROPERTIES -->
+	<properties>
+		<jaxws.version>2.2.10</jaxws.version>
+	</properties>
+
+        <!-- DEPENDENCIES MANAGEMENT -->
+        <dependencyManagement>
+                <dependencies>
+                        <dependency>
+                                <groupId>es.bsc.compss</groupId>
+				<artifactId>compss-annotations</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>es.bsc.compss</groupId>
+				<artifactId>compss-commons</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>es.bsc.compss</groupId>
+				<artifactId>compss-resources-commons</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
+			<dependency>
+                                <groupId>es.bsc.compss</groupId>
+				<artifactId>compss-engine</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
+                        <dependency>
+                                <groupId>com.sun.xml.ws</groupId>
+                                <artifactId>jaxws-rt</artifactId>
+                                <version>${jaxws.version}</version>
+                        </dependency>
+                </dependencies>
+        </dependencyManagement>
+
+	<!-- SOURCE CONTROL MANAGEMENT -->
+	<scm>
+		<connection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</connection>
+		<developerConnection>scm:svn:http://compss.bsc.es/svn/compss/tests/sources</developerConnection>
+		<url>http://compss.bsc.es/svn/compss/tests/sources</url>
+	</scm>
+	
+	<!-- REPOSITORIES -->
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>http://repo1.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>grid-repo</id>
+			<name>BSC Grid computing and Clusters group</name>
+			<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+	   	 </repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>http://repo1.maven.apache.org/maven2</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<!-- DISTRIBUTION MANAGEMENT -->
+	<distributionManagement>
+	    <repository>
+		<id>grid-repo</id>
+		<name>BSC Grid computing and Clusters group</name>
+		<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+   	    </repository>
+	</distributionManagement>
+    
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>basic</module>
+		<module>cloud</module>
+	</modules>
+</project>
+

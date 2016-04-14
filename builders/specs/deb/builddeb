@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+  distribution=$1
+  COMPSs_version=$2
+
+  packages_runtime="compss-engine compss-worker compss-runtime"
+  packages_bindings="compss-bindings-common compss-c-binding compss-python-binding compss-bindings"
+  packages_tools="compss-extrae compss-monitor compss-tools"
+  packages_cloud="compss-cloud"
+  packages="${packages_runtime} ${packages_bindings} ${packages_tools} ${packages_cloud} compss-framework"
+  architectures="amd64 all"
+
+  for pack in ${packages}; do
+    cd ${pack}
+    for arch in ${architectures}; do
+       echo " "
+       echo " - Building ${pack} - ${arch} ..."
+       echo " "
+      ./build ${distribution} ${arch} ${COMPSs_version} 
+    done
+    cd ..
+    echo " "
+  done
+

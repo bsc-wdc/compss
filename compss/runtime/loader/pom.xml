@@ -1,0 +1,65 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-loader</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-runtime</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Loader</name>
+	<description>COMPSs runtime loader. Instruments COMPSs applications classes replacing CE calls by runtime invocations and adds synchronization points on data accesses.</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>              
+			
+		<!-- Javassist -->
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+		</dependency>
+		
+		<!-- Log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+	</dependencies>
+    
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

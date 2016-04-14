@@ -1,0 +1,137 @@
+package integratedtoolkit.types.request.ap;
+
+import integratedtoolkit.comm.Comm;
+import integratedtoolkit.components.impl.DataInfoProvider;
+import integratedtoolkit.components.impl.TaskAnalyser;
+import integratedtoolkit.components.impl.TaskDispatcher;
+import integratedtoolkit.types.data.location.DataLocation;
+import java.util.concurrent.Semaphore;
+
+import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.DataAccessId.RAccessId;
+import integratedtoolkit.types.data.DataInstanceId;
+import integratedtoolkit.types.data.LogicalData;
+import integratedtoolkit.types.data.operation.FileTransferable;
+import integratedtoolkit.types.data.operation.OneOpWithSemListener;
+
+
+/**
+ * The TransferRawFileRequest class represents a request to transfer a file
+ * located in a worker to be transferred to another location without register
+ * the transfer
+ */
+public class TransferOpenFileRequest extends APRequest {
+
+    /**
+     * Data Id and version of the requested file
+     */
+    private DataAccessId faId;
+    /**
+     * Location where to leave the requested file
+     */
+    private DataLocation location;
+    /**
+     * Semaphore where to synchronize until the operation is done
+     */
+    private Semaphore sem;
+
+    /**
+     * Constructs a new TransferOpenFileRequest
+     *
+     * @param faId Data Id and version of the requested file
+     * @param sem Semaphore where to synchronize until the operation is done
+     */
+    public TransferOpenFileRequest(DataAccessId faId, Semaphore sem) {
+        this.faId = faId;
+        this.sem = sem;
+    }
+
+    /**
+     * Returns the semaphore where to synchronize until the operation is done
+     *
+     * @return Semaphore where to synchronize until the operation is done
+     */
+    public Semaphore getSemaphore() {
+        return sem;
+    }
+
+    /**
+     * Sets the semaphore where to synchronize until the operation is done
+     *
+     * @param sem Semaphore where to synchronize until the operation is done
+     */
+    public void setSemaphore(Semaphore sem) {
+        this.sem = sem;
+    }
+
+    /**
+     * Returns the data Id and version of the requested file
+     *
+     * @return Data Id and version of the requested file
+     */
+    public DataAccessId getFaId() {
+        return faId;
+    }
+
+    /**
+     * Sets the data Id and version of the requested file
+     *
+     * @param faId Data Id and version of the requested file
+     */
+    public void setFaId(DataAccessId faId) {
+        this.faId = faId;
+    }
+
+    /**
+     * Returns the location where to leave the requested file
+     *
+     * @return the location where to leave the requested file
+     */
+    public DataLocation getLocation() {
+        return location;
+    }
+
+    /**
+     * Sets the location where to leave the requested file
+     *
+     * @param location Location where to leave the requested file
+     */
+    public void setLocation(DataLocation location) {
+        this.location = location;
+    }
+
+    @Override
+    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    	logger.debug("Process TransferOpenFileRequest");
+        DataLocation targetLocation;
+        if (faId instanceof DataAccessId.WAccessId) {
+            DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;
+            DataInstanceId targetFile = waId.getWrittenDataInstance();
+            String targetName = targetFile.getRenaming();
+            targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+            logger.debug(targetFile + " to be opened as " + targetLocation);
+            Comm.registerLocation(targetName, targetLocation);
+            sem.release();
+        } else {
+            if (faId instanceof DataAccessId.RWAccessId) {
+                DataAccessId.RWAccessId waId = (DataAccessId.RWAccessId) faId;
+                String srcName = waId.getReadDataInstance().getRenaming();
+                String targetName = waId.getWrittenDataInstance().getRenaming();
+                targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                Comm.appHost.getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
+            } else {
+                RAccessId waId = (RAccessId) faId;
+                String srcName = waId.getReadDataInstance().getRenaming();
+                String targetName = waId.getReadDataInstance().getRenaming();
+                targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                Comm.appHost.getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
+            }
+        }
+        setLocation(targetLocation);
+    }
+
+    @Override
+    public APRequestType getRequestType() {
+        return APRequestType.TRANSFER_OPEN_FILE;
+    }
+}

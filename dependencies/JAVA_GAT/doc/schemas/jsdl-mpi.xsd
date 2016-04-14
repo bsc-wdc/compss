@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:gridsam:mpi" 
+	targetNamespace="urn:gridsam:mpi" 
+	xmlns:jsdl-posix="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+	elementFormDefault="qualified">
+
+	<xsd:import namespace="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+                schemaLocation="jsdl-posix.xsd"/>
+
+    <xsd:complexType name="MPIApplicationType">
+    	<xsd:complexContent>
+    		<xsd:extension base="jsdl-posix:POSIXApplication_Type">
+    			<xsd:sequence>
+    				<xsd:element ref="ProcessorCount"/>
+    			</xsd:sequence>
+    		</xsd:extension>
+    	</xsd:complexContent>
+    </xsd:complexType>
+
+	<xsd:element name="ProcessorCount" type="xsd:positiveInteger"/>
+    <xsd:element name="MPIApplication" type="MPIApplicationType"/> 
+
+</xsd:schema>

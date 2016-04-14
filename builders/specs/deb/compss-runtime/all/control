@@ -1,0 +1,8 @@
+Package: compss-runtime
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: compss-engine, compss-worker
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Runtime.

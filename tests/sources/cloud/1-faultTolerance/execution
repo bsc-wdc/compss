@@ -1,0 +1,108 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'\/scripts\/system<\/InstallDir>' ${base_app_dir}/project_fileTransfer.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'\/scripts\/system<\/InstallDir>' ${base_app_dir}/project_taskSubmission.xml
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/WorkerTS1/
+  mkdir -p /tmp/WorkerTS2/
+  mkdir -p /tmp/hostDown/
+  
+  #----------------------------------------------------------------------------------
+  #Run application 1 - File Transfer
+  echo
+  echo "*** RUNNING JAVA APPLICATION FAULT TOLERANCE - File Transfer"
+  log_folder="${target_log_folder}/fileTransfer"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/faultTolerance_fileTransfer.outputlog"
+  error_log="${log_folder}/faultToleranca_fileTransfer.errorlog"
+  expectedTime=60s
+  
+
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_fileTransfer.xml \
+     --resources=${base_app_dir}/resources_fileTransfer.xml \
+     --debug \
+     --comm=$comm \
+     --lang=java \
+     --classpath=${base_app_dir}/faultTolerance.jar \
+     fileTransfer.FaultTolerance 2 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  ev1=0
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/fileTransfer.FaultTolerance_01/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev1=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/fileTransfer.FaultTolerance_01/* ${log_folder}
+  
+     #Check result
+     ${base_app_dir}/result_fileTransfer ${output_log} ${log_folder}
+     ev1=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  #Run application 2 - Task Submission
+  echo
+  echo "*** RUNNING JAVA APPLICATION FAULT TOLERANCE - Task Submission"
+  log_folder="${target_log_folder}/taskSubmission"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/faultTolerance_taskSubmission.outputlog"
+  error_log="${log_folder}/faultTolerance_taskSubmission.errorlog"
+  expectedTime=420s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_taskSubmission.xml \
+     --resources=${base_app_dir}/resources_taskSubmission.xml \
+     --debug \
+     --comm=$comm \
+     --lang=java \
+     --classpath=${base_app_dir}/faultTolerance.jar \
+     taskSubmission.FaultTolerance 200 1000 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  ev2=0
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/taskSubmission.FaultTolerance_01/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev2=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/taskSubmission.FaultTolerance_01/* ${log_folder}
+    
+     #Check result
+     ${base_app_dir}/result_taskSubmission ${output_log} ${log_folder}
+     ev2=$?
+  fi
+  
+  
+  #----------------------------------------------------------------------------------
+  #Return execution status
+  if [ $ev1 -gt $ev2 ]; then
+     exitValue=$ev1
+  else
+     exitValue=$ev2
+  fi
+  exit $exitValue
+  

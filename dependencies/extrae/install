@@ -1,0 +1,43 @@
+#!/bin/bash
+
+  # Retrieve script variables
+  targetDir=$1
+  scriptDir=$(pwd)/$(dirname $0)
+
+  # Setup Extrae for PAPI (or not) 
+  papiPath=$(which papi_avail 2> /dev/null)
+  if [ -z ${papiPath} ]; then
+    # No PAPI available
+    papiArg="--without-papi"
+  else
+    # PAPI available
+    papiBaseDir=${papiPath%/bin**}
+    papiArg="--with-papi=${papiBaseDir}"
+  fi
+
+  # Create installation folder
+  mkdir -p ${targetDir}
+
+  # Configure, compile and install
+  autoreconf --force --install
+  ./configure --enable-gettimeofday-clock \
+              --without-mpi \
+              --without-unwind \
+              --without-dyninst \
+              --without-binutils \
+              ${papiArg} \
+              --with-java-jdk=$JAVA_HOME \
+              --disable-openmp \
+              --disable-nanos \
+              --disable-smpss \
+              --prefix=${targetDir} \
+              --libdir=${targetDir}/lib
+
+  make clean install
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi  
+
+  # Exit normal
+  exit 0
+

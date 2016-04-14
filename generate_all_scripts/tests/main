@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  # Get parameters
+  distr=$1
+  vm_ip=$2
+  vm_user=$3
+  tests_source_folder=$4
+
+  # Define script variables
+  script_dir=$(dirname $0)
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Run tests
+  echo -e "\e[0m"
+  echo "************************"
+  echo "*** Run local tests  ***"
+  echo "************************"
+  echo -e "\e[0m"
+
+  # Deploy tests
+  echo "--- Deploying tests..."
+  scp -r -o StrictHostKeyChecking=no ${tests_source_folder} ${vm_user}@${vm_ip}:./tests
+  echo "       Success"
+
+  # Setup hosts
+  echo "-- Setting up VM hosts..."
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "sudo sh /home/${vm_user}/tests/configure_hosts_insert"
+  echo "       Success"
+
+  # Exec tests
+  echo "-- Running NIO tests..."
+  comm=integratedtoolkit.nio.master.NIOAdaptor
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "/home/${vm_user}/tests/execute_cloud_block1 $distr $comm"
+  echo "       Success" 
+
+  # All process OK. Exit
+  exit 0
+

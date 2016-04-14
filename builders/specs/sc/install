@@ -1,0 +1,121 @@
+#!/bin/bash -e
+
+  ####################################################################################################
+  # Name:        install
+  # Description: Script to install COMPSs
+  # Parameters:  <targetFolder> Folder where to install COMPSs
+  #              ATTENTION: The target Folder will be completely removed and created again to avoid
+  #                         conflicts between installations. Please save any configuration files.
+  # Support:     support-compss@bsc.es
+  ####################################################################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " "
+    echo " Usage:  install <targetFolder>"
+    echo " "
+    echo " Parameters:"
+    echo "   - targetFolder : Base target folder of the COMPSs installation."
+    echo "                    A COMPSs folder will be created inside the targetFolder containing"
+    echo "                    all the COMPSs files"
+    echo " "
+    echo "ATTENTION: The COMPSs folder inside the target folder will be completely removed to avoid"
+    echo "           conflicts between installations. Please save any configuration files."
+    echo " "
+    echo "SUPPORT:   support-compss@bsc.es"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  else 
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+  targetDir=$1/COMPSs/
+
+  # WARN MESSAGE and log parameters
+  echo " "
+  echo "Parameters:"
+  echo "  - targetFolder = $1"
+  echo "  - COMPSs Installation Folder = $targetDir"
+  echo " "
+  echo "ATTENTION: The COMPSs folder inside the target folder will be completely removed to avoid"
+  echo "           conflicts between installations. Please save any configuration files."
+  echo " "
+  echo "  You can abort the installation within 5s..."
+  sleep 5
+
+  # Begin installation
+  echo " "
+  echo "Beginning COMPSs installation..."
+  echo " "
+
+  # Define script variables
+  scriptDir=$(dirname $0)
+
+  # Deploy COMPSs
+  echo "- Deploy COMPSs files"
+  rm -rf ${targetDir}
+  mkdir -p ${targetDir}
+  cp -r ${scriptDir}/* ${targetDir}
+  rm -rf ${targetDir}/Bindings/*
+  echo "   Success"
+
+  # Install bindings-common
+  echo "- Install bindings-common"
+  cd ${scriptDir}/Bindings/bindings-common/
+  ./install_common ${targetDir}/Bindings/bindings-common
+  cd -
+  echo "   Success"
+
+  # Install C-binding
+  echo "- Install C-binding"
+  cd ${scriptDir}/Bindings/c
+  ./install ${targetDir}/Bindings/c
+  mkdir -p ${targetDir}/Runtime/scripts/system/c/
+  cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
+  cp ./buildapp ${targetDir}/Runtime/scripts/user/
+  cd -
+  echo "   Success"
+
+  # Install Python-binding
+  echo "- Install Python binding"
+  cd ${scriptDir}/Bindings/python
+  ./install ${targetDir}/Bindings/python
+  cd -
+  echo "   Success"
+
+  # Install extrae
+  echo "- Install extrae"
+  cd ${scriptDir}/Dependencies/extrae
+  ./install ${targetDir}/Dependencies/extrae
+  cd -
+  echo "   Success"
+
+  # Set permissions
+  echo "- Set COMPSs permissions"
+  chmod 755 -R ${targetDir}
+  chmod 777 -R ${targetDir}/Runtime/configuration/
+
+  # End
+  echo " "
+  echo "Congratulations!"
+  echo "COMPSs Successfully installed!"
+  echo " "
+  echo "To use COMPSs please source the ${targetDir}/compssenv file into the users .bashrc"
+  echo " "
+
+  exit 0
+

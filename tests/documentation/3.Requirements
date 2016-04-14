@@ -1,0 +1,41 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Requirements ==
+* FOR CLOUD EXECUTION ON JENKINS:
+   - COMPSs unstable repository and unstable VM's
+   - Apache maven for building the software
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH BSCGRID20:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - Acces to bscgrid20 by password-less ssh (see "Configure passwordless ssh" section)
+   - jdk1.7
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH VPN:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - Active VPN to bscgrid20-27 (see "Configure VPN" section)
+   - grid-security Certificates (see "Configure VPN" section)
+   - rOcci Client installed (see "Configure rOcci" section)
+
+* FOR LOCAL EXECUTION:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - openssh-server configured passwordless (including root access for /etc/hosts)
+   - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
+   - python package (for Python binding)
+   - jdk1.7 (for Java tests)
+
+* FOR DEVELOPMENT EXECUTION:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - openssh-server configured passwordless (including root access for /etc/hosts)
+   - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
+   - python package (for Python binding)
+   - jdk1.7 (for Java tests)
+

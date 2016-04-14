@@ -1,0 +1,166 @@
+[
+{
+  "kind": "http://schemas.ogf.org/occi/infrastructure#compute",
+  "mixins": [
+    "http://opennebula.org/occi/infrastructure#compute",
+    "http://occi.rrafanel-2410.defaultdomain/occi/infrastructure/os_tpl#uuid_alyadan_test_61",
+    "http://schema.fedcloud.egi.eu/occi/infrastructure/resource_tpl#small",
+    "http://schemas.openstack.org/instance/credentials#public_key"
+  ],
+  "actions": [
+    "http://schemas.ogf.org/occi/infrastructure/compute/action#stop",
+    "http://schemas.ogf.org/occi/infrastructure/compute/action#restart",
+    "http://schemas.ogf.org/occi/infrastructure/compute/action#suspend"
+  ],
+  "attributes": {
+    "occi": {
+      "core": {
+        "id": "2414",
+        "title": "test-storage-vm",
+        "summary": "Instantiated with rOCCI-server on Fri, 25 Jul 2014 15:25:10 +0000."
+      },
+      "compute": {
+        "architecture": "x64",
+        "cores": 1,
+        "memory": 2.0,
+        "speed": 1.0,
+        "state": "active"
+      }
+    },
+    "org": {
+      "opennebula": {
+        "compute": {
+          "id": "2414",
+          "cpu": 1.0,
+          "boot": "hd"
+        }
+      },
+      "openstack": {
+        "credentials": {
+          "publickey": {
+            "data": "ssh-dss AAAAB3NzaC1kc3MAAACBALD4R9tWjedZpoeJnrvHXZ1rOPtWYodqKtwWerccBK4hjfekD4Nua5RIzq+qa034vDFoXcgI5od8KjNvFHWuOOcERuuNWbYWoY7ybKMT4dzFy4Cp7RS+4+LRi8AsTy0hFGN6a8ICLWKvnqBRmw39ZDk5UrYrLljcS1M4lMfF25TXAAAAFQDKlBoLEWccH5rsCoglfISFj0j9/wAAAIEAj1DPJcgpye/DhEqKychOMGCr/G2zNSvQ/WD9H3Op+3i7hNrUfXSemBbMygUzcH5G38lYlsLfEX6t9d6gjiwWMHfTjJ1K57Eny4BWguhz6Xw+2Msj1ihaOtb2mgi+x3GbZzrFfR1KoPf5HjqlHX9HLpjNHXJ0WMFzvGSyXcNqMdcAAACAAgdQ7bYXKKE6cWeRYu24MTBmemCLg1q4zStYkDLGRLn1EFTBrIelB3Q9zDnGlTLFjVqKCVMiGbmHO1wqGzRGnHAqh0WSyqdcenHLca2OR+OiwWZtsATo3Vl31hSTZ+dqiV9aUDnzv4olQ7vW+jCOaC7RxtYI+5K4LNuYIczcnEQ= pmes@bscgrid20"
+          }
+        }
+      }
+    }
+  },
+  "id": "2414",
+  "links": [
+    {
+      "kind": "http://schemas.ogf.org/occi/infrastructure#storagelink",
+      "mixins": [
+        "http://opennebula.org/occi/infrastructure#storagelink"
+      ],
+      "attributes": {
+        "occi": {
+          "core": {
+            "id": "compute_2414_disk_0",
+            "title": "AlyaAdan-Ubuntu-12.04-amd64",
+            "target": "/storage/311",
+            "source": "/compute/2414"
+          },
+          "storagelink": {
+            "deviceid": "/dev/vda",
+            "state": "active"
+          }
+        },
+        "org": {
+          "opennebula": {
+            "storagelink": {
+              "driver": "qcow2"
+            }
+          }
+        }
+      },
+      "id": "compute_2414_disk_0",
+      "rel": "http://schemas.ogf.org/occi/infrastructure#storage",
+      "source": "/compute/2414",
+      "target": "/storage/311"
+    },
+    {
+      "kind": "http://schemas.ogf.org/occi/infrastructure#storagelink",
+      "mixins": [
+        "http://opennebula.org/occi/infrastructure#storagelink"
+      ],
+      "attributes": {
+        "occi": {
+          "core": {
+            "id": "compute_2414_disk_1",
+            "title": "Generated target for an on-the-fly created non-persistent disk",
+            "target": "/storage/generated_compute_2414_disk_1",
+            "source": "/compute/2414"
+          },
+          "storagelink": {
+            "deviceid": "/dev/vdb",
+            "state": "active"
+          }
+        }
+      },
+      "id": "compute_2414_disk_1",
+      "rel": "http://schemas.ogf.org/occi/infrastructure#storage",
+      "source": "/compute/2414",
+      "target": "/storage/generated_compute_2414_disk_1"
+    },
+    {
+      "kind": "http://schemas.ogf.org/occi/infrastructure#storagelink",
+      "mixins": [
+        "http://opennebula.org/occi/infrastructure#storagelink"
+      ],
+      "attributes": {
+        "occi": {
+          "core": {
+            "id": "compute_2414_disk_3",
+            "title": "storage-occi-test",
+            "target": "/storage/322",
+            "source": "/compute/2414"
+          },
+          "storagelink": {
+            "deviceid": "/dev/vdf",
+            "state": "active"
+          }
+        }
+      },
+      "id": "compute_2414_disk_3",
+      "rel": "http://schemas.ogf.org/occi/infrastructure#storage",
+      "source": "/compute/2414",
+      "target": "/storage/322"
+    },
+    {
+      "kind": "http://schemas.ogf.org/occi/infrastructure#networkinterface",
+      "mixins": [
+        "http://schemas.ogf.org/occi/infrastructure/networkinterface#ipnetworkinterface",
+        "http://opennebula.org/occi/infrastructure#networkinterface"
+      ],
+      "attributes": {
+        "occi": {
+          "core": {
+            "id": "compute_2414_nic_0",
+            "title": "private",
+            "target": "/network/2",
+            "source": "/compute/2414"
+          },
+          "networkinterface": {
+            "interface": "eth0",
+            "mac": "02:00:ac:10:08:e9",
+            "state": "active",
+            "address": "172.16.8.233"
+          }
+        },
+        "org": {
+          "opennebula": {
+            "networkinterface": {
+              "bridge": "vbr0",
+              "model": "virtio"
+            }
+          }
+        }
+      },
+      "id": "compute_2414_nic_0",
+      "rel": "http://schemas.ogf.org/occi/infrastructure#network",
+      "source": "/compute/2414",
+      "target": "/network/2"
+    }
+  ]
+}
+]
+

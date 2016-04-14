@@ -1,0 +1,42 @@
+#!/bin/bash -e
+  #Get parameters
+  snapshot=$1
+  vm_id=$2
+  vm_type=$3
+  log_folder=$4
+
+  #---------------------------------------------------------------------------------------------------------------------
+  #Check if snapshot is needed
+  echo "--- Checking if snapshot is needed..."
+  if [ "$snapshot" = "true" ]; then
+     echo "--- Creating snapshot..."
+     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/manageVM/do_snapshot_VM ${vm_id} ${vm_type}" > >(tee ${log_folder}/snapshot.log)    
+     snapshot_id=$(cat ${log_folder}/snapshot.log | grep " - New snapshot ID: " | cut -c 21- | tr -d '\r')
+     echo "       Sucess"
+  else
+     echo "       No snapshot needed"
+  fi
+
+  # Wait for OpenNebula to release created snapshot
+  sleep 10s
+  
+  #Shutdown VM
+  echo "--- Shutting down VM..."
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/manageVM/shutdown_VM ${vm_id}"
+  echo "      Sucess"
+
+  # Wait for OpenNebula to epil the machine
+  sleep 10s
+
+  #Save snapshot
+  echo "--- Saving snapshot..."
+  if [ "$snapshot" = "true" ]; then
+     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/manageVM/save_snapshot_VM ${snapshot_id} ${vm_type}"
+     echo "       Sucess"
+  else
+      echo "       No snapshot needed"
+  fi
+
+  #All process OK. Exit
+  exit 0
+

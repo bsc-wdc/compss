@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-runtime</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-framework</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+	
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Runtime</name>
+	<description>COMPSs Runtime</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>commons</module>
+		<module>loader</module>
+		<module>config/xml</module>
+		<module>adaptors</module>
+		<module>resources</module>
+		<module>engine</module>
+		<!--module>scheduler</module-->
+	</modules>
+</project>

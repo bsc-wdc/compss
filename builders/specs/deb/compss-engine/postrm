@@ -1,0 +1,62 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "remove" ]; then
+    # Remove software
+    rm -rf /opt/COMPSs/
+    echo " "
+    echo " * COMPSs Runtime Engine successfully removed"
+    echo " "
+  elif [ "$action" == "purge" ]; then
+    # Purge config files
+    rm -rf /opt/COMPSs/
+    rm -f /etc/profile.d/compss.sh
+    echo " "
+    echo " * COMPSs Runtime Engine successfully purged"
+    echo " "
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade software
+    newversion=$2
+    rm -rf /opt/COMPSs/
+    echo " "
+    echo " * COMPSs Runtime Engine upgraded to $newversion"
+    echo " "
+  elif [ "$action" == "disappear" ]; then
+    # Disappear
+    overwriter=$2
+    overwriterversion=$3
+    rm -rf /opt/COMPSs/
+    rm -f /etc/profile.d/compss.sh
+    echo " "
+    echo " * COMPSs Runtime Engine diappeared due to $overwriter - $overwriterversion"
+    echo "   Please, reinstall COMPSs Runtime Engine if needed"
+    echo " "
+  elif [ "$action" == "failed-upgrade" ]; then
+    # Revert on failed upgrade
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Runtime Engine upgrade failed. Reverting to $oldversion"
+    echo " "
+  elif [ "$action" == "abort-install" ]; then
+    if [ $# -eq 1 ]; then
+      # Abort generic installation
+      echo " "
+      echo " * COMPSs Runtime Engine installation aborted. Please check errors above."
+      echo " "
+    else
+      # Abort reverting to previous version
+      oldversion=$2
+      echo " "
+      echo " * COMPSs Runtime Engine installation aborted. Please check errors above."
+      echo "   Reverting to version $oldversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Abort upgrade reverting to previous version
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Runtime Engine upgrade aborted. Please check errors above."
+    echo "   Reverting to version $oldversion"
+    echo " "
+  fi

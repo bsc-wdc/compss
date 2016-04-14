@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourceList>
+    <CloudProvider name="PROVIDERNAME">
+        <Server>https://carach5.ics.muni.cz:11443/</Server>
+        <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+        <ImageList>
+            <Image name="egi_compss">
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43100</MinPort>
+                        <MaxPort>43110</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+	    </Image>
+        </ImageList>
+        <CreationTime>60</CreationTime> <!-- In seconds -->
+        <InstanceTypes>
+            <Resource Name="small">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>1</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>1.7</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+		<Price>0.085</Price>
+            </Resource>
+            <Resource Name="medium">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>2</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>3.75</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+		<Price>0.212</Price>
+            </Resource>
+            <Resource Name="large">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>2</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>7.5</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+		<Price>0.34</Price>
+            </Resource>
+            <Resource Name="extra_large">
+                <Capabilities>
+                    <Processor>
+                        <Architecture>x86_64</Architecture>
+                        <CoreCount>4</CoreCount>
+                    </Processor>
+                    <StorageElement>
+                        <Size>10.0</Size>
+                    </StorageElement>
+                    <Memory>
+                        <PhysicalSize>15.0</PhysicalSize>
+                    </Memory>
+                </Capabilities>
+		<Price>0.68</Price>
+            </Resource>
+        </InstanceTypes>
+    </CloudProvider>
+</ResourceList>
+

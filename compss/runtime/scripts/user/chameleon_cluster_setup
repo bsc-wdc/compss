@@ -1,0 +1,200 @@
+#!/bin/bash -e
+
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #
+  # Script Name: chameleon_cluster_setup
+  # Author:      Cristian Ramon-Cortes Vilarrodona
+  #              Barcelona SuperComputing Center (BSC-CNS)
+  #
+  # Description: Script to setup a COMPSs cluster within a
+  #              Chameleon lease
+  #
+  #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+  ##########################################################
+  # Script variables
+  user=cc
+  instanceCreationTime=8        # Iterations over 30s
+  sshUpTime=6			# Iterations over 30s
+  randomID=$RANDOM
+  tmpFile=/tmp/compss-workers-${randomID}.tmp
+  HALF_MIN=30s
+
+  ##########################################################
+  # Prompt warning message
+  echo "!! WARNING: Remember to source the OpenStack RC File"
+  echo " "
+  sleep 2s
+
+  # Prompt messages to get information
+  echo "Provide the name of the COMPSs Master Instance (this instance):"
+  read -r masterName
+  echo "Provide the reservation ID to deploy COMPSs:"
+  read -r reservationId
+  echo "Provide the number of COMPSs Workers:"
+  read -r numWorkers
+  echo " "
+
+  ##########################################################
+  # Retrieve other information
+  echo "* Retrieving configuration parameters from Chameleon..."
+  image=$(nova show $masterName | grep image | tr "|" "\t" | awk {'print $2'})
+  netId=$(neutron net-list | grep sharednet1 | tr "|" "\t" | awk {' print $1 '})
+
+
+  ##########################################################
+  # Launch workers 
+  echo "* Launching workers..."
+  # Insert COMPSs Master key to OpenStack. Create workers with COMPSsMaster key authorized
+  nova keypair-add --pub_key /home/cc/.ssh/id_dsa.pub COMPSsMaster${randomID}
+
+  # Create workers
+  for (( i=1; i<=$numWorkers; i++ )); do
+    cmd="nova boot --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
+    echo "$cmd"
+    $cmd
+  done
+
+  ##########################################################
+  # Waiting Workers creation
+  echo "* Waiting for COMPSs Workers creation (eta 7 min)"
+  for (( i=1; i<=$instanceCreationTime; i++ )); do
+    printf "."
+    sleep ${HALF_MIN}
+  done
+  printf "\n"
+
+  for (( i=1; i<=$numWorkers; i++ )); do
+    # Wait for each worker
+    status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk {' print $3 '})
+    while [ "$status" != "ACTIVE" ]; do
+      sleep ${HALF_MIN}
+      status=$(nova list | grep "COMPSsWorker$i" | tr "|" "\t" | awk {' print $3 '})
+    done
+    echo "   - COMPSsWorker$i is ACTIVE"
+  done
+
+
+  ##########################################################
+  # Retrieving COMPSs Workers information
+  echo "* Retrieving COMPSs Workers information..."
+
+  echo "# Automatically added hostnames by chameleon_cluster_setup" > $tmpFile
+  workerIPs=""
+  for (( i=1; i<=$numWorkers; i++ )); do
+    workerIP=$(nova show COMPSsWorker$i | grep "network" | tr "|" "\t" | awk {' print $3 '} | tr "," "\t" | awk {'print $1 '})
+    # Update worker list
+    workerIPs="$workerIPs $workerIP"
+    # Update hosts tmp file"
+    echo "$workerIP	COMPSsWorker$i" >> $tmpFile
+    # Log worker IP
+    echo "   - COMPSsWorker$i has IP = $workerIP"
+  done
+
+  # Adding configuration to COMPSs Master /etc/hosts file
+  sudo /bin/bash -c "cat $tmpFile >> /etc/hosts"
+  masterIP=$(nova show $masterName | grep "network" | tr "|" "\t" | awk {' print $3 '} | tr "," "\t" | awk {'print $1 '})
+  echo "$masterIP     COMPSsMaster" >> $tmpFile
+
+  # Configuring COMPSs Workers
+  echo "* Configuring COMPSs Workers... (eta 3 min)"
+  for (( i=1; i<=$sshUpTime; i++ )); do
+    printf "."
+    sleep ${HALF_MIN}
+  done
+  printf "\n"
+
+  for workerIP in $workerIPs; do
+    scp -o StrictHostKeyChecking=no $tmpFile $user@$workerIP:$tmpFile
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "sudo /bin/bash -c 'cat $tmpFile >> /etc/hosts'"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no $user@$workerIP "rm -f $tmpFile"
+  done 
+
+  # Clean tmpfile
+  rm -f $tmpFile
+
+
+  ##########################################################
+  # Update COMPSs project / resources files
+  echo "* Updating COMPSs project and resources files..."
+  project=/opt/COMPSs/Runtime/configuration/xml/projects/project.xml
+  resources=/opt/COMPSs/Runtime/configuration/xml/resources/resources.xml
+
+  cat > $project << EOT
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+EOT
+  for (( i=1; i<=$numWorkers; i++ )); do
+    cat >> $project << EOT
+          <Worker Name="COMPSsWorker$i">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker$i/</WorkingDir>
+            <User>$user</User>
+          </Worker>
+EOT
+  done
+  cat >> $project << EOT
+</Project>
+EOT
+
+  cat > $resources << EOT
+<?xml version="1.0" encoding="UTF-8"?>
+<ResourceList>
+EOT
+  for (( i=1; i<=$numWorkers; i++ )); do
+    cat >> $resources << EOT
+	<Resource Name="COMPSsWorker$i">
+                    <Capabilities>
+                        <Host>
+                                <TaskCount>0</TaskCount>
+                                <Queue/>
+                        </Host>
+                        <Processor>
+                                <Architecture>IA32</Architecture>
+                                <Speed>3.0</Speed>
+                                <CoreCount>24</CoreCount>
+                        </Processor>
+                        <OS>
+                                <OSType>Linux</OSType>
+                                <MaxProcessesPerUser>32</MaxProcessesPerUser>
+                        </OS>
+                        <StorageElement>
+                                <Size>8</Size>
+                        </StorageElement>
+                        <Memory>
+                                <PhysicalSize>125</PhysicalSize>
+                                <VirtualSize>125</VirtualSize>
+
+                        </Memory>
+                        <ApplicationSoftware>
+                                <Software>Java</Software>
+                        </ApplicationSoftware>
+                        <Service/>
+                        <VO/>
+                        <Cluster/>
+                        <FileSystem/>
+                        <NetworkAdaptor/>
+                        <JobPolicy/>
+                        <AccessControlPolicy/>
+                </Capabilities>
+                <Requirements/>
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43001</MinPort>
+                        <MaxPort>43101</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+        </Resource>
+
+EOT
+  done
+  cat >> $resources << EOT
+</ResourceList>
+EOT
+
+
+  ##########################################################
+  # End
+  echo "SUCCESS!"
+  exit
+

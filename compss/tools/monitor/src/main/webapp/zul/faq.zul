@@ -1,0 +1,203 @@
+<?page title="COMPSs Monitor" contentType="text/html;charset=UTF-8"?>
+<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<zk>
+    <window height="100%" border="none" contentStyle="overflow:auto;">
+		<borderlayout width="100%">
+			<!-- COMPSs Header -->
+			<north border="none" size="20%">
+				<borderlayout>
+					<center border="none">
+						<div>
+							<include src="/zul/header.zul" />		
+						</div>
+					</center>
+					<east border="none" size="20%">
+						<div vflex="1">
+							<include src="/zul/panel.zul" />				
+						</div>
+					</east>
+				</borderlayout>
+			</north>
+	
+			<!-- FAQs -->
+			<center border="none">
+				<tree id="tree" width="99%">
+					<treecols sizable="true">
+						<treecol label="FAQ Section" />
+					</treecols>
+					<treechildren>
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor doesn't show any application" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+								    		<label id="faq1-answer" style="font-size:12pt font-weight:bold">
+												COMPSs Monitor can only display applications which execution has been stored in the .COMPSs folder of the currently logged in user.
+												Please check that you have logged in the correct user and that you haven't erased the ~/.COMPSs folder
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor doesn't display any application information" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+										    <label id="faq2-answer" style="font-size:12pt font-weight:bold">
+												By default the logger used by the runcompss command is set to OFF. Please set it to INFO (or DEBUG for further information) so that the application can be loaded by the COMPSs Monitor.
+												You can find the logger configuration at: /opt/COMPSs/Runtime/log/ with different pre-configured files for OFF, INFO and DEBUG levels.
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor doesn't display any Load Chart" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+										    <label id="faq3-answer" style="font-size:12pt font-weight:bold">
+												Load Charts are only available with Internet Connection. Please check your Internet Connection.
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor only displays axes at the Load Chart tab" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+										   	<label id="faq4-answer" style="font-size:12pt font-weight:bold">
+												COMPSs Monitor gets load information from runtime every 20s. Please check that your application has an execution time longer than this value.
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor doesn't display nor current nor complete graphs" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+										   	<label id="faq5-answer" style="font-size:12pt font-weight:bold">
+												COMPSs Monitor generates graphs using DOT and SVG rendering so it has some performance limitations. Please try to increase your refresh time (in the configuration tab) in order to let COMPSs Monitor to have more time to render your graph. Next you can find some reference values:
+													about 5s for a graph with less than  4 000 nodes, 
+													about 20s for a graph with less than 10 000 nodes and
+													not displayable for graphs with more than 65 000 nodes.
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor is very slow" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell>
+										   	<label id="faq6-answer" style="font-size:12pt font-weight:bold">
+												COMPSs Monitor parses information from COMPSs Runtime and can consume a lot of CPU if the application logs and graphs are big. In order to reduce its cost you can access to the Configuration section. Please check how to use the configuration parameters.
+											</label>
+										</treecell>
+									</treerow>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+						
+						<treeitem open="false">
+							<treerow>
+								<treecell label="COMPSs Monitor configration" />
+							</treerow>
+							<treechildren>
+								<treeitem>
+									<treerow>
+										<treecell label="Refresh Time" />
+									</treerow>
+									<treechildren>
+										<treeitem>
+											<treerow>
+												<treecell>
+												   	<label id="faq71-answer" style="font-size:12pt font-weight:bold">
+														Elapsed time (in seconds) between COMPSs Monitor automatic refreshs. Please increase this value is you are experiencing slowness. Attention: If you increase too much this value it can cause a loss of information.
+													</label>
+												</treecell>
+											</treerow>
+										</treeitem>
+									</treechildren>
+								</treeitem>
+								<treeitem>
+									<treerow>
+										<treecell label="Sort Applications" />
+									</treerow>
+									<treechildren>
+										<treeitem>
+											<treerow>
+												<treecell>
+												   	<label id="faq72-answer" style="font-size:12pt font-weight:bold">
+														When activated, sorts lexicographically the available user applications. Disable it if you are experiencing slowness.
+													</label>
+												</treecell>
+											</treerow>
+										</treeitem>
+									</treechildren>
+								</treeitem>
+								<treeitem>
+									<treerow>
+										<treecell label="Load Graph X-scale factor" />
+									</treerow>
+									<treechildren>
+										<treeitem>
+											<treerow>
+												<treecell>
+												   	<label id="faq73-answer" style="font-size:12pt font-weight:bold">
+														Sets the frequency at which the COMPSs Monitor loads information for fulfilling the Load Graph. Given a scale factor sf >= 1, the COMPSs monitor will only load information every Time = sf x 20s. For instance, when set to 1 (minimum step) data points are taken every 20s and when set to 2 every 40s. Attention: increasing this factor means that the COMPSs Monitor will update information less often and this may cause a loss of information.
+													</label>
+												</treecell>
+											</treerow>
+										</treeitem>
+									</treechildren>
+								</treeitem>
+							</treechildren>
+						</treeitem>
+					</treechildren>
+				</tree>	
+			</center>
+			
+			<!-- Footer to go back -->
+			<south border="none" size="20%">
+				<hbox vflex="1" hflex="1" height="20%" align="center" pack="center" spacing="20px">
+					<button label="Back" href="/index.zul" />
+				</hbox>
+			</south>
+		</borderlayout>
+	</window>
+</zk>

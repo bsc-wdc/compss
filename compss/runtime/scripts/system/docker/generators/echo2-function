@@ -1,0 +1,5 @@
+#!/bin/bash
+
+function echo2 {
+    echo "[  RUNCOMPSS-DOCKER  ]: $1" 
+}

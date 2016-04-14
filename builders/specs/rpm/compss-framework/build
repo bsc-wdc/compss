@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+  distr=$1
+  mode=$2
+  COMPSS_VERSION=$3
+
+  package_name=compss-framework
+  trunk_rel_path=../../../../
+
+  echo " "
+  echo "* Erasing previous tmp Files..."
+  rm -rf tmp/
+
+  echo " "
+  echo "* Creating package structure..."
+  mkdir -p tmp/BUILD tmp/RPMS tmp/SOURCES/ tmp/SPECS/ tmp/SRPMS tmp/BUILDROOT
+
+  echo " "
+  echo "* Copying SPEC file to RPM build path..."
+  echo " "
+  cp ./${package_name}_${mode}.spec tmp/SPECS/
+
+  echo " "
+  echo "* Generating RPM package..."
+  cd tmp/
+  rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_${mode}.spec
+  if [ $? -ne 0 ]; then
+        echo "Error creating rpm";
+        exit 1;
+  fi
+  cd ..
+
+  echo " "
+  echo "* Moving built RPM package to final location..."
+  mkdir -p ${trunk_rel_path}/builders/packages/${distr}/${package_name}
+  mv tmp/RPMS/${mode}/${package_name}-* ${trunk_rel_path}/builders/packages/$distr/${package_name}
+
+  echo " "
+  echo "* Cleaning all tmp files..."
+  rm -r tmp/
+

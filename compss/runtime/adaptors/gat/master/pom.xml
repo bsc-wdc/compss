@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+    
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-adaptors-gat-master</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-adaptors-gat</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Back-end GAT Master</name>
+	<description>Adaptor implementation so the master node manages data transfers and job submissions through JavaGAT</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2014</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+   
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-adaptors-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<!-- JavaGAT -->
+		<dependency>
+			<groupId>org.gridlab.gat</groupId>
+			<artifactId>javagat-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.gridlab.gat</groupId>
+			<artifactId>javagat-engine</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ibis.util</groupId>
+			<artifactId>ibis-util</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+	</dependencies>
+	
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+		
+			<!-- Copia les dependencies a la carpeta lib -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>packaging</phase>
+						<goals> 
+							<goal>copy-dependencies</goal> 
+						</goals> 
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			    
+			<!-- Crea el Jar amb les dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<finalName>${project.artifactId}</finalName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		
+			<!-- Copy compss-adaptors-gat-master.jar to adaptor basedir -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-final-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>${project.artifactId}.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

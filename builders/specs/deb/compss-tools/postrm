@@ -1,0 +1,59 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "remove" ]; then
+    # Remove software
+    # Nothing to do because it is a meta-package
+    echo " "
+    echo " * COMPSs Tools successfully removed"
+    echo " "
+  elif [ "$action" == "purge" ]; then
+    # Purge config files
+    # Nothing to do because it is a meta-package
+    echo " "
+    echo " * COMPSs Tools successfully purged"
+    echo " "
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade software
+    newversion=$2
+    # Nothing to do because it is a meta-package
+    echo " "
+    echo " * COMPSs Tools upgraded to $newversion"
+    echo " "
+  elif [ "$action" == "disappear" ]; then
+    # Disappear
+    overwriter=$2
+    overwriterversion=$3
+    echo " "
+    echo " * COMPSs Tools diappeared due to $overwriter - $overwriterversion"
+    echo "   Please, reinstall COMPSs Tools if needed"
+    echo " "
+  elif [ "$action" == "failed-upgrade" ]; then
+    # Revert on failed upgrade
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Tools upgrade failed. Reverting to $oldversion"
+    echo " "
+  elif [ "$action" == "abort-install" ]; then
+    if [ $# -eq 1 ]; then
+      # Abort generic installation
+      echo " "
+      echo " * COMPSs Tools installation aborted. Please check errors above."
+      echo " "
+    else
+      # Abort reverting to previous version
+      oldversion=$2
+      echo " "
+      echo " * COMPSs Tools installation aborted. Please check errors above."
+      echo "   Reverting to version $oldversion"
+      echo " "
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Abort upgrade reverting to previous version
+    oldversion=$2
+    echo " "
+    echo " * COMPSs Tools upgrade aborted. Please check errors above."
+    echo "   Reverting to version $oldversion"
+    echo " "
+  fi

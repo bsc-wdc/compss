@@ -1,0 +1,78 @@
+{
+    "version": 1,
+    "disable_existing_loggers": false,
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d - %(message)s"
+        },
+        "medium": {
+            "format": "%(asctime)s %(levelname)s %(name)s %(module)s - %(message)s"
+        },
+        "simple": {
+            "format": "%(levelname)s - %(message)s"
+        }
+    },
+
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "ERROR",
+            "formatter": "medium",
+            "stream": "ext://sys.stdout"
+        },
+
+        "debug_file_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "ERROR",
+            "formatter": "medium",
+            "filename": "pycompss.log",
+            "maxBytes": "10485760",
+            "backupCount": "20",
+            "encoding": "utf8",
+            "delay":"true"
+        },
+
+        "error_file_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "level": "ERROR",
+            "formatter": "medium",
+            "filename": "pycompss.err",
+            "maxBytes": "10485760",
+            "backupCount": "20",
+            "encoding": "utf8",
+            "delay":"true"
+        }
+    },
+
+    "loggers": {
+        "pycompss.api.task": {
+            "level": "ERROR",
+            "handlers": ["debug_file_handler","error_file_handler"], 
+            "propagate": "no"
+        },  
+        "pycompss.api.constraint": {
+            "level": "ERROR",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
+        "pycompss.runtime.launch": {
+            "level": "ERROR",
+            "handlers": ["debug_file_handler","error_file_handler"], 
+            "propagate": "no"
+        },
+        "pycompss.runtime.binding": {
+            "level": "ERROR",
+            "handlers": ["debug_file_handler","error_file_handler"], 
+            "propagate": "no"
+        },
+        "pycompss.worker.worker": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": "no"
+        }
+    },
+
+    "root": {
+        "level": "ERROR"
+    }
+}

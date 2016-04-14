@@ -1,0 +1,138 @@
+package integratedtoolkit.nio;
+
+import integratedtoolkit.ITConstants;
+import integratedtoolkit.util.Tracer;
+import integratedtoolkit.util.StreamGobbler;
+import es.bsc.cepbatools.extrae.Wrapper;
+import java.io.File;
+import java.io.IOException;
+import static java.lang.Math.abs;
+
+
+public class NIOTracer extends Tracer {
+    
+    private static String scriptDir = "";
+    private static String workingDir = "";
+    private static String nodeName = "master";  // while no worker sets the Tracer info we assume we are on master
+    private static final int ID = 121;
+    
+    public static final String TRANSFER_END = "0";
+    
+    
+    public static void startTracing(String workerName, String workerUser, String workerHost, Integer numThreads) {
+        if (numThreads <= 0) {
+            if (debug) {
+                logger.debug("Resource " + workerName + " has 0 slots, it won't appear in the trace");
+            }
+            return;
+        }
+        
+        if (debug) {
+            logger.debug("NIO uri File: " + "any:///" + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+            logger.debug("any:///" + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+        }
+    }
+
+    public static void setWorkerInfo(String scriptDir, String nodeName, String workingDir, int hostID){
+        NIOTracer.scriptDir = scriptDir;
+        NIOTracer.workingDir = workingDir;
+        NIOTracer.nodeName = nodeName;
+        
+        Wrapper.SetTaskID(hostID);
+        Wrapper.SetNumTasks(hostID+1);
+
+        if (debug) { 
+            logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " +NIOTracer.workingDir + ", " + NIOTracer.nodeName);
+        }
+    }
+
+    public static synchronized void emitEvent(int eventID, int eventType){
+
+        Wrapper.Event(eventType, eventID);
+
+        if (debug) {
+            logger.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
+        }
+    }
+    
+
+    public static synchronized void emitDataTransferEvent(String data){
+        boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
+        
+        if (dataTransfer){
+            int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
+            Wrapper.Event(DATA_TRANSFERS, transferID);
+        }
+
+        if (debug) {
+            logger.debug( (dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = [" + data + " , " + data.hashCode() + "]");
+        }
+    }
+    
+    public static synchronized void emitEventAndCounters(int taskId, int eventType){
+
+        Wrapper.Event(eventType, taskId);
+
+        if (debug){
+            logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+        }
+        
+    }
+    public static synchronized void emitCommEvent(boolean send, int partnerID, int tag){
+
+        int size = 0;
+        Wrapper.Comm(send, tag, size, partnerID, ID);
+
+        if (debug) {
+            logger.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", " + partnerID + ", " + ID + "]");
+        }
+    }
+    
+    public static void generatePackage() {
+        masterEventStart(Event.STOP.getId());
+        if (debug){
+            logger.debug("Generating package of "+ nodeName + ", with " + scriptDir);
+        }
+        masterEventFinish();
+        
+        Wrapper.SetOptions (
+            Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
+            ~Wrapper.EXTRAE_PTHREAD_OPTION);
+        
+        // End wrapper
+        Wrapper.Fini();
+        
+        // Generate package
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "package", workingDir, nodeName);
+        pb.environment().remove("LD_PRELOAD");
+        Process p = null;
+        try {
+            p = pb.start();
+        } catch (IOException e) {
+            logger.error("Error generating " + nodeName + " package", e);
+            return;
+        }
+        
+    	// Only capture output/error if debug level (means 2 more threads)
+        if (debug) {
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+            outputGobbler.start();
+            errorGobbler.start();
+            logger.debug("Created globbers");
+        }
+        
+        try {
+            int exitCode = p.waitFor();
+            if (exitCode != 0) {
+                logger.error("Error generating " + nodeName + " package, exit code " + exitCode);
+            }
+        } catch (InterruptedException e) {
+            logger.error("Error generating " + nodeName + " package (interruptedException) : " + e.getMessage());
+        }
+        if (debug){
+            logger.debug("Finish generating");
+        }
+    }
+    
+}

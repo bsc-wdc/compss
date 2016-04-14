@@ -1,0 +1,325 @@
+This is the README for:
+COMPSs TESTS
+
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Description ==
+This package contains all the designed applications to test a COMPSs version.
+
+
+== Requirements ==
+* FOR CLOUD EXECUTION ON JENKINS:
+   - COMPSs unstable repository and unstable VM's
+   - Apache maven for building the software
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH BSCGRID20:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - Acces to bscgrid20 by password-less ssh (see "Configure passwordless ssh" section)
+   - jdk1.7
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH VPN:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - Active VPN to bscgrid20-27 (see "Configure VPN" section)
+   - grid-security Certificates (see "Configure VPN" section)
+   - rOcci Client installed (see "Configure rOcci" section)
+
+* FOR LOCAL EXECUTION:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - openssh-server configured passwordless (including root access for /etc/hosts)
+   - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
+   - python package (for Python binding)
+   - jdk1.7 (for Java tests)
+
+* FOR DEVELOPMENT EXECUTION:
+   - A COMPSs Runtime version
+   - Apache maven for building the software
+   - openssh-server configured passwordless (including root access for /etc/hosts)
+   - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
+   - python package (for Python binding)
+   - jdk1.7 (for Java tests)
+
+
+== Configuration instructions ==
+1. To be able to run all the tests your machine needs to have ALL the packages described on the "Requirements" chapter installed.
+
+2. Your machine needs to add the hosts loopbacks to the /etc/hosts. In order to do this, run the following command as root:
+   $ sudo ./scripts/configure_hosts_insert
+
+ ATTENTION: You only need to run ./configure_hosts_insert once per machine (unless someone updates it).
+
+ You can undo this step and restore your /ets/hosts file running:
+   $ sudo ./scripts/configure_hosts_remove
+
+3. If you pretend to run VPN mode you need:
+   - Install rOcci Client
+   - Configure the bscgrid20-27 VPN
+
+=== Configure passwordless ssh ===
+This section shows one way to configure the passwordless access to bscgrid20.
+Skip it if you already have passwordless access or you know how to do it.
+
+You only need to execute the following commands on your local machine:
+    $ cd ~/.ssh
+    $ ssh-keygen -t rsa                                    
+       (press enter, enter, enter. Leave all questions empty)
+    $ scp id_rsa.pub ${bscgrid20_user}@bscgrid20.bsc.es:.  
+       (enter your password)
+    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es "cat ~/id_rsa.pub >> ~/.ssh/authorized_keys; rm ~/id_rsa.pub" 
+       (enter your password)
+
+You can check your access by executing the following command:
+    $ ssh ${bscgrid20_user}@bscgrid20.bsc.es
+       (access is granted without asking for any password)
+
+
+=== VPN Configuration ===
+In the following subsections you can find to ways of configuring your VPN access to bscgrid20-27. It's recommended to use the automatic configuration to avoid multiple csr requests to the bscgrid20 administrator.
+
+In both cases, you need to ask the bscgrid20 administrator to inject your laptop id_dsa.pub key on the jenkins-test's SSH_EXTRA_PUBLIC_KEYS to grant you access to the c
+reated VMs.
+
+
+==== Automatic configuration of bscgrid20 VPN ====
+This section allows you to enable the bscgrid20-27 VPN using the developper credentials. This credentials are only for developpement purpose and are pre-configured to allow you a easier installation process.
+You can skip this step if you already have the VPN installed.
+
+INSTALLATION: You only need to execute the following commands as root:
+    $ sudo tar -xvzf ./vpn/bscgrid20.tar.gz -C /etc/openvpn
+    $ sudo tar -xvzf ./vpn/grid-security.tar.gz -C /etc/
+
+TURNING ON VPN:
+    $ sudo sh /etc/openvpn/bscgrid20/on.sh
+
+TURNING OFF VPN:
+    $ sudo sh /etc/openvpn/bscgrid20/off.sh
+
+
+==== Manual configuration of bscgrid20-27 VPN ====
+This section shows one way to configure the bscgrid20-27 VPN manually. It allows you to use your own credentials for bscgrid20-27 but it requires the ca.key (or to ask the bscgrid20-27 administrator for the key signature)
+
+Run the following commands on your local machine to CONFIGURE the VPN:
+    $ sudo tar -xvzf ./vpn/bscgrid20.tar.gz -C /etc/openvpn
+    $ sudo keytool -genkey -alias USERbscgrid20 -keyalg RSA -keystore USERbscgrid20.p12 -storetype pkcs12
+       (Fill some information. Remember PASSWORD)
+    $ sudo openssl pkcs12 -in USERbscgrid20.p12 -nocerts -out USERbscgrid20.key
+       (Fill all asked fields with PASSWORD)
+    $ sudo openssl req -days 3650 -new -key USERbscgrid20.key -out USERbscgrid20.csr
+       (Fill some information. First one with PASSWORD.)
+    $ sudo openssl x509 -req -days 3650 -in USERbscgrid20.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out USERbscgrid20.crt
+       (You need to ask the bscgrid20-27 administrator for the ca.key)
+    $ sudo echo "PASSWORD" >> pass
+    $ sudo vi bscgrid2XVPN.conf    (change path to your files)
+
+ 
+== Configure rOcci client ==
+ rOcci is an external library dependency so for further information you need to check the following URL: https://github.com/EGI-FCTF/rOCCI-cli
+ However, the basic installation for openSuse distribution is described below:
+
+    $ sudo zypper install ruby rubygems ruby-devel openssl-devel gcc gcc-c++
+    $ sudo gem install occi-cli
+    $ wget http://repository.egi.eu/community/software/rocci.cli/4.2.x/releases/sl/6/x86_64/RPMS/occi-cli-4.2.5-2.x86_64.rpm
+    $ sudo rpm -ivh occi-cli-4.2.5-2.x86_64.rpm
+
+ Check your installation with:
+    $ occi -v
+       4.2.5
+
+ If you are running a different distribution you can check http://repository.egi.eu/community/software/rocci.cli/4.2.x/releases for different packages
+
+
+== !!!!!!!!! READ CAREFULLY !!!!!!!!!!!!! ==
+1. The build instructions are already automatic while executing ./scripts/main so you only need to run that script.
+2. When all tests are finished a result table is shown.
+3. You can find more information about the scpecific tests at:
+       https://docs.google.com/document/d/14ziDQbh4lEu5fdGUvYo4xwtWQr5Q1XkK7vjZ6_y_HYI
+
+
+
+== Build instructions ==
+mvn -U clean install                         #Compiles all the application's sources
+                                        
+  ATTENTION: This step is done automatically by running the ./scritps/main script
+
+
+== Execution instructions ==
+* FOR CLOUD EXECUTION ON JENKINS:
+ ./scripts/main "cloud_jenkins"                 #Executes all tests on all distributions
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH BSCGRID20:
+ ./scripts/main cloud cloud.cfg                 #Executes all cloud tests
+ ./scripts/main cloud_X cloud.cfg               #Executes test cloud number X
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH VPN
+ ./scripts/main cloudvpn cloudvpn.cfg           #Executes all cloud tests
+ ./scripts/main cloudvpn_X cloudvpn.cfg         #Executes test cloud number X
+   ATTENTION: Cloud test number 1 (FaultTolerance) cannot be tested through this mode !!
+
+* FOR LOCAL EXECUTION:
+  ./scripts/main local local.cfg                #Executes all tests on current COMPSs
+  ./scripts/main local_X local.cfg              #Executes test number X on current COMPSs
+
+* FOR DEVELOPPEMENT TESTS EXECUTION:
+./scripts/main devel_FeatureName devel_FN.cfg   #Executes developpement tests on current COMPSs
+
+ !!! ATTENTION: CONFIGURATION FILES NEED TO BE PERSONALIZED !!!
+                (SEE CREATE RUN CONFIGURATION)
+
+ NOTE: If your configuration file is stored in ./configurations you can call it only using its name but if it's stored in another location you need to use the absolute path to it.
+
+
+== Result Check instructions ==
+* FOR CLOUD EXECUTION ON JENKINS:
+    Jenkins provides and instense log file.
+    However, to have more information about specific errors check $WORKSPACE/logs folder.
+
+* FOR CLOUD EXECUTION FOR DEVELOPPERS:
+    Check the output printed by the execution
+    For further information check $log_folder folder (defined on your configuration file)
+
+* FOR LOCAL EXECUTION:
+    Check ~/${target_base_dir}/logs folder.
+
+* FOR DEVELOPMENT TESTS EXECUTION:
+    Check ~/${target_base_dir}/logs folder.
+
+
+== Structure Definition ==
+* ./sources : Contains the sources of the different applications.
+    ./sources/basic/          : Contains the tests based on java local.
+       ./sources/basic/*       : ONE FOLDER per application test.
+       ./sources/basic/pom.xml : Maven base pom description.
+                                 YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+    ./sources/cloud/          : Contains the tests based on java cloud.
+       ./sources/cloud/*       : ONE FOLDER per application test.
+       ./sources/cloud/pom.xml : Maven base pom description.
+                                 YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+    ./sources/devel_*feature  : Constains the tests based on each different feature.
+       ./sources/devel_*feature/*                  : ONE FOLDER per application test.
+       ./sources/devel_*feature/pom.xml            : Maven base pom description.
+                                                     YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+* ./configurations : Constains all the configuration files for local/development execution
+     ./configurations/*.cfg : you can set as much configuration files as you want respecting always the variable names used inside the existing configuration files
+       ATTENTION: IF YOU MODIFY EXAMPLE CONFIGURATIONS DO NOT UPDATE THEM ON SVN
+
+
+* ./scripts : Contains all the scripts needed to run the all tests. 
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+
+* ./logs    : Used to create the logs folder on the target_location to contain all the log files from the last build
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+* ./vpn     : Stores the configuration files needed to configure the bscgrid20-27 VPN
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+* ./README  : This file
+
+
+
+== Adding a NEW TEST instructions ==
+1. Create your new test application folder (named newTestFolder)
+
+2. Inside newTestFolder add all the files needed to run your application
+
+3. Inside newTestFolder you need to OBLIGATORILY add the following files:
+    - deploy     : describes all the commands needed to deploy your application
+                     !In case of a C-app you need to compile it in this step and only deploy compiled files
+    - execution  : describes all the commands needed to run and check the result of your application
+    - pom.xml    : describes your application dependencies for maven project build
+                     !Only for java applications that need to be maven compiled
+
+3.1. If your application has been tested before, add it to the basic/cloud tests:
+    * cp -r newTestFolder tests/sources/basic/newTestFolder
+                           or
+      cp -r newTestFolder tests/sources/cloud/newTestFolder
+    
+    * Add your module to the base pom.xml:
+       Edit /tests/sources/basic-cloud/pom.xml and add your module to the end of the file
+       !Only if your java application needs to be maven compiled
+
+3.2. If your application hasn't been tested before, it's recommended you use a development tag:
+    * mkdir tests/sources/DEVEL_yourName
+
+    * cp -r newTestFolder tests/sources/devel_newFeature/newTestFolder
+
+    * Create a base pom.xml on /tests/sources/devel_newFeature/pom.xml and add your module
+        !Only for java applications that need to be maven compiled
+
+
+ ATTENTION: For any change it's recomended to look first at the previously done tests. This will allow you to base your new feature on the previous ones (such as deploy, execution, result codes and pom.xml structure)
+
+
+== Creating a LOCAL Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (local.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a DEVELOPPEMENT Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+                         JAVA_HOME              MANDATORY
+                         java_apps              OPTIONAL
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (devel_example.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a CLOUD (bscgrid20) Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         user                   OPTIONAL
+                         bscgrid20_user         OPTIONAL
+                         target_base_dir        OPTIONAL
+                         IT_HOME                OPTIONAL
+                         connector_server       OPTIONAL
+                         connector_class        OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (cloud.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+
+
+== Creating a CLOUD (VPN) Run Configuration ==
+1. Create your configuration file named WhatEver.cfg
+    !!! ATTENTION:   a) Only use the following variables:
+                         user                   OPTIONAL
+                         target_base_dir        OPTIONAL
+                         logs_location          OPTIONAL
+                         IT_HOME                OPTIONAL
+                         connector_server       OPTIONAL
+                         connector_class        OPTIONAL
+                         JAVA_HOME              MANDATORY
+                     b) Be sure that your configuration defines only this variables.
+    !!! It's recommended to base your new configuration file in an already existing one (cloudvpn.cfg)
+
+2. Store it in ./configurations folder or use the full path when calling main script
+     cp WhatEver.cfg tests/configurations/WhatEver.cfg
+

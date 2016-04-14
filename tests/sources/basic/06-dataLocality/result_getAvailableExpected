@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+  runtimelog=$1
+
+  scoresList=$(cat $runtimelog | grep "Available Resource:" | cut -c 91-)
+  resource_actual="R3"  
+  score_actual=-1
+  task_actual=0
+
+  while read -r line; do
+    #PARSE LINE
+    score=$(echo $line | cut -c ${#line})
+    separator=$(echo $line | cut -c $((${#line}-11)))
+    if [ "$separator" != " " ]; then
+       separator2=$(echo $line | cut -c $((${#line}-12)))
+       if [ "$separator2" != " " ]; then
+          task=$(echo $line | cut -c $((${#line}-12))-$((${#line}-10)))
+          resource=$(echo $line | cut -c $((${#line}-22))-$((${#line}-21)))
+       else
+          task=$(echo $line | cut -c $((${#line}-11))-$((${#line}-10)))
+          resource=$(echo $line | cut -c $((${#line}-21))-$((${#line}-20)))
+       fi
+    else
+       task=$(echo $line | cut -c $((${#line}-10)))
+       resource=$(echo $line | cut -c $((${#line}-20))-$((${#line}-19)))
+    fi
+
+    #COMPARE TO ACTUAL
+    if [ "$resource" = "$resource_actual" ]; then
+       if [ $score -gt $score_actual ]; then
+          task_actual=$task
+          score_actual=$score
+       fi 
+    else
+      #Reset to new entry
+      echo "$task_actual $resource_actual"
+      resource_actual=$resource
+      task_actual=$task
+      score_actual=$score
+    fi
+  done <<< "$scoresList"
+  echo "$task_actual $resource_actual"
+

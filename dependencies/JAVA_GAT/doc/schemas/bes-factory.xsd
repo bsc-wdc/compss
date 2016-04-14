@@ -1,0 +1,241 @@
+<xsd:schema
+    targetNamespace="http://schemas.ggf.org/bes/2006/08/bes-factory"
+    xmlns="http://schemas.ggf.org/bes/2006/08/bes-factory"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:wsa="http://www.w3.org/2005/08/addressing"
+    xmlns:bes-factory="http://schemas.ggf.org/bes/2006/08/bes-factory"
+    xmlns:jsdl="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+  <xsd:import
+      namespace="http://www.w3.org/2005/08/addressing"
+      schemaLocation="ws-addr.xsd"/>
+
+  <xsd:import
+      namespace="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+      schemaLocation="jsdl.xsd"/>
+
+  <!-- Attribute Document Types -->
+  <xsd:complexType name="BasicFactoryResourceAttributesDocumentType">
+    <xsd:sequence>
+      <xsd:element name="OperatingSystem" type="jsdl:OperatingSystem_Type"
+	  minOccurs="0"/>
+      <xsd:element name="CPUArchitecture" type="jsdl:CPUArchitecture_Type"
+	  minOccurs="0"/>
+      <xsd:element name="CPUCount" type="xsd:unsignedInt"
+	  minOccurs="0"/>
+      <xsd:element name="CPUSpeed" type="xsd:unsignedLong"
+	  minOccurs="0"/>
+      <xsd:element name="PhysicalMemory" type="xsd:unsignedLong"
+	  minOccurs="0"/>
+      <xsd:element name="VirtualMemory" type="xsd:unsignedLong"
+        minOccurs="0"/>
+      <xsd:any namespace="##other" processContents="lax"
+          minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="FactoryResourceAttributesDocumentType">
+    <xsd:complexContent>
+      <xsd:extension base="bes-factory:BasicFactoryResourceAttributesDocumentType">
+        <xsd:sequence>
+          <xsd:element name="IsAcceptingNewActivities"
+              type="xsd:boolean" minOccurs="1" maxOccurs ="1"/>
+          <xsd:element name="CommonName" type="xsd:string"
+              minOccurs="0" maxOccurs ="1"/>
+          <xsd:element name="LongDescription" type="xsd:string"
+              minOccurs="0" maxOccurs ="1"/>
+          <xsd:element name="TotalNumberOfActivities"
+              type="xsd:unsignedInt" minOccurs="1" maxOccurs ="1"/>
+          <xsd:element name="LocalResourceManagerType"
+			        type="xsd:QName"/>
+          <xsd:element name="ActivityReference"
+			        type="wsa:EndpointReferenceType"
+              minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="ContainedResourceAttributes"
+              type="xsd:anyType" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="NamingProfile"
+              type="xsd:QName" minOccurs="1" maxOccurs ="1"/>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+
+  <!-- Message Helper Types -->
+  <xsd:complexType name="ActivityDocumentType">
+    <xsd:sequence>
+      <xsd:element ref="jsdl:JobDefinition"/>
+      <xsd:any namespace="##other" processContents="lax" 
+          minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ActivityStateType">
+    <xsd:sequence>
+      <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="ActivityStatusType">
+    <xsd:choice>
+      <xsd:element name="Pending" type="bes-factory:ActivityStateType"/>
+      <xsd:element name="Running" type="bes-factory:ActivityStateType"/>
+      <xsd:element name="Cancelled" type="bes-factory:ActivityStateType"/>
+      <xsd:element name="Failed" type="bes-factory:ActivityStateType"/>
+      <xsd:element name="Finished" type="bes-factory:ActivityStateType"/>
+    </xsd:choice>
+  </xsd:complexType>
+
+  <xsd:complexType name="GetActivityStatusResponseType">
+    <xsd:sequence>
+      <xsd:element ref="bes-factory:ActivityIdentifier"/>
+      <xsd:element ref="bes-factory:ActivityStatus" minOccurs="0"/>
+      <xsd:element name="Fault" type="xsd:anyType" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="GetActivityDocumentResponseType">
+    <xsd:sequence>
+      <xsd:element ref="bes-factory:ActivityIdentifier"/>
+      <xsd:element ref="jsdl:JobDefinition" minOccurs="0"/>
+      <xsd:element name="Fault" type="xsd:anyType" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="TerminateActivityResponseType">
+    <xsd:sequence>
+      <xsd:element ref="bes-factory:ActivityIdentifier"/>
+      <xsd:element name="Cancelled" type="xsd:boolean"/>
+      <xsd:element name="Fault" type="xsd:anyType" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!-- Message Helper Elements -->
+  <xsd:element name="BasicFactoryResourceAttributseDocument"
+	type="bes-factory:BasicFactoryResourceAttributesDocumentType"/>
+  <xsd:element name="FactoryResourceAttributesDocument"
+	type="bes-factory:FactoryResourceAttributesDocumentType"/>
+  <xsd:element name="ActivityDocument"
+	type="bes-factory:ActivityDocumentType"/>
+  <xsd:element name="ActivityIdentifier"
+	type="wsa:EndpointReferenceType"/>
+  <xsd:element name="ActivityStatus"
+	type="bes-factory:ActivityStatusType"/>
+
+  <!-- MOVED FROM bes-factory.wsdl -->
+      <!-- Message Types -->
+      <xsd:complexType name="CreateActivityType">
+        <xsd:sequence>
+          <xsd:element ref="bes-factory:ActivityDocument"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="CreateActivityResponseType">
+        <xsd:sequence>
+          <xsd:element ref="bes-factory:ActivityIdentifier"/>
+          <xsd:element ref="bes-factory:ActivityDocument" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetActivityStatusesType">
+         <xsd:sequence>
+           <xsd:element name="ActivityIdentifier"
+               type="wsa:EndpointReferenceType"
+               maxOccurs="unbounded"/>
+         </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetActivityStatusesResponseType">
+         <xsd:sequence>
+           <xsd:element name="Response"
+               type="bes-factory:GetActivityStatusResponseType"
+               maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="TerminateActivitiesType">
+        <xsd:sequence>
+          <xsd:element ref="bes-factory:ActivityIdentifier"
+              minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="TerminateActivitiesResponseType">
+        <xsd:sequence>
+          <xsd:element name="Response"
+              type="bes-factory:TerminateActivityResponseType"
+              minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetActivityDocumentsType">
+        <xsd:sequence>
+          <xsd:element ref="bes-factory:ActivityIdentifier"
+              minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetActivityDocumentsResponseType">
+        <xsd:sequence>
+          <xsd:element name="Response"
+              type="bes-factory:GetActivityDocumentResponseType"
+              minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:complexType name="GetFactoryAttributesDocumentType"/>
+
+      <xsd:complexType name="GetFactoryAttributesDocumentResponseType">
+        <xsd:sequence>
+          <xsd:element
+              ref="bes-factory:FactoryResourceAttributesDocument"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- Fault Types  -->
+      <xsd:complexType name="NotAcceptingNewActivitiesFaultType"/>
+
+      <xsd:complexType name="UnsupportedJSDLVersionFaultType"/>
+
+      <xsd:complexType name="UnsupportedFeatureFaultType">
+        <xsd:sequence>
+          <xsd:element name="Feature" type="xsd:string"
+            minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <!-- Message Elements -->
+      <xsd:element name="CreateActivity"
+        type="bes-factory:CreateActivityType"/>
+      <xsd:element name="CreateActivityResponse"
+        type="bes-factory:CreateActivityResponseType"/>
+      <xsd:element name="GetActivityStatuses"
+        type="bes-factory:GetActivityStatusesType"/>
+      <xsd:element name="GetActivityStatusesResponse"
+        type="bes-factory:GetActivityStatusesResponseType"/>
+      <xsd:element name="TerminateActivities"
+        type="bes-factory:TerminateActivitiesType"/>
+      <xsd:element name="TerminateActivitiesResponse"
+        type="bes-factory:TerminateActivitiesResponseType"/>
+      <xsd:element name="GetActivityDocuments"
+        type="bes-factory:GetActivityDocumentsType"/>
+      <xsd:element name="GetActivityDocumentsResponse"
+        type="bes-factory:GetActivityDocumentsResponseType"/>
+      <xsd:element name="GetFactoryAttributesDocument"
+        type="bes-factory:GetFactoryAttributesDocumentType"/>
+      <xsd:element name="GetFactoryAttributesDocumentResponse"
+        type="bes-factory:GetFactoryAttributesDocumentResponseType"/>
+
+      <!-- Fault Elements -->
+      <xsd:element name="NotAcceptingNewActivitiesFault"
+        type="bes-factory:NotAcceptingNewActivitiesFaultType"/>
+      <xsd:element name="UnsupportedJSDLVersionFault"
+        type="bes-factory:UnsupportedJSDLVersionFaultType"/>
+      <xsd:element name="UnsupportedFeatureFault"
+        type="bes-factory:UnsupportedFeatureFaultType"/>
+      <xsd:element name="CreateActivityFaultMessage"
+        type="xsd:anyType"/>
+
+  <!-- MOVED FROM bes-factory.wsdl -->
+</xsd:schema>

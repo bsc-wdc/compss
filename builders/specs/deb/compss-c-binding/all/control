@@ -1,0 +1,8 @@
+Package: compss-c-binding
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: compss-bindings-common, openjdk-7-jdk, libtool, automake, build-essential, libxml2-dev, libboost-serialization-dev, libboost-iostreams-dev, csh
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar C binding.

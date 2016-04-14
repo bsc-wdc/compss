@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title>JavaGAT capabilities: FileOutputStream</title>
+</head>
+<body>
+<h1>FileOutputStream adaptors</h1>
+<p>This page shows the capabilities of the adaptors that implement the JavaGAT FileOutputStream object. The table below shows the status of the adaptor, which can be 'done', 'w.i.p' (work in progress) or 'untested' (coding is done, needs testing). Furthermore you can see the implementation level (the percentage of implemented methods), and you can see the details of which methods are actually implemented. There is also a <a href=#overview>per method overview</a> (which adaptors implement a certain method)</p>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>name</th>
+<th>status</th>
+<th>implemented</th>
+</tr>
+<tr>
+<td>LocalFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#LocalFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>GridFTPFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#GridFTPFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SftpTrileadFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#SftpTrileadFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>FTPFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#FTPFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>HTTPFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#HTTPFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>HTTPSFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#HTTPSFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+<tr>
+<td>SshTrileadFileOutputStreamAdaptor</td>
+<td>done</td>
+<td>100 % [<a href=#SshTrileadFileOutputStreamAdaptor>details</a>]</td>
+</tr>
+</table>
+<h2><a name=LocalFileOutputStreamAdaptor>LocalFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The Local FileOutputStream Adaptor is a simple wrapper around the java.io.FileOutputStream object.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=GridFTPFileOutputStreamAdaptor>GridFTPFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The GridFTP FileOutputStream Adaptor implements the FileOutputStream object using Globus GSIFTP.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SftpTrileadFileOutputStreamAdaptor>SftpTrileadFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SftpTrilead FileOutputStream Adaptor implements the FileOutputStream object using the SFTP support of the trilead ssh library. Trilead ssh is an open source full java ssh library. On the server side, the 'scp' program must be in the PATH. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=FTPFileOutputStreamAdaptor>FTPFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The FTP FileOutputStream Adaptor implements the FileOutputStream object using FTP.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=HTTPFileOutputStreamAdaptor>HTTPFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The HTTP FileOutputStream Adaptor implements the FileOutputStream object using the http: protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=HTTPSFileOutputStreamAdaptor>HTTPSFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The HTTPS FileOutputStream Adaptor implements the FileOutputStream object using the https: protocol.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<h2><a name=SshTrileadFileOutputStreamAdaptor>SshTrileadFileOutputStreamAdaptor - implementation details</a></h2>
+<p>Adaptor description: The SshTrilead FileOutputStream Adaptor implements the FileOutputStream object using the trilead ssh library. Trilead ssh is an open source full java ssh library. On the server side, the 'scp' program must be in the PATH. Connections with a remote ssh server can be made by using the username + password, username + keyfile, or with only a username, depending on the client and server settings.<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<th>implemented</th>
+<th>not implemented</th>
+</tr>
+<tr>
+<td>flush</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td>-</td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td>-</td>
+</tr>
+<tr>
+<td>write</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td>-</td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>close</td>
+<td>-</td>
+</tr>
+</table>
+<a name=overview><h2>Per Method Overview</h2></a>
+<table border=1px cellpadding=5 cellspacing=0>
+<tr>
+<td></td>
+<th>Local</th>
+<th>GridF</th>
+<th>SftpT</th>
+<th>FTPFi</th>
+<th>HTTPF</th>
+<th>HTTPS</th>
+<th>SshTr</th>
+</tr>
+<tr>
+<td>flush</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMeasurement</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>removeMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>addMetricListener</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>write</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitionByName</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>getMetricDefinitions</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>close</td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+<td><font color=#00FF00><b>V</b></font></td>
+</tr>
+<tr>
+<td>total</td>
+<td>100 %</td>
+<td>100 %</td>
+<td>100 %</td>
+<td>100 %</td>
+<td>100 %</td>
+<td>100 %</td>
+<td>100 %</td>
+</tr>
+</table>
+</body>
+</html>

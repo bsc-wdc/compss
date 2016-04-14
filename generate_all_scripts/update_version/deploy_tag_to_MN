@@ -1,0 +1,69 @@
+#!/bin/bash -e
+
+usage() {
+  exitValue=$1
+
+  echo " "
+  echo "Usage ./deploy_tag_to_MN <version>"
+  echo " "
+
+  exit $exitValue
+}
+ 
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  # Check parameters
+  if [ $# -ne 1 ]; then
+    echo "ERROR: Incorrect number of parameters"
+    usage 1
+  fi
+
+  # Get version parameters
+  version=$1
+  echo "Deploying COMPSs Tag ${version} to MN3..."
+
+  # Define script variables
+  script_dir=$(pwd)/$(dirname $0)
+  base_dir=${script_dir}/../../../tags/${version}/
+  builders_dir=${base_dir}/builders/
+
+  mn_user=bsc19533
+  mn_login=mn1.bsc.es
+
+  #---------------------------------------------------------------------
+  # Install tag to MN
+  echo "- Install to MN"
+  cd ${base_dir}
+  mvn -U clean install
+  cd ${builders_dir}
+  ./buildMN ${mn_user} /home/bsc19/${mn_user}/tmpCOMPSs/ /gpfs/apps/MN3/COMPSs/$version
+  cd ${script_dir}
+
+  #---------------------------------------------------------------------
+  # Add module
+  echo "- Add module file"
+  auxScriptName=module_script.aux
+  auxScriptFile=${script_dir}/${auxScriptName}
+cat > ${auxScriptFile} << EOT
+#!/bin/bash -e
+
+  cp /apps/modules/modulefiles/tools/COMPSs/trunk /apps/modules/modulefiles/tools/COMPSs/$version
+  sed -i '/set PROG_VERSION /cset PROG_VERSION	'$version'' /apps/modules/modulefiles/tools/COMPSs/$version
+EOT
+  scp -o StrictHostKeyChecking=no ${auxScriptFile} ${mn_user}@${mn_login}:.
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${mn_user}@${mn_login} "chmod 775 ${auxScriptName}"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${mn_user}@${mn_login} "./${auxScriptName}"
+
+  # Clean tmp files
+  echo "- Clean tmp files"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${mn_user}@${mn_login} "rm ${auxScriptName}"
+  rm ${auxScriptFile}
+
+  #---------------------------------------------------------------------
+  # NOTIFY SUCCESS
+  echo " "
+  echo "FINISHED! COMPSs Tag ${version} deployed in MN3"
+  echo " "
+
+  # END
+  exit 0

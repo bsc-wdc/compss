@@ -1,0 +1,72 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+    <artifactId>compss-monitor</artifactId>
+    <packaging>war</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-tools</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Monitor</name>
+	<description>COMPSs Monitor</description>
+	<url>http://www.bsc.es</url>
+
+	<!-- DEPENDENCIES -->
+	<dependencies>	
+	    <dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+	    </dependency>
+	    
+	    <!-- Log4j -->
+	    <dependency>
+		<groupId>log4j</groupId>
+		<artifactId>log4j</artifactId>
+	    </dependency>
+		
+	    <!-- ZK Framework -->
+	    <dependency>
+	      <groupId>org.zkoss.zk</groupId>
+	      <artifactId>zkplus</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.zkoss.zk</groupId>
+	      <artifactId>zhtml</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.zkoss.zk</groupId>
+	      <artifactId>zkbind</artifactId>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.zkoss.zk</groupId>
+	      <artifactId>zul</artifactId>
+	    </dependency>
+	</dependencies>
+	
+	<!-- BUILD -->
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<resources>
+		    <resource>
+		        <directory>src/main/resources/</directory>
+		        <filtering>true</filtering>
+		    </resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+                		</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	<Worker Name="COMPSsWorker01">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+            <LimitOfTasks>2</LimitOfTasks>
+	</Worker>	
+</Project>
+

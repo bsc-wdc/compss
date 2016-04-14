@@ -1,0 +1,72 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+    echo "[  ERROR  ]: Indicate the number of nodes to be created as first parameter."
+    exit -1
+fi
+
+NUM_NODES=$1
+
+echo
+
+echo "IF YOU GET DOCKER CONNECTION ERRORS, OR CERTIFICATE WARNINGS, PLEASE REMEMBER TO REMOVE BEFORE EVERYTHING, THE VIRTUALBOX HOST-ONLY NETWORKS"
+echo "                 (File->Preferences->Network->Host only networks->Remove all of them)"
+
+echo
+echo
+echo "Creating Swarm cluster consul machine..."
+echo
+docker-machine create -d=virtualbox consul-machine
+
+eval $(docker-machine env consul-machine)
+docker -H tcp://$(docker-machine ip consul-machine):2376 run -d -p 8500:8500 --name consul-machine -h consul progrium/consul -server -bootstrap
+#docker-machine upgrade consul-machine
+
+echo
+echo "Swarm consul machine created."
+
+echo
+echo
+
+echo "Creating consul Swarm manager..."
+echo
+docker-machine create -d virtualbox  --swarm --swarm-master --swarm-discovery="consul://$(docker-machine ip consul-machine):8500" --engine-opt="cluster-store=consul://$(docker-machine ip consul-machine):8500" --engine-opt="cluster-advertise=eth1:2376" node1
+#docker-machine upgrade node1
+echo
+echo "Swarm manager created."
+
+echo 
+for i in $( seq 2 $(( $NUM_NODES )) )
+do
+    echo
+    echo "Creating 'node$i'"
+    docker-machine create -d virtualbox --swarm --swarm-discovery="consul://$(docker-machine ip consul-machine):8500" --engine-opt="cluster-store=consul://$(docker-machine ip consul-machine):8500" --engine-opt="cluster-advertise=eth1:2376" node${i}
+    #docker-machine upgrade node${i}
+done
+
+echo
+echo
+
+
+echo "Displaying info of the created Swarm: "
+eval "$(docker-machine env --swarm node1)"
+docker info
+echo "Finished creating Swarm cluster:"
+docker run swarm list consul://$(docker-machine ip consul-machine):8500
+
+echo
+echo
+
+echo "[  Swarm-manager is allocated in 'node1'  ]"
+echo
+echo "To see the 'docker info' use:"
+echo "     eval '\$(docker-machine env --swarm node1)'"
+echo
+
+
+echo "To run something on the cluster use:"
+echo "     eval '\$(docker-machine env --swarm node1)'"
+echo "     docker run hello-world"
+echo
+echo "Remember that you can connect to a node with: docker-machine ssh 'nodeX'"
+echo

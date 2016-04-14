@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs Runtime Cloud Resources from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Runtime/connectors
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs Runtime Cloud Resources..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Runtime Cloud Resources from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs/Runtime/connectors" ]; then
+      mv /opt/COMPSs/Runtime/connectors /tmp/COMPSs_connectors.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs Runtime Cloud Resources $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_connectors.bkp" ]; then
+      mv /tmp/COMPSs_connectors.bkp /opt/COMPSs/Runtime/connectors
+    fi
+  fi
+

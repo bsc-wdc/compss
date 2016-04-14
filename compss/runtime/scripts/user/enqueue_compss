@@ -1,0 +1,355 @@
+#!/bin/bash
+
+#---------------------------------------------------
+# SCRIPT CONSTANTS DECLARATION
+#---------------------------------------------------
+DEFAULT_EXEC_TIME=10
+DEFAULT_NUM_NODES=2
+DEFAULT_NUM_SWITCHES=0
+MAX_NODES_SWITCH=18
+MIN_NODES_REQ_SWITCH=4
+DEFAULT_QUEUE_SYSTEM=lsf
+DEFAULT_QUEUE=default
+DEFAULT_TASKS_PER_NODE=16
+DEFAULT_TASKS_IN_MASTER=0
+DEFAULT_MASTER_WORKING_DIR=.
+DEFAULT_WORKER_WORKING_DIR=scratch
+DEFAULT_NETWORK=ethernet
+DEFAULT_DEPENDENCY_JOB=None
+DEFAULT_RESERVATION=disabled
+DEFAULT_NODE_MEMORY=disabled
+
+# Next default values need to be consistent with runcompss
+DEFAULT_LIBRARY_PATH=.
+DEFAULT_CLASSPATH=.
+DEFAULT_DEBUG=off
+DEFAULT_LOG_LEVEL_ARG=debug
+DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
+DEFAULT_TRACING=false
+DEFAULT_TRACING_ARG=true
+DEFAULT_MASTER_PORT_BASE=43000
+DEFAULT_MASTER_PORT_RAND_RANGE=1000
+
+# Error constant messages
+ERROR_WORKER_WD="Invalid Worker Working Dir option"
+ERROR_NETWORK="Invalid network option"
+ERROR_SWITCHES="Too little switches for the specified number of nodes"
+ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
+ERROR_NODE_MEMORY="Incorrect node memory parameter. Only disabled, medium and high available"
+
+#---------------------------------------------------
+# FUNCTIONS DECLARATION
+#---------------------------------------------------
+usage() { 
+  exitValue=$1
+  
+  /bin/cat <<EOT
+Usage: $0 [queue_system_options] [COMPSs_options] application_name application_arguments
+
+* Options:
+  General:
+    --help, -h                              Print this help message
+  
+  Queue system configuration:
+    --exec_time=<minutes>                   Expected execution time of the application (in minutes)
+                                            Default: ${DEFAULT_EXEC_TIME}
+    --num_nodes=<int>                       Number of nodes to use
+                                            Default: ${DEFAULT_NUM_NODES}
+    --num_switches=<int>                    Maximum number of different switches. Select 0 for no restrictions.
+                                            Maximum nodes per switch: ${MAX_NODES_SWITCH}
+					    Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
+					    Default: ${DEFAULT_NUM_SWITCHES} 
+    --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
+                                            Default: ${DEFAULT_TASKS_PER_NODE}
+    --node_memory=<name>                    Maximum node memory: disabled | medium | high
+                                            Default: ${DEFAULT_NODE_MEMORY}
+    --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
+                                            Default: ${DEFAULT_NETWORK}
+
+    --queue_system=<name>                   Queue system to use: lsf | pbs | slurm
+                                            Default: ${DEFAULT_QUEUE_SYSTEM}
+    --queue=<name>                          Queue name to submit the job. Depends on the queue system.
+                                            For example (MN3): bsc_cs | bsc_debug | debug | interactive
+                                            Default: ${DEFAULT_QUEUE}
+    --reservation=<name>		    Reservation to use when submitting the job. 
+                                            Default: ${DEFAULT_RESERVATION}
+    --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
+					    Default: ${DEFAULT_DEPENDENCY_JOB}
+
+    --master_working_dir=<path>             Working directory of the application
+                                            Default: ${DEFAULT_MASTER_WORKING_DIR}
+    --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
+                                            Default: ${DEFAULT_WORKER_WORKING_DIR}
+    --tasks_in_master=<int>		    Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
+					    Default: ${DEFAULT_TASKS_IN_MASTER}
+
+  Runcompss delegated parameters:
+
+EOT
+  ${scriptDir}/runcompss --opts 
+
+  exit $exitValue
+}
+
+# Displays parsing arguments errors
+display_error() {
+  local error_msg=$1
+  
+  echo $error_msg
+  echo " "
+  
+  usage 1
+}
+
+get_args() {
+  # Avoid enqueue if there is no application
+  if [ $# -eq 0 ]; then
+    usage 1
+  fi
+
+  #Parse COMPSs Options
+  while getopts hdt-: flag; do 
+    # Treat the argument
+    case "$flag" in
+      h)
+	# Display help
+	usage 0
+	;;
+      d)
+        log_level=${DEFAULT_LOG_LEVEL_ARG}
+        #Keep it for runcompss (to add them to master)
+        args_pass="$args_pass -$flag"
+        ;;
+      t)
+        tracing=${DEFAULT_TRACING_ARG}
+        #Keep it for runcompss (to add them to master)
+        args_pass="$args_pass -$flag"
+        ;;
+      -)
+	# Check more complex arguments 
+	case "$OPTARG" in
+	  help)
+	    # Display help
+	    usage 0
+	    ;;
+	  exec_time=*)
+	    exec_time=$(echo $OPTARG | sed -e 's/exec_time=//g')
+	    ;;
+	  num_nodes=*)
+	    num_nodes=$(echo $OPTARG | sed -e 's/num_nodes=//g')
+	    ;;
+          num_switches=*)
+            num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
+            ;;
+	  queue_system=*)
+	    queue_system=$(echo $OPTARG | sed -e 's/queue_system=//g')
+	    ;;
+          queue=*)
+	    queue=$(echo $OPTARG | sed -e 's/queue=//g')
+            ;;
+          node_memory=*)
+            node_memory=$(echo $OPTARG | sed -e 's/node_memory=//g')
+            ;;
+          reservation=*)
+            reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
+            ;;
+          job_dependency=*)
+            dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')
+            ;;
+	  tasks_per_node=*)
+	    tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
+	    ;;
+	  master_working_dir=*)
+	    master_working_dir=$(echo $OPTARG | sed -e 's/master_working_dir=//g')
+	    ;;
+	  worker_working_dir=*)
+	    worker_working_dir=$(echo $OPTARG | sed -e 's/worker_working_dir=//g')
+	    ;; 
+          tasks_in_master=*)
+            tasks_in_master=$(echo $OPTARG | sed -e 's/tasks_in_master=//g')
+            ;;
+          network=*)
+            network=$(echo $OPTARG | sed -e 's/network=//g')
+            ;;
+          library_path=*)
+            library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          classpath=*)
+            cp=$(echo $OPTARG | sed -e 's/classpath=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          log_level=*)
+            log_level=$(echo $OPTARG | sed -e 's/log_level=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+	    ;;
+          debug)
+            log_level=${DEFAULT_LOG_LEVEL_ARG}
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          tracing=*)
+            tracing=$(echo $OPTARG | sed -e 's/tracing=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+	  tracing)
+            tracing=${DEFAULT_TRACING_ARG}
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          comm=*)
+            comm=$(echo $OPTARG | sed -e 's/comm=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+	  uuid=*)
+            # UUID will be generated by launch.sh remove it from COMPSs flags
+            echo "WARNING: UUID is automatically generated. Omitting parameter"
+	    ;;
+          master_port=*)
+            master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
+            # Remove from runcompss since launcher will add it
+            ;;
+          *)
+	    # Flag didn't match any patern. Add to COMPSs 
+	    args_pass="$args_pass --$OPTARG"
+	    ;;
+	esac
+	;;
+      *)
+	# Flag didn't match any patern. End of COMPSs flags
+	args_pass="$args_pass -$flag"
+	;; 
+    esac
+  done
+  #Shift COMPSs arguments
+  shift $((OPTIND-1))
+
+  #Pass application name and args
+  args_pass="$args_pass $*" 
+}
+
+check_args() {
+  if [ -z "${queue_system}" ]; then
+    queue_system=${DEFAULT_QUEUE_SYSTEM}
+  fi
+
+  if [ -z "${queue}" ]; then
+    queue=${DEFAULT_QUEUE}
+  fi
+
+  if [ -z "${exec_time}" ]; then
+    exec_time=${DEFAULT_EXEC_TIME}
+  fi
+  
+  if [ -z "${num_nodes}" ]; then
+    num_nodes=${DEFAULT_NUM_NODES}
+  fi
+
+  if [ -z "${num_switches}" ]; then
+    num_switches=${DEFAULT_NUM_SWITCHES}
+  fi
+  maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
+  if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
+    display_error "${ERROR_SWITCHES}"
+  fi
+  if [ ${num_nodes} -lt ${MIN_NODES_REQ_SWITCH} ] && [ "${num_switches}" != "0" ]; then
+    display_error "${ERROR_NO_ASK_SWITCHES}"
+  fi
+
+  if [ -z "${node_memory}" ]; then
+    node_memory=${DEFAULT_NODE_MEMORY}
+  elif [ "${node_memory}" != "default" ] && [ "${node_memory}" != "medium" ] && [ "${node_memory}" != "high" ]; then
+    display_error "${ERROR_NODE_MEMORY}"
+  fi
+
+  if [ -z "${reservation}" ]; then
+    reservation=${DEFAULT_RESERVATION}
+  fi
+
+  if [ -z "${tasks_per_node}" ]; then
+    tasks_per_node=${DEFAULT_TASKS_PER_NODE}
+  fi
+  
+  if [ -z "${master_working_dir}" ]; then
+    master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
+  fi
+  
+  if [ -z "${worker_working_dir}" ]; then
+    worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
+  elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
+    display_error "${ERROR_WORKER_WD}"
+  fi
+
+  if [ -z "${tasks_in_master}" ]; then
+    tasks_in_master=${DEFAULT_TASKS_IN_MASTER}
+  fi
+
+  if [ -z "${network}" ]; then
+    network=${DEFAULT_NETWORK}
+  elif [ "${network}" == "default" ]; then
+    network=${DEFAULT_NETWORK}
+  elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
+    display_error "${ERROR_NETWORK}"
+  fi
+
+  if [ -z "${dependencyJob}" ]; then
+    dependencyJob=${DEFAULT_DEPENDENCY_JOB}
+  fi
+
+  if [ -z "${library_path}" ]; then
+    library_path=${DEFAULT_LIBRARY_PATH}
+  fi
+
+  if [ -z "$cp" ]; then
+    cp=${DEFAULT_CLASSPATH}
+  else
+    fcp=""
+    for currcp in ${cp//:/$'\n'}; do
+        if [ ! ${currcp:0:1} == '/' ]; then                     # Relative paths to abs
+                if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists
+                        absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
+                        file="$(basename "$currcp")"
+                        currcp="$absdir/$file"
+                else
+                        echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
+                fi
+        fi
+        fcp="${fcp}:$currcp"
+    done
+    cp="$(echo "$fcp" | cut -c2-)"
+  fi
+
+
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_DEBUG}
+  fi
+
+  if [ -z "${tracing}" ]; then
+    tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${comm}" ]; then
+    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
+  fi
+
+  if [ -z "${master_port}" ]; then
+    rand_num=$RANDOM
+    offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
+    master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
+  fi
+
+}
+
+#---------------------------------------------------
+# MAIN EXECUTION
+#---------------------------------------------------
+  scriptDir=$(dirname $0)
+  get_args $*
+  check_args
+
+  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} ${worker_working_dir} ${tasks_in_master} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${args_pass}

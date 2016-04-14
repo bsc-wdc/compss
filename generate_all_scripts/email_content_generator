@@ -1,0 +1,26 @@
+#!/bin/bash
+
+  #Script variables
+  email=$WORKSPACE/email_content.txt
+
+  #Delete previous e-mail file
+  rm -f $email
+
+  #Create header
+  echo "Next you will find the test results for each distribution." > $email
+  echo "All test results for all distributions should have OK status" >> $email
+
+  #Copy result table for each distribution
+  distrs="ubuntu debian suse centos"
+  for distr in $distrs; do
+    logFile=$WORKSPACE/generate_all_scripts/logs/$distr/full_exec.log
+    echo " " >> $email
+    echo "DISTRIBUTION: $distr" >> $email
+    echo "FULL LOG: $logFile" >> $email
+    grep "\[TEST RESULT\] Application BASIC BLOCK " $logFile >> $email
+    echo " " >> $email
+  done
+
+  #End
+  exit 0
+

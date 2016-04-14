@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	  <Worker Name="WorkerTS1">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/WorkerTS1/</WorkingDir>
+            <AppDir>/home/user/tests/app01/</AppDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+	  <Worker Name="WorkerTS2">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/WorkerTS2/</WorkingDir>
+            <AppDir>/home/user/tests/app01/</AppDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+</Project>
+

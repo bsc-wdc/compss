@@ -1,0 +1,8 @@
+Package: compss-framework
+Version: 
+Priority: optional
+Architecture: amd64
+Essential: no
+Depends: compss-runtime, compss-bindings, compss-tools, compss-cloud
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The BSC COMP Superscalar Framework.

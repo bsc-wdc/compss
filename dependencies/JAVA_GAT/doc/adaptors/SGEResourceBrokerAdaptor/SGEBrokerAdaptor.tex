@@ -1,0 +1,128 @@
+\documentclass[bibtotocnumbered, headsepline,normalheadings]{scrreprt}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{scrpage}
+\usepackage{alltt}
+\pagestyle{headings}
+	\begin{document}
+		\title{Sun Grid Engine Resource Broker Adaptor for JavaGAT}
+		\author{Ole Christian Weidner}
+		\date{\today}
+		\maketitle
+		\tableofcontents
+
+\chapter{SGE and the DRMAA API}
+
+\section{Introduction to DRMAA}
+DRMAA or Distributed Resource Management Application API is a high-level API specification for the submission and control of jobs on Distributed Resource Management (DRM) systems. It allows an application programmer to access Grid resources through a single API without having to care for the resource manager waiting on the other end. Thus DRMAA has the same functionality as the JavaGAT resource management component - it even uses a similar runtime adaptor loading concept.
+
+\section{SGE Remote Execution Capabilities}
+
+
+\chapter{DRMAA to GAT API Mapping}
+
+\section{Job States}
+Mapping job states from DRMAA to SGE is a little weird because of the limited number of states provided by GAT. The following table shows the current mapping. Note that DRMAA \texttt{*\_SUSPENDED} and \texttt{DONE} states are both mapped to the GAT \texttt{STOPPED} state, so you can't check for job completition just by querying the GAT job state when using the SGE adaptor. Furthermore DRMAA doesn't provide states for \texttt{PRE\_STAGING} and \texttt{POST\_STAGING}.
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|} \hline
+	\multicolumn{2}{|c|}{GAT Job States}&
+	\multicolumn{2}{|c|}{SGE DRMAA Job States}\\ \hline\hline
+	\texttt{00} & \texttt{INITIAL}   			& \texttt{--} & \texttt{--}\\ \hline
+	\texttt{01} & \texttt{SCHEDULED} 			& \texttt{16} & \texttt{QUEUED\_ACTIVE}\\ \hline
+	\texttt{02} & \texttt{RUNNING}   			& \texttt{32} & \texttt{RUNNING}\\ \hline
+	\texttt{03} & \texttt{STOPPED}   			& \texttt{33} & \texttt{SYSTEM\_SUSPENDED}\\
+	   			&		   						& \texttt{34} & \texttt{USER\_SUSPENDED}\\
+	   			&		   						& \texttt{35} & \texttt{USER\_SYSTEM\_SUSPENDED}\\
+	   			&		   						& \texttt{48} & \texttt{DONE}\\ \hline
+	\texttt{04} & \texttt{SUBMISSION\_ERROR} 	& \texttt{64} & \texttt{FAILED}\\ \hline
+	\texttt{05} & \texttt{ON\_HOLD} 			& \texttt{16} & \texttt{SYSTEM\_ON\_HOLD}\\    
+	   			&		   						& \texttt{18} & \texttt{USER\_ON\_HOLD}\\
+	   			&		   						& \texttt{19} & \texttt{USER\_SYSTEM\_ON\_HOLD}\\ \hline
+	\texttt{07} & \texttt{PRE\_STAGING}   		& \texttt{--} & \texttt{--}\\ \hline
+	\texttt{08} & \texttt{POST\_STAGING}   		& \texttt{--} & \texttt{--}\\ \hline		   
+	\texttt{08} & \texttt{UNKNOWN}   			& \texttt{00} & \texttt{UNDETERMINED}\\ \hline
+\end{tabular}
+\end{center}
+
+Within GAT you have the possibility to access the GAT job state as well as SGE's DRMAA job state. Normally you shouldn't query the DRMAA state within your grid application because doing this makes your application resource broker dependent - but if it comes to the crunch:
+
+\begin{verbatim}
+01 JobInfo info = Job.getInfo();
+02 String sge_state = info.get("resManState");
+\end{verbatim}
+
+This piece of code gets the DRMAA state number (see table) from the JobInfo HashMap (as String). Note that you can't assume that all adaptor implementations provide a resManState field in the JobInfo map.
+However, every adaptor provides a \texttt{getState()} methode to retrieve the GAT state. Use the following code to get the job's state (as Integer):
+
+\begin{verbatim}
+01 JobInfo info = Job.getInfo();
+02 int sge_state = info.getState();
+\end{verbatim}
+
+As mendtioned above, you can't assume that a job is done just because it's in GAT \texttt{STOPPED} state. It could also be just suspended for some reason.
+The proper way to check for job completition is to check for the job's state and if it equals \texttt{STOPPED} check for the job's exit status. If it's defined, the job is actually done - if not, something went wrong:
+
+\begin{verbatim}
+01 int state = job.getState();
+02
+03 if (state.equals("STOPPED")) {
+04     if ( job.getExitStatus() == -255 ) 
+05         // Something went wrong - -255 means undefined
+06     else
+09         // We have a return code - job is done!
+08         System.out.println("Job exited with: "job.getExitStatus();
+08 }
+\end{verbatim}
+
+\section{Job Control}
+Job control in DRMAA is handled via the \texttt{Session.control(java.lang.String jobID, int action)} method, where \texttt{action} is an integer macro defining the desired action. The following table shows the current mapping between the DRMAA job actions and the GAT job control interface defined in \texttt{org.gridlab.gat.resources.Job}:
+
+\begin{center}
+\begin{tabular}{|l|l|l|} \hline
+	\multicolumn{1}{|c|}{GAT Job Methods}&
+	\multicolumn{2}{|c|}{SGE DRMAA Job Controls}\\ \hline\hline
+	 \texttt{Job.unSchedule()}   			& \texttt{4}  & \texttt{TERMINATE}\\ \hline
+	 \texttt{Job.stop()} 					& \texttt{4}  & \texttt{TERMINATE}\\ \hline
+	 \texttt{Job.checkpoint()}   			& \texttt{--} & \texttt{--}\\ \hline
+	 \texttt{Job.migrate()}   				& \texttt{--} & \texttt{--}\\ \hline
+	 \texttt{Job.cloneJob()} 				& \texttt{--} & \texttt{--}\\ \hline
+\end{tabular}
+\end{center}
+
+Note that the job control implementation is not yet completed. Although DRMAA does not directly support actions for checkpointing,
+migrating and cloning, it should be not very difficult to combine some of the DRMAA actions to emulate the particular functions. 
+
+\section{Job Exit Value}
+With the JavaGAT 1.5 Job API extension there's now a function to query the job's exit value. Job exit value means the return code of the executable submitted via JavaGAT. For example the exit value of \texttt{/bin/false} is \texttt{1} and the exit value of \texttt{/bin/true} is \texttt{0}.\\ \\
+The job's exit value is retreived by using the DRMAA \texttt{getExitStatus()} method. However, this function only returns a value if the job has exited. If you trigger the \texttt{Job.getExitStatus()} function in JavaGAT while the job is still running, you'll get a \texttt{-255} as return value. You'll also get a \texttt{-255} when the job has exited but never returned an exit value.
+
+\section{Job Info}
+The job info Map contains the entries listed in the following table. The GAT API specification defines \texttt{hostname}, \texttt{scheduletime}, \texttt{starttime}, \texttt{stoptime} and \texttt{checkpointable} as supported entries - however, the SGE broker adaptor extends this list with some (hopefully) usefull entries.
+
+\begin{center}
+\begin{tabular}{|l|l|l|} \hline
+	\multicolumn{1}{|c|}{Name}&
+	\multicolumn{1}{|c|}{Description}\\ \hline\hline
+	 \texttt{hostname}   		& Name of the host on which the job is running. 		\\ \hline
+	 \texttt{scheduletime} 		& Time indicating when the job was scheduled. 			\\
+	 							& NOT IMPLEMENTED (will always return \texttt{null}).	\\ \hline
+	 \texttt{starttime}   		& Time indicating when the job was started.				\\ \hline
+	 \texttt{stoptime}   		& Time indicating when the job was stopped.				\\ \hline
+	 \texttt{checkpointable} 	& Indicating if the job is checkpointable. 				\\
+	 							& NOT IMPLEMENTED (will always return \texttt{0}).		\\ \hline
+	 \texttt{resManName} 		& Returns the name of the resource manager.				\\
+	 							& Will always return "Sun Grid Engine".				 	\\ \hline
+	 \texttt{resManState} 		& Returns the DRMAA job state.			 				\\ \hline	 
+ 	 \texttt{jobID} 			& Returns the job's ID assigned by SGE					\\ \hline
+\end{tabular}
+\end{center}
+
+\chapter{Using the Adaptor}
+
+\section{Dependencies}
+
+\section{Build and Run your Application}
+
+
+\end{document} 

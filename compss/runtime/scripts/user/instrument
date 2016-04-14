@@ -1,0 +1,40 @@
+#!/bin/sh
+
+if [ $# -lt 6 ]
+then
+echo
+echo "Usage:"
+echo "$0 full_application_name app_classpath runtime_inst_dir dest_dir is_webservice_flag is_mainclass_flag"
+exit 127
+fi
+
+fullAppName=$1
+appClassPath=$2
+runtimeInstDir=$3
+destDir=$4
+isWs=$5
+isMainClass=$6
+
+libDir=$runtimeInstDir/Runtime/
+export IT_HOME=$runtimeInstDir/Runtime/
+
+echo -e "\n----------------- Instrumenting $fullAppName (isWs=$isWs, isMain=$isMainClass) --------------------------\n"
+
+cd $destDir
+
+runtimeClassPath=$libDir/compss-engine.jar
+
+java \
+-Dlog4j.configuration=$runtimeInstDir/Runtime/configuration/log/it-log4j.instrument \
+-Dit.to.file=true \
+-Dit.is.ws=$isWs \
+-Dit.is.mainclass=$isMainClass \
+-classpath $appClassPath:$runtimeClassPath \
+integratedtoolkit.loader.ITAppLoader total $fullAppName 
+
+if [ $? -ne 0 ]; then
+	echo "Error instrumenting class";
+	exit 1;
+fi
+echo
+echo ------------------------------------------------------------

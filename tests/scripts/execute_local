@@ -1,0 +1,67 @@
+#!/bin/bash
+
+  #--------------------------------------------------------------------------------
+  #Set global variables
+  COMPSs_exec=$1
+  comm=$2
+  base_dir=$3
+  COMPSs_log_folder=$4
+  base_log_folder="${base_dir}/logs"
+  exitValue=0
+
+  #--------------------------------------------------------------------------------
+  echo
+  echo "**Testing Basic Block Apps"
+  app_base_dir="${base_dir}/apps_basic"
+
+  appCounter=1
+  results=""
+  app_folders=$(ls ${app_base_dir})
+  for app in ${app_folders}; do
+      log_folder="${base_log_folder}/$app"
+      mkdir -p ${log_folder}
+      cd ${app_base_dir}/${app}
+      ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder}
+      if [ $? -ne 0 ]; then
+         exitValue=1
+         results="${results}1"
+      else
+         results="${results}0"
+      fi
+      appCounter=$((appCounter+1))
+      # Sleep to avoid interferences between tests
+      sleep 1s
+      # Clean remaining processes (if any)
+      $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
+      $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+      # Sleep to avoid interferences between tests
+      sleep 1s
+  done
+
+  #Show Result table
+  counter=1
+  pos=0
+  echo
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo "   Application Name                                      TEST STATUS"
+  while [ $counter -lt $appCounter ]; do
+    if [ "${results:$pos:1}" == "0" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[32mOK"
+    else
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[31mERROR"
+    fi
+    counter=$((counter+1))
+    pos=$((pos+1))
+  done  
+  echo
+  echo -e "\e[34m-----------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------" 
+  echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
+  echo -e "\e[0m"
+
+
+  #--------------------------------------------------------------------------------
+  #EXIT
+  exit $exitValue
+

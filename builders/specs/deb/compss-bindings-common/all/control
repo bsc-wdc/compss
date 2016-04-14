@@ -1,0 +1,8 @@
+Package: compss-bindings-common
+Version: 
+Priority: optional
+Architecture: all
+Essential: no
+Depends: compss-engine, openjdk-7-jdk, libtool, automake, build-essential
+Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
+Description: The C libraries shared by BSC COMP Superscalar Bindings.

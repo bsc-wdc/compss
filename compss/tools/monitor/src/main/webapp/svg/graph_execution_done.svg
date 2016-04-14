@@ -1,0 +1,12 @@
+<svg width="640" height="480" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_1" height="480" width="639" y="-1" x="0" stroke-width="5" stroke="#02327a" fill="#02327a"/>
+  <text transform="matrix(22.58357810974121,0,0,1,3158.2845155894756,0) " xml:space="preserve" text-anchor="middle" font-family="serif" font-size="24" id="svg_2" y="224" x="-141" stroke-width="0" stroke="#02327a" fill="#ffffff"/>
+  <text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="24" id="svg_3" y="183" x="263" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" stroke="#02327a" fill="#ffffff"/>
+  <text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="47" id="svg_4" y="144" x="323" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" stroke="#02327a" fill="#ffffff">Application execution is over</text>
+  <text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="35" id="svg_5" y="323" x="306" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" stroke="#02327a" fill="#ffffff">You cannot longer display this graph.</text>
+  <text xml:space="preserve" text-anchor="middle" font-family="serif" font-size="35" id="svg_6" y="376" x="310" stroke-linecap="null" stroke-linejoin="null" stroke-width="0" stroke="#02327a" fill="#ffffff">Please check the Complete Graph tab.</text>
+ </g>
+</svg>

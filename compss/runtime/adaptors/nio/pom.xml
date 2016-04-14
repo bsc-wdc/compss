@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- GENERAL INFORMATION -->
+	<artifactId>compss-adaptors-nio</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-adaptors</artifactId>
+<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
+	
+
+	<!-- PROJECT INFORMATION -->
+	<name>COMPSs Back-end NIO Adaptor</name>
+	<description>COMPSs Back-end adaptor to transfer data and submit job execution through the NIO Java library.</description>
+	<url>http://www.bsc.es</url>
+	<inceptionYear>2015</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>BSC</name>
+		<url>http://www.bsc.es</url>
+	</organization>
+
+	<!-- SUB-MODULES -->
+	<modules>
+		<module>commons</module>
+		<module>master</module>
+		<module>worker</module>
+	</modules>
+</project>

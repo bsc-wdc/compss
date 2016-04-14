@@ -1,0 +1,80 @@
+#!/bin/bash
+
+GENERATORS_DIR=$(dirname "$0")
+. $GENERATORS_DIR/echo2-function
+
+if [ -z $1 ]; then
+    echo2 "[  ERROR  ]: Indicate the number of nodes as first parameter." ; exit 2
+fi
+
+if [ -z $2 ]; then
+    echo2 "[  ERROR  ]: Indicate the absolute path to the context directory as second parameter." ; exit 2
+fi
+
+if [ -z $3 ]; then
+    echo2 "[  ERROR  ]: Indicate the rest of runcompss arguments as third parameter." ; exit 2
+fi
+
+NUM_WORKERS=$1
+ABS_CONTEXT=$2
+APP_IMAGE_NAME=$3
+shift 3 ; RUNCOMPSS_ARGS=$*
+
+master_command="/bin/bash -c \""  
+# The command that the master will run includes some network contextualization work
+# (writing to /etc/hosts, and when runcompss is finished, kill the sshd from nodes)
+
+# Execute the runcompss command itself, from the context directory
+master_command="${master_command} cd \"$ABS_CONTEXT\"; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; " 
+
+# Shutdown nodes! 
+# Concatenating with ; to ALWAYS shutdown nodes even if the above commands fail
+for i in $(seq 1 $NUM_WORKERS); do
+    master_command="${master_command} ssh -o StrictHostKeyChecking=no worker${i} \\\"pkill sshd\\\" ;"
+done
+
+master_command="${master_command}\"" # Final quotes huehue
+
+# MASTER
+echo -e "\
+version: '2'
+
+networks:
+  test-net:
+    driver: overlay
+    
+services:
+  master:
+    image: $APP_IMAGE_NAME
+    
+    expose:
+      - \"43000-43200\"
+      
+    command: ${master_command}
+    
+    networks:
+      - test-net
+
+      
+"
+##################
+
+#### WORKERS ####
+for i in $(seq 1 $NUM_WORKERS)
+do
+echo -e "\
+  worker${i}:
+    image: $APP_IMAGE_NAME
+
+    expose:
+      - \"43000-43200\"
+      - \"22\"
+
+    command: /bin/bash -c \"/usr/sbin/sshd -D\"
+    
+    networks:
+      - test-net
+    
+"
+done
+###################

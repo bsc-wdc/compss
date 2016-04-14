@@ -1,0 +1,22 @@
+#!/bin/bash
+
+  #Get parameters
+  source_base_dir=$1
+
+  #Compile
+  cd ${source_base_dir}
+  echo "---- Compiling java sources"
+  mvn -U clean install
+  
+  #Check errors
+  if [ $? -ne 0 ]; then
+     echo "ERROR: CANNOT COMPILE JAVA APPS"
+     exit 1
+  fi
+ 
+  #Go to main folder
+  cd ../../scripts
+
+  #Exit all ok
+  exit 0
+

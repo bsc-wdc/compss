@@ -1,0 +1,41 @@
+#!/bin/bash -e
+ 
+  COMPSs_version=1.4 
+  rpm_distrs="centos suse"
+  deb_distrs="ubuntu debian"
+ 
+  echo " "
+  echo "# Building COMPSs packages..."
+  echo " "
+  cd specs 
+
+  cd deb
+  for distr in ${deb_distrs}; do
+    echo " "
+    echo " * Building Debian packages for ${distr}..."
+    echo " "
+    ./builddeb ${distr} ${COMPSs_version}
+  done
+  cd ..
+
+  cd rpm
+  for distr  in ${rpm_distrs}; do
+    echo " "
+    echo " * Building Red-Hat packages for ${distr}..."
+    echo " "
+    ./buildrpm ${distr} ${COMPSs_version}
+  done
+  cd ..
+
+  cd sc
+  echo " "
+  echo " * Building SC packages..."
+  echo " "
+  ./buildsc ${COMPSs_version}
+  cd ..
+
+  echo " "
+  echo " * Finished"
+  echo " "
+  cd ..
+

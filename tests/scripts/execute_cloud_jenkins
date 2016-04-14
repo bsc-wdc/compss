@@ -1,0 +1,239 @@
+#!/bin/bash
+
+  execute_distribution() {
+    #Get Parameters
+    local vm_type=$1
+    local release_type=$2
+    local comm=$3
+
+    #Set variables
+    local user=user
+    distrExitValue=0
+
+    #Set default known_hosts
+    rm -f $HOME/.ssh/known_hosts
+    cp -f $HOME/.ssh/known_hosts.bk $HOME/.ssh/known_hosts
+
+    #Prepare vm to lauch tests.
+    echo -e "\e[0m"
+    echo "***************************"
+    echo "*** Creating MASTER VM  ***"
+    echo "***************************"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/prepare_vm "$vm_type" "$release_type"" > $WORKSPACE/logs/${vm_type}_${release_type}_master.log
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi 
+    #recieve vm_id and ip
+    master_vm_id=$(more $WORKSPACE/logs/${vm_type}_${release_type}_master.log | grep "vm_id=" | cut -c 7-)
+    master_ip=$(more $WORKSPACE/logs/${vm_type}_${release_type}_master.log | grep "ip=" | cut -c 4-)
+    master_template_id=$(more $WORKSPACE/logs/${vm_type}_${release_type}_master.log | grep "template_id=" | cut -c 13-)
+
+    #---------------------------------------------------------------------------------------------------------------
+    echo
+    echo -e "\e[94m*******************************"
+    echo -e "\e[94m****  TESTING: CLOUD BLOCK  ***"
+    echo -e "\e[94m*******************************"
+    echo -e "\e[0m"
+
+    # Copy tests
+    echo "-- Copying tests"
+    scp -r -o StrictHostKeyChecking=no $WORKSPACE/test_${vm_type} ${user}@${master_ip}:./tests
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    # Request Workers
+    echo "-- Request Worker 1"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/prepare_vm "$vm_type" "$release_type"" > $WORKSPACE/logs/${vm_type}_${release_type}_worker1.log
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+    worker1_vm_id=$(more $WORKSPACE/logs/${vm_type}_${release_type}_worker1.log | grep "vm_id=" | cut -c 7-)
+    worker1_ip=$(more $WORKSPACE/logs/${vm_type}_${release_type}_worker1.log | grep "ip=" | cut -c 4-)
+  
+    echo "-- Request Worker 2"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/prepare_vm "$vm_type" "$release_type"" > $WORKSPACE/logs/${vm_type}_${release_type}_worker2.log
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+    worker2_vm_id=$(more $WORKSPACE/logs/${vm_type}_${release_type}_worker2.log | grep "vm_id=" | cut -c 7-)
+    worker2_ip=$(more $WORKSPACE/logs/${vm_type}_${release_type}_worker2.log | grep "ip=" | cut -c 4-)
+
+    # Setup Master
+    echo "-- Setup Master"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/insert_hosts_block1 ${master_ip}"
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/insert_hosts_block2 ${master_ip} ${worker1_ip} ${worker2_ip}"
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    # Setup workers
+    echo "-- Setup Workers"
+    scp -r -o StrictHostKeyChecking=no $WORKSPACE/test_${vm_type}/apps_cloud ${user}@${worker1_ip}:./tests
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+    scp -r -o StrictHostKeyChecking=no $WORKSPACE/test_${vm_type}/apps_cloud ${user}@${worker2_ip}:./tests
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    # Exec tests
+    cloud_owner="jenkins-test"
+    echo "-- Running tests"  
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${user}@${master_ip} "/home/$user/tests/execute_cloud ${master_template_id} ${vm_type} ${cloud_owner} ${comm}" | tee $WORKSPACE/logs/${vm_type}_${release_type}_cloud_execution.log &
+    sleep 10s
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/shutdown_vm ${worker1_vm_id}"
+    sleep 60s
+    wait
+
+    #Check result status
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+    if [ -n "$(cat $WORKSPACE/logs/${vm_type}_${release_type}_cloud_execution.log | grep "ERROR")" ]; then
+       distrExitValue=1
+    fi
+
+    #Shutdown workers
+    echo "-- Shutdown remaining worker"
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/shutdown_vm ${worker2_vm_id}"
+
+    #---------------------------------------------------------------------------------------------------------------
+    #Copy logs
+    echo -e "\e[0m"
+    echo -e "****************************"
+    echo -e "******  COPYING LOGS   *****"
+    echo -e "****************************"
+    echo
+    rm -rf $WORKSPACE/logs/${vm_type}_${release_type}/
+    scp -r -o StrictHostKeyChecking=no ${user}@${master_ip}:/home/$user/tests/logs $WORKSPACE/logs/${vm_type}_${release_type}/ 
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    #Shutdown MASTER VM
+    echo -e "\e[0m"
+    echo -e "*****************************"
+    echo -e "** SHUTTING DOWN MASTER VM **"
+    echo -e "*****************************"
+    echo
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no bscgrid20.bsc.es "~/tests/shutdown_vm ${master_vm_id}"
+  }
+
+  #NOT USED - ONLY DEBUG SYSTEM
+  execute_on_local() {
+    #Get Parameters
+    local vm_type=$1
+    local release_type=$2
+
+    #Set variables
+    local user=$(whoami)
+    distrExitValue=0
+
+    #--------------------------------------------------------------------------------------------------------------
+    #Installing COMPSs
+    sudo cp -rf /opt/COMPSs /opt/COMPSs_backup
+    sudo zypper addrepo -f http://compss.bsc.es/repo/rpms/unstable/x86_64 compss
+    sudo zypper refresh
+    sudo zypper install -y compss-*
+
+    sudo sh $WORKSPACE/test_${vm_type}/configure_hosts_insert
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    #---------------------------------------------------------------------------------------------------------------
+    echo
+    echo -e "\e[94m*******************************"
+    echo -e "\e[94m****  TESTING: LOCAL BLOCK  ***"
+    echo -e "\e[94m*******************************"
+    echo -e "\e[0m"
+    #Copy tests
+    echo "-- Configuring test scripts"
+    sed -i '/user=user/cuser='$user'' $WORKSPACE/test_${vm_type}/execute_cloud_block1 
+    sed -i '/  base_dir=/cbase_dir='$WORKSPACE'\/test\_'$vm_type'' $WORKSPACE/test_${vm_type}/execute_cloud_block1 
+    sed -i '/export JAVA_HOME=/c\ ' $WORKSPACE/test_${vm_type}/execute_cloud_block1
+
+    #Exec tests
+    echo "-- Running tests"
+    
+    sh $WORKSPACE/test_${vm_type}/execute_cloud_block1
+
+    #Check result status
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    #---------------------------------------------------------------------------------------------------------------
+    #Copy logs
+    echo -e "\e[0m"
+    echo -e "****************************"
+    echo -e "******  COPYING LOGS   *****"
+    echo -e "****************************"
+    echo
+    rm -rf $WORKSPACE/logs/${vm_type}_${release_type}/
+    cp -rf $WORKSPACE/test_${vm_type}/logs $WORKSPACE/logs/${vm_type}_${release_type}/
+    if [ $? -ne 0 ]; then
+       distrExitValue=1
+    fi
+
+    #--------------------------------------------------------------------------------------------------------------
+    #Uninstalling COMPSs
+    sudo zypper remove -y compss-*
+    sudo zypper removerepo compss
+    sudo cp -rf /opt/COMPSs_backup /opt/COMPSs
+    sudo rm -rf /opt/COMPSs_backup
+  }
+
+
+  #Global variable to catch errors
+  distrExitValue=0 
+  globalExitValue=0
+  default_comm=integratedtoolkit.nio.master.NIOAdaptor
+
+  echo
+  echo -e "\e[34m***************************************"
+  echo -e "\e[34m********** TESTING: UBUNTU ************"
+  echo -e "\e[34m***************************************"
+  echo -e "\e[0m"
+  execute_distribution "ubuntu" "testing" ${default_comm}
+  if [ $distrExitValue -ne 0 ]; then
+     globalExitValue=1
+  fi
+
+  echo                                                                                                              
+  echo -e "\e[34m***************************************"
+  echo -e "\e[34m********* TESTING: OPENSUSE ***********"
+  echo -e "\e[34m***************************************" 
+  echo -e "\e[0m"
+  #execute_distribution "suse" "testing" ${default_comm}
+  if [ $distrExitValue -ne 0 ]; then
+     globalExitValue=1
+  fi
+
+  echo
+  echo -e "\e[34m***************************************"
+  echo -e "\e[34m********** TESTING: CENTOS ************"
+  echo -e "\e[34m***************************************"
+  echo -e "\e[0m"
+  #execute_distribution "centos" "testing" ${default_comm}
+  if [ $distrExitValue -ne 0 ]; then
+     globalExitValue=1
+  fi
+
+  echo
+  echo -e "\e[34m***************************************"
+  echo -e "\e[34m********** TESTING: DEBIAN ************"
+  echo -e "\e[34m***************************************"
+  echo -e "\e[0m"
+  #execute_distribution "debian" "testing" ${default_comm}
+  if [ $distrExitValue -ne 0 ]; then
+     globalExitValue=1
+  fi
+
+  exit $globalExitValue   
+

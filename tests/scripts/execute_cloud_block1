@@ -1,0 +1,105 @@
+#!/bin/bash
+  
+  #--------------------------------------------------------------------------------
+  #Get parameters
+  distr=$1
+  comm=$2
+
+  #Set global variables
+  user=user
+  base_dir="/home/$user/tests"
+  COMPSs_exec="/opt/COMPSs/Runtime/scripts/user/runcompss"
+  COMPSs_log_folder="/home/$user/.COMPSs"
+  base_log_folder="$base_dir/logs"
+  exitValue=0
+
+  #--------------------------------------------------------------------------------
+  echo "**Setting JAVA_HOME and IT_HOME"
+  if [ "$distr" == "ubuntu" ] || [ "$distr" == "debian" ]; then
+    sudo sh -c "echo 'export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/' >> /etc/profile"
+    sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+    sudo update-java-alternatives -s java-1.7.0-openjdk-amd64
+  else
+    if [ "$distr" == "suse" ]; then
+      sudo sh -c "echo 'export JAVA_HOME=/usr/lib64/jvm/java-1.7.0-openjdk-1.7.0/' >> /etc/profile"
+      sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+    else
+      if [ "$distr" == "centos" ]; then
+        sudo sh -c "echo 'export JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/' >> /etc/profile"
+        sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+      fi
+    fi
+  fi
+  source /etc/profile
+  echo " - JAVA_HOME: $JAVA_HOME"
+  echo " - IT_HOME:   $IT_HOME"
+
+  echo "** Setting pip-decorator and pip-numpy"
+  if [ "$distr" == "ubuntu" ] || [ "$distr" == "debian" ]; then
+    sudo apt-get -y --force-Yes install python-pip
+    sudo pip install decorator 
+    sudo pip install numpy
+  else
+    if [ "$distr" == "suse" ]; then
+      sudo zypper install -y python-pip
+      sudo pip install decorator
+      sudo pip install numpy
+    else
+      if [ "$distr" == "centos" ]; then
+        sudo yum install -y python-pip
+        sudo pip install decorator
+        sudo pip install numpy
+      fi
+    fi
+  fi
+
+  #--------------------------------------------------------------------------------
+  echo
+  echo "**Testing Basic Block Apps"
+  basic_base_dir="$base_dir/apps_basic"
+
+  appCounter=1
+  results=""
+  app_folders=$(ls ${basic_base_dir})
+  for app in ${app_folders}; do
+      log_folder="${base_log_folder}/block1_$app"
+      mkdir -p ${log_folder}
+      cd ${basic_base_dir}/${app}
+      ./execution ${COMPSs_exec} $comm "${basic_base_dir}/$app" ${COMPSs_log_folder} ${log_folder}
+      if [ $? -ne 0 ]; then
+         exitValue=1
+         results="${results}1"
+      else
+         results="${results}0"
+      fi
+      appCounter=$((appCounter+1))
+      # Sleep to avoid interferences between tests
+      sleep 3
+  done
+
+  #Show Result table
+  counter=1
+  pos=0
+  echo
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m   Application Name                                      TEST STATUS"
+  while [ $counter -lt $appCounter ]; do
+    if [ "${results:$pos:1}" == "0" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[32mOK"
+    else
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[31mERROR"
+    fi
+    counter=$((counter+1))
+    pos=$((pos+1))
+  done  
+  echo -e "\e[34m"
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------" 
+  echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
+  echo -e "\e[0m"
+
+  #--------------------------------------------------------------------------------
+  #EXIT
+  exit $exitValue
+

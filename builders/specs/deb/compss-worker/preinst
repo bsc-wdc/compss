@@ -1,0 +1,39 @@
+#!/bin/bash -e
+
+  action=$1
+
+  if [ "$action" == "install" ]; then
+    if [ $# -eq 2 ]; then
+      # Installation knowing previous old version
+      oldversion=$2
+      echo " "
+      echo " * Installing COMPSs Worker from previous version ${oldversion}..."
+      echo " "
+      rm -rf /opt/COMPSs/Runtime/scripts
+      find /opt/COMPSs/Runtime/adaptors -name worker | xargs rm -f
+    else
+      # Clean installation
+      echo " "
+      echo " * Installing COMPSs Worker..."
+      echo " "
+    fi
+  elif [ "$action" == "upgrade" ]; then
+    # Upgrade from previous version
+    oldversion=$2
+    echo " "
+    echo " * Upgrading COMPSs Worker from previous version ${oldversion}..."
+    echo " "
+    if [ -d "/opt/COMPSs" ]; then
+      mv /opt/COMPSs /tmp/COMPSs_worker.bkp
+    fi
+  elif [ "$action" == "abort-upgrade" ]; then
+    # Update failed, recover previous version
+    newversion=$2
+    echo " "
+    echo " * COMPSs Worker $newversion upgrade aborted. Please check errors above."
+    echo " "
+    if [ -d "/tmp/COMPSs_worker.bkp" ]; then
+      mv /tmp/COMPSs_worker.bkp /opt/COMPSs
+    fi
+  fi
+

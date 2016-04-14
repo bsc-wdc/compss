@@ -1,0 +1,140 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'\/scripts\/system<\/InstallDir>' ${base_app_dir}/project_concurrent.xml
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/WorkerLocalhost/
+  
+  #----------------------------------------------------------------------------------
+  #Run application 1 - Application Concurrent
+  echo
+  echo "*** RUNNING JAVA APPLICATION CONCURRENT"
+  output_log_app1="${target_log_folder}/applicationConcurrent1.outputlog"
+  error_log_app1="${target_log_folder}/applicationConcurrent1.errorlog"
+  log_folder_app1="${target_log_folder}/app1"
+  mkdir -p ${log_folder_app1}
+  output_log_app2="${target_log_folder}/applicationConcurrent2.outputlog"
+  error_log_app2="${target_log_folder}/applicationConcurrent2.errorlog"
+  log_folder_app2="${target_log_folder}/app2"
+  mkdir -p ${log_folder_app2}
+
+  expectedTime=60s
+  ev1=0
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_concurrent.xml \
+     --resources=${base_app_dir}/resources_concurrent.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/concurrent.jar \
+     applicationConcurrent.Concurrent 1 > >(tee ${output_log_app1}) 2> >(tee ${error_log_app1} >&2) &
+  pid1=$!
+
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_concurrent.xml \
+     --resources=${base_app_dir}/resources_concurrent.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/concurrent.jar \
+     applicationConcurrent.Concurrent 2 > >(tee ${output_log_app2}) 2> >(tee ${error_log_app2} >&2) &
+  pid2=$!
+
+  # Wait for completition
+  wait $pid1
+  status1=$?
+  wait $pid2
+  status2=$?
+  
+  #Check timeout
+  if [[ "$status1" = "124" ]] || [[ "$status2" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/applicationConcurrent.Concurrent_01/* ${log_folder_app1}
+     cp -rf ${COMPSs_log_folder}/applicationConcurrent.Concurrent_02/* ${log_folder_app2}
+ 
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log_app1}
+     echo "[WARNING] Java Application timed out" >> ${output_log_app2}
+     ev1=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/applicationConcurrent.Concurrent_01/* ${log_folder_app1}
+     cp -rf ${COMPSs_log_folder}/applicationConcurrent.Concurrent_02/* ${log_folder_app2}
+
+     #Check result
+     ${base_app_dir}/result_appConcurrent ${output_log_app1} ${log_folder_app1} 
+     res1=$?
+     ${base_app_dir}/result_appConcurrent ${output_log_app2} ${log_folder_app2}
+     res2=$?
+     if [ $res1 -gt $res2 ]; then
+       ev1=$res1
+     else
+       ev1=$res2
+     fi
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s
+
+  #----------------------------------------------------------------------------------
+  # Run application 2 - Thread Concurrent
+  echo
+  echo "*** RUNNING JAVA THREAD CONCURRENT"
+  output_log="${target_log_folder}/threadConcurrent.outputlog"
+  error_log="${target_log_folder}/threadConcurrent.errorlog"
+  log_folder_thread="${target_log_folder}/thread"
+  mkdir -p ${log_folder_thread}
+
+  expectedTime=60s
+  ev2=0
+
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_concurrent.xml \
+     --resources=${base_app_dir}/resources_concurrent.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/concurrent.jar \
+     threadConcurrent.Concurrent 1 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/threadConcurrent.Concurrent_01/* ${log_folder_thread}
+
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev2=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/threadConcurrent.Concurrent_01/* ${log_folder_thread}
+
+     #Check result
+     ${base_app_dir}/result_threadConcurrent ${output_log} ${log_folder_thread}
+     ev2=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  if [ $ev1 -gt $ev2 ]; then
+     exitValue=$ev1
+  else
+     exitValue=$ev2
+  fi
+  exit $exitValue
+ 

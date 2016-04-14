@@ -1,0 +1,18 @@
+*************************************
+** Extrae customization for COMPSs **
+*************************************
+
+This file lists the modifications included to the Extrae release in order to run with COMPSs
+
+
+File 				     |  Modification (new command)
+---------------------------------------------------------------------------------------------------------------------------
+
+install					Add install script from previous COMPSs versions
+
+src/cmd-line/extrae-cmd.h		Avoid collision between workers within the same machine
+					#define EXTRAE_CMD_FILE_PREFIX "extrae-cmd."
+					
+src/java-connector/jni/Makefile.am 	Add JNI classpath for headers (solves problems on MN-III installation)
+					$(JAVAH) -d $(JNI_INCLUDE_DIR) -classpath . -jni es.bsc.cepbatools.extrae.Wrapper
+

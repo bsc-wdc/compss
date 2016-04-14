@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+  # Get input dot file
+  dotGraph=$1
+
+  # Generate output file name
+  if [[ $dotGraph == *.dot ]]; then 
+    pdfGraph=${dotGraph:0:-4}.pdf
+  else
+    pdfGraph=${dotGraph}.pdf
+  fi
+
+  echo "Output file: ${pdfGraph}"
+
+  # Generate graph
+  dot -Tpdf $dotGraph > $pdfGraph
+
+  # Uncomment the next line to automatically open the generated graph
+  #evince $pdfGraph

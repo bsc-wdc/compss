@@ -1,0 +1,305 @@
+<?init class="com.bsc.compss.ui.auth.AuthenticationInit"?>
+<zk xmlns:w="http://www.zkoss.org/2005/zk/client">
+    <!-- Load Scripts for LoadGraph Tab -->
+    <script type="text/javascript" src="http://www.google.com/jsapi" />
+    <script type="text/javascript" src="/loadGraphs/generateGraph.js" />
+    
+    <window height="100%" border="none" contentStyle="overflow:auto;"
+            apply="org.zkoss.bind.BindComposer"
+            viewModel="@id('vm') @init('com.bsc.compss.ui.ViewModel')">
+            
+            <tabbox vflex="1" hflex="1">
+            	<tabs>
+            		<tab id="resourcesInformationTab" label="Resources information" onSelect="@command('select', selectedTab=self.id)" selected="true" />
+                    <tab id="tasksInformationTab" label="Tasks information" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="currentTasksGraphTab" label="Current tasks graph" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="completeTasksGraphTab" label="Complete tasks graph" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="loadChartTab" label="Load chart" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="runtimeLogTab" label="Runtime log" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="executionInformationTab" label="Execution Information" onSelect="@command('select', selectedTab=self.id)" />
+                    <tab id="statisticsTab" label="Statistics" onSelect="@command('select', selectedTab=self.id)" />
+                </tabs>
+
+                <tabpanels>
+                	<tabpanel>
+			            <vlayout vflex="1">
+	                        <listbox model="@load(vm.resourcesViewModel.resources) @template('resource')" hflex="1" vflex="1"
+	                            emptyMessage="There are no resources.">
+	                            <listhead>
+	                                <listheader hflex="min" label="Status" sort="auto(status)" align="center"/>
+	                                <listheader hflex="1" label="Resource Name" sort="auto(name)" align="center"/>
+	                                <listheader hflex="min" label="CPU Count" align="center"/>
+	                                <listheader hflex="min" label="Core count" align="center"/>
+	                                <listheader hflex="min" label="Memory Size" align="center"/>
+	                                <listheader hflex="min" label="Disk Size" align="center"/>
+	                                <listheader hflex="min" label="Provider" align="center"/>
+	                                <listheader hflex="min" label="Image" align="center"/>
+	                                <listheader hflex="1" label="Running Tasks" align="center"/>
+	                            </listhead>
+	                            
+	                            <template name="resource">
+	                                <listitem>
+	                                    <listcell>                                   
+	                    					<image style="width: 25px" src="@load(each.color)" />
+	                                    </listcell>                                   
+	                                    <listcell label="@load(each.name)" />
+	                                    <listcell label="@load(each.cpuCount)" />
+	                                    <listcell label="@load(each.coreCount)" />
+	                                    <listcell label="@load(each.memorySize)" />
+	                                    <listcell label="@load(each.dataSize)" />
+	                                    <listcell label="@load(each.provider)" />
+	                                    <listcell label="@load(each.image)" />
+	                                    <listcell label="@load(each.runningTasks)" />
+	                                </listitem>
+	                            </template>
+	                        </listbox>
+			         	</vlayout>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="tasksInformationTab.onSelect">
+			         	<vlayout vflex="1">
+	                        <listbox model="@load(vm.coresViewModel.cores) @template('job')" hflex="1" vflex="1"
+	                            emptyMessage="There are no jobs.">
+	                            <listhead>
+	                                <listheader hflex="min" label="Color" sort="auto(color)" align="center"/>
+	                                <listheader hflex="1" label="Name" sort="auto(name)" align="center"/>
+	                                <listheader hflex="1" label="Parameters" align="center"/>
+	                                <listheader hflex="min" label="Avg. Execution Time (s)" sort="auto(avgExecTime)" sortDirection="ascending" align="center"/>
+	                                <listheader hflex="min" label="Executed Count" sort="auto(executedCount)" sortDirection="ascending" align="center"/>
+	                    		</listhead>
+	                            
+	                            <template name="job">
+	                                <listitem>
+	                                    <listcell>                                   
+	                    					<image style="width: 25px" src="@load(each.color)" />
+	                                    </listcell>                                   
+	          							<listcell label="@load(each.name)" />
+	                                    <listcell label="@load(each.parameters)" />
+	                                    <listcell label="@load(each.avgExecTime)" />
+	                                    <listcell label="@load(each.executedCount)" />
+	                                </listitem>
+	                            </template>
+	                        </listbox>
+			         	</vlayout>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="currentTasksGraphTab.onSelect" style="overflow:auto">		         	
+		         		<div vflex="1" hflex="1" align="center" style="overflow:auto">
+		         			<hbox height="99%" width="99%" align="center" pack="center" widths="80%,20%">
+		         				<image style="width: 99%; height: 99%" src="@load(vm.currentGraphViewModel.graph)" />
+                        		<!-- <iframe height="99%" width="99%" src="@load(vm.currentGraphViewModel.graph)" /> -->
+                        		<vbox align="center" pack="center" heights="10%,90%">
+                        			<button label="Download" onClick="@command('downloadCurrentGraph')" />
+	                        		<grid model="@bind(vm.coresViewModel.cores) @template('core')" emptyMessage="There are no tasks.">
+				         				<auxhead>
+				         					<auxheader label="Color" />
+				         					<auxheader label="Name" />
+				         				</auxhead>
+				         				<columns visible="false">
+				         					<column></column>
+						                	<column></column>
+				         				</columns>
+				         				
+				         				<template name="core">
+							                <row>                               
+		                    					<image style="width: 25px" src="@load(each.color)" />  
+							                	<label value="@load(each.name)" />
+							                </row>
+							            </template>
+				         			</grid>
+				         		</vbox>
+                        	</hbox>
+                        </div>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="completeTasksGraphTab.onSelect" style="overflow:auto">		         	
+		         		<div vflex="1" hflex="1" align="center" style="overflow:auto">
+		         			<hbox height="99%" width="99%" align="center" pack="center" widths="80%,20%">
+                        		<iframe height="99%" width="99%" src="@load(vm.completeGraphViewModel.completeGraph)" />
+                        		<vbox align="center" pack="center" heights="10%,90%">
+                        			<button label="Download" onClick="@command('downloadCompleteGraph')" />
+	                        		<grid model="@bind(vm.coresViewModel.cores) @template('core')" emptyMessage="There are no tasks.">
+				         				<auxhead>
+				         					<auxheader label="Color" />
+				         					<auxheader label="Name" />
+				         				</auxhead>
+				         				<columns visible="false">
+				         					<column></column>
+						                	<column></column>
+				         				</columns>
+				         				
+				         				<template name="core">
+							                <row>                               
+		                    					<image style="width: 25px" src="@load(each.color)" />  
+							                	<label value="@load(each.name)" />
+							                </row>
+							            </template>
+				         			</grid>
+				         		</vbox>
+                        	</hbox>
+                        </div>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="loadChartTab.onSelect">
+			         	<!-- Needs Internet access -->
+						<hbox height="100%" width="100%" align="start" pack="center" widths="80%,20%">
+							<div id="chartDIV" height="99%" width="99%" />
+							<listbox selectedItem="@bind(vm.loadChartViewModel.chartType)" mold="select">
+	                            <listitem label="Total workload" value="totalLoadChart" selected="true" />
+	                            <listitem label="Workload per CoreElement" value="loadPerCoreChart" />
+	                            <listitem label="Running CoreElements" value="totalRunningChart" />
+	                            <listitem label="Running CoreElements per CoreElement" value="runningPerCoreChart" />
+	                            <listitem label="Pending CoreElements" value="totalPendingChart" />
+	                            <listitem label="Pending CoreElements per CoreElement" value="pendingPerCoreChart" />
+	                            <!-- TODO <listitem label="Total CPU/Memory load" value="totalResourcesStatusChart" /> -->
+	                    	</listbox>
+	                    	<timer delay="0" onTimer="@command('setDivUUID', divuuid=chartDIV.uuid)" />
+	                    </hbox>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="runtimeLogTab.onSelect">
+			         	<div vflex="1" hflex="1" style="overflow:auto">
+			         		<hbox height="99%" width="99%" align="start" pack="center" widths="80%,20%">
+                        		<div style="overflow:auto">
+                        			<label multiline="true" value="@load(vm.runtimeLogViewModel.runtimeLog)" />
+	                        	</div>
+                        		<div>
+                        			<grid width="90%">
+	                        			<columns visible="false">
+				         					<column width="30%" />
+						                	<column width="70%" />
+				         				</columns>
+	                        			<rows>
+	                        				<row>
+	                        					<label value="Filter" />
+	                        					<textbox id="filter" value="@bind(vm.runtimeLogViewModel.filter)"/>
+	                        				</row>
+	                        			</rows>
+	                        		</grid>
+	                        		<separator />
+	                        		<button label="Refresh" onClick="@command('updateRuntimeLog')" />
+                        		</div>
+                        	</hbox>
+			         	</div>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="executionInformationTab.onSelect" style="overflow:auto">
+			         	<div vflex="1" hflex="1" align="center">
+			         		<hbox height="99%" width="99%" align="start" pack="center" widths="80%,20%">
+				                <grid width="95%" model="@load(vm.executionInformationViewModel.tasks) @template('task')" emptyMessage="There are no tasks.">
+		                            <auxhead>
+		                                <auxheader width="7%" rowspan="2" label="Task Id" align="center" />
+		                                <auxheader width="12%" rowspan="2" label="Task Name" align="start" />
+		                                <auxheader width="70%" rowspan="2" label="Associated Jobs Information" align="center">
+		                                	<hbox width="100%" widths="10%,80%,10%" align="center">
+		                               			<div align="center"><label value="Job Id" /></div>
+				                    			<div align="center"><label value="Host" /></div>
+				                    			<div align="center"><label value="Job Status" /></div>
+				                    		</hbox>
+		                                </auxheader>
+		                                <auxheader width="10%" rowspan="2" label="Task Status" align="center" />
+		                    		</auxhead>
+		                    		
+		                    		<columns>
+                            			<column width="7%" align="center" />
+                            			<column width="12%" align="start" />
+                            			<column width="70%" align="center" />
+                            			<column width="10%" align="center" />
+                            		</columns>
+		                            
+		                            <template name="task">
+		                                <row>
+		                                	<label value="@load(each.taskId)" />
+		                                	<label value="@load(each.name)" />
+		                                	<div>
+		                                		<grid model="@load(each.jobs) @template('job')" emptyMessage="There are no jobs.">
+			                                		<columns>
+			                                			<column width="10%" />
+			                                			<column width="80%" />
+			                                			<column width="10%" />
+			                                		</columns>
+			                                		<template name="job">
+			                                			<row>
+			                                				<div popup="jobInfo_${each.id}">
+			                                					<label id="jobName_${each.id}" value="@load(each.id)" />
+			                                					<popup id="jobInfo_${each.id}" width="50%">
+				                                					<vlayout>
+				                                						<grid>
+				                                							<columns>
+				                                								<column hflex="min" />
+				                                								<column hflex="1" />
+				                                							</columns>
+				                                							<rows>
+				                                								<row>
+				                                									<label value="Executable" />
+				                                									<label pre="true" value="@load(each.executable)" />
+				                                								</row>
+				                                								<row>
+				                                									<label value="Arguments" />
+				                                									<label pre="true" value="@load(each.arguments)" />
+				                                								</row>
+				                                								<row>
+				                                									<label value="Job.out" />
+				                                									<label pre="true" value="@load(each.outFileContent)" />
+				                                								</row>
+				                                								<row>
+				                                									<label value="Job.err" />
+				                                									<label pre="true" value="@load(each.errFileContent)" />
+				                                								</row>
+				                                							</rows>
+				                                						</grid>
+				                                					</vlayout>
+			                                					</popup>
+			                                				</div>
+			                                				<label value="@load(each.host)" />
+			                                				<image style="width: 25px" src="@load(each.color)" />
+			                                			</row>
+			                                		</template>
+			                                	</grid>
+			                                </div>
+		                                    <image style="width: 25px" src="@load(each.color)" />                              
+		                                </row>
+		                            </template>
+		                        </grid>
+	                    
+		                		<div width="95%">
+		                			<listbox selectedItem="@bind(vm.executionInformationViewModel.displayType)" mold="select">
+			                            <listitem label="All" value="all" />
+			                            <listitem label="Current Tasks" value="current_tasks" />
+			                            <listitem label="Failed Tasks" value="failed_tasks" />
+			                            <listitem label="Tasks with failed jobs" value="tasks_with_failed_jobs" selected="true" />
+		                        	</listbox>
+		                        	<separator />
+	                        		<button label="Refresh" onClick="@command('updateExecutionInformation')" />
+	                        	</div>
+	                    	</hbox>
+					    </div>
+			         </tabpanel>
+			         
+			         <tabpanel fulfill="statisticsTab.onSelect">
+					     <div vflex="1" hflex="1" align="center">
+					        <grid width="30%" model="@bind(vm.statisticsViewModel.statistics) @template('statisticParameter')" emptyMessage="There are no statistics.">
+								<auxhead>
+									<auxheader label="Name" />
+									<auxheader label="Value" />
+								</auxhead>
+					            <columns visible="false">
+					                <column></column>
+					                <column></column>
+					            </columns>
+					            
+					            <template name="statisticParameter">
+					                <row>
+					                	<label value="@load(each.name)" />
+					                	<label value="@load(each.value)" />
+					                </row>
+					            </template>
+					        </grid>  
+				    	 </div>
+			         </tabpanel>
+			    </tabpanels>
+			</tabbox>
+
+			<timer delay="@load(vm.refreshTime)" repeats="true" onTimer="@command('update')" />
+    </window>
+</zk>

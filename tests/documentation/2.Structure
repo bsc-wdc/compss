@@ -1,0 +1,50 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Structure Definition ==
+* ./sources : Contains the sources of the different applications.
+    ./sources/basic/           : Contains the tests based on java local.
+       ./sources/basic/*       : ONE FOLDER per application test.
+       ./sources/basic/pom.xml : Maven base pom description.
+                                 YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+    ./sources/cloud/           : Contains the tests based on java cloud.
+       ./sources/cloud/*       : ONE FOLDER per application test.
+       ./sources/cloud/pom.xml : Maven base pom description.
+                                 YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+    ./sources/devel_*feature        : Constains the tests based on each different feature.
+       ./sources/devel_*feature/*         : ONE FOLDER per application test.
+       ./sources/devel_*feature/pom.xml   : Maven base pom description.
+                                            YOU NEED TO MODIFY THIS FILE IF YOU ADD A NEW APPLICATION TO THIS SET.
+
+
+* ./configurations : Constains all the configuration files for local/development execution
+     ./configurations/*.cfg : you can set as much configuration files as you want respecting always the variable names used inside the existing configuration files
+       ATTENTION: IF YOU MODIFY EXAMPLE CONFIGURATIONS DO NOT UPDATE THEM ON SVN
+
+
+* ./scripts : Contains all the scripts needed to run the all tests. 
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+
+* ./logs : Used to create the logs folder on the target_location to contain all the log files from the last build
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+
+* ./vpn : Stores the configuration files needed to configure the bscgrid20-27 VPN
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+
+* ./Documentation : Description of structure, features, installation, usage and new test creation. 
+               !!!!!!!! DO NOT MODIFY UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!
+
+
+* ./README  : Pointer file to documentation
+

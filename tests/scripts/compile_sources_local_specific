@@ -1,0 +1,44 @@
+#!/bin/bash
+
+  #Get Parameters
+  source_base_dir=$1
+  appName=$2
+  actual_dir=$(pwd)/$(dirname $0)
+
+  #Compile app
+  if [ -z "$appName" ]; then
+     echo "[ERROR] Source not found"
+     exit 1
+  fi 
+
+  echo "---- Compiling sources"
+  #Exception for serverTest
+  if [ "$appName" = "09-servicesTest" ]; then
+     cd ${source_base_dir}/basic/08-groupService
+     mvn -U clean install
+     #Check errors
+     if [ $? -ne 0 ]; then
+         echo "[ERROR] Cannot compile Java Apps"
+         exit 1
+     fi
+     #Go to main folder
+     cd ${actual_dir}
+  fi
+  
+  #General source compilation
+  if [[ $appName != *_c ]] && [[ $appName != *_python ]]; then
+     cd ${source_base_dir}/basic/$appName
+     mvn -U clean install
+     #Check errors
+     if [ $? -ne 0 ]; then
+        echo "ERROR: CANNOT COMPILE JAVA APPS"
+        exit 1
+     fi
+ 
+     #Go to main folder
+     cd ${actual_dir}
+  fi
+
+  #Exit all ok
+  exit 0
+

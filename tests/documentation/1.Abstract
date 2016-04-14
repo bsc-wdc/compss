@@ -1,0 +1,90 @@
+[Name]: COMPSs TESTS
+[Contact Person]: Cristian Ramon-Cortes, cristian.ramon-cortes.at.bsc.es
+[Access Level]: public
+[License Agreement]: Apache2
+[Platform]: COMPSs
+
+[Body]
+== Description ==
+*  This package contains all the designed applications to test a COMPSs version.
+
+*  The documentation subfolder contains all the information needed to configure and run properly this set of tests. Please if you haven't heard about COMPSs Testing read carefully ALL the documentation.
+
+
+== General considerations ==
+This test package is designed to run in different environments to allow developpers check their implementations on different scenarios. However, some scenarios require more time than others. The following table shows the different environments and an orientative test time:
+
+    ENVIRONMENT       TIME     DESCRIPTION
+     Local            6min      Runs all local tests
+     Local_X          1min      Runs specific local test X
+     devel_X          1min      Runs a developpement test battery X
+     cloud           20min      Runs all cloud tests (through bscgrid20)
+     cloud_X         10min      Runs specific cloud test X (through bscgrid20)
+     cloudvpn        15min      Runs all cloud tests (through VPN)
+     cloudvpn_X       4min      Runs specific cloud test X (through VPN)
+     cloud_jenkins      3h      Runs local&cloud tests for all distributions
+
+
+== Common usage ==
+Due to time limits the general use of this tests for any developper should be:
+1. Check out a fresh COMPSs_trunk copy
+
+2. Implement locally all needed features
+
+3. Run local tests 
+     (as many times as needed to pass all of them)
+
+4. Run cloud tests 
+     (through bscgrid20 or though VPN)
+     (as many times as needed to pass all of them)
+
+5. Commit implementation on COMPSs_trunk
+
+6. Run jenkins
+     (trunk compilation + create_VMs + tests)
+
+7. Check out tests results
+     (if ok      : Great! Nothing more to do)
+     (if failure : Check error_logs and fix any possible problem. Back to step 2)
+
+
+== Jenkins cloud images usage ==
+* Jenkins have diferent jobs to compile, deploy and test COMPSs. 
+    COMPSs_framework_Trunk :   Compiles COMPSs trunk
+    COMPSs_repos_and_vms   :   Updates COMPSs repositories and VMs
+    COMPSs_tests           :   Runs all tests 
+
+* The VMs used by jenkins are available for any developper and structured as follows:
+
+    test-ubuntu-base        : Fresh Ubuntu server 12.04 image
+    test-centos-base        : Fresh Centos 6.5 image
+    test-debian-base        : Fresh Debian 7.1 image
+    test-opensuse-base      : Fresh OpenSuse X image
+
+    test-ubuntu-unstable    : Ubuntu image with last COMPSs trunk build 
+    test-centos-unstable    : Centos image with last COMPSs trunk build
+    test-debian-unstable    : Debian image with last COMPSs trunk build
+    test-opensuse-unstable  : OpenSuse image with last COMPSs trunk build
+
+    test-ubuntu-testing     : Ubuntu image with last COMPSs SUCCESS build (after tests)
+    test-centos-testing     : Centos image with last COMPSs SUCCESS build (after tests)
+    test-debian-testing     : Debian image with last COMPSs SUCCESS build (after tests)
+    test-opensuse-testing   : OpenSuse image with last COMPSs SUCCESS build (after tests)
+
+    test-ubuntu-stable      : Ubuntu image with last COMPSs Release
+    test-centos-stable      : Centos image with last COMPSs Release
+    test-debian-stable      : Debian image with last COMPSs Release
+    test-opensuse-stable    : OpenSuse image with last COMPSs Release
+
+
+* If you need to check any cloud machine used by jenkins or you need to use one of them for your own purposes always DO:
+
+  1. As much as possible, use only testing / stable images (since they have passed all the tests)
+
+  2. Always copy the image and its template to your user account. This will disable dependencies with other Cloud jobs.
+      $ oneimage clone test-distribution-release whatEverImg
+      $ onetemplate clone test-distribution-release whatEverTmpl
+      $ onetemplate update whatEverTmpl
+             (modify image number to whatEverImg's number)
+      $ onetemplate instantiate whatEverTmpl
+

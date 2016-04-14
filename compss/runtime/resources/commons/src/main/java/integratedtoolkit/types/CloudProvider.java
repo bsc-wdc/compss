@@ -182,8 +182,9 @@ public class CloudProvider {
             if (distance > bestDistance) {
                 result = rd;
                 bestDistance = distance;
-            } else if (distance == bestDistance) {
-                if (result.getValue() != null && rd.getValue() != null
+            } else if (distance == bestDistance && result != null) {
+                if (result.getValue() != null 
+                        && rd.getValue() != null
                         && result.getValue() > rd.getValue()) {
                     result = rd;
                     bestDistance = distance;

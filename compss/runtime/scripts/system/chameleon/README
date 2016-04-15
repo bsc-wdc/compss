@@ -1,0 +1,65 @@
+  #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  #
+  # File:	 README
+  # Author:      Cristian Ramon-Cortes Vilarrodona
+  #              Barcelona SuperComputing Center (BSC-CNS)
+  #
+  # Description: Information about how to run COMPSs and COMPSs
+  #              sample applications at Chameleon
+  #
+  #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+***************************
+* 1. COMPSs configuration *
+***************************
+When running a COMPSs Application there is a special node (known as COMPSs Master) that handles the application workflow. The rest of the nodes are used for computation and are known as COMPSs Workers.
+
+To run COMPSs at Chameleon we consider this instance as the COMPSs Master and the COMPSs Workers will be automatically created within a specific lease. Therefore, to configure this instance as the COMPSs Master please run:
+	$ /etc/init.d/chameleon_init start
+
+
+Once this instance has been configured as the COMPSs Master you can decide whether to run the COMPSs applications locally (this instance will be also used as a COMPSs Worker) or within a cluster (launching more instances to be used as COMPSs Workers). For specific details of each configuration please check the following sections. 
+
+
+** 1.1. Local configuration
+COMPSs is already configured by default to use 20 cores of the localhost as a single worker (the other 4 are reserved for the COMPSs Master). Consequently you can simply execute any COMPSs application by running the runcompss command. 
+
+
+** 1.2. Cluster configuration
+To configure a COMPSs cluster within a Chameleon reservation you need to perform the following steps:
+	- Download your OpenStack RC file and source it
+	- Run chameleon_setup and fill information when prompted. You will be asked for:
+		- The COMPSs master instance name (the name of this instance)
+		- The reservation ID where to deploy the COMPSs Cluster
+		- The number of COMPSs Workers (this number must be lower or equal than
+		  the maximum number of instances available at the reservation)
+	- Run the application using the runcompss command
+
+
+    ****************************************************************************************************************************************************************************
+    ** NOTICE: COMPSs is configured through the project.xml and the resources.xml files. By default these files are stored under the /opt/COMPSs/configuration/xml/ folder.   **
+    **         COMPSs logs are stored under the /home/cc/.COMPSs/ folder.                                                                                                     **
+    ****************************************************************************************************************************************************************************
+
+
+*********************************
+* 2. How to run COMPSs examples *
+*********************************
+Any application can be easily executed by means of the runcompss command. For more information please execute:
+	$ runcompss -h
+
+In this virtual appliance we provide several Java, Python and C/C++ examples. All of them are stored under the /home/cc/apps/ directory.
+
+For specific information about how to run any of the examples please check the README located inside each application folder.
+
+Suggestion: To introduce yourself to COMPSs we suggest to execute the increment application (in Java, Python or C++). 
+
+
+**************************
+* 3. Contact and support *
+**************************
+For any further information please visit http://compss.bsc.es or contact us at
+
+            support-compss@bsc.es
+

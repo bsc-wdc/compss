@@ -42,7 +42,7 @@
     endCode=$?
   elif [ $action == "package" ]; then
     node=$1
-    echo "trace::packaging ${node}_compss_trace.tar.gz"
+    #echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
@@ -53,10 +53,10 @@
   elif [ $action == "gentrace" ]; then
     appName=$1
     traceFiles=$(find trace/*_compss_trace.tar.gz)
-    echo "trace::gentrace"
+    #echo "trace::gentrace"
     for file in ${traceFiles[*]}; do
         tmpDir=$(mktemp -d)
-        tar -C $tmpDir -xvzf $file
+        tar -C $tmpDir -xzf $file
         #echo "trace:: $tmpDir -xvzf $file"
         cat $tmpDir/TRACE.mpits >> TRACE.mpits
         cp -r $tmpDir/set-* .

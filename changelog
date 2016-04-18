@@ -69,13 +69,40 @@ New features:
 
         * Simplified installation on Supercomputers
 
-
 Known Limitations:
      * Exceptions raised from tasks are not handled by the master
      * Java tasks must be declared as public
      * Java objects MUST be serializable or, at least, follow the java beans model
      * Support limited to SOAP based services
      * Persistent Workers do NOT isolate task executions in a sandbox
+
+
+Release number 1.4
+Release date: April-2016
+-------------------------
+New features:
+            * Runtime:
+                    - Support for Dockers added
+                    - Support for Chameleon added
+                    - Object cache for persistent workers
+                    - Improved error management
+                    - Conector for submitting tasks to MN supercomputer from external COMPSs applications added
+
+            * Python:                    
+                    - Bug fixes                    
+
+            * Tools:
+                    - Enhanced Tracing mechanism:
+                        · Reduced overhead using native java API
+                        · Support for communications instrumentation added
+                        · Support for PAPI hardware counters added
+
+Known Limitations:
+         * Exceptions raised from tasks are not handled by the master
+         * Java tasks must be declared as public
+         * Java objects MUST be serializable or, at least, follow the java beans model
+         * Support limited to SOAP based services
+         * Persistent Workers do NOT isolate task executions in a sandbox
 
 
 For further information please refer to COMPSs User Manual: Application development

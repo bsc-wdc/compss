@@ -10,7 +10,6 @@ public class Task implements Comparable<Task> {
 
     // Task states
     public enum TaskState {
-
         TO_ANALYSE,
         TO_SCHEDULE,
         TO_RESCHEDULE,

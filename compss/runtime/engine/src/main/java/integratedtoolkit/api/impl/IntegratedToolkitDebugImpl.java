@@ -21,7 +21,7 @@ public class IntegratedToolkitDebugImpl extends IntegratedToolkitImpl implements
     // Integrated Toolkit user interface implementation
     public void startIT() {
         if (tracing){
-            Tracer.staticEventStop();
+            Tracer.masterEventFinish();
             Tracer.masterEventStart(Tracer.Event.START.getId());
         }
         

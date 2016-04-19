@@ -79,7 +79,7 @@ public class Comm {
         
         if (tracing){
             Tracer.init(tracing_level);
-            Tracer.staticEventStart(Tracer.Event.STATIC_IT.getId());
+            Tracer.masterEventStart(Tracer.Event.STATIC_IT.getId());
         }
     }
 

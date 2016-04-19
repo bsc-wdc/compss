@@ -153,14 +153,18 @@ public abstract class Tracer {
     }
 
     public static void enablePThreads(){
-        Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
-
+        synchronized(Tracer.class){
+            Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
+        }
     }
     public static void disablePThreads(){
-        Wrapper.SetOptions (
-            Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
-            ~Wrapper.EXTRAE_PTHREAD_OPTION);
+        synchronized(Tracer.class){
+            Wrapper.SetOptions (
+                Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
+                ~Wrapper.EXTRAE_PTHREAD_OPTION);
+        }
     }
+        
 
 
     public static String getTraceDirPath() {
@@ -220,14 +224,16 @@ public abstract class Tracer {
         return Event.valueOf(eventType);
     }
     
-    public static synchronized void emitEvent(long eventID, int eventType){
-
-        Wrapper.Event(eventType, eventID);
+    public static void emitEvent(long eventID, int eventType){
+        synchronized(Tracer.class){
+            Wrapper.Event(eventType, eventID);
+        }
 
         if (debug) {
             logger.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
         }
     }
+    
     
     public static void masterEventStart(int taskId) {
         emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
@@ -242,16 +248,19 @@ public abstract class Tracer {
             logger.debug("Tracing: finalizing");
         }
 
-        defineEvents();
 
-        Wrapper.SetOptions (
-            Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
-            ~Wrapper.EXTRAE_PTHREAD_OPTION);
+        synchronized(Tracer.class){
+            defineEvents();
+            
+            Wrapper.SetOptions (
+                Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
+                ~Wrapper.EXTRAE_PTHREAD_OPTION);
 
-        Wrapper.Fini();
+            Wrapper.Fini();
 
-        Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
-
+            Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+        }
+        
         generateMasterPackage();
         transferMasterPackage();
         generateTrace();

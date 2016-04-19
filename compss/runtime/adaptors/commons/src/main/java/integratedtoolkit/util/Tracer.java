@@ -47,6 +47,7 @@ public abstract class Tracer {
     protected static final int TASK_TRANSFERS = 8_000_003;
     protected static final int DATA_TRANSFERS = 8_000_004;
     public static final int EVENT_END = 0;
+    
 
     public static final int NOT_ENABLED = 0;
     public static final int BASIC_MODE = 1;
@@ -219,7 +220,7 @@ public abstract class Tracer {
         return Event.valueOf(eventType);
     }
     
-    public static synchronized void emitEvent(int eventType, long eventID){
+    public static synchronized void emitEvent(long eventID, int eventType){
 
         Wrapper.Event(eventType, eventID);
 
@@ -229,19 +230,19 @@ public abstract class Tracer {
     }
     
     public static void staticEventStart(int taskId) {
-        emitEvent(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
+        emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
     }
 
     public static void staticEventStop(){
-        emitEvent(Tracer.RUNTIME_EVENTS, 0);
+        emitEvent(0, Tracer.RUNTIME_EVENTS);
     }
 
     public static void masterEventStart(int taskId) {
-        emitEvent(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
+        emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
     }
 
     public static void masterEventFinish(){
-        emitEvent(Tracer.RUNTIME_EVENTS, 0);
+        emitEvent(0, Tracer.RUNTIME_EVENTS);
     }
 
     public static void fini() {

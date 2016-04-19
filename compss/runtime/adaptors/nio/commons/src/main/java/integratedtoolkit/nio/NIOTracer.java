@@ -38,15 +38,17 @@ public class NIOTracer extends Tracer {
         NIOTracer.workingDir = workingDir;
         NIOTracer.nodeName = nodeName;
         
-        Wrapper.SetTaskID(hostID);
-        Wrapper.SetNumTasks(hostID+1);
+        synchronized(Tracer.class){
+            Wrapper.SetTaskID(hostID);
+            Wrapper.SetNumTasks(hostID+1);
+        }
 
         if (debug) { 
             logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " +NIOTracer.workingDir + ", " + NIOTracer.nodeName);
         }
     }
 
-    public static synchronized void emitDataTransferEvent(String data){
+    public static void emitDataTransferEvent(String data){
         boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
         
         int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
@@ -60,19 +62,22 @@ public class NIOTracer extends Tracer {
         }
     }
     
-    public static synchronized void emitEventAndCounters(int taskId, int eventType){
-
-        Wrapper.Eventandcounters(eventType, taskId);
-
+    public static void emitEventAndCounters(int taskId, int eventType){
+        synchronized(Tracer.class){
+            Wrapper.Eventandcounters(eventType, taskId);
+        }
+        
         if (debug){
             logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
         }
         
     }
-    public static synchronized void emitCommEvent(boolean send, int partnerID, int tag){
+    public static void emitCommEvent(boolean send, int partnerID, int tag){
 
         int size = 0;
-        Wrapper.Comm(send, tag, size, partnerID, ID);
+        synchronized(Tracer.class){
+            Wrapper.Comm(send, tag, size, partnerID, ID);
+        }
 
         if (debug) {
             logger.debug("Emitting communication event [" + (send ? "SEND" : "REC") + "] " + tag + ", " + size + ", " + partnerID + ", " + ID + "]");
@@ -86,13 +91,14 @@ public class NIOTracer extends Tracer {
         }
         masterEventFinish();
         
-        Wrapper.SetOptions (
-            Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
-            ~Wrapper.EXTRAE_PTHREAD_OPTION);
+        synchronized(Tracer.class){
+            Wrapper.SetOptions (
+                Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
+                ~Wrapper.EXTRAE_PTHREAD_OPTION);
         
-        // End wrapper
-        Wrapper.Fini();
-        
+            // End wrapper
+            Wrapper.Fini();
+        }
         // Generate package
         ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "package", workingDir, nodeName);
         pb.environment().remove("LD_PRELOAD");

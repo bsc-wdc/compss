@@ -19,7 +19,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Clean possible remaining test files
-  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "ps -elfa | grep user | grep java | grep integratedtoolkit.nio.worker.NIOWorker | awk {' print $4 '} | xargs -r kill -9"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "ps -elfa | grep java | grep integratedtoolkit.nio.worker.NIOWorker | awk {' print $4 '} | xargs -r kill -9"
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "rm -f /home/${vm_user}/hs_err_pid*"
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${vm_user}@${vm_ip} "rm -rf /home/${vm_user}/.COMPSs/"
 

@@ -335,7 +335,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     // Integrated Toolkit user interface implementation
     public synchronized void startIT() {
         if (tracing){
-            Tracer.staticEventStop();
+            Tracer.masterEventFinish();
             Tracer.masterEventStart(Tracer.Event.START.getId());
         }
 

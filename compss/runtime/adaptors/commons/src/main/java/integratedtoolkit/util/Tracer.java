@@ -229,14 +229,6 @@ public abstract class Tracer {
         }
     }
     
-    public static void staticEventStart(int taskId) {
-        emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
-    }
-
-    public static void staticEventStop(){
-        emitEvent(0, Tracer.RUNTIME_EVENTS);
-    }
-
     public static void masterEventStart(int taskId) {
         emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
     }
@@ -284,7 +276,7 @@ public abstract class Tracer {
 
         Map<String, Integer> signatureToId = CoreManager.SIGNATURE_TO_ID;
 
-        int size = getSizeByEventType(RUNTIME_EVENTS) + 1;  // we dont +1 because TaskCount already has 1 extra (because it does getAndIncrement)
+        int size = getSizeByEventType(RUNTIME_EVENTS) + 1; 
         long[] values = new long[size];
         int offset = Event.values().length;  // we offset the values of the defined api events (plus the 0 which is the end task always).
 

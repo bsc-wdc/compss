@@ -46,16 +46,6 @@ public class NIOTracer extends Tracer {
         }
     }
 
-    public static synchronized void emitEvent(int eventID, int eventType){
-
-        Wrapper.Event(eventType, eventID);
-
-        if (debug) {
-            logger.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
-        }
-    }
-    
-
     public static synchronized void emitDataTransferEvent(String data){
         boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
         

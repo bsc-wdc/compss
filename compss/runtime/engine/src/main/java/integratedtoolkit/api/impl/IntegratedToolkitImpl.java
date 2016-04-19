@@ -306,7 +306,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     }
     
     public void emitEvent(int type, long id){
-        Tracer.emitEvent(type, id);
+        Tracer.emitEvent(id, type);
     }
 
 

@@ -49,19 +49,20 @@ public class NIOTracer extends Tracer {
     public static synchronized void emitDataTransferEvent(String data){
         boolean dataTransfer = !(data.startsWith("worker")) && !(data.startsWith("tracing"));
         
+        int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
+        
         if (dataTransfer){
-            int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
-            Wrapper.Event(DATA_TRANSFERS, transferID);
+            emitEvent(transferID, DATA_TRANSFERS);
         }
 
         if (debug) {
-            logger.debug( (dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = [" + data + " , " + data.hashCode() + "]");
+            logger.debug( (dataTransfer ? "E" : "Not E") + "mitting synchronized data transfer event [name, id] = [" + data + " , " + transferID + "]");
         }
     }
     
     public static synchronized void emitEventAndCounters(int taskId, int eventType){
 
-        Wrapper.Event(eventType, taskId);
+        Wrapper.Eventandcounters(eventType, taskId);
 
         if (debug){
             logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");

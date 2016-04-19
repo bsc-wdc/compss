@@ -117,6 +117,10 @@ public class GATTracer extends Tracer {
         logger.error("Error initializing tracing system, " + job + " job still pending.");
     }
 
+    public static synchronized void emitEvent(long eventID, int eventType){
+        logger.error("Emit event method is not available for GAT tracing");
+    }
+    
     public static void generatePackage(GATWorkerNode node) {
         LinkedList<URI> traceScripts = new LinkedList<URI>();
         LinkedList<String> traceParams = new LinkedList<String>();

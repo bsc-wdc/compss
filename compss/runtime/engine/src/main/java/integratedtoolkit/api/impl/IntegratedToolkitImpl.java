@@ -304,6 +304,10 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     public String getApplicationDirectory() {
         return Comm.appHost.getAppLogDirPath();
     }
+    
+    public void emitEvent(int type, long id){
+        Tracer.emitEvent(type, id);
+    }
 
 
     public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,

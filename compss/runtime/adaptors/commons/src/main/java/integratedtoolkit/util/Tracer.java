@@ -218,21 +218,30 @@ public abstract class Tracer {
     public static Event getAPRequestEvent(String eventType){
         return Event.valueOf(eventType);
     }
+    
+    public static synchronized void emitEvent(int eventType, long eventID){
 
+        Wrapper.Event(eventType, eventID);
+
+        if (debug) {
+            logger.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
+        }
+    }
+    
     public static void staticEventStart(int taskId) {
-        Wrapper.Event(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
+        emitEvent(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
     }
 
     public static void staticEventStop(){
-        Wrapper.Event(Tracer.RUNTIME_EVENTS, 0);
+        emitEvent(Tracer.RUNTIME_EVENTS, 0);
     }
 
     public static void masterEventStart(int taskId) {
-        Wrapper.Event(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
+        emitEvent(Tracer.RUNTIME_EVENTS, Long.valueOf(taskId));
     }
 
     public static void masterEventFinish(){
-        Wrapper.Event(Tracer.RUNTIME_EVENTS, 0);
+        emitEvent(Tracer.RUNTIME_EVENTS, 0);
     }
 
     public static void fini() {

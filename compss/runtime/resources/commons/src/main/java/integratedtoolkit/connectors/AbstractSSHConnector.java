@@ -22,9 +22,10 @@ import integratedtoolkit.types.CloudImageDescription;
 
 public abstract class AbstractSSHConnector extends AbstractConnector {
 
-    //private Map<String, Connection> ipToConnection;    
     private static Integer MAX_ALLOWED_ERRORS = 3;
-    private static Integer RETRY_TIME = 10; //Seconds
+    private static Integer RETRY_TIME = 10; 	// Seconds
+    private static int SERVER_TIMEOUT = 20_000; // Mili-seconds
+    
     private String defaultUser = System.getProperty("user.name");
     private String keyPairName = "id_rsa";
     private String keyPairLocation = System.getProperty("user.home") + File.separator + ".ssh";
@@ -68,7 +69,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         if (props.get("vm-keypair-location") != null) {
             keyPairLocation = props.get("vm-keypair-location");
         }
-
     }
 
     @Override
@@ -290,17 +290,16 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     	}
     	try {
             String command = "/bin/echo \"" + publicKey + "\" > " + File.separator + "home" + File.separator + user 
-            		+ File.separator + ".ssh" + File.separator + keyType + ".pub";
-            executeTask(workerIP, user, command, c);
-            
-            command = "/bin/echo \"" + publicKey + "\" >> " + File.separator + "home" + File.separator + user 
-            		+ File.separator + ".ssh" + File.separator + "authorized_keys";
-            executeTask(workerIP, user, command, c);
-            
-            command = "/bin/echo \"" + privateKey + "\" > " + File.separator + "home" + File.separator + user 
-            		+ File.separator + ".ssh" + File.separator + keyType + ";"
-                    + "chmod 600 " + File.separator + "home" + File.separator + user 
-            		+ File.separator + ".ssh" + File.separator + keyType;
+            		+ File.separator + ".ssh" + File.separator + keyType + ".pub"
+			+ " ; " 
+                        + "/bin/echo \"" + privateKey + "\" > " + File.separator + "home" + File.separator + user
+                        + File.separator + ".ssh" + File.separator + keyType + ";"
+                        + "chmod 600 " + File.separator + "home" + File.separator + user
+                        + File.separator + ".ssh" + File.separator + keyType
+                        + " ; "
+			+ "/bin/echo \"" + publicKey + "\" >> " + File.separator + "home" + File.separator + user
+                        + File.separator + ".ssh" + File.separator + "authorized_keys";
+
             executeTask(workerIP, user, command, c);
         } catch (Exception e) {
         	logger.error("Error configuring keys for " +workerIP + " user: "+ user, e);
@@ -312,55 +311,76 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     
     protected void executeTask(String ip, String user, String command, Session session) throws ConnectorException {
         ChannelExec exec = null;
-        try {
-            exec = (ChannelExec) session.openChannel("exec");
-            exec.setCommand(command);
-            InputStream inputStream = exec.getErrStream();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line;
-            exec.connect();
-            int exitStatus = -1;
-            while (exitStatus < 0) {
-                exitStatus = exec.getExitStatus();
-                if (exitStatus == 0) {
-                    bufferedReader.close();
-                    inputStream.close();
-                    if (debug){
-                    	logger.debug("Command successfully executed: " + command);
-                    }
-                    return;
-                } else if (exitStatus > 0) {
-                    while ((line = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(line);
-                        stringBuilder.append('\n');
-                    }
-                    if (debug){
-                    	logger.debug("Failed to execute command " + command + " in " + ip+".\nReturned std error: " + stringBuilder.toString());
-                    }
-                    bufferedReader.close();
-                    inputStream.close();
-                    throw new Exception("Failed to execute command " + command + " in " + ip + " (exit status:" + exitStatus + ")");
+        int numRetries = 0;
+        ConnectorException reason = null;
+        while (numRetries < MAX_ALLOWED_ERRORS) {
+            try {
+		if (debug){
+                    logger.debug("Executing command: " + command);
                 }
-                logger.debug("Command still on execution");
-                try {
-                    Thread.sleep(RETRY_TIME * 1000);
-                } catch (InterruptedException e) {
-                    logger.debug("Sleep interrupted");
+                exec = (ChannelExec) session.openChannel("exec");
+                exec.setCommand(command);
+                InputStream inputStream = exec.getErrStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                exec.connect(SERVER_TIMEOUT);
+
+                // Waits the command to be executed
+                int exitStatus = -1;
+                while (exitStatus < 0) {
+                    exitStatus = exec.getExitStatus();
+                    if (exitStatus == 0) {
+                        bufferedReader.close();
+                        inputStream.close();
+                        if (debug){
+                        	logger.debug("Command successfully executed: " + command);
+                        }
+                        return;
+                    } else if (exitStatus > 0) {
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line);
+                            stringBuilder.append('\n');
+                        }
+                        if (debug){
+                        	logger.debug("Failed to execute command " + command + " in " + ip+".\nReturned std error: " + stringBuilder.toString());
+                        }
+                        bufferedReader.close();
+                        inputStream.close();
+                        throw new Exception("Failed to execute command " + command + " in " + ip + " (exit status:" + exitStatus + ")");
+                    }
+                    logger.debug("Command still on execution");
+                    try {
+                        Thread.sleep(RETRY_TIME * 1_000);
+                    } catch (InterruptedException e) {
+                        logger.debug("Sleep interrupted");
+                    }
                 }
-
+                bufferedReader.close();
+                inputStream.close();
+            } catch (Exception e) {
+                logger.error("Exception running command on " + user + "@" + ip, e);
+                numRetries++;
+                logger.error("Retrying: " + numRetries + " of " + MAX_ALLOWED_ERRORS);
+                reason = new ConnectorException(e);
+            } finally {
+                if (exec != null && exec.isConnected()) {
+                    logger.debug("Disconnecting exec channel");
+                    exec.disconnect();
+                }
             }
-            bufferedReader.close();
-            inputStream.close();
-
-        } catch (Exception e) {
-            logger.error("Exception running command on " + user + "@" + ip, e);
-            throw new ConnectorException(e);
-        } finally {
-            if (exec != null && exec.isConnected()) {
-                logger.debug("Disconnecting exec channel");
-                exec.disconnect();
+            
+            // Sleep between connection retries
+            try {
+                Thread.sleep(RETRY_TIME * 1_000);
+            } catch (InterruptedException e) {
+                logger.debug("Sleep interrupted");
             }
+        }
+
+        if (numRetries == MAX_ALLOWED_ERRORS) {
+        	logger.error("Exception running command on " + user + "@" + ip, reason);
+            throw reason;
         }
     }
 
@@ -395,7 +415,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
         if (keyPairOrPassword == null) {
-
             password = false;
             keyPairOrPassword = KeyManager.getKeyPair();
             logger.warn("Neither password nor key-pair specified. Trying with default key-pair (" + KeyManager.getKeyPair() + ")");

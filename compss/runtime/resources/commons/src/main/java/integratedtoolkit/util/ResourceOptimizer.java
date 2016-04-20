@@ -112,11 +112,11 @@ public class ResourceOptimizer extends Thread {
                         }
                     }
                 } catch (InterruptedException ex) {
-                	logger.error(ex);
+                	logger.error("Exception", ex);
                 }
 
             } catch (Exception e) {
-            	logger.error(e);
+            	logger.error("Exception", e);
             }
         }
     }
@@ -671,7 +671,7 @@ public class ResourceOptimizer extends Thread {
             pendingMaxCoreTime[i] = readyMaxCoreTime[i] + (maxCoreTime[i] * pendingCounts[i]);
         }
         if(debug){
-        	logger.debug("Applying VM optimization policies (currentVMs: "+ currentCloudVMCount+ " maxVMs: "+ maxNumberOfVMs + " minVMs: "+minNumberOfVMs);
+        	logger.debug("Applying VM optimization policies (currentVMs: "+ currentCloudVMCount+ " maxVMs: "+ maxNumberOfVMs + " minVMs: " + minNumberOfVMs + ")");
     	}
         
     //Check if there is some mandatory creation/destruction

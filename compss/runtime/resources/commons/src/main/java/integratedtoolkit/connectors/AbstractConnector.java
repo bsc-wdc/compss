@@ -359,12 +359,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                         continue;
                     } else {
                         sleepTime = getSleepTime();
-                        logger.debug("VMs alive initial sleep se to " + sleepTime + " ms.");
+                        logger.debug("VMs alive initial sleep set to " + sleepTime + " ms.");
                         Iterator<VM> vms = vmsAlive.iterator();
                         while (vms.hasNext()) {
                             VM vmInfo = vms.next();
                             long timeLeft = timeLeft(vmInfo.getStartTime());
-                            //logger.info("MONITORSTATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " + timeLeft);
+                            //logger.info("MONITOR STATUS DEAD next VM " + vmInfo.ip + " @ " + vmInfo.startTime + " --> " + timeLeft);
                             if (timeLeft < DELETE_SAFETY_INTERVAL) {
 
                                 if (vmInfo.isToDelete()) {
@@ -409,7 +409,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 return 0;
             }
             long result = limit - ((now - time) % limit);
-            //logger.info("MONITORSTATUS DEAD Started at "+time+" now is "+now+" remaining --> "+(now - time)+" " +result+" ms to deadline");
+            //logger.info("MONITOR STATUS DEAD Started at "+time+" now is "+now+" remaining --> "+(now - time)+" " +result+" ms to deadline");
             return result;
         }
         

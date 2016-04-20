@@ -22,12 +22,14 @@ and you need to have installed in this computer the docker engine.
 Usage: runcompss-docker --worker-containers=N 
                         --context-dir='CTX_DIR'
                         --swarm-manager='<ip>:<port>'
+                        --username='dockerhub_username'
                         [rest of classic runcompss args]
                         
                 
 Example: runcompss-docker --worker-containers=5
                           --context-dir='/home/compss-user/my-app-dir'
-                          --swarm-manager='<ip>:<port>'
+                          --swarm-manager='129.114.108.8:4000'
+                          --username=john123
                           --classpath=/home/compss-user/my-app-dir/my-app.jar # Here begin classic runcompss arguments...
                           -d
                           myPackage.MyApp 3 15

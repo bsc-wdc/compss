@@ -14,12 +14,12 @@ public class SimpleImpl {
 			int count = fis.read();
 			fis.close();
 			try {
-				Thread.sleep(30000);
+				Thread.sleep(30_000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			FileOutputStream fos = new FileOutputStream(counterFile);
-            fos.write(++count);			
+            		fos.write(++count);			
 			fos.close();
 		}
 		catch(FileNotFoundException fnfe) {

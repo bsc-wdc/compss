@@ -13,7 +13,7 @@
                 </Adaptors>
             </Image>
         </ImageList>
-        <CreationTime>240</CreationTime> <!-- In seconds -->
+        <CreationTime>120</CreationTime> <!-- In seconds -->
         <InstanceTypes>
             <Resource Name="small">
                 <Capabilities>

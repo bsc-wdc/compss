@@ -44,7 +44,7 @@ public class Simple {
 			
 			//Wait to have initial VMs loaded
 			System.out.println("[LOG] Creating minimal number of VM's. Waiting...");
-			for (int i = 0; i <= minVM; i++){
+			for (int i = 0; i < minVM; i++){
 				try {
 					Thread.sleep(creationTime*1000);
 				} catch (InterruptedException e) {

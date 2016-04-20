@@ -144,9 +144,10 @@ New features:
                     - Object cache for persistent workers
                     - Improved error management
                     - Conector for submitting tasks to MN supercomputer from external COMPSs applications added
+		    - Bug-fixes
 
             * Python:
-                    - Bug fixes
+                    - Bug-fixes
 
             * Tools:
                     - Enhanced Tracing mechanism:
@@ -155,14 +156,13 @@ New features:
 			· Support for PAPI hardware counters added
 
 Known Limitations:
-         * Exceptions raised from tasks are not handled by the master
-         * Java tasks must be declared as public
-         * Java objects MUST be serializable or, at least, follow the java beans model
-         * Support limited to SOAP based services
-         * Persistent Workers do NOT isolate task executions in a sandbox
+	* When executing python applications with constraints in the cloud the initial VMs must be set to 0
 
+
+For further information please refer to COMPSs User Manual: Application development
 
 -------------------------------
+
 
 Please find more details about the COMP Superscalar framework at: 
 		http://compss.bsc.es/

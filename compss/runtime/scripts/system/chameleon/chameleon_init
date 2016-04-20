@@ -16,7 +16,7 @@ extra_configure() {
 | |__| |_| | |  | |  __/ ___) \__ \ 
  \____\___/|_|  |_|_|   |____/|___/
 
-Welcome to COMPSs v1.3 at Chameleon!
+Welcome to COMPSs v1.4 at Chameleon!
 EOT
 
   echo "127.0.1.1       COMPSsMaster" >> /etc/hosts

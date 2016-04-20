@@ -15,6 +15,9 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.UUID;
 
+import integratedtoolkit.log.Loggers;
+import org.apache.log4j.Logger;
+
 
 public class CloudProvider {
 
@@ -25,6 +28,10 @@ public class CloudProvider {
     private CloudTypeManager typeManager;
     private int currentVMCount;
     private Integer limitOfVMs;
+
+    //Loggers
+    private static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+
 
     public CloudProvider(String connectorPath, Integer limitOfVMs,
             HashMap<String, String> connectorProperties, String name)
@@ -175,6 +182,7 @@ public class CloudProvider {
         for (CloudMethodResourceDescription rd : instances) {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
+	    logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance > 0) {
                 continue;
             }
@@ -206,13 +214,15 @@ public class CloudProvider {
         for (CloudMethodResourceDescription rd : instances) {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
+            logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance < 0) {
                 continue;
             }
             if (distance < bestDistance) {
                 result = rd;
                 bestDistance = distance;
-            } else if (distance == bestDistance) {
+            } else if (result != null && distance == bestDistance) {
+		// Evaluate optimal candidate
                 if (result.getValue() != null && rd.getValue() != null
                         && result.getValue() > rd.getValue()) {
                     result = rd;

@@ -327,7 +327,7 @@ public class CEIParser {
 
     // Python constructor
     private static LinkedList<Integer> loadPython() {
-
+    	// Get python CoreCount
         String countProp = System.getProperty(ITConstants.IT_CORE_COUNT);
         Integer coreCount;
         if (countProp == null) {
@@ -338,19 +338,25 @@ public class CEIParser {
         } else {
             coreCount = Integer.parseInt(countProp);
         }
+        
+        // Resize runtime structures
         CoreManager.resizeStructures(coreCount);
+        
+        // Register implementations
+        LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
         for (int i = 0; i < coreCount; i++) {
             Implementation<?>[] implementations = new Implementation[1];
             implementations[0] = new MethodImplementation("", i, 0, new MethodResourceDescription());
             CoreManager.registerImplementations(i, implementations);
-        }
-        CoreManager.setCoreCount(coreCount);
-        LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
-        for (int i = 0; i < coreCount; i++) {
+            
             updatedMethods.add(i);
         }
+        // Update coreCount (enable all new registers)
+        CoreManager.setCoreCount(coreCount);
+
+        // Return index of modified methods
         return updatedMethods;
-    }
+    }    
 
     /**
      * Infers the type of a parameter. If the parameter is annotated as a FILE

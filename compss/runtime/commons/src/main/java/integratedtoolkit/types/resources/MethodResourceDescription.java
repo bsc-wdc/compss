@@ -66,6 +66,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         super();
         hostQueue = new LinkedList<String>();
         appSoftware = new LinkedList<String>();
+
+	// At least 1 CPU is used
+	processorCPUCount = 1;
     }
 
     public MethodResourceDescription(Constraints constraints) {
@@ -556,14 +559,21 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
         float min = Float.MAX_VALUE;
         float ratio;
-        if (rc2.processorCoreCount != 0) {
+
+        // If a rc2 constraint is not defined then it is not used to calculate the fits
+	// However, the CPU Count is mandatory to be, at least, 1
+	if (rc2.processorCoreCount != 0) {
             ratio = this.processorCoreCount / (float) rc2.processorCoreCount;
             min = ratio;
         }
         if (rc2.processorCPUCount != 0) {
             ratio = this.processorCPUCount / (float) rc2.processorCPUCount;
             min = ratio;
+        } else {
+	    ratio = this.processorCPUCount;
+	    min = Math.min(min, ratio);
         }
+
         if (rc2.memoryPhysicalSize != 0.0f) {
             ratio = this.memoryPhysicalSize / rc2.memoryPhysicalSize;
             min = Math.min(min, ratio);

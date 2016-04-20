@@ -187,11 +187,11 @@ public class ConstraintsTest {
             return "processorArchitecture";
         }
 
-        //CPUCount
-        if (general == null || general.processorCPUCount() == 0) {
-            if (specific == null || specific.processorCPUCount() == 0) {
+        //CPUCount  -- Runtime CPU default value is 1 (not 0)
+        if (general == null || general.processorCPUCount() <= 1) {
+            if (specific == null || specific.processorCPUCount() <= 1) {
                 //valor per defecte
-                ret = registered.getProcessorCPUCount() == 0;
+                ret = registered.getProcessorCPUCount() <= 1;
             } else {
                 //valor de specific
                 ret = registered.getProcessorCPUCount() == specific.processorCPUCount();

@@ -1,5 +1,25 @@
 package integratedtoolkit.nio.worker;
 
+import integratedtoolkit.ITConstants;
+import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.log.Loggers;
+import integratedtoolkit.nio.NIOAgent;
+import integratedtoolkit.nio.NIOMessageHandler;
+import integratedtoolkit.nio.NIOParam;
+import integratedtoolkit.nio.NIOTask;
+import integratedtoolkit.nio.NIOTracer;
+import integratedtoolkit.nio.NIOURI;
+import integratedtoolkit.nio.commands.CommandDataReceived;
+import integratedtoolkit.nio.commands.CommandShutdownACK;
+import integratedtoolkit.nio.commands.CommandTaskDone;
+import integratedtoolkit.nio.commands.Data;
+import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
+import integratedtoolkit.nio.exceptions.SerializedObjectException;
+import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.util.RequestQueue;
+import integratedtoolkit.util.Serializer;
+import integratedtoolkit.util.ThreadPool;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,36 +31,21 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
+import storage.StorageException;
+import storage.StorageItf;
 import es.bsc.comm.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
-import integratedtoolkit.nio.NIOAgent;
-import integratedtoolkit.nio.NIOParam;
-import integratedtoolkit.nio.NIOTask;
-import integratedtoolkit.nio.NIOURI;
-import integratedtoolkit.nio.commands.CommandDataReceived;
-import integratedtoolkit.nio.commands.Data;
-import integratedtoolkit.log.Loggers;
-import integratedtoolkit.nio.NIOMessageHandler;
-import integratedtoolkit.nio.commands.CommandShutdownACK;
-import integratedtoolkit.nio.commands.CommandTaskDone;
-import integratedtoolkit.util.ErrorManager;
-import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
-import integratedtoolkit.nio.exceptions.SerializedObjectException;
-import integratedtoolkit.util.RequestQueue;
-import integratedtoolkit.util.Serializer;
-import integratedtoolkit.util.ThreadPool;
-import integratedtoolkit.nio.NIOTracer;
 
 
 public class NIOWorker extends NIOAgent {
 
     public static boolean workerDebug;
     public static String workingDir;
+    
+    public static String executionType;
 
     public static int jobThreads;
     public static String POOL_NAME = "NIO_JOBS";
@@ -147,6 +152,8 @@ public class NIOWorker extends NIOAgent {
                 switch (param.getType()) {
                 	/* OBJECTS */
                     case OBJECT_T:
+                    case SCO_T:
+                    case PSCO_T:
                     	wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
 
                     	boolean catched = false;
@@ -429,8 +436,15 @@ public class NIOWorker extends NIOAgent {
         		}
         	}
         }
-        CommandTaskDone cmd = new CommandTaskDone(this, taskID, successful);
+        
+        CommandTaskDone cmd;
+        if ( this.executionType.compareTo(ITConstants.COMPSs) == 0) {
+        	cmd = new CommandTaskDone(this, taskID, successful);
+        } else {
+        	cmd = new CommandTaskDone(this, nt, successful);
+        }        
         c.sendCommand(cmd);
+        
         if (workerDebug) {
             c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".out");
             c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".err");
@@ -515,6 +529,16 @@ public class NIOWorker extends NIOAgent {
             closingConnection.finishConnection();
             }
             tm.shutdown(closingConnection);
+            
+            String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
+			if ((storageConf != null) && (storageConf.compareTo("") != 0) && (storageConf.compareTo("null") != 0)) {
+				try {
+					StorageItf.finish();
+				} catch (StorageException e) {
+					logger.error("Error releasing storage library: " + e.getMessage());
+				}
+			} 			           
+            
         } catch (Exception e) {
         	wLogger.error(e);
         }
@@ -562,7 +586,21 @@ public class NIOWorker extends NIOAgent {
         String host = args[9];
         String installDir = args[10];
         String appUuid = args[11];
+		String storageConf = args[12];		
+		executionType = args[13];
+		
 
+		// Configure storage
+		System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
+		try {
+			if (storageConf.compareTo("null") == 0)
+				logger.warn("No storage configuration file passed");
+			else
+				StorageItf.init(storageConf);
+		} catch (StorageException e) {
+			logger.fatal("Error loading storage configuration file: " + storageConf, e);
+			System.exit(1);
+		}
 
         // Configure tracing
         System.setProperty(ITConstants.IT_TRACING, trace);
@@ -653,7 +691,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public void receivedTaskDone(Connection c, int jobID, boolean successful) {
+    public void receivedTaskDone(Connection c, int jobID, NIOTask nt, boolean successful) {
         //Should not receive this call
     }
 

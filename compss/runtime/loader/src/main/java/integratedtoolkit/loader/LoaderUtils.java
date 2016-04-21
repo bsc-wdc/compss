@@ -1,5 +1,10 @@
 package integratedtoolkit.loader;
 
+import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.util.ErrorManager;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Random;
@@ -9,11 +14,63 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.expr.MethodCall;
 
-import integratedtoolkit.types.annotations.Service;
-import integratedtoolkit.util.ErrorManager;
+import org.apache.log4j.Logger;
 
+import storage.StubItf;
 
 public class LoaderUtils {
+
+	private static Logger logger = Logger.getLogger(Loggers.LOADER_UTILS);
+	
+	// Storage: Check whether Persistent Self-Contained Object or not
+	public static Object checkSCOPersistent(Object o) {   	
+    	if (o instanceof StubItf) {
+    		// Cast to SCO Stub
+    		StubItf sco = (StubItf) o;
+    		// Check whether persisted
+    		String id = null;
+    		try 
+    		{
+    			id = sco.getID();
+    		} catch (Exception e) {                 			
+    			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
+    		}
+    		if (id != null) {
+    			PSCOId pscoID = new PSCOId(o, id);
+    			return pscoID;
+    		}    		
+    	}   		
+   		return o;
+	}
+	
+	// Storage: Check object type
+	public static ParamType checkSCOType(Object o) {
+    	String pscoID = null;
+    	
+    	if (o instanceof PSCOId) {
+    		return ParamType.PSCO_T;
+    	}
+    	
+    	if (o instanceof StubItf) {
+    		// Cast to SCO Stub
+    		StubItf sco = (StubItf) o;
+    		// Check whether persisted
+    		String id = null;
+    		try 
+    		{
+    			id = sco.getID();
+    		} catch (Exception e) {                 			
+    			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
+    		}
+
+    		if (id == null) {
+    			return ParamType.SCO_T;
+    		} else {
+    			return ParamType.PSCO_T;
+    		}    		
+    	}   		
+   		return ParamType.OBJECT_T;
+	}	
 
     // Return the called method if it is in the remote list
     public static Method checkRemote(CtMethod method, Method[] remoteMethods)

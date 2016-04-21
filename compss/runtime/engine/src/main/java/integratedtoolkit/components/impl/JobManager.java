@@ -1,37 +1,42 @@
 package integratedtoolkit.components.impl;
 
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.*;
+import integratedtoolkit.api.ITExecution.ParamDirection;
+import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobHistory;
-import integratedtoolkit.types.job.Job.JobKind;
+import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.log.Loggers;
-
-import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.data.DataInstanceId;
-import integratedtoolkit.types.data.DataAccessId.*;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
 import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.DataAccessId.RAccessId;
+import integratedtoolkit.types.data.DataAccessId.RWAccessId;
+import integratedtoolkit.types.data.DataAccessId.WAccessId;
+import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.JobTransfersListener;
+import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.Job.JobHistory;
+import integratedtoolkit.types.job.Job.JobKind;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.job.JobStatusListener;
+import integratedtoolkit.types.parameter.DependencyParameter;
+import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 public class JobManager {
 
@@ -54,6 +59,8 @@ public class JobManager {
     public JobDispatcher jd;
     public static final int POOL_SIZE = 1;
     public static final String POOL_NAME = "Job Submitter";
+    
+    public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
 
     public JobManager() {
         jd = new JobDispatcher(POOL_SIZE, POOL_NAME);
@@ -94,6 +101,29 @@ public class JobManager {
             if (task.getEnforcingData() != null && !task.isSchedulingStrongForced()) { // First operation of the chain registers target service
                 enfDataToService.put(task.getEnforcingData().getDataId(), res);
             }
+            
+            List<String> backends = new ArrayList<String>();
+            Parameter[] params = task.getTaskParams().getParameters();
+			for (Parameter p : params) {										
+				if (p instanceof DependencyParameter) {
+					ParamType type = p.getType();										
+					if (p.getType() == ParamType.PSCO_T) {
+						SCOParameter scop = (SCOParameter) p;
+						backends.addAll(((PSCOId) scop.getValue()).getBackends());						
+					}
+				}
+           	}  
+			
+			String locality = "";
+			for (String backend: backends) {
+				locality = locality + " " + backend;
+			}
+			
+			int score = 0;
+			if (backends.contains(res.getName())) {
+				score++;
+			}            
+            
             logger.info((history == JobHistory.NEW ? "New" : "Rescheduled") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
             logger.info("  * Method name: " + task.getTaskParams().getName());
             logger.info("  * Target host: " + res.getName());
@@ -220,8 +250,21 @@ public class JobManager {
                         }
                         break;
                 }
+                
+                if ( this.executionType.compareTo(ITConstants.COMPSs) != 0) {                       
+	                if (p instanceof SCOParameter) {
+	                	SCOParameter scop = (SCOParameter)p;
+	                	int id = scop.getCode();
+	                	Object value = scop.getValue();
+	                	if (value instanceof PSCOId) {
+	                		PSCOId pscoId = (PSCOId) value;
+	                		List backends = pscoId.getBackends();
+	                		this.TD.scheduler.schedulerPolicies.getIdToPscoId().put(id, pscoId);
+	                	}
+	                }
+                }
+                
                 String name = dId.getRenaming();
-
                 if (job.getKind() == JobKind.METHOD) {
                     DataLocation outLoc = DataLocation.getLocation(host, dp.getDataTarget());
                     Comm.registerLocation(name, outLoc);

@@ -37,6 +37,7 @@ class Type:
     LONG = 7
     FLOAT = 9    # C double
     OBJECT = 10
+    PERSISTENT = 11
     # COMPLEX = 8
 
 

@@ -274,7 +274,8 @@ install() {
   #Dependencies
   echo "--- Copy dependencies"
   cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
-  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/  
+  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/ 
+  cp -r ${tmpDir}/files/storage ${targetDir}/Dependencies/     
   if [ "$tracing" == "true" ]; then
     cd ${tmpDir}/dependencies/extrae
     ./install ${targetDir}/Dependencies/extrae
@@ -284,7 +285,7 @@ install() {
     fi
     cd ${scriptDir}
   fi
-
+  
   #Config
   echo "--- Copy configuration"
   find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
@@ -421,6 +422,7 @@ install() {
     echo " "
   fi
 
+
   # ADD MONITOR SCRIPT TO ETC
   if [ "$monitor" == "true" ]; then 
     echo "- Add monitor script to init.d"
@@ -450,6 +452,9 @@ install() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
+  #Install Storage library
+  mvn --debug install:install-file -Dfile=${sourcesDir}/files/storage/storage.jar -DgroupId=severo.storage -DartifactId=storage -Dversion=1.0 -Dpackaging=jar     
+
   get_args $*
   check_args
   warn_and_log_parameters

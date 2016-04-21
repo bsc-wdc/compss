@@ -86,6 +86,9 @@
 	cp=""
   fi
 
+  #-Xdebug 
+  #-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
+
   # Prepare the worker command
   JAVA=java
   jvm_mem_xms=1024m
@@ -103,7 +106,7 @@
     -XX:+UseG1GC \
     -XX:+UseThreadPriorities \
     -XX:ThreadPriorityPolicy=42 
-    -classpath $CLASSPATH:$cp:${worker_jar} \
+    -classpath $cp:$CLASSPATH:${worker_jar} \
     ${main_worker_class}"
 
   if [ "$debug" == "true" ]; then

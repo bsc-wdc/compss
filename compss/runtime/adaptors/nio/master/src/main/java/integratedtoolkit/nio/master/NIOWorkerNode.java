@@ -275,6 +275,8 @@ public class NIOWorkerNode extends COMPSsWorker {
             case FILE_T:
                 return workingDir + name;
             case OBJECT_T:
+            case SCO_T:
+            case PSCO_T:            	
                 return name;
             default:
                 return null;

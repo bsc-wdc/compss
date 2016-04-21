@@ -1,7 +1,9 @@
 package integratedtoolkit.types.parameter;
 
+import integratedtoolkit.api.ITExecution.ParamDirection;
+import integratedtoolkit.api.ITExecution.ParamType;
+
 import java.io.Serializable;
-import integratedtoolkit.api.ITExecution.*;
 
 
 public abstract class Parameter implements Serializable {
@@ -11,7 +13,7 @@ public abstract class Parameter implements Serializable {
 	private static final long serialVersionUID = 1L;
 
     // Parameter fields
-    private final ParamType type;
+    private ParamType type;
     private final ParamDirection direction;
 
     public Parameter(ParamType type, ParamDirection direction) {
@@ -21,6 +23,10 @@ public abstract class Parameter implements Serializable {
 
     public ParamType getType() {
         return type;
+    }
+
+    public void setType(ParamType type) {
+        this.type = type;
     }
 
     public ParamDirection getDirection() {

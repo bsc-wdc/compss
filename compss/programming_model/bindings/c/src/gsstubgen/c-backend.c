@@ -17,10 +17,10 @@ static FILE *const_file = NULL;
 static char includeName[PATH_MAX];
 
 static char *c_types[] = { "file", "int", "char", "char *", "unsigned char", "short", "int", "long",
-"float", "double", "void *", "char", "char *", "long long", "void", "error"};
+"float", "double", "void *", "void *", "char", "char *", "long long", "void", "error"};
 
 static char *c_out_types[] = {"file", "int", "char", "char *", "unsigned char", "short", "int", "long",
-"float", "double", "void *", "char", "char *", "long long", "void", "error"};
+"float", "double", "void *", "void *", "char", "char *", "long long", "void", "error"};
 
 void generate_prolog()
 {

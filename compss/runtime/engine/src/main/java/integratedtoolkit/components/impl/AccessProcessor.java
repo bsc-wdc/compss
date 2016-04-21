@@ -215,7 +215,7 @@ public class AccessProcessor implements Runnable {
 
         return request.getResponse();
     }
-
+    
     public Object mainAcessToObject(Object o, int hashCode, String destDir) {
         // Tell the DIP that the application wants to access an object
         AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);

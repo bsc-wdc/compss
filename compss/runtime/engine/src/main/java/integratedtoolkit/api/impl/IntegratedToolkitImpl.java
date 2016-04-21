@@ -1,42 +1,48 @@
 package integratedtoolkit.api.impl;
 
-import java.util.UUID;
-import java.io.File;
-import java.io.InputStream;
-import java.util.Properties;
-
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution;
 import integratedtoolkit.api.IntegratedToolkit;
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.RuntimeMonitor;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.loader.LoaderAPI;
+import integratedtoolkit.loader.LoaderUtils;
+import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.loader.total.ObjectRegistry;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
+import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RuntimeConfigManager;
+import integratedtoolkit.util.Tracer;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import integratedtoolkit.util.Tracer;
+import storage.StorageException;
+import storage.StorageItf;
+import storage.StubItf;
 
 
 public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, LoaderAPI {
 
-    //According to runcompss script default value
+	//According to runcompss script default value
     //private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
     private static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
     private static final String DEFAULT_TRACING = "0";
@@ -357,6 +363,19 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         	// Application
             synchronized(this){
             	logger.debug("Initializing components");
+            	
+                String storageConf = null;
+            	try {
+            		storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
+            		if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 ))
+            			logger.warn("No storage configuration file passed");
+            		else
+            			StorageItf.init(storageConf);
+        		} catch (StorageException e) {
+                    logger.fatal("Error loading storage configuration file: " + storageConf, e);
+                    System.exit(1);
+        		}
+            	
             	td = new TaskDispatcher();
             	ap = new AccessProcessor();
             	if (RuntimeMonitor.isEnabled()) {
@@ -364,6 +383,13 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             	}
             	ap.setTD(td);
             	td.setTP(ap);
+            	
+                // Python and C++
+                String lang = System.getProperty(ITConstants.IT_LANG);
+                if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
+                	this.setObjectRegistry(new ObjectRegistry(this));
+                }
+            	
             	initialized = true;
             	logger.debug("Ready to process tasks");
             }
@@ -409,10 +435,21 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         	}
         	logger.debug("Stopping Comm...");
         	Comm.appHost.deleteIntermediate();
-        	Comm.stop();
+        	Comm.stop();        	        	
         	logger.debug("Runtime stopped");
+        	
+            String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
+    		if (( storageConf != null ) && ( storageConf.compareTo("") != 0 ) && ( storageConf.compareTo("null") != 0 )) {
+             	try {
+                    logger.debug("Stopping Storage...");
+              		StorageItf.finish();
+               	} catch (StorageException e) {
+                    logger.error("Error releasing storage library: " + e.getMessage());       	
+              	}	
+            }        	
         	// Stop tracing system
         	if (tracing){
+        			logger.debug("Stopping Tracing...");
                     Tracer.masterEventFinish();
                     Tracer.fini();
         	}
@@ -469,10 +506,10 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
         int i = 0;
-        for (int npar = 0; npar < parameterCount; npar++) {
+        for (int npar = 0; npar < parameterCount; npar++) {        	
             ParamType type = (ParamType) parameters[i + 1];
             ParamDirection direction = (ParamDirection) parameters[i + 2];
-
+            
             if (logger.isDebugEnabled()) {
                 logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
             }
@@ -486,6 +523,39 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
                     }
                     pars[npar] = new FileParameter(direction, location);
                     break;
+                    
+                case SCO_T:
+                case PSCO_T:                	
+                	Object internal = oReg.getInternalObject(parameters[i]);
+                	if (internal != null) {
+                		ParamType internalType = LoaderUtils.checkSCOType(internal);
+                		if ((type != internalType) && (internalType == ParamType.PSCO_T)) {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("  Parameter " + (npar + 1) + " change type from " + type.name() + " to " + internalType.name());
+                            }                			
+                			parameters[i] = LoaderUtils.checkSCOPersistent(internal);
+                			parameters[i+1] = internalType;
+                			type = internalType;
+                		}
+                	} else {
+                		// Python and C++
+                        String lang = System.getProperty(ITConstants.IT_LANG);
+                        if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
+                        	if (type == ParamType.PSCO_T) {
+                        		if (!(parameters[i] instanceof StubItf)) {
+                        			// There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
+                        			PSCOId pscoId = new PSCOId(parameters[i], (String)parameters[i]);
+                        			logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
+                        			parameters[i] = pscoId;
+                        		}
+                        	}
+                        }
+                	}
+                    pars[npar] = new SCOParameter(type,
+                    		direction,
+                            parameters[i],
+                            oReg.newObjectParameter(parameters[i])); // hashCode
+                	break;    
 
                 case OBJECT_T:
                     pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode

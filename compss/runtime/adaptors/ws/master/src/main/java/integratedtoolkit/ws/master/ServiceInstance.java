@@ -133,6 +133,8 @@ public class ServiceInstance extends COMPSsWorker {
             case FILE_T:
                 return Comm.appHost.getTempDirPath() + name;
             case OBJECT_T:
+            case SCO_T:
+            case PSCO_T:
                 return name;
             default:
                 return null;

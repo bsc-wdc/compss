@@ -15,6 +15,7 @@ public class PythonExecutor extends ExternalExecutor {
 		/*lArgs.add("/bin/bash");
 		lArgs.add("-e");
 		lArgs.add("-c");*/
+				
 		lArgs.add("python");
 		lArgs.add("-u");
 		lArgs.add(pycompssHome + "/pycompss/worker/worker.py");
@@ -28,8 +29,9 @@ public class PythonExecutor extends ExternalExecutor {
 		 * PYTHONPATH=$app_dir:$py_path:$PYCOMPSS_HOME
 		 */
 		Map<String, String> env = new HashMap<String, String>();
-		String pycompssHome = nt.installDir + "/../../../Bindings/python";
+		String pycompssHome = nt.installDir + "/../../../Bindings/python";				
 		env.put("PYCOMPSS_HOME", pycompssHome);
+		
 		String pythonPath = System.getenv("PYTHONPATH");
 		if (pythonPath == null) {
 			pythonPath = nt.appDir + ":" + nt.classPath + ":" + pycompssHome;
@@ -37,6 +39,7 @@ public class PythonExecutor extends ExternalExecutor {
 			pythonPath = pythonPath.concat(":" + nt.appDir + ":" + nt.classPath + ":" + pycompssHome);
 		}
 		env.put("PYTHONPATH", pythonPath);
+		
 		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
 		if (ldLibraryPath == null) {
 			ldLibraryPath = nt.libPath;

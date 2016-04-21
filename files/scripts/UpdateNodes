@@ -1,0 +1,37 @@
+#
+# This script copy the COMPSs runtime to the nodes bscgrid05 and bscgrid06
+#
+# carlos.diaz@bsc.es
+#
+
+echo "UPDATING COMPSs IN NODES"
+
+#!/bin/bash
+
+export TRUNK=${HOME}/workspaceFinal/trunk
+
+echo ""
+echo "DISTRIBUTE /OPT FOLDER TO NODES"
+echo ""
+
+ssh bscgrid05.bsc.es mkdir -p opt/
+ssh bscgrid06.bsc.es mkdir -p opt/
+ssh bscgrid20.bsc.es mkdir -p opt/
+
+#ssh bscgrid05.bsc.es mkdir -p trunk/
+#ssh bscgrid06.bsc.es mkdir -p trunk/
+#ssh bscgrid20.bsc.es mkdir -p trunk/
+
+rsync -arv ~/opt/COMPSs bscgrid05.bsc.es:~/opt/
+rsync -arv ~/opt/COMPSs bscgrid06.bsc.es:~/opt/
+rsync -arv ~/opt/COMPSs bscgrid20.bsc.es:~/opt/
+
+echo ""
+echo "DISTRIBUTE WORKSPACE SEVERO TO NODES"
+echo ""
+
+rsync -arv --exclude '.svn' ${TRUNK} bscgrid05.bsc.es:${HOME}/
+rsync -arv --exclude '.svn' ${TRUNK} bscgrid06.bsc.es:${HOME}/
+rsync -arv --exclude '.svn' ${TRUNK} bscgrid20.bsc.es:${HOME}/
+
+echo "DONE!"

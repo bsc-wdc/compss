@@ -1,14 +1,16 @@
 package integratedtoolkit.loader;
 
+import integratedtoolkit.ITConstants;
+import integratedtoolkit.log.Loggers;
+import integratedtoolkit.util.ErrorManager;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Method;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-
-import integratedtoolkit.ITConstants;
-import integratedtoolkit.log.Loggers;
-import integratedtoolkit.util.ErrorManager;
 
 
 public class ITAppLoader {
@@ -68,6 +70,11 @@ public class ITAppLoader {
     }
 
     public static void main(String[] args) throws Exception {
+    	// Storage: Print the JVM startup time
+    	RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+    	long uptimeInMillis = runtimeMXBean.getUptime();
+    	logger.info("JVM UpTime: " + uptimeInMillis);
+    	
         // Configure log4j for the JVM where the main program runs
         PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
 

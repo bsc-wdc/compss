@@ -1,7 +1,8 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
@@ -50,9 +51,15 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
                 numPars--;
             }
             if (numPars > 0) {
-                buffer.append(parameters[0].getType());
+            	ParamType type = parameters[0].getType();
+            	if (type == ParamType.SCO_T) type = ParamType.OBJECT_T;
+            	if (type == ParamType.PSCO_T) type = ParamType.OBJECT_T;            	
+                buffer.append(type);
                 for (int i = 1; i < numPars; i++) {
-                    buffer.append(",").append(parameters[i].getType());
+                	type = parameters[i].getType();
+                	if (type == ParamType.SCO_T) type = ParamType.OBJECT_T;
+                	if (type == ParamType.PSCO_T) type = ParamType.OBJECT_T;
+                    buffer.append(",").append(type);
                 }
             }
         }

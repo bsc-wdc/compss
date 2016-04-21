@@ -1,13 +1,16 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
+import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.ThreadPrintStream;
 import integratedtoolkit.util.StreamGobbler;
+import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +19,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
+
+import storage.StorageException;
+import storage.StorageItf;
 
 
 public abstract class ExternalExecutor extends Executor {
@@ -35,7 +41,7 @@ public abstract class ExternalExecutor extends Executor {
     void executeTask(String sandBox, NIOTask nt, NIOWorker nw) throws Exception {
         Map<String, String> env = getEnvironment(nt);
         ArrayList<String> args = getLaunchCommand(nt);
-        addArguments(args, nt);
+        addArguments(args, nt, nw);
         String strArgs = getArgumentsAsString(args);
         addEnvironment(env, nt, nw);
         ArrayList<String> command = new ArrayList<String>();
@@ -91,30 +97,80 @@ public abstract class ExternalExecutor extends Executor {
 
     public abstract ArrayList<String> getLaunchCommand(NIOTask nt);
 
-    private static void addArguments(ArrayList<String> lArgs, NIOTask nt) {
+    private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
         lArgs.add(Boolean.toString(nt.workerDebug));
         lArgs.add(nt.getClassName());
         lArgs.add(nt.getMethodName());
         lArgs.add(Boolean.toString(nt.isHasTarget()));
         lArgs.add(Integer.toString(nt.getNumParams()));
-        for (NIOParam param : nt.getParams()) {
-            ITExecution.ParamType type = param.getType();
+        for (NIOParam np : nt.getParams()) {
+            ITExecution.ParamType type = np.getType();
             lArgs.add(Integer.toString(type.ordinal()));
-            if (type == ITExecution.ParamType.FILE_T) {
-            	lArgs.add(param.getValue().toString());
-            } else if (type == ITExecution.ParamType.OBJECT_T) {
-                lArgs.add(param.getValue().toString());
-                lArgs.add(param.isWriteFinalValue() ? "W" : "R");
-            } else if (type == ITExecution.ParamType.STRING_T) {
-                String value = param.getValue().toString();
+            switch (type) {
+            case FILE_T:
+            	lArgs.add(np.getValue().toString());
+            	break;
+        	case SCO_T:
+        	case PSCO_T:
+        		String renaming = np.getValue().toString();
+        		Object o = nw.getObject(renaming);
+        		PSCOId pscoId = null;
+        		if (o instanceof PSCOId) {
+        			pscoId = (PSCOId) o;					
+					if (!np.isWriteFinalValue()) {    							
+						if (!pscoId.getBackends().contains(nw.getHostName())){    								
+							if (tracing) {
+								NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
+							}								
+							try {
+								// Replicate PSCO
+								StorageItf.newReplica(pscoId.getId(), nw.getHostName());
+							} catch (StorageException e) {
+								throw new JobExecutionException("Error New Replica: parameter with id " + pscoId.getId() +  ", " + e.getMessage());
+							} finally {
+								if (tracing) {
+									NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
+								}									
+							}
+						}    						    						
+					} else {
+						if (tracing) {
+							NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
+						}
+						try {
+							// New PSCO Version
+							String newId = StorageItf.newVersion(pscoId.getId(), nw.getHostName());
+							// Modify the PSCO Identifier
+							pscoId.setId(newId);
+						} catch (StorageException e) {
+							throw new JobExecutionException("Error New Version: parameter with id " + pscoId.getId() +  ", " + e.getMessage());    						
+						} finally {
+							if (tracing) {
+								NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
+							}
+						}
+					}
+	           		lArgs.add(pscoId.getId());
+	                lArgs.add(np.isWriteFinalValue() ? "W" : "R");                        		
+        		} else {
+        			throw new JobExecutionException("Parameter " + o + " must be a PSCO");
+        		}
+        		break;            	
+            case OBJECT_T:
+                lArgs.add(np.getValue().toString());
+                lArgs.add(np.isWriteFinalValue() ? "W" : "R");                
+                break;
+            case STRING_T:
+                String value = np.getValue().toString();
                 String[] vals = value.split(" ");
                 int numSubStrings = vals.length;
                 lArgs.add(Integer.toString(numSubStrings));
                 for (String v : vals) {
                     lArgs.add(v);
                 }
-            } else { // Basic types
-                lArgs.add(param.getValue().toString());
+                break;
+            default:
+                lArgs.add(np.getValue().toString());
             }
         }
     }

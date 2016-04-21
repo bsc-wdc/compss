@@ -135,6 +135,8 @@ public class WSJob extends Job {
                         if (parameters[i].getDirection() == ParamDirection.IN) {
                             switch (parameters[i].getType()) {
                                 case OBJECT_T:
+                                case SCO_T:
+                                case PSCO_T:
                                     DependencyParameter dp = (DependencyParameter) parameters[i];
                                     Object o = getObjectValue(dp);
                                     input.add(o);

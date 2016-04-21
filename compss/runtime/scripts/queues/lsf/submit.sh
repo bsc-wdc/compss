@@ -77,7 +77,10 @@
   log_level=${16}
   tracing=${17}
   comm=${18}
-  shift 18
+  storageName=${19}
+  storageConf=${20}
+  taskExecution=${21}
+  shift 21
 
   #Display arguments
   echo "Queue:           ${queue}"
@@ -94,8 +97,11 @@
   echo "Master WD:       ${master_working_dir}"
   echo "Worker WD:       ${worker_working_dir}"
   echo "Library Path:    ${library_path}"
-  echo "Classpath:       ${cp}"
+  echo "Classpath:       ${cp}"  
   echo "COMM:            ${comm}"
+  echo "Storage name:	 ${storageName}"
+  echo "Storage conf:	 ${storageConf}"
+  echo "Task execution:	 ${taskExecution}"
   echo "To COMPSs:       $*"
   echo " "
   
@@ -175,7 +181,7 @@ EOT
 #BSUB -R "span[ptile=1]" 
 #BSUB -W $wc_limit 
 
-${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} $*
+${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $*
 EOT
 
   # Check if the creation of the script failed
@@ -184,9 +190,17 @@ EOT
 	display_error "${ERROR_SUBMIT_SCRIPT}" 1
   fi
 
-  # Submit the job to the queue
-  bsub < ${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
-  result=$?
+  if [ "${taskExecution}" != "compss" ]; then
+      echo "Running in COMPSs and Storage mode."
+	  # Run directly the script
+	  /bin/chmod +x ${TMP_SUBMIT_SCRIPT}
+	  ${TMP_SUBMIT_SCRIPT}
+  else
+      echo "Running in COMPSs mode."
+	  # Submit the job to the queue
+	  bsub < ${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
+	  result=$?
+  fi
 
   # Cleanup
   submit_err=$(/bin/cat ${TMP_SUBMIT_SCRIPT}.err)

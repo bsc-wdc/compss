@@ -91,7 +91,7 @@
     -XX:+UseG1GC \
     -XX:+UseThreadPriorities \
     -XX:ThreadPriorityPolicy=42 
-    -classpath $CLASSPATH:$cp:${worker_jar} \
+    -classpath $cp:$CLASSPATH:${worker_jar} \
     ${main_worker_class}"
 
   if [ "$debug" == "true" ]; then

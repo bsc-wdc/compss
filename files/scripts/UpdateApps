@@ -1,0 +1,14 @@
+#
+# This script copy the wasabi library and the apps to the nodes bscgrid05 and bscgrid06
+#
+# carlos.diaz@bsc.es
+#
+
+#!/bin/bash
+
+echo "UPDATING APPs IN NODES"
+
+scp -rv /home/cdiaz/workspaceS/severo1.3/apps/ bscgrid05:/home/cdiaz/workspaceS/severo1.3/
+scp -rv /home/cdiaz/workspaceS/severo1.3/apps/ bscgrid06:/home/cdiaz/workspaceS/severo1.3/
+
+echo "DONE!"

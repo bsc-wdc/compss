@@ -148,6 +148,14 @@ public class WorkerStarter {
     // lang workingDir libpath appDir classpath installDir debug workingDir numThreads maxSend maxReceive name workerPort masterPort 
     private static String[] getStartCommand(NIOWorkerNode node, int workerPort) {
 
+        String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
+    	if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 )) {
+    		storageConf = "null";
+    		logger.warn("No storage configuration file passed");
+		}
+    	
+    	String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);    	
+    	
         String libPath = node.getLibPath();
         String appDir = node.getAppDir();
         String workingDir = node.getWorkingDir();
@@ -157,7 +165,7 @@ public class WorkerStarter {
         
         // Gets the max cores of the machine
         // int numThreads = r.getMaxTaskCount();
-        String[] cmd = new String[16];
+        String[] cmd = new String[18];
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + "adaptors/nio/persistent_worker.sh";
         cmd[1] = libPath.isEmpty() ? "null" : libPath;
         cmd[2] = appDir.isEmpty() ? "null" : appDir;
@@ -184,6 +192,8 @@ public class WorkerStarter {
         }
         cmd[14] = node.getInstallDir();
         cmd[15] = DEPLOYMENT_ID;
+        cmd[16] = storageConf;
+        cmd[17] = executionType;        
         return cmd;
     }
 

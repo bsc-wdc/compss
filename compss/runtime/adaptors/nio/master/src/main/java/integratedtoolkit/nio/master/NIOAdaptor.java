@@ -1,26 +1,15 @@
 package integratedtoolkit.nio.master;
 
-import es.bsc.comm.CommException;
-import es.bsc.comm.Connection;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Random;
-
-import es.bsc.comm.nio.NIONode;
-import es.bsc.comm.stage.Transfer.Destination;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.AdaptorDescription;
-import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
 import integratedtoolkit.nio.NIOMessageHandler;
+import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
@@ -28,24 +17,35 @@ import integratedtoolkit.nio.commands.CommandNewTask;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
+import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.operation.DataOperation;
+import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.Copy;
+import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
+import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobHistory;
+import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
-
-import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
-
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.util.ErrorManager;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
+
+import es.bsc.comm.CommException;
+import es.bsc.comm.Connection;
+import es.bsc.comm.nio.NIONode;
+import es.bsc.comm.stage.Transfer.Destination;
 
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
@@ -91,6 +91,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     public static boolean workerDebug = Logger.getLogger(Loggers.WORKER).isDebugEnabled();
 
+    public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
 
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -242,25 +243,42 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         ws.setWorkerIsReady();
     }
 
-    public void receivedTaskDone(Connection c, int jobId, boolean successful) {
+    public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
 
         NIOJob nj = runningJobs.remove(jobId);
-
-        //Check if all the FILE outs have been generated
-       // nj.getCore().getParameters()
-
-        JobHistory h = nj.getHistory();
-        nj.taskFinished(successful);
-        if (workerDebug) {
-            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
-            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
-        } else {
-            if (!successful) {
-                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
-                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
-            }
+        
+        if ( this.executionType.compareTo(ITConstants.COMPSs) != 0) {        
+	        int numParams = nj.getTaskParams().getParameters().length;
+	        for (int i=0; i<numParams; i++) {
+	        	Object dp = nj.getTaskParams().getParameters()[i];
+	        	if (dp instanceof SCOParameter) {
+	        		SCOParameter scop = (SCOParameter) dp;
+	        		NIOParam np = (NIOParam) nt.getParams().get(i);
+	        		Object value = np.getValue();
+	        		if (value instanceof PSCOId) {
+	        			scop.setValue(value);
+	        		}
+	        	}
+	        }      
         }
-        c.finishConnection();
+        
+        if (nj != null) {
+	        // Check if all the FILE outs have been generated
+	        // nj.getCore().getParameters()
+	
+	        JobHistory h = nj.getHistory();
+	        nj.taskFinished(successful);
+	        if (workerDebug) {
+	            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
+	            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
+	        } else {
+	            if (!successful) {
+	                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
+	                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
+	            }
+	        }
+	        c.finishConnection();
+        }
     }
 
     public void registerCopy(Copy c) {

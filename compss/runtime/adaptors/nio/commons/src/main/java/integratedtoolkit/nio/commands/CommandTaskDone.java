@@ -1,11 +1,12 @@
 package integratedtoolkit.nio.commands;
 
+import integratedtoolkit.nio.NIOAgent;
+import integratedtoolkit.nio.NIOTask;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import integratedtoolkit.nio.NIOAgent;
 
 import es.bsc.comm.Connection;
 
@@ -13,6 +14,7 @@ public class CommandTaskDone extends Command implements Externalizable {
 
     private int jobID;
     private boolean successful;
+    private NIOTask nt;
 
     public CommandTaskDone() {
     }
@@ -21,6 +23,13 @@ public class CommandTaskDone extends Command implements Externalizable {
         super(ng);
         this.jobID = jobID;
         this.successful = successful;
+    }
+    
+    public CommandTaskDone(NIOAgent ng, NIOTask nt, boolean successful) {
+        super(ng);
+        this.jobID = nt.getJobId();
+        this.successful = successful;
+        this.nt = nt;
     }
 
     @Override
@@ -31,7 +40,7 @@ public class CommandTaskDone extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         NIOAgent nm = (NIOAgent) agent;
-        nm.receivedTaskDone(c, jobID, successful);
+        nm.receivedTaskDone(c, jobID, nt, successful);
     }
 
     public boolean isSuccessful() {
@@ -45,11 +54,13 @@ public class CommandTaskDone extends Command implements Externalizable {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         jobID = in.readInt();
         successful = in.readBoolean();
+        nt = (NIOTask) in.readObject();
     }
 
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(jobID);
         out.writeBoolean(successful);
+        out.writeObject(nt);
     }
 
     public String toString() {

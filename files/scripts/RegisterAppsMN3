@@ -1,0 +1,12 @@
+echo "COMPSs SCO APPLICATION REGISTRATION SCRIPT"
+echo ""
+
+echo "JAVA VERSION"
+java -version
+
+echo ""
+echo "CLEAN & BUILD REGISTRATOR APP"
+echo ""
+cp -r /apps/COMPSs/1.3_dataclay/Dependencies/dataclay/apps/Registrator .
+cd Registrator
+ant clean lib

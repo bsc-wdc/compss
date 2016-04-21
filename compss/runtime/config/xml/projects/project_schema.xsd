@@ -103,6 +103,7 @@
 		<xsd:element name="LimitOfTasks" type="xsd:int" minOccurs="0"/>
 		<xsd:element name="LimitOfJobs" type="xsd:int" minOccurs="0"/>
 		<xsd:element name="MaxClusterSize" type="xsd:int" minOccurs="0"/>
+		<xsd:element name="StorageConf" type="xsd:string" minOccurs="0"/>		
         <xsd:element name="Adaptors" type="Adaptors" minOccurs="0"/>
 	</xsd:sequence>
 	<xsd:attribute name="Name" type="xsd:string" use="required"/>

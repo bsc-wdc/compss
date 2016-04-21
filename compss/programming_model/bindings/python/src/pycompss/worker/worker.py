@@ -24,6 +24,7 @@ from StringIO import StringIO
 if sys.version_info >= (2, 7):
     import importlib
 
+from storage.api import getByID
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -49,7 +50,8 @@ def compss_worker():
     pos = 0
     values = []
     types = []
-    
+   
+
     # Get all parameter values
     for i in range(0, num_params):
         ptype = int(args[pos])
@@ -57,6 +59,10 @@ def compss_worker():
 
         if ptype == Type.FILE:
             values.append(args[pos + 1])
+        elif (ptype == Type.PERSISTENT):
+	        po = getByID(args[pos+1])
+	        values.append(po)
+	        pos = pos + 1 # Skip info about direction (R, W)
         elif ptype == Type.STRING:
             num_substrings = int(args[pos + 1])
             aux = ''
@@ -71,6 +77,7 @@ def compss_worker():
             real_value = aux
             try:
                 # try to recover the real object
+                # aux = string.replace(aux, '**', '\'')   # fixed with double quotation marks at binding.py
                 aux = loads(aux)
             except (UnpicklingError, ValueError, EOFError):
                 # was not an object
@@ -183,7 +190,7 @@ def compss_worker():
         exit(1)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
     # Load log level configuration file
     log_level = sys.argv[1]
     if log_level == 'true':
@@ -193,5 +200,6 @@ if __name__ == "__main__":
         # Default
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json')
+                
     # Init worker
     compss_worker()

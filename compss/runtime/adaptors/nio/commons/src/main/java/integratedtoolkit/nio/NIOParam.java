@@ -45,6 +45,10 @@ public class NIOParam implements Externalizable {
     public Object getValue() {
         return value;
     }
+    
+    public void setValue(Object o) {
+    	value = o;
+    } 
 
     public Data getData() {
         return data;

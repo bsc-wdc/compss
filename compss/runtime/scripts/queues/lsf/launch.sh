@@ -13,9 +13,12 @@
   log_level=${10}
   tracing=${11}
   comm=${12}
+  storageName=${13}
+  storageConf=${14}
+  taskExecution=${15}
 
   #Leave COMPSs parameters in $*
-  shift 12
+  shift 15
 
   #Set script variables
   export IT_HOME=${IT_HOME}
@@ -64,8 +67,25 @@ EOT
   # Remove the processors of the master node from the list
   MASTER_NODE=$(hostname)
   echo "Master will run in ${MASTER_NODE}"
-  WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
-  # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
+
+  if ["${storageName}" != "dataclay"]; then
+	  WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
+	  # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
+  else 
+	  # Skip node assigned to COMPSs master and node assigned to DataClay Logic Module
+	  i=0
+	  space=" "
+	  for node in ${ASSIGNED_LIST}
+	  do
+		if [ $i -gt 1 ]
+		then
+		      WORKER_LIST=${WORKER_LIST}$node$space
+		fi
+		let i=i+1
+	  done
+	  WORKER_LIST=${WORKER_LIST%?}
+  fi
+
   echo "List of workers:"
   echo "${WORKER_LIST}"
  
@@ -227,7 +247,7 @@ EOT
     hostid=1
     for node in ${USED_WORKERS}; do
       sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
-      WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${debug} ${sandbox_worker_working_dir} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${w_tracing} ${hostid} ${worker_install_dir} ${uuid}"
+      WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${debug} ${sandbox_worker_working_dir} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${w_tracing} ${hostid} ${worker_install_dir} ${uuid} ${storageConf} ${taskExecution}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -235,7 +255,7 @@ EOT
   fi
 
   # Launch master
-  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --uuid=${uuid} --master_port=${master_port} $*"
+  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} $*"
   echo "CMD Master: $MCMD"
   $MCMD&
 

@@ -487,20 +487,38 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 
             debug_printf ("[   BINDING]  -  @process_param  -  File: %s\n", *(char **)parVal);
 
-            jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("FILE_T"));
-            if (env->ExceptionOccurred()) {
-                env->ExceptionDescribe();
-                exit(0);
-            }
-        }
-        break;
-        case string_dt:
-        {
-            jobjParVal = env->NewStringUTF(*(char **)parVal);
-            if (env->ExceptionOccurred()) {
-                env->ExceptionDescribe();
-                exit(0);
-            }
+			jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("FILE_T"));
+			if (env->ExceptionOccurred()) {
+				env->ExceptionDescribe();
+				exit(0);
+			}
+		}
+		break;
+		
+		case persistent_dt:
+                {
+                        jobjParVal = env->NewStringUTF(*(char **)parVal);
+                        if (env->ExceptionOccurred()) {
+                                env->ExceptionDescribe();
+                                exit(0);
+                        }
+                        debug_printf ("[   BINDING]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
+
+			jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("PSCO_T"));
+                        if (env->ExceptionOccurred()) {
+                                env->ExceptionDescribe();
+                                exit(0);
+                        }
+                }
+                break;                
+                
+		case string_dt:
+		{
+			jobjParVal = env->NewStringUTF(*(char **)parVal);
+			if (env->ExceptionOccurred()) {
+				env->ExceptionDescribe();
+				exit(0);
+			}
 
             debug_printf ("[   BINDING]  -  @process_param  -  String: %s\n", *(char **)parVal);
 

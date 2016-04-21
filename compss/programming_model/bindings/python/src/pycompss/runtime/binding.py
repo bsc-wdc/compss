@@ -249,7 +249,10 @@ def process_task(f,             # Function or method
         if p.type == None:
             p.type = python_to_compss.get(val_type)
             if p.type == None:
-                p.type = Type.OBJECT
+                if 'getID' in dir(p.value):  # criteria for persistent object
+                    p.type = Type.PERSISTENT
+                else:
+                    p.type = Type.OBJECT
             logger.debug("\n\t- Inferred type: %d" % p.type)
 
         # Convert small objects to string if object_conversion enabled
@@ -351,6 +354,8 @@ def process_task(f,             # Function or method
                 print("[ ERROR ]: Value: %s" % p.value)
                 raise       # raise the exception up tu launch.py in order to point where the error is in the user code.
                 # return fu  # the execution continues, but without processing this task
+        elif p.type == Type.PERSISTENT:
+            manage_persistent(p)
         elif p.type == Type.INT:
             if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
                 # This must go through Java as a long to prevent overflow
@@ -415,6 +420,13 @@ def process_task(f,             # Function or method
                         values, compss_types, compss_directions)
 
     return fu
+
+
+def manage_persistent(p):
+    p.type = Type.PERSISTENT
+    obj_id = p.value.getID()
+    task_objects[obj_id] = obj_id 
+    p.value = obj_id
 
 
 def turn_into_file(p):

@@ -32,6 +32,7 @@ public abstract class Tracer {
     private static final String apiDesc = "Runtime";
     private static final String taskIdDesc = "Task IDs";
     private static final String dataTransfersDesc = "Data Transfers";
+    private static final String storageDesc = "Storage API";
 
     protected static final String TRACE_SCRIPT = "trace.sh";
     protected static final String traceOutRelativePath = "/trace/tracer.out";
@@ -46,6 +47,8 @@ public abstract class Tracer {
     protected static final int TASKS_ID_TYPE = 8_000_002;
     protected static final int TASK_TRANSFERS = 8_000_003;
     protected static final int DATA_TRANSFERS = 8_000_004;
+    protected static final int STORAGE_TYPE = 8_000_005;
+    
     public static final int EVENT_END = 0;
     
 
@@ -96,7 +99,15 @@ public abstract class Tracer {
         SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"),
         GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
         TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
-        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file");
+        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
+        
+        // Storage Events
+        STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"),
+        STORAGE_NEWREPLICA(38, STORAGE_TYPE, "newReplica"),
+        STORAGE_NEWVERSION(39, STORAGE_TYPE, "newVersion"),
+        STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"),
+        STORAGE_EXECUTETASK(41, STORAGE_TYPE, "executeTask"),
+        STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations");
         
         private final int id;
         private final int type;
@@ -353,6 +364,29 @@ public abstract class Tracer {
         }
 
         Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
+        
+        // Definition of STORAGE_TYPE events
+
+        size = getSizeByEventType(STORAGE_TYPE) + 1;
+        values = new long[size];
+        descriptionValues = new String[size];
+
+        values[0] = 0;
+        descriptionValues[0] = "End";
+        i = 1;
+        for (Event task : Event.values()){
+            if (task.getType() == STORAGE_TYPE){
+                values[i] = task.getId();
+                descriptionValues[i] = task.getSignature();
+                if (debug) {
+                    logger.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: "+values[i]+ ", Desc: "+ descriptionValues[i]);
+                }
+                ++i;
+            }
+        }
+
+        Wrapper.defineEventType(STORAGE_TYPE, storageDesc, values, descriptionValues);
+        
 
         // Definition of Scheduling and Transfer time events
         size = 0;

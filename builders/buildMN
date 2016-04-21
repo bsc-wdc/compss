@@ -52,6 +52,19 @@
   sleep 5
 
   # COMPILE
+  #echo "- Download DataClay"
+  #rm -rf ${sourcesDir}/dependencies/storage/
+  #mkdir -p ${sourcesDir}/dependencies/storage/
+  #cd ${sourcesDir}/dependencies/storage/
+
+  #scp bsc19589@mn1.bsc.es:/apps/COMPSs/DATACLAY/jars/dataclayclient.jar storage.jar
+
+  #echo "- Install DataClay Client library"
+  #mvn -X install:install-file -Dfile=${sourcesDir}/dependencies/storage/storage.jar -DgroupId=severo.storage -DartifactId=storage -Dversion=1.0 -Dpackaging=jar
+
+  echo "- Install Storage library"
+  mvn --debug install:install-file -Dfile=${sourcesDir}/files/storage/storage.jar -DgroupId=severo.storage -DartifactId=storage -Dversion=1.0 -Dpackaging=jar     
+  
   echo "- Compile sources"
   cd ${sourcesDir}/compss/
   mvn -U clean package

@@ -155,5 +155,8 @@
       </exclusions>
     </dependency>
   </dependencies>
+  <properties>
+    <storage>storage</storage>
+  </properties>
 </project>
 

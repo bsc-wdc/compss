@@ -16,7 +16,9 @@ public interface ITExecution {
         LONG_T,
         FLOAT_T,
         DOUBLE_T,
-        OBJECT_T;
+        OBJECT_T,
+        PSCO_T,
+        SCO_T;
     }
 
     // Parameter directions

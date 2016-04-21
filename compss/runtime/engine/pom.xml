@@ -1,6 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- STORAGE -->
+	<properties>
+		<storage>storage</storage>
+	</properties>
 
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-engine</artifactId>
@@ -8,7 +13,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>1.4</version>
+		<version>1.4</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -31,12 +36,12 @@
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<!-- Runtime dependencies -->
-                <dependency>
+		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-loader</artifactId>
 			<version>${project.version}</version>
-		</dependency>    
-                <dependency>
+		</dependency>		    
+        <dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-resources-commons</artifactId>
 			<version>${project.version}</version>
@@ -66,6 +71,13 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 		</dependency>
+				
+		<!-- Storage -->
+		<dependency>
+		 	<groupId>severo.storage</groupId>
+		 	<artifactId>${storage}</artifactId>
+		 	<version>1.0</version>
+		</dependency>	
 	</dependencies>
 
 	<!-- BUILD -->

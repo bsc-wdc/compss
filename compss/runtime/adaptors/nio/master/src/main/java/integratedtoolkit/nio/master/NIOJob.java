@@ -79,32 +79,35 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         for (Parameter param : taskParams.getParameters()) {
             ParamType type = param.getType();
             NIOParam np;
-            if (type == ParamType.FILE_T || type == ParamType.OBJECT_T) {
-                DependencyParameter dPar = (DependencyParameter) param;
-                DataAccessId dAccId = dPar.getDataAccessId();
-                Object value = dPar.getDataTarget();
-                boolean preserveSourceData = true;
-                if (dAccId instanceof RAccessId) {
-                	// Parameter is a R, has sources
-                	preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-                } else if (dAccId instanceof RWAccessId) {
-                	// Parameter is a RW, has sources
-                	preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-                } else {
-                	// Parameter is a W, it has no sources
-                	preserveSourceData = false;
-                }
-                
-                boolean writeFinalValue = !(dAccId instanceof RAccessId);	// Only store W and RW
-                
-                np = new NIOParam(type, preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
-            } else {
-                BasicTypeParameter btParB = (BasicTypeParameter) param;
-                Object value = btParB.getValue();
-                boolean preserveSourceData = false;	// Basic parameters are not preserved on Worker
-                boolean writeFinalValue = false;	// Basic parameters are not stored on Worker
-                
-                np = new NIOParam(type, preserveSourceData, writeFinalValue, value, null);
+            switch (type) {
+            	case FILE_T:
+            	case OBJECT_T:
+            	case SCO_T:            		
+            	case PSCO_T:            		
+	                DependencyParameter dPar = (DependencyParameter) param;
+	                DataAccessId dAccId = dPar.getDataAccessId();
+	                Object value = dPar.getDataTarget();
+	                boolean preserveSourceData = true;
+	                if (dAccId instanceof RAccessId) {
+	                	// Parameter is a R, has sources
+	                	preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
+	                } else if (dAccId instanceof RWAccessId) {
+	                	// Parameter is a RW, has sources
+	                	preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
+	                } else {
+	                	// Parameter is a W, it has no sources
+	                	preserveSourceData = false;
+	                }
+	                
+	                boolean writeFinalValue = !(dAccId instanceof RAccessId);	// Only store W and RW	                
+	                np = new NIOParam(type, preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
+	                break;
+	            default:
+	                BasicTypeParameter btParB = (BasicTypeParameter) param;
+	                value = btParB.getValue();
+	                preserveSourceData = false;	// Basic parameters are not preserved on Worker
+	                writeFinalValue = false;	// Basic parameters are not stored on Worker	                
+	                np = new NIOParam(type, preserveSourceData, writeFinalValue, value, null);	            
             }
 
             params.add(np);

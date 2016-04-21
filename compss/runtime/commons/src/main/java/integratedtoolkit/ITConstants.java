@@ -37,6 +37,10 @@ public class ITConstants {
     public static final String IT_CORE_COUNT = "it.core.count";
     public static final String IT_SCRIPT_DIR = "it.script.dir";
 
+	// Storage properties
+	public static final String IT_STORAGE_CONF = "it.storage.conf";
+	public static final String IT_TASK_EXECUTION = "it.task.execution";
+    
     // System properties for Instrumentation flags
     public static final String IT_TO_FILE = "it.to.file";
     public static final String IT_IS_WS = "it.is.ws";
@@ -55,6 +59,9 @@ public class ITConstants {
 
     // Initialization
     public static final String INIT_OK = "OK";
+    
+    // Execution Type
+    public static final String COMPSs = "compss";
 
     // Communications
     public static final String COMM_ADAPTOR = "it.comm";

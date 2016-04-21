@@ -5,7 +5,7 @@
   #-------------------------------------
   scriptDir=$(dirname $0)
   extraeDir=$scriptDir/../../../Dependencies/extrae
-
+ 
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
   #-------------------------------------
   # Get common parameters

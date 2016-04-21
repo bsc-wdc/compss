@@ -245,10 +245,9 @@ public class ITAppEditor extends ExprEditor {
                             type = "ITExecution.ParamType.DOUBLE_T";
                             executeTask.append("new Double(").append("$").append(i + 1).append("),");
                         }
-                    } /*else if (formalType.isArray()) { // If necessary
-                     }*/ else { // Object
-                        type = "ITExecution.ParamType.OBJECT_T";
-                        executeTask.append('$').append(i + 1).append(',');
+                    } else { // Object or Self-Contained Object or Persistent SCO
+                    	type = "LoaderUtils.checkSCOType($" + (i + 1) + ")";
+                		executeTask.append("LoaderUtils.checkSCOPersistent($").append(i + 1).append("),");
                     }
 
                     switch (((Parameter) paramAnnot[i][0]).direction()) {
@@ -280,7 +279,7 @@ public class ITAppEditor extends ExprEditor {
                     if ((isVoid ? numParams : numParams - 1) > 1) {
                         executeTask.append(',');
                     }
-                    executeTask.append("$0,").append("ITExecution.ParamType.OBJECT_T");
+                    executeTask.append("LoaderUtils.checkSCOPersistent($0),").append("LoaderUtils.checkSCOType($0)");
                     // Check if the method will modify the target object (default yes)
                     if (isMethod) {
                         integratedtoolkit.types.annotations.Method methodAnnot = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.Method.class);
@@ -393,8 +392,8 @@ public class ITAppEditor extends ExprEditor {
                             executeTask.insert(0, "$_ = new " + typeName + "();");
                         }
 
-                        executeTask.append("$_,").append("ITExecution.ParamType.OBJECT_T");
-                        executeTask.append(',').append("ITExecution.ParamDirection.OUT");
+                        executeTask.append("$_,").append("LoaderUtils.checkSCOType($_)");
+                        executeTask.append(',').append("ITExecution.ParamDirection.OUT"); 
                     }
                 }
 

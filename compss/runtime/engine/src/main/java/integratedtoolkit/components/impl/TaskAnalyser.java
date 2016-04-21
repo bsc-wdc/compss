@@ -1,35 +1,24 @@
 package integratedtoolkit.components.impl;
 
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Map.Entry;
-import java.util.concurrent.Semaphore;
-
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
+import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.TaskParams.Type;
-import integratedtoolkit.types.data.DataAccessId.RWAccessId;
-import integratedtoolkit.types.data.DataInstanceId;
-import integratedtoolkit.types.data.AccessParams.*;
+import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.DataAccessId;
-import integratedtoolkit.types.data.DataAccessId.*;
-import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.DependencyParameter;
+import integratedtoolkit.types.data.DataAccessId.RWAccessId;
+import integratedtoolkit.types.data.DataAccessId.WAccessId;
+import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.operation.ResultListener;
+import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
+import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.resources.Worker;
@@ -37,6 +26,18 @@ import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ElementNotFoundException;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Graph;
+
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
+
+import org.apache.log4j.Logger;
 
 public class TaskAnalyser {
 
@@ -59,6 +60,8 @@ public class TaskAnalyser {
     private HashMap<Long, Semaphore> appIdToSemaphore;
     // Map: app id -> set of written data ids (for result files)
     private HashMap<Long, TreeSet<Integer>> appIdToWrittenFiles;
+    // Map: app id -> set of written data ids (for result SCOs)
+    private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;    
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<Integer, List<Semaphore>> waitedTasks;
 
@@ -158,6 +161,12 @@ public class TaskAnalyser {
                     FileParameter fp = (FileParameter) p;
                     daId = DIP.registerFileAccess(am, fp.getLocation(), methodId);
                     break;
+                    
+                case SCO_T:
+                case PSCO_T:
+            		SCOParameter sco = (SCOParameter) p;
+                    daId = DIP.registerObjectAccess(am, sco.getValue(), sco.getCode(), methodId);
+            		break;                                        
 
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
@@ -270,6 +279,14 @@ public class TaskAnalyser {
             }
             idsWritten.add(dataId);
         }
+        if (dp.getType() == ParamType.PSCO_T) { 
+            TreeSet<Integer> idsWritten = appIdToSCOWrittenIds.get(appId);
+            if (idsWritten == null) {
+                idsWritten = new TreeSet<Integer>();
+                appIdToSCOWrittenIds.put(appId, idsWritten);
+            }
+            idsWritten.add(dataId);
+        }           
         if (debug) {
             logger.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
         }
@@ -335,7 +352,7 @@ public class TaskAnalyser {
         for (Parameter param : task.getTaskParams().getParameters()) {
             ParamType type = param.getType();
 
-            if (type == ParamType.FILE_T || type == ParamType.OBJECT_T) {
+            if (type == ParamType.FILE_T || type == ParamType.OBJECT_T || type == ParamType.SCO_T || type == ParamType.PSCO_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 readedData.add(dAccId);

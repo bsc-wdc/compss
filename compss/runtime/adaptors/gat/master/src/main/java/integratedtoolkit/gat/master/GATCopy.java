@@ -116,7 +116,8 @@ public class GATCopy extends ImmediateCopy {
     private void doCopy(org.gridlab.gat.URI src, org.gridlab.gat.URI dest) throws Exception {
         // Try to copy from each location until successful
         FileInterface f = null;
-        logger.debug("RawPath: "+ src.getRawPath());
+        logger.debug("RawPath: " + src.getRawPath());
+        logger.debug("isLocal: " + src.isLocal());
         if(src.isLocal() && !(new File(src.getRawPath())).exists()) {
         	String errorMessage = null;
         	if (this.reason instanceof WorkersDebugInfoCopyTransferable) {

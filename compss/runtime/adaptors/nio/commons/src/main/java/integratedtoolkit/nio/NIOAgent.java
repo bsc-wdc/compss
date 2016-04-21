@@ -211,7 +211,7 @@ public abstract class NIOAgent {
         }
     }
 
-    public abstract void receivedTaskDone(Connection c, int jobID, boolean successful);
+    public abstract void receivedTaskDone(Connection c, int jobID, NIOTask nt, boolean successful);
 
     public abstract void copiedData(int transfergroupID);
 

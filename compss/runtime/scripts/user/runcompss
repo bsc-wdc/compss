@@ -9,6 +9,7 @@ DEFAULT_LOG_LEVEL_ARGUMENT=debug
 LOG_LEVEL_DEBUG=debug
 LOG_LEVEL_INFO=info
 LOG_LEVEL_OFF=off
+DEFAULT_TASK_EXECUTION=compss
 DEFAULT_GRAPH=false
 DEFAULT_GRAPH_ARGUMENT=true
 DEFAULT_TRACING=false
@@ -49,10 +50,13 @@ show_opts() {
                                             When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
                                             Default: ${DEFAULT_MONITORING_INTERVAL}
   Runtime configuration options:
+    --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
+                                            Default: ${DEFAULT_TASK_EXECUTION}
+    --storage_conf=<path>		    Path to the storage configuration file
     --project=<path>                        Path to the project XML file
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
-                                            Default: ${DEFAULT_RESOURCES}
+                                            Default: ${DEFAULT_RESOURCES}                                                 
     --lang=<name>                           Language of the application (java/c/python)
                                             Default: ${DEFAULT_LANGUAGE}
     --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
@@ -246,6 +250,13 @@ get_args() {
 	    if [ ! -f $resFile ]; then
 	    	echo "[ WARNING  ]: Resources XML file '$resFile' could not be found."
 	    fi ;;
+	  storage_conf=*)
+             storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
+             ;;
+	  task_execution=*)
+	    # Task execution under COMPSs or Storage 
+	    taskExecution=$(echo $OPTARG | sed -e 's/task_execution=//g')
+	    ;;                    	
 	  lang=*)
 	    # Language selection
 	    lang=$(echo $OPTARG | sed -e 's/lang=//g')
@@ -362,6 +373,11 @@ get_args() {
 }
 
 check_args() {
+  if [ -z "${taskExecution}" ]; then
+    echo "Using default execution type: ${DEFAULT_TASK_EXECUTION}"
+    taskExecution=${DEFAULT_TASK_EXECUTION}
+  fi
+
   if [ -z "$projFile" ]; then
     echo "Using default location for project file: ${DEFAULT_PROJECT}"
     projFile=${DEFAULT_PROJECT}
@@ -508,7 +524,12 @@ exec_java() {
   # Export needed variables
   export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
 
-  # Define command
+  #-Xdebug 
+  #-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
+  #-Duser.home=/scratch/tmp/ \
+  #-noverify \
+
+  # Define command  
   local JAVACMD=$JAVA" \
     -XX:-UseSplitVerifier \
     ${jvm_mem_opts} \
@@ -522,6 +543,8 @@ exec_java() {
     -Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file} \
     -Dit.to.file=false \
     -Dit.lang=${lang} \
+    -Dit.task.execution=$taskExecution \
+    -Dit.storage.conf=$storageConf \
     -Dit.project.file=${projFile} \
     -Dit.resources.file=${resFile} \
     -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd \
@@ -584,9 +607,6 @@ exec_c() {
   fi
   export JVM_OPTIONS_FILE=${jvm_options_file}
   /bin/cat >> ${jvm_options_file} << EOT
-#-Xdebug
-#-Xcheck:jni
-#-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
 -XX:-UseSplitVerifier
 ${jvm_mem_opts}
 -XX:+HeapDumpOnOutOfMemoryError
@@ -599,6 +619,8 @@ ${jvm_mem_opts}
 -Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
 -Dit.to.file=false
 -Dit.lang=${lang}
+-Dit.task.execution=compss
+-Dit.storage.conf=$storageConf
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
 -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
@@ -643,13 +665,15 @@ EOT
 }
 
 exec_python() {
-  # Export needed variables
-  if [ -d $IT_HOME/../Bindings/python ]; then
+  # Python Storage API
+  storageApi=${IT_HOME}/../Dependencies/
+  cp=$cp:$storageApi    
 
+  # Export needed variables 
+  if [ -d $IT_HOME/../Bindings/python ]; then
     PYCOMPSS_HOME=${IT_HOME}/../Bindings/python
     export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
   else
-
     export PYTHONPATH=$cp:$PYTHONPATH
   fi
         # Setup library path
@@ -682,6 +706,8 @@ ${jvm_mem_opts}
 -Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
 -Dit.to.file=false
 -Dit.lang=${lang}
+-Dit.task.execution=compss
+-Dit.storage.conf=$storageConf
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
 -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd

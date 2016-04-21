@@ -1,13 +1,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
+	<!-- STORAGE -->
+	<properties>
+		<storage>storage</storage>
+	</properties>
+	
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-loader</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>1.4</version>
+		<version>1.4</version>
 		<relativePath>..</relativePath>
 	</parent>
 	
@@ -33,7 +38,7 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-commons</artifactId>
 			<version>${project.version}</version>
-		</dependency>              
+		</dependency>                
 			
 		<!-- Javassist -->
 		<dependency>
@@ -46,6 +51,13 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
+		
+		<!-- Storage -->
+		<dependency>
+		 	<groupId>severo.storage</groupId>
+		 	<artifactId>${storage}</artifactId>
+		 	<version>1.0</version>
+		</dependency>	
 	</dependencies>
     
 	<!-- BUILD -->

@@ -33,6 +33,7 @@
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
 		<comm.version>1.2-76</comm.version>
+		<storage.version>1.0</storage.version>
 	
 		<!-- ZK version -->
 		<zk.version>7.0.3</zk.version>
@@ -85,6 +86,12 @@
 				<artifactId>comm</artifactId>
 				<version>${comm.version}</version>
 			</dependency>
+			<!-- Storage -->
+			<dependency>
+                                <groupId>es.bsc.storage</groupId>
+                                <artifactId>storageInterface</artifactId>
+                                <version>${storage.version}</version>
+                        </dependency>
 			
 			<!-- LOG4j -->
 			<dependency>

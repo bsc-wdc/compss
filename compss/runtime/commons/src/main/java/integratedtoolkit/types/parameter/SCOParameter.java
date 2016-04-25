@@ -3,8 +3,13 @@ package integratedtoolkit.types.parameter;
 import integratedtoolkit.api.ITExecution.ParamDirection;
 import integratedtoolkit.api.ITExecution.ParamType;
 
-public class SCOParameter extends DependencyParameter {
 
+public class SCOParameter extends DependencyParameter {
+    /**
+	 * Serializable objects Version UID are 1L in all Runtime
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private int code;
 	private Object value;
 

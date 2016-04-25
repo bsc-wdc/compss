@@ -438,7 +438,7 @@ public class NIOWorker extends NIOAgent {
         }
         
         CommandTaskDone cmd;
-        if ( this.executionType.compareTo(ITConstants.COMPSs) == 0) {
+        if (NIOWorker.executionType.compareTo(ITConstants.COMPSs) == 0) {
         	cmd = new CommandTaskDone(this, taskID, successful);
         } else {
         	cmd = new CommandTaskDone(this, nt, successful);

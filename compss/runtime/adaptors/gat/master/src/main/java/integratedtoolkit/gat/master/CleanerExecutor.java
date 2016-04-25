@@ -14,7 +14,6 @@ import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
 
 import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.resources.Job;
 import org.gridlab.gat.resources.Job.JobState;

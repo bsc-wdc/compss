@@ -1,13 +1,11 @@
 package integratedtoolkit.components.scheduler.impl;
 
-import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.components.scheduler.SchedulerPolicies;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Task;
-import integratedtoolkit.types.Task.TaskState;
 import integratedtoolkit.types.resources.Worker;
 
 import integratedtoolkit.util.CoreManager;

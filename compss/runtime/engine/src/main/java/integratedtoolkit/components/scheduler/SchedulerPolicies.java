@@ -2,9 +2,9 @@ package integratedtoolkit.components.scheduler;
 
 import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Task;
+import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.resources.Worker;
 
 import java.util.HashMap;

@@ -1,16 +1,22 @@
-package integratedtoolkit.loader;
+package integratedtoolkit.types.parameter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PSCOId implements Serializable{
+
+public class PSCOId implements Serializable {
+    /**
+	 * Serializable objects Version UID are 1L in all Runtime
+	 */
+	private static final long serialVersionUID = 1L;
 	
 	private int hashCode;
 	private String id;
 	private List<String> backends;
 	
-	public PSCOId(){}
+	public PSCOId() {
+	}
 	
 	public PSCOId(Object o, String id) {
 		this.hashCode = o.hashCode();

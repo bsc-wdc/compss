@@ -24,12 +24,11 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 
 import org.gridlab.gat.GATContext;
-import org.gridlab.gat.Preferences;
 
 
 public class GATWorkerNode extends COMPSsWorker {
 
-    private static final String GAT_CLEAN_SCRIPT = "adaptors/gat/clean.sh";
+    //private static final String GAT_CLEAN_SCRIPT = "adaptors/gat/clean.sh";
 
     private String host = "";
     private String user = "";

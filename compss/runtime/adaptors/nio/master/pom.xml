@@ -20,12 +20,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-engine</artifactId>
-			<version>${project.version}</version>
-		</dependency>        
-	
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-adaptors-nio-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>        

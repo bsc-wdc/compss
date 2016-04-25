@@ -2,11 +2,6 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   	<modelVersion>4.0.0</modelVersion>
 	
-	<!-- STORAGE -->
-	<properties>
-		<storage>storage</storage>
-	</properties>
-
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-engine</artifactId>
 	<packaging>jar</packaging>
@@ -41,11 +36,17 @@
 			<artifactId>compss-loader</artifactId>
 			<version>${project.version}</version>
 		</dependency>		    
-        <dependency>
+        	<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-resources-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>     
+
+                <!-- Storage -->
+                <dependency>
+                        <groupId>es.bsc.storage</groupId>
+                        <artifactId>storageInterface</artifactId>
+                </dependency>
 		
 		<!-- Engine dependencies -->
 		<dependency>
@@ -71,13 +72,6 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
 		</dependency>
-				
-		<!-- Storage -->
-		<dependency>
-		 	<groupId>severo.storage</groupId>
-		 	<artifactId>${storage}</artifactId>
-		 	<version>1.0</version>
-		</dependency>	
 	</dependencies>
 
 	<!-- BUILD -->
@@ -186,32 +180,23 @@
 					</execution>
 				</executions>
 			</plugin>
-
-			<!-- Clean compss-engine.jar -->
-      			<plugin>
-        			<artifactId>maven-clean-plugin</artifactId>
-        			<version>${maven-clean-plugin.version}</version>
-        			<executions>
-          				<execution>
-            					<id>auto-clean</id>
-            					<phase>initialize</phase>
-            					<goals>
-              						<goal>clean</goal>
-            					</goals>
-          				</execution>
-        			</executions>
-				<configuration>
-					<failOnError>false</failOnError>
-					<filesets>
-						<fileset>
-							<directory>${basedir}/..</directory>
-							<includes>
-                                                        	<include>${project.artifactId}.jar</include>
-                                                        </includes>
-						</fileset>
-					</filesets>
-				</configuration>
-      			</plugin>			
+			
+            <!-- Clean compss-engine.jar -->
+            <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
+                    <configuration>
+                            <failOnError>false</failOnError>
+                            <filesets>
+                                    <fileset>
+                                            <directory>${basedir}/..</directory>
+                                            <includes>
+                                                    <include>${project.artifactId}.jar</include>
+                                            </includes>
+                                    </fileset>
+                            </filesets>
+                    </configuration>
+            </plugin>		
 		</plugins>
 	</build>
 </project>

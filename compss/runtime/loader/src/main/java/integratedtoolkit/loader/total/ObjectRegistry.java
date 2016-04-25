@@ -2,8 +2,8 @@ package integratedtoolkit.loader.total;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.loader.LoaderAPI;
-import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.parameter.PSCOId;
 
 import java.util.TreeMap;
 

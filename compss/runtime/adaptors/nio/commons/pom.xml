@@ -38,6 +38,10 @@
 			<groupId>es.bsc</groupId>
 			<artifactId>comm</artifactId>
 		</dependency>
+                <dependency>
+                        <groupId>es.bsc.storage</groupId>
+                        <artifactId>storageInterface</artifactId>
+                </dependency>
 	</dependencies>
 	
 	<!-- BUILD -->

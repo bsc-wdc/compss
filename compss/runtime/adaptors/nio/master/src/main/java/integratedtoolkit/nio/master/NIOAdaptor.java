@@ -4,7 +4,6 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
-import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
@@ -26,6 +25,8 @@ import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobHistory;
+import integratedtoolkit.types.parameter.PSCOId;
+import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
@@ -247,10 +248,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         NIOJob nj = runningJobs.remove(jobId);
         
-        if ( this.executionType.compareTo(ITConstants.COMPSs) != 0) {        
+        if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {        
 	        int numParams = nj.getTaskParams().getParameters().length;
-	        for (int i=0; i<numParams; i++) {
-	        	Object dp = nj.getTaskParams().getParameters()[i];
+	        for (int i = 0; i < numParams; i++) {
+	        	Parameter dp = nj.getTaskParams().getParameters()[i];
 	        	if (dp instanceof SCOParameter) {
 	        		SCOParameter scop = (SCOParameter) dp;
 	        		NIOParam np = (NIOParam) nt.getParams().get(i);

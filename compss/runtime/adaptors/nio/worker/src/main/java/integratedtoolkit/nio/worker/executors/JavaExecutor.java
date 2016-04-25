@@ -3,12 +3,12 @@ package integratedtoolkit.nio.worker.executors;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution;
 import integratedtoolkit.api.ITExecution.ParamType;
-import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.Tracer;
 
 import java.io.File;
@@ -109,8 +109,7 @@ public class JavaExecutor extends Executor {
 							System.out.println("[Worker] Hostname: " + nw.getHostName());
 							*/
 												
-							if ((nw.executionType.compareTo(ITConstants.COMPSs) != 0) && !pscoId.getBackends().contains(nw.getHostName())){							
-								
+							if ((NIOWorker.executionType.compareTo(ITConstants.COMPSs) != 0) && !pscoId.getBackends().contains(nw.getHostName())) {							
 								if (tracing) {
 									NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
 								}

@@ -9,7 +9,6 @@ import java.net.URISyntaxException;
 import java.util.LinkedList;
 
 import org.gridlab.gat.GAT;
-import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.resources.Job;
 import org.gridlab.gat.resources.JobDescription;

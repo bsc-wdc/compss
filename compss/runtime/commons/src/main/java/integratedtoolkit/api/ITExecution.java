@@ -5,7 +5,6 @@ public interface ITExecution {
 
     // Parameter types
     public enum ParamType {
-
         FILE_T,
         BOOLEAN_T,
         CHAR_T,
@@ -23,7 +22,6 @@ public interface ITExecution {
 
     // Parameter directions
     public enum ParamDirection {
-
         IN,
         OUT,
         INOUT;

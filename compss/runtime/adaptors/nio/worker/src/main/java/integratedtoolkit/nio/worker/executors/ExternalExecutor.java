@@ -1,7 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.api.ITExecution;
-import integratedtoolkit.loader.PSCOId;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -9,6 +8,7 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.ThreadPrintStream;
+import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.StreamGobbler;
 import integratedtoolkit.util.Tracer;
 

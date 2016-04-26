@@ -1,11 +1,9 @@
 package integratedtoolkit.types.request.td;
 
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ResourceManager;
 import java.util.concurrent.Semaphore;
-
 
 /**
  * The MonitoringDataRequest class represents a request to obtain the current
@@ -73,26 +71,26 @@ public class MonitoringDataRequest extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts, JobManager jm) {
+    public void process(TaskScheduler ts) {
         String prefix = "\t";
         StringBuilder monitorData = new StringBuilder();
         monitorData.append(ts.getCoresMonitoringData(prefix));
 
         monitorData.append(prefix).append("<ResourceInfo>").append("\n");
         monitorData.append(ResourceManager.getPendingRequestsMonitorData(prefix + "\t"));
-        for (Worker<?> r : ResourceManager.getAllWorkers()) {
+        for (Worker r : ResourceManager.getAllWorkers()) {
             monitorData.append(prefix + "\t").append("<Resource id=\"" + r.getName() + "\">").append("\n");
             //CPU, Core, Memory, Disk, Provider, Image --> Inside resource
             monitorData.append(r.getMonitoringData(prefix + "\t\t"));
-            String runningTasks = ts.getRunningTasksMonitorData(r);
-            if (runningTasks != null) {
+            String runnningActions = ts.getRunningActionMonitorData(r, prefix + "\t\t\t");
+            if (runnningActions != null) {
                 //Resource state = running
                 monitorData.append(prefix + "\t\t").append("<Status>").append("Running").append("</Status>").append("\n");
-                monitorData.append(prefix + "\t\t").append("<Tasks>").append(runningTasks).append("</Tasks>").append("\n");
+                monitorData.append(prefix + "\t\t").append("<Actions>").append(runnningActions).append("</Actions>").append("\n");
             } else {
                 //Resource state = on destroy
                 monitorData.append(prefix + "\t\t").append("<Status>").append("On Destroy").append("</Status>").append("\n");
-                monitorData.append(prefix + "\t\t").append("<Tasks>").append("</Tasks>").append("\n");
+                monitorData.append(prefix + "\t\t").append("<Actions>").append("</Actions>").append("\n");
             }
             monitorData.append(prefix + "\t").append("</Resource>").append("\n");
         }
@@ -103,8 +101,4 @@ public class MonitoringDataRequest extends TDRequest {
         sem.release();
     }
 
-    @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.MONITOR_DATA;
-    }
 }

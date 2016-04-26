@@ -1,13 +1,11 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.util.CoreManager;
 
 import java.util.concurrent.Semaphore;
-
 
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the
@@ -70,12 +68,7 @@ public class GetCurrentScheduleRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.GET_STATE;
-    }
-
-    @Override
-    public void process(TaskScheduler ts, JobManager jm) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         response = new WorkloadStatus(CoreManager.getCoreCount());
         ts.getWorkloadState(response);
         sem.release();

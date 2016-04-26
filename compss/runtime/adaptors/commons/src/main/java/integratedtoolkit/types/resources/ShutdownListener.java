@@ -56,7 +56,6 @@ public class ShutdownListener {
         }
     }
 
-
     public void notifyFailure(Exception e) {
         boolean enabled;
         boolean finished;

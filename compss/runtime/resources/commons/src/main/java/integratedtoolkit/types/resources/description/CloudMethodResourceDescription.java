@@ -4,9 +4,7 @@ import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import java.util.LinkedList;
-import java.util.List;
 import org.w3c.dom.Node;
-
 
 public class CloudMethodResourceDescription extends MethodResourceDescription {
 
@@ -16,10 +14,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
     private String type;
     private CloudImageDescription image;
     private String providerName;
-
-    //Extra fields
-    int slots = 0;
-    private Float value = 0.0f;
 
     public CloudMethodResourceDescription() {
         super();
@@ -144,16 +138,9 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         }
     }
 
-    public int getSlots() {
-        return slots;
-    }
-
-    public void setSlots(int qty) {
-        slots = qty;
-    }
-
-    public void addSlot() {
-        slots++;
+    @Override
+    public CloudMethodResourceDescription copy() {
+        return new CloudMethodResourceDescription(this);
     }
 
     public String getName() {
@@ -162,136 +149,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    //Processor getters and setters
-    public String getProcessorArchitecture() {
-        return processorArchitecture;
-    }
-
-    public void setProcessorArchitecture(String Architecture) {
-        processorArchitecture = Architecture;
-    }
-
-    public int getProcessorCPUCount() {
-        return processorCPUCount;
-    }
-
-    public void setProcessorCPUCount(int count) {
-        processorCPUCount = count;
-    }
-
-    public int getProcessorCoreCount() {
-        return processorCoreCount;
-    }
-
-    public void setProcessorCoreCount(int count) {
-        processorCoreCount = count;
-    }
-
-    public float getProcessorSpeed() {
-        return processorSpeed;
-    }
-
-    public void setProcessorSpeed(float GHz) {
-        processorSpeed = GHz;
-    }
-
-    //Memory getters and setters   
-    public float getMemoryPhysicalSize() {
-        return memoryPhysicalSize;
-    }
-
-    public void setMemoryPhysicalSize(float GB) {
-        memoryPhysicalSize = GB;
-    }
-
-    public float getMemoryVirtualSize() {
-        return memoryVirtualSize;
-    }
-
-    public void setMemoryVirtualSize(float GB) {
-        memoryVirtualSize = GB;
-    }
-
-    public float getMemoryAccessTime() {
-        return memoryAccessTime;
-    }
-
-    public void setMemoryAccessTime(float ns) {
-        memoryAccessTime = ns;
-    }
-
-    public float getMemorySTR() {
-        return memorySTR;
-    }
-
-    public void setMemorySTR(float GBs) {
-        memorySTR = GBs;
-    }
-
-    //Storage getters and setters
-    public float getStorageElemSize() {
-        return storageElemSize;
-    }
-
-    public void setStorageElemSize(float GB) {
-        storageElemSize = GB;
-    }
-
-    public float getStorageElemAccessTime() {
-        return storageElemAccessTime;
-    }
-
-    public void setStorageElemAccessTime(float ms) {
-        storageElemAccessTime = ms;
-    }
-
-    public float getStorageElemSTR() {
-        return storageElemSTR;
-    }
-
-    public void setStorageElemSTR(float MBs) {
-        storageElemSTR = MBs;
-    }
-
-    //Host queue getters and setters
-    public List<String> getHostQueue() {
-        return hostQueue;
-    }
-
-    public void setHostQueue(List<String> hostQueue) {
-        this.hostQueue = new LinkedList<String>(hostQueue);
-    }
-
-    public void addHostQueue(String queue) {
-        this.hostQueue.add(queue);
-    }
-
-    //Operating System Type getters and setters
-    public String getOperatingSystemType() {
-        return operatingSystemType;
-    }
-
-    public void setOperatingSystemType(String OSType) {
-        operatingSystemType = OSType;
-    }
-
-    //App Software getters and setters
-    public List<String> getAppSoftware() {
-        return appSoftware;
-    }
-
-    public void setAppSoftware(List<String> appSoftware) {
-        this.appSoftware = new LinkedList<String>(appSoftware);
-    }
-
-    public void resetAppSoftware() {
-        appSoftware = new LinkedList<String>();
-    }
-
-    public void addAppSoftware(String software) {
-        appSoftware.add(software);
     }
 
     //Cloud getters and setters
@@ -319,73 +176,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         this.type = type;
     }
 
-    public Float getValue() {
-        return value;
-    }
-
-    public void setValue(float value) {
-        this.value = value;
-    }
-
-    public void join(CloudMethodResourceDescription mr2) {
-        this.processorCPUCount = java.lang.Math.max(this.processorCPUCount, mr2.processorCPUCount);
-        this.processorCoreCount = java.lang.Math.max(this.processorCoreCount, mr2.processorCoreCount);
-        this.processorSpeed = java.lang.Math.max(this.processorSpeed, mr2.processorSpeed);
-
-        this.memoryPhysicalSize = java.lang.Math.max(this.memoryPhysicalSize, mr2.memoryPhysicalSize);
-        this.memoryVirtualSize = java.lang.Math.max(this.memoryVirtualSize, mr2.memoryVirtualSize);
-        this.memoryAccessTime = java.lang.Math.max(this.memoryAccessTime, mr2.memoryAccessTime);
-        this.memorySTR = java.lang.Math.max(this.memorySTR, mr2.memorySTR);
-
-        this.storageElemSize = java.lang.Math.max(this.storageElemSize, mr2.storageElemSize);
-        this.storageElemAccessTime = java.lang.Math.max(this.storageElemAccessTime, mr2.storageElemAccessTime);
-        this.storageElemSTR = java.lang.Math.max(this.storageElemSTR, mr2.storageElemSTR);
-
-        if (this.processorArchitecture.compareTo("[unassigned]") == 0) {
-            this.processorArchitecture = mr2.processorArchitecture;
-        }
-        if (this.operatingSystemType.compareTo("[unassigned]") == 0) {
-            this.operatingSystemType = mr2.operatingSystemType;
-        }
-
-        for (int i = 0; i < mr2.hostQueue.size(); i++) {
-            if (!this.hostQueue.contains(mr2.hostQueue.get(i))) {
-                this.hostQueue.add(mr2.hostQueue.get(i));
-            }
-        }
-
-        for (int i = 0; i < mr2.appSoftware.size(); i++) {
-            if (!this.appSoftware.contains(mr2.appSoftware.get(i))) {
-                this.appSoftware.add(mr2.appSoftware.get(i));
-            }
-        }
-
-        this.slots += mr2.slots;
-    }
-
-    public float difference(CloudMethodResourceDescription mr2) {
-        float processor_dif = this.processorCoreCount - mr2.processorCoreCount;
-        float memory_dif = this.memoryPhysicalSize - mr2.memoryPhysicalSize;
-        return processor_dif * 10000 + memory_dif;
-    }
-
-    public boolean contains(CloudMethodResourceDescription rc2) {
-        return (this.operatingSystemType.compareTo(rc2.operatingSystemType) == 0 || this.operatingSystemType.compareTo("[unassigned]") == 0 || ("[unassigned]").compareTo(rc2.operatingSystemType) == 0)
-                && (this.processorArchitecture.compareTo(rc2.processorArchitecture) == 0 || this.processorArchitecture.compareTo("[unassigned]") == 0 || ("[unassigned]").compareTo(rc2.processorArchitecture) == 0)
-                && (this.hostQueue.containsAll(rc2.hostQueue))
-                && (this.appSoftware.containsAll(rc2.appSoftware))
-                && !(this.processorCoreCount < rc2.processorCoreCount
-                || this.processorCPUCount < rc2.processorCPUCount
-                || this.processorSpeed < rc2.processorSpeed
-                || this.memoryPhysicalSize < rc2.memoryPhysicalSize
-                || this.memoryVirtualSize < rc2.memoryVirtualSize
-                || this.memorySTR < rc2.memorySTR
-                || this.memoryAccessTime < rc2.memoryAccessTime
-                || this.storageElemAccessTime < rc2.storageElemAccessTime
-                || this.storageElemSTR < rc2.storageElemSTR
-                || this.storageElemSize < rc2.storageElemSize);
-    }
-
     public CloudMethodResourceDescription multiply(int amount) {
         CloudMethodResourceDescription rd = new CloudMethodResourceDescription();
         rd.processorCoreCount = this.processorCoreCount * amount;
@@ -396,22 +186,6 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         return rd;
     }
 
-    public void increase(CloudMethodResourceDescription rd) {
-        this.processorCPUCount += rd.processorCPUCount;
-        this.processorCoreCount += rd.processorCoreCount;
-        this.memoryPhysicalSize += rd.memoryPhysicalSize;
-        this.memoryVirtualSize += rd.memoryVirtualSize;
-        this.storageElemSize += rd.storageElemSize;
-    }
-
-    public void reduce(CloudMethodResourceDescription rd) {
-        this.processorCPUCount -= rd.processorCPUCount;
-        this.processorCoreCount -= rd.processorCoreCount;
-        this.memoryPhysicalSize -= rd.memoryPhysicalSize;
-        this.memoryVirtualSize -= rd.memoryVirtualSize;
-        this.storageElemSize -= rd.storageElemSize;
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder(super.toString());
         sb.append("[CLOUD");
@@ -419,7 +193,7 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
         sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getName());
         sb.append(" TYPE=").append(this.type);
         sb.append("]");
-        
+
         return sb.toString();
     }
 

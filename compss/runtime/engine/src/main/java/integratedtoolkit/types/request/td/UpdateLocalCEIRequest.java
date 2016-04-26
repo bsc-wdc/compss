@@ -1,13 +1,11 @@
 package integratedtoolkit.types.request.td;
 
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.util.CEIParser;
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.util.ResourceManager;
 import java.util.LinkedList;
-
 
 public class UpdateLocalCEIRequest extends TDRequest {
 
@@ -46,21 +44,16 @@ public class UpdateLocalCEIRequest extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts, JobManager jm) {
+    public void process(TaskScheduler ts) {
         logger.debug("Treating request to update core elements");
         LinkedList<Integer> newCores = CEIParser.loadJava(this.ceiClass);
         if (debug) {
             logger.debug("New methods: " + newCores);
         }
         ResourceManager.coreElementUpdates(newCores);
-        ts.resizeDataStructures();
+        ts.coreElementsUpdated();
         logger.debug("Data structures resized and CE-resources links updated");
         sem.release();
-    }
-
-    @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.UPDATE_LOCAL_CEI;
     }
 
 }

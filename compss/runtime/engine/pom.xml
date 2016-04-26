@@ -41,12 +41,17 @@
 			<artifactId>compss-resources-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>     
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-scheduler-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>     
 
-                <!-- Storage -->
-                <dependency>
-                        <groupId>es.bsc.storage</groupId>
-                        <artifactId>storageInterface</artifactId>
-                </dependency>
+		<!-- Storage -->
+		<dependency>
+			<groupId>es.bsc.storage</groupId>
+			<artifactId>storageInterface</artifactId>
+		</dependency>
 		
 		<!-- Engine dependencies -->
 		<dependency>

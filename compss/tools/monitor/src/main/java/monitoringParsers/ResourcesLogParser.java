@@ -271,12 +271,9 @@ public class ResourcesLogParser {
 									line = br.readLine();			// no_resource
 									i = i + 1;
 									int no_resource = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
-									line = br.readLine();			// to_reschedule
+									line = br.readLine();			// ready
 									i = i + 1;
-									int to_reschedule = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
-									line = br.readLine();			// ordinary
-									i = i + 1;
-									int ordinary = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+									int ready = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
 									line = br.readLine();			// running
 									i = i + 1;
 									int running = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
@@ -298,12 +295,12 @@ public class ResourcesLogParser {
 									line = br.readLine();
 									i = i + 1;
 									//Add information
-									float pendingLoad = Float.valueOf((no_resource + to_reschedule + ordinary)*(mean));
+									float pendingLoad = Float.valueOf((no_resource + ready)*(mean));
 									float remainingTime = Math.max(mean - meanExec, 0);
 									float runningLoad = Float.valueOf(running*remainingTime);
 									float load = (pendingLoad + runningLoad)/Float.valueOf(1000); //seconds
 									states.lastElement().addCoreLoad(id, load);
-									states.lastElement().addCorePending(id, no_resource + to_reschedule + ordinary);
+									states.lastElement().addCorePending(id, no_resource + ready);
 									states.lastElement().addCoreRunning(id, running);
 									//Loop
 									line = br.readLine();

@@ -36,8 +36,8 @@
   
   score_expected_useless=$'0\n0\n0\n0' 
   score_expected_useful=$'1\n1\n1\n1'
-  score_got_w1=$(cat $runtime_log | grep score: | grep COMPSsWorker01 | tail -n 4 | rev | cut -c -1 | rev)
-  score_got_w2=$(cat $runtime_log | grep score: | grep COMPSsWorker02 | tail -n 4 | rev | cut -c -1 | rev)
+  score_got_w1=$(cat $runtime_log | grep Score | grep COMPSsWorker01 | tail -n 4 | cut -d " " -f 10 | cut -c 10- | cut -c -1)
+  score_got_w2=$(cat $runtime_log | grep Score | grep COMPSsWorker02 | tail -n 4 | cut -d " " -f 10 | cut -c 10- | cut -c -1)
 
   #----------------------------------------------------------------------------------
   # Report result status

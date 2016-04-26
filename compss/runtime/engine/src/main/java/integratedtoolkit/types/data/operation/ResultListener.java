@@ -21,7 +21,6 @@ public class ResultListener extends DataOperation.EventListener {
     }
 
     public synchronized void enable() {
-        logger.debug("On activation it has " + operation + " pending operations");
         enabled = true;
         if (operation == 0) {
             if (errors == 0) {
@@ -34,12 +33,10 @@ public class ResultListener extends DataOperation.EventListener {
 
     public synchronized void addOperation() {
         operation++;
-        logger.debug("Adding operation. Pending = " + operation);
     }
 
     @Override
     public synchronized void notifyEnd(DataOperation fOp) {
-        logger.debug(fOp + " removed from pending operations");
         operation--;
         if (operation == 0 && enabled) {
             if (errors == 0) {

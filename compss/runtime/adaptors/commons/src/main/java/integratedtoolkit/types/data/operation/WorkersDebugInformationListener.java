@@ -1,12 +1,9 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.log.Loggers;
 import java.util.concurrent.Semaphore;
-import org.apache.log4j.Logger;
 
 
 public class WorkersDebugInformationListener extends DataOperation.EventListener {
-    protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
 
     int operation = 0;
     int errors = 0;
@@ -15,7 +12,6 @@ public class WorkersDebugInformationListener extends DataOperation.EventListener
     final Semaphore sem;
 
     public WorkersDebugInformationListener(Semaphore sem) {
-        logger.debug("Init with semaphore " + sem.toString());
         this.sem = sem;
     }
 
@@ -27,7 +23,6 @@ public class WorkersDebugInformationListener extends DataOperation.EventListener
             finished = operation == 0;
             failed = errors > 0;
         }
-        logger.debug("enabled: " + enabled + ", finished: "+ finished + ", failed: " + failed);
 
         if (finished) {
             if (failed) {
@@ -40,7 +35,6 @@ public class WorkersDebugInformationListener extends DataOperation.EventListener
 
     public synchronized void addOperation() {
         operation++;
-        logger.debug("adding OP (" + operation + ")");
     }
 
     @Override

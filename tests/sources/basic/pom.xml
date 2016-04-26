@@ -6,12 +6,12 @@
 	<groupId>es.bsc.compss.tests</groupId>
 	<artifactId>compss-tests-basic</artifactId>
 	<packaging>pom</packaging>
-    <parent>
-    	<groupId>es.bsc.compss.tests</groupId>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-<version>1.4</version>
-        <relativePath>..</relativePath>
-    </parent>
+		<version>1.4</version>
+		<relativePath>..</relativePath>
+	</parent>
 	
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests - Basic</name>

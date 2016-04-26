@@ -64,7 +64,7 @@
   fi
   
   if [ -f ${output_file_testReschedulingFail} ]; then
-     if $(cat "${output_file_testReschedulingFail}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*Resubmitting.*Rescheduling.*Shutting"); then
+     if $(cat "${output_file_testReschedulingFail}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*WARNING:.*resubmitting.*rescheduling.*Shutting"); then
      	echo "[RESULT_CHECKER] ErrorManagerTestReschedulingFail OK" | tee -a ${output_file_testReschedulingFail}
      else
         echo "The current test output for ErrorManagerTestReschedulingFail does not match the expected output." | tee -a ${output_file_testReschedulingFail}

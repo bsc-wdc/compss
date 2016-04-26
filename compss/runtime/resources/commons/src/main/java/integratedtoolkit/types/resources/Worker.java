@@ -4,13 +4,10 @@ import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.job.Job;
 import integratedtoolkit.util.CoreManager;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 
 public abstract class Worker<T extends ResourceDescription> extends Resource {
 
@@ -32,17 +29,12 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
     // Number of tasks that can be run simultaneously per core id (maxTaskCount not considered)
     private int[] idealSimultaneousTasks;
 
-    //Prescheduling
-    private final AtomicInteger preschedSlots;
-    private final LinkedList<Job<?>> pendingPresched = new LinkedList<Job<?>>();
-
     public Worker(String name, T description, COMPSsNode worker, Integer maxTaskCount) {
         super(worker);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
         this.maxTaskCount = maxTaskCount;
-        this.preschedSlots = new AtomicInteger(maxTaskCount);
         this.taskCount = 0;
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
@@ -61,7 +53,6 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
         this.maxTaskCount = maxTaskCount;
-        this.preschedSlots = new AtomicInteger(maxTaskCount);
         this.taskCount = 0;
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
@@ -72,6 +63,18 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         }
 
         this.description = description;
+    }
+
+    public Worker(Worker<T> w) {
+        super(w);
+        this.coreSimultaneousTasks = w.coreSimultaneousTasks;
+        this.idealSimultaneousTasks = w.idealSimultaneousTasks;
+        this.maxTaskCount = w.maxTaskCount;
+        this.taskCount = w.taskCount;
+        this.executableCores = w.executableCores;
+        this.implSimultaneousTasks = w.implSimultaneousTasks;
+        this.executableImpls = w.executableImpls;
+        this.description = w.description;
     }
 
     public T getDescription() {
@@ -242,6 +245,17 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
      * ************************************************************************
      * ************************************************************************
      * -----------------------------------------------------------------------*/
+    public LinkedList<Integer> getRunnableCores() {
+        LinkedList<Integer> cores = new LinkedList();
+        int coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            if (!getRunnableImplementations(coreId).isEmpty()) {
+                cores.add(coreId);
+            }
+        }
+        return cores;
+    }
+
     public LinkedList<Implementation<?>>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
         LinkedList<Implementation<?>>[] runnable = new LinkedList[coreCount];
@@ -280,7 +294,7 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
     }
 
     public void endTask(T consumption) {
-    	logger.debug("End task received. Releasing resource."+ consumption.getClass().toString());
+        logger.debug("End task received. Releasing resource." + consumption.getClass().toString());
         taskCount--;
         releaseResource(consumption);
     }
@@ -291,38 +305,6 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
             return true;
         } else {
             return false;
-        }
-    }
-
-    /*-------------------------------------------------------------------------
-     * ************************************************************************
-     * ************************************************************************
-     * ********************* PRESCHEDULING SLOTS MANAGEMENT *******************
-     * ************************************************************************
-     * ************************************************************************
-     * -----------------------------------------------------------------------*/
-    public boolean tryAcquirePreschSlot() {
-        int freeSlots = this.preschedSlots.decrementAndGet();
-        if (freeSlots < 0) {
-            this.preschedSlots.incrementAndGet();
-            return false;
-        }
-        return true;
-    }
-
-    public void releasePreschSlot() {
-        this.preschedSlots.incrementAndGet();
-    }
-
-    public void addPendingJob(Job<?> j) {
-        this.pendingPresched.add(j);
-    }
-
-    public Job<?> getPendingJob() {
-        if (!this.pendingPresched.isEmpty()) {
-            return this.pendingPresched.removeFirst();
-        } else {
-            return this.pendingPresched.removeFirst();
         }
     }
 
@@ -349,4 +331,5 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         w.announceDestruction();
     }
 
+    public abstract Worker getSchedulingCopy();
 }

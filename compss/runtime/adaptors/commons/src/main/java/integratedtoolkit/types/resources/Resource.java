@@ -60,10 +60,14 @@ public abstract class Resource implements Comparable<Resource> {
 
     public Resource(String name, HashMap<String, String> properties, TreeMap<String, AdaptorDescription> adaptorsDesc) throws Exception {
         this.node = Comm.initWorker(name, properties, adaptorsDesc);
-        if (this.node == null){
-        	throw new Exception("Error initializing worker "+ name);
+        if (this.node == null) {
+            throw new Exception("Error initializing worker " + name);
         }
         SharedDiskManager.addMachine(this);
+    }
+
+    public Resource(Resource clone) {
+        node = clone.node;
     }
 
     public void addSharedDisk(String diskName, String diskMountpoint) {
@@ -189,12 +193,12 @@ public abstract class Resource implements Comparable<Resource> {
             logger.error("Error waiting for files in resource " + getName() + " to get saved");
         }
 
-        if (tracing) {
+        if (this.getType() != Type.SERVICE && tracing) {
             node.generatePackage();
             getTracingPackageToMaster();
         }
 
-        if (debug) {
+        if (this.getType() != Type.SERVICE && debug) {
             node.generateWorkersDebugInfo();
             getWorkersDebugInfo();
         }

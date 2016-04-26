@@ -1,9 +1,14 @@
 package constraintsTest;
 
+import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
+import integratedtoolkit.types.SchedulingInformation;
+import integratedtoolkit.types.Score;
 import integratedtoolkit.types.ServiceImplementation;
+import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.resources.MethodWorker;
@@ -528,19 +533,25 @@ public class ConstraintsTest {
     private static void resourceManagerTest() {
         //Check for each implementation the correctness of its resources
         System.out.println("[LOG] Number of cores = " + coreCountItf);
-        for (int i = 0; i < coreCountItf; i++) {
-            System.out.println("[LOG] Checking Core" + i);
-            HashMap<Worker<?>, LinkedList<Implementation<?>>> m = ResourceManager.findAvailableWorkers(ResourceManager.findCompatibleWorkers(i), i);
-            checkCoreResources(i, m);
+        for (int coreId = 0; coreId < coreCountItf; coreId++) {
+            System.out.println("[LOG] Checking Core" + coreId);
+            Action a = new Action(coreId);
+            try {
+                HashMap<Worker, LinkedList<Implementation>> m = a.findAvailableWorkers();
+                checkCoreResources(coreId, m);
+            } catch (Exception e) {
+                System.out.println("Action " + a);
+                e.printStackTrace();
+            }
         }
 
     }
 
-    private static void checkCoreResources(int coreId, HashMap<Worker<?>, LinkedList<Implementation<?>>> hm) {
+    private static void checkCoreResources(int coreId, HashMap<Worker, LinkedList<Implementation>> hm) {
         //Revert Map
         HashMap<Implementation<?>, LinkedList<Worker<?>>> hm_reverted = new HashMap<Implementation<?>, LinkedList<Worker<?>>>();
-        for (java.util.Map.Entry<Worker<?>, LinkedList<Implementation<?>>> entry_hm : hm.entrySet()) {
-            for (Implementation<?> impl : entry_hm.getValue()) {
+        for (java.util.Map.Entry<Worker, LinkedList<Implementation>> entry_hm : hm.entrySet()) {
+            for (Implementation impl : entry_hm.getValue()) {
                 LinkedList<Worker<?>> aux = hm_reverted.get(impl);
                 if (aux == null) {
                     aux = new LinkedList<Worker<?>>();
@@ -569,7 +580,7 @@ public class ConstraintsTest {
     }
 
     @SuppressWarnings("static-access")
-    private static String checkResourcesAssignedToImpl(Implementation<?> impl, Worker<?> resource) {
+    private static String checkResourcesAssignedToImpl(Implementation impl, Worker resource) {
         if ((impl.getType().equals(impl.getType().METHOD) && resource.getType().equals(resource.getType().SERVICE))
                 || (impl.getType().equals(impl.getType().SERVICE) && resource.getType().equals(resource.getType().WORKER))) {
             return "types";
@@ -579,7 +590,7 @@ public class ConstraintsTest {
             MethodImplementation mImpl = (MethodImplementation) impl;
             MethodResourceDescription iDescription = mImpl.getRequirements();
             MethodWorker worker = (MethodWorker) resource;
-            MethodResourceDescription wDescription = worker.getDescription();
+            MethodResourceDescription wDescription = (MethodResourceDescription) worker.getDescription();
             //Check Processor Constraints
             if ((!iDescription.getProcessorArchitecture().equals("[unassigned]"))
                     && (!wDescription.getProcessorArchitecture().equals("[unassigned]"))
@@ -672,7 +683,7 @@ public class ConstraintsTest {
             ServiceImplementation mImpl = (ServiceImplementation) impl;
             ServiceResourceDescription iDescription = mImpl.getRequirements();
             ServiceWorker worker = (ServiceWorker) resource;
-            ServiceResourceDescription wDescription = worker.getDescription();
+            ServiceResourceDescription wDescription = (ServiceResourceDescription) worker.getDescription();
 
             if (!wDescription.getServiceName().equals(iDescription.getServiceName())) {
                 return "ServiceName";
@@ -727,30 +738,32 @@ public class ConstraintsTest {
 
         //Reserve/free for CORE Test
         Worker dynamicWorker = ResourceManager.getWorker("WorkerDynamic");
-        System.out.println("DynWorker object is "+dynamicWorker+ "and  CoreImplementations requirements object is "+ CoreManager.getCoreImplementations(ce1)[0]);
+        System.out.println("DynWorker object is " + dynamicWorker.getDescription() + "and  CoreImplementations requirements object is " + CoreManager.getCoreImplementations(ce1)[0]);
         dynamicWorker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
         dynamicWorker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
-        if (ResourceManager.findAvailableWorkers(ResourceManager.findCompatibleWorkers(ce1), ce1).containsKey(dynamicWorker)) {
+        Action a = new Action(ce1);
+        if (a.findAvailableWorkers().containsKey(dynamicWorker)) {
             System.out.println("[ERROR] Available resources for CORE reserve is not working");
             System.exit(-1);
         }
 
         dynamicWorker.endTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
-        if (!ResourceManager.findAvailableWorkers(ResourceManager.findCompatibleWorkers(ce1), ce1).containsKey(dynamicWorker)) {
+        if (!a.findAvailableWorkers().containsKey(dynamicWorker)) {
             System.out.println("[ERROR] Available resources for CORE free is not working");
             System.exit(-1);
         }
         dynamicWorker.endTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
 
         //Reserve/free for MEMORY Test
+        a = new Action(ce2);
         dynamicWorker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
         dynamicWorker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
-        if (ResourceManager.findAvailableWorkers(ResourceManager.findCompatibleWorkers(ce2), ce2).containsKey(dynamicWorker)) {
+        if (a.findAvailableWorkers().containsKey(dynamicWorker)) {
             System.out.println("[ERROR] Available resources for MEMORY reserve is not working");
             System.exit(-1);
         }
         dynamicWorker.endTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
-        if (!ResourceManager.findAvailableWorkers(ResourceManager.findCompatibleWorkers(ce2), ce2).containsKey(dynamicWorker)) {
+        if (!a.findAvailableWorkers().containsKey(dynamicWorker)) {
             System.out.println("[ERROR] Available resources for MEMORY free is not working");
             System.exit(-1);
         }
@@ -929,4 +942,112 @@ public class ConstraintsTest {
         return null;
     }
 
+    public static class Action extends AllocatableAction {
+
+        final int coreId;
+
+        public Action(int coreId) {
+            super(new SchedulingInformation());
+            this.coreId = coreId;
+        }
+
+        @Override
+        protected boolean areEnoughResources() {
+            return selectedResource.getResource().canRunNow(selectedImpl.getRequirements());
+        }
+
+        @Override
+        protected void reserveResources() {
+            selectedResource.getResource().runTask(selectedImpl.getRequirements());
+        }
+
+        @Override
+        protected void releaseResources() {
+            selectedResource.getResource().endTask(selectedImpl.getRequirements());
+        }
+
+        @Override
+        public LinkedList<ResourceScheduler> getCompatibleWorkers() {
+            return getCoreElementExecutors(coreId);
+        }
+
+        @Override
+        public LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler r) {
+            return r.getExecutableImpls(coreId);
+        }
+
+        @Override
+        public Implementation[] getImplementations() {
+            return CoreManager.getCoreImplementations(coreId);
+        }
+
+        @Override
+        public boolean isCompatible(Worker r) {
+            return r.canRun(coreId);
+        }
+
+        @Override
+        protected void doAction() {
+
+        }
+
+        @Override
+        protected void doCompleted() {
+
+        }
+
+        @Override
+        protected void doError() throws FailedActionException {
+
+        }
+
+        @Override
+        protected void doFailed() {
+
+        }
+
+        @Override
+        public Score schedulingScore(TaskScheduler ts) {
+            return new Score(0, 0, 0);
+        }
+
+        @Override
+        public Score schedulingScore(ResourceScheduler targetWorker, Score actionScore) {
+            return new Score(0, 0, 0);
+        }
+
+        @Override
+        public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+
+        }
+
+        @Override
+        public void schedule(ResourceScheduler targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+
+        }
+
+        public HashMap<Worker, LinkedList<Implementation>> findAvailableWorkers() {
+            HashMap<Worker, LinkedList<Implementation>> m = new HashMap<Worker, LinkedList<Implementation>>();
+            LinkedList<ResourceScheduler> compatibleWorkers = getCoreElementExecutors(coreId);
+            for (ResourceScheduler ui : compatibleWorkers) {
+                LinkedList<Implementation> compatibleImpls = ui.getExecutableImpls(coreId);
+                LinkedList<Implementation> runnableImpls = new LinkedList();
+                for (Implementation impl : compatibleImpls) {
+                    if (ui.getResource().canRunNow(impl.getRequirements())) {
+                        runnableImpls.add(impl);
+                    }
+                }
+                if (runnableImpls.size() > 0) {
+                    m.put(ui.getResource(), runnableImpls);
+                }
+            }
+            return m;
+        }
+
+        @Override
+        public Integer getCoreId() {
+            return coreId;
+        }
+
+    }
 }

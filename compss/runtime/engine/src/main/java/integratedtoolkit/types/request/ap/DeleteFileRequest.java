@@ -1,5 +1,6 @@
 package integratedtoolkit.types.request.ap;
 
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
@@ -20,7 +21,7 @@ public class DeleteFileRequest extends APRequest {
     }
 
     @Override
-    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         FileInfo fileInfo = dip.deleteData(loc);
 
         if (fileInfo == null) { //file is not used by any task

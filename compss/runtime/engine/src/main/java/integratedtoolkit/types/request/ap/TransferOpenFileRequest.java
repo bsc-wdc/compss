@@ -1,6 +1,7 @@
 package integratedtoolkit.types.request.ap;
 
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
@@ -101,7 +102,7 @@ public class TransferOpenFileRequest extends APRequest {
     }
 
     @Override
-    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
     	logger.debug("Process TransferOpenFileRequest");
         DataLocation targetLocation;
         if (faId instanceof DataAccessId.WAccessId) {

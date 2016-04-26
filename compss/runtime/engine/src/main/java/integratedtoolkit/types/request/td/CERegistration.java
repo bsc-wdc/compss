@@ -1,6 +1,5 @@
 package integratedtoolkit.types.request.td;
 
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -45,7 +44,7 @@ public class CERegistration extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts, JobManager jm) {
+    public void process(TaskScheduler ts) {
         int coreId = CoreManager.getCoreId(new String[]{signature});
 
         int implementationId = 0; // python can just have 1 implementation due to lack of interfaces
@@ -60,15 +59,10 @@ public class CERegistration extends TDRequest {
         
         ResourceManager.coreElementUpdates(newCores);
         
-        ts.resizeDataStructures();
+        ts.coreElementsUpdated();
         
         logger.debug("Data structures resized and CE-resources links updated");
         sem.release();
-    }
-
-    @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.UPDATE_LOCAL_CEI;
     }
 
 }

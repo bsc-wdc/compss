@@ -1,5 +1,6 @@
 package integratedtoolkit.types.request.ap;
 
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
@@ -8,7 +9,6 @@ import integratedtoolkit.types.request.Request;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 
 import org.apache.log4j.Logger;
-
 
 /**
  * The TPRequest class represents any interaction with the TaskProcessor
@@ -58,11 +58,12 @@ public abstract class APRequest extends Request {
     /**
      * Processes the Request
      *
+     * @param ap AccessProcessor processing the request
      * @param ta Task Analyser of the processing AccessProcessor
      * @param dip DataInfoProvider of the processing AccessProcessor
      * @param td Task Dispatcher attached to the processing AccessProcessor
      * @throws
      * integratedtoolkit.types.request.ap.ShutdownRequest.ShutdownException
      */
-    public abstract void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) throws ShutdownException;
+    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) throws ShutdownException;
 }

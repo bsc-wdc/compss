@@ -26,7 +26,7 @@ public abstract class Job<T extends COMPSsNode> {
         NEW,
         RESUBMITTED_FILES,
         RESUBMITTED,
-        RESCHEDULED;
+        FAILED;
     }
 
     // Job kind

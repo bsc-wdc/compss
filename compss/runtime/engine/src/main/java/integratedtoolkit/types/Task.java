@@ -1,18 +1,20 @@
 package integratedtoolkit.types;
 
 import static integratedtoolkit.types.Colors.*;
+import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.data.DataInstanceId;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class Task implements Comparable<Task> {
+
+    // Task ID management
+    private static final int FIRST_TASK_ID = 1;
+    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
     // Task states
     public enum TaskState {
         TO_ANALYSE,
-        TO_SCHEDULE,
-        TO_RESCHEDULE,
         TO_EXECUTE,
         FINISHED,
         FAILED
@@ -44,29 +46,27 @@ public class Task implements Comparable<Task> {
         }
     }
 
-// Task fields
-    private long appId;
-    private int taskId;
+    // Task fields
+    private final long appId;
+    private final int taskId;
     private TaskState status;
-    private TaskParams taskParams;
+    private final TaskParams taskParams;
+
+    //Data Dependencies
+    private final LinkedList<Task> predecessors;
+    private final LinkedList<Task> successors;
 
     // Scheduling info
-    private boolean enforcedSceduling;
-    private boolean strongEnforcedScheduling;
-    private DataInstanceId enforcingData;
-    private String lastResource;
-
-    // Execution info
-    private long initialTimeStamp;
-    // Task ID management
-    private static final int FIRST_TASK_ID = 1;
-    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
+    private Task enforcingTask;
+    private SingleExecution execution;
 
     public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
         this.taskParams = new TaskParams(methodClass, methodName, priority, hasTarget, parameters);
+        this.predecessors = new LinkedList<Task>();
+        this.successors = new LinkedList<Task>();
     }
 
     public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget, Parameter[] parameters) {
@@ -74,10 +74,32 @@ public class Task implements Comparable<Task> {
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
         this.taskParams = new TaskParams(namespace, service, port, operation, priority, hasTarget, parameters);
+        this.predecessors = new LinkedList<Task>();
+        this.successors = new LinkedList<Task>();
     }
-    
-    public static int getCurrentTaskCount(){
+
+    public static int getCurrentTaskCount() {
         return nextTaskId.get();
+    }
+
+    public void addDataDependency(Task producer) {
+        producer.successors.add(this);
+        this.predecessors.add(producer);
+    }
+
+    public void releaseDataDependents() {
+        for (Task t : this.successors) {
+            t.predecessors.remove(this);
+        }
+        this.successors.clear();
+    }
+
+    public LinkedList<Task> getSuccessors() {
+        return successors;
+    }
+
+    public LinkedList<Task> getPredecessors() {
+        return predecessors;
     }
 
     public long getAppId() {
@@ -96,27 +118,8 @@ public class Task implements Comparable<Task> {
         this.status = status;
     }
 
-    public void setInitialTimeStamp(long time) {
-        this.initialTimeStamp = time;
-    }
-
-    public void forceScheduling() {
-        this.enforcedSceduling = true;
-        this.strongEnforcedScheduling = false;
-    }
-
-    public void forceStrongScheduling() {
-        this.enforcedSceduling = true;
-        this.strongEnforcedScheduling = true;
-    }
-
-    public void unforceScheduling() {
-        this.enforcedSceduling = false;
-        this.strongEnforcedScheduling = false;
-    }
-
-    public void setEnforcingData(DataInstanceId dataId) {
-        this.enforcingData = dataId;
+    public void setEnforcingTask(Task task) {
+        this.enforcingTask = task;
     }
 
     public TaskParams getTaskParams() {
@@ -124,27 +127,11 @@ public class Task implements Comparable<Task> {
     }
 
     public boolean isSchedulingForced() {
-        return this.enforcedSceduling;
+        return this.enforcingTask != null;
     }
 
-    public boolean isSchedulingStrongForced() {
-        return this.strongEnforcedScheduling;
-    }
-
-    public String getLastResource() {
-        return lastResource;
-    }
-
-    public void setLastResource(String lastResource) {
-        this.lastResource = lastResource;
-    }
-
-    public DataInstanceId getEnforcingData() {
-        return this.enforcingData;
-    }
-
-    public long getInitialTimeStamp() {
-        return initialTimeStamp;
+    public Task getEnforcingTask() {
+        return this.enforcingTask;
     }
 
     public String getDotDescription() {
@@ -190,5 +177,13 @@ public class Task implements Comparable<Task> {
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    public void setExecution(SingleExecution execution) {
+        this.execution = execution;
+    }
+
+    public SingleExecution getExecution() {
+        return execution;
     }
 }

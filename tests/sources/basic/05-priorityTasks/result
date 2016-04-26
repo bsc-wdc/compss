@@ -35,6 +35,8 @@
   
   priorCount=0
   normalCount=0
+  
+
   for (( i=1; i<=$priority; i++ )); do
       job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method name: " | cut -c 18-)
       if [ "$job_name" != "normalTask" ]; then
@@ -43,7 +45,7 @@
 	normalCount=$((normalCount+1))
       fi
   done
-  
+
   priorRate=$((($priorCount*100)/$priority))
   if [ $priorRate -lt $acceptanceRate ]; then
     echo "[ERROR] Priority tasks are not correctly scheduled." | tee -a ${output_file}

@@ -1,5 +1,6 @@
 package integratedtoolkit.types.request.ap;
 
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
@@ -41,7 +42,7 @@ public class AlreadyAccessedRequest extends APRequest {
     }
 
     @Override
-    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         boolean aa = dip.alreadyAccessed(this.loc);
         this.response = aa;
         sem.release();

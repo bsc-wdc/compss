@@ -1,6 +1,7 @@
 package integratedtoolkit.components.impl;
 
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,7 +29,7 @@ import integratedtoolkit.types.request.ap.DeleteFileRequest;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.GetLastRenamingRequest;
 import integratedtoolkit.types.request.ap.GraphDescriptionRequest;
-import integratedtoolkit.types.request.ap.GraphUpdateRequest;
+import integratedtoolkit.types.request.ap.TaskEndNotification;
 import integratedtoolkit.types.request.ap.IsObjectHereRequest;
 import integratedtoolkit.types.request.ap.NewVersionSameValueRequest;
 import integratedtoolkit.types.request.ap.RegisterDataAccessRequest;
@@ -42,12 +43,10 @@ import integratedtoolkit.types.request.ap.TransferOpenFileRequest;
 import integratedtoolkit.types.request.ap.UnblockResultFilesRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
-import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
 
-
-public class AccessProcessor implements Runnable {
+public class AccessProcessor implements Runnable, TaskProducer {
 
     protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
 
@@ -66,14 +65,19 @@ public class AccessProcessor implements Runnable {
     private static int CHANGES = 1;
     int changes = CHANGES;
 
-    // Tracing
+        // Tracing
     protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+    
 
-    public AccessProcessor() {
+    public AccessProcessor(TaskDispatcher td) {
+        taskDispatcher = td;
+        
+        //Start Subcomponents
         taskAnalyser = new TaskAnalyser();
         dataInfoProvider = new DataInfoProvider();
 
+        taskAnalyser.setCoWorkers(dataInfoProvider);
         requestQueue = new LinkedBlockingQueue<APRequest>();
 
         keepGoing = true;
@@ -88,10 +92,6 @@ public class AccessProcessor implements Runnable {
         }
     }
 
-    public void setTD(TaskDispatcher TD) {
-        this.taskDispatcher = TD;
-        taskAnalyser.setCoWorkers(dataInfoProvider, TD);
-    }
 
     public void run() {
         while (keepGoing) {
@@ -101,7 +101,7 @@ public class AccessProcessor implements Runnable {
                 if (tracing){
                     Tracer.masterEventStart(Tracer.getAPRequestEvent(request.getRequestType().name()).getId());
                 }
-                request.process(taskAnalyser, dataInfoProvider, taskDispatcher);
+                request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
                 if (tracing){
                     Tracer.masterEventFinish();
                 }
@@ -116,11 +116,11 @@ public class AccessProcessor implements Runnable {
                     Tracer.masterEventFinish();
                 }
                 break;
-            } catch (Exception e){
+            } catch (Exception e) {
                 if (tracing){
                     Tracer.masterEventFinish();
                 }
-            	logger.error(e);
+                logger.error(e);
             }
         }
         logger.info("AccessProcessor shutdown");
@@ -145,16 +145,15 @@ public class AccessProcessor implements Runnable {
     }
 
     // Notification thread (JM)
-    public void notifyTaskEnd(Task task, int implId, Worker<?> resource) {
-        logger.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
-        requestQueue.offer(new GraphUpdateRequest(task, implId, resource));
+    public void notifyTaskEnd(Task task) {
+        requestQueue.offer(new TaskEndNotification(task));
     }
 
     public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
         if (!alreadyAccessed) {
-        	logger.debug("File not accessed before returning the same location");
+            logger.debug("File not accessed before returning the same location");
             return sourceLocation;
         }
 
@@ -163,8 +162,8 @@ public class AccessProcessor implements Runnable {
         DataLocation tgtLocation = sourceLocation;
 
         if (fap.getMode() != AccessMode.W) {
-        	// Wait until the last writer task for the file has finished
-        	logger.debug("File " +  faId.getDataId() + " mode contains R, waiting until the last writer has finished");
+            // Wait until the last writer task for the file has finished
+            logger.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
             waitForTask(faId.getDataId(), AccessMode.R);
             if (destDir == null) {
                 tgtLocation = transferFileOpen(faId);
@@ -185,8 +184,8 @@ public class AccessProcessor implements Runnable {
         }
 
         if (fap.getMode() != AccessMode.R) {
-        	// Mode contains W
-        	logger.debug("File " +  faId.getDataId() + " mode contains W, register new writer");
+            // Mode contains W
+            logger.debug("File " + faId.getDataId() + " mode contains W, register new writer");
             DataInstanceId daId;
             if (fap.getMode() == AccessMode.RW) {
                 RWAccessId ra = (RWAccessId) faId;
@@ -203,14 +202,14 @@ public class AccessProcessor implements Runnable {
         return tgtLocation;
     }
 
-    public boolean isCurrentRegisterValueValid (int hashCode) {
+    public boolean isCurrentRegisterValueValid(int hashCode) {
         Semaphore sem = new Semaphore(0);
         IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
         requestQueue.offer(request);
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
 
         return request.getResponse();
@@ -250,26 +249,26 @@ public class AccessProcessor implements Runnable {
     }
 
     // App
-    public void noMoreTasks (Long appId) {
+    public void noMoreTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
         requestQueue.offer(new EndOfAppRequest(appId, sem));
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         logger.info("All tasks finished");
     }
 
     // App
-    private boolean alreadyAccessed (DataLocation loc) {
+    private boolean alreadyAccessed(DataLocation loc) {
         Semaphore sem = new Semaphore(0);
         AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
         requestQueue.offer(request);
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return request.getResponse();
     }
@@ -281,7 +280,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         logger.info("End of waited task for data " + dataId);
     }
@@ -294,7 +293,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return request.getResponse();
     }
@@ -320,7 +319,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return request.getResponse();
     }
@@ -338,7 +337,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
     }
 
@@ -354,7 +353,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return (String) request.getResponse();
     }
@@ -371,7 +370,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return (String) request.getResponse();
     }
@@ -389,7 +388,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
 
         logger.debug("Raw file transferred");
@@ -404,7 +403,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
 
         logger.debug("Open file transferred");
@@ -418,7 +417,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         return tor.getResponse();
     }
@@ -430,7 +429,7 @@ public class AccessProcessor implements Runnable {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
         UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
         requestQueue.offer(urfr);

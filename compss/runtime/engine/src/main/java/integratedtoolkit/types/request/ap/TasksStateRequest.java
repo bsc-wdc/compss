@@ -1,10 +1,10 @@
 package integratedtoolkit.types.request.ap;
 
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
-
 
 /**
  * The TasksStateRequests class represents a request to obtain the progress of
@@ -72,7 +72,7 @@ public class TasksStateRequest extends APRequest {
     }
 
     @Override
-    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         response = ta.getTaskStateRequest();
         sem.release();
     }

@@ -3,45 +3,44 @@ package integratedtoolkit.components.impl;
 import integratedtoolkit.types.request.td.UpdateLocalCEIRequest;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.ResourceUser;
-import integratedtoolkit.components.scheduler.impl.DefaultTaskScheduler;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Task;
-import integratedtoolkit.types.Task.TaskState;
+import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.scheduler.types.AllocatableAction.ActionOrchestrator;
 import integratedtoolkit.types.request.td.*;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.CEIParser;
-import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.Tracer;
+import java.io.File;
 
 import java.lang.reflect.Constructor;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
+public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
 
-public class TaskDispatcher implements Runnable, ResourceUser {
+    public interface TaskProducer {
 
-    // Other supercomponent
-    protected AccessProcessor accessProcessor;
+        public void notifyTaskEnd(Task task);
+    }
+
     // Subcomponents
     protected TaskScheduler scheduler;
-    protected JobManager jobManager;
 
     protected LinkedBlockingDeque<TDRequest> requestQueue;
     // Scheduler thread
     protected Thread dispatcher;
     protected boolean keepGoing;
 
-    //End of Execution
-    private boolean endRequested;
-    //Number of Tasks to execute
-    private int[] taskCountToEnd;
     // Logging
     protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
@@ -53,67 +52,78 @@ public class TaskDispatcher implements Runnable, ResourceUser {
     protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
-
     public TaskDispatcher() {
-        endRequested = false;
-
         requestQueue = new LinkedBlockingDeque<TDRequest>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
+
+        try {
+            URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+            Class<?> sysclass = URLClassLoader.class;
+            String itHome = System.getenv("IT_HOME");
+            Method method = sysclass.getDeclaredMethod("addURL", new Class[]{URL.class});
+            method.setAccessible(true);
+            File directory = new File(itHome + File.separator + "scheduler");
+            File[] jarList = directory.listFiles();
+            for (File jar : jarList) {
+                try {
+                    method.invoke(sysloader, new Object[]{(new File(jar.getAbsolutePath())).toURI().toURL()});
+                } catch (Exception e) {
+                    logger.error("COULD NOT LOAD SCHEDULER JAR " + jar.getAbsolutePath(), e);
+                }
+
+            }
+        } catch (Exception e) {
+            //Could not load any scheduler.
+            //DO nothing
+            e.printStackTrace();
+        }
 
         CEIParser.parse();
         try {
             ResourceManager.load(this);
         } catch (ClassNotFoundException e) {
-        	ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
+            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
         } catch (Exception e) {
-        	ErrorManager.fatal(RES_LOAD_ERR, e);
+            ErrorManager.fatal(RES_LOAD_ERR, e);
         }
 
         try {
             String schedulerPath = System.getProperty(ITConstants.IT_SCHEDULER);
+            schedulerPath = "integratedtoolkit.scheduler.readyscheduler.ReadyScheduler";
             if (schedulerPath == null || schedulerPath.compareTo("default") == 0) {
-                scheduler = new DefaultTaskScheduler();
+                scheduler = new TaskScheduler();
             } else {
                 Class<?> conClass = Class.forName(schedulerPath);
                 Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
                 scheduler = (TaskScheduler) ctor.newInstance();
             }
         } catch (Exception e) {
-        	ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
+            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
         }
-
-        jobManager = new JobManager();
-
-        taskCountToEnd = new int[CoreManager.getCoreCount()];
 
         keepGoing = true;
 
-        if (Tracer.basicModeEnabled()){
+        if (Tracer.basicModeEnabled()) {
             Tracer.enablePThreads();
         }
         dispatcher.start();
-        if (Tracer.basicModeEnabled()){
+
+        AllocatableAction.orchestrator = this;
+
+        if (Tracer.basicModeEnabled()) {
             Tracer.disablePThreads();
         }
 
-
         logger.info("Initialization finished");
-    }
-
-    public void setTP(AccessProcessor TP) {
-        this.accessProcessor = TP;
-        scheduler.setCoWorkers(jobManager);
-        jobManager.setCoWorkers(TP, this);
     }
 
     // Dispatcher thread
     public void run() {
         while (keepGoing) {
-
             try {
                 TDRequest request = requestQueue.take();
-                dispatchRequest(request);
+                request.process(scheduler);
             } catch (InterruptedException ie) {
                 continue;
             } catch (ShutdownException se) {
@@ -134,130 +144,26 @@ public class TaskDispatcher implements Runnable, ResourceUser {
         requestQueue.offerFirst(request);
     }
 
-    protected void dispatchRequest(TDRequest request) throws Exception {
-        Task task;
-        int coreId;
-        int taskId;
-        int implId;
-        Worker resource;
-        switch (request.getRequestType()) {
-            case SCHEDULE_TASKS:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.SCHEDULE_TASK.getId());
-                }
-                ScheduleTasksRequest stRequest = (ScheduleTasksRequest) request;
-                List<Task> toSchedule = stRequest.getToSchedule();
-                for (Task currentTask : toSchedule) {
-                	int coreID = currentTask.getTaskParams().getId();
-                	if (debug){
-                		logger.debug("Treating Scheduling request for task " + currentTask.getId()+"(core "+coreID+")");
-                	}
-                	taskCountToEnd[coreID]++;
-                    currentTask.setStatus(TaskState.TO_SCHEDULE);
-                    scheduler.scheduleTask(currentTask);
-                }
-                if (tracing){
-                    Tracer.masterEventFinish();
-                }
-                break;
-            case FINISHED_TASK:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.FINISHED_TASK.getId());
-                }
-                NotifyTaskEndRequest nte = (NotifyTaskEndRequest) request;
-                task = nte.getTask();
-                implId = nte.getImplementationId();
-                resource = nte.getWorker();
-                coreId = task.getTaskParams().getId();
-                taskCountToEnd[coreId]--;
-                scheduler.taskEnd(task, resource, implId);
-                resource.endTask(CoreManager.getCoreImplementations(coreId)[implId].getRequirements());
-
-                if (!scheduler.scheduleToResource(resource) && endRequested) {
-                    // TODO: OPTIMIZATION - check if the resource could be removed since it has no load
-                }
-                if (tracing){
-                    Tracer.masterEventFinish();
-                }
-                break;
-            case RESCHEDULE_TASK:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.RESCHEDULE_TASK.getId());
-                }
-                // Get the corresponding task to reschedule
-                RescheduleTaskRequest rqr = (RescheduleTaskRequest) request;
-                task = rqr.getTask();
-                coreId = task.getTaskParams().getId();
-                taskId = task.getId();
-                implId = rqr.getImplementationId();
-                resource = rqr.getResource();
-                if (debug) {
-                    logger.debug("Reschedule: Task " + taskId + " failed to run in " + resource.getName());
-                }
-                //register task execution end
-                scheduler.taskEnd(task, resource, implId);
-                resource.endTask(CoreManager.getCoreImplementations(coreId)[implId].getRequirements());
-
-                scheduler.scheduleToResource(resource); //resource freed, we can reschedule another task to it
-                if( !scheduler.rescheduleTask(task, resource) ) {
-            		task.setLastResource(resource.getName());
-                }
-                if (tracing){
-                    Tracer.masterEventFinish();
-                }
-
-                break;
-            case NEW_WAITING_TASK:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.NEW_WAITING_TASK.getId());
-                }
-                NewWaitingTaskRequest nwtRequest = (NewWaitingTaskRequest) request;
-                if (tracing){
-                    Tracer.masterEventFinish();
-                }
-                break;
-            case DEBUG:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.DEBUG_TASK.getId());
-                    Tracer.masterEventFinish();
-                }
-                break;
-
-            default:
-                if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.DEFAULT_TASK.getId());
-                    Tracer.masterEventFinish();
-                }
-                request.process(scheduler, jobManager);
-        }
-    }
-
     // TP (TA)
-    public void scheduleTasks(List<Task> toSchedule, boolean waiting, int[] waitingCount) {
+    public void executeTask(TaskProducer producer, Task task) {
         if (debug) {
             StringBuilder sb = new StringBuilder("Schedule tasks: ");
-            for (Task t : toSchedule) {
-                sb.append(t.getTaskParams().getName()).append("(").append(t.getId()).append(") ");
-            }
+            sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
             logger.debug(sb);
         }
-        addRequest(new ScheduleTasksRequest(toSchedule, waiting, waitingCount));
+        addRequest(new ExecuteTasksRequest(producer, task));
     }
 
-    // Notification thread (JM)
-    public void notifyJobEnd(Task task, int implId, Worker<?> resource) {
-        addRequest(new NotifyTaskEndRequest(task, implId, resource));
+    // Notification thread
+    @Override
+    public void actionCompletion(AllocatableAction action) {
+        addRequest(new ActionUpdate(action, ActionUpdate.Update.COMPLETED));
     }
 
-    // Notification thread (JM) / Transfer threads (FTM)
-    public void rescheduleJob(Task task, int implId, Worker<?> failedResource) {
-        task.setStatus(TaskState.TO_RESCHEDULE);
-        addRequest(new RescheduleTaskRequest(task, implId, failedResource));
-    }
-
-    // TP (TA)
-    public void newWaitingTask(int methodId) {
-        addRequest(new NewWaitingTaskRequest(methodId));
+    // Notification thread
+    @Override
+    public void actionError(AllocatableAction action) {
+        addRequest(new ActionUpdate(action, ActionUpdate.Update.ERROR));
     }
 
     // Scheduling optimizer thread
@@ -290,7 +196,7 @@ public class TaskDispatcher implements Runnable, ResourceUser {
     }
 
     @Override
-    public void createdResources(Worker<?> r) {
+    public void updatedResource(Worker r) {
         WorkerUpdateRequest request = new WorkerUpdateRequest(r);
         addPrioritaryRequest(request);
     }
@@ -337,7 +243,7 @@ public class TaskDispatcher implements Runnable, ResourceUser {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-        	// Nothing to do
+            // Nothing to do
         }
     }
 }

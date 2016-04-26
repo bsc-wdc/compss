@@ -1,10 +1,7 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.types.job.Job;
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Task;
-import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.allocatableactions.SingleExecution;
 import org.apache.log4j.Logger;
 
 public class JobTransfersListener extends DataOperation.EventListener {
@@ -16,15 +13,10 @@ public class JobTransfersListener extends DataOperation.EventListener {
     private static final Logger logger = Logger.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    private Job<?> job;
-    private Worker<?> res;
-    private Task task;
-    private JobManager JM;
+    private SingleExecution execution;
 
-    public JobTransfersListener(Job<?> job, Task task, Worker<?> res, JobManager jm) {
-        this.job = job;
-        this.res = res;
-        this.JM = jm;
+    public JobTransfersListener(SingleExecution execution) {
+        this.execution = execution;
     }
 
     public void enable() {
@@ -73,14 +65,12 @@ public class JobTransfersListener extends DataOperation.EventListener {
     public void notifyFailure(DataOperation fOp, Exception e) {
         e.printStackTrace();
         if (debug) {
-            logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is JOB_FILE"
-                    + ", operation end state is FAILED",
+            logger.error("THREAD " + Thread.currentThread().getName()
+                    + " File Operation failed on " + fOp.getName() + ", file role is JOB_FILE, operation end state is FAILED",
                     e);
         } else {
-            logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
-                    + ", file role is JOB_FILE"
-                    + ", operation end state is FAILED");
+            logger.error("THREAD " + Thread.currentThread().getName()
+                    + " File Operation failed on " + fOp.getName() + ", file role is JOB_FILE operation end state is FAILED");
         }
         boolean enabled;
         boolean finished;
@@ -96,11 +86,10 @@ public class JobTransfersListener extends DataOperation.EventListener {
     }
 
     private void doReady() {
-        JM.submitJob(job, res);
-
+        execution.submitJob(this.getId());
     }
 
     private void doFailures() {
-        JM.failedTransfers(job, task, errors, res);
+        execution.failedTransfers(errors);
     }
 }

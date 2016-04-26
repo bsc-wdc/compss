@@ -8,8 +8,7 @@ import integratedtoolkit.types.Implementation;
 import java.util.HashMap;
 import java.util.TreeMap;
 
-
-public class MethodWorker extends Worker<MethodResourceDescription> {
+public class MethodWorker<P> extends Worker<MethodResourceDescription> {
 
     private String name;
 
@@ -35,13 +34,19 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         String value = properties.get(ITConstants.LIMIT_OF_TASKS);
         if (value != null && !value.isEmpty()) {
             int limitOfTasks = Integer.parseInt(value);
-            if (limitOfTasks > coreCount){
-            	properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
+            if (limitOfTasks > coreCount) {
+                properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
             }
         } else {
-        	properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
+            properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
         }
         this.available = new MethodResourceDescription(description); // clone
+    }
+
+    public MethodWorker(MethodWorker mw) {
+        super(mw);
+        this.available = mw.available.copy();
+
     }
 
     @Override
@@ -51,28 +56,30 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean reserveResource(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		available.setProcessorCoreCount(available.getProcessorCoreCount() - consumption.getProcessorCoreCount());
-    		available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() - consumption.getMemoryPhysicalSize());
-    	}
-        
-        return true;
+        synchronized (available) {
+            if (hasAvailable(consumption)) {
+                available.reduceDynamic(consumption);
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     @Override
     public void releaseResource(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		available.setProcessorCoreCount(available.getProcessorCoreCount() + consumption.getProcessorCoreCount());
-    		available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() + consumption.getMemoryPhysicalSize());
-    	}
+        synchronized (available) {
+            available.setProcessorCoreCount(available.getProcessorCoreCount() + consumption.getProcessorCoreCount());
+            available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() + consumption.getMemoryPhysicalSize());
+        }
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		return ((available.getProcessorCoreCount() >= consumption.getProcessorCoreCount())
-    				&& (available.getMemoryPhysicalSize() >= consumption.getMemoryPhysicalSize()));
-    	}
+        synchronized (available) {
+            return ((available.getProcessorCoreCount() >= consumption.getProcessorCoreCount())
+                    && (available.getMemoryPhysicalSize() >= consumption.getMemoryPhysicalSize()));
+        }
     }
 
     @Override
@@ -158,4 +165,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         return sb.toString();
     }
 
+    @Override
+    public Worker getSchedulingCopy() {
+        return new MethodWorker(this);
+    }
 }

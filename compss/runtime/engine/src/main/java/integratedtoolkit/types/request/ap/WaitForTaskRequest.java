@@ -1,11 +1,11 @@
 package integratedtoolkit.types.request.ap;
 
+import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import java.util.concurrent.Semaphore;
-
 
 public class WaitForTaskRequest extends APRequest {
 
@@ -40,7 +40,7 @@ public class WaitForTaskRequest extends APRequest {
     }
 
     @Override
-    public void process(TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.findWaitedTask(this);
     }
 

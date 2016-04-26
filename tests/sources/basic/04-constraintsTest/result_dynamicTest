@@ -28,16 +28,34 @@
  
   #----------------------------------------------------------------------------------
   # Compute result status
-  dynamic_test_result=$(cat ${runtime_log} | grep -m 1 -o -e "Pending.\{0,29\}" | cut -c 18-)
-  dynamic_test_expected="coreElementDynamic1"
+  WORKER_CORES=4
+  TASK_CORE_REQ=(0 3 3 1 1)
+  
+  TASK_JOBS=()
+  jobs=`cat ${runtime_log} | grep -v "Communication" | egrep "completedJob|New Job" | cut -c 79-`
 
-  #Report result status
-  if [ "$dynamic_test_result" != "$dynamic_test_expected" ]; then
-    echo "[ERROR] Dynamic available resources are not correctly managed." | tee -a ${output_file}
-    echo "GOT: $dynamic_test_result" | tee -a ${output_file}
-    echo "EXPECTED: $dynamic_test_expected" | tee -a ${output_file}
-    exit 1
-  fi
+  while read -r line; do
+    first=`echo $line | awk '{ print $1 }'`
+    if [ "$first" == "New" ]; then
+      jobId=`echo $line | awk '{ print $3 }'`
+      taskId=`echo $line | awk '{ print $5 }'`
+      taskId=${taskId::-1}
+      TASK_JOBS[$jobId]=$taskId
+
+      cpu=${TASK_CORE_REQ[$taskId]}
+      WORKER_CORES=$(($WORKER_CORES-$cpu))
+      if [ "$WORKER_CORES" -lt "0" ]; then
+        echo "[ERROR] Dynamic available resources are not correctly managed." | tee -a ${output_file}
+        echo "The execution of task $taskId overloads the resource"
+        exit 1
+      fi
+    else
+      jobId=`echo $line | awk '{ print $6 }'`
+      taskId=${TASK_JOBS[$jobId]}
+      cpu=${TASK_CORE_REQ[$taskId]}
+      WORKER_CORES=$(($WORKER_CORES+$cpu))
+    fi
+  done <<< "$jobs"
   
   exit 0
   

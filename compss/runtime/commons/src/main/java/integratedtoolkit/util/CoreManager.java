@@ -4,6 +4,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.ServiceImplementation;
+
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.MethodResourceDescription;
@@ -12,7 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 
 public class CoreManager {
 
@@ -61,6 +61,7 @@ public class CoreManager {
         } else {
             implementations = new Implementation[newCoreCount][];
         }
+        coreCount = newCoreCount;
     }
 
     public static void registerImplementations(int coreId, Implementation<?>[] impls) {
@@ -157,5 +158,11 @@ public class CoreManager {
             }
         }
         return sb.toString();
+    }
+
+    public static void clear() {
+        implementations = null;
+        coreCount = 0;
+        nextId = 0;
     }
 }

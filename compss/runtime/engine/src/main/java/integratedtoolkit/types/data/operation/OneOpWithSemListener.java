@@ -13,13 +13,11 @@ public class OneOpWithSemListener extends DataOperation.EventListener {
     private Semaphore sem;
 
     public OneOpWithSemListener(Semaphore sem) {
-    	logger.debug("Listener for OP with Semaphore Listener: " + sem.toString());
         this.sem = sem;
     }
 
     @Override
     public void notifyEnd(DataOperation fOp) {
-    	logger.debug("Listener for OP with Semaphore Listener: " + sem.toString() + "released");
         sem.release();
     }
 

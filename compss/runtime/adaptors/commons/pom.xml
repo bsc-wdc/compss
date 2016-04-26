@@ -43,6 +43,11 @@
 			<groupId>es.bsc.cepbatools</groupId>
 			<artifactId>extrae</artifactId>
 		</dependency>
+                <!-- Storage -->
+		<dependency>
+			<groupId>es.bsc.storage</groupId>
+			<artifactId>storageInterface</artifactId>
+		</dependency>
 	</dependencies>
 	
 	<!-- BUILD -->

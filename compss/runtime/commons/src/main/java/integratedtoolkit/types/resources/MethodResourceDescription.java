@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.TreeMap;
 import org.w3c.dom.Node;
 
-
 public class MethodResourceDescription extends WorkerResourceDescription {
 
     public static final MethodResourceDescription EMPTY = new MethodResourceDescription();
@@ -36,14 +35,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     protected List<String> appSoftware;
 
     protected int wallClockLimit = 0;
-    
+
     //Extra fields
     protected int slots = 0;
     protected Float value = 0.0f;
-    
+
     //Adaptors Info
     protected TreeMap<String, AdaptorDescription> adaptorsDesc;
-    
+
     // Tags for key-value string constraints description
     public static final String PROC_ARCH = "ProcessorArch";
     public static final String PROC_CPU_COUNT = "ProcessorCPUCount";
@@ -60,24 +59,23 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public static final String HOST_QUEUE = "HostQueue";
     public static final String APP_SOFTWARE = "AppSoftware";
     public static final String WALL_CLOCK_LIMIT = "WallClockLimit";
-    
 
     public MethodResourceDescription() {
         super();
         hostQueue = new LinkedList<String>();
         appSoftware = new LinkedList<String>();
 
-	// At least 1 CPU is used
-	processorCPUCount = 1;
+        // At least 1 CPU is used
+        processorCPUCount = 1;
     }
 
     public MethodResourceDescription(Constraints constraints) {
         hostQueue = new LinkedList<String>();
         String queueString = constraints.hostQueue();
         if (queueString.compareTo(UNASSIGNED) != 0) {
-            for (String value : queueString.split(",")){
+            for (String value : queueString.split(",")) {
                 hostQueue.add(value.trim());
-            } 
+            }
         }
 
         processorArchitecture = constraints.processorArchitecture();
@@ -100,25 +98,25 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String software = constraints.appSoftware();
 
         if (software.compareTo(UNASSIGNED) != 0) {
-            for (String value : software.split(",")){
+            for (String value : software.split(",")) {
                 this.appSoftware.add(value.trim());
-            } 
+            }
         }
-        
+
         wallClockLimit = constraints.wallClockLimit();
-        
+
     }
-    
-    public MethodResourceDescription(String description){
+
+    public MethodResourceDescription(String description) {
         String[] constraints = description.split(";");
         String key, val;
 
         hostQueue = new LinkedList<String>();
         appSoftware = new LinkedList<String>();
-        for(String c : constraints){
+        for (String c : constraints) {
             key = c.split(":")[0].trim();
             val = c.split(":")[1].trim();
-            switch (key){
+            switch (key) {
                 case PROC_ARCH:
                     processorArchitecture = val;
                     break;
@@ -144,7 +142,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                     memorySTR = Float.parseFloat(val);
                     break;
                 case STORAGE_ELEM_SIZE:
-                    storageElemSize =Float.parseFloat(val);
+                    storageElemSize = Float.parseFloat(val);
                     break;
                 case STORAGE_ACCESS_TIME:
                     storageElemAccessTime = Float.parseFloat(val);
@@ -155,22 +153,22 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case OS_TYPE:
                     operatingSystemType = val;
                     break;
-                case HOST_QUEUE :
+                case HOST_QUEUE:
                     if (val.compareTo(UNASSIGNED) != 0) {
-                        for (String host : val.split(",")){
+                        for (String host : val.split(",")) {
                             this.hostQueue.add(host.trim());
-                        } 
+                        }
                     }
                     break;
                 case APP_SOFTWARE:
                     if (val.compareTo(UNASSIGNED) != 0) {
-                        for (String app : val.split(",")){
+                        for (String app : val.split(",")) {
                             this.appSoftware.add(app.trim());
-                        } 
+                        }
                     }
                     break;
                 case WALL_CLOCK_LIMIT:
-                	wallClockLimit = Integer.parseInt(val);
+                    wallClockLimit = Integer.parseInt(val);
                     break;
             }
         }
@@ -204,7 +202,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             appSoftware.add(clone.appSoftware.get(i));
         }
         wallClockLimit = clone.wallClockLimit;
-        
+
         slots = clone.slots;
         value = clone.value;
     }
@@ -222,8 +220,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
     }
 
+    @Override
+    public MethodResourceDescription copy() {
+        return new MethodResourceDescription(this);
+    }
+
     private void parseCapabilities(Node capabilities) {
-        
+
         for (int j = 0; j < capabilities.getChildNodes().getLength(); j++) {
             if (("Host").equals(capabilities.getChildNodes().item(j).getNodeName())) {
                 parseHost(capabilities.getChildNodes().item(j));
@@ -240,7 +243,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
         }
     }
-    
 
     private void parseHost(Node host) {
         for (int k = 0; k < host.getChildNodes().getLength(); k++) {
@@ -452,13 +454,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public void addAppSoftware(String software) {
         appSoftware.add(software);
     }
-    
-    public long getWallClockLimit(){
-    	return wallClockLimit;
+
+    public long getWallClockLimit() {
+        return wallClockLimit;
     }
-    
-    public void setWallClockLimit(int wcl){
-    	this.wallClockLimit = wcl;
+
+    public void setWallClockLimit(int wcl) {
+        this.wallClockLimit = wcl;
     }
 
     public Float getValue() {
@@ -503,7 +505,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         this.slots += mr2.slots;
-        
+
         wallClockLimit = java.lang.Math.max(this.wallClockLimit, mr2.wallClockLimit);
     }
 
@@ -561,8 +563,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         float ratio;
 
         // If a rc2 constraint is not defined then it is not used to calculate the fits
-	// However, the CPU Count is mandatory to be, at least, 1
-	if (rc2.processorCoreCount != 0) {
+        // However, the CPU Count is mandatory to be, at least, 1
+        if (rc2.processorCoreCount != 0) {
             ratio = this.processorCoreCount / (float) rc2.processorCoreCount;
             min = ratio;
         }
@@ -570,8 +572,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             ratio = this.processorCPUCount / (float) rc2.processorCPUCount;
             min = ratio;
         } else {
-	    ratio = this.processorCPUCount;
-	    min = Math.min(min, ratio);
+            ratio = this.processorCPUCount;
+            min = Math.min(min, ratio);
         }
 
         if (rc2.memoryPhysicalSize != 0.0f) {
@@ -599,7 +601,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return rd;
     }
 
-    public void increase(MethodResourceDescription rd) {
+    @Override
+    public void increase(ResourceDescription resources) {
+        MethodResourceDescription rd = (MethodResourceDescription) resources;
         this.processorCPUCount += rd.processorCPUCount;
         this.processorCoreCount += rd.processorCoreCount;
         this.memoryPhysicalSize += rd.memoryPhysicalSize;
@@ -607,12 +611,42 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.storageElemSize += rd.storageElemSize;
     }
 
-    public void reduce(MethodResourceDescription rd) {
+    @Override
+    public void reduce(ResourceDescription resources) {
+        MethodResourceDescription rd = (MethodResourceDescription) resources;
         this.processorCPUCount -= rd.processorCPUCount;
         this.processorCoreCount -= rd.processorCoreCount;
         this.memoryPhysicalSize -= rd.memoryPhysicalSize;
         this.memoryVirtualSize -= rd.memoryVirtualSize;
         this.storageElemSize -= rd.storageElemSize;
+    }
+
+    @Override
+    public void increaseDynamic(ResourceDescription resources) {
+        MethodResourceDescription rd = (MethodResourceDescription) resources;
+        this.processorCoreCount += rd.processorCoreCount;
+        this.memoryPhysicalSize += rd.memoryPhysicalSize;
+    }
+
+    @Override
+    public void reduceDynamic(ResourceDescription resources) {
+        MethodResourceDescription rd = (MethodResourceDescription) resources;
+        this.processorCoreCount -= rd.processorCoreCount;
+        this.memoryPhysicalSize -= rd.memoryPhysicalSize;
+    }
+
+    @Override
+    public ResourceDescription getDynamicCommons(ResourceDescription other) {
+        MethodResourceDescription otherMRD = (MethodResourceDescription) other;
+        MethodResourceDescription mrd = new MethodResourceDescription();
+        mrd.processorCoreCount = Math.min(processorCoreCount, otherMRD.processorCoreCount);
+        mrd.memoryPhysicalSize = Math.min(memoryPhysicalSize, otherMRD.memoryPhysicalSize);
+        return mrd;
+    }
+
+    @Override
+    public boolean isDynamicUseless() {
+        return memoryPhysicalSize == 0 && processorCoreCount == 0;
     }
 
     @Override
@@ -666,4 +700,5 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         return sb.toString();
     }
+
 }

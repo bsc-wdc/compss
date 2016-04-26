@@ -1,6 +1,5 @@
 package integratedtoolkit.util;
 
-import java.util.List;
 import java.util.LinkedList;
 
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
@@ -30,7 +29,6 @@ import javax.xml.transform.stream.StreamSource;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.ResourcesState;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -38,6 +36,7 @@ import integratedtoolkit.types.resources.Resource.Type;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.Worker;
 
@@ -49,7 +48,6 @@ import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
 import org.xml.sax.SAXException;
-
 
 /**
  * The ResourceManager class is an utility to manage all the resources available
@@ -63,12 +61,13 @@ public class ResourceManager {
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
     private static final String PROJ_LOAD_ERR = "Error loading project information";
     private static final String DEL_VM_ERR = "Error deleting VMs";
-    
+
     //XML Document
     private static Document resourcesDoc;
 
     //Information about resources
-    private static WorkerPool pool;   
+    private static WorkerPool pool;
+    private static int[] poolCoreMaxConcurrentTasks;
     private static ResourceUser resourceUser;
     private static ResourceOptimizer ro;
 
@@ -107,17 +106,20 @@ public class ResourceManager {
      * CloudManager
      *
      *
+     * @param resUser class to notify resource changes
+     *
      * @throws Exception Parsing the xml file or creating new instances for the
      * Cloud providers connectors
      */
     public static void load(ResourceUser resUser) throws Exception {
-        pool = new WorkerPool(CoreManager.getCoreCount());
+        pool = new WorkerPool();
+        poolCoreMaxConcurrentTasks = new int[CoreManager.getCoreCount()];
         if (!ProjectManager.isInit()) {
             try {
                 ProjectManager.init();
             } catch (Exception e) {
-            	resourcesLogger.fatal(PROJ_LOAD_ERR, e);
-            	runtimeLogger.fatal(PROJ_LOAD_ERR, e);
+                resourcesLogger.fatal(PROJ_LOAD_ERR, e);
+                runtimeLogger.fatal(PROJ_LOAD_ERR, e);
                 System.exit(1);
             }
         }
@@ -141,14 +143,13 @@ public class ResourceManager {
         try {
             validator.validate(new DOMSource(resourcesDoc));
         } catch (SAXException e) {
-            runtimeLogger.error("Error Validating resources.xml config file.\n",e);
-        	System.err.println("Error Validating resources.xml config file.\n" + e.getMessage());
-        } catch (IOException e){
-        	runtimeLogger.error("IOError while trying to validate resources.xml config file.\n",e);
+            runtimeLogger.error("Error Validating resources.xml config file.\n", e);
+            System.err.println("Error Validating resources.xml config file.\n" + e.getMessage());
+        } catch (IOException e) {
+            runtimeLogger.error("IOError while trying to validate resources.xml config file.\n", e);
             System.err.println("IOError while trying to validate resources.xml config file.\n" + e.getMessage());
         }
         validator.validate(new DOMSource(resourcesDoc));
-        
 
         // resolver = evaluator.createNSResolver(resourcesDoc);
         NodeList nl = resourcesDoc.getChildNodes().item(0).getChildNodes();
@@ -165,16 +166,16 @@ public class ResourceManager {
                 if (!ProjectManager.containsWorker(name)) {
                     continue;
                 }
-                try{
+                try {
                     loadService(name, n);
-                } catch (Exception e){
-                	resourcesLogger.error("Could not load service " + name);
+                } catch (Exception e) {
+                    resourcesLogger.error("Could not load service " + name);
                 }
             } else if (n.getNodeName().compareTo("CloudProvider") == 0) {
                 String cloudProviderName = n.getAttributes().getNamedItem("name").getTextContent();
                 if (!ProjectManager.existsCloudProvider(cloudProviderName)) {
-                    runtimeLogger.debug("Provider "+ cloudProviderName + " not in project.xml");
-                	continue;
+                    runtimeLogger.debug("Provider " + cloudProviderName + " not in project.xml");
+                    continue;
                 }
                 loadCloudProvider(cloudProviderName, n);
             } else if (n.getNodeName().compareTo("Disk") == 0) {
@@ -213,7 +214,7 @@ public class ResourceManager {
         TreeMap<String, AdaptorDescription> adaptorsDesc = AdaptorDescription.merge(projectAdaptorsDesc, resourceAdaptorsDesc);
         HashMap<String, String> properties = ProjectManager.getWorkerProperties(name);
         HashMap<String, String> sharedDisks = new HashMap<String, String>();
-        
+
         for (int j = 0; j < n.getChildNodes().getLength(); j++) {
             if (n.getChildNodes().item(j).getNodeName().compareTo("Disks") == 0) {
                 Node disks = n.getChildNodes().item(j);
@@ -241,17 +242,17 @@ public class ResourceManager {
         TreeMap<String, AdaptorDescription> adaptorsDesc = new TreeMap<String, AdaptorDescription>();
         for (int i = 0; i < n.getChildNodes().getLength(); i++) {
             Node property = n.getChildNodes().item(i);
-            if (("Adaptors").equals(property.getNodeName())){
-            	for (int j = 0; j < property.getChildNodes().getLength(); ++j){
+            if (("Adaptors").equals(property.getNodeName())) {
+                for (int j = 0; j < property.getChildNodes().getLength(); ++j) {
                     Node adaptor = property.getChildNodes().item(j);
-                    if(("Adaptor").equals(adaptor.getNodeName())){
+                    if (("Adaptor").equals(adaptor.getNodeName())) {
                         int minPort = 0;
                         int maxPort = -1;
                         String brokerAdaptor = null;
-                        
+
                         String adaptorName = adaptor.getAttributes().getNamedItem("name").getTextContent();
                         for (int k = 0; k < adaptor.getChildNodes().getLength(); k++) {
-                            switch(adaptor.getChildNodes().item(k).getNodeName()){
+                            switch (adaptor.getChildNodes().item(k).getNodeName()) {
                                 case AdaptorDescription.MAX_PORT:
                                     maxPort = Integer.parseInt(adaptor.getChildNodes().item(k).getTextContent());
                                     break;
@@ -259,11 +260,11 @@ public class ResourceManager {
                                     minPort = Integer.parseInt(adaptor.getChildNodes().item(k).getTextContent());
                                     break;
                                 case AdaptorDescription.BROKER_ADAPTOR:
-                                	brokerAdaptor = adaptor.getChildNodes().item(k).getTextContent();
-                                	break;
+                                    brokerAdaptor = adaptor.getChildNodes().item(k).getTextContent();
+                                    break;
                             }
                         }
-                        runtimeLogger.debug("Adding adaptor description: "+ adaptorName);
+                        runtimeLogger.debug("Adding adaptor description: " + adaptorName);
                         adaptorsDesc.put(adaptorName, new AdaptorDescription(adaptorName, minPort, maxPort, brokerAdaptor));
                     }
                 }
@@ -301,18 +302,7 @@ public class ResourceManager {
             wsProperties.put("port", portName);
             ServiceResourceDescription description = new ServiceResourceDescription(serviceName, namespace, portName);
             Worker<?> newResource = new ServiceWorker(name, description, wsProperties, taskCount);
-            newResource.updatedFeatures();
-            
-            synchronized (pool) {
-                //pool.addStaticResource(newResource);
-                pool.addResourceLinks(newResource);
-                pool.defineCriticalSet();
-            }
-            resourceUser.createdResources(newResource);
-            
-            // Log new resource
-            resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-            resourcesLogger.info("INFO_MSG = [New service available. Name = " + newResource.getName() + "]");
+            addStaticWorker(newResource);
         }
     }
 
@@ -343,10 +333,10 @@ public class ResourceManager {
                             CloudImageDescription cid = new CloudImageDescription(name, resourcesImageNode, projectImageNode, h);
                             resourcesLogger.info("CLOUD_IMAGE_DESCRIPTION = [\n" + cid.toString("\t") + "]");
                             images.add(cid);
-                        }else{
-                        	runtimeLogger.debug("Image "+ name + " not found in project.xml");
+                        } else {
+                            runtimeLogger.debug("Image " + name + " not found in project.xml");
                         }
-                        	
+
                     }
                 }
             } else if (n.getChildNodes().item(ki).getNodeName().compareTo("InstanceTypes") == 0) {
@@ -359,8 +349,8 @@ public class ResourceManager {
                         if (projectTypeNode != null) {
                             CloudMethodResourceDescription rd = new CloudMethodResourceDescription(resourcesInstanceTypeNode);
                             instanceTypes.add(rd);
-                        }else{
-                        	runtimeLogger.debug("InstanceType "+ name + " not found in project.xml");
+                        } else {
+                            runtimeLogger.debug("InstanceType " + name + " not found in project.xml");
                         }
                     }
                 }
@@ -392,46 +382,44 @@ public class ResourceManager {
         }
     }
 
-    public static Worker<?> getWorker(String name) {
-        return pool.getResource(name);
-    }
-
-    /**
-     * Return a list of all the resources
-     *
-     * @return list of all the resources
-     */
-    public static List<Worker<?>> getAllWorkers() {
-        return pool.findAllResources();
-    }
-
     public static void addStaticWorker(Worker<?> worker) {
-        worker.updatedFeatures();
         synchronized (pool) {
+            worker.updatedFeatures();
             pool.addStaticResource(worker);
-            pool.addResourceLinks(worker);
+            pool.defineCriticalSet();
+
+            int[] maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
+            }
         }
-        resourceUser.createdResources(worker);
-        
+        resourceUser.updatedResource(worker);
+
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
-        runtimeLogger.info("New resource available in the pool. Name = " + worker.getName());
+        if (worker.getType() == Resource.Type.SERVICE) {
+            runtimeLogger.info("New service available in the pool. Name = " + worker.getName());
+        } else {
+            runtimeLogger.info("New resource available in the pool. Name = " + worker.getName());
+        }
     }
 
     public static void addCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker) {
         synchronized (pool) {
-            pool.addDynamicResource(worker);
             CloudManager.confirmedRequest(origin, worker);
-        }
-        worker.updatedFeatures();
-        synchronized (pool) {
-            pool.addResourceLinks(worker);
+            worker.updatedFeatures();
+            pool.addDynamicResource(worker);
             pool.defineCriticalSet();
+
+            int[] maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
+            }
         }
 
-        resourceUser.createdResources(worker);
-        
+        resourceUser.updatedResource(worker);
+
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [New resource available in the pool. Name = " + worker.getName() + "]");
@@ -440,14 +428,20 @@ public class ResourceManager {
 
     public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker, CloudMethodResourceDescription extension) {
         synchronized (pool) {
-            pool.removeResourceLinks(worker);
             CloudManager.confirmedRequest(origin, worker);
+            int[] maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
+            }
             worker.increaseFeatures(extension);
-            pool.addResourceLinks(worker);
+            maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
+            }
             pool.defineCriticalSet();
         }
-        resourceUser.createdResources(worker);
-        
+        resourceUser.updatedResource(worker);
+
         // Log modified resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [Resource modified. Name = " + worker.getName() + "]");
@@ -457,34 +451,47 @@ public class ResourceManager {
     public static Semaphore reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         Semaphore sem;
         synchronized (pool) {
-            pool.removeResourceLinks(worker);
+            int[] maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
+            }
             sem = worker.reduceFeatures(reduction);
-            pool.addResourceLinks(worker);
+            maxTaskCount = worker.getSimultaneousTasks();
+            for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
+                poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
+            }
             pool.defineCriticalSet();
         }
-        resourceUser.createdResources(worker);
-        
+        resourceUser.updatedResource(worker);
+
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
         runtimeLogger.info("Resource removed from the pool. Name = " + worker.getName());
-        
+
         return sem;
     }
 
     public static int[] getTotalSlots() {
         int[] counts = new int[CoreManager.getCoreCount()];
-        int[] poolCounts = pool.getCoreMaxTaskCount();
         int[] starterCount = WorkerStarter.getExpectedCoreCount();
         int[] cloudCount = CloudManager.getPendingCoreCounts();
         for (int i = 0; i < counts.length; i++) {
-            counts[i] = poolCounts[i] + starterCount[i] + cloudCount[i];
+            counts[i] = poolCoreMaxConcurrentTasks[i] + starterCount[i] + cloudCount[i];
         }
         return counts;
     }
 
     public static int[] getAvailableSlots() {
-        return pool.getCoreMaxTaskCount();
+        return poolCoreMaxConcurrentTasks;
+    }
+
+    public static LinkedList<Worker> getAllWorkers() {
+        return pool.findAllResources();
+    }
+
+    public static Worker getWorker(String name) {
+        return pool.getResource(name);
     }
 
     public static Collection<Worker<?>> getStaticResources() {
@@ -495,6 +502,10 @@ public class ResourceManager {
         return pool.getDynamicResources();
     }
 
+    public static CloudMethodWorker getDynamicResource(String name) {
+        return pool.getDynamicResource(name);
+    }
+
     public static Collection<CloudMethodWorker> getCriticalDynamicResources() {
         return pool.getCriticalResources();
     }
@@ -503,83 +514,52 @@ public class ResourceManager {
         return pool.getNonCriticalResources();
     }
 
-    public static CloudMethodWorker getDynamicResource(String name) {
-        return pool.getDynamicResource(name);
-    }
-
     public static void refuseCloudRequest(ResourceCreationRequest rcr) {
         CloudManager.refusedRequest(rcr);
     }
 
-    /**
-     * Return a list of all the resources able to run a task of the core coreId
-     *
-     * @param coreId Id of the task's core
-     * @return list of all the resources able to run a task of the core coreId
-     */
-    public static LinkedList<Worker<?>> findCompatibleWorkers(int coreId) {
-        return pool.findCompatibleResources(coreId);
-    }
-
-    public static HashMap<Worker<?>, LinkedList<Implementation<?>>> findAvailableWorkers(LinkedList<Worker<?>> compatibleWorkers, int coreId) {
-        HashMap<Worker<?>, LinkedList<Implementation<?>>> available = new HashMap<Worker<?>, LinkedList<Implementation<?>>>();
-        for (Worker r : compatibleWorkers) {
-            LinkedList<Implementation<?>> availableImpls = new LinkedList<Implementation<?>>();
-            LinkedList<Implementation<?>> compatibleImpls = r.getExecutableImpls(coreId);
-            for (Implementation<?> compatibleImpl : compatibleImpls) {
-                if (r.canRunNow(compatibleImpl.getRequirements())) {
-                    availableImpls.add(compatibleImpl);
-                }
-            }
-            if (!availableImpls.isEmpty()) {
-                available.put(r, availableImpls);
-            }
-        }
-        return available;
-    }
-
     public static ResourcesState getResourcesState() {
         ResourcesState state = new ResourcesState();
-        
+
         // Set resources information
-        for (Worker<?> resource : ResourceManager.getAllWorkers()) {
-        	if (resource.getType().equals(Type.WORKER)) {
-        		int cores = ((MethodResourceDescription)resource.getDescription()).getProcessorCoreCount();
-        		float memory = ((MethodResourceDescription)resource.getDescription()).getMemoryPhysicalSize();
-        		// Last boolean equals true because this resource is active
-        		state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
-        	} else {
-        		// Services doesn't have cores/memory
-        		// Last boolean equals true because this resource is active
-        		state.addHost(resource.getName(), resource.getType().toString(), 0, (float)0.0, resource.getSimultaneousTasks(), true);
-        	}
+        for (Worker<?> resource : pool.findAllResources()) {
+            if (resource.getType().equals(Type.WORKER)) {
+                int cores = ((MethodResourceDescription) resource.getDescription()).getProcessorCoreCount();
+                float memory = ((MethodResourceDescription) resource.getDescription()).getMemoryPhysicalSize();
+                // Last boolean equals true because this resource is active
+                state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
+            } else {
+                // Services doesn't have cores/memory
+                // Last boolean equals true because this resource is active
+                state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
+            }
         }
-        
+
         // Set cloud information
         state.setUseCloud(CloudManager.isUseCloud());
         if (state.getUseCloud()) {
-	        try {
-	            state.setCreationTime(CloudManager.getNextCreationTime());
-	        } catch (Exception ex) {
-	            state.setCreationTime(120000l);
-	        }
-	        state.setCurrentCloudVMCount(CloudManager.getCurrentVMCount());
-        
-	        for (ResourceCreationRequest rcr : CloudManager.getPendingRequests()) {
-	            int[][] simTasks = rcr.requestedSimultaneousTaskCount();
-	            for (int coreId = 0; coreId < simTasks.length; coreId++) {
-	                int coreSlots = 0;
-	                for (int implId = 0; implId < simTasks[coreId].length; ++implId) {
-	                    coreSlots += Math.max(coreSlots, simTasks[coreId][implId]);
-	                }
-	                // Last boolean equals false because this resource is pending
-	                state.updateHostInfo(rcr.getRequested().getName(), rcr.getRequested().getType(), 
-	                		rcr.getRequested().getProcessorCoreCount(), rcr.getRequested().getMemoryPhysicalSize(),
-	                		coreId, coreSlots, false);
-	            }
-	        }
+            try {
+                state.setCreationTime(CloudManager.getNextCreationTime());
+            } catch (Exception ex) {
+                state.setCreationTime(120000l);
+            }
+            state.setCurrentCloudVMCount(CloudManager.getCurrentVMCount());
+
+            for (ResourceCreationRequest rcr : CloudManager.getPendingRequests()) {
+                int[][] simTasks = rcr.requestedSimultaneousTaskCount();
+                for (int coreId = 0; coreId < simTasks.length; coreId++) {
+                    int coreSlots = 0;
+                    for (int implId = 0; implId < simTasks[coreId].length; ++implId) {
+                        coreSlots += Math.max(coreSlots, simTasks[coreId][implId]);
+                    }
+                    // Last boolean equals false because this resource is pending
+                    state.updateHostInfo(rcr.getRequested().getName(), rcr.getRequested().getType(),
+                            rcr.getRequested().getProcessorCoreCount(), rcr.getRequested().getMemoryPhysicalSize(),
+                            coreId, coreSlots, false);
+                }
+            }
         }
-        
+
         return state;
     }
 
@@ -600,14 +580,14 @@ public class ResourceManager {
         }
         return sb.toString();
     }
-    
+
     public static void printLoadInfo() {
-    	resourcesLogger.info(resourceUser.getWorkload().toString());
+        resourcesLogger.info(resourceUser.getWorkload().toString());
     }
-    
+
     public static void printResourcesState() {
-    	resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-    	resourcesLogger.info(getResourcesState().toString());
+        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        resourcesLogger.info(getResourcesState().toString());
     }
 
     public static Long getCreationTime()
@@ -622,65 +602,66 @@ public class ResourceManager {
     // Stop all the nodes: vm
     public static void stopNodes(WorkloadStatus status) {
         // Log resource
-    	resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
-    	resourcesLogger.info("INFO_MSG = [Stopping all workers]");
-    	runtimeLogger.info("Stopping all workers");
-        if (ro!=null){
-        	ro.shutdown(status);
-        }else{
-        	runtimeLogger.info("Resource Optimizer was not initialized");
-        }
+        resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
+        resourcesLogger.info("INFO_MSG = [Stopping all workers]");
+        runtimeLogger.info("Stopping all workers");
         
+        if (ro != null) {
+            ro.shutdown(status);
+        } else {
+            runtimeLogger.info("Resource Optimizer was not initialized");
+        }
+
         // Stop all Cloud VM
         if (CloudManager.isUseCloud()) {
-        	// Transfer files 
+            // Transfer files 
         	/*Semaphore sem = new Semaphore(0);
-            ShutdownListener sl = new ShutdownListener(sem);
-            resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping cloud workers...]");
-            for (Worker<?> r : pool.getDynamicResources()) {
-            	// TODO: The worker is not really needed to be stopped because VM is going to be erased.
-            	//       However, the app-files and the tracing files MUST be transfered
-                r.stop(false, sl);
-            }
-            resourcesLogger.debug("DEBUG_MSG = [Waiting for cloud workers to shutdown...]");
-            sl.enable();
-            try {
-                sem.acquire();
-            } catch (Exception e) {
-            	resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on cloud worker shutdown]");
-            }
-            resourcesLogger.info("INFO_MSG = [Cloud Workers stopped]");
-            */
+             ShutdownListener sl = new ShutdownListener(sem);
+             resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping cloud workers...]");
+             for (Worker<?,?> r : pool.getDynamicResources()) {
+             // TODO: The worker is not really needed to be stopped because VM is going to be erased.
+             //       However, the app-files and the tracing files MUST be transfered
+             r.stop(false, sl);
+             }
+             resourcesLogger.debug("DEBUG_MSG = [Waiting for cloud workers to shutdown...]");
+             sl.enable();
+             try {
+             sem.acquire();
+             } catch (Exception e) {
+             resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on cloud worker shutdown]");
+             }
+             resourcesLogger.info("INFO_MSG = [Cloud Workers stopped]");
+             */
             resourcesLogger.debug("DEBUG_MSG = [Terminating cloud instances...]");
             try {
                 CloudManager.terminateALL();
                 resourcesLogger.info("TOTAL_EXEC_COST = " + CloudManager.getTotalCost());
             } catch (Exception e) {
-            	resourcesLogger.error(ITConstants.TS + ": " + DEL_VM_ERR, e);
+                resourcesLogger.error(ITConstants.TS + ": " + DEL_VM_ERR, e);
             }
             resourcesLogger.info("INFO_MSG = [Cloud instances terminated]");
         }
-        
+
         // Stop static workers - Order its destruction from runtime and transfer files
         // Physical worker (COMM) is erased now - because of cloud
-        if(pool!=null && !pool.getStaticResources().isEmpty()) {
-        	
-	        Semaphore sem = new Semaphore(0);
-	        ShutdownListener sl = new ShutdownListener(sem);
-	        resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
-	        for (Worker<?> r : pool.getStaticResources()) {
-	            r.stop(false, sl);
-	        }
-	        
-	        resourcesLogger.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
-	        sl.enable();
-	        
-	        try {
-	            sem.acquire();
-	        } catch (Exception e) {
-	        	resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
-	        }
-	        resourcesLogger.info("INFO_MSG = [Workers stopped]");     
+        if (pool != null && !pool.getStaticResources().isEmpty()) {
+
+            Semaphore sem = new Semaphore(0);
+            ShutdownListener sl = new ShutdownListener(sem);
+            resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
+            for (Worker<?> r : pool.getStaticResources()) {
+                r.stop(false, sl);
+            }
+
+            resourcesLogger.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");
+            sl.enable();
+
+            try {
+                sem.acquire();
+            } catch (Exception e) {
+                resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on worker shutdown]");
+            }
+            resourcesLogger.info("INFO_MSG = [Workers stopped]");
         }
     }
 
@@ -714,217 +695,4 @@ public class ResourceManager {
         return sb.toString();
 
     }
-    /*
-     private static void manageResourceDestruction(CloudMethodWorker res, ResourceDestructionRequest rdr, int[][] slotReduction) {
-     logger.info("ORDER_DESTRUCTION = [\n\tTYPE = " + rdr.getRequested().getType() + "\n\tPROVIDER = " + rdr.getRequested().getName() + "\n]");
-     if (debug) {
-     StringBuilder sb = new StringBuilder();
-     sb.append("EXPECTED_SIM_TASKS = [").append("\n");
-     for (int i = 0; i < CoreManager.coreCount; i++) {
-     for (int j = 1; j < CoreManager.getCoreImplementations(i).length; ++j) {
-     sb.append("\t").append("IMPLEMENTATION_INFO = [").append("\n");
-     sb.append("\t").append("\t").append("COREID = ").append(i).append("\n");
-     sb.append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
-     sb.append("\t").append("\t").append("SIM_TASKS = ").append(slotReduction[i][j]).append("\n");
-     sb.append("\t").append("]").append("\n");
-     }
-     }
-     sb.append("]");
-     logger.debug(sb.toString());
-     }
-     //Fa la reserva i fa al pool si hi ha prous recursos pendents
-     if (pool.markResourcesToRemove(res, rdr.getRequested(), slotReduction)) {
-     //Afegeix la destrucció a la màquina i indica si es destrueix totalment
-     CloudManager.performReduction(rdr);
-     if (!rdr.isTerminate()) {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere are enough available resources to be destroyed and the VM is not completely killed. Terminating resource.\n]");
-     }
-     CloudManager.terminate(rdr);
-     } else {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere are enough available resources to be destroyed and the VM is completely killed. All the unique data must be saved.\n]");
-     }
-     pool.delete(res);
-     }
-     } else {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere are not enough available resources to perform the modification. Registering modification as pending.\n]");
-     }
-     LinkedList<ResourceDestructionRequest> modifications = host2PendingModifications.get(res);
-     if (modifications == null) {
-     modifications = new LinkedList<ResourceDestructionRequest>();
-     host2PendingModifications.put(res, modifications);
-     }
-     CloudManager.addPendingReduction(rdr);
-     modifications.add(rdr);
-     }
-     }
-
-     public static ResourceDestructionRequest checkPendingModifications(CloudMethodWorker worker) {
-     LinkedList<ResourceDestructionRequest> modifications = host2PendingModifications.get(worker);
-     if (modifications != null && !modifications.isEmpty()) { //if there are pending modifications
-     CloudMethodWorker res = (CloudMethodWorker) worker;
-     ResourceDestructionRequest modification = modifications.get(0);
-     if (res.hasAvailable(modification.getRequested())) {
-     modifications.removeFirst();
-     pool.confirmPendingReduction(res, modification.getRequested());
-     CloudManager.confirmReduction(modification);
-     if (!modification.isTerminate()) {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere is a pending modification and enough available resources to be destroyed. The vm will be alive after performing the modification so the resources are destroyed.\n]");
-     }
-     CloudManager.terminate(modification);
-     } else {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere is a pending modification and enough available resources to be destroyed. The vm will be completely killed and unique data must be saved.\n]");
-     }
-     pool.delete(res);
-     }
-     return modification;
-     } else {
-     if (debug) {
-     logger.debug("DEBUG_MSG = [\n\tThere is a pending modification for node " + res.getName() + ", but there are not enough available resources yet.\n]");
-
-     }
-     }
-     }
-     return null;
-     }
-
-     //Removes a resource from the pool if its an useless noncritical cloud resource
-     public static LinkedList<ResourceDestructionRequest> tryToTerminate(String resourceName, int[] counts) {
-     CloudMethodWorker res = null;
-     if (CloudManager.isUseCloud() && (res = pool.getDynamicResource(resourceName)) != null) {
-     boolean useful = checkResourceUsefulness(res, counts);
-     if (useful) {
-     return new LinkedList<ResourceDestructionRequest>();
-     }
-     return destroyUselessResource(res);
-     }
-     return new LinkedList<ResourceDestructionRequest>();
-     }
-
-     public static LinkedList<ResourceDestructionRequest> terminateUnbounded(int[] counts) {
-     LinkedList<ResourceDestructionRequest> rdrs = new LinkedList<ResourceDestructionRequest>();
-     CloudManager.stopReached();
-     if (CloudManager.isUseCloud()) {
-     LinkedList<CloudMethodWorker> resources = pool.getDynamicResources();
-     for (CloudMethodWorker candidate : resources) {
-     boolean useful = checkResourceUsefulness(candidate, counts);
-     if (useful) {
-     continue;
-     }
-     rdrs.addAll(destroyUselessResource(candidate));
-     }
-     }
-     return rdrs;
-     }
-
-     private static boolean checkResourceUsefulness(CloudMethodWorker res, int[] counts) {
-     boolean useful = res.getTaskCount() > 0;
-     LinkedList<Integer> executableCores = res.getExecutableCores();
-     int[] simTasks = res.getSimultaneousTasks();
-     int[] totalSimTasks = pool.getCoreMaxTaskCount();
-     for (int i = 0; i < executableCores.size() && !useful; i++) {
-     int coreId = executableCores.get(i);
-     useful = counts[coreId] > (totalSimTasks[coreId] - simTasks[coreId]);
-     }
-     return useful;
-     }
-
-     private static LinkedList<ResourceDestructionRequest> destroyUselessResource(CloudMethodWorker res) {
-     LinkedList<ResourceDestructionRequest> deletions = new LinkedList<ResourceDestructionRequest>();
-     pool.delete(res);
-     HashMap<CloudMethodResourceDescription, Integer> composition = CloudManager.getVMComposition(res.getName());
-     for (java.util.Map.Entry<CloudMethodResourceDescription, Integer> entry : composition.entrySet()) {
-     CloudMethodResourceDescription type = entry.getKey();
-     Integer amount = entry.getValue();
-     for (int i = 0; i < amount; i++) {
-     CloudMethodResourceDescription rd = new CloudMethodResourceDescription(type);
-     rd.setName(res.getName());
-     ResourceDestructionRequest rdr = new ResourceDestructionRequest(rd, false);
-     CloudManager.performReduction(rdr);
-     if (!rdr.isTerminate()) {
-     CloudManager.terminate(rdr);
-     }
-     deletions.add(rdr);
-     }
-     }
-     return deletions;
-     }
-
-     public static ResourceDestructionRequest reduceResources(float[] destroyRecommendations, boolean mandatoryDestruction) {
-     //Getting all modifiable resources
-     java.util.Set<CloudMethodWorker> noncritical = pool.getNonCriticalResources(destroyRecommendations, mandatoryDestruction);
-     java.util.Set<CloudMethodWorker> critical = pool.getCriticalResources(destroyRecommendations, mandatoryDestruction);
-     //Getting best destruction option for each set
-     Object[] noncriticalSolution = CloudManager.getBestDestruction(noncritical, destroyRecommendations);
-     Object[] criticalSolution = CloudManager.getBestDestruction(critical, destroyRecommendations);
-
-     boolean criticalIsBetter;
-     if (criticalSolution == null) {
-     if (noncriticalSolution == null) {
-     return null;
-     } else {
-     criticalIsBetter = false;
-     }
-     } else {
-     if (noncriticalSolution == null) {
-     criticalIsBetter = true;
-     } else {
-     criticalIsBetter = false;
-     float[] noncriticalValues = (float[]) noncriticalSolution[1];
-     float[] criticalValues = (float[]) criticalSolution[1];
-
-     if (noncriticalValues[0] == criticalValues[0]) {
-     if (noncriticalValues[1] == criticalValues[1]) {
-     if (noncriticalValues[2] < criticalValues[2]) {
-     criticalIsBetter = true;
-     }
-     } else {
-     if (noncriticalValues[1] > criticalValues[1]) {
-     criticalIsBetter = true;
-     }
-     }
-     } else {
-     if (noncriticalValues[0] > criticalValues[0]) {
-     criticalIsBetter = true;
-     }
-     }
-     }
-
-     }
-
-     CloudMethodWorker res;
-     float[] record;
-     CloudMethodResourceDescription rd;
-     int[][] slotsRemovingCount;
-     if (criticalIsBetter && pool.isCriticalRemovalSafe((int[][]) criticalSolution[2])) {
-     res = (CloudMethodWorker) criticalSolution[0];
-     record = (float[]) criticalSolution[1];
-     slotsRemovingCount = (int[][]) criticalSolution[2];
-     rd = (CloudMethodResourceDescription) criticalSolution[3];
-     } else {
-     if (noncriticalSolution == null) {
-     return null;
-     }
-     res = (CloudMethodWorker) noncriticalSolution[0];
-     record = (float[]) noncriticalSolution[1];
-     slotsRemovingCount = (int[][]) noncriticalSolution[2];
-     rd = (CloudMethodResourceDescription) noncriticalSolution[3];
-     }
-
-     if (!mandatoryDestruction && record[1] > 0) {
-     return null;
-     } else {
-     CloudMethodResourceDescription finalDescription = new CloudMethodResourceDescription(rd);
-     finalDescription.setName(res.getName());
-     ResourceDestructionRequest rdr = new ResourceDestructionRequest(finalDescription, false);
-     manageResourceDestruction(res, rdr, slotsRemovingCount);
-     return rdr;
-     }
-     }
-     */
-
 }

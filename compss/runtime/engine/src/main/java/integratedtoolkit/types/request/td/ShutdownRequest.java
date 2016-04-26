@@ -1,14 +1,13 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
-
 
 /**
  * This class represents a notification to end the execution
@@ -49,16 +48,12 @@ public class ShutdownRequest extends TDRequest {
     }
 
     @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.SHUTDOWN;
-    }
-
-    @Override
-    public void process(TaskScheduler ts, JobManager jm) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         //ts.shutdown();
-    	logger.debug("Processing ShutdownRequest request...");
-        jm.shutdown();
-        
+        logger.debug("Processing ShutdownRequest request...");
+        SingleExecution.shutdown();
+        ts.shutdown();
+
         // Print core state
         WorkloadStatus status = new WorkloadStatus(CoreManager.getCoreCount());
         ts.getWorkloadState(status);

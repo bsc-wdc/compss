@@ -5,13 +5,21 @@ import integratedtoolkit.types.Implementation;
 import java.util.HashMap;
 import java.util.TreeMap;
 
-
-public class ServiceWorker extends Worker<ServiceResourceDescription> {
+public class ServiceWorker<P> extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
 
     public ServiceWorker(String wsdl, ServiceResourceDescription description, HashMap<String, String> properties, Integer maxTaskCount) throws Exception {
-        super(wsdl, description, new TreeMap<String, AdaptorDescription>(){{ put("integratedtoolkit.ws.master.WSAdaptor", new AdaptorDescription("integratedtoolkit.ws.master.WSAdaptor")); }}, properties, maxTaskCount);
+        super(wsdl, description, new TreeMap<String, AdaptorDescription>() {
+            {
+                put("integratedtoolkit.ws.master.WSAdaptor", new AdaptorDescription("integratedtoolkit.ws.master.WSAdaptor"));
+            }
+        }, properties, maxTaskCount);
+        this.wsdl = wsdl;
+    }
+
+    public ServiceWorker(ServiceWorker sw) {
+        super(sw);
         this.wsdl = wsdl;
     }
 
@@ -112,5 +120,10 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
         sb.append(prefix).append("TYPE = SERVICE").append("\n");
 
         return sb.toString();
+    }
+
+    @Override
+    public Worker getSchedulingCopy() {
+        return new ServiceWorker(this);
     }
 }

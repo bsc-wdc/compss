@@ -2,10 +2,9 @@ package integratedtoolkit.components;
 
 import integratedtoolkit.types.resources.Worker;
 
-
 public interface ResourceUser {
 
-    public void createdResources(Worker<?> r);
+    public void updatedResource(Worker<?> r);
 
     public WorkloadStatus getWorkload();
 
@@ -16,21 +15,17 @@ public interface ResourceUser {
         private long[] coreMinTime;
         private long[] coreMeanTime;
         private long[] coreMaxTime;
-        
-        //Task counters
+
+        //Action counters
         private int noResourceCount;
         private int[] noResourceCounts;
-        private int ordinaryCount;
-        private int[] ordinaryCounts;
-        private int toRescheduleCount;
-        private int[] toRescheduleCounts;
-        
+        private int readyCount;
+        private int[] readyCounts;
+
         //Running Tasks
         private int[] runningCounts;
+        private int runningCount;
         private long[] runningCoreMeanTime;
-        
-        //Wait Counts
-        private int[] waitingCounts;
 
         public WorkloadStatus(int coreCount) {
             this.coreCount = coreCount;
@@ -39,18 +34,25 @@ public interface ResourceUser {
             coreMaxTime = new long[coreCount];
 
             noResourceCounts = new int[coreCount];
-            ordinaryCounts = new int[coreCount];
-            toRescheduleCounts = new int[coreCount];
+            readyCounts = new int[coreCount];
 
-            waitingCounts = new int[coreCount];
-            
             runningCounts = new int[coreCount];
             runningCoreMeanTime = new long[coreCount];
-           
         }
 
+        /*--------------------------------------------
+         ------------- CORE INFORMATION --------------
+         ---------------------------------------------*/
         public int getCoreCount() {
             return coreCount;
+        }
+
+        public void registerTimes(int coreId, long minTime, long avgTime, long maxTime) {
+            if (coreId < coreCount) {
+                coreMinTime[coreId] = minTime;
+                coreMeanTime[coreId] = avgTime;
+                coreMaxTime[coreId] = maxTime;
+            }
         }
 
         public long getCoreMeanTime(int coreId) {
@@ -65,6 +67,9 @@ public interface ResourceUser {
             return coreMinTime[coreId];
         }
 
+        /*--------------------------------------------
+         -------------- ACTION INFORMATION -----------
+         ---------------------------------------------*/
         public int getNoResourceCount() {
             return noResourceCount;
         }
@@ -73,46 +78,46 @@ public interface ResourceUser {
             return noResourceCounts;
         }
 
-        public int getReadyTaskCount() {
-            return noResourceCount + ordinaryCount + toRescheduleCount;
-        }
-        
-        public int[] getReadyTaskCounts() {
-            int[] counts = new int[coreCount];
-            for (int coreId = 0; coreId < coreCount; coreId++) {
-                counts[coreId] = noResourceCounts[coreId] + ordinaryCounts[coreId] + toRescheduleCounts[coreId];
-            }
-            return counts;
+        public int getReadyCount() {
+            return readyCount;
         }
 
-        public int getOrdinaryCount() {
-            return ordinaryCount;
-        }
-        
-        public int[] getOrdinaryCounts() {
-            return ordinaryCounts;
+        public int[] getReadyCounts() {
+            return readyCounts;
         }
 
-        public int[] getWaitingTaskCounts() {
-            return waitingCounts;
+        public void registerNoResources(int coreId, int count) {
+            this.noResourceCount -= this.noResourceCounts[coreId];
+            this.noResourceCounts[coreId] = count;
+            this.noResourceCount += this.noResourceCounts[coreId];
         }
-        
+
+        public void registerReady(int coreId, int count) {
+            this.readyCount -= this.readyCounts[coreId];
+            this.readyCounts[coreId] = count;
+            this.readyCount += this.readyCounts[coreId];
+        }
+
+        /*--------------------------------------------
+         --------- RUNNING ACTION INFORMATION --------
+         ---------------------------------------------*/
         public long getRunningCoreMeanTime(int coreId) {
             return runningCoreMeanTime[coreId];
         }
 
-        public int getRunningTaskCount() {
-            int sum = 0;
-            for(int x : runningCounts) {
-            	sum += x;
-            }
-            return sum;
-        }
-        
         public int[] getRunningTaskCounts() {
-            return runningCounts;
+            return this.runningCounts;
         }
-        
+
+        public int getRunningTaskCount() {
+            return this.runningCount;
+        }
+
+        public void registerRunning(int coreId, long executedTime) {
+            runningCoreMeanTime[coreId] = (runningCoreMeanTime[coreId] + executedTime) / (runningCounts[coreId] + 1);
+            runningCounts[coreId]++;
+            runningCount++;
+        }
 
         public String toString() {
             StringBuilder sb = new StringBuilder();
@@ -125,9 +130,8 @@ public interface ResourceUser {
                 sb.append("\t").append("CORE_INFO = [").append("\n");
                 sb.append("\t").append("\t").append("COREID = ").append(coreId).append("\n");
                 sb.append("\t").append("\t").append("NO_RESOURCE = ").append(noResourceCounts[coreId]).append("\n");
-                sb.append("\t").append("\t").append("TO_RESCHEDULE = ").append(toRescheduleCounts[coreId]).append("\n");
-                sb.append("\t").append("\t").append("ORDINARY = ").append(ordinaryCounts[coreId]).append("\n"); 
-                sb.append("\t").append("\t").append("RUNNING = ").append(runningCounts[coreId]).append("\n");	
+                sb.append("\t").append("\t").append("READY = ").append(readyCounts[coreId]).append("\n");
+                sb.append("\t").append("\t").append("RUNNING = ").append(runningCounts[coreId]).append("\n");
                 sb.append("\t").append("\t").append("MIN = ").append(coreMinTime[coreId]).append("\n");
                 sb.append("\t").append("\t").append("MEAN = ").append(coreMeanTime[coreId]).append("\n");
                 sb.append("\t").append("\t").append("MAX = ").append(coreMaxTime[coreId]).append("\n");
@@ -139,29 +143,6 @@ public interface ResourceUser {
             return sb.toString();
         }
 
-        public void registerTimes(int coreId, long minTime, long avgTime, long maxTime) {
-            if (coreId < coreCount) {
-                coreMinTime[coreId] = minTime;
-                coreMeanTime[coreId] = avgTime;
-                coreMaxTime[coreId] = maxTime;
-            }
-        }
-
-        public void registerReadyTaskCounts(int coreId, int noResource, int regular, int toReschedule) {
-            this.noResourceCount += noResource;
-            this.ordinaryCount += regular;
-            this.toRescheduleCount += toReschedule;
-
-            this.noResourceCounts[coreId] = noResource;
-            this.ordinaryCounts[coreId] = regular;
-            this.toRescheduleCounts[coreId] = toReschedule;
-        }
-        
-        public void registerRunningTask(int coreId, int runningTasks, long meanRunningTime) {
-            
-        	this.runningCoreMeanTime[coreId] = meanRunningTime;
-            this.runningCounts[coreId] = runningTasks;
-        }
     }
 
 }

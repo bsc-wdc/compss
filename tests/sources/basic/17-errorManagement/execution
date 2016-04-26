@@ -29,7 +29,7 @@
   echo "*** RUNNING JAVA APPLICATION ErrorManagerTestNonExistingInFile"
   output_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.outputlog"
   error_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.errorlog"
-  expectedTime=20s
+  expectedTime=80s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -63,11 +63,11 @@
   echo "*** RUNNING JAVA APPLICATION ErrorManagerTestReschedulingFail"
   output_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.outputlog"
   error_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.errorlog"
-  expectedTime=20s
+  expectedTime=80s
      
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
+     --project=${base_app_dir}/project_4_workers.xml \
+     --resources=${base_app_dir}/resources_4_workers.xml \
      --debug \
      --lang=java \
      --comm=$comm \

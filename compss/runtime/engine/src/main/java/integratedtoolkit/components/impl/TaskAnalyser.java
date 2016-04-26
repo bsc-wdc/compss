@@ -21,15 +21,10 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
-import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.util.ElementNotFoundException;
 import integratedtoolkit.util.ErrorManager;
-import integratedtoolkit.util.Graph;
 
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,13 +38,12 @@ public class TaskAnalyser {
 
     // Constants definition
     private static final String TASK_FAILED = "Task failed: ";
+
     // Components
     private DataInfoProvider DIP;
-    private TaskDispatcher TD;
-    // Dependency graph
-    private Graph<Integer, Task> depGraph;
+
     // <File id, Last writer task> table
-    private TreeMap<Integer, Integer> writers;
+    private TreeMap<Integer, Task> writers;
     // Method information
     private HashMap<Integer, Integer> currentTaskCount;
     // Map: app id -> task count
@@ -63,7 +57,7 @@ public class TaskAnalyser {
     // Map: app id -> set of written data ids (for result SCOs)
     private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;    
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
-    private Hashtable<Integer, List<Semaphore>> waitedTasks;
+    private Hashtable<Task, List<Semaphore>> waitedTasks;
 
     // Logger
     private static final Logger logger = Logger.getLogger(Loggers.TA_COMP);
@@ -75,26 +69,19 @@ public class TaskAnalyser {
     private static int synchronizationId;
 
     public TaskAnalyser() {
-        depGraph = new Graph<Integer, Task>();
-
         currentTaskCount = new HashMap<Integer, Integer>();
-        writers = new TreeMap<Integer, Integer>();
+        writers = new TreeMap<Integer, Task>();
         appIdToTaskCount = new HashMap<Long, Integer>();
         appIdToTotalTaskCount = new HashMap<Long, Integer>();
         appIdToSemaphore = new HashMap<Long, Semaphore>();
         appIdToWrittenFiles = new HashMap<Long, TreeSet<Integer>>();
-        waitedTasks = new Hashtable<Integer, List<Semaphore>>();
+        waitedTasks = new Hashtable<Task, List<Semaphore>>();
         synchronizationId = 0;
         logger.info("Initialization finished");
     }
 
-    public void setCoWorkers(DataInfoProvider DIP, TaskDispatcher TD) {
+    public void setCoWorkers(DataInfoProvider DIP) {
         this.DIP = DIP;
-        this.TD = TD;
-    }
-
-    public Task getTask(int taskId) {
-        return depGraph.get(taskId);
     }
 
     public void processTask(Task currentTask) {
@@ -106,10 +93,6 @@ public class TaskAnalyser {
                 RuntimeMonitor.addEdgeToGraph("Synchro" + synchronizationId, String.valueOf(currentTask.getId()), "");
             }
         }
-
-        int currentTaskId = currentTask.getId();
-        Parameter[] parameters = params.getParameters();
-        depGraph.addNode(currentTaskId, currentTask);
 
         // Update task count
         Integer methodId = params.getId();
@@ -134,8 +117,19 @@ public class TaskAnalyser {
         totalTaskCount++;
         appIdToTotalTaskCount.put(appId, totalTaskCount);
 
-        boolean isWaiting = true;
-        for (Parameter p : parameters) {
+        //Check scheduling enforcing data
+        int constrainingParam = -1;
+        if (params.getType() == TaskParams.Type.SERVICE && params.hasTargetObject()) {
+            if (params.hasReturnValue()) {
+                constrainingParam = params.getParameters().length - 2;
+            } else {
+                constrainingParam = params.getParameters().length - 1;
+            }
+        }
+
+        Parameter[] parameters = params.getParameters();
+        for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
+            Parameter p = parameters[paramIdx];
             if (debug) {
                 logger.debug("* Parameter : " + p);
             }
@@ -185,11 +179,29 @@ public class TaskAnalyser {
             dp.setDataAccessId(daId);
             switch (am) {
                 case R:
-                    isWaiting = checkDependencyForRead(currentTask, dp) && isWaiting;
+                    checkDependencyForRead(currentTask, dp);
+                    if (paramIdx == constrainingParam) {
+                        DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dp.getDataAccessId();
+                        DataInstanceId dependingDataId = raId.getReadDataInstance();
+                        if (dependingDataId != null) {
+                            if (dependingDataId.getVersionId() > 1) {
+                                currentTask.setEnforcingTask(writers.get(dependingDataId.getDataId()));
+                            }
+                        }
+                    }
                     break;
 
                 case RW:
-                    isWaiting = checkDependencyForRead(currentTask, dp) && isWaiting;
+                    checkDependencyForRead(currentTask, dp);
+                    if (paramIdx == constrainingParam) {
+                        DataAccessId.RWAccessId raId = (DataAccessId.RWAccessId) dp.getDataAccessId();
+                        DataInstanceId dependingDataId = raId.getReadDataInstance();
+                        if (dependingDataId != null) {
+                            if (dependingDataId.getVersionId() > 1) {
+                                currentTask.setEnforcingTask(writers.get(dependingDataId.getDataId()));
+                            }
+                        }
+                    }
                     registerOutputValues(currentTask, dp);
                     break;
 
@@ -200,68 +212,36 @@ public class TaskAnalyser {
 
         }
 
-        //Check scheduling enforcing data
-        if (params.getType() == TaskParams.Type.SERVICE && params.hasTargetObject()) {
-            checkSchedulingConstraints(currentTask);
-        }
-
-        try {
-            if (!depGraph.hasPredecessors(currentTaskId)) {
-                // No dependencies for this task, schedule
-                if (debug) {
-                    logger.debug("Task " + currentTaskId + " has NO dependencies, send for schedule");
-                }
-                List<Task> s = new LinkedList<Task>();
-                s.add(currentTask);
-                currentTaskCount.put(params.getId(), currentTaskCount.get(params.getId()) - 1);
-                TD.scheduleTasks(s, false, new int[CoreManager.getCoreCount()]);
-            } else if (isWaiting) {
-                TD.newWaitingTask(methodId);
-            }
-        } catch (ElementNotFoundException e) {
-            ErrorManager.fatal("Error checking dependencies for task " + currentTaskId, e);
-            return;
-        }
     }
 
     private boolean checkDependencyForRead(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
-        Integer lastWriterId = writers.get(dataId);
-        if (lastWriterId != null
-                && lastWriterId > 0
-                && depGraph.get(lastWriterId) != null
-                && lastWriterId != currentTask.getId()) { // avoid self-dependencies
-
+        Task lastWriter = writers.get(dataId);
+        if (lastWriter != null && lastWriter != currentTask) { // avoid self-dependencies
             if (debug) {
-                logger.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriterId);
-                logger.debug("Adding dependency between task " + lastWriterId + " and task " + currentTask.getId());
+                logger.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
+                logger.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
 
             if (drawGraph) {
                 try {
                     boolean b = true;
-                    for (Task t : depGraph.getSuccessors(lastWriterId)) {
+                    for (Task t : lastWriter.getSuccessors()) {
                         if (t.getId() == currentTask.getId()) {
                             b = false;
                         }
                     }
                     if (b) {
-                        RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriterId), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
+                        RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
                     }
                 } catch (Exception e) {
                     logger.error("Error drawing dependency in graph", e);
                 }
             }
+            currentTask.addDataDependency(lastWriter);
 
-            try {
-                depGraph.addEdge(lastWriterId, currentTask.getId());
-                return !depGraph.hasPredecessors(lastWriterId); // check if it's a second-level task for this predecessor
-            } catch (ElementNotFoundException e) {
-                ErrorManager.fatal("Error when adding a dependency between tasks "
-                        + lastWriterId + " and " + currentTask.getId(), e);
-            }
-        } else if (drawGraph && lastWriterId != null && lastWriterId < 0) {
-            RuntimeMonitor.addEdgeToGraph("Synchro" + (-lastWriterId), String.valueOf(currentTask.getId()), "");
+        } else if (drawGraph && lastWriter == null) {
+            RuntimeMonitor.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
         }
         return true;
     }
@@ -270,7 +250,7 @@ public class TaskAnalyser {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
-        writers.put(dataId, currentTaskId); // update global last writer
+        writers.put(dataId, currentTask); // update global last writer
         if (dp.getType() == ParamType.FILE_T) { // Objects are not checked, their version will be only get if the main access them
             TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
             if (idsWritten == null) {
@@ -292,40 +272,10 @@ public class TaskAnalyser {
         }
     }
 
-    public void checkSchedulingConstraints(Task task) {
-        DependencyParameter dependentParameter;
-        DataInstanceId dependingDataId = null;
-        TaskParams params = task.getTaskParams();
-        if (params.hasReturnValue()) {
-            dependentParameter = (DependencyParameter) params.getParameters()[params.getParameters().length - 2];
-        } else {
-            dependentParameter = (DependencyParameter) params.getParameters()[params.getParameters().length - 1];
-        }
-        switch (dependentParameter.getDirection()) {
-            case IN:
-                DataAccessId.RAccessId raId = (DataAccessId.RAccessId) dependentParameter.getDataAccessId();
-                dependingDataId = raId.getReadDataInstance();
-                break;
-            case INOUT:
-                DataAccessId.RWAccessId rwaId = (DataAccessId.RWAccessId) dependentParameter.getDataAccessId();
-                dependingDataId = rwaId.getReadDataInstance();
-                break;
-            case OUT:
-                break;
-        }
-
-        if (dependingDataId != null) {
-            if (params.getType() == TaskParams.Type.SERVICE && dependingDataId.getVersionId() > 1) {
-                task.setEnforcingData(dependingDataId);
-                task.forceStrongScheduling();
-            }
-        }
-    }
-
-    public void updateGraph(Task task, int implId, Worker<?> resource) {
-        int taskId = task.getId();
+    public void endTask(Task task) {
+        logger.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
         if (task.getStatus() == TaskState.FAILED) {
-            ErrorManager.warn(TASK_FAILED + task);
+            ErrorManager.error(TASK_FAILED + task);
         }
 
         // Update app id task count
@@ -341,7 +291,7 @@ public class TaskAnalyser {
         }
 
         // Check if task is being waited
-        List<Semaphore> sems = waitedTasks.remove(taskId);
+        List<Semaphore> sems = waitedTasks.remove(task);
         if (sems != null) {
             for (Semaphore sem : sems) {
                 sem.release();
@@ -361,68 +311,6 @@ public class TaskAnalyser {
 
         DIP.dataHasBeenRead(readedData, task.getTaskParams().getId());
 
-        // Dependency-free tasks
-        List<Task> toSchedule = new LinkedList<Task>();
-
-        try {
-            Iterator<Task> i = depGraph.getIteratorOverSuccessors(taskId);
-            while (i.hasNext()) {
-                Task succ = i.next();
-                int succId = succ.getId();
-
-                // Remove the dependency
-                depGraph.removeEdge(taskId, succId);
-
-                // Schedule if task has no more dependencies
-                if (!depGraph.hasPredecessors(succId)) {
-                    toSchedule.add(succ);
-                }
-            }
-        } catch (ElementNotFoundException e) {
-            ErrorManager.fatal("Error removing the dependencies of task " + taskId, e);
-        }
-
-        if (!toSchedule.isEmpty()) {
-
-            if (debug) {
-                StringBuilder sb = new StringBuilder("All dependencies solved for tasks: ");
-                for (Task t : toSchedule) {
-                    sb.append(t.getId()).append("(").append(t.getTaskParams().getName()).append(") ");
-                }
-                logger.debug(sb);
-            }
-
-            int[] successors = new int[CoreManager.getCoreCount()];
-            for (Task t : toSchedule) {
-                try {
-                    Iterator<Task> i = depGraph.getIteratorOverSuccessors(t.getId());
-                    while (i.hasNext()) {
-                        Task succ = i.next();
-                        int succId = succ.getId();
-
-                        boolean hasPreds = false;
-                        Iterator<Task> j = depGraph.getIteratorOverPredecessors(succId);
-                        while (j.hasNext()) {
-                            Task pred = j.next();
-                            int predId = pred.getId();
-                            hasPreds = hasPreds || depGraph.hasPredecessors(predId);
-                        }
-                        if (!hasPreds) {
-
-                            successors[t.getTaskParams().getId()]++;
-                        }
-                    }
-                    currentTaskCount.put(t.getTaskParams().getId(), currentTaskCount.get(t.getTaskParams().getId()) - 1);
-                } catch (Exception e) {
-                    ErrorManager.fatal("Error updating the waiting tasks of " + taskId, e);
-                }
-            }
-
-            TD.scheduleTasks(toSchedule, true, successors);
-        }
-
-        TD.notifyJobEnd(task, implId, resource);
-
         // Add the task to the set of finished tasks
         //finishedTasks.add(task);
         // Check if the finished task was the last writer of a file, but only if task generation has finished
@@ -430,7 +318,7 @@ public class TaskAnalyser {
             checkResultFileTransfer(task);
         }
 
-        depGraph.removeNode(taskId);
+        task.releaseDataDependents();
     }
 
     // Private method to check if a finished task is the last writer of its file parameters and eventually order the necessary transfers
@@ -445,13 +333,13 @@ public class TaskAnalyser {
                             break;
                         case INOUT:
                             DataInstanceId dId = ((RWAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (writers.get(dId.getDataId()) == t.getId()) {
+                            if (writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
                             break;
                         case OUT:
                             dId = ((WAccessId) fp.getDataAccessId()).getWrittenDataInstance();
-                            if (writers.get(dId.getDataId()) == t.getId()) {
+                            if (writers.get(dId.getDataId()) == t) {
                                 fileIds.add(dId);
                             }
                             break;
@@ -481,15 +369,15 @@ public class TaskAnalyser {
         int dataId = request.getDataId();
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
-        Integer lastWriterId = writers.get(dataId);
-        if (drawGraph && lastWriterId != null) {
+        Task lastWriter = writers.get(dataId);
+        if (drawGraph && lastWriter != null) {
             if (am == AccessMode.RW) {
-                writers.put(dataId, -synchronizationId);
+                writers.put(dataId, null);
             }
             synchronizationId++;
             try {
                 RuntimeMonitor.addSynchroToGraph(synchronizationId);
-                RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriterId), "Synchro" + synchronizationId, String.valueOf(dataId));
+                RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
                 if (synchronizationId > 0) {
                     RuntimeMonitor.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
                 }
@@ -497,13 +385,13 @@ public class TaskAnalyser {
                 logger.error("Error adding task to graph file", e);
             }
         }
-        if (lastWriterId == null || depGraph.get(lastWriterId) == null) {
+        if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
             sem.release();
         } else {
-            List<Semaphore> list = waitedTasks.get(lastWriterId);
+            List<Semaphore> list = waitedTasks.get(lastWriter);
             if (list == null) {
                 list = new LinkedList<Semaphore>();
-                waitedTasks.put(lastWriterId, list);
+                waitedTasks.put(lastWriter, list);
             }
             list.add(sem);
         }
@@ -535,7 +423,16 @@ public class TaskAnalyser {
     }
 
     public String getGraphDOTFormat() {
-        return depGraph.getGraphDotFormat();
+        StringBuilder nodes = new StringBuilder();
+        StringBuilder edges = new StringBuilder();
+        LinkedList<Task> tasks = new LinkedList<Task>();
+        for (Task task : tasks) {
+            nodes.append(task.getDotDescription()).append("\n");
+            for (Task successor : task.getSuccessors()) {
+                edges.append(task.getId()).append(" -> ").append(successor.getId()).append("\n");
+            }
+        }
+        return nodes.toString() + edges.toString();
     }
 
     public String getTaskStateRequest() {
@@ -560,12 +457,9 @@ public class TaskAnalyser {
 
     public void deleteFile(FileInfo fileInfo) {
         int dataId = fileInfo.getDataId();
-        Integer taskId = writers.get(dataId);
-        if (taskId != null) {
-            Task task = depGraph.get(taskId);
-            if (task != null) {
-                return;
-            }
+        Task task = writers.get(dataId);
+        if (task != null) {
+            return;
         }
         for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
             files.remove(fileInfo.getDataId());

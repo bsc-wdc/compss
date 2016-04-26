@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-trunk</artifactId>
-<version>1.4</version>
+		<version>1.4</version>
 		<relativePath>../../</relativePath>
 	</parent>
 	
@@ -50,6 +50,11 @@
                         <dependency>
                                 <groupId>es.bsc.compss</groupId>
 				<artifactId>compss-resources-commons</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
+			 <dependency>
+                                <groupId>es.bsc.compss</groupId>
+				<artifactId>compss-scheduler-commons</artifactId>
                                 <version>${compss.version}</version>
                         </dependency>
 			<dependency>

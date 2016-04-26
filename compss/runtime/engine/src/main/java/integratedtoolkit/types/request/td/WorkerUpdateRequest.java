@@ -1,9 +1,7 @@
 package integratedtoolkit.types.request.td;
 
-import integratedtoolkit.components.impl.JobManager;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.resources.Worker;
-
 
 /**
  * The AddCloudNodeRequest represents a request to add a new resource ready to
@@ -11,7 +9,7 @@ import integratedtoolkit.types.resources.Worker;
  */
 public class WorkerUpdateRequest extends TDRequest {
 
-    public final Worker<?> worker;
+    public final Worker worker;
 
     /**
      * Constructs a AddCloudNodeRequest with all its parameters
@@ -19,22 +17,17 @@ public class WorkerUpdateRequest extends TDRequest {
      * @param worker Worker that has been added
      *
      */
-    public WorkerUpdateRequest(Worker<?> worker) {
+    public WorkerUpdateRequest(Worker worker) {
         this.worker = worker;
     }
 
-    public Worker<?> getWorker() {
+    public Worker getWorker() {
         return worker;
     }
 
     @Override
-    public TDRequestType getRequestType() {
-        return TDRequestType.UPDATED_WORKER_POOL;
-    }
-
-    @Override
-    public void process(TaskScheduler ts, JobManager jm) {
-        ts.resourcesCreated(worker);
+    public void process(TaskScheduler ts) {
+        ts.updatedWorker(worker);
     }
 
 }

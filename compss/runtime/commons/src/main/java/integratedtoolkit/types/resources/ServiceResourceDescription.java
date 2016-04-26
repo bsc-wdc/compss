@@ -4,7 +4,6 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Implementation.Type;
 import org.w3c.dom.Node;
 
-
 public class ServiceResourceDescription extends WorkerResourceDescription {
 
     private final String serviceName;
@@ -36,6 +35,10 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         return serviceName;
     }
 
+    public void hosts(Implementation<?> impl) {
+        //Do nothing
+    }
+
     @Override
     public boolean canHost(Implementation<?> impl) {
         if (impl.getType() == Type.SERVICE) {
@@ -47,6 +50,36 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         return false;
     }
 
+    @Override
+    public void increase(ResourceDescription rd) {
+
+    }
+
+    @Override
+    public void increaseDynamic(ResourceDescription rd) {
+
+    }
+
+    @Override
+    public void reduce(ResourceDescription rd) {
+
+    }
+
+    @Override
+    public void reduceDynamic(ResourceDescription rd) {
+
+    }
+
+    @Override
+    public ResourceDescription getDynamicCommons(ResourceDescription constraints) {
+        return new ServiceResourceDescription("", "", "");
+    }
+
+    @Override
+    public boolean isDynamicUseless() {
+        return false;
+    }
+
     public String toString() {
         return "[SERVICE "
                 + "NAMESPACE=" + this.namespace + " "
@@ -54,4 +87,10 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
                 + "PORT=" + this.port
                 + "]";
     }
+
+    @Override
+    public ServiceResourceDescription copy() {
+        return new ServiceResourceDescription(serviceName, namespace, port);
+    }
+
 }

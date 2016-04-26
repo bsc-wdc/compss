@@ -1,12 +1,9 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.log.Loggers;
 import java.util.concurrent.Semaphore;
-import org.apache.log4j.Logger;
 
 
 public class TracingCopyListener extends DataOperation.EventListener {
-    protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
 
     int operation = 0;
     int errors = 0;
@@ -15,12 +12,10 @@ public class TracingCopyListener extends DataOperation.EventListener {
     final Semaphore sem;
 
     public TracingCopyListener(Semaphore sem) {
-        logger.debug("Init with semaphore " + sem.toString());
         this.sem = sem;
     }
 
     public void enable() {
-        logger.debug("enabling...");
         boolean finished;
         boolean failed;
         synchronized (this) {
@@ -28,8 +23,7 @@ public class TracingCopyListener extends DataOperation.EventListener {
             finished = operation == 0;
             failed = errors > 0;
         }
-        logger.debug("enabled: " + enabled + ", finished: "+ finished + ", failed: " + failed);
-
+        
         if (finished) {
             if (failed) {
                 doFailures();
@@ -41,7 +35,6 @@ public class TracingCopyListener extends DataOperation.EventListener {
 
     public synchronized void addOperation() {
         operation++;
-        logger.debug("adding OP (" + operation + ")");
     }
 
     @Override
@@ -80,15 +73,11 @@ public class TracingCopyListener extends DataOperation.EventListener {
     }
 
     private void doReady() {
-        logger.debug("doReady...");
         sem.release();
-        logger.debug("doneReady");
     }
 
     private void doFailures() {
-        logger.debug("doFail...");
         sem.release();
-        logger.debug("doneFail...");
     }
     
 }

@@ -52,6 +52,7 @@
     rm -rf $files
   elif [ $action == "gentrace" ]; then
     appName=$1
+    numberOfResources=$2
     traceFiles=$(find trace/*_compss_trace.tar.gz)
     #echo "trace::gentrace"
     for file in ${traceFiles[*]}; do
@@ -68,10 +69,10 @@
     sec=$(/bin/date +%s)
     # Check if parallel merge is available
     configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
-    if [ ! -z ${configuration} ]; then
-        mpirun ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
-    else
+    if [ -z "${configuration}" ]; then
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+    else
+        mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym

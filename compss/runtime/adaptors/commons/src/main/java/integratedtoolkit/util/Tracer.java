@@ -461,8 +461,8 @@ public abstract class Tracer {
         }
         String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace", System.getProperty(ITConstants.IT_APP_LOG_DIR),
-                                appName, String.valueOf(hostToSlots.size()+1));
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace",
+                                               System.getProperty(ITConstants.IT_APP_LOG_DIR), appName);
         Process p = null;
         pb.environment().remove("LD_PRELOAD");
         try {

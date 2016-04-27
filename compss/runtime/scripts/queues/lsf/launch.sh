@@ -68,7 +68,7 @@ EOT
   MASTER_NODE=$(hostname)
   echo "Master will run in ${MASTER_NODE}"
 
-  if ["${storageName}" != "dataclay"]; then
+  if [ "${storageName}" != "dataclay" ]; then
 	  WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
 	  # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
   else 

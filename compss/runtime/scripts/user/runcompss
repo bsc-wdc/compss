@@ -565,7 +565,6 @@ exec_java() {
     -Dit.gat.file.adaptor=sshtrilead"
 
   if [ $tracing -gt 0 ]; then
-    JAVACMD+=" -agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so"
     export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
   fi
 
@@ -649,9 +648,6 @@ EOT
   echo -e "\nArgs: $application_args \n"
 
   if [ $tracing -gt 0 ]; then
-    /bin/cat >> ${jvm_options_file} << EOT
--agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so
-EOT
     export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
   fi
   $fullAppPath $application_args
@@ -731,9 +727,6 @@ ${jvm_mem_opts}
 EOT
 
   if [ $tracing -gt 0 ]; then
-    /bin/cat >> ${jvm_options_file} << EOT
--agentpath:${EXTRAE_HOME}/lib/libextrae-jvmti-agent.so
-EOT
     export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
   fi
   # Launch application

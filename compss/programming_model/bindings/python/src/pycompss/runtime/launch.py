@@ -88,8 +88,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 debug=False,
                                 graph=False,
                                 trace=False,
-                                project_xml=os.environ['IT_HOME'] + '/configuration/xml/projects/project.xml',
-                                resources_xml=os.environ['IT_HOME'] + '/configuration/xml/resources/resources.xml',
+                                project_xml=os.environ['IT_HOME'] + '/configuration/xml/projects/default_project.xml',
+                                resources_xml=os.environ['IT_HOME'] + '/configuration/xml/resources/default_resources.xml',
                                 comm='NIO',
                                 obj_conv=False,
                                 mmap_files=False):
@@ -119,7 +119,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     jvm_options_file.write('-Dit.project.file=' + project_xml + '\n')
     jvm_options_file.write('-Dit.resources.file=' + resources_xml + '\n')
     jvm_options_file.write('-Dit.project.schema=' + it_home + '/configuration/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/configuration/xml/resources/resource_schema.xsd\n')
+    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/configuration/xml/resources/resources_schema.xsd\n')
     # jvm_options_file.write('-Dit.appName=' + app.__name__ + '\n')
     jvm_options_file.write('-Dit.appName=' + file_name + '\n')
     jvm_options_file.write('-Dit.appLogDir=/tmp/\n')
@@ -364,7 +364,7 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     jvm_options_file.write('-Dit.gat.file.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dit.lang=python\n')
     jvm_options_file.write('-Dit.project.schema=' + it_home + '/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/xml/resources/resource_schema.xsd\n')
+    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/xml/resources/resources_schema.xsd\n')
     jvm_options_file.write('-Dit.graph=false\n')
     jvm_options_file.write('-Dit.monitor=60000\n')
     jvm_options_file.write('-Dit.tracing=false\n')

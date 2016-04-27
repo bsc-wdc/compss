@@ -6,12 +6,12 @@
 	<groupId>es.bsc.compss.tests</groupId>
 	<artifactId>compss-tests-basic</artifactId>
 	<packaging>pom</packaging>
-	<parent>
-		<groupId>es.bsc.compss.tests</groupId>
+    <parent>
+    	<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-		<version>1.4</version>
-		<relativePath>..</relativePath>
-	</parent>
+<version>1.4</version>
+        <relativePath>..</relativePath>
+    </parent>
 	
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests - Basic</name>
@@ -31,29 +31,29 @@
 
 	<!-- SUB-MODULES -->
 	<modules>
-		<!-- BLOCK 1 -->
 		<module>01-simple</module>
-		<module>02-basicTypes</module>
-		<module>03-objectTest</module>
-		<module>04-constraintsTest</module>
-		<module>05-priorityTasks</module>
-		<module>06-dataLocality</module>
-		<module>07-sharedDisks</module>
-		<module>08-groupService</module>
-		<module>09-servicesTest</module>
-		<module>10-tracing</module>
-		<module>11-kmeans</module>
-		<module>12-matmul</module>
-		<module>13-sparseLU</module>
-		<!-- module 14 is 14-test_c -->
-		<!-- module 15 is 15-test_python -->
-		<module>16-cache</module>
-		<module>17-errorManagement</module>
-	        <!-- module 18 is 18-basic_python -->
-       	 	<!-- module 19 is 19-advanced_python -->
-        	<!-- module 20 is 20-kmeans_python -->
-		<module>21-concurrent</module>
-		<module>22-advanced_tracing</module>
+		<module>02-basicTasks</module>
+		<module>03-basicTypes</module>
+		<module>04-objectTest</module>
+		<module>05-constraintsTest</module>
+		<module>06-sharedDisks</module>
+		<module>07-groupService</module>
+		<module>08-servicesTest</module>
+		<module>09-errorManagement</module>
+		<module>10-priorityTasks</module>
+		<module>11-dataLocality</module>
+		<module>12-cache</module>
+		<module>13-tracing</module>
+		<module>14-advanced_tracing</module>
+		<module>15-kmeans</module>
+		<module>16-matmul</module>
+		<module>17-sparseLU</module>
+		<!-- Module 18 is 18-test_c -->
+		<!-- Module 19 is 19-test_python -->
+		<!-- Module 20 is 20-basic_python -->
+		<!-- Module 21 is 21-advance_python -->
+		<!-- Module 22 is 22-kmeans_python -->
+		<module>23-concurrent</module>
 	        <!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

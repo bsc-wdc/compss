@@ -3,7 +3,6 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<groupId>es.bsc.compss.tests</groupId>
 	<artifactId>2-elasticityOneProvider</artifactId>
 	<packaging>jar</packaging>
 	<parent>

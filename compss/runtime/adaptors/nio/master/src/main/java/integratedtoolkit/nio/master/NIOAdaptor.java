@@ -1,10 +1,22 @@
 package integratedtoolkit.nio.master;
 
+import es.bsc.comm.CommException;
+import es.bsc.comm.Connection;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Random;
+
+import es.bsc.comm.nio.NIONode;
+import es.bsc.comm.stage.Transfer.Destination;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
 import integratedtoolkit.nio.NIOMessageHandler;
@@ -16,37 +28,28 @@ import integratedtoolkit.nio.commands.CommandNewTask;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
-import integratedtoolkit.types.AdaptorDescription;
+import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.location.URI;
-import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation;
+import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
-import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobHistory;
 import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
+
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.ErrorManager;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
-
-import es.bsc.comm.CommException;
-import es.bsc.comm.Connection;
-import es.bsc.comm.nio.NIONode;
-import es.bsc.comm.stage.Transfer.Destination;
 
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
@@ -91,8 +94,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore workersDebugInfo = new Semaphore(0);
 
     public static boolean workerDebug = Logger.getLogger(Loggers.WORKER).isDebugEnabled();
-
+    
     public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
+    
 
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -137,14 +141,70 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         logger.debug("  Starting TransferManager Thread");
         tm.start();
     }
+    
+	@Override
+	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+		NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
+		
+		integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
+		integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
+		
+		int min_project = (props_project != null) ? props_project.getMinPort() : -1;
+		int min_resources = -1;
+		if (props_resources != null) {
+			min_resources = props_resources.getMinPort();
+		} else {
+			// MinPort on resources is mandatory
+			throw new Exception("Resources file doesn't contain a minimum port value");
+		}
+		int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
+		int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
+		
+		// Merge ranges
+		int min_final = -1;
+		if (min_project < 0) {
+			min_final = min_resources;
+		} else if (min_project < min_resources) {
+			logger.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
+			min_final = min_resources;
+		} else {
+			min_final = min_project;
+		}
+		
+		int max_final = -1;
+		if (max_project < 0) {
+			if (max_resources < 0) {
+				// No max port defined
+				logger.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
+			} else {
+				logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+				max_final = max_resources;
+			}
+		} else if (max_resources < 0) {
+			max_final = max_project;
+		} else if (max_project < max_resources) {
+			max_final = max_project;
+		} else {
+			logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+			max_final = max_resources;
+		}
+		
+		logger.info("NIO Min Port: " + min_final);
+		logger.info("NIO MAX Port: " + max_final);
+		config.setMinPort(min_final);
+		config.setMaxPort(max_final);
+		
+		return config;
+	}
 
-    public NIOWorkerNode initWorker(String name, HashMap<String, String> properties, TreeMap<String, AdaptorDescription> adaptorsDesc) throws Exception {
+    @Override
+    public NIOWorkerNode initWorker(String workerName, Configuration config) throws Exception {
         logger.debug("Init NIO Worker Node");
         NIOWorkerNode worker = null;
-        worker = new NIOWorkerNode(name, properties, this);
+        worker = new NIOWorkerNode(workerName, (NIOConfiguration)config, this);
         NIONode n = null;
         try {
-        	n = new WorkerStarter(worker, adaptorsDesc).startWorker();
+        	n = new WorkerStarter(worker).startWorker();
         }
         catch(Exception e) {
             ErrorManager.warn("There was an error when initiating worker " + worker.getName() + ".", e);
@@ -243,42 +303,42 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
         ws.setWorkerIsReady();
     }
-
+   
     public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
 
         NIOJob nj = runningJobs.remove(jobId);
-        
-        if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {        
-	        int numParams = nj.getTaskParams().getParameters().length;
-	        for (int i = 0; i < numParams; i++) {
-	        	Parameter dp = nj.getTaskParams().getParameters()[i];
-	        	if (dp instanceof SCOParameter) {
-	        		SCOParameter scop = (SCOParameter) dp;
-	        		NIOParam np = (NIOParam) nt.getParams().get(i);
-	        		Object value = np.getValue();
-	        		if (value instanceof PSCOId) {
-	        			scop.setValue(value);
-	        		}
-	        	}
-	        }      
+
+        if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {
+                int numParams = nj.getTaskParams().getParameters().length;
+                for (int i = 0; i < numParams; i++) {
+                        Parameter dp = nj.getTaskParams().getParameters()[i];
+                        if (dp instanceof SCOParameter) {
+                                SCOParameter scop = (SCOParameter) dp;
+                                NIOParam np = (NIOParam) nt.getParams().get(i);
+                                Object value = np.getValue();
+                                if (value instanceof PSCOId) {
+                                        scop.setValue(value);
+                                }
+                        }
+                }
         }
-        
+
         if (nj != null) {
-	        // Check if all the FILE outs have been generated
-	        // nj.getCore().getParameters()
-	
-	        JobHistory h = nj.getHistory();
-	        nj.taskFinished(successful);
-	        if (workerDebug) {
-	            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
-	            c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
-	        } else {
-	            if (!successful) {
-	                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
-	                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
-	            }
-	        }
-	        c.finishConnection();
+                // Check if all the FILE outs have been generated
+                // nj.getCore().getParameters()
+
+                JobHistory h = nj.getHistory();
+                nj.taskFinished(successful);
+                if (workerDebug) {
+                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
+                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
+                } else {
+                    if (!successful) {
+                        c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
+                        c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
+                    }
+                }
+                c.finishConnection();
         }
     }
 
@@ -491,4 +551,5 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             listener = l;
         }
     }
+
 }

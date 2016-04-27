@@ -1,14 +1,11 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.ITConstants;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-import java.util.HashMap;
-import java.util.TreeMap;
 
-public class MethodWorker<P> extends Worker<MethodResourceDescription> {
+public class MethodWorker extends Worker<MethodResourceDescription> {
 
     private String name;
 
@@ -17,28 +14,17 @@ public class MethodWorker<P> extends Worker<MethodResourceDescription> {
 
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, Integer maxTaskCount) {
         super(name, description, worker, maxTaskCount);
+        
         this.name = name;
         available = new MethodResourceDescription(description);
-
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, TreeMap<String, AdaptorDescription> adaptorsDesc, HashMap<String, String> properties, Integer maxTaskCount) throws Exception {
-        super(name, description, adaptorsDesc, properties, maxTaskCount);
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration config, Integer maxTaskCount) throws Exception {
+        super(name, description, config, maxTaskCount);
+        
         this.name = name;
         if (description != null) {
             this.description.setSlots(maxTaskCount);
-        }
-        // if limitOfTask is not defined or is bigger than coreCount 
-        // we set the limitOfTasks as coreCount
-        int coreCount = description.getProcessorCoreCount();
-        String value = properties.get(ITConstants.LIMIT_OF_TASKS);
-        if (value != null && !value.isEmpty()) {
-            int limitOfTasks = Integer.parseInt(value);
-            if (limitOfTasks > coreCount) {
-                properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
-            }
-        } else {
-            properties.put(ITConstants.LIMIT_OF_TASKS, Integer.toString(coreCount));
         }
         this.available = new MethodResourceDescription(description); // clone
     }
@@ -46,7 +32,6 @@ public class MethodWorker<P> extends Worker<MethodResourceDescription> {
     public MethodWorker(MethodWorker mw) {
         super(mw);
         this.available = mw.available.copy();
-
     }
 
     @Override
@@ -56,30 +41,26 @@ public class MethodWorker<P> extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean reserveResource(MethodResourceDescription consumption) {
-        synchronized (available) {
-            if (hasAvailable(consumption)) {
-                available.reduceDynamic(consumption);
-                return true;
-            } else {
-                return false;
-            }
-        }
+    	synchronized(available) {
+    		available.reduce(consumption);
+    	}
+        
+        return true;
     }
 
     @Override
     public void releaseResource(MethodResourceDescription consumption) {
-        synchronized (available) {
-            available.setProcessorCoreCount(available.getProcessorCoreCount() + consumption.getProcessorCoreCount());
-            available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() + consumption.getMemoryPhysicalSize());
-        }
+    	synchronized(available) {
+    		available.increase(consumption);
+    	}
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-        synchronized (available) {
-            return ((available.getProcessorCoreCount() >= consumption.getProcessorCoreCount())
-                    && (available.getMemoryPhysicalSize() >= consumption.getMemoryPhysicalSize()));
-        }
+    	synchronized(available) {
+    		return ((available.getTotalComputingUnits() >= consumption.getTotalComputingUnits())
+    				&& (available.getMemorySize() >= consumption.getMemorySize()));
+    	}
     }
 
     @Override
@@ -99,10 +80,9 @@ public class MethodWorker<P> extends Worker<MethodResourceDescription> {
     @Override
     public String getMonitoringData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<CPU>").append(description.getProcessorCPUCount()).append("</CPU>").append("\n");
-        sb.append(prefix).append("<Core>").append(description.getProcessorCoreCount()).append("</Core>").append("\n");
-        sb.append(prefix).append("<Memory>").append(description.getMemoryPhysicalSize()).append("</Memory>").append("\n");
-        sb.append(prefix).append("<Disk>").append(description.getStorageElemSize()).append("</Disk>").append("\n");
+        sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>").append("\n");
+        sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
+        sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
         return sb.toString();
     }
 
@@ -159,14 +139,15 @@ public class MethodWorker<P> extends Worker<MethodResourceDescription> {
     public String getResourceLinks(String prefix) {
         StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
         sb.append(prefix).append("TYPE = WORKER").append("\n");
-        sb.append(prefix).append("CPU = ").append(description.getProcessorCPUCount()).append("\n");
-        sb.append(prefix).append("MEMORY = ").append(description.getMemoryPhysicalSize()).append("\n");
+        sb.append(prefix).append("COMPUTING_UNITS = ").append(description.getTotalComputingUnits()).append("\n");
+        sb.append(prefix).append("MEMORY = ").append(description.getMemorySize()).append("\n");
 
         return sb.toString();
     }
 
     @Override
-    public Worker getSchedulingCopy() {
+    public Worker<?> getSchedulingCopy() {
         return new MethodWorker(this);
     }
+
 }

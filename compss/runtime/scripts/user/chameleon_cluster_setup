@@ -117,20 +117,23 @@
   ##########################################################
   # Update COMPSs project / resources files
   echo "* Updating COMPSs project and resources files..."
-  project=/opt/COMPSs/Runtime/configuration/xml/projects/project.xml
-  resources=/opt/COMPSs/Runtime/configuration/xml/resources/resources.xml
+  project=/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml
+  resources=/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml
 
   cat > $project << EOT
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
+    <MasterNode/>
+
 EOT
   for (( i=1; i<=$numWorkers; i++ )); do
     cat >> $project << EOT
-          <Worker Name="COMPSsWorker$i">
-            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-            <WorkingDir>/tmp/COMPSsWorker$i/</WorkingDir>
-            <User>$user</User>
-          </Worker>
+    <ComputeNode Name="COMPSsWorker$i">
+        <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker$i/</WorkingDir>
+        <User>$user</User>
+    </ComputeNode>
+
 EOT
   done
   cat >> $project << EOT
@@ -138,58 +141,52 @@ EOT
 EOT
 
   cat > $resources << EOT
-<?xml version="1.0" encoding="UTF-8"?>
-<ResourceList>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
 EOT
   for (( i=1; i<=$numWorkers; i++ )); do
     cat >> $resources << EOT
-	<Resource Name="COMPSsWorker$i">
-                    <Capabilities>
-                        <Host>
-                                <TaskCount>0</TaskCount>
-                                <Queue/>
-                        </Host>
-                        <Processor>
-                                <Architecture>IA32</Architecture>
-                                <Speed>3.0</Speed>
-                                <CoreCount>24</CoreCount>
-                        </Processor>
-                        <OS>
-                                <OSType>Linux</OSType>
-                                <MaxProcessesPerUser>32</MaxProcessesPerUser>
-                        </OS>
-                        <StorageElement>
-                                <Size>8</Size>
-                        </StorageElement>
-                        <Memory>
-                                <PhysicalSize>125</PhysicalSize>
-                                <VirtualSize>125</VirtualSize>
-
-                        </Memory>
-                        <ApplicationSoftware>
-                                <Software>Java</Software>
-                        </ApplicationSoftware>
-                        <Service/>
-                        <VO/>
-                        <Cluster/>
-                        <FileSystem/>
-                        <NetworkAdaptor/>
-                        <JobPolicy/>
-                        <AccessControlPolicy/>
-                </Capabilities>
-                <Requirements/>
-                <Adaptors>
-                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
-                        <MinPort>43001</MinPort>
-                        <MaxPort>43101</MaxPort>
-                    </Adaptor>
-                </Adaptors>
-        </Resource>
+    <ComputeNode Name="COMPSsWorker$i">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>24</ComputingUnits>
+            <Architecture>IA32</Architecture>
+            <Speed>3.0</Speed>
+        </Processor>
+        <OperatingSystem>
+            <Type>Linux</Type>
+        </OperatingSystem>
+        <Memory>
+            <Size>125</Size>
+        </Memory>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>EXTRAE</Application>
+            <Application>COMPSS</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43102</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
 
 EOT
   done
   cat >> $resources << EOT
-</ResourceList>
+</ResourcesList>
 EOT
 
 

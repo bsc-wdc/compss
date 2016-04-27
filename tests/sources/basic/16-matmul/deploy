@@ -1,0 +1,20 @@
+#!/bin/bash -e
+  
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  #Copy files
+  cp -f ${source_base_dir}/target/16-matmul.jar ${target_base_dir}/matmul.jar
+                  
+  cp -f ${source_base_dir}/project.xml ${target_base_dir}/project_matmul.xml                  
+  cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources_matmul.xml
+  
+  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
+  cp -f ${source_base_dir}/result_arrays ${target_base_dir}/result_arrays
+  cp -f ${source_base_dir}/result_objects ${target_base_dir}/result_objects
+  cp -f ${source_base_dir}/result_files ${target_base_dir}/result_files
+  
+  cp -f ${source_base_dir}/A8x8.in ${target_base_dir}/java_matmul_A8x8.in
+  cp -f ${source_base_dir}/B8x8.in ${target_base_dir}/java_matmul_B8x8.in
+  cp -f ${source_base_dir}/C8x8.out ${target_base_dir}/java_matmul_C8x8.out

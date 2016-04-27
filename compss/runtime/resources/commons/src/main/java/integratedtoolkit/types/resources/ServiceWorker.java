@@ -1,26 +1,21 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.Implementation;
-import java.util.HashMap;
-import java.util.TreeMap;
+import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
-public class ServiceWorker<P> extends Worker<ServiceResourceDescription> {
+
+public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
 
-    public ServiceWorker(String wsdl, ServiceResourceDescription description, HashMap<String, String> properties, Integer maxTaskCount) throws Exception {
-        super(wsdl, description, new TreeMap<String, AdaptorDescription>() {
-            {
-                put("integratedtoolkit.ws.master.WSAdaptor", new AdaptorDescription("integratedtoolkit.ws.master.WSAdaptor"));
-            }
-        }, properties, maxTaskCount);
+    public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration config, Integer maxTaskCount) throws Exception {
+        super(wsdl, description, config, maxTaskCount);
         this.wsdl = wsdl;
     }
 
     public ServiceWorker(ServiceWorker sw) {
         super(sw);
-        this.wsdl = wsdl;
+        this.wsdl = sw.getWsdl();
     }
 
     public void setWsdl(String wsdl) {
@@ -102,7 +97,7 @@ public class ServiceWorker<P> extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public boolean canRun(Implementation implementation) {
+    public boolean canRun(Implementation<?> implementation) {
         switch (implementation.getType()) {
             case SERVICE:
                 ServiceResourceDescription s = (ServiceResourceDescription) implementation.getRequirements();
@@ -123,7 +118,8 @@ public class ServiceWorker<P> extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public Worker getSchedulingCopy() {
+    public Worker<?> getSchedulingCopy() {
         return new ServiceWorker(this);
     }
+
 }

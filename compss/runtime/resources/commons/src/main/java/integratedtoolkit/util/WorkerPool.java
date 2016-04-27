@@ -155,8 +155,8 @@ public class WorkerPool {
     }
 
     //Returns the name of all the resources able to execute coreId
-    public LinkedList<Worker> findAllResources() {
-        LinkedList<Worker> workers = new LinkedList<Worker>();
+    public LinkedList<Worker<?>> findAllResources() {
+        LinkedList<Worker<?>> workers = new LinkedList<Worker<?>>();
         if (staticSet != null && !staticSet.isEmpty()) {
             Object[] arrayStaticSet = staticSet.values().toArray();
             for (int i = 0; i < arrayStaticSet.length; i++) {

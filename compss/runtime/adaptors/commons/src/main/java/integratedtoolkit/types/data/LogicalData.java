@@ -415,7 +415,7 @@ public class LogicalData {
 		releaseHostRemoveLock_private();
 	}
 
-	public String toString() {
+	public synchronized String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Logical Data name: ").append(this.name).append(":\n");
 		sb.append("\t Value: ").append(value).append("\n");

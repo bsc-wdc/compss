@@ -49,6 +49,10 @@ public class ITAppEditor extends ExprEditor {
         this.itAppIdVar = itAppIdVar;
         this.appClass = appClass;
     }
+    
+    public CtClass getAppClass() {
+    	return this.appClass;
+    }
 
 
     // Instrument the creation of streams and stream wrappers

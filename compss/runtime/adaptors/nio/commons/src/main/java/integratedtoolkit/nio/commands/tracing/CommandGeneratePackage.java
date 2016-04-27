@@ -54,7 +54,6 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 	@Override
 	public void handle(Connection c) {
 		agent.generatePackage(c, host, installDir, workingDir, name);
-		
 	}
 
 }

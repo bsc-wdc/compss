@@ -9,6 +9,9 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.FailedActionException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.util.ResourceScheduler;
@@ -28,14 +31,16 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.JobDispatcher;
+
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
+
 import org.apache.log4j.Logger;
+
 
 public class SingleExecution extends AllocatableAction {
 
-    private static final int TRANSFER_CHANCES = 2;
+    private static final int TRANSFER_CHANCES 	= 2;
     private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
 
@@ -43,7 +48,6 @@ public class SingleExecution extends AllocatableAction {
 
     //LOGGER
     private static final Logger jobLogger = Logger.getLogger(Loggers.JM_COMP);
-    private static final boolean jobDebug = jobLogger.isDebugEnabled();
 
     //Execution Info
     private final TaskProducer producer;
@@ -75,17 +79,20 @@ public class SingleExecution extends AllocatableAction {
 
     @Override
     protected boolean areEnoughResources() {
-        return selectedResource.getResource().canRunNow(selectedImpl.getRequirements());
+    	Worker w = selectedResource.getResource();
+        return w.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        selectedResource.getResource().runTask(selectedImpl.getRequirements());
+    	Worker w = selectedResource.getResource();
+        w.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        selectedResource.getResource().endTask(selectedImpl.getRequirements());
+    	Worker w = selectedResource.getResource();
+        w.endTask(selectedImpl.getRequirements());
     }
 
     @Override
@@ -113,7 +120,7 @@ public class SingleExecution extends AllocatableAction {
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener listener) {
-        Worker w = selectedResource.getResource();
+        Worker<?> w = selectedResource.getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
@@ -150,7 +157,7 @@ public class SingleExecution extends AllocatableAction {
 
     //EXECUTED BY SUPPORTING THREAD
     public void submitJob(int transferGroupId) {
-        Worker w = selectedResource.getResource();
+        Worker<?> w = selectedResource.getResource();
         jobLogger.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
         JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = w.newJob(task.getId(), task.getTaskParams(), selectedImpl, listener);
@@ -186,7 +193,7 @@ public class SingleExecution extends AllocatableAction {
     public void completedJob(Job<?> job) {
         profile.end();
         int jobId = job.getJobId();
-        Worker w = selectedResource.getResource();
+        Worker<?> w = selectedResource.getResource();
         jobLogger.info("Received a notification for job " + jobId + " with state OK");
         // Job finished, update info about the generated/updated data
         for (Parameter p : job.getTaskParams().getParameters()) {
@@ -298,46 +305,46 @@ public class SingleExecution extends AllocatableAction {
     }
 
     @Override
-    public LinkedList<ResourceScheduler> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?>> getCompatibleWorkers() {
         return getCoreElementExecutors(task.getTaskParams().getId());
     }
 
     @Override
-    public LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler r) {
+    public LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r) {
         return r.getExecutableImpls(task.getTaskParams().getId());
     }
 
     @Override
-    public Implementation[] getImplementations() {
+    public Implementation<?>[] getImplementations() {
         return CoreManager.getCoreImplementations(task.getTaskParams().getId());
     }
 
     @Override
-    public boolean isCompatible(Worker r) {
+    public boolean isCompatible(Worker<?> r) {
         return r.canRun(task.getTaskParams().getId());
     }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        ResourceScheduler bestWorker = null;
-        Implementation bestImpl = null;
+        ResourceScheduler<?> bestWorker = null;
+        Implementation<?> bestImpl = null;
         Score bestScore = null;
-        LinkedList<ResourceScheduler> candidates;
+        LinkedList<ResourceScheduler<?>> candidates;
         if (isSchedulingConstrained()) {
-            candidates = new LinkedList<ResourceScheduler>();
+            candidates = new LinkedList<ResourceScheduler<?>>();
             candidates.add(this.getConstrainingPredecessor().getAssignedResource());
         } else {
             candidates = getCompatibleWorkers();
         }
         int usefulResources = 0;
-        for (ResourceScheduler w : candidates) {
+        for (ResourceScheduler<?> w : candidates) {
             if (executingResources.contains(w)) {
                 continue;
             }
             Score resourceScore = w.getResourceScore(this, task.getTaskParams(), actionScore);
             usefulResources++;
-            for (Implementation impl : getCompatibleImplementations(w)) {
+            for (Implementation<?> impl : getCompatibleImplementations(w)) {
                 Score implScore = w.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
                 debugString
                         .append(" Resource ").append(w.getName()).append(" ")
@@ -375,15 +382,15 @@ public class SingleExecution extends AllocatableAction {
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore) {
         return targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
     }
 
     @Override
-    public void schedule(ResourceScheduler targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
-        ResourceScheduler bestWorker = null;
-        Implementation bestImpl = null;
+        ResourceScheduler<?> bestWorker = null;
+        Implementation<?> bestImpl = null;
         Score bestScore = null;
 
         if ( //Resource is not compatible with the Core
@@ -395,7 +402,7 @@ public class SingleExecution extends AllocatableAction {
         Score resourceScore = targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
         debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
 
-        for (Implementation impl : getCompatibleImplementations(targetWorker)) {
+        for (Implementation<?> impl : getCompatibleImplementations(targetWorker)) {
             Score implScore = targetWorker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
             debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
             if (Score.isBetter(implScore, bestScore)) {

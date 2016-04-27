@@ -4,7 +4,6 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
@@ -21,16 +20,17 @@ import integratedtoolkit.types.data.operation.WorkersDebugInfoCopyTransferable;
 import integratedtoolkit.types.data.operation.WorkersDebugInformationListener;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
+
 
 public abstract class Resource implements Comparable<Resource> {
 
@@ -58,10 +58,10 @@ public abstract class Resource implements Comparable<Resource> {
         SharedDiskManager.addMachine(this);
     }
 
-    public Resource(String name, HashMap<String, String> properties, TreeMap<String, AdaptorDescription> adaptorsDesc) throws Exception {
-        this.node = Comm.initWorker(name, properties, adaptorsDesc);
-        if (this.node == null) {
-            throw new Exception("Error initializing worker " + name);
+    public Resource(String name, Configuration config) throws Exception {
+        this.node = Comm.initWorker(name, config);
+        if (this.node == null){
+        	throw new Exception("Error initializing worker " + name);
         }
         SharedDiskManager.addMachine(this);
     }
@@ -193,7 +193,7 @@ public abstract class Resource implements Comparable<Resource> {
             logger.error("Error waiting for files in resource " + getName() + " to get saved");
         }
 
-        if (this.getType() != Type.SERVICE && tracing) {
+	if (this.getType() != Type.SERVICE && tracing) {
             node.generatePackage();
             getTracingPackageToMaster();
         }

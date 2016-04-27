@@ -9,6 +9,7 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.resources.Worker;
 
+
 public class DefaultScheduler extends TaskScheduler {
 
     private final SchedulingOptimizer optimizer = new SchedulingOptimizer(this);
@@ -24,8 +25,7 @@ public class DefaultScheduler extends TaskScheduler {
     }
 
     @Override
-    public ResourceScheduler generateSchedulerForResource(Worker w
-    ) {
+    public ResourceScheduler<?> generateSchedulerForResource(Worker<?> w) {
         return new DefaultResourceScheduler(w);
     }
 

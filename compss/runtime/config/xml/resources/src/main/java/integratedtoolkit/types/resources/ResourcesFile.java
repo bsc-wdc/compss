@@ -1,582 +1,2886 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.types.resources.jaxb.ApplicationSoftwareType;
-import integratedtoolkit.types.resources.jaxb.CapabilitiesType;
-import integratedtoolkit.types.resources.jaxb.CloudType;
-import integratedtoolkit.types.resources.jaxb.DataNodeType;
-import integratedtoolkit.types.resources.jaxb.DiskType;
-import integratedtoolkit.types.resources.jaxb.HostType;
-import integratedtoolkit.types.resources.jaxb.HostType.TaskCount;
-import integratedtoolkit.types.resources.jaxb.ImageListType;
-import integratedtoolkit.types.resources.jaxb.ImageType;
-import integratedtoolkit.types.resources.jaxb.InstanceTypesList;
-import integratedtoolkit.types.resources.jaxb.MemoryType;
-import integratedtoolkit.types.resources.jaxb.ObjectFactory;
-import integratedtoolkit.types.resources.jaxb.OsType;
-import integratedtoolkit.types.resources.jaxb.OSTypeType;
-import integratedtoolkit.types.resources.jaxb.ProcessorType;
-import integratedtoolkit.types.resources.jaxb.ResourceListType;
-import integratedtoolkit.types.resources.jaxb.ResourceType;
-import integratedtoolkit.types.resources.jaxb.ResourceTypeWithPorts;
-import integratedtoolkit.types.resources.jaxb.ServiceType;
-import integratedtoolkit.types.resources.jaxb.SharedDiskListType;
-import integratedtoolkit.types.resources.jaxb.StorageElementType;
+import integratedtoolkit.types.resources.exceptions.InvalidElementException;
+import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
+import integratedtoolkit.types.resources.jaxb.*;
 
 import java.io.File;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
+import org.apache.log4j.Logger;
+import org.xml.sax.SAXException;
 
 
 public class ResourcesFile {
 	
-	private ResourceListType resources;
+	// JAXB context
+	private JAXBContext context;
+	
+	// XSD Schema
+	private Schema xsd;
 
-	public ResourcesFile(){
-		resources = (new ObjectFactory()).createResourceListType();
+	// Resources instance
+	private ResourcesListType resources;
+	
+	// Associated validator
+	private Validator validator;
+	
+	// Logger
+	private Logger logger;
+	
+	
+	/* **************************************
+	 * CONSTRUCTORS
+	 * **************************************/	
+	/**
+	 * Creates a ResourceFile instance from a given XML file.
+	 * The XML is validated against the given schema and internally validated
+	 * 
+	 * @param xml
+	 * @param xsd
+	 * @throws JAXBException
+	 * @throws ResourcesFileValidationException
+	 */
+	public ResourcesFile(File xml, Schema xsd, Logger logger) throws JAXBException, ResourcesFileValidationException {
+		this.logger = logger;
+		this.logger.info("Init Resources.xml parsing");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("XML Path: " + xml.getAbsolutePath());
+			this.logger.debug("XSD Schema");
+		}
+		this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		this.xsd = xsd;
+		
+		// Unmarshall
+		Unmarshaller um = this.context.createUnmarshaller();
+		um.setSchema(this.xsd);
+		JAXBElement<?> jaxbElem = (JAXBElement<?>) um.unmarshal(xml);
+		this.resources = (ResourcesListType) jaxbElem.getValue();
+		
+		// Validate
+		this.logger.info("Init Resources.xml validation");
+		validator = new Validator(this, this.logger);
+		validator.validate();
+		this.logger.info("Resources.xml finished");
 	}
 	
-	public ResourcesFile(File file) throws JAXBException{
-		Unmarshaller um = getJAXBContext().createUnmarshaller();
-		resources = ((JAXBElement<ResourceListType>) um.unmarshal(file)).getValue();
+	/**
+	 * Creates a ResourceFile instance from a given XML string.
+	 * The XML is validated against the given schema and internally validated
+	 * 
+	 * @param xmlString
+	 * @param xsd
+	 * @throws JAXBException
+	 * @throws ResourcesFileValidationException
+	 */
+	public ResourcesFile(String xmlString, Schema xsd, Logger logger) throws JAXBException, ResourcesFileValidationException {
+		this.logger = logger;
+		this.logger.info("Init Resources.xml parsing");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("XML String");
+			this.logger.debug("XSD Schema");
+		}
+		this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		this.xsd = xsd;
+	
+		// Unmarshall
+		Unmarshaller um = this.context.createUnmarshaller();
+		um.setSchema(this.xsd);
+		JAXBElement<?> jaxbElem = (JAXBElement<?>) um.unmarshal(new StringReader(xmlString));
+		this.resources = (ResourcesListType) jaxbElem.getValue();
+		
+		// Validate
+		this.logger.info("Init Resources.xml validation");
+		validator = new Validator(this, this.logger);
+		validator.validate();
+		this.logger.info("Resources.xml finished");
 	}
 	
-	public ResourcesFile(String xmlString) throws JAXBException{
-		Unmarshaller um = getJAXBContext().createUnmarshaller();
-		resources = ((JAXBElement<ResourceListType>) um.unmarshal(new StringReader(xmlString))).getValue();
+	/**
+	 * Creates a ResourceFile instance from a given XML file.
+	 * The XML is validated against the given path of the schema and internally validated
+	 * 
+	 * @param xml
+	 * @param xsdPath
+	 * @throws SAXException
+	 * @throws JAXBException
+	 * @throws ResourcesFileValidationException
+	 */
+	public ResourcesFile(File xml, String xsdPath, Logger logger) throws SAXException, JAXBException, ResourcesFileValidationException {
+		this.logger = logger;
+		this.logger.info("Init Resources.xml parsing");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("XML Path: " + xml.getAbsolutePath());
+			this.logger.debug("XSD Path: " + xsdPath);
+		}
+		this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI); 
+        this.xsd = sf.newSchema(new File(xsdPath));
+		
+		// Unmarshall
+		Unmarshaller um = this.context.createUnmarshaller();
+		um.setSchema(this.xsd);
+		JAXBElement<?> jaxbElem = (JAXBElement<?>) um.unmarshal(xml);
+		this.resources = (ResourcesListType) jaxbElem.getValue();
+		
+		// Validate
+		this.logger.info("Init Resources.xml validation");
+		validator = new Validator(this, this.logger);
+		validator.validate();
+		this.logger.info("Resources.xml finished");
 	}
 	
-	public void toFile(File file) throws JAXBException{
-		Marshaller m = getJAXBContext().createMarshaller();
+	/**
+	 * Creates a ResourceFile instance from a given XML string.
+	 * The XML is validated against the given path of the schema and internally validated
+	 * 
+	 * @param xmlString
+	 * @param xsdPath
+	 * @throws SAXException
+	 * @throws JAXBException
+	 * @throws ResourcesFileValidationException
+	 */
+	public ResourcesFile(String xmlString, String xsdPath, Logger logger) throws SAXException, JAXBException, ResourcesFileValidationException {
+		this.logger = logger;
+		this.logger.info("Init Resources.xml parsing");
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("XML String");
+			this.logger.debug("XSD Path: " + xsdPath);
+		}
+		this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI); 
+        this.xsd = sf.newSchema(new File(xsdPath));
+		
+		// Unmarshall
+		Unmarshaller um = this.context.createUnmarshaller();
+		um.setSchema(this.xsd);
+		JAXBElement<?> jaxbElem = (JAXBElement<?>) um.unmarshal(new StringReader(xmlString));
+		this.resources = (ResourcesListType) jaxbElem.getValue();
+		
+		// Validate
+		this.logger.info("Init Resources.xml validation");
+		validator = new Validator(this, this.logger);
+		validator.validate();
+		this.logger.info("Resources.xml finished");
+	}
+
+	
+	/* **************************************
+	 * DUMPERS
+	 * **************************************/
+	/**
+	 * Stores the current ResourceList object to the given file
+	 * 
+	 * @param file
+	 * @throws JAXBException
+	 */
+	public void toFile(File file) throws JAXBException {
+		logger.info("Resources.xml to file");
+		Marshaller m = this.context.createMarshaller();
 		ObjectFactory objFact = new ObjectFactory();
+		
+		m.setSchema(this.xsd);
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-		m.marshal(objFact.createResourceList(resources), file);
+		
+		m.marshal(objFact.createResourcesList(resources), file);
 	}
 	
-	public String getString() throws JAXBException{
-		Marshaller m = getJAXBContext().createMarshaller();
+	/**
+	 * Returns the string construction of the current ResourceList 
+	 * 
+	 * @return
+	 * @throws JAXBException
+	 */
+	public String getString() throws JAXBException {
+		logger.info("Resources.xml to string");
+		Marshaller m = this.context.createMarshaller();
 		ObjectFactory objFact = new ObjectFactory();
+		
+		m.setSchema(this.xsd);
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		
 		StringWriter sw = new StringWriter();
-		m.marshal(objFact.createResourceList(resources), sw);
+		m.marshal(objFact.createResourcesList(resources), sw);
 		return sw.getBuffer().toString();
 	}
 	
-	private static JAXBContext getJAXBContext() throws JAXBException{
-		return JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-	}
-	
-	public List<ResourceTypeWithPorts> getResources(){
-		ArrayList<ResourceTypeWithPorts> list = new ArrayList<ResourceTypeWithPorts>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ResourceTypeWithPorts){
-					list.add((ResourceTypeWithPorts)ob);
-				}
-			}
-		}
-		return list;
-	}
-	
-	public HashMap<String,ResourceTypeWithPorts> getResourcesHashMap(){
-		HashMap<String,ResourceTypeWithPorts> list = new HashMap<String, ResourceTypeWithPorts>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ResourceTypeWithPorts){
-					list.put(((ResourceTypeWithPorts)ob).getName(), (ResourceTypeWithPorts)ob);
-				}
-			}
-		}
-		return list;
-	}
-	
-	public void addResource(ResourceTypeWithPorts resource){
-		resources.getDiskOrDataNodeOrResource().add(resource);
-	}
-	
-	public void updateResourceCapabilities(String name, CapabilitiesType cap) throws Exception{
-		ResourceTypeWithPorts resource = this.getResource(name);
-		resource.setCapabilities(cap);
-	}
-	
-	public ResourceTypeWithPorts addResource(String name, String proc_arch, Float proc_speed,
-                        Integer proc_count, Integer proc_cores, String os_type, Float storage_size, 
-                        Float memory_size, String[] appSoftware, Integer taskCount, String[] queues ) throws Exception{
-                ResourceTypeWithPorts res = createResourceWithPorts(name, proc_arch, proc_speed, proc_count, proc_cores, os_type, storage_size,
-                        memory_size, appSoftware, taskCount, queues); 
-                resources.getDiskOrDataNodeOrResource().add(res);
-                return res;
-	}
-	
-	private static CapabilitiesType createResourceCapabilities(String name, String proc_arch, Float proc_speed,
-			Integer proc_count, Integer proc_cores, String os_type, Float storage_size,
-			Float memory_size, String[] appSoftware) throws Exception{
-		CapabilitiesType cap = new CapabilitiesType();
-		ProcessorType proc = new ProcessorType();
-		if (proc_arch != null)
-			proc.setArchitecture(proc_arch);
-		if (proc_speed != null) 
-			proc.setSpeed(proc_speed);
-		if (proc_count != null) 
-			proc.setCPUCount(proc_count);
-		if (proc_cores != null)
-			proc.setCoreCount(proc_cores);
-		else
-			throw new Exception("Number of cores should be defined");
-		cap.setProcessor(proc);	
-		if (os_type!=null){
-			OsType os = new OsType();
-			os.setOSType(OSTypeType.fromValue(os_type));
-			cap.setOS(os);
-		}
-		if (storage_size!=null){
-			StorageElementType storage = new StorageElementType();
-			storage.setSize(storage_size.floatValue());
-			cap.setStorageElement(storage);
-		}
-		if (memory_size!=null){
-			MemoryType memory = new MemoryType();
-			memory.setPhysicalSize(memory_size.floatValue());
-			cap.setMemory(memory);
-		}
-		if(appSoftware!=null&&appSoftware.length>0){
-			ApplicationSoftwareType apps = new ApplicationSoftwareType();
-			for (String app:appSoftware)
-				apps.getSoftware().add(app);
-			cap.setApplicationSoftware(apps);
-		}
-		return cap;
-	}
-	private static HostType createResourceHost(Integer taskCount, String[] queues){
-		HostType host = new HostType();
-		if (taskCount!=null){
-			TaskCount tc = new TaskCount();
-			tc.setValue(taskCount);
-			host.setTaskCount(tc);
-		}
-		if(queues!=null&&queues.length>0){
-			for (String q:queues)
-				host.getQueue().add(q);
-		}
-		return host;
-	}
-	
 
-	public static ResourceTypeWithPorts createResourceWithPorts(String name, String proc_arch, Float proc_speed,
-			Integer proc_count, Integer proc_cores, String os_type, Float storage_size,
-			Float memory_size, String[] appSoftware, Integer taskCount, String[] queues ) throws Exception{
-		ResourceTypeWithPorts res = new ResourceTypeWithPorts(); 
-		if (name!=null)
-			res.setName(name);
-		else
-			throw new Exception("Resource name should be defined");
-		CapabilitiesType cap = createResourceCapabilities(name, proc_arch, proc_speed, proc_count, proc_cores, os_type, storage_size, memory_size, appSoftware);
-		HostType host = createResourceHost(taskCount, queues);
-		cap.setHost(host);
-		res.setCapabilities(cap);			
+	/* **************************************
+	 * GETTERS: MAIN ELEMENTS LISTS
+	 * **************************************/
+	/**
+	 * Returns the JAXB class representing the all XML file content
+	 * 
+	 * @return
+	 */
+	public ResourcesListType getResources() {
+		return this.resources;
+	}
+	
+	/**
+	 * Returns a list of declared Shared Disks
+	 * 
+	 * @return
+	 */
+	public List<SharedDiskType> getSharedDisks_list() {
+		ArrayList<SharedDiskType> list = new ArrayList<SharedDiskType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof SharedDiskType) {
+					list.add((SharedDiskType)obj);
+				}
+			}
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * Returns a list of declared DataNodes
+	 * 
+	 * @return
+	 */
+	public List<DataNodeType> getDataNodes_list() {
+		ArrayList<DataNodeType> list = new ArrayList<DataNodeType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof DataNodeType) {
+					list.add((DataNodeType)obj);
+				}
+			}
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * Returns a list of declared ComputeNodes
+	 * 
+	 * @return
+	 */
+	public List<ComputeNodeType> getComputeNodes_list() {
+		ArrayList<ComputeNodeType> list = new ArrayList<ComputeNodeType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ComputeNodeType) {
+					list.add((ComputeNodeType)obj);
+				}
+			}
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * Returns a list of declared Services
+	 * 
+	 * @return
+	 */
+	public List<ServiceType> getServices_list() {
+		ArrayList<ServiceType> list = new ArrayList<ServiceType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					list.add((ServiceType)obj);
+				}
+			}
+		}
+		
+		return list;
+	}
+	
+	/**
+	 * Returns a list of declared CloudProviders
+	 * 
+	 * @return
+	 */
+	public List<CloudProviderType> getCloudProviders_list() {
+		ArrayList<CloudProviderType> list = new ArrayList<CloudProviderType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof CloudProviderType) {
+					list.add((CloudProviderType)obj);
+				}
+			}
+		}
+		
+		return list;
+	}
+	
+	
+	/* **************************************
+	 * GETTERS: MAIN ELEMENTS HASH-MAPS
+	 * **************************************/
+	/**
+	 * Returns a HashMap of declared Shared Disks (Key: Name, Value: SD)
+	 * @return
+	 */
+	public HashMap<String, SharedDiskType> getSharedDisks_hashMap() {
+		HashMap<String, SharedDiskType> res = new HashMap<String, SharedDiskType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof SharedDiskType) {
+					String diskName = ((SharedDiskType)obj).getName();
+					res.put(diskName, (SharedDiskType)obj);
+				}
+			}
+		}
 		
 		return res;
 	}
 	
-	public static ResourceType createResourceType(String name, String proc_arch, Float proc_speed,
-			Integer proc_count, Integer proc_cores, String os_type, Float storage_size,
-			Float memory_size, String[] appSoftware, Integer taskCount, String[] queues ) throws Exception{
-		ResourceType res = new ResourceType(); 
-		if (name!=null)
-			res.setName(name);
-		else
-			throw new Exception("Resource name should be defined");
-		CapabilitiesType cap = createResourceCapabilities(name, proc_arch, proc_speed, proc_count, proc_cores, os_type, storage_size, memory_size, appSoftware);
-		HostType host = createResourceHost(taskCount, queues);
-		cap.setHost(host);
-		res.setCapabilities(cap);			
+	/**
+	 * Returns a HashMap of declared DataNodes (Key: Name, Value: DN)
+	 * 
+	 * @return
+	 */
+	public HashMap<String, DataNodeType> getDataNodes_hashMap() {
+		HashMap<String, DataNodeType> res = new HashMap<String, DataNodeType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof DataNodeType) {
+					String dataNodeName = ((DataNodeType)obj).getName();
+					res.put(dataNodeName, (DataNodeType)obj);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	/**
+	 * Returns a HashMap of declared ComputeNodes (Key: Name, Value: CN)
+	 * 
+	 * @return
+	 */
+	public HashMap<String, ComputeNodeType> getComputeNodes_hashMap() {
+		HashMap<String, ComputeNodeType> res = new HashMap<String, ComputeNodeType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ComputeNodeType) {
+					String computeNodeName = ((ComputeNodeType)obj).getName();
+					res.put(computeNodeName, (ComputeNodeType)obj);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	/**
+	 * Returns a HashMap of declared Services (Key: WSDL, Value: Service)
+	 * 
+	 * @return
+	 */
+	public HashMap<String, ServiceType> getServices_hashMap() {
+		HashMap<String, ServiceType> res = new HashMap<String, ServiceType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					String serviceWSDL = ((ServiceType)obj).getWsdl();
+					res.put(serviceWSDL, (ServiceType)obj);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	/**
+	 * Returns a HashMap of declared Shared Disks (Key: Name, Value: List<Services>)
+	 * 
+	 * @return
+	 */
+	public HashMap<String, List<ServiceType>> getServices_byName() {
+		HashMap<String, List<ServiceType>> res = new HashMap<String, List<ServiceType>>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					String serviceName = ((ServiceType)obj).getName();
+					
+					List<ServiceType> auxServicesList = null;
+					if (res.containsKey(serviceName)) {
+						auxServicesList = res.get(serviceName);
+						auxServicesList.add( (ServiceType)obj );
+					} else {
+						auxServicesList = new ArrayList<ServiceType> ();
+					}
+					res.put(serviceName, auxServicesList);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	/**
+	 * Returns a HashMap of declared CloudProviders (Key: Name, Value: CP)
+	 * 
+	 * @return
+	 */
+	public HashMap<String, CloudProviderType> getCloudProviders_hashMap() {
+		HashMap<String, CloudProviderType> res = new HashMap<String, CloudProviderType>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof CloudProviderType) {
+					String cloudProviderName = ((CloudProviderType)obj).getName();
+					res.put(cloudProviderName, (CloudProviderType)obj);
+				}
+			}
+		}
+		
 		return res;
 	}
 	
 	
-	
-	public ResourceTypeWithPorts getResource(String name) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ResourceTypeWithPorts){
-					if(((ResourceTypeWithPorts)ob).getName().equals(name))
-							return (ResourceTypeWithPorts)ob;
+	/* **************************************
+	 * GETTERS: MAIN ELEMENTS KEY-VALUES (NAME)
+	 * **************************************/
+	/**
+	 * Returns a List of the names of the declared SharedDisks
+	 * 
+	 * @return
+	 */
+	public List<String> getSharedDisks_names() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof SharedDiskType) {
+					list.add(((SharedDiskType)obj).getName());
 				}
 			}
 		}
-		throw new Exception("Resource "+ name + " not found");
+		
+		return list;
 	}
 	
-	public void deleteResource(String name) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (int i=0; i<objList.size(); i++){
-				Object ob = objList.get(i);
-				if (ob instanceof ResourceTypeWithPorts){
-					if(((ResourceTypeWithPorts)ob).getName().equals(name)){
-							objList.remove(i);
-							return;
+	/**
+	 * Returns a List of the names of the declared DataNodes
+	 * 
+	 * @return
+	 */
+	public List<String> getDataNodes_names() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof DataNodeType) {
+					list.add(((DataNodeType)obj).getName());
+				}
+			}
+		}
+		
+		return list;		
+	}
+	
+	/**
+	 * Returns a List of the names of the declared ComputeNodes
+	 * 
+	 * @return
+	 */
+	public List<String> getComputeNodes_names() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ComputeNodeType) {
+					list.add(((ComputeNodeType)obj).getName());
+				}
+			}
+		}
+		
+		return list;		
+	}
+	
+	/**
+	 * Returns a List of the WSDLs of the declared Services
+	 * 
+	 * @return
+	 */
+	public List<String> getServices_wsdls() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					list.add(((ServiceType)obj).getWsdl());
+				}
+			}
+		}
+		
+		return list;		
+	}
+	
+	/**
+	 * Returns a List of the names of the declared Services (without repetition)
+	 * 
+	 * @return
+	 */
+	public List<String> getServices_names() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					String serviceName = ((ServiceType) obj).getName();
+					if (!list.contains(serviceName)) {
+						list.add(((ServiceType)obj).getName());
 					}
 				}
 			}
 		}
-		throw new Exception("Resource "+ name + " not found");
+		
+		return list;		
 	}
 	
-	public static List<String> getResourcesNames(List<ResourceTypeWithPorts> resources) {
-		ArrayList<String> names = new ArrayList<String>();
-		if (resources!= null && resources.size()>0){
-			for (ResourceTypeWithPorts resource:resources){
-				names.add(resource.getName());	
+	/**
+	 * Returns a List of the names of the declared CloudProviders
+	 * 
+	 * @return
+	 */
+	public List<String> getCloudProviders_names() {
+		ArrayList<String> list = new ArrayList<String>();
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof CloudProviderType) {
+					list.add(((CloudProviderType)obj).getName());
+				}
 			}
 		}
-		return names;
+		
+		return list;		
 	}
 	
-	public static CapabilitiesType getResourceCapabilities(String name, List<ResourceTypeWithPorts> resources) {
-		if (resources!= null && resources.size()>0){
-			for (ResourceTypeWithPorts resource:resources){
-				if (resource.getName().equals(name)){
-					return resource.getCapabilities();
+	
+	/* **************************************
+	 * GETTERS: MAIN ELEMENTS SINGLE
+	 * **************************************/
+	/**
+	 * Returns the SharedDisk with name=@name. Null if name doesn't exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public SharedDiskType getSharedDisk(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof SharedDiskType) {
+					SharedDiskType sd = (SharedDiskType) obj;
+					if (sd.getName().equals(name)) {
+						return sd;
+					}
+				}
+			}
+		}
+		
+		// Not found
+		return null;
+	}
+	
+	/**
+	 * Returns the DataNode with name=@name. Null if name doesn't exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public DataNodeType getDataNode(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof DataNodeType) {
+					DataNodeType dn = (DataNodeType) obj;
+					if (dn.getName().equals(name)) {
+						return dn;
+					}
+				}
+			}
+		}
+		
+		// Not found
+		return null;
+	}
+	
+	/**
+	 * Returns the Host of a given DataNode
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public String getHost(DataNodeType d) {
+		List<JAXBElement<?>> elements = d.getHostOrPathOrAdaptors();
+		if (elements != null) {
+			for (JAXBElement<?> elem : elements) {
+				if (elem.getName().equals(new QName("Host"))) {
+					return (String) elem.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the path of a given DataNode
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public String getPath(DataNodeType d) {
+		List<JAXBElement<?>> elements = d.getHostOrPathOrAdaptors();
+		if (elements != null) {
+			for (JAXBElement<?> elem : elements) {
+				if (elem.getName().equals(new QName("Path"))) {
+					return (String) elem.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the storage size of a given DataNode
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public float getStorageSize(DataNodeType d) {
+		List<JAXBElement<?>> elements = d.getHostOrPathOrAdaptors();
+		if (elements != null) {
+			for (JAXBElement<?> elem : elements) {
+				if (elem.getName().equals(new QName("Storage"))) {
+					StorageType storage = ((StorageType) elem.getValue());
+					return getStorageSize(storage);
+				}
+			}
+		}
+		
+		return (float)-1.0;
+	}
+	
+	/**
+	 * Returns the storage type of a given DataNode
+	 * 
+	 * @param d
+	 * @return
+	 */
+	public String getStorageType(DataNodeType d) {
+		List<JAXBElement<?>> elements = d.getHostOrPathOrAdaptors();
+		if (elements != null) {
+			for (JAXBElement<?> elem : elements) {
+				if (elem.getName().equals(new QName("Storage"))) {
+					StorageType storage = ((StorageType) elem.getValue());
+					return getStorageType(storage);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the ComputeNode with name=@name. Null if name doesn't exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public ComputeNodeType getComputeNode(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ComputeNodeType) {
+					ComputeNodeType cn = (ComputeNodeType) obj;
+					if (cn.getName().equals(name)) {
+						return cn;
+					}
+				}
+			}
+		}
+		
+		// Not found
+		return null;
+	}
+	
+	/**
+	 * Returns the processors of a given Compute Node @c
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public List<ProcessorType> getProcessors(ComputeNodeType c) {
+		List<ProcessorType> processors = new ArrayList<ProcessorType> ();
+		
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ProcessorType) {
+					processors.add( ((ProcessorType) obj) );
+				}
+			}
+		}
+		
+		return processors;
+	}
+	
+	/**
+	 * Returns the memory size of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public float getMemorySize(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof MemoryType) {
+					MemoryType mem = ((MemoryType) obj);
+					List<Serializable> memProps = mem.getSizeOrType();
+					if (memProps != null) {
+						for (Serializable prop : memProps) {
+							if (prop instanceof Float) {
+								return (float) prop;
+							}
+						}
+					} else {
+						return (float)-1.0;
+					}
+				}
+			}
+		}
+		
+		return (float)-1.0;
+	}
+	
+	/**
+	 * Returns the memory type of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public String getMemoryType(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof MemoryType) {
+					MemoryType mem = ((MemoryType) obj);
+					List<Serializable> memProps = mem.getSizeOrType();
+					if (memProps != null) {
+						for (Serializable prop : memProps) {
+							if (prop instanceof String) {
+								return (String) prop;
+							}
+						}
+					} else {
+						return null;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+		
+	/**
+	 * Returns the storage size of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public float getStorageSize(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof StorageType) {
+					StorageType storage = ((StorageType) obj);
+					return getStorageSize(storage);
+				}
+			}
+		}
+		
+		return (float)-1.0;
+	}
+	
+	/**
+	 * Returns the storage type of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public String getStorageType(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof StorageType) {
+					StorageType storage = ((StorageType) obj);
+					return getStorageType(storage);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the OperatingSystem properties of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public OSType getOperatingSystem(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					return ((OSType) obj);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the OperatingSystem type of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public String getOperatingSystemType(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = ((OSType) obj);
+					return getOperatingSystemType(os);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the OperatingSystem distribution of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public String getOperatingSystemDistribution(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = ((OSType) obj);
+					return getOperatingSystemDistribution(os);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the OperatingSystem Version of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public String getOperatingSystemVersion(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = ((OSType) obj);
+					return getOperatingSystemVersion(os);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the applications of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public List<String> getApplications(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof SoftwareListType) {
+					return ((SoftwareListType) obj).getApplication();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the price properties of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public PriceType getPrice(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof PriceType) {
+					return ((PriceType) obj);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the SharedDisks (name, mountpoint) of a given ComputeNode
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public HashMap<String, String> getSharedDisks(ComputeNodeType c) {
+		List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof AttachedDisksListType) {
+					AttachedDisksListType disks = (AttachedDisksListType) obj;
+					HashMap<String, String> disksInformation = new HashMap<String, String>();
+					for (AttachedDiskType disk : disks.getAttachedDisk()) {
+						disksInformation.put(disk.getName(), disk.getMountPoint());
+					}
+					return disksInformation;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the queues of a given Adaptor within a given ComputeNode
+	 * 
+	 * @param cn
+	 * @param adaptorName
+	 * @return
+	 */
+	public List<String> getAdaptorQueues(ComputeNodeType cn, String adaptorName) {
+		List<String> empty_queues = new ArrayList<String>();
+	
+		List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof AdaptorsListType) {
+					List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+					if (adaptors != null) {
+						// Loop for specific adaptor name
+						for (AdaptorType adaptor : adaptors) {
+							if (adaptor.getName().equals(adaptorName)) {
+								return getAdaptorQueues(adaptor);
+							}
+						}
+					} else {
+						return empty_queues; // Empty
+					}
+				}
+			}
+		}
+		
+		return empty_queues; // Empty
+	}
+	
+	/**
+	 * Returns the declared properties of a given Adaptor within a given ComputeNode
+	 * 
+	 * @param cn
+	 * @param adaptorName
+	 * @return
+	 */
+	public Object getAdaptorProperties(ComputeNodeType cn, String adaptorName) {		
+		List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof AdaptorsListType) {
+					List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+					if (adaptors != null) {
+						// Loop for specific adaptor name
+						for (AdaptorType adaptor : adaptors) {
+							if (adaptor.getName().equals(adaptorName)) {
+								return getAdaptorProperties(adaptor);
+							}
+						}
+					} else {
+						return null;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the Service with wsdl=@wsdl. Null if name doesn't exist
+	 * 
+	 * @param wsdl
+	 * @return
+	 */
+	public ServiceType getService(String wsdl) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ServiceType) {
+					ServiceType s = (ServiceType) obj;
+					if (s.getWsdl().equals(wsdl)) {
+						return s;
+					}
+				}
+			}
+		}
+		
+		// Not found
+		return null;
+	}
+	
+	/**
+	 * Returns the CloudProvider with name=@name. Null if name doesn't exist
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public CloudProviderType getCloudProvider(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof CloudProviderType) {
+					CloudProviderType cp = (CloudProviderType) obj;
+					if (cp.getName().equals(name)) {
+						return cp;
+					}
+				}
+			}
+		}
+		
+		// Not found
+		return null;
+	}
+	
+	/**
+	 * Returns the instance with the given name within the given CloudProvider. Null if not found
+	 * 
+	 * @param cp
+	 * @param instanceName
+	 * @return
+	 */
+	public InstanceTypeType getInstance(CloudProviderType cp, String instanceName) {
+		InstanceTypesType instances = cp.getInstanceTypes();
+		if (instances != null) {
+			for (InstanceTypeType instance : instances.getInstanceType()) {
+				if (instance.getName().equals(instanceName)) {
+					return instance;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the image with the given name within the given CloudProvider. Null if not found
+	 * 
+	 * @param cp
+	 * @param imageName
+	 * @return
+	 */
+	public ImageType getImage(CloudProviderType cp, String imageName) {
+		ImagesType images = cp.getImages();
+		if (images != null) {
+			for (ImageType image : images.getImage()) {
+				if (image.getName().equals(imageName)) {
+					return image;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the connector information form a given endpoint
+	 * 
+	 * @param endpoint
+	 * @return
+	 */
+	public String getConnector (EndpointType endpoint) {
+		List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+		if (elements != null) {
+			for (JAXBElement<String> elem : elements) {
+				if (elem.getName().equals(new QName("Connector"))) {
+					return elem.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the server information form a given endpoint
+	 * 
+	 * @param endpoint
+	 * @return
+	 */
+	public String getServer (EndpointType endpoint) {
+		List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+		if (elements != null) {
+			for (JAXBElement<String> elem : elements) {
+				if (elem.getName().equals(new QName("Server"))) {
+					return elem.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the port information form a given endpoint
+	 * 
+	 * @param endpoint
+	 * @return
+	 */
+	public String getPort (EndpointType endpoint) {
+		List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+		if (elements != null) {
+			for (JAXBElement<String> elem : elements) {
+				if (elem.getName().equals(new QName("Port"))) {
+					return elem.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+
+	/**
+	 * Returns the OS Type associated to a given Image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public String getOperatingSystemType(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = (OSType) obj;
+					return getOperatingSystemType(os);
 				}
 			}
 		}
 		return null;
 	}
 	
-	public List<DiskType> getDisks(){
-		ArrayList<DiskType> list = new ArrayList<DiskType>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof DiskType){
-					list.add((DiskType)ob);
+	/**
+	 * Returns the OS Distribution associated to a given Image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public String getOperatingSystemDistribution(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = (OSType) obj;
+					return getOperatingSystemDistribution(os);
 				}
 			}
 		}
-		return list;
+		return null;
 	}
 	
-	public List<ResourceTypeWithPorts> getResourcesWithDisk(String diskName){
-		ArrayList<ResourceTypeWithPorts> list = new ArrayList<ResourceTypeWithPorts>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ResourceTypeWithPorts){
-					ResourceTypeWithPorts res = (ResourceTypeWithPorts)ob;
-					SharedDiskListType disks = res.getDisks();
-					if (disks!=null){
-						for (DiskType d:disks.getDisk()){
-							if(d.getName().equals(diskName)){
-								list.add(res);
-								break;
+	/**
+	 * Returns the OS Version associated to a given Image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public String getOperatingSystemVersion(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof OSType) {
+					OSType os = (OSType) obj;
+					return getOperatingSystemVersion(os);
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the OS type
+	 * 
+	 * @param os
+	 * @return
+	 */
+	public String getOperatingSystemType(OSType os) {
+		List<JAXBElement<?>> innerElements = os.getTypeOrDistributionOrVersion();
+		if (innerElements != null) {
+			for (JAXBElement<?> elem : innerElements) {
+				if (elem.getName().equals(new QName("Type"))) {
+					return (String) elem.getValue();
+				}
+			}
+		}
+		return null;
+	}
+	
+	/** 
+	 * Returns the OS Distribution
+	 * 
+	 * @param os
+	 * @return
+	 */
+	public String getOperatingSystemDistribution(OSType os) {
+		List<JAXBElement<?>> innerElements = os.getTypeOrDistributionOrVersion();
+		if (innerElements != null) {
+			for (JAXBElement<?> elem : innerElements) {
+				if (elem.getName().equals(new QName("Distribution"))) {
+					return (String) elem.getValue();
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the OS Version
+	 * 
+	 * @param os
+	 * @return
+	 */
+	public String getOperatingSystemVersion(OSType os) {
+		List<JAXBElement<?>> innerElements = os.getTypeOrDistributionOrVersion();
+		if (innerElements != null) {
+			for (JAXBElement<?> elem : innerElements) {
+				if (elem.getName().equals(new QName("Version"))) {
+					return (String) elem.getValue();
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the applications associated to a given image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public List<String> getApplications(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof SoftwareListType) {
+					return ((SoftwareListType) obj).getApplication();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the price information associated to a given image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public PriceType getPrice(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof PriceType) {
+					return ((PriceType) obj);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the image creation time associated to a given image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public int getCreationTime(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof Integer) {	// Creation time
+					return ((Integer) obj);
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Returns the shared Disks associated to a given image
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public HashMap<String, String> getSharedDisks(ImageType image) {
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof AttachedDisksListType) {
+					List<AttachedDiskType> disks = ((AttachedDisksListType) obj).getAttachedDisk();
+					if (disks != null) {
+						HashMap<String, String> result = new HashMap<String, String>();
+						for (AttachedDiskType disk : disks) {
+							result.put(disk.getName(), disk.getMountPoint());
+						}
+						return result;
+					} else {
+						return null;
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the queues of a given Adaptor within a given Image
+	 * 
+	 * @param image
+	 * @param adaptorName
+	 * @return
+	 */
+	public List<String> getAdaptorQueues(ImageType image, String adaptorName) {
+		List<String> empty_queues = new ArrayList<String>();
+	
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof AdaptorsListType) {
+					List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+					if (adaptors != null) {
+						// Loop for specific adaptor name
+						for (AdaptorType adaptor : adaptors) {
+							if (adaptor.getName().equals(adaptorName)) {
+								return getAdaptorQueues(adaptor);
 							}
 						}
+					} else {
+						return empty_queues; // Empty
 					}
 				}
 			}
 		}
-		return list;
-	}
-
-	/** Add a disk. If exists modifiy the mountPoint
-	 * @param name Disk name
-	 * @param mountPoint Mount point path
-	 * @return Disk Element
-	 * @throws Exception Name has not been defined
-	 */
-	public DiskType addDisk(String name, String mountPoint) throws Exception{
-		try{
-			DiskType res = this.getDisk(name);
-			if (mountPoint!=null)
-				res.setMountPoint(mountPoint);
-			return res;
-		}catch(Exception e){
-			DiskType res = new DiskType(); 
-			if (name!=null)
-				res.setName(name);
-			else
-				throw new Exception("Disk name should be defined");
-			if (mountPoint!=null)
-				res.setMountPoint(mountPoint);
-			resources.getDiskOrDataNodeOrResource().add(res);
-			return res;
-		}
-	}
-	
-	/**Add a disk to resource. If exists modifiy the mountPoint
-	 * @param name Disk name
-	 * @param mountPoint Mount point path
-	 * @param resource Resource to add the mount point
-	 * @throws Exception Name has not been defined
-	 */
-	public static void addDiskToResource(String name, String mountPoint, ResourceTypeWithPorts resource) throws Exception{
-		DiskType res = new DiskType(); 
-		if (name!=null)
-			res.setName(name);
-		else
-			throw new Exception("Disk name should be defined");
-		if (mountPoint!=null)
-			res.setMountPoint(mountPoint);
-		SharedDiskListType sDisks = resource.getDisks();
-		if (sDisks== null){
-			sDisks = new SharedDiskListType();
-			resource.setDisks(sDisks);
-		}
-		for(DiskType d:sDisks.getDisk()){
-			if (d.getName().equals(name)){
-				d.setMountPoint(mountPoint);
-				return;
-			}
-		}
-		sDisks.getDisk().add(res);
-	}
-	
-	public static void removeDiskFromResource(String name, ResourceTypeWithPorts resource){
-
-		SharedDiskListType sDisks = resource.getDisks();
-		if (sDisks== null){
-			return;
-		}
-		for(DiskType d:sDisks.getDisk()){
-			if (d.getName().equals(name)){
-				sDisks.getDisk().remove(d);
-				return;
-			}
-		}
-	}
-	
-	public static DiskType getDiskFromResource(String name, ResourceTypeWithPorts resource) throws Exception{
-		SharedDiskListType sDisks = resource.getDisks();
-		if (sDisks!= null){
-			for (DiskType d : sDisks.getDisk()) {
-				if (d.getName().equals(name)) {
-					return d;
-				}
-			}
-		}
-		throw new Exception("Disk "+ name + " not found");
-	}
-	
-	public DiskType getDisk(String name) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof DiskType){
-					if(((DiskType)ob).getName().equals(name))
-							return (DiskType)ob;
-				}
-			}
-		}
-		throw new Exception("Disk "+ name + " not found");
 		
+		return empty_queues; // Empty
 	}
 	
-	public void removeDisk(String name) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof DiskType){
-					if(((DiskType)ob).getName().equals(name)){
-						resources.getDiskOrDataNodeOrResource().remove((DiskType)ob);
-						return;
+	/**
+	 * Returns the declared properties of a given Adaptor within a given Image
+	 * 
+	 * @param image
+	 * @param adaptorName
+	 * @return
+	 */
+	public Object getAdaptorProperties(ImageType image, String adaptorName) {		
+		List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
+		if (objList != null) {
+			// Loop for adaptors tag
+			for (Object obj : objList) {
+				if (obj instanceof AdaptorsListType) {
+					List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+					if (adaptors != null) {
+						// Loop for specific adaptor name
+						for (AdaptorType adaptor : adaptors) {
+							if (adaptor.getName().equals(adaptorName)) {
+								return getAdaptorProperties(adaptor);
+							}
+						}
+					} else {
+						return null;
 					}
 				}
 			}
 		}
-		throw new Exception("Disk "+ name + " not found");
 		
+		return null;
 	}
 	
-	public List<CloudType> getCloudProviders(){
-		ArrayList<CloudType> list = new ArrayList<CloudType>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof CloudType){
-					list.add((CloudType)ob);
-				}
-			}
-		}
-		return list;
-	}
-	
-	public CloudType addCloudProvider(String name) throws Exception{
-		CloudType res = new CloudType(); 
-		if (name!=null)
-			res.setName(name);
-		else
-			throw new Exception("Provider name should be defined");
+	/**
+	 * Returns the processors of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public List<ProcessorType> getProcessors(InstanceTypeType instance) {
+		List<ProcessorType> processors = new ArrayList<ProcessorType> ();
 		
-		resources.getDiskOrDataNodeOrResource().add(res);
-		return res;
-	}
-	
-	public CloudType getCloudProvider(String name) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof CloudType){
-					if(((CloudType)ob).getName().equals(name))
-							return (CloudType)ob;
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ProcessorType) {
+					processors.add( ((ProcessorType) obj) );
 				}
 			}
 		}
-		throw new Exception("Cloud provider "+ name + " not found");
-	}
-	
-	public void addImageToCloudProvider(CloudType provider, ImageType image) throws Exception {
 		
-		ImageListType imgList = provider.getImageList();
-		if (imgList==null){
-			imgList = new ImageListType();
-			provider.setImageList(imgList);
-		}
-		imgList.getImage().add(image);
+		return processors;
 	}
 	
-	public ImageType addImageToCloudProvider(CloudType provider, String imageId,
-			Map<String, String> shares) throws Exception {
-		ImageType img = new ImageType();
-		img.setName(imageId);
-		if (shares!=null&&!shares.isEmpty()){
-			SharedDiskListType sd = new SharedDiskListType();
-			for (Map.Entry<String,String> e:shares.entrySet()){
-				DiskType d = new DiskType();
-				d.setName(e.getKey());
-				d.setMountPoint(e.getValue());
-				sd.getDisk().add(d);
+	/**
+	 * Returns the memory size of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public float getMemorySize(InstanceTypeType instance) {
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof MemoryType) {
+					MemoryType mem = ((MemoryType) obj);
+					List<Serializable> memProps = mem.getSizeOrType();
+					if (memProps != null) {
+						for (Serializable prop : memProps) {
+							if (prop instanceof Float) {
+								return (float) prop;
+							}
+						}
+					} else {
+						return (float)-1.0;
+					}
+				}
 			}
-			img.setSharedDisks(sd);
 		}
-		addImageToCloudProvider(provider, img);
-		return img;
-	}
-	
-	public void addResourceTypeToCloudProvider(CloudType provider, ResourceType resource){
-		InstanceTypesList list = provider.getInstanceTypes();
-		if (list ==null){
-			list = new InstanceTypesList();
-			provider.setInstanceTypes(list);
-		}
-		list.getResource().add(resource);
-	}
-	
-	public ResourceType addResourceTypeToCloudProvider(CloudType provider,String name, String proc_arch, Float proc_speed,
-			Integer proc_count, Integer proc_cores, String os_type, Float storage_size,
-			Float memory_size, String[] appSoftware, Integer taskCount, String[] queues ) throws Exception{
-		ResourceType res = createResourceType(name, proc_arch, proc_speed, proc_count, proc_cores, os_type, 
-				storage_size, memory_size, appSoftware, taskCount, queues);
-		addResourceTypeToCloudProvider(provider, res);
-		return res;
 		
+		return (float)-1.0;
 	}
 	
-	
-	public ImageType addImageToCloudProvider(String providerName, String imageId,
-			Map<String, String> shares) throws Exception {
-		CloudType provider;
-		try{
-			provider = getCloudProvider(providerName);
-		}catch (Exception e){
-			provider = addCloudProvider(providerName);
-		}
-		return addImageToCloudProvider(provider, imageId, shares);
-	}
-	
-	public List<ServiceType> getServices(){
-		ArrayList<ServiceType> list = new ArrayList<ServiceType>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ServiceType){
-					list.add((ServiceType)ob);
+	/**
+	 * Returns the memory type of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public String getMemoryType(InstanceTypeType instance) {
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof MemoryType) {
+					MemoryType mem = ((MemoryType) obj);
+					List<Serializable> memProps = mem.getSizeOrType();
+					if (memProps != null) {
+						for (Serializable prop : memProps) {
+							if (prop instanceof String) {
+								return (String) prop;
+							}
+						}
+					} else {
+						return null;
+					}
 				}
 			}
 		}
-		return list;
+		
+		return null;
 	}
-	
-	public ServiceType addService(String serviceName, String namespace, String port, String wsdlLoc) throws Exception{
-		if (serviceName!=null && namespace!=null && wsdlLoc!=null){
-			ServiceType res = new ServiceType(); 
-			res.setName(serviceName);
-			res.setNamespace(namespace);
-			res.setWsdl(wsdlLoc);
-			if (port!=null){
-				res.getPort().add(port);
-			}
-			resources.getDiskOrDataNodeOrResource().add(res);
-			return res;
-			
-		}else
-			throw new Exception("A service parameter is not defined");
-	}
-	
-	public ServiceType getService(String wsdlLoc) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof ServiceType){
-					if(((ServiceType)ob).getWsdl().equals(wsdlLoc))
-							return (ServiceType)ob;
+		
+	/**
+	 * Returns the storage size of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public float getStorageSize(InstanceTypeType instance) {
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof StorageType) {
+					StorageType storage = ((StorageType) obj);
+					return getStorageSize(storage);
 				}
 			}
 		}
-		throw new Exception("Service "+ wsdlLoc + " not found");
+		
+		return (float)-1.0;
 	}
 	
-	public List<DataNodeType> getDataNodes(){
-		ArrayList<DataNodeType> list = new ArrayList<DataNodeType>();
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof DataNodeType){
-					list.add((DataNodeType)ob);
+	/**
+	 * Returns the storage type of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public String getStorageType(InstanceTypeType instance) {
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof StorageType) {
+					StorageType storage = ((StorageType) obj);
+					return getStorageType(storage);
 				}
 			}
 		}
-		return list;
+		
+		return null;
 	}
 	
-	public DataNodeType addDataNode(String host, String path) throws Exception{
-		DataNodeType res = new DataNodeType(); 
-		if (host!=null && path!=null){	
-			res.setHost(host);
-			res.setPath(path);
-		}else
-			throw new Exception("Data node host should be defined");
-		resources.getDiskOrDataNodeOrResource().add(res);
-		return res;
-	}
-	
-	public DataNodeType getDataNode(String host) throws Exception{
-		List<Object> objList = resources.getDiskOrDataNodeOrResource();
-		if (objList!=null && objList.size()>0){
-			for (Object ob:objList){
-				if (ob instanceof DataNodeType){
-					if(((DataNodeType)ob).getHost().equals(host))
-							return (DataNodeType)ob;
+	/**
+	 * Returns the price information of a given InstanceType
+	 * 
+	 * @param instance
+	 * @return
+	 */
+	public PriceType getPrice(InstanceTypeType instance) {
+		List<Object> objList = instance.getProcessorOrMemoryOrStorage();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof PriceType) {
+					return ((PriceType) obj);
 				}
 			}
 		}
-		throw new Exception("DataNode "+ host + " not found");
+		
+		return null;
 	}
 	
-	public ResourceListType getResourceListType(){
-		return resources;
+	/**
+	 * Returns the adaptor queues 
+	 * 
+	 * @param adaptor
+	 * @return
+	 */
+	public List<String> getAdaptorQueues(AdaptorType adaptor) {
+		List<String> empty_queues = new ArrayList<String>();
+		
+		List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
+		if (innerElements != null) {
+			// Loop for submission system
+			for (JAXBElement<?> adaptorElement : innerElements) {
+				if (adaptorElement.getName().equals(new QName("SubmissionSystem"))) {
+					SubmissionSystemType subSys = (SubmissionSystemType) adaptorElement.getValue();
+					List<Object> subSysTypes = subSys.getBatchOrInteractive();
+					if (subSysTypes != null) {
+						// Loop for BATCH
+						for (Object subSysType : subSysTypes) {
+							if (subSysType instanceof BatchType) {
+								// Get declared queues
+								List<String> queues = ((BatchType) subSysType).getQueue();
+								if (queues != null) {
+									return queues;
+								} else {
+									return empty_queues; // Empty
+								}
+							}
+						}
+					} else {
+						return empty_queues; // Empty
+					}
+				}
+			}
+		}
+		
+		return empty_queues; // Empty
 	}
 	
+	/**
+	 * Returns the adaptor properties
+	 * 
+	 * @param adaptor
+	 * @return
+	 */
+	public Object getAdaptorProperties(AdaptorType adaptor) {		
+		List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
+		if (innerElements != null) {
+			// Loop for submission system
+			for (JAXBElement<?> adaptorElement : innerElements) {
+				if ( adaptorElement.getName().equals(new QName("Ports")) 
+						|| adaptorElement.getName().equals(new QName("BrokerAdaptor"))
+						|| adaptorElement.getName().equals(new QName("Properties")) ) {
+					
+					return (Object) adaptorElement.getValue();
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/* **************************************
+	 * ADDERS: MAIN ELEMENTS
+	 * **************************************/
+	/**
+	 * Adds the given SharedDisk @sd to the resources file
+	 * 
+	 * @param sd
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public SharedDiskType addSharedDisk(SharedDiskType sd) throws InvalidElementException {
+		validator.validateSharedDisk(sd);
+		
+		// If we reach this point means that the SharedDisk is valid
+		this.resources.getSharedDiskOrDataNodeOrComputeNode().add(sd);
+		return sd;
+	}
+	
+	/**
+	 * Adds a new SharedDisk with name=@name and returns the instance of the new SharedDisk
+	 * 
+	 * @param name
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public SharedDiskType addSharedDisk(String name) throws InvalidElementException {
+		SharedDiskType sd = new SharedDiskType();
+		sd.setName(name);
+		sd.setStorage(null);
+		
+		return this.addSharedDisk(sd);
+	}
+	
+	/**
+	 * Adds a new SharedDisk with name=@name and storage=@storage and returns the instance of the new SharedDisk
+	 * 
+	 * @param name
+	 * @param storage
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public SharedDiskType addSharedDisk(String name, StorageType storage) throws InvalidElementException {
+		SharedDiskType sd = new SharedDiskType();
+		sd.setName(name);
+		sd.setStorage(storage);
+		
+		return this.addSharedDisk(sd);
+	}
+	
+	/**
+	 * Adds the given DataNode @dn to the resources file
+	 * 
+	 * @param dn
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(DataNodeType dn) throws InvalidElementException {
+		validator.validateDataNode(dn);
+		
+		// If we reach this point means that the DataNode is valid
+		this.resources.getSharedDiskOrDataNodeOrComputeNode().add(dn);
+		return dn;
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors) throws InvalidElementException {
+		return this.addDataNode(name, host, path, adaptors, null, (AttachedDisksListType)null);	
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors) throws InvalidElementException {
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		
+		return this.addDataNode(name, host, path, adaptorsList, null, (AttachedDisksListType)null);	
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @param storage
+	 * @param sharedDisks
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors, 
+			StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
+		
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		
+		return this.addDataNode(name, host, path, adaptorsList, storage, sharedDisks);		
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @param storage
+	 * @param sharedDisks
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors, 
+			StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
+		
+		AttachedDisksListType sharedDisksList = new AttachedDisksListType();
+		if (sharedDisks != null) {
+			for (AttachedDiskType d : sharedDisks) {
+				sharedDisksList.getAttachedDisk().add(d);
+			}
+		}
+		
+		return this.addDataNode(name, host, path, adaptors, storage, sharedDisksList);		
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @param storage
+	 * @param sharedDisks
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, List<AdaptorType> adaptors, 
+			StorageType storage, List<AttachedDiskType> sharedDisks) throws InvalidElementException {
+		
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		
+		AttachedDisksListType sharedDisksList = new AttachedDisksListType();
+		if (sharedDisks != null) {
+			for (AttachedDiskType d : sharedDisks) {
+				sharedDisksList.getAttachedDisk().add(d);
+			}
+		}
+		
+		return this.addDataNode(name, host, path, adaptorsList, storage, sharedDisksList);		
+	}
+	
+	/**
+	 * Adds a new DataNode with the given information and returns the instance of the new DataNode
+	 * 
+	 * @param name
+	 * @param host
+	 * @param path
+	 * @param adaptors
+	 * @param storage
+	 * @param sharedDisks
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public DataNodeType addDataNode(String name, String host, String path, AdaptorsListType adaptors, 
+			StorageType storage, AttachedDisksListType sharedDisks) throws InvalidElementException {
+		
+		JAXBElement<String> hostElement = new JAXBElement<String> (new QName("Host"), String.class, host);
+		JAXBElement<String> pathElement = new JAXBElement<String> (new QName("Path"), String.class, path);
+		JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType> (new QName("Adaptors"), AdaptorsListType.class, adaptors);
+		
+		DataNodeType dn = new DataNodeType();
+		dn.setName(name);
+		dn.getHostOrPathOrAdaptors().add(hostElement);
+		dn.getHostOrPathOrAdaptors().add(pathElement);
+		dn.getHostOrPathOrAdaptors().add(adaptorsElement);
+		
+		// Optional parameters
+		if (storage != null) {
+			JAXBElement<StorageType> storageElement = new JAXBElement<StorageType> (new QName("Storage"), StorageType.class, storage);
+			dn.getHostOrPathOrAdaptors().add(storageElement);
+		}
+		if (sharedDisks != null) {
+			JAXBElement<AttachedDisksListType> sdsElement = new JAXBElement<AttachedDisksListType> (new QName("SharedDisks"), AttachedDisksListType.class, sharedDisks);
+			dn.getHostOrPathOrAdaptors().add(sdsElement);
+		}
+		
+		return this.addDataNode(dn);		
+	}
+	
+	
+	/**
+	 * Adds the given ComputeNode @cn to the resources file
+	 * 
+	 * @param cn
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(ComputeNodeType cn) throws InvalidElementException {
+		validator.validateComputeNode(cn);
+		
+		// If we reach this point means that the ComputeNode is valid
+		this.resources.getSharedDiskOrDataNodeOrComputeNode().add(cn);		
+		return cn;
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors) throws InvalidElementException {
+		return this.addComputeNode(name, processors, adaptors, null, null, null, (SoftwareListType)null, (AttachedDisksListType)null, null);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors) throws InvalidElementException {
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		
+		return this.addComputeNode(name, processors, adaptorsList, null, null, null, (SoftwareListType)null, (AttachedDisksListType)null, null);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @param memory
+	 * @param storage
+	 * @param os
+	 * @param applications
+	 * @param sharedDisks
+	 * @param price
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors, 
+			MemoryType memory, StorageType storage,	OSType os, List<String> applications, AttachedDisksListType sharedDisks, 
+			PriceType price)  throws InvalidElementException {
+		
+		SoftwareListType software = new SoftwareListType();
+		if (applications != null) {
+			for (String app : applications) {
+				software.getApplication().add(app);
+			}
+		}
+		
+		return this.addComputeNode(name, processors, adaptors, memory, storage, os, software, sharedDisks, price);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @param memory
+	 * @param storage
+	 * @param os
+	 * @param software
+	 * @param sharedDisks
+	 * @param price
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors, 
+			MemoryType memory, StorageType storage,	OSType os, SoftwareListType software, List<AttachedDiskType> sharedDisks, 
+			PriceType price)  throws InvalidElementException {
+		
+		AttachedDisksListType sharedDisksList = new AttachedDisksListType();
+		if (sharedDisks != null) {
+			for (AttachedDiskType d : sharedDisks) {
+				sharedDisksList.getAttachedDisk().add(d);
+			}
+		}
+		
+		return this.addComputeNode(name, processors, adaptors, memory, storage, os, software, sharedDisksList, price);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @param memory
+	 * @param storage
+	 * @param os
+	 * @param applications
+	 * @param sharedDisks
+	 * @param price
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors, 
+			MemoryType memory, StorageType storage,	OSType os, List<String> applications, List<AttachedDiskType> sharedDisks, 
+			PriceType price)  throws InvalidElementException {
+		
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		SoftwareListType software = new SoftwareListType();
+		if (applications != null) {
+			for (String app : applications) {
+				software.getApplication().add(app);
+			}
+		}
+		AttachedDisksListType sharedDisksList = new AttachedDisksListType();
+		if (sharedDisks != null) {
+			for (AttachedDiskType d : sharedDisks) {
+				sharedDisksList.getAttachedDisk().add(d);
+			}
+		}
+		
+		return this.addComputeNode(name, processors, adaptorsList, memory, storage, os, software, sharedDisksList, price);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @param memory
+	 * @param storage
+	 * @param os
+	 * @param software
+	 * @param sharedDisks
+	 * @param price
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, AdaptorsListType adaptors, 
+			MemoryType memory, StorageType storage,	OSType os, SoftwareListType software, AttachedDisksListType sharedDisks, 
+			PriceType price)  throws InvalidElementException {
+		
+		ComputeNodeType cn = new ComputeNodeType();
+		
+		cn.setName(name);
+		if (processors != null) {
+			for (ProcessorType p : processors) {
+				JAXBElement<ProcessorType> processorElement = new JAXBElement<ProcessorType> (new QName("Processor"), ProcessorType.class, p);
+				cn.getProcessorOrAdaptorsOrMemory().add(processorElement);
+			}
+		}
+		JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType> (new QName("Adaptors"), AdaptorsListType.class, adaptors);
+		cn.getProcessorOrAdaptorsOrMemory().add(adaptorsElement);
+
+		// Optional parameters
+		if (memory != null) {
+			JAXBElement<MemoryType> memoryElement = new JAXBElement<MemoryType> (new QName("Memory"), MemoryType.class, memory);
+			cn.getProcessorOrAdaptorsOrMemory().add(memoryElement);
+		}
+		if (storage != null) {
+			JAXBElement<StorageType> storageElement = new JAXBElement<StorageType> (new QName("Storage"), StorageType.class, storage);
+			cn.getProcessorOrAdaptorsOrMemory().add(storageElement);
+		}
+		if (os != null) {
+			JAXBElement<OSType> osElement = new JAXBElement<OSType> (new QName("OperatingSystem"), OSType.class, os);
+			cn.getProcessorOrAdaptorsOrMemory().add(osElement);
+		}
+		if (software != null) {
+			JAXBElement<SoftwareListType> softwareElement = new JAXBElement<SoftwareListType> (new QName("Software"), SoftwareListType.class, software);
+			cn.getProcessorOrAdaptorsOrMemory().add(softwareElement);
+		}
+		if (sharedDisks != null) {
+			JAXBElement<AttachedDisksListType> sdElement = new JAXBElement<AttachedDisksListType> (new QName("SharedDisks"), AttachedDisksListType.class, sharedDisks);
+			cn.getProcessorOrAdaptorsOrMemory().add(sdElement);
+		}
+		if (price != null) {
+			JAXBElement<PriceType> priceElement = new JAXBElement<PriceType> (new QName("Price"), PriceType.class, price);
+			cn.getProcessorOrAdaptorsOrMemory().add(priceElement);
+		}
+		
+		return this.addComputeNode(cn);
+	}
+	
+	/**
+	 * Adds a new ComputeNode with the given information and returns the instance of the new ComputeNode
+	 * 
+	 * @param name
+	 * @param processors
+	 * @param adaptors
+	 * @param memorySize
+	 * @param diskSize
+	 * @param osName
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ComputeNodeType addComputeNode(String name, List<ProcessorType> processors, List<AdaptorType> adaptors, 
+			float memorySize, float diskSize, String osName)  throws InvalidElementException {
+		
+		ComputeNodeType cn = new ComputeNodeType();
+		
+		cn.setName(name);
+		if (processors != null) {
+			for (ProcessorType p : processors) {
+				JAXBElement<ProcessorType> processorElement = new JAXBElement<ProcessorType> (new QName("Processor"), ProcessorType.class, p);
+				cn.getProcessorOrAdaptorsOrMemory().add(processorElement);
+			}
+		}
+		AdaptorsListType adaptorsList = new AdaptorsListType();
+		if (adaptors != null) {
+			for (AdaptorType a : adaptors) {
+				adaptorsList.getAdaptor().add(a);
+			}
+		}
+		JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType> (new QName("Adaptors"), AdaptorsListType.class, adaptorsList);
+		cn.getProcessorOrAdaptorsOrMemory().add(adaptorsElement);
+		
+		// Optional parameters
+		if (memorySize != -1.0) {
+			MemoryType memory = new MemoryType();
+			JAXBElement<Float> memorySizeElement = new JAXBElement<Float> (new QName("Size"), Float.class, memorySize);
+			memory.getSizeOrType().add(memorySizeElement);
+			JAXBElement<MemoryType> memoryElement = new JAXBElement<MemoryType> (new QName("Memory"), MemoryType.class, memory);
+			cn.getProcessorOrAdaptorsOrMemory().add(memoryElement);
+		}
+		if (diskSize != -1.0) {
+			StorageType storage = new StorageType();
+			JAXBElement<Float> storageSizeElement = new JAXBElement<Float> (new QName("Size"), Float.class, diskSize);
+			storage.getSizeOrType().add(storageSizeElement);
+			JAXBElement<StorageType> storageElement = new JAXBElement<StorageType> (new QName("Storage"), StorageType.class, storage);
+			cn.getProcessorOrAdaptorsOrMemory().add(storageElement);
+		}
+		if (osName != null) {
+			if (!osName.isEmpty()) {
+				OSType ostype = new OSType();
+				JAXBElement<String> osTypeTypeElement = new JAXBElement<String> (new QName("Type"), String.class, osName);
+				ostype.getTypeOrDistributionOrVersion().add(osTypeTypeElement);
+				JAXBElement<OSType> osElement = new JAXBElement<OSType> (new QName("OperatingSystem"), OSType.class, ostype);
+				cn.getProcessorOrAdaptorsOrMemory().add(osElement);
+			}
+		}
+		
+		return this.addComputeNode(cn);
+	}
+	
+	/**
+	 * Add the given Service @s to the resources file
+	 * 
+	 * @param s
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ServiceType addService(ServiceType s) throws InvalidElementException {
+		validator.validateService(s);
+		
+		// If we reach this point means that the DataNode is valid
+		this.resources.getSharedDiskOrDataNodeOrComputeNode().add(s);
+		return s;
+	}
+	
+	/**
+	 * Adds a new Service with the given information and returns the instance of the new Service
+	 * 
+	 * @param wsdl
+	 * @param name
+	 * @param namespace
+	 * @param port
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ServiceType addService(String wsdl, String name, String namespace, String port) throws InvalidElementException {
+		return this.addService(wsdl, name, namespace, port, null);
+	}
+	
+	/**
+	 * Adds a new Service with the given information and returns the instance of the new Service
+	 * 
+	 * @param wsdl
+	 * @param name
+	 * @param namespace
+	 * @param port
+	 * @param price
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public ServiceType addService(String wsdl, String name, String namespace, String port, PriceType price) throws InvalidElementException {
+		ServiceType s = new ServiceType();
+		s.setWsdl(wsdl);
+		s.setName(name);
+		s.setNamespace(namespace);
+		s.setPort(port);
+		
+		// Optional parameters
+		if (price != null) {
+			s.setPrice(price);
+		}
+		
+		return this.addService(s);
+	}
+	
+	/**
+	 * Adds the given CloudProvider @cp to the resources file
+	 * 
+	 * @param cp
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(CloudProviderType cp) throws InvalidElementException {
+		validator.validateCloudProvider(cp);
+		
+		// If we reach this point means that the DataNode is valid
+		this.resources.getSharedDiskOrDataNodeOrComputeNode().add(cp);
+		return cp;
+	}
+	
+	/**
+	 * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+	 * 
+	 * @param name
+	 * @param endpoint
+	 * @param images
+	 * @param instances
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(String name, EndpointType endpoint, ImagesType images, InstanceTypesType instances) throws InvalidElementException {
+		CloudProviderType cp = new CloudProviderType();
+		
+		cp.setName(name);
+		cp.setEndpoint(endpoint);
+		cp.setImages(images);
+		cp.setInstanceTypes(instances);
+
+		return this.addCloudProvider(cp);
+	}
+	
+	/**
+	 * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+	 * 
+	 * @param name
+	 * @param endpoint
+	 * @param images
+	 * @param instances
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(String name, EndpointType endpoint,
+			List<ImageType> images, List<InstanceTypeType> instances) throws InvalidElementException {
+		
+		ImagesType imagesList = new ImagesType();
+		if (images != null) {
+			for (ImageType im : images) {
+				imagesList.getImage().add(im);
+			}
+		}
+		
+		InstanceTypesType instancesList = new InstanceTypesType();
+		if (instances != null) {
+			for (InstanceTypeType ins : instances) {
+				instancesList.getInstanceType().add(ins);
+			}
+		}
+		
+		return this.addCloudProvider(name, endpoint, imagesList, instancesList);
+	}
+	
+	/**
+	 * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+	 * 
+	 * @param name
+	 * @param endpoint
+	 * @param images
+	 * @param instances
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(String name, EndpointType endpoint,
+			ImagesType images, List<InstanceTypeType> instances) throws InvalidElementException {
+
+		InstanceTypesType instancesList = new InstanceTypesType();
+		if (instances != null) {
+			for (InstanceTypeType ins : instances) {
+				instancesList.getInstanceType().add(ins);
+			}
+		}
+		
+		return this.addCloudProvider(name, endpoint, images, instancesList);
+	}
+	
+	/**
+	 * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+	 * 
+	 * @param name
+	 * @param endpoint
+	 * @param images
+	 * @param instances
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(String name, EndpointType endpoint,
+			List<ImageType> images, InstanceTypesType instances) throws InvalidElementException {
+		
+		ImagesType imagesList = new ImagesType();
+		if (images != null) {
+			for (ImageType im : images) {
+				imagesList.getImage().add(im);
+			}
+		}
+		
+		return this.addCloudProvider(name, endpoint, imagesList, instances);
+	}
+	
+	/**
+	 * Adds a new CloudProvider with the given information and returns the instance of the new CloudProvider
+	 * 
+	 * @param name
+	 * @param server
+	 * @param connector
+	 * @param images
+	 * @param instances
+	 * @return
+	 * @throws InvalidElementException
+	 */
+	public CloudProviderType addCloudProvider(String name, String server, String connector, 
+			List<ImageType> images, List<InstanceTypeType> instances) throws InvalidElementException {
+		
+		EndpointType endpoint = new EndpointType();
+		JAXBElement<String> serverElement = new JAXBElement<String> (new QName("Server"), String.class, server);
+		endpoint.getServerOrConnectorOrPort().add(serverElement);
+		JAXBElement<String> connectorElement = new JAXBElement<String> (new QName("Connector"), String.class, connector);
+		endpoint.getServerOrConnectorOrPort().add(connectorElement);
+		
+		ImagesType imagesList = new ImagesType();
+		if (images != null) {
+			for (ImageType im : images) {
+				imagesList.getImage().add(im);
+			}
+		}
+		InstanceTypesType instancesList = new InstanceTypesType();
+		if (instances != null) {
+			for (InstanceTypeType ins : instances) {
+				instancesList.getInstanceType().add(ins);
+			}
+		}
+		
+		return this.addCloudProvider(name, endpoint, imagesList, instancesList);
+	}
+	
+	
+	/* **************************************
+	 * SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+	 * **************************************/
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param subsys
+	 * @param nioproperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
+		AdaptorType adaptor = new AdaptorType();
+		adaptor.setName(name);
+		
+		JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType> (new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
+		
+		JAXBElement<NIOAdaptorProperties> propertiesElement = new JAXBElement<NIOAdaptorProperties> (new QName("Ports"), NIOAdaptorProperties.class, nioproperties);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
+		
+		// Optional parameters
+		if (user != null) {
+			JAXBElement<String> userElement = new JAXBElement<String> (new QName("User"), String.class, user);
+			adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(userElement);
+		}
+		
+		return adaptor;
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param subsys
+	 * @param gatproperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
+		AdaptorType adaptor = new AdaptorType();
+		adaptor.setName(name);
+		
+		JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType> (new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
+		
+		JAXBElement<String> propertiesElement = new JAXBElement<String> (new QName("BrokerAdaptor"), String.class, gatproperties);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
+		
+		// Optional parameters
+		if (user != null) {
+			JAXBElement<String> userElement = new JAXBElement<String> (new QName("User"), String.class, user);
+			adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(userElement);
+		}
+		
+		return adaptor;
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param subsys
+	 * @param externalproperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties, String user) {
+		AdaptorType adaptor = new AdaptorType();
+		adaptor.setName(name);
+		
+		JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType> (new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
+		
+		JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties> (new QName("Properties"), ExternalAdaptorProperties.class, externalproperties);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
+		
+		// Optional parameters
+		if (user != null) {
+			JAXBElement<String> userElement = new JAXBElement<String> (new QName("User"), String.class, user);
+			adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(userElement);
+		}
+		
+		return adaptor;
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param subsys
+	 * @param externalProperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties, String user) {
+		AdaptorType adaptor = new AdaptorType();
+		adaptor.setName(name);
+		
+		JAXBElement<SubmissionSystemType> subsysElement = new JAXBElement<SubmissionSystemType> (new QName("SubmissionSystem"), SubmissionSystemType.class, subsys);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(subsysElement);
+		
+		ExternalAdaptorProperties externalproperties_list = new ExternalAdaptorProperties();
+		if (externalProperties != null) {
+			for (PropertyAdaptorType pa : externalProperties) {
+				externalproperties_list.getProperty().add(pa);
+			}
+		}
+		JAXBElement<ExternalAdaptorProperties> propertiesElement = new JAXBElement<ExternalAdaptorProperties> (new QName("Properties"), ExternalAdaptorProperties.class, externalproperties_list);
+		adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(propertiesElement);
+		
+		// Optional parameters
+		if (user != null) {
+			JAXBElement<String> userElement = new JAXBElement<String> (new QName("User"), String.class, user);
+			adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor().add(userElement);
+		}
+		
+		return adaptor;
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param batch
+	 * @param queues
+	 * @param interactive
+	 * @param nioproperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, NIOAdaptorProperties nioproperties, String user) {
+		SubmissionSystemType subsys = new SubmissionSystemType();
+		if (batch) {
+			BatchType b = new BatchType();
+			if (queues != null) {
+				for (String q : queues) {
+					b.getQueue().add(q);
+				}
+			}
+			JAXBElement<BatchType> batchElement = new JAXBElement<BatchType> (new QName("Batch"), BatchType.class, b);
+			subsys.getBatchOrInteractive().add(batchElement);
+		}
+		if (interactive) {
+			InteractiveType i = new InteractiveType();
+			JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType> (new QName("Interactive"), InteractiveType.class, i);
+			subsys.getBatchOrInteractive().add(interactiveElement);
+		}
+		
+		return this.createAdaptor(name, subsys, nioproperties, user);
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param batch
+	 * @param queues
+	 * @param interactive
+	 * @param gatproperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties, String user) {
+		SubmissionSystemType subsys = new SubmissionSystemType();
+		if (batch) {
+			BatchType b = new BatchType();
+			if (queues != null) {
+				for (String q : queues) {
+					b.getQueue().add(q);
+				}
+			}
+			JAXBElement<BatchType> batchElement = new JAXBElement<BatchType> (new QName("Batch"), BatchType.class, b);
+			subsys.getBatchOrInteractive().add(batchElement);
+		}
+		if (interactive) {
+			InteractiveType i = new InteractiveType();
+			JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType> (new QName("Interactive"), InteractiveType.class, i);
+			subsys.getBatchOrInteractive().add(interactiveElement);
+		}
+		
+		return this.createAdaptor(name, subsys, gatproperties, user);
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param batch
+	 * @param queues
+	 * @param interactive
+	 * @param externalProperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, ExternalAdaptorProperties externalProperties, String user) {
+		SubmissionSystemType subsys = new SubmissionSystemType();
+		if (batch) {
+			BatchType b = new BatchType();
+			if (queues != null) {
+				for (String q : queues) {
+					b.getQueue().add(q);
+				}
+			}
+			JAXBElement<BatchType> batchElement = new JAXBElement<BatchType> (new QName("Batch"), BatchType.class, b);
+			subsys.getBatchOrInteractive().add(batchElement);
+		}
+		if (interactive) {
+			InteractiveType i = new InteractiveType();
+			JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType> (new QName("Interactive"), InteractiveType.class, i);
+			subsys.getBatchOrInteractive().add(interactiveElement);
+		}
+		
+		return this.createAdaptor(name, subsys, externalProperties, user);
+	}
+	
+	/**
+	 * Creates an instance of an Adaptor with the given information
+	 * 
+	 * @param name
+	 * @param batch
+	 * @param queues
+	 * @param interactive
+	 * @param externalProperties
+	 * @param user
+	 * @return
+	 */
+	public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, List<PropertyAdaptorType> externalProperties, String user) {
+		SubmissionSystemType subsys = new SubmissionSystemType();
+		if (batch) {
+			BatchType b = new BatchType();
+			if (queues != null) {
+				for (String q : queues) {
+					b.getQueue().add(q);
+				}
+			}
+			JAXBElement<BatchType> batchElement = new JAXBElement<BatchType> (new QName("Batch"), BatchType.class, b);
+			subsys.getBatchOrInteractive().add(batchElement);
+		}
+		if (interactive) {
+			InteractiveType i = new InteractiveType();
+			JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType> (new QName("Interactive"), InteractiveType.class, i);
+			subsys.getBatchOrInteractive().add(interactiveElement);
+		}
+		
+		return this.createAdaptor(name, subsys, externalProperties, user);
+	}
+	
+	/**
+	 * Adds the given image @image to the cloudProvider with name = @cloudProviderName
+	 * Returns true if image is inserted, false otherwise
+	 * 
+	 * @param cloudProviderName
+	 * @param image
+	 * @return
+	 */
+	public boolean addImageToCloudProvider(String cloudProviderName, ImageType image) {
+		// Get cloud provider
+		CloudProviderType cp = this.getCloudProvider(cloudProviderName);
+		
+		// Add image
+		if (cp != null) {
+			cp.getImages().getImage().add(image);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * Adds the given instance @instance to the cloudProvider with name = @cloudProviderName
+	 * Returns true if instance is inserted, false otherwise
+	 * 
+	 * @param cloudProviderName
+	 * @param instance
+	 * @return
+	 */
+	public boolean addInstanceToCloudProvider(String cloudProviderName, InstanceTypeType instance) {
+		// Get cloud provider
+		CloudProviderType cp = this.getCloudProvider(cloudProviderName);
+		
+		// Add image
+		if (cp != null) {
+			cp.getInstanceTypes().getInstanceType().add(instance);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	
+	/* **************************************
+	 * GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+	 * **************************************/
+	/**
+	 * Returns the number of Compunting Units of a given processor @p
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public int getProcessorComputingUnits (ProcessorType p) {
+		List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof Integer) {
+					return (Integer) obj;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Returns the architecture of a given processor @p
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public String getProcessorArchitecture (ProcessorType p) {
+		List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof String) {
+					return (String) obj;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns the speed of a given processor @p
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public float getProcessorSpeed (ProcessorType p) {
+		List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof Float) {
+					return (Float) obj;
+				}
+			}
+		}
+		
+		return (float)-1.0;
+	}
+	
+	/**
+	 * Returns the processor property of a given processor @p
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public ProcessorPropertyType getProcessorProperty (ProcessorType p) {
+		List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+		if (objList != null) {
+			for (Object obj : objList) {
+				if (obj instanceof ProcessorPropertyType) {
+					return (ProcessorPropertyType) obj;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	/* **************************************
+	 * DELETERS: MAIN ELEMENTS
+	 * **************************************/
+	/**
+	 * Deletes the SharedDisk with name=@name
+	 * Returns true if deletion is successfull, false otherwise
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean deleteSharedDisk(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (int i = 0; i < objList.size(); ++i){
+				Object obj = objList.get(i);
+				if (obj instanceof SharedDiskType) {
+					SharedDiskType sd = (SharedDiskType) obj;
+					if(sd.getName().equals(name)) {
+							objList.remove(i);
+							return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes the DataNode with name=@name
+	 * Returns true if deletion is successfull, false otherwise
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean deleteDataNode(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (int i = 0; i < objList.size(); ++i){
+				Object obj = objList.get(i);
+				if (obj instanceof DataNodeType) {
+					DataNodeType dn = (DataNodeType) obj;
+					if(dn.getName().equals(name)) {
+							objList.remove(i);
+							return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes the ComputeNode with name=@name
+	 * Returns true if deletion is successfull, false otherwise
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean deleteComputeNode(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (int i = 0; i < objList.size(); ++i){
+				Object obj = objList.get(i);
+				if (obj instanceof ComputeNodeType) {
+					ComputeNodeType cn = (ComputeNodeType) obj;
+					if(cn.getName().equals(name)) {
+							objList.remove(i);
+							return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes the Service with wsdl=@wsdl
+	 * Returns true if deletion is successfull, false otherwise
+	 * 
+	 * @param wsdl
+	 * @return
+	 */
+	public boolean deleteService(String wsdl) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (int i = 0; i < objList.size(); ++i){
+				Object obj = objList.get(i);
+				if (obj instanceof ServiceType) {
+					ServiceType s = (ServiceType) obj;
+					if(s.getWsdl().equals(wsdl)) {
+							objList.remove(i);
+							return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Deletes the SharedDisk with name=@name
+	 * Returns true if deletion is successfull, false otherwise
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean deleteCloudProvider(String name) {
+		List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+		if (objList != null) {
+			for (int i = 0; i < objList.size(); ++i){
+				Object obj = objList.get(i);
+				if (obj instanceof CloudProviderType) {
+					CloudProviderType cp = (CloudProviderType) obj;
+					if(cp.getName().equals(name)) {
+							objList.remove(i);
+							return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	
+	/* **************************************
+	 * PRIVATE METHODS FOR CALCULATION
+	 * **************************************/
+	private float getStorageSize(StorageType storage) {
+		List<Serializable> storageProps = storage.getSizeOrType();
+		if (storageProps != null) {
+			for (Serializable prop : storageProps) {
+				if (prop instanceof Float) {
+					return (float) prop;
+				}
+			}
+		}
+		return (float)-1.0;
+	}
+	
+	private String getStorageType(StorageType storage) {
+		List<Serializable> storageProps = storage.getSizeOrType();
+		if (storageProps != null) {
+			for (Serializable prop : storageProps) {
+				if (prop instanceof String) {
+					return (String) prop;
+				}
+			}
+		}
+
+		return null;
+	}
+
 }

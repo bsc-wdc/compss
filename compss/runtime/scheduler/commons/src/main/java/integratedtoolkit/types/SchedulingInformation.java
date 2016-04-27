@@ -7,12 +7,12 @@ import java.util.LinkedList;
 
 public class SchedulingInformation {
 
-    private static final LinkedList<ResourceScheduler>[] coreToWorkers;
+    private static final LinkedList<ResourceScheduler<?>>[] coreToWorkers;
 
     static {
         coreToWorkers = new LinkedList[CoreManager.getCoreCount()];
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            coreToWorkers[coreId] = new LinkedList();
+            coreToWorkers[coreId] = new LinkedList<ResourceScheduler<?>>();
         }
     }
 
@@ -31,8 +31,8 @@ public class SchedulingInformation {
         return constrainingPredecessor;
     }
 
-    public static void changesOnWorker(ResourceScheduler ui) {
-        for (LinkedList<ResourceScheduler> coreToWorker : coreToWorkers) {
+    public static void changesOnWorker(ResourceScheduler<?> ui) {
+        for (LinkedList<ResourceScheduler<?>> coreToWorker : coreToWorkers) {
             coreToWorker.remove(ui);
         }
         LinkedList<Integer> executableCores = ui.getExecutableCores();
@@ -41,7 +41,7 @@ public class SchedulingInformation {
         }
     }
 
-    public LinkedList<ResourceScheduler> getCoreElementExecutors(int coreId) {
+    public LinkedList<ResourceScheduler<?>> getCoreElementExecutors(int coreId) {
         return coreToWorkers[coreId];
     }
 

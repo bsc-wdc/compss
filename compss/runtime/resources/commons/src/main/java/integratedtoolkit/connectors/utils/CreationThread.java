@@ -50,6 +50,8 @@ public class CreationThread extends Thread {
 
     public void run() {
         boolean check = operations.getCheck();
+        runtimeLogger.debug("Operations check = " + check);
+        
         CloudMethodResourceDescription requested = rcr.getRequested();
         VM granted;
 
@@ -85,15 +87,12 @@ public class CreationThread extends Thread {
                     operations.vmReady(granted);
                 } catch (Exception e) {
                 	runtimeLogger.error("Error reusing resource.", e);
-                	System.err.println("Error reusing resource.");
-                	e.printStackTrace();
                     powerOff(granted);
                     notifyFailure();
                     return;
                 }
             } else {
-            	
-                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), granted.getDescription().getProcessorCoreCount());
+                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), granted.getDescription().getTotalComputingUnits());
                 
                 if (debug){
             		runtimeLogger.debug(" Worker for new resource "+ granted.getName()+" set.");
@@ -112,6 +111,10 @@ public class CreationThread extends Thread {
 
     public static void setTaskDispatcher(ResourceUser listener) {
         CreationThread.listener = listener;
+    }
+    
+    public static ResourceUser getTaskDispatcher() {
+        return CreationThread.listener;
     }
 
     private VM createResourceOnProvider(CloudMethodResourceDescription requested) throws Exception {
@@ -137,7 +140,6 @@ public class CreationThread extends Thread {
             //Wait until the VM has been created
             granted = operations.waitCreation(envID, requested);
         } catch (ConnectorException e) {
-            e.printStackTrace();
             resourceLogger.error("ERROR_MSG = [\n\tError waiting for a machine that should be provided by " + provider + "\n]", e);
             try {
                 operations.destroy(envID);
@@ -149,15 +151,15 @@ public class CreationThread extends Thread {
 
         if (granted != null) {
             resourceLogger.debug("CONNECTOR_REQUEST = [");
-            resourceLogger.debug("\tPROC = " + requested.getProcessorCoreCount() + " " + requested.getProcessorArchitecture() + " cores @ " + requested.getProcessorSpeed());
+            resourceLogger.debug("\tPROC = " + requested.getTotalComputingUnits());
             resourceLogger.debug("\tOS = " + requested.getOperatingSystemType());
-            resourceLogger.debug("\tMEM = " + requested.getMemoryVirtualSize() + "(" + requested.getMemoryPhysicalSize() + ")");
+            resourceLogger.debug("\tMEM = " + requested.getMemorySize());
             resourceLogger.debug("]");
             CloudMethodResourceDescription desc = granted.getDescription();
             resourceLogger.debug("CONNECTOR_GRANTED = [");
-            resourceLogger.debug("\tPROC = " + desc.getProcessorCoreCount() + " " + desc.getProcessorArchitecture() + " cores @ " + desc.getProcessorSpeed());
+            resourceLogger.debug("\tPROC = " + desc.getTotalComputingUnits());
             resourceLogger.debug("\tOS = " + desc.getOperatingSystemType());
-            resourceLogger.debug("\tMEM = " + desc.getMemoryVirtualSize() + "(" + desc.getMemoryPhysicalSize() + ")");
+            resourceLogger.debug("\tMEM = " + desc.getMemorySize());
             resourceLogger.debug("]");
         } else {
             throw new Exception("Granted description is null");
@@ -169,7 +171,7 @@ public class CreationThread extends Thread {
         CloudMethodResourceDescription granted = vm.getDescription();
         CloudImageDescription cid = granted.getImage();
         HashMap<String, String> workerProperties = cid.getProperties();
-        String user = workerProperties.get(ITConstants.USER);
+        String user = cid.getConfig().getUser();
         String password = workerProperties.get(ITConstants.PASSWORD);
         try {
             operations.configureAccess(granted.getName(), user, password);
@@ -186,10 +188,9 @@ public class CreationThread extends Thread {
             resourceLogger.error("ERROR_MSG = [\n\tException preparing machine "+ granted.getName()+"]", e);
             throw e;
         }
-
         CloudMethodWorker worker;
         try {
-            worker = new CloudMethodWorker(granted.getName(), granted, cid.getAdaptorsDescription(), workerProperties, granted.getProcessorCoreCount());
+            worker = new CloudMethodWorker(granted.getName(), granted, cid.getConfig(), granted.getTotalComputingUnits());
         } catch (Exception e) {
         	runtimeLogger.error("Error starting the worker application in machine " + granted.getName(),e);
         	resourceLogger.error("ERROR_MSG = [\n\tError starting the worker application in machine\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]");

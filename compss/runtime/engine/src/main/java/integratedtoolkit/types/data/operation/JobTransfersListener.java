@@ -63,7 +63,6 @@ public class JobTransfersListener extends DataOperation.EventListener {
 
     @Override
     public void notifyFailure(DataOperation fOp, Exception e) {
-        e.printStackTrace();
         if (debug) {
             logger.error("THREAD " + Thread.currentThread().getName()
                     + " File Operation failed on " + fOp.getName() + ", file role is JOB_FILE, operation end state is FAILED",
@@ -72,6 +71,7 @@ public class JobTransfersListener extends DataOperation.EventListener {
             logger.error("THREAD " + Thread.currentThread().getName()
                     + " File Operation failed on " + fOp.getName() + ", file role is JOB_FILE operation end state is FAILED");
         }
+        
         boolean enabled;
         boolean finished;
         synchronized (this) {

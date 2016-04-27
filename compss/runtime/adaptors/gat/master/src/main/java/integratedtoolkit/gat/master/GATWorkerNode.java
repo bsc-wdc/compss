@@ -1,12 +1,11 @@
 package integratedtoolkit.gat.master;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.gat.master.configuration.GATConfiguration;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.URI;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
@@ -21,163 +20,71 @@ import integratedtoolkit.util.SSHManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 
 import org.gridlab.gat.GATContext;
 
 
 public class GATWorkerNode extends COMPSsWorker {
 
-    //private static final String GAT_CLEAN_SCRIPT = "adaptors/gat/clean.sh";
-
-    private String host = "";
-    private String user = "";
-    private String installDir = "";
-    private String sandboxWorkingDir = "";
-    private String workingDir = "";
-    private String appDir = "";
-    private String libPath = "";
-    private String queue = "";
-    private int limitOfTasks = 16;
-
+    private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
 
-	private GATContext context;
-
-	private boolean usingGlobus;
-
-	private boolean userNeeded;
 
     @Override
     public String getName() {
-        return host;
+        return this.config.getHost();
     }
 
-    public GATWorkerNode(String name, HashMap<String, String> properties, AdaptorDescription adaptorDescription) {
-        super(name, properties);
-        String adaptorName = System.getProperty(ITConstants.GAT_BROKER_ADAPTOR);
-        if (adaptorDescription != null){
-        	String ad = adaptorDescription.getBrokerAdaptor();
-        	if (ad!=null && !ad.isEmpty()){
-        		adaptorName = ad;
-        	}else{
-        		logger.debug("GAT Broker Adaptor not specified. Setting default value " + adaptorName);
-        	}
-        }else{
-        	logger.debug("GAT Adaptor description not found in the resource description. Setting default value " + adaptorName);
-        }
-        initContext(adaptorName, System.getProperty(ITConstants.GAT_FILE_ADAPTOR));
-        this.host = name;
-
-        this.installDir = properties.remove(ITConstants.INSTALL_DIR);
-        if (this.installDir == null) {
-            this.installDir = "";
-        } else if (!this.installDir.endsWith(File.separator)) {
-            this.installDir = this.installDir + File.separator;
-        }
-        
-
-        String baseWorkingDir = properties.remove(ITConstants.WORKING_DIR);
-        this.sandboxWorkingDir = baseWorkingDir + System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
-        this.workingDir = this.sandboxWorkingDir + File.separator + this.getName();
-        
-        File wDir = new File(this.workingDir);
-        wDir.mkdirs();
-        if (!wDir.exists()) {
-            logger.error("Could not create GAT working working: " + this.workingDir);
-        }
-
-        if (this.workingDir == null) {
-            this.workingDir = "";
-        } else if (!this.workingDir.endsWith(File.separator)) {
-            this.workingDir = this.workingDir + File.separator;
-        }
-
-        if ((this.user = properties.remove(ITConstants.USER)) == null) {
-            this.user = "";
-        }
-
-        if ((this.appDir = properties.remove(ITConstants.APP_DIR)) == null) {
-            this.appDir = "null";
-        }
-
-        if ((this.libPath = properties.remove(ITConstants.LIB_PATH)) == null) {
-            this.libPath = "null";
-        }
-        if ((this.queue = properties.remove("queue")) == null) {
-            this.queue = "";
-        }
-
-        String value;
-        if ((value = properties.get(ITConstants.LIMIT_OF_TASKS)) != null) {
-            limitOfTasks = Integer.parseInt(value);
-        }
-
-        for (java.util.Map.Entry<String, String> entry : properties.entrySet()) {
-            String propName = entry.getKey();
-            String propValue = entry.getValue();
-            if (propName.startsWith("[context=job]")) {
-                propName = propName.substring(13);
-                addAdaptorPreference(propName, propValue);
-            }
-            if (propName.startsWith("[context=file]")) {
-            	addAdaptorPreference(propName.substring(14), propValue);
-            	GATAdaptor.addTransferContextPreferences(propName.substring(14), propValue);
-            }
-        }
+    public GATWorkerNode(String name, GATConfiguration config) {
+        super(name, config);
+        this.config = config;
 
         if (tracing) {
             logger.debug("Starting GAT tracer " + this.getName());
-            tracingJob = GATTracer.startTracing(this, limitOfTasks);
+            tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
         }
     }
-    private void initContext(String brokerAdaptor, String fileAdaptor) {
-        context = new GATContext();
-        //String fileAdaptor = System.getProperty(ITConstants.GAT_FILE_ADAPTOR);
-        context.addPreference("ResourceBroker.adaptor.name", brokerAdaptor);
-        context.addPreference("File.adaptor.name", fileAdaptor + ", srcToLocalToDestCopy, local");
-        usingGlobus = brokerAdaptor.equalsIgnoreCase("globus");
-        userNeeded = brokerAdaptor.regionMatches(true, 0, "ssh", 0, 3);
-    }
-
+    
 	public void addAdaptorPreference(String property, String value) {
-		context.addPreference(property, value);
+		this.config.addContextPreference(property, value);
 	}
 
     public String getUser() {
-        return user;
+        return this.config.getUser();
     }
 
     public String getHost() {
-        return host;
+        return this.config.getHost();
     }
 
     public String getInstallDir() {
-        return installDir;
+        return this.config.getInstallDir();
     }
 
     public String getWorkingDir() {
-        return workingDir;
+        return this.config.getWorkingDir();
     }
 
     public String getAppDir() {
-        return appDir;
+    	String appDir = this.config.getAppDir();
+    	appDir = (appDir == null || appDir.isEmpty()) ? "null" : appDir;
+    	
+    	return appDir;
     }
 
     public String getLibPath() {
-        return libPath;
+    	String libPath = this.config.getLibraryPath();
+    	libPath = (libPath == null || libPath.isEmpty()) ? "null" : libPath;
+    	
+    	return libPath;
+    }
+    
+    public int getTotalComputingUnits() {
+    	return this.config.getTotalComputingUnits();
     }
 
-    public String getQueue() {
-        return queue;
-    }
-
-    public boolean isTracingReady() {
-        return !tracing || GATTracer.isReady(tracingJob);
-    }
-
-    public void waitForTracingReady() {
+    private void waitForTracingReady() {
         if (!tracing) {
             return;
         }
@@ -186,20 +93,17 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        return new GATJob(taskId, taskParams, impl, res, listener, context, userNeeded, usingGlobus);
+        return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus());
     }
     
     @Override
     public void setInternalURI(URI uri) {
         String scheme = uri.getScheme();
-        String user = this.user.isEmpty() ? "" : this.user + "@";
-        String host = this.host;
+        String user = this.config.getUser().isEmpty() ? "" : this.config.getUser() + "@";
+        String host = this.config.getHost();
         String filePath = uri.getPath();
 
-        String s = (scheme
-                + user
-                + host + File.separator
-                + filePath);
+        String s = (scheme + user + host + File.separator + filePath);
         org.gridlab.gat.URI gat;
         try {
             gat = new org.gridlab.gat.URI(s);
@@ -209,16 +113,16 @@ public class GATWorkerNode extends COMPSsWorker {
         }
     }
 
-    @Override
+@Override
     public void stop(ShutdownListener sl) {
         try {
-            delete(new File(this.sandboxWorkingDir));
+            delete(new File(this.config.getWorkingDir()));
         } catch (FileNotFoundException e){
             logger.warn("Could not remove Node working dir\n" + e);
         }
         sl.notifyEnd();
     }
-    
+
     private void delete(File f) throws FileNotFoundException {
         if (f.isDirectory()) {
             for (File c : f.listFiles()){
@@ -270,9 +174,9 @@ public class GATWorkerNode extends COMPSsWorker {
     public String getCompletePath(ITExecution.ParamType type, String name) {
         switch (type) {
             case FILE_T:
-                return workingDir + name;
+                return this.config.getWorkingDir() + name;
             case OBJECT_T:
-                return workingDir + name;
+                return this.config.getWorkingDir() + name;
             default:
                 return null;
         }
@@ -296,15 +200,15 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
 	public GATContext getContext() {
-		return context;
+		return this.config.getContext();
 	}
 	
 	public boolean isUsingGlobus(){
-		return usingGlobus;
+		return this.config.isUsingGlobus();
 	}
 	
 	public boolean isUserNeeded(){
-		return userNeeded;
+		return this.config.isUserNeeded();
 	}
 
 }

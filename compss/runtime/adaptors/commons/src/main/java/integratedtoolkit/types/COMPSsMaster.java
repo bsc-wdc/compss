@@ -242,7 +242,6 @@ public class COMPSsMaster extends COMPSsNode {
                     sourceRes.getNode().sendData(ld, source, target, tgtData, reason, listener);
                 } catch (Exception e) {
                     logger.error("Error: exception sending data", e);
-                    e.printStackTrace();
                     continue;
                 }
                 logger.debug("Data " + ld.getName() + " sent.");

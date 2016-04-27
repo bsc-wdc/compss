@@ -1,6 +1,7 @@
 package integratedtoolkit.components.impl;
 
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 
 import java.util.List;
@@ -28,7 +29,6 @@ import integratedtoolkit.types.request.ap.GetResultFilesRequest;
 import integratedtoolkit.types.request.ap.DeleteFileRequest;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.GetLastRenamingRequest;
-import integratedtoolkit.types.request.ap.GraphDescriptionRequest;
 import integratedtoolkit.types.request.ap.TaskEndNotification;
 import integratedtoolkit.types.request.ap.IsObjectHereRequest;
 import integratedtoolkit.types.request.ap.NewVersionSameValueRequest;
@@ -46,12 +46,13 @@ import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
 
+
 public class AccessProcessor implements Runnable, TaskProducer {
 
     protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
 
     // Other supercomponent
-    protected TaskDispatcher taskDispatcher;
+    protected TaskDispatcher taskDispatcher;    
     // Subcomponents
     protected TaskAnalyser taskAnalyser;
     protected DataInfoProvider dataInfoProvider;
@@ -76,6 +77,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         //Start Subcomponents
         taskAnalyser = new TaskAnalyser();
         dataInfoProvider = new DataInfoProvider();
+        taskAnalyser.setCoWorkers(dataInfoProvider);
 
         taskAnalyser.setCoWorkers(dataInfoProvider);
         requestQueue = new LinkedBlockingQueue<APRequest>();
@@ -91,7 +93,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
             Tracer.disablePThreads();
         }
     }
-
+    
+    public void setGM(GraphGenerator gm) {
+    	this.taskAnalyser.setGM(gm);
+    }
 
     public void run() {
         while (keepGoing) {
@@ -106,7 +111,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                     Tracer.masterEventFinish();
                 }
             } catch (InterruptedException e) {
-                logger.error(e);
+            	logger.error("Exception", e);
                 if (tracing){
                     Tracer.masterEventFinish();
                 }
@@ -120,7 +125,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 if (tracing){
                     Tracer.masterEventFinish();
                 }
-                logger.error(e);
+                logger.error("Exception", e);
             }
         }
         logger.info("AccessProcessor shutdown");
@@ -342,24 +347,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Returs a string with the description of the tasks in the graph
-     *
-     * @return description of the current tasks in the graph
-     */
-    public String getCurrentGraphState() {
-        Semaphore sem = new Semaphore(0);
-        GraphDescriptionRequest request = new GraphDescriptionRequest(sem);
-        requestQueue.offer(request);
-        try {
-            sem.acquire();
-        } catch (InterruptedException e) {
-            // Nothing to do
-        }
-        return (String) request.getResponse();
-    }
-
-    /**
-     * Returs a string with the description of the tasks in the graph
+     * Returns a string with the description of the tasks in the graph
      *
      * @return description of the current tasks in the graph
      */

@@ -1,0 +1,17 @@
+#!/bin/bash -e
+  
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  #Copy files
+  cp -f ${source_base_dir}/target/08-servicesTest.jar $target_base_dir/servicesTest.jar     
+                
+  cp -f ${source_base_dir}/project.xml $target_base_dir/project_servicesTest.xml                  
+  cp -f ${source_base_dir}/resources.xml $target_base_dir/resources_servicesTest.xml
+  
+  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
+  cp -f ${source_base_dir}/result ${target_base_dir}/result
+  
+  cp -f ${source_base_dir}/../07-groupService/target/groupService.jar ${target_base_dir}/groupService.jar
+ 

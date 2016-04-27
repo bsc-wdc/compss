@@ -39,7 +39,7 @@
 		<maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
 		<maven-war-plugin.version>2.1.1</maven-war-plugin.version>
 		<tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
-		<maven-jaxb2-plugin.version>0.8.0</maven-jaxb2-plugin.version>
+		<maven-jaxb2-plugin.version>0.12.1</maven-jaxb2-plugin.version>
 		
 		<!-- Project encoding -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

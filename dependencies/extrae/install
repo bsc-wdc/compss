@@ -8,9 +8,11 @@
   papiPath=$(which papi_avail 2> /dev/null)
   if [ -z ${papiPath} ]; then
     # No PAPI available
+    echo "Extrae installation will have PAPI disabled"
     papiArg="--without-papi"
   else
     # PAPI available
+    echo "Extrae installation will have PAPI available"
     papiBaseDir=${papiPath%/bin**}
     papiArg="--with-papi=${papiBaseDir}"
   fi
@@ -27,10 +29,15 @@
   fi
 
   # Create installation folder
+  echo "Extrae target dir : $targetDir"
   mkdir -p ${targetDir}
 
   # Configure, compile and install
   autoreconf --force --install
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+
   ./configure --enable-gettimeofday-clock \
               --without-unwind \
               --without-dyninst \
@@ -44,6 +51,9 @@
               --prefix=${targetDir} \
               --enable-parallel-merge \
               --libdir=${targetDir}/lib
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 
   make clean install
   if [ $? -ne 0 ]; then

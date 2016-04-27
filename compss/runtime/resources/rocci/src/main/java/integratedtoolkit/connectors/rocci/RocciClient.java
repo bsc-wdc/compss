@@ -3,8 +3,12 @@ package integratedtoolkit.connectors.rocci;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.rocci.types.json.JSONResources;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -12,18 +16,22 @@ import com.google.gson.GsonBuilder;
 
 public class RocciClient {
 	
-	private String cmd_line="";
-	private String attributes="";
+	private static Logger LOGGER = null;
 	
-	public RocciClient(List<String> cmd_string, String attr) {				
+	private String cmd_line = "";
+	private String attributes = "";
+	
+	public RocciClient(List<String> cmd_string, String attr, Logger logger) {
+		LOGGER = logger;
+		
 		for (String s : cmd_string){
-		   cmd_line+=s+" ";		
+		   cmd_line += s + " ";		
 		}
+		
 		attributes = attr;
 	}
 	
 	public String describe_resource(String resource_id) throws ConnectorException {
-		
 		//EXAMPLE DESCRIBE WITHOUT VOMS:
 		   //occi --endpoint https://machine.defaultdomain:11443 --output-format json_extended_pretty \
 		   //--auth x509 --ca-path /etc/grid-security/certificates --user-cred /home/user/certs/pmes.pem \ 
@@ -66,24 +74,22 @@ public class RocciClient {
 				*/
 		
 		String res_desc = "";
-		String cmd = cmd_line +"--action describe" + " --resource " + resource_id;
+		String cmd = cmd_line + "--action describe" + " --resource " + resource_id;
 		
 		//System.out.println("Describe resource CMD -> "+cmd);
 		
 		try {
 			res_desc = execute_cmd(cmd);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
 		return res_desc;
 				
 	}
 	
 	public String get_resource_status(String resource_id) throws ConnectorException {
-		
 		String res_status = null;
-			String jsonOutput = describe_resource(resource_id);
+		String jsonOutput = describe_resource(resource_id);
 
 		/*String [] splitted;
 		splitted = res_desc.split(System.getProperty("line.separator"));
@@ -95,55 +101,51 @@ public class RocciClient {
 			}
 		}*/
 
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		 
-			jsonOutput = "{\"resources\":"+jsonOutput+"}";
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		jsonOutput = "{\"resources\":" + jsonOutput + "}";
 
 		//convert the json string back to object		
-			JSONResources obj = gson.fromJson(jsonOutput, JSONResources.class);
-			res_status = obj.getResources().get(0).getAttributes().getOcci().getCompute().getState();
+		JSONResources obj = gson.fromJson(jsonOutput, JSONResources.class);
+		res_status = obj.getResources().get(0).getAttributes().getOcci().getCompute().getState();
 		
 		return res_status;
-		
 	}
 	
 	public String get_resource_address(String resource_id) throws ConnectorException {
-
-		 String res_ip = null;		 
-         
-		 String jsonOutput = describe_resource(resource_id);
-         
-         /*String [] splitted;
-         String [] ip_splitted;
-
-         splitted = res_desc.split(System.getProperty("line.separator"));
-         for(String s:splitted){
-              if(s.indexOf("IP ADDRESS:")!=-1) {
-                  res_ip = s.substring(s.indexOf("IP ADDRESS")+11).replaceAll("\\s", "");
-                  ip_splitted = res_ip.split("\\.");
-                  if(ip_splitted.length > 0)
-                     if(ip_splitted[0].compareTo("10") != 0 && ip_splitted[0].compareTo("192") !=0){
-                         return res_ip;
-                     }
-              }
-         }*/
-         
-         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String res_ip = null;
+		String jsonOutput = describe_resource(resource_id);
 		 
- 		jsonOutput = "{\"resources\":"+jsonOutput+"}";
+		/*String [] splitted;
+		String [] ip_splitted;
+		
+		splitted = res_desc.split(System.getProperty("line.separator"));
+		for(String s:splitted){
+		     if(s.indexOf("IP ADDRESS:")!=-1) {
+		         res_ip = s.substring(s.indexOf("IP ADDRESS")+11).replaceAll("\\s", "");
+		         ip_splitted = res_ip.split("\\.");
+		         if(ip_splitted.length > 0)
+		            if(ip_splitted[0].compareTo("10") != 0 && ip_splitted[0].compareTo("192") !=0){
+		                return res_ip;
+		            }
+		     }
+		}*/
+		 
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		 
+		jsonOutput = "{\"resources\":"+jsonOutput+"}";
 
- 		//convert the json string back to object		
- 		JSONResources obj = gson.fromJson(jsonOutput, JSONResources.class);
- 		
- 		for(int i = 0; i< obj.getResources().get(0).getLinks().size(); i++){
+		//convert the json string back to object		
+		JSONResources obj = gson.fromJson(jsonOutput, JSONResources.class);
+		
+		for(int i = 0; i< obj.getResources().get(0).getLinks().size(); i++){
 			  if(obj.getResources().get(0).getLinks().get(i).getAttributes().getOcci().getNetworkinterface() != null){
 			     res_ip = obj.getResources().get(0).getLinks().get(i).getAttributes().getOcci().getNetworkinterface().getAddress();
 			     //network_state = obj.getResources().get(0).getLinks().get(i).getAttributes().getOcci().getNetworkinterface().getState();
 			     break;
 			  }
 		}
- 		
-        return res_ip;
+		
+	    return res_ip;
 	}
 	
 	public void delete_compute(String resource_id) {
@@ -161,14 +163,11 @@ public class RocciClient {
 		try {
 			execute_cmd(cmd);
 		} catch (ConnectorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch (Exception e) {		
-			e.printStackTrace();
+			LOGGER.error(e);
+		} catch (Exception e) {		
+			LOGGER.error(e);
 		}
 
 	}
@@ -192,12 +191,11 @@ public class RocciClient {
 		try {
 			s = execute_cmd(cmd);			
 		} catch (ConnectorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error(e);
 		}
+		
 		return s;
 	}
 	
@@ -213,13 +211,14 @@ public class RocciClient {
 			if (p.exitValue() != 0){
 				throw new ConnectorException("Error executing command: \n occi "+cmd_args );
 			}
-			java.io.BufferedReader is = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+			BufferedReader is = new BufferedReader(new InputStreamReader(p.getInputStream()));
 	      while((buff = is.readLine())!=null) {
 	    	  //return_string += buff +"\n";
 	    	  return_string += buff;
 	      }
+	      
 	      return return_string;
-			 
+	      
 		} catch (IOException e) {
             throw new ConnectorException(e);
 		}

@@ -3,6 +3,7 @@ package integratedtoolkit.util;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
@@ -56,57 +57,10 @@ public class CloudTypeManager {
             CloudMethodResourceDescription rd = type.rd;
             CloudMethodResourceDescription mixedDescription = new CloudMethodResourceDescription(rd);
 
-            // Processor constraints checks
-            if (mixedDescription.getProcessorArchitecture().compareTo("[unassigned]") == 0) {
-                mixedDescription.setProcessorArchitecture(requested.getProcessorArchitecture());
-            } else if ((requested.getProcessorArchitecture().compareTo("[unassigned]") != 0)
-                    && requested.getProcessorArchitecture().compareTo(mixedDescription.getProcessorArchitecture()) != 0) {
-                continue;
+            if (mixedDescription.contains(rd)) {
+	            // Satisfies the constraints, add compatible
+            	compatiblesList.add(mixedDescription);
             }
-
-            if (mixedDescription.getProcessorSpeed() == 0.0f) {
-                mixedDescription.setProcessorSpeed(requested.getProcessorSpeed());
-            } else if (requested.getProcessorSpeed() > 0.0f
-                    && requested.getProcessorSpeed() > mixedDescription.getProcessorSpeed()) {
-                continue;
-            }
-
-            if (mixedDescription.getMemoryAccessTime() == 0.0f) {
-                mixedDescription.setMemoryAccessTime(requested.getMemoryAccessTime());
-            } else if (requested.getMemoryAccessTime() > 0.0f
-                    && requested.getMemoryAccessTime() > mixedDescription.getMemoryAccessTime()) {
-                continue;
-            }
-
-            if (mixedDescription.getMemorySTR() == 0.0f) {
-                mixedDescription.setMemorySTR(requested.getMemorySTR());
-            } else if (requested.getMemorySTR() > 0.0f
-                    && requested.getMemorySTR() > mixedDescription.getMemorySTR()) {
-                continue;
-            }
-            //Storage constraints checks
-            if (mixedDescription.getStorageElemSize() == 0.0f) {
-                mixedDescription.setStorageElemSize(requested.getStorageElemSize());
-            } else if (requested.getStorageElemSize() > 0.0f
-                    && requested.getStorageElemSize() > mixedDescription.getStorageElemSize()) {
-                continue;
-            }
-
-            if (mixedDescription.getStorageElemAccessTime() == 0.0f) {
-                mixedDescription.setStorageElemAccessTime(requested.getStorageElemAccessTime());
-            } else if (requested.getStorageElemAccessTime() > 0.0f
-                    && requested.getStorageElemAccessTime() > mixedDescription.getStorageElemAccessTime()) {
-                continue;
-            }
-
-            if (mixedDescription.getStorageElemSTR() == 0.0f) {
-                mixedDescription.setStorageElemSTR(requested.getStorageElemSTR());
-            } else if (requested.getStorageElemSTR() > 0.0f
-                    && requested.getStorageElemSTR() > mixedDescription.getStorageElemSTR()) {
-                continue;
-            }
-            //All constraints checked, add compatible
-            compatiblesList.add(mixedDescription);
         }
         return compatiblesList;
     }

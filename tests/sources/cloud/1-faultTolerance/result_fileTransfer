@@ -27,8 +27,8 @@
   submissionFailedEXPECTED2=$'Received a notification for job 1 with state SUBMISSION_FAILED\nReceived a notification for job 2 with state SUBMISSION_FAILED\nReceived a notification for job 1 with state SUBMISSION_FAILED\nAsking for reschedule of job 1 due to job failure: SUBMISSION_FAILED\nReceived a notification for job 2 with state SUBMISSION_FAILED\nAsking for reschedule of job 2 due to job failure: SUBMISSION_FAILED'
   rescheduleGOT1=$(cat ${runtime_log} | grep "To Reschedule:" | cut -c 79-) 
   rescheduleGOT2=$(cat ${runtime_log} | grep "Rescheduled Job")
-  rescheduleEXPECTED1=$'To Reschedule: Task(3, taskHostDown) \nTo Reschedule: Task(4, taskHostDown) ' 
-  rescheduleEXPECTED2=$'To Reschedule: Task(1, taskLocalhost) \nTo Reschedule: Task(2, taskLocalhost) ' 
+  rescheduleEXPECTED1=$'To Reschedule: Task(3, COMPSsWorker02) \nTo Reschedule: Task(4, COMPSsWorker01) ' 
+  rescheduleEXPECTED2=$'To Reschedule: Task(1, COMPSsWorker01) \nTo Reschedule: Task(2, COMPSsWorker02) ' 
 
   #Report result status
   echo "CHECKING RESULTS" | tee ${output_file}

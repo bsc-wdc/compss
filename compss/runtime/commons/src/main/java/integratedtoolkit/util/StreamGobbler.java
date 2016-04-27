@@ -7,13 +7,13 @@ import java.io.PrintStream;
 
 public class StreamGobbler extends Thread {
 
-    InputStream is;
+    InputStream in;
     PrintStream out;
 
-    public StreamGobbler(InputStream is, PrintStream out) {
+    public StreamGobbler(InputStream in, PrintStream out) {
     	this.setName("Stream Gobbler");
     	
-        this.is = is;
+        this.in = in;
         this.out = out;
     }
 
@@ -21,21 +21,21 @@ public class StreamGobbler extends Thread {
         try {
             int nRead;
             byte[] buffer = new byte[4096];
-            while ((nRead = is.read(buffer, 0, buffer.length)) != -1) {
+            while ((nRead = in.read(buffer, 0, buffer.length)) != -1) {
                 byte[] readData = new byte[nRead];
                 System.arraycopy(buffer, 0, readData, 0, nRead);
                 out.print(new String(readData));
             }
         } catch (IOException ioe) {
             System.err.println("Exception during reading/writing in output Stream");
-            ioe.printStackTrace();
+            ioe.printStackTrace(System.err);
         } finally {
             out.flush();
-            if (is != null) {
+            if (in != null) {
                 try {
-                    is.close();
+                	in.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(System.err);
                 }
             }
         }

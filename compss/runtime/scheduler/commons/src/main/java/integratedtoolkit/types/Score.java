@@ -11,12 +11,10 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
-import integratedtoolkit.util.Tracer;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
+
 
 public class Score {
 
@@ -62,7 +60,7 @@ public class Score {
         return a.isBetter(b);
     }
 
-    public static long getLocalityScore(TaskParams params, Worker w) {
+    public static long getLocalityScore(TaskParams params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();

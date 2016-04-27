@@ -1,14 +1,14 @@
 package integratedtoolkit.util;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
+
 import java.util.HashMap;
-import java.util.TreeMap;
+
 import org.apache.log4j.Logger;
 
 
@@ -22,29 +22,33 @@ public class WorkerStarter implements Runnable {
 
     private final String name;
     private final MethodResourceDescription rd;
-    private final HashMap<String, String> properties;
-    private final int taskCount;
     private final HashMap<String, String> disks;
+    private final MethodConfiguration configuration;
+    
+    private final int taskCount;
     private final int[] expectedCoreCount;
-    private final TreeMap<String, AdaptorDescription> adaptorsDescription;
     
 
-    public WorkerStarter(String name, MethodResourceDescription rd, HashMap<String, String> properties, HashMap<String, String> disks, TreeMap<String, AdaptorDescription> adaptorsDesc) {
+    public WorkerStarter(String name, MethodResourceDescription rd, HashMap<String, String> disks, MethodConfiguration config) {
         this.name = name;
         this.rd = rd;
-        this.properties = properties;
-        this.adaptorsDescription = adaptorsDesc;
-        String taskCountStr = properties.get(ITConstants.LIMIT_OF_TASKS);
-        int taskCount = 0;
-        if (taskCountStr != null) {
-            taskCount = Integer.parseInt(taskCountStr);
+        this.configuration = config;
+        if (disks == null) {
+        	this.disks = new HashMap<String, String>();
+        } else {
+        	this.disks = disks;
         }
-        if (taskCount <= 0) {
-            taskCount = rd.getProcessorCoreCount();
+        
+        // Compute task count
+        int limitOfTasks = config.getLimitOfTasks();
+        int computingUnits = rd.getTotalComputingUnits();
+        if (limitOfTasks < 0 && computingUnits < 0) {
+        	this.taskCount = 0;
+        } else {
+        	this.taskCount = Math.max(limitOfTasks, computingUnits);
         }
-        this.taskCount = taskCount;
-        properties.put(ITConstants.LIMIT_OF_TASKS, "" + taskCount);
-        this.disks = disks;
+        
+        // Compute expected core count
         expectedCoreCount = computeExpectedCoreCount(taskCount);
         synchronized (onStartCoreCounts) {
             for (int coreId = 0; coreId < expectedCoreCount.length; coreId++) {
@@ -57,7 +61,7 @@ public class WorkerStarter implements Runnable {
         Thread.currentThread().setName(name + " starter");
         Worker<?> newResource;
         try {
-            newResource = new MethodWorker(name, rd, adaptorsDescription, properties, taskCount);
+            newResource = new MethodWorker(name, rd, configuration, taskCount);
         } catch (Exception e) {
             logger.error("Error starting resource", e);
             ErrorManager.warn("Exception creating worker. Check runtime.log for more details", e);

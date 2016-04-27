@@ -44,7 +44,10 @@ public class NIOTracer extends Tracer {
         }
 
         if (debug) { 
-            logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " +NIOTracer.workingDir + ", " + NIOTracer.nodeName);
+            logger.debug("Tracer worker for host " + hostID 
+            		+ " and: " + NIOTracer.scriptDir 
+            		+ ", " + NIOTracer.workingDir 
+            		+ ", " + NIOTracer.nodeName);
         }
     }
 
@@ -100,7 +103,7 @@ public class NIOTracer extends Tracer {
             Wrapper.Fini();
         }
         // Generate package
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "package", workingDir, nodeName);
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_PATH + File.separator + TRACE_SCRIPT, "package", workingDir, nodeName);
         pb.environment().remove("LD_PRELOAD");
         Process p = null;
         try {

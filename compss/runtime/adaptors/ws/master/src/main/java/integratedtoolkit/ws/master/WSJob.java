@@ -199,7 +199,7 @@ public class WSJob extends Job {
             try {
                 client = dcf.createClient(si.getWsdl(), serviceQName, portQName);
             } catch (Exception e) {
-                e.printStackTrace();
+            	logger.error("Exception", e);
             }
 
             HTTPConduit http = (HTTPConduit) client.getConduit();

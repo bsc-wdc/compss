@@ -22,7 +22,6 @@ public abstract class Job<T extends COMPSsNode> {
 
     // Job history
     public enum JobHistory {
-
         NEW,
         RESUBMITTED_FILES,
         RESUBMITTED,
@@ -31,7 +30,6 @@ public abstract class Job<T extends COMPSsNode> {
 
     // Job kind
     public enum JobKind {
-
         METHOD,
         SERVICE;
     }
@@ -47,7 +45,6 @@ public abstract class Job<T extends COMPSsNode> {
 
     protected JobHistory history;
     protected int transferId;
-    protected static final Boolean workerDebug = Logger.getLogger(Loggers.WORKER).isDebugEnabled();
 
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
@@ -120,7 +117,6 @@ public abstract class Job<T extends COMPSsNode> {
     public static interface JobListener {
 
         enum JobEndStatus {
-
             OK,
             TO_RESCHEDULE,
             TRANSFERS_FAILED,

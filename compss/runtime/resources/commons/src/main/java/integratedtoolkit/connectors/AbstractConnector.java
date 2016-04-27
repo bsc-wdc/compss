@@ -55,9 +55,10 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         String creationTimeStr = props.get("estimated-creation-time");
         if (creationTimeStr != null) {
         	meanCreationTime = Integer.parseInt(creationTimeStr)*1000;    	
-        }else{
+        } else {
         	meanCreationTime = INITIAL_CREATION_TIME;
         }
+        
         logger.debug("Initial mean creation time is" + meanCreationTime);
         createdVMs = 0;
         currentCostPerHour = 0.0f;
@@ -98,27 +99,23 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     }
 
     private synchronized VM tryToReuseVM(CloudMethodResourceDescription requested) {
-
-        String imageReq = requested.getImage().getName();
+        String imageReq = requested.getImage().getImageName();
         VM reusedVM = null;
         for (VM vm : vmsToDelete) {
-            if (!vm.rd.getImage().getName().equals(imageReq)) {
+            if (!vm.rd.getImage().getImageName().equals(imageReq)) {
                 continue;
             }
-            if (vm.rd.getProcessorCoreCount() < requested.getProcessorCoreCount()) {
-                continue;
+            
+            if (!vm.rd.contains(requested)) {
+            	continue;
             }
-            if (vm.rd.getMemoryPhysicalSize() < requested.getMemoryPhysicalSize()) {
-                continue;
-            }
-            if (vm.rd.getStorageElemSize() < requested.getStorageElemSize()) {
-                continue;
-            }
+
             reusedVM = vm;
             reusedVM.setToDelete(false);
             vmsToDelete.remove(reusedVM);
             break;
         }
+        
         return reusedVM;
     }
 

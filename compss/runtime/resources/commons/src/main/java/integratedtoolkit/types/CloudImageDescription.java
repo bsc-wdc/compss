@@ -1,163 +1,197 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.util.ResourceManager;
+import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
+
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import org.w3c.dom.Node;
+import java.util.List;
 
 
 public class CloudImageDescription {
 
-    private final String name;
-    private String providerName;
-
+    private final String providerName;
+    private final String imageName;
     private final HashMap<String, String> properties;
-
-    private final LinkedList<String[]> packages;
-    private final TreeSet<String> softwareApps;
-    private String arch = "[unassigned]";
-    private String operativeSystem = "[unassinged]";
-    private String adaptor;
     
-    private TreeMap<String, AdaptorDescription> adaptorsDescription = new TreeMap<>();
-
-    private final HashMap<String, String> sharedDisks;
-
+    // Operating System
+    private String operatingSystemType = MethodResourceDescription.UNASSIGNED_STR;
+    private String operatingSystemDistribution = MethodResourceDescription.UNASSIGNED_STR;
+    private String operatingSystemVersion = MethodResourceDescription.UNASSIGNED_STR;
+    // Applications
+    private List<String> appSoftware;
+    // Packages
+    private List<ApplicationPackage> packages;
+    // SharedDisks
+    private HashMap<String, String> sharedDisks;
+    // Creation Time
+    private int creationTime = MethodResourceDescription.UNASSIGNED_INT;
+    // Price
+    private int priceTimeUnit = MethodResourceDescription.UNASSIGNED_INT;
+    private float pricePerUnit = MethodResourceDescription.UNASSIGNED_FLOAT;
+    // Queues
+    private List<String> queues;
+    // Configuration
+    private MethodConfiguration config;
     
-    public CloudImageDescription(String cloudProviderName, Node resourcesNode, Node projectNode, HashMap<String, String> providerProperties) {
-        providerName = cloudProviderName;
-        name = projectNode.getAttributes().getNamedItem("name").getTextContent();
-        packages = new LinkedList<String[]>();
-        sharedDisks = new HashMap<String, String>();
-        softwareApps = new TreeSet<String>();
-        properties = new HashMap<String, String>();
-        for (int i = 0; i < projectNode.getChildNodes().getLength(); i++) {
-            Node child = projectNode.getChildNodes().item(i);
-            if (child.getNodeName().compareTo("InstallDir") == 0) {
-                properties.put(ITConstants.INSTALL_DIR, child.getTextContent());
-            } else if (child.getNodeName().compareTo("WorkingDir") == 0) {
-                properties.put(ITConstants.WORKING_DIR, child.getTextContent());
-            } else if (child.getNodeName().compareTo("AppDir") == 0) {
-                properties.put(ITConstants.APP_DIR, child.getTextContent());
-            } else if (child.getNodeName().compareTo("LibraryPath") == 0) {
-                properties.put(ITConstants.LIB_PATH, child.getTextContent());
-            } else if (child.getNodeName().compareTo("User") == 0) {
-                properties.put(ITConstants.USER, child.getTextContent());
-            } else if (child.getNodeName().compareTo("Password") == 0) {
-                properties.put(ITConstants.PASSWORD, child.getTextContent());
-            } else if (child.getNodeName().compareTo("CommAdaptor") == 0) {
-                adaptor = child.getTextContent();
-            } else if (child.getNodeName().compareTo("Package") == 0) {
-                String[] p = new String[2];
-                for (int j = 0; j < child.getChildNodes().getLength(); j++) {
-                    Node packageChild = child.getChildNodes().item(j);
-                    if (packageChild.getNodeName().compareTo("Source") == 0) {
-                        p[0] = packageChild.getTextContent();
-                    } else if (packageChild.getNodeName().compareTo("Target") == 0) {
-                        p[1] = packageChild.getTextContent();
-                    } else if (packageChild.getNodeName().compareTo("IncludedSoftware") == 0) {
-                        for (int app = 0; app < packageChild.getChildNodes().getLength(); app++) {
-                            Node appNode = packageChild.getChildNodes().item(app);
-                            if (appNode.getNodeName().compareTo("Software") == 0) {
-                                softwareApps.add(appNode.getTextContent());
-                            }
-                        }
-                    }
-                }
-                packages.add(p);
-            }
-        }
+    public CloudImageDescription(String cloudProviderName, String imageName, HashMap<String, String> providerProperties) {
+        this.providerName = cloudProviderName;
+        this.imageName = imageName;
         
-        adaptorsDescription = ResourceManager.parseAdaptors(resourcesNode);
-
-        for (int i = 0; i < resourcesNode.getChildNodes().getLength(); i++) {
-            Node child = resourcesNode.getChildNodes().item(i);
-            if (child.getNodeName().compareTo("ApplicationSoftware") == 0) {
-                for (int app = 0; app < child.getChildNodes().getLength(); app++) {
-                    Node appNode = child.getChildNodes().item(app);
-                    if (appNode.getNodeName().compareTo("Software") == 0) {
-                        softwareApps.add(appNode.getTextContent());
-                    }
-                }
-            } else if (child.getNodeName().compareTo("SharedDisks") == 0) {
-                for (int diskIndex = 0; diskIndex < child.getChildNodes().getLength(); diskIndex++) {
-                    Node sharedDisk = child.getChildNodes().item(diskIndex);
-                    if (sharedDisk.getNodeName().compareTo("Disk") == 0) {
-                        String diskName = sharedDisk.getAttributes().getNamedItem("Name").getTextContent();
-                        String mountPoint = "";
-                        for (int j = 0; j < sharedDisk.getChildNodes().getLength(); j++) {
-                            if (sharedDisk.getChildNodes().item(j).getNodeName().compareTo("MountPoint") == 0) {
-                                mountPoint = sharedDisk.getChildNodes().item(j).getTextContent();
-                            }
-                        }
-                        sharedDisks.put(diskName, mountPoint);
-                    }
-                }
-            } else if (child.getNodeName().compareTo("OSType") == 0) {
-                operativeSystem = child.getTextContent();
-            } else if (child.getNodeName().compareTo("Architecture") == 0) {
-                arch = child.getTextContent();
-            } 
-        }
-        properties.putAll(providerProperties);
+        this.appSoftware = new LinkedList<String>();
+        this.packages = new LinkedList<ApplicationPackage>();
+        this.sharedDisks = new HashMap<String, String>();
+        this.queues = new LinkedList<String>();
+        this.properties = new HashMap<String, String>();
+        
+        this.properties.putAll(providerProperties);
     }
 
-    public String getName() {
-        return this.name;
-    }
+    public String getOperatingSystemType() {
+		return operatingSystemType;
+	}
 
-    public String getProviderName() {
-        return this.providerName;
-    }
+	public void setOperatingSystemType(String operatingSystemType) {
+		this.operatingSystemType = operatingSystemType;
+	}
 
-    public String getArch() {
-        return arch;
-    }
+	public String getOperatingSystemDistribution() {
+		return operatingSystemDistribution;
+	}
 
-    public HashMap<String, String> getProperties() {
-        return properties;
-    }
+	public void setOperatingSystemDistribution(String operatingSystemDistribution) {
+		this.operatingSystemDistribution = operatingSystemDistribution;
+	}
 
-    public LinkedList<String[]> getPackages() {
-        return packages;
-    }
+	public String getOperatingSystemVersion() {
+		return operatingSystemVersion;
+	}
 
-    public HashMap<String, String> getSharedDisks() {
-        return this.sharedDisks;
-    }
+	public void setOperatingSystemVersion(String operatingSystemVersion) {
+		this.operatingSystemVersion = operatingSystemVersion;
+	}
 
-    public String getOperativeSystem() {
-        return this.operativeSystem;
-    }
+	public List<String> getAppSoftware() {
+		return appSoftware;
+	}
 
-    public TreeSet<String> getSoftwareApps() {
-        return softwareApps;
-    }
+	public void setAppSoftware(List<String> appSoftware) {
+		this.appSoftware = appSoftware;
+	}
+	
+	public void addApplication(String app) {
+		this.appSoftware.add(app);
+	}
+	
+	public void addAllApplications(List<String> apps) {
+		this.appSoftware.addAll(apps);
+	}
 
-    public String getAdaptor() {
-        return adaptor;
-    }
-    
-    public TreeMap<String, AdaptorDescription> getAdaptorsDescription(){
-        return adaptorsDescription;
-    }
+	public List<String[]> getPackagesList() {
+		LinkedList<String[]> packs = new LinkedList<String[]> ();
+		for (ApplicationPackage p : this.packages) {
+			String[] str_pack = new String[2];
+			str_pack[0] = p.getSource();
+			str_pack[1] = p.getTarget();
+			packs.add(str_pack);
+		}
+		
+		return packs;
+	}
+	
+	public List<ApplicationPackage> getPackages() {
+		return this.packages;
+	}
 
-    public String toString(String prefix) {
+	public void setPackages(List<ApplicationPackage> packages) {
+		this.packages = packages;
+	}
+	
+	public void addPackage(String source, String target) {
+		ApplicationPackage p = new ApplicationPackage(source, target);
+		this.packages.add(p);
+	}
+
+	public HashMap<String, String> getSharedDisks() {
+		return sharedDisks;
+	}
+
+	public void setSharedDisks(HashMap<String, String> sharedDisks) {
+		this.sharedDisks = sharedDisks;
+	}
+
+	public int getCreationTime() {
+		return creationTime;
+	}
+
+	public void setCreationTime(int creationTime) {
+		this.creationTime = creationTime;
+	}
+
+	public int getPriceTimeUnit() {
+		return priceTimeUnit;
+	}
+
+	public void setPriceTimeUnit(int priceTimeUnit) {
+		this.priceTimeUnit = priceTimeUnit;
+	}
+
+	public float getPricePerUnit() {
+		return pricePerUnit;
+	}
+
+	public void setPricePerUnit(float pricePerUnit) {
+		this.pricePerUnit = pricePerUnit;
+	}
+
+	public List<String> getQueues() {
+		return queues;
+	}
+
+	public void setQueues(List<String> queues) {
+		this.queues = queues;
+	}
+	
+	public void addQueue(String queue) {
+		this.queues.add(queue);
+	}
+
+	public MethodConfiguration getConfig() {
+		return config;
+	}
+
+	public void setConfig(MethodConfiguration config) {
+		this.config = config;
+	}
+
+	public String getProviderName() {
+		return providerName;
+	}
+
+	public String getImageName() {
+		return imageName;
+	}
+
+	public HashMap<String, String> getProperties() {
+		return properties;
+	}
+
+	public String toString(String prefix) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("IMAGE = [").append("\n");
-        sb.append(prefix).append("\t").append("NAME = ").append(this.name).append("\n");
-        sb.append(prefix).append("\t").append("COMM_ADAPTOR = ").append(this.adaptor).append("\n");
-        sb.append(prefix).append("\t").append("ARCH = ").append(this.arch).append("\n");
-        sb.append(prefix).append("\t").append("OS = ").append(this.operativeSystem).append("\n");
-        sb.append(prefix).append("\t").append("INSTALL_DIR = ").append(properties.get(ITConstants.INSTALL_DIR)).append("\n");
-        sb.append(prefix).append("\t").append("WORKING_DIR = ").append(properties.get(ITConstants.WORKING_DIR)).append("\n");
-        sb.append(prefix).append("\t").append("APP_DIR = ").append(properties.get(ITConstants.APP_DIR)).append("\n");
-        sb.append(prefix).append("\t").append("LIBRARY_PATH = ").append(properties.get(ITConstants.LIB_PATH)).append("\n");
-        sb.append(prefix).append("\t").append("USER = ").append(properties.get(ITConstants.USER)).append("\n");
-        sb.append(prefix).append("\t").append("PASSWORD = ").append(properties.get(ITConstants.PASSWORD)).append("\n");
+        sb.append(prefix).append("\t").append("NAME = ").append(this.imageName).append("\n");
+        sb.append(prefix).append("\t").append("OS_TYPE = ").append(this.getOperatingSystemType()).append("\n");
+        sb.append(prefix).append("\t").append("OS_DISTR = ").append(this.getOperatingSystemDistribution()).append("\n");
+        sb.append(prefix).append("\t").append("OS_VERSION = ").append(this.getOperatingSystemVersion()).append("\n");
+        sb.append(prefix).append("\t").append("INSTALL_DIR = ").append(this.getConfig().getInstallDir()).append("\n");
+        sb.append(prefix).append("\t").append("WORKING_DIR = ").append(this.getConfig().getWorkingDir()).append("\n");
+        sb.append(prefix).append("\t").append("APP_DIR = ").append(this.getConfig().getAppDir()).append("\n");
+        sb.append(prefix).append("\t").append("LIBRARY_PATH = ").append(this.getConfig().getLibraryPath()).append("\n");
+        sb.append(prefix).append("\t").append("CLASSPATH = ").append(this.getConfig().getClasspath()).append("\n");
+        sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
+        sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
+        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties().get(ITConstants.PASSWORD)).append("\n");
         sb.append(prefix).append("\t").append("SHARED_DISKS = [").append("\n");
         for (java.util.Map.Entry<String, String> entry : this.sharedDisks.entrySet()) {
             sb.append(prefix).append("\t").append("\t").append("SHARED_DISK = [").append("\n");
@@ -167,15 +201,15 @@ public class CloudImageDescription {
         }
         sb.append(prefix).append("\t").append("]").append("\n");
         sb.append(prefix).append("\t").append("PACKAGES = ").append("\n");
-        for (String[] pack : this.packages) {
+        for (ApplicationPackage pack : this.packages) {
             sb.append(prefix).append("\t").append("\t").append("PACKAGE = [").append("\n");
-            sb.append(prefix).append("\t").append("\t").append("\t").append("SOURCE = ").append(pack[0]).append("\n");
-            sb.append(prefix).append("\t").append("\t").append("\t").append("TARGET = ").append(pack[1]).append("\n");
+            sb.append(prefix).append("\t").append("\t").append("\t").append("SOURCE = ").append(pack.getSource()).append("\n");
+            sb.append(prefix).append("\t").append("\t").append("\t").append("TARGET = ").append(pack.getTarget()).append("\n");
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("]").append("\n");
         sb.append(prefix).append("\t").append("SOFTWARE = ").append("\n");
-        for (String app : this.softwareApps) {
+        for (String app : this.appSoftware) {
             sb.append(prefix).append("\t").append("\t").append("APPLICATION = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("NAME = ").append(app).append("\n");
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
@@ -185,4 +219,5 @@ public class CloudImageDescription {
         sb.append(prefix).append("]").append("\n");
         return sb.toString();
     }
+	
 }

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-xml-schemas</artifactId>
-<version>1.4</version>
+		<version>1.4</version>
 		<relativePath>..</relativePath>
 	</parent>
 	
@@ -26,6 +26,20 @@
 		<url>http://www.bsc.es</url>
 	</organization>
 	
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- Log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+		<!--  Apache Commons IO (FileUtils) -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+	</dependencies>
+	
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -44,7 +58,6 @@
 				<version>${maven-jaxb2-plugin.version}</version>
 				<executions>
 					<execution>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
@@ -53,13 +66,11 @@
 				<configuration>
 					<schemaDirectory>${basedir}</schemaDirectory>
 					<extension>true</extension>
-					<schemaFiles>resource_schema.xsd</schemaFiles>
+					<schemaFiles>resources_schema.xsd</schemaFiles>
 					<generateDirectory>${basedir}/src/main/java/</generateDirectory>
 					<generatePackage>integratedtoolkit.types.resources.jaxb</generatePackage>
-					<forceRegenerate>true</forceRegenerate>
 				</configuration>
 			</plugin>
-			
 		</plugins>
 	</build>		
 </project>

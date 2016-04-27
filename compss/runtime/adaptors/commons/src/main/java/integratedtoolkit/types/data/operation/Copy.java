@@ -107,7 +107,7 @@ public abstract class Copy extends DataOperation {
                 specificCopy();
                 //ld.replicate(targetURI);
             } catch (Exception e) {
-            	logger.error(e);
+            	logger.error("Exception", e);
                 end(DataOperation.OpEndState.OP_FAILED, e);
                 return;
             } finally {

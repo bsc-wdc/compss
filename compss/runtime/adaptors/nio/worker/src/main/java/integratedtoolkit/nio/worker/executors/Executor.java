@@ -1,6 +1,9 @@
 package integratedtoolkit.nio.worker.executors;
 
+import java.io.File;
+
 import integratedtoolkit.ITConstants;
+
 import org.apache.log4j.Logger;
 
 import integratedtoolkit.log.Loggers;
@@ -24,7 +27,7 @@ public abstract class Executor {
         }
 
         
-        NIOWorker.registerOutputs(NIOWorker.workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist());
+        NIOWorker.registerOutputs(NIOWorker.workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist());
         String sandBox;
         try {
             logger.debug("Creating sandbox for job "+nt.getJobId());

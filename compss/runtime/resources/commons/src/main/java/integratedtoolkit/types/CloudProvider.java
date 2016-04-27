@@ -34,17 +34,21 @@ public class CloudProvider {
 
 
     public CloudProvider(String connectorPath, Integer limitOfVMs,
-            HashMap<String, String> connectorProperties, String name)
-            throws Exception {
+            HashMap<String, String> connectorProperties, String name) throws Exception {
+
         this.name = name;
         this.limitOfVMs = limitOfVMs;
+        
         imgManager = new CloudImageManager();
+        
         Class<?> conClass = Class.forName(connectorPath);
         Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
         Object conector = ctor.newInstance(name, connectorProperties);
         connector = (Connector) conector;
         cost = (Cost) conector;
+        
         typeManager = new CloudTypeManager();
+        
         currentVMCount = 0;
     }
 
@@ -167,8 +171,8 @@ public class CloudProvider {
             if (images.isEmpty()) {
                 return null;
             }
-            result.setImage(images.get(0));
             result.setProviderName(images.get(0).getProviderName());
+            result.setImage(images.get(0));
             result.setValue(cost.getMachineCostPerHour(result));
         }
         return result;
@@ -221,10 +225,11 @@ public class CloudProvider {
             if (distance < bestDistance) {
                 result = rd;
                 bestDistance = distance;
-            } else if (result != null && distance == bestDistance) {
-		// Evaluate optimal candidate
-                if (result.getValue() != null && rd.getValue() != null
-                        && result.getValue() > rd.getValue()) {
+            } else if (distance == bestDistance && result != null) {
+                if (result.getValue() != null 
+                		&& rd.getValue() != null 
+                		&& result.getValue() > rd.getValue()) {
+                	// Evaluate optimal candidate
                     result = rd;
                     bestDistance = distance;
                 }

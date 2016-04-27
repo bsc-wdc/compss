@@ -9,6 +9,9 @@ public abstract class ResourceDescription {
 
     public ResourceDescription(ResourceDescription rd) {
     }
+    
+    public void copy(ResourceDescription rd) {
+    }
 
     public abstract ResourceDescription copy();
 

@@ -10,30 +10,32 @@ import java.util.LinkedList;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.comm.Dispatcher;
+import integratedtoolkit.gat.master.configuration.GATConfiguration;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation;
+import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
+
 
 public class GATAdaptor implements CommAdaptor {
 
     public static final String ID = GATAdaptor.class.getCanonicalName();
 
-    private static final int GAT_POOL_SIZE = 5;
-    protected static final String POOL_NAME = "FTM";
-    protected static final String SAFE_POOL_NAME = "SAFE_FTM";
-    protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
-    protected static final String POOL_ERR = "Error deleting pool of threads";
-    protected static final int SAFE_POOL_SIZE = 1;
+    protected static final String POOL_NAME 		= "FTM";
+    private static final int GAT_POOL_SIZE 			= 5;
+    protected static final String SAFE_POOL_NAME 	= "SAFE_FTM";
+    protected static final int SAFE_POOL_SIZE 		= 1;
+    
+    protected static final String THREAD_POOL_ERR 	= "Error starting pool of threads";
+    protected static final String POOL_ERR 			= "Error deleting pool of threads";
+
 
     // Copy request queues
     // copyQueue is for ordinary copies
@@ -66,8 +68,6 @@ public class GATAdaptor implements CommAdaptor {
         if (debug) {
         	logger.debug("Initializing GAT");
         }
-        //GATJob.init();
-
         pool = new ThreadPool(GAT_POOL_SIZE, POOL_NAME, new Dispatcher(copyQueue));
         try {
             pool.startThreads();
@@ -92,14 +92,45 @@ public class GATAdaptor implements CommAdaptor {
          * are local, because ssh file adaptor cannot perform local operations
          */
         transferContext.addPreference("File.adaptor.name", adaptor + ", srcToLocalToDestCopy, local");
-
     }
+    
+    @Override
+	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+		String brokerAdaptorName = System.getProperty(ITConstants.GAT_BROKER_ADAPTOR);
+		String project_brokerAdaptor = (String) project_properties;
+		String resources_brokerAdaptor = (String) resources_properties;
+		if (project_brokerAdaptor != null) {
+			if (resources_brokerAdaptor != null) {
+				// Both
+				if (project_brokerAdaptor.equals(resources_brokerAdaptor)) {
+					// Equal, set any of them
+					brokerAdaptorName = project_brokerAdaptor;
+				} else {
+					// Specified Broker adaptors don't match
+					throw new Exception("GATAdaptor: BrokerAdaptor defined in resources.xml and project.xml donesn't match");
+				}
+			} else {
+				// Only project
+				brokerAdaptorName = project_brokerAdaptor;
+			}
+		} else {
+			if (resources_brokerAdaptor != null) {
+				// Only resources
+				brokerAdaptorName = resources_brokerAdaptor;
+			} else {
+				// No broker adaptor specified, load default
+				logger.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
+			}
+		}
+		
+		GATConfiguration config = new GATConfiguration(this.getClass().getName(), brokerAdaptorName);
+		return config;
+	}
 
     // GAT adaptor initializes the worker each time it sends a new job
     @Override
-    public GATWorkerNode initWorker(String name, HashMap<String, String> properties, TreeMap<String, AdaptorDescription> adaptorsDesc) {
-    	logger.debug("There are "+ adaptorsDesc.size()+ "descriptions.\n"+adaptorsDesc.toString());
-    	GATWorkerNode node = new GATWorkerNode(name, properties, adaptorsDesc.get(AdaptorDescription.GATAdaptor));
+    public GATWorkerNode initWorker(String name, Configuration config) throws Exception {
+    	GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration)config);
         return node;
     }
 
@@ -147,14 +178,11 @@ public class GATAdaptor implements CommAdaptor {
             return;
         }
 
-        String s = (scheme
-                + user
-                + host + File.separator
-                + path);
+        String s = (scheme + user + host + File.separator + path);
         try {
             uri.setInternalURI(ID, new org.gridlab.gat.URI(s));
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+        	logger.error("Exception", e);
         }
     }
 

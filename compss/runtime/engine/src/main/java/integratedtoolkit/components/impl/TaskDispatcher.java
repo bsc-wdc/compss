@@ -45,7 +45,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private static final String RES_LOAD_ERR = "Error loading resource information";
     private static final String CREAT_INIT_VM_ERR = "Error creating initial VMs";
 
     // Tracing
@@ -80,13 +79,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
 
         CEIParser.parse();
-        try {
-            ResourceManager.load(this);
-        } catch (ClassNotFoundException e) {
-            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
-        } catch (Exception e) {
-            ErrorManager.fatal(RES_LOAD_ERR, e);
-        }
+
+        ResourceManager.load(this);
 
         try {
             String schedulerPath = System.getProperty(ITConstants.IT_SCHEDULER);
@@ -130,7 +124,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
                 logger.debug("Exiting dispatcher because of shutting down");
                 break;
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("RequestError", e);
                 continue;
             }
         }
@@ -196,7 +190,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     @Override
-    public void updatedResource(Worker r) {
+    public void updatedResource(Worker<?> r) {
         WorkerUpdateRequest request = new WorkerUpdateRequest(r);
         addPrioritaryRequest(request);
     }

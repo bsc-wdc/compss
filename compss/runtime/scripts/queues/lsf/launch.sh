@@ -43,20 +43,26 @@
   RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
   PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
 
+
   #---------------------------------------------------------------------------------------
   # Begin creating the resources file and the project file
   /bin/cat > ${RESOURCES_FILE} << EOT
-<?xml version="1.0" encoding="UTF-8"?>
-<ResourceList>
-  <Disk Name="gpfs">
-    <MountPoint>/gpfs</MountPoint>
-  </Disk>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <SharedDisk Name="gpfs" />
 
 EOT
 
   /bin/cat > ${PROJECT_FILE} << EOT
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
+    <MasterNode>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </MasterNode>
 
 EOT
 
@@ -93,52 +99,60 @@ EOT
   if [ ${tasks_in_master} -ne 0 ]; then
 	ssh ${MASTER_NODE}${network} "/bin/mkdir -p ${worker_working_dir}"
 	/bin/cat >> ${RESOURCES_FILE} << EOT
-<Resource Name="${MASTER_NODE}${network}">
-    <Capabilities>
-      <Host>
-        <TaskCount>0</TaskCount>
-      </Host>
-      <Processor>
-        <Architecture>Intel</Architecture>
-        <Speed>2.6</Speed>
-        <CoreCount>${tasks_in_master}</CoreCount>
-      </Processor>
-      <OS>
-        <OSType>Linux</OSType>
-      </OS>
-      <StorageElement>
-        <Size>36</Size>
-      </StorageElement>
-      <Memory>
-        <PhysicalSize>28</PhysicalSize>
-      </Memory>
-      <ApplicationSoftware>
-        <Software>COMPSs</Software>
-      </ApplicationSoftware>
-      <FileSystem/>
-      <NetworkAdaptor/>
-    </Capabilities>
-    <Requirements/>
-    <Disks>
-      <Disk Name="gpfs">
-        <MountPoint>/gpfs</MountPoint>
-      </Disk>
-    </Disks>
-    <Adaptors>
-      <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
-         <MinPort>43001</MinPort>
-         <MaxPort>43001</MaxPort>
-      </Adaptor>
-    </Adaptors>
-  </Resource>
+    <ComputeNode Name="${MASTER_NODE}${network}">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>${tasks_in_master}</ComputingUnits>
+	    <Architecture>Intel</Architecture>
+	    <Speed>2.6</Speed>
+        </Processor>
+        <OperatingSystem>
+	    <Type>Linux</Type>
+	    <Distribution>SMP</Distribution>
+            <Version>3.0.101-0.35-default</Version>
+	</OperatingSystem>
+        <Memory>
+            <Size>28</Size>
+        </Memory>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>EXTRAE</Application>
+            <Application>COMPSS</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
 
 EOT
+
         /bin/cat >> ${PROJECT_FILE} << EOT
-  <Worker Name="${MASTER_NODE}${network}">
-    <InstallDir>${worker_install_dir}</InstallDir>
-    <WorkingDir>${worker_working_dir}</WorkingDir>
-    <LibraryPath>${library_path}</LibraryPath>
-  </Worker>
+    <ComputeNode Name="${MASTER_NODE}${network}">
+        <InstallDir>${worker_install_dir}</InstallDir>
+        <WorkingDir>${worker_working_dir}</WorkingDir>
+        <Application>
+            <LibraryPath>${library_path}</LibraryPath>
+        </Application>
+    </ComputeNode>
 
 EOT
   fi
@@ -147,59 +161,67 @@ EOT
   for node in ${WORKER_LIST}; do
 	ssh $node${network} "/bin/mkdir -p ${worker_working_dir}"
 	/bin/cat >> ${RESOURCES_FILE} << EOT
-  <Resource Name="${node}${network}">
-    <Capabilities>
-      <Host>
-        <TaskCount>0</TaskCount>
-      </Host>
-      <Processor>
-        <Architecture>Intel</Architecture>
-        <Speed>2.6</Speed>
-        <CoreCount>${tasks_per_node}</CoreCount>
-      </Processor>
-      <OS>
-        <OSType>Linux</OSType>
-      </OS>
-      <StorageElement>
-        <Size>36</Size>
-      </StorageElement>
-      <Memory>
-        <PhysicalSize>28</PhysicalSize>
-      </Memory>
-      <ApplicationSoftware>
-        <Software>COMPSs</Software>
-      </ApplicationSoftware>
-      <FileSystem/>
-      <NetworkAdaptor/>
-    </Capabilities>
-    <Requirements/>
-    <Disks>
-      <Disk Name="gpfs">
-	<MountPoint>/gpfs</MountPoint>
-      </Disk>
-    </Disks>
-    <Adaptors>
-      <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
-         <MinPort>43001</MinPort>
-         <MaxPort>43001</MaxPort>
-      </Adaptor>
-    </Adaptors>
-  </Resource>
+    <ComputeNode Name="${node}${network}">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>${tasks_per_node}</ComputingUnits>
+            <Architecture>Intel</Architecture>
+            <Speed>2.6</Speed>
+        </Processor>
+        <OperatingSystem>
+            <Type>Linux</Type>
+            <Distribution>SMP</Distribution>
+            <Version>3.0.101-0.35-default</Version>
+        </OperatingSystem>
+        <Memory>
+            <Size>28</Size>
+        </Memory>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>EXTRAE</Application>
+            <Application>COMPSS</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
 
 EOT
+
 	/bin/cat >> ${PROJECT_FILE} << EOT
-  <Worker Name="${node}${network}">
-    <InstallDir>${worker_install_dir}</InstallDir>
-    <WorkingDir>${worker_working_dir}</WorkingDir>
-    <LibraryPath>${library_path}</LibraryPath>
-  </Worker>
+    <ComputeNode Name="${node}${network}">
+        <InstallDir>${worker_install_dir}</InstallDir>
+        <WorkingDir>${worker_working_dir}</WorkingDir>
+        <Application>
+            <LibraryPath>${library_path}</LibraryPath>
+        </Application>
+    </ComputeNode>
 
 EOT
   done
 
   # Finish the resources file and the project file 
   /bin/cat >> ${RESOURCES_FILE} << EOT
-</ResourceList>
+</ResourcesList>
 EOT
 
   /bin/cat >> ${PROJECT_FILE} << EOT

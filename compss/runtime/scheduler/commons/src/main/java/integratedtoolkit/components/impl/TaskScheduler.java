@@ -2,12 +2,11 @@ package integratedtoolkit.components.impl;
 
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.log.Loggers;
-
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.FailedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.AllocatableAction.BlockedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.FailedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.InvalidSchedulingException;
-import integratedtoolkit.scheduler.types.AllocatableAction.UnassignedActionException;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
@@ -18,10 +17,12 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ActionSet;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+
 import org.apache.log4j.Logger;
 
 public class TaskScheduler {
@@ -32,7 +33,7 @@ public class TaskScheduler {
 
     private final ActionSet blockedActions = new ActionSet();
     private int[] readyCounts = new int[CoreManager.getCoreCount()];
-    private final HashMap<Worker, ResourceScheduler> workers = new HashMap<Worker, ResourceScheduler>();
+    private final HashMap<Worker<?>, ResourceScheduler<?>> workers = new HashMap<Worker<?>, ResourceScheduler<?>>();
 
     /**
      * New Core Elements have been detected; the Task Scheduler needs to be
@@ -87,7 +88,7 @@ public class TaskScheduler {
      * @param action action that has finished
      */
     public final void actionCompleted(AllocatableAction action) {
-        ResourceScheduler resource = action.getAssignedResource();
+        ResourceScheduler<?> resource = action.getAssignedResource();
         if (action.getImplementations().length > 0) {
             int coreId = action.getImplementations()[0].getCoreId();
             readyCounts[coreId]--;
@@ -107,7 +108,7 @@ public class TaskScheduler {
         }
         LinkedList<AllocatableAction> resourceFree = resource.unscheduleAction(action);
         workerUpdate(action.getAssignedResource());
-        HashSet<AllocatableAction> freeTasks = new HashSet();
+        HashSet<AllocatableAction> freeTasks = new HashSet<AllocatableAction>();
         freeTasks.addAll(dataFreeActions);
         freeTasks.addAll(resourceFree);
         for (AllocatableAction a : freeTasks) {
@@ -143,7 +144,7 @@ public class TaskScheduler {
      * @param action action raising the error
      */
     public final void errorOnAction(AllocatableAction action) {
-        ResourceScheduler resource = action.getAssignedResource();
+        ResourceScheduler<?> resource = action.getAssignedResource();
         LinkedList<AllocatableAction> resourceFree;
         try {
             action.error();
@@ -210,8 +211,8 @@ public class TaskScheduler {
         }
     }
 
-    public final void updatedWorker(Worker worker) {
-        ResourceScheduler ui = workers.get(worker);
+    public final void updatedWorker(Worker<?> worker) {
+        ResourceScheduler<?> ui = workers.get(worker);
         if (ui == null) {
             //Register worker if it's the first time it is useful.
             ui = generateSchedulerForResource(worker);
@@ -273,10 +274,10 @@ public class TaskScheduler {
 
     }
 
-    public String getRunningActionMonitorData(Worker worker, String prefix) {
+    public String getRunningActionMonitorData(Worker<?> worker, String prefix) {
         StringBuilder runningActions = new StringBuilder();
 
-        ResourceScheduler ui = workers.get(worker);
+        ResourceScheduler<?> ui = workers.get(worker);
         LinkedList<AllocatableAction> hostedActions = ui.getHostedActions();
         for (AllocatableAction action : hostedActions) {
             runningActions.append(prefix);
@@ -296,13 +297,13 @@ public class TaskScheduler {
             coreProfile[coreId] = new Profile();
         }
 
-        for (ResourceScheduler ui : workers.values()) {
+        for (ResourceScheduler<?> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
-            LinkedList<Implementation>[] impls = ui.getExecutableImpls();
+            LinkedList<Implementation<?>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                for (Implementation impl : impls[coreId]) {
+                for (Implementation<?> impl : impls[coreId]) {
                     coreProfile[coreId].accumulate(ui.getProfile(impl));
                 }
             }
@@ -331,13 +332,13 @@ public class TaskScheduler {
             coreProfile[coreId] = new Profile();
         }
 
-        for (ResourceScheduler ui : workers.values()) {
+        for (ResourceScheduler<?> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
-            LinkedList<Implementation>[] impls = ui.getExecutableImpls();
+            LinkedList<Implementation<?>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                for (Implementation impl : impls[coreId]) {
+                for (Implementation<?> impl : impls[coreId]) {
                     coreProfile[coreId].accumulate(ui.getProfile(impl));
                 }
             }
@@ -404,7 +405,7 @@ public class TaskScheduler {
      *
      * @param resource new worker
      */
-    protected void workerDetected(ResourceScheduler resource) {
+    protected void workerDetected(ResourceScheduler<?> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
@@ -415,7 +416,7 @@ public class TaskScheduler {
      *
      * @param resource removed worker
      */
-    protected void workerRemoved(ResourceScheduler resource) {
+    protected void workerRemoved(ResourceScheduler<?> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
@@ -426,13 +427,13 @@ public class TaskScheduler {
      *
      * @param resources updated resource
      */
-    public void workerUpdate(ResourceScheduler resources) {
+    public void workerUpdate(ResourceScheduler<?> resources) {
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
 
     }
 
-    public ResourceScheduler generateSchedulerForResource(Worker w) {
+    public ResourceScheduler<?> generateSchedulerForResource(Worker<?> w) {
         return new ResourceScheduler(w);
     }
 
@@ -444,10 +445,10 @@ public class TaskScheduler {
         return new Score(params.hasPriority() ? 1 : 0, 0, 0);
     }
 
-    public ResourceScheduler[] getWorkers() {
+    public ResourceScheduler<?>[] getWorkers() {
         synchronized (workers) {
-            Collection<ResourceScheduler> resScheds = workers.values();
-            ResourceScheduler[] scheds = new ResourceScheduler[resScheds.size()];
+            Collection<ResourceScheduler<?>> resScheds = workers.values();
+            ResourceScheduler<?>[] scheds = new ResourceScheduler[resScheds.size()];
             workers.values().toArray(scheds);
             return scheds;
         }

@@ -90,7 +90,7 @@
     -XX:-UsePerfData \
     -XX:+UseG1GC \
     -XX:+UseThreadPriorities \
-    -XX:ThreadPriorityPolicy=42 
+    -XX:ThreadPriorityPolicy=42 \
     -classpath $cp:$CLASSPATH:${worker_jar} \
     ${main_worker_class}"
 

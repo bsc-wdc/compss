@@ -15,6 +15,17 @@
     papiArg="--with-papi=${papiBaseDir}"
   fi
 
+  # Setup MPI for parallel merge (or not)
+  mpiPath=$(which mpirun 2> /dev/null)
+  if [ -z ${mpiPath} ]; then
+    # No MPI available
+    mpiArg="--without-mpi"
+  else
+    # MPI available
+    mpiBaseDir=${mpiPath%/bin**}
+    mpiArg="--with-mpi=${mpiBaseDir} --enable-parallel-merge"
+  fi
+
   # Create installation folder
   mkdir -p ${targetDir}
 
@@ -25,12 +36,15 @@
               --without-unwind \
               --without-dyninst \
               --without-binutils \
+              ${mpiArg} \
               ${papiArg} \
               --with-java-jdk=$JAVA_HOME \
               --disable-openmp \
               --disable-nanos \
               --disable-smpss \
               --prefix=${targetDir} \
+              --with-mpi=/usr \
+              --enable-parallel-merge \
               --libdir=${targetDir}/lib
 
   make clean install

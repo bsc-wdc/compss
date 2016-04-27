@@ -66,7 +66,13 @@
         rm -rf $tmpDir $file
     done
     sec=$(/bin/date +%s)
-    $extraeDir/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+    # Check if parallel merge is available
+    configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
+    if [ ! -z ${configuration} ]; then
+        mpirun ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+    else
+        ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+    fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym
   fi

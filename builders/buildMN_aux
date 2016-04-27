@@ -36,7 +36,7 @@
 
   # Load needed modules on MN
   echo "- Load modules on MN account"
-  module load PYTHON/2.7.3 BOOST/1.52.0 java/1.7.0u55 PAPI/5.4.1
+  module load PYTHON/2.7.3 BOOST/1.52.0 java/1.7.0u55 PAPI/5.4.1 openmpi/1.8.1
   if [ $? -ne 0 ]; then
     echo "ERROR: Cannot load required modules"
     exit 1

@@ -324,6 +324,17 @@ install() {
     fi
   done
 
+  #Schedulers
+  echo "--- Copy schedulers"
+  find ${tmpDir}/compss/runtime/scheduler -name pom.xml | xargs rm -rf
+  rm -r ${tmpDir}/compss/runtime/scheduler/commons
+  path_source=${tmpDir}/compss/runtime/scheduler
+  path_target=${targetDir}/Runtime/scheduler
+  schedulers=$(ls ${path_source})
+  for scheduler in $schedulers; do
+    cp ${path_source}/$scheduler/target/*.jar ${path_target}
+  done
+  
   #Connectors
   echo "--- Copy connectors"
   connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")

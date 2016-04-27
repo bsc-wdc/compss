@@ -1,0 +1,15 @@
+#!/bin/bash -e
+  
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  #Copy files
+  cp -f ${source_base_dir}/target/14-advanced_tracing.jar ${target_base_dir}/advanced_tracing.jar           
+          
+  cp -f ${source_base_dir}/project.xml ${target_base_dir}/project_atracing.xml                  
+  cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources_atracing.xml
+  
+  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
+  cp -f ${source_base_dir}/result ${target_base_dir}/result
+  

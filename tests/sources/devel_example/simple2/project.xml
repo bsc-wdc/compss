@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
-	  <Worker Name="localhost">
-            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-            <WorkingDir>/tmp/</WorkingDir>
-            <LimitOfTasks>4</LimitOfTasks>
-          </Worker>
+    <MasterNode/>
+    <ComputeNode Name="COMPSsWorker01">
+        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+    </ComputeNode>
 </Project>
-

@@ -18,7 +18,7 @@ public class ActionSet {
         coreIndexed = new LinkedList[coreCount];
         counts = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList();
+            coreIndexed[coreId] = new LinkedList<AllocatableAction>();
             counts[coreId] = 0;
         }
     }
@@ -42,7 +42,7 @@ public class ActionSet {
     }
 
     public void addAction(AllocatableAction aa) {
-        Implementation[] impls = aa.getImplementations();
+        Implementation<?>[] impls = aa.getImplementations();
         if (impls.length == 0) {
             noCore.add(aa);
         } else {
@@ -52,8 +52,8 @@ public class ActionSet {
         }
     }
 
-    public LinkedList<AllocatableAction> removeAllCompatibleActions(Worker r) {
-        LinkedList<AllocatableAction> runnable = new LinkedList();
+    public LinkedList<AllocatableAction> removeAllCompatibleActions(Worker<?> r) {
+        LinkedList<AllocatableAction> runnable = new LinkedList<AllocatableAction>();
         Iterator<AllocatableAction> actions = noCore.iterator();
         while (actions.hasNext()) {
             AllocatableAction action = actions.next();

@@ -2,14 +2,12 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.commands.CommandCheckWorker;
 import integratedtoolkit.nio.master.handlers.Ender;
 import integratedtoolkit.nio.master.handlers.ProcessOut;
-import integratedtoolkit.util.ErrorManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,22 +27,25 @@ public class WorkerStarter {
     protected static final int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
     
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
+       
+    private static final String STARTER_SCRIPT_PATH = "scripts" + File.separator + "system" 
+    								+ File.separator + "adaptors" + File.separator + "nio" + File.separator;
+    private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
     
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
-    protected static final boolean debug = logger.isDebugEnabled();
     private static final int NUM_THREADS = 16;
     private static final long MAX_WAIT_FOR_INIT = 20000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
     
+    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final boolean debug = logger.isDebugEnabled();
+    
     private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<String, WorkerStarter>();    
     private boolean workerIsReady = false;
     private NIOWorkerNode nw;
-    private TreeMap<String, AdaptorDescription> adaptorsDesc;
     
     
-    public WorkerStarter(NIOWorkerNode nw, TreeMap<String, AdaptorDescription> adaptorsDesc) {
+    public WorkerStarter(NIOWorkerNode nw) {
         this.nw = nw;
-        this.adaptorsDesc = adaptorsDesc;
     }
     
     public static WorkerStarter getWorkerStarter(String address){
@@ -57,15 +58,11 @@ public class WorkerStarter {
     
     public NIONode startWorker() throws Exception {
         String name = nw.getName();
-        AdaptorDescription ad = adaptorsDesc.get(AdaptorDescription.NIOAdaptor);
-        if (ad == null){
-        	ErrorManager.warn("Error getting the NIOAdaptor description for worker "+ name);
-        	return null;
-        }
-        int minPort = adaptorsDesc.get(AdaptorDescription.NIOAdaptor).getPortRange()[0];
-        int maxPort = adaptorsDesc.get(AdaptorDescription.NIOAdaptor).getPortRange()[1];
-        int port = minPort;
         String user = nw.getUser();
+        int minPort = nw.getConfiguration().getMinPort();
+        int maxPort = nw.getConfiguration().getMaxPort();
+        int port = minPort;
+        
         
         NIONode n = null;
         int pid = -1;
@@ -149,13 +146,13 @@ public class WorkerStarter {
     private static String[] getStartCommand(NIOWorkerNode node, int workerPort) {
 
         String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-    	if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 )) {
-    		storageConf = "null";
-    		logger.warn("No storage configuration file passed");
-		}
-    	
-    	String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);    	
-    	
+        if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 )) {
+                storageConf = "null";
+                logger.warn("No storage configuration file passed");
+                }
+
+        String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
+
         String libPath = node.getLibPath();
         String appDir = node.getAppDir();
         String workingDir = node.getWorkingDir();
@@ -166,7 +163,7 @@ public class WorkerStarter {
         // Gets the max cores of the machine
         // int numThreads = r.getMaxTaskCount();
         String[] cmd = new String[18];
-        cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + "adaptors/nio/persistent_worker.sh";
+        cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
         cmd[1] = libPath.isEmpty() ? "null" : libPath;
         cmd[2] = appDir.isEmpty() ? "null" : appDir;
         cmd[3] = cp.isEmpty() ? "null" : cp;
@@ -193,7 +190,8 @@ public class WorkerStarter {
         cmd[14] = node.getInstallDir();
         cmd[15] = DEPLOYMENT_ID;
         cmd[16] = storageConf;
-        cmd[17] = executionType;        
+        cmd[17] = executionType;
+        
         return cmd;
     }
 
@@ -226,7 +224,7 @@ public class WorkerStarter {
         cmd[1] = "-o StrictHostKeyChecking=no";
         cmd[2] = "-o BatchMode=yes";
         cmd[3] = "-o ChallengeResponseAuthentication=no";
-        cmd[4] = ((user == null) ? "" : user + "@") + resource;
+        cmd[4] = ((user == null || user.isEmpty()) ? "" : user + "@") + resource;
         System.arraycopy(command, 0, cmd, 5, command.length);
 
         StringBuilder sb = new StringBuilder("");

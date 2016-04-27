@@ -15,4 +15,9 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
     public WorkerResourceDescription(ResourceDescription desc) {
         super(desc);
     }
+    
+    public void copy(ResourceDescription desc) {
+    	super.copy(desc);
+    }
+    
 }

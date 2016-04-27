@@ -17,7 +17,9 @@ public class Simple {
 		String counterName = "counter";
 		int initialValue = Integer.parseInt(args[0]);
 
-		//Write value
+		
+		//------------------------------------------------------------------------
+		// Write value
 		try {
 			FileOutputStream fos = new FileOutputStream(counterName);
 			fos.write(initialValue);
@@ -29,37 +31,15 @@ public class Simple {
 		}
 		
 		//------------------------------------------------------------------------
-		//Execute increment
+		// Execute increment
 		SimpleImpl.increment(counterName);
-		//Read new value
+		
+		//------------------------------------------------------------------------
+		// Read new value
 		System.out.println("After Sending task");
-		String test = "Name= "+ counterName;
-		System.out.println("In method Checking result " + test);
 		try {
 			FileInputStream fis = new FileInputStream(counterName);
 			System.out.println("Final counter value is " + fis.read());
-			fis.close();
-		} catch(IOException ioe) {
-			ioe.printStackTrace();
-			System.exit(-1);
-		}
-		
-		//Execute increment
-		SimpleImpl.increment(counterName);
-		//Read from private method
-		checkResult(counterName);
-		
-		//Execute increment
-		SimpleImpl.increment(counterName);
-		//Read from blackbox method
-		Reader.checkResult(counterName);
-	}
-	
-	private static void checkResult(String counterName){
-		System.out.println("Private Checking result");
-		try {
-			FileInputStream fis = new FileInputStream(counterName);
-			System.out.println("Final counter 2 value is " + fis.read());
 			fis.close();
 		} catch(IOException ioe) {
 			ioe.printStackTrace();

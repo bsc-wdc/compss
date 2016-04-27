@@ -35,10 +35,10 @@ public class VM implements Comparable<VM> {
                 + ", request time = " + requestTime
                 + ", start time = " + startTime
                 + ", creation time = " + creationTime
-                + ", image = " + rd.getImage().getName()
-                + ", procs = " + rd.getProcessorCoreCount()
-                + ", memory = " + rd.getMemoryPhysicalSize()
-                + ", disk = " + rd.getStorageElemSize()
+                + ", image = " + rd.getImage().getImageName()
+                + ", procs = " + rd.getTotalComputingUnits()
+                + ", memory = " + rd.getMemorySize()
+                + ", disk = " + rd.getStorageSize()
                 + ", to delete = " + toDelete + ")";
     }
 
@@ -71,7 +71,7 @@ public class VM implements Comparable<VM> {
     }
 
     public String getImage() {
-        return rd.getImage().getName();
+        return rd.getImage().getImageName();
     }
 
     public boolean isToDelete() {

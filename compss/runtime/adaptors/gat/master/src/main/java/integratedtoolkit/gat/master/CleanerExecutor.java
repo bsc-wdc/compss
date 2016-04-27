@@ -32,9 +32,10 @@ public class CleanerExecutor {
      * Constants
      */
     private static final String ANY_PROT = "any://";
-    private static final String THREAD_POOL_START_ERR = "Error starting pool of threads";
-    private static final String THREAD_POOL_STOP_ERR = "Error stopping pool of threads";
-    private static final String CLEAN_JOB_ERR = "Error running clean job";
+    private static final String THREAD_POOL_START_ERR 	= "Error starting pool of threads";
+    private static final String THREAD_POOL_STOP_ERR 	= "Error stopping pool of threads";
+    private static final String CLEAN_JOB_ERR 			= "Error running clean job";
+    
     private static final String POOL_NAME = "Cleaner";
     /**
      * Amount of threads that will execute the cleaning scripts

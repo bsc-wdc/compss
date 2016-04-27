@@ -24,7 +24,9 @@
   sandbox=`/bin/mktemp -d -p $workingDir`
   cd $workingDir
 
-  echo "Worker.sh WD $workingDir lcs"
+  echo "** Start worker.sh"
+  echo " - WorkingDir = $workingDir"
+  echo " - LibPath    = $libPath"
 
   #-------------------------------------
   # Remove obsolete files
@@ -69,8 +71,10 @@
   export IT_APP_DIR=$appDir
   cd $sandbox
   # Run the task with the language-dependent script
+  echo "** Starting language dependant script"
   $scriptDir/worker_$lang.sh $*
   endCode=$?
+  echo "** EndStatus = $endCode"
   cd $workingDir
 
   #-------------------------------------

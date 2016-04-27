@@ -2,9 +2,12 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -32,7 +35,7 @@ public class CloudImageManager {
      * @param cid Description of the image
      */
     public void add(CloudImageDescription cid) {
-        images.put(cid.getName(), cid);
+        images.put(cid.getImageName(), cid);
     }
 
     /**
@@ -46,24 +49,41 @@ public class CloudImageManager {
     public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
         LinkedList<CloudImageDescription> compatiblesList = new LinkedList<CloudImageDescription>();
         for (CloudImageDescription cid : images.values()) {
-            String imageArch = cid.getArch();
-            String reqArch = requested.getProcessorArchitecture();
-            if (imageArch.compareTo("[unassigned]") != 0
-                    && reqArch.compareTo("[unassigned]") != 0
-                    && imageArch.compareTo(reqArch) != 0) {
-                continue;
+        	// OS CHECK
+            String imageOSType = cid.getOperatingSystemType();
+            String reqOSType = requested.getOperatingSystemType();
+            if (!imageOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !reqOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !imageOSType.equals(reqOSType)) {
+            	continue;
             }
-
-            String imageOS = cid.getOperativeSystem();
-            String reqOS = requested.getOperatingSystemType();
-            if (imageOS.compareTo("[unassigned]") != 0
-                    && reqOS.compareTo("[unassigned]") != 0
-                    && imageOS.compareTo(reqOS) != 0) {
-                continue;
+            
+            String imageOSDistr = cid.getOperatingSystemType();
+            String reqOSDistr = requested.getOperatingSystemType();
+            if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !imageOSDistr.equals(reqOSDistr)) {
+            	continue;
             }
-
-            if (!cid.getSoftwareApps().containsAll(requested.getAppSoftware())) {
-                continue;
+            
+            String imageOSVersion = cid.getOperatingSystemType();
+            String reqOSVersion = requested.getOperatingSystemType();
+            if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+            		&& !imageOSVersion.equals(reqOSVersion)) {
+            	continue;
+            }
+            
+            // SOFTWARE CHECK
+            if (!cid.getAppSoftware().containsAll(requested.getAppSoftware())) {
+            	continue;
+            }
+            
+            // CHECK QUEUES
+            List<String> req_queues = requested.getHostQueues();
+            List<String> image_queues = cid.getQueues();
+            if (Collections.disjoint(req_queues, image_queues)) {
+            	continue;
             }
 
             compatiblesList.add(cid);
@@ -96,4 +116,5 @@ public class CloudImageManager {
 
         return sb.toString();
     }
+    
 }

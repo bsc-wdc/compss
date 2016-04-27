@@ -30,6 +30,9 @@ import org.apache.log4j.Logger;
 public class CloudManager {
 
     private static boolean useCloud;
+    private static int initialVMs = 0;
+    private static int minVMs = 0;
+    private static int maxVMs = -1;
 
     /**
      * Relation between a Cloud provider name and its representation
@@ -46,6 +49,8 @@ public class CloudManager {
     
     private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
     private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
+    
+    
     /**
      * Initializes the internal data structures
      *
@@ -66,6 +71,34 @@ public class CloudManager {
     public static void setUseCloud(boolean useCloud) {
         CloudManager.useCloud = useCloud;
     }
+
+	public static int getInitialVMs() {
+		return initialVMs;
+	}
+
+	public static void setInitialVMs(int initialVMs) {
+		if (initialVMs > 0) {
+			CloudManager.initialVMs = initialVMs;
+		}
+	}
+
+	public static int getMinVMs() {
+		return minVMs;
+	}
+
+	public static void setMinVMs(int minVMs) {
+		if (minVMs > 0) {
+			CloudManager.minVMs = minVMs;
+		}
+	}
+
+	public static int getMaxVMs() {
+		return maxVMs;
+	}
+
+	public static void setMaxVMs(int maxVMs) {
+		CloudManager.maxVMs = maxVMs;
+	}
 
 	private static void loadConnectors(){
 		runtimeLogger.info("Loading connectors");

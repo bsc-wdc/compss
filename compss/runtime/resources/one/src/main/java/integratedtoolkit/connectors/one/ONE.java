@@ -47,13 +47,13 @@ public class ONE extends AbstractSSHConnector {
 	@Override
 	public Object create(String name, CloudMethodResourceDescription requested)
 			throws ConnectorException {
-		Template template = this.classifyMachine(requested.getProcessorCoreCount(),
-                requested.getMemoryPhysicalSize(), requested.getStorageElemSize());
+		Template template = this.classifyMachine(requested.getTotalComputingUnits(),
+                requested.getMemorySize(), requested.getStorageSize());
 
         try {
             String pubKey = KeyManager.getPublicKey(KeyManager.getKeyPair());
             VMTemplate vmTemp = new VMTemplate(template.info().getMessage());
-            vmTemp.setImage(requested.getImage().getName());
+            vmTemp.setImage(requested.getImage().getImageName());
             vmTemp.setPublicKey(pubKey);
 
             OneResponse resp = template.instantiate(name, false, vmTemp.getString());
@@ -97,37 +97,12 @@ public class ONE extends AbstractSSHConnector {
             virtualMachine.info();
         }
 
-
         String ip = virtualMachine.xpath("//NIC/IP");
+        granted.copy(requested);
         granted.setName(ip);
-
-        granted.setType(requested.getType());
-
-        String cpu = virtualMachine.xpath("//TEMPLATE/VCPU");
-
-        granted.setProcessorCoreCount(Integer.parseInt(cpu));
-        granted.setProcessorArchitecture(requested.getProcessorArchitecture());
-        granted.setProcessorSpeed(requested.getProcessorSpeed());
-
-        String memory = virtualMachine.xpath("//TEMPLATE/MEMORY");
-
-        granted.setMemoryPhysicalSize(Integer.parseInt(memory) / 1024f);
-        granted.setMemoryAccessTime(requested.getMemoryAccessTime());
-        granted.setMemorySTR(requested.getMemorySTR());
-        granted.setMemoryVirtualSize(requested.getMemoryVirtualSize());
-
-        String homeSize = virtualMachine.xpath("//TEMPLATE/DISK[TYPE=\"fs\"]/SIZE");
-
-        granted.setStorageElemSize(Integer.parseInt(homeSize) / 1024f);
-        granted.setStorageElemAccessTime(requested.getStorageElemAccessTime());
-        granted.setStorageElemSTR(requested.getStorageElemSTR());
-
         granted.setOperatingSystemType("Linux");
-        granted.setSlots(requested.getSlots());
+        granted.setValue(getMachineCostPerTimeSlot(granted));
 
-        granted.getAppSoftware().addAll(requested.getAppSoftware());
-        granted.setImage(requested.getImage());
-        granted.setValue(getMachineCostPerHour(granted));
 		return granted;
 	}
 

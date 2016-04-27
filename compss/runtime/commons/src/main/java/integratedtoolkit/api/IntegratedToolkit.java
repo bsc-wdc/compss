@@ -3,23 +3,22 @@ package integratedtoolkit.api;
 
 public interface IntegratedToolkit {
 
-    // File access modes
-    public enum OpenMode {
+	// File access modes
+	public enum OpenMode {
+		READ,
+		WRITE,
+		APPEND;
+	}
 
-        READ,
-        WRITE,
-        APPEND;
-    }
+	// Interface Operations
+	public String getApplicationDirectory();
 
-// Interface Operations
-    public String getApplicationDirectory();
+	public void startIT();
 
-    public void startIT();
+	public void stopIT(boolean terminate);
 
-    public void stopIT(boolean terminate);
+	public String openFile(String fileName, OpenMode m);
 
-    public String openFile(String fileName, OpenMode m);
-
-    public boolean deleteFile(String fileName);
+	public boolean deleteFile(String fileName);
 
 }

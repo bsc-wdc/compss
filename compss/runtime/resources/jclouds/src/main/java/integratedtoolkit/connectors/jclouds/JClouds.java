@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeMap;
 
 import static com.google.common.base.Charsets.UTF_8;
 
@@ -23,7 +22,7 @@ import com.google.common.primitives.Ints;
 import es.bsc.jclouds.client.JCloudsClient;
 import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.connectors.ConnectorException;
-import integratedtoolkit.types.AdaptorDescription;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
 
@@ -97,26 +96,27 @@ public class JClouds extends AbstractSSHConnector {
 	private Template generateTemplate(CloudMethodResourceDescription rd) throws IOException {
 		TemplateOptions to = new TemplateOptions();
 		//to.overrideLoginUser(super.getDefaultUser());
-		String key = super.getKeyPairLocation()+super.getKeyPairName();
-		logger.debug("Authorizing keys :" +key);
-		to.authorizePublicKey(Files.toString(new File(key+".pub"),UTF_8)) ;
+		String key = super.getKeyPairLocation() + super.getKeyPairName();
+		logger.debug("Authorizing keys :" + key);
+		to.authorizePublicKey(Files.toString(new File(key + ".pub"), UTF_8)) ;
 		to.overrideLoginPrivateKey(Files.toString(new File(key),UTF_8));
-		HashSet<Integer> ports = new HashSet<Integer>();
+		
 		logger.debug("Adding ssh inbound port");
+		HashSet<Integer> ports = new HashSet<Integer>();
 		ports.add(22);
-		TreeMap<String, AdaptorDescription> adaptors = rd.getImage().getAdaptorsDescription();
-		if (adaptors!=null && !adaptors.isEmpty()){
-			for(AdaptorDescription adaptor:adaptors.values()){
-				int[] range = adaptor.getPortRange();
-				for (int port=range[0]; port<=range[1]; port++){
-					logger.debug("Adding inbound port:" +port);
-					ports.add(port);
-				}
+		MethodConfiguration mc = rd.getImage().getConfig();
+		int minPort = mc.getMinPort();
+		int maxPort = mc.getMaxPort();
+		if (minPort > 0 && maxPort > 0) {
+			for (int port = minPort; port < maxPort; ++port) {
+				logger.debug("Adding inbound port:" + port);
+				ports.add(port);
 			}
 		}
 		to.inboundPorts(Ints.toArray(ports));
-		logger.debug("Creating template with image " +rd.getImage().getName() );
-		return jclouds.createTemplate(rd.getType(), rd.getImage().getName() , to);
+		
+		logger.debug("Creating template with image " + rd.getImage().getImageName() );
+		return jclouds.createTemplate(rd.getType(), rd.getImage().getImageName() , to);
 	}
 
 	@Override
@@ -152,34 +152,33 @@ public class JClouds extends AbstractSSHConnector {
 				vmd = jclouds.getNode(vmd.getId());
 			}
 			String ip = getIp(vmd);
-			granted.setName(ip);
-
-			granted.setType(requested.getType());
-			granted.setProcessorCPUCount(vmd.getHardware().getProcessors().size());
-			int cores = getTotalCores(vmd.getHardware().getProcessors());
-			granted.setProcessorCoreCount(cores);
-			granted.setProcessorArchitecture(requested
-					.getProcessorArchitecture());
-			granted.setProcessorSpeed(new Float(vmd.getHardware().getProcessors().get(0).getSpeed()));
-			granted.setMemoryPhysicalSize(vmd.getHardware().getRam()/1024);
-			granted.setMemoryAccessTime(requested.getMemoryAccessTime());
-			granted.setMemorySTR(requested.getMemorySTR());
-			granted.setMemoryVirtualSize(requested.getMemoryVirtualSize());
-			float disk = getTotalDisk(vmd.getHardware().getVolumes());
-			granted.setStorageElemSize(disk);
-			granted.setStorageElemAccessTime(requested
-					.getStorageElemAccessTime());
-			granted.setStorageElemSTR(requested.getStorageElemSTR());
-
-			granted.setOperatingSystemType("Linux");
-			granted.setSlots(requested.getSlots());
-
-			granted.getAppSoftware().addAll(requested.getAppSoftware());
-			granted.setImage(requested.getImage());
-			granted.setValue(requested.getValue());
-			granted.setValue(getMachineCostPerTimeSlot(granted));
+			
+			
+			granted.copy(requested);
+	        granted.setName(ip);
+	        granted.resetProcessors();
+	        
+	        String arch = CloudMethodResourceDescription.UNASSIGNED_STR;
+	        List<String> available_archs = requested.getArchitectures();
+	        if (available_archs != null && !available_archs.isEmpty()) {
+	        	arch = available_archs.get(0);
+	        }
+	        for (Processor p : vmd.getHardware().getProcessors()) {
+	        	integratedtoolkit.types.resources.components.Processor runtime_proc = new integratedtoolkit.types.resources.components.Processor();
+	        	runtime_proc.setComputingUnits( (int) p.getCores() );
+	        	runtime_proc.setSpeed( (float)p.getSpeed() );
+	        	runtime_proc.setArchitecture(arch);
+	        	granted.addProcessor(runtime_proc);
+	        }
+	        
+	        granted.setMemorySize(vmd.getHardware().getRam()/1024);
+	        float disk = getTotalDisk(vmd.getHardware().getVolumes());
+			granted.setStorageSize(disk);
+	        granted.setOperatingSystemType("Linux");
+	        granted.setValue(getMachineCostPerTimeSlot(granted));
+	        
 			return granted;
-		}catch(Exception e){
+		} catch(Exception e){
         	logger.error("Exception waiting for VM Creation");
             throw new ConnectorException(e);
         }
@@ -194,13 +193,13 @@ public class JClouds extends AbstractSSHConnector {
 		return totalDisk;
 	}
 
-	private int getTotalCores(List<? extends Processor> processors) {
+	/*private int getTotalCores(List<? extends Processor> processors) {
 		int totalCores = 0;
 		for (Processor proc : processors){
 			totalCores = totalCores + (int)proc.getCores();
 		}
 		return totalCores;
-	}
+	}*/
 
 	private String getIp(NodeMetadata vmd) throws ConnectorException {
 		

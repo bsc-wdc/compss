@@ -21,9 +21,13 @@ DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_LIBRARY_PATH=$(pwd)
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
+DEFAULT_STORAGE_CONF="None"
 DEFAULT_MASTER_PORT=43000
 DEFAULT_PyOBJECT_SERIALIZE=false
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
+DEFAULT_DEBUGGER=false
+DEFAULT_DEBUGGER_ARGUMENT=true
+DEFAULT_DEBUGGER_PORT=9999
 
 APPLICATION_ERROR="Error: Application name not provided"
 LANGUAGE_ERROR="Value of option --lang must be: java, c or python"
@@ -49,10 +53,15 @@ show_opts() {
     --monitoring=<int>, --monitoring, -m    Period between monitoring samples (milliseconds)
                                             When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
                                             Default: ${DEFAULT_MONITORING_INTERVAL}
+    --external-debugger=<int>,
+    --external-debugger		            Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
+                                            Default: ${DEFAULT_DEBUGGER}
+
   Runtime configuration options:
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
     --storage_conf=<path>		    Path to the storage configuration file
+					    Default: ${DEFAULT_STORAGE_CONF}
     --project=<path>                        Path to the project XML file
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
@@ -61,6 +70,7 @@ show_opts() {
                                             Default: ${DEFAULT_LANGUAGE}
     --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
                                             Default: ${DEFAULT_LOG_LEVEL}
+
   Advanced options:
     --comm=<path>                           Class that implements the adaptor for communications
                                             Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
@@ -85,11 +95,11 @@ show_opts() {
 
   Master JVM Options:
     --Xms<HEAP_SIZE>			    Master JVM initial memory
-					    Default: 
+					    Default: System JVM default value
     --Xmx<HEAP_SIZE>			    Master JVM maximum memory
-					    Default:
+					    Default: System JVM default value
     --Xmn<HEAP_NEWSIZE>			    Master JVM increasing memory size
-					    Default:
+					    Default: System JVM default value
 
 
 * Application name:
@@ -160,11 +170,11 @@ check_env() {
   export IT_HOME=$(dirname $0)/../..
 
   if [ -z "$DEFAULT_PROJECT" ]; then
-    DEFAULT_PROJECT=${IT_HOME}/configuration/xml/projects/project.xml
+    DEFAULT_PROJECT=${IT_HOME}/configuration/xml/projects/default_project.xml
   fi
 
   if [ -z "$DEFAULT_RESOURCES" ]; then
-    DEFAULT_RESOURCES=${IT_HOME}/configuration/xml/resources/resources.xml
+    DEFAULT_RESOURCES=${IT_HOME}/configuration/xml/resources/default_resources.xml
   fi
 
   if [ -z "${GAT_LOCATION}" ]; then
@@ -317,6 +327,16 @@ get_args() {
             # Master JVM option
             jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
             ;;
+          external-debugger=*)
+            # Enable external debugger on specific port
+            external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
+            external_debugger_port=$(echo $OPTARG | sed -e 's/external-debugger=//g')
+            ;;
+          external-debugger*)
+            # Enable default external debugger
+            external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
+            external_debugger_port=${DEFAULT_DEBUGGER_PORT}
+            ;;
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=$(echo $OPTARG | sed -e 's/base_log_dir=//g')
@@ -374,17 +394,17 @@ get_args() {
 
 check_args() {
   if [ -z "${taskExecution}" ]; then
-    echo "Using default execution type: ${DEFAULT_TASK_EXECUTION}"
+    echo "[  INFO] Using default execution type: ${DEFAULT_TASK_EXECUTION}"
     taskExecution=${DEFAULT_TASK_EXECUTION}
   fi
 
   if [ -z "$projFile" ]; then
-    echo "Using default location for project file: ${DEFAULT_PROJECT}"
+    echo "[  INFO] Using default location for project file: ${DEFAULT_PROJECT}"
     projFile=${DEFAULT_PROJECT}
   fi
 
   if [ -z "$resFile" ]; then
-    echo "Using default location for resources file: ${DEFAULT_RESOURCES}"
+    echo "[  INFO] Using default location for resources file: ${DEFAULT_RESOURCES}"
     resFile=${DEFAULT_RESOURCES}
   fi
 
@@ -458,7 +478,7 @@ check_args() {
   else
     fcp="" 
     for currcp in ${cp//:/$'\n'}; do
-        if [ ! ${currcp:0:1} == '/' ]; then # Rel paths to abs
+        if [ ! ${currcp:0:1} == '/' ]; then # Relative paths to absolute
 		if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
 			absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
 			file="$(basename "$currcp")"
@@ -471,7 +491,7 @@ check_args() {
 	fi
     done
     cp="$fcp"
-    echo "Resolved: $cp"
+    echo "[  INFO] Relative Classpath resolved: $cp"
   fi          
         
   if [ -z "$task_count" ]; then
@@ -485,6 +505,17 @@ check_args() {
   if [ -z "$uuid" ]; then
     uuid=$(cat /proc/sys/kernel/random/uuid)
   fi
+
+  # Debugger
+  if [ -z "$external_debugger" ]; then
+    external_debugger=${DEFAULT_DEBUGGER}
+  fi
+  if [ "${external_debugger}" == "true" ]; then
+    jvm_debugger_opts="-Xdebug -agentlib:jdwp=transport=dt_socket,address=${external_debugger_port},server=y,suspend=y"
+  else
+    jvm_debugger_opts=""
+  fi
+
 
   # Options ONLY for PYTHON
   if [ "$lang" = "python" ]; then
@@ -524,15 +555,11 @@ exec_java() {
   # Export needed variables
   export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
 
-  #-Xdebug 
-  #-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
-  #-Duser.home=/scratch/tmp/ \
-  #-noverify \
-
   # Define command  
   local JAVACMD=$JAVA" \
     -XX:-UseSplitVerifier \
     ${jvm_mem_opts} \
+    ${jvm_debugger_opts} \
     -XX:+HeapDumpOnOutOfMemoryError \
     -XX:+PerfDisableSharedMem \
     -XX:-UsePerfData \
@@ -548,7 +575,7 @@ exec_java() {
     -Dit.project.file=${projFile} \
     -Dit.resources.file=${resFile} \
     -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd \
-    -Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd \
+    -Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd \
     -Dit.appName=${appName} \
     -Dit.baseLogDir=${base_log_dir} \
     -Dit.uuid=${uuid} \
@@ -608,6 +635,7 @@ exec_c() {
   /bin/cat >> ${jvm_options_file} << EOT
 -XX:-UseSplitVerifier
 ${jvm_mem_opts}
+${jvm_debugger_opts}
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
@@ -623,7 +651,7 @@ ${jvm_mem_opts}
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
 -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd
+-Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
 -Dit.appName=${appName}
 -Dit.constraints.file=$fullAppPath.idl
 -Dit.baseLogDir=${base_log_dir}
@@ -692,6 +720,7 @@ exec_python() {
   /bin/cat >> ${jvm_options_file} << EOT
 -XX:-UseSplitVerifier
 ${jvm_mem_opts}
+${jvm_debugger_opts}
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:+PerfDisableSharedMem
 -XX:-UsePerfData
@@ -707,7 +736,7 @@ ${jvm_mem_opts}
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
 -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resource_schema.xsd
+-Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
 -Dit.appName=${appName}
 -Dit.baseLogDir=${base_log_dir}
 -Dit.uuid=${uuid}

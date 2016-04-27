@@ -2,7 +2,6 @@ package integratedtoolkit.connectors.rocci;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.connectors.ConnectorException;
@@ -10,17 +9,20 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 
 public class ROCCI extends AbstractSSHConnector {
-
-	private static Integer MAX_VM_CREATION_TIME = 10; 	//Minutes
-    private static Integer MAX_ALLOWED_ERRORS = 3;
-    private static Integer RETRY_TIME = 5; 				//Seconds
+	
     private static final String ROCCI_CLIENT_VERSION = "4.2.5";
+    
+    private static final Integer RETRY_TIME = 5; 				// Seconds
+    private static final long DEFAULT_TIME_SLOT = FIVE_MIN;		// Minutes
 
     private RocciClient client;
 	private ArrayList<String> cmd_string;
     private String attributes = "Not Defined";
-    private static final long DEFAULT_TIME_SLOT = FIVE_MIN;
+    
+	private static Integer MAX_VM_CREATION_TIME = 10; 	// Minutes
+    private static Integer MAX_ALLOWED_ERRORS = 3;		// Number of maximum errors
     private long timeSlot = DEFAULT_TIME_SLOT;
+    
     
     public ROCCI(String providerName, HashMap<String, String> props) {
 		super(providerName, props);
@@ -174,7 +176,7 @@ public class ROCCI extends AbstractSSHConnector {
         	timeSlot = DEFAULT_TIME_SLOT;
         }
 
-        client = new RocciClient(cmd_string, attributes);
+        client = new RocciClient(cmd_string, attributes, logger);
 	}
 
 	@Override
@@ -182,7 +184,7 @@ public class ROCCI extends AbstractSSHConnector {
 		logger.info("Creating a VM with rOCCI connector.");
 		try {
         	String instanceCode = rd.getType();
-        	String vmId = client.create_compute(rd.getImage().getName(), instanceCode);
+        	String vmId = client.create_compute(rd.getImage().getImageName(), instanceCode);
         	if (debug){
         		logger.debug("VM "+ vmId + " created");
         	}
@@ -195,7 +197,6 @@ public class ROCCI extends AbstractSSHConnector {
 
 	@Override
 	public void destroy(Object vm) throws ConnectorException {
-		
 		String vmId = (String) vm;
 		logger.info(" Destroy VM "+vmId+" with rOCCI connector");
         client.delete_compute(vmId);
@@ -238,35 +239,13 @@ public class ROCCI extends AbstractSSHConnector {
                 }
             }
         }
-        String IP = client.get_resource_address(vmId);            
-        granted.setProcessorCPUCount(1);
-        granted.setProcessorCoreCount(requested.getProcessorCoreCount());
-
-        granted.setMemoryPhysicalSize(requested.getMemoryPhysicalSize());
-        granted.setStorageElemSize(requested.getStorageElemSize());
+        String IP = client.get_resource_address(vmId);
         
+        granted.copy(requested);
         granted.setName(IP);
-        granted.setProcessorArchitecture(requested.getProcessorArchitecture());
-        granted.setProcessorSpeed(requested.getProcessorSpeed());
-
-        granted.setMemoryVirtualSize(requested.getMemoryVirtualSize());
-        granted.setMemorySTR(requested.getMemorySTR());
-        granted.setMemoryAccessTime(requested.getMemoryAccessTime());
-
-        granted.setStorageElemAccessTime(requested.getStorageElemAccessTime());
-        granted.setStorageElemSTR(requested.getStorageElemSTR());
-
         granted.setOperatingSystemType("Linux");
-        granted.setSlots(requested.getSlots());
-
-        List<String> apps = requested.getAppSoftware();
-        for (int i = 0; i < apps.size(); i++) {
-            granted.addAppSoftware(apps.get(i));
-        }
-        granted.setImage(requested.getImage());
-        granted.setType(requested.getType());
-        granted.setValue(requested.getValue());
         granted.setValue(getMachineCostPerTimeSlot(granted));
+        
 		return granted;
 	}
 

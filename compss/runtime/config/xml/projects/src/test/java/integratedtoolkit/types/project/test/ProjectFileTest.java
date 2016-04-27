@@ -1,156 +1,362 @@
 package integratedtoolkit.types.project.test;
 
 import static org.junit.Assert.*;
-
 import integratedtoolkit.types.project.ProjectFile;
-import integratedtoolkit.types.project.jaxb.CloudProviderType;
-import integratedtoolkit.types.project.jaxb.DataNodeType;
-import integratedtoolkit.types.project.jaxb.ImageType;
-import integratedtoolkit.types.project.jaxb.ProjectType;
-import integratedtoolkit.types.project.jaxb.WorkerType;
+import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
 
 import java.io.File;
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.xml.sax.SAXException;
+
 
 public class ProjectFileTest {
 	
-	private static final File TMP_FILE = new File("tmp_file.xml"); 
+	// Schema
+	private static final String SCHEMA_PATH 			= "project_schema.xsd";
+	
+	// Default XMLs
+	private static final String DEFAULT_XML_PATH 		= "default_project.xml";
+	private static final String FULL_XML_PATH 			= "examples/full/project.xml";
+	private static final String GRID_XML_PATH 			= "examples/grid/project.xml";
+	private static final String SERVICES_XML_PATH 		= "examples/services/project.xml";
+	private static final String ROCCI_XML_PATH 			= "examples/cloud/rocci/project.xml";
+	private static final String JCLOUDS_GCE_XML_PATH 	= "examples/cloud/jclouds/project_gce.xml";
+	
+	// TMP XML file
+	private static final String XML_TMP_PATH			= "tmp_project.xml";
+	
+	// Error Messages
+	private static final String ERROR_SCHEMA	 		= "XSD Schema doesn't exist";
+	private static final String ERROR_DEFAULT_XML 		= "Default XML doesn't exist";
+	private static final String ERROR_FULL_XML 			= "Full XML doesn't exist";
+	private static final String ERROR_GRID_XML 			= "Grid XML doesn't exist";
+	private static final String ERROR_SERVICES_XML 		= "Services XML doesn't exist";
+	private static final String ERROR_ROCCI_XML 		= "Rocci XML doesn't exist";
+	private static final String ERROR_JCLOUDS_XML 		= "JClouds XML doesn't exist";
+	
+	// Test Logger
+	private static final Logger logger = Logger.getLogger("test.xml.project");
 	
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		if (TMP_FILE.exists()){
-			TMP_FILE.delete();
+		// Initialize logger
+		BasicConfigurator.configure();
+		
+		// Check existance of all files
+		if ( !(new File(SCHEMA_PATH)).exists() ) {
+			throw new Exception(ERROR_SCHEMA);
+		}
+		if ( !(new File(DEFAULT_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_DEFAULT_XML);
+		}
+		if ( !(new File(FULL_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_FULL_XML);
+		}
+		if ( !(new File(GRID_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_GRID_XML);
+		}
+		if ( !(new File(SERVICES_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_SERVICES_XML);
+		}
+		if ( !(new File(ROCCI_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_ROCCI_XML);
+		}
+		if ( !(new File(JCLOUDS_GCE_XML_PATH)).exists() ) {
+			throw new Exception(ERROR_JCLOUDS_XML);
+		}
+		
+		// Reset the TMP file if needed
+		if ( (new File(XML_TMP_PATH)).exists() ) {
+			(new File(XML_TMP_PATH)).delete();
 		}
 	}
-	
-	
-	@Test
-	public void projectCreationFromFileTest() throws URISyntaxException,
-			JAXBException {
-
-		File f = new File(ProjectFileTest.class.getResource("/project.xml")
-				.toURI());
-		ProjectFile project =  new ProjectFile(f);
-		assertNotNull(project);
-		List<Object> nodes = project.getProjectType().getDataNodeOrWorkerOrCloud();
-		assertEquals("Should have two workers", nodes.size(), 2);
-
-	}
-	
-	@Test
-	public void projectCreationFromString() throws URISyntaxException, JAXBException {
-	
-		String str = new String(
-				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-				+ "<Project>\n"
-				+ "\t<Worker Name=\"localhost\">\n"
-				+ "\t\t<InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>\n"
-				+ "\t\t<WorkingDir>/tmp/</WorkingDir>\n"
-				+ "\t\t<User>user</User>\n"
-				+ "\t\t<LimitOfTasks>4</LimitOfTasks>\n"
-				+ "\t</Worker>\n"
-				+ "\t<Worker Name=\"http://bscgrid05.bsc.es:20390/hmmerobj/hmmerobj?wsdl\">\n"
-				+ "\t\t<LimitOfTasks>3</LimitOfTasks>\n"
-				+ "\t</Worker>\n" + "</Project>");
-		ProjectFile project = new ProjectFile(str);
-		assertNotNull(project);
-		assertEquals("Should have two workers", project.getProjectType()
-				.getDataNodeOrWorkerOrCloud().size(), 2);
-	}
-	
-	@Test
-	public void projectCreationFromScratchTest() throws URISyntaxException, JAXBException {	
-		ProjectFile project = new ProjectFile();
-		String proStr = project.getString();
-		System.out.println(proStr);
-		assertTrue("Doesn't contains project tag", (proStr.contains("<Project>") && proStr.contains("</Project>"))||proStr.contains("<Project/>"));
-		ProjectFile project2 = new ProjectFile(proStr);
-		assertNotNull(project2.getProjectType());
-	}
-	
-	@Test
-	public void projectCreationFromScratchToFileTest() throws URISyntaxException, JAXBException {	
-		ProjectFile project = new ProjectFile();
-		assertFalse(TMP_FILE.exists());
-		project.toFile(TMP_FILE);
-		assertTrue(TMP_FILE.exists());
-		ProjectFile project2 = new ProjectFile(TMP_FILE);
-		assertNotNull(project2.getProjectType());
-	}
-	
-	@Test
-	public void cloudCreationTest() throws Exception {	
-		ProjectFile project = new ProjectFile();
-		assertNotNull(project.getCloud());
-		assertTrue("Number of providers should be empty", project.getCloudProviders().isEmpty());
-		CloudProviderType cp1 = project.addCloudProvider("cp_1");
-		assertNotNull(cp1);
-		ImageType img= project.addImageToProvider("cp_1","image_1","user","/working/dir/", "/install/dir/");
-		assertEquals(cp1.getImageList().getImage().get(0), img);
-		ImageType img_2= project.addImageToProvider("cp_2","image_2","user","/working/dir/", "/install/dir/");
-		String proStr = project.getString();
-		ProjectFile project2 = new ProjectFile(proStr);
-		assertEquals("Number of providers should be 2", project2.getCloudProviders().size(),2);
-		assertEquals(project2.getCloudProvider("cp_1").getName(), cp1.getName());
-		CloudProviderType cp2 = project2.getCloudProvider("cp_2");
-		ImageType img_retrieved = cp2.getImageList().getImage().get(0);
-		assertEquals("Image names are different",img_retrieved.getName(),img_2.getName());
-		assertEquals("Image users are different",img_retrieved.getUser(),img_2.getUser());
-		assertEquals("Image wdir are different",img_retrieved.getWorkingDir(),img_2.getWorkingDir());
-		assertEquals("Image install dir are different",img_retrieved.getInstallDir(),img_2.getInstallDir());
-	}
-	
-	@Test
-	public void workerTest() throws Exception {	
-		ProjectFile project = new ProjectFile();
-		assertTrue("Number of workers should be empty", project.getWorkers().isEmpty());
-		WorkerType worker = project.addWorker("worker_1", "/app/dir/", "/install/dir/", "/working/dir/","user", new Integer(2));
-		WorkerType service_worker = project.addWorker("service_worker", null, null, null, null, new Integer(2));
-		String proStr = project.getString();
-		ProjectFile project2 = new ProjectFile(proStr);
-		assertEquals("Number of providers should be 2", project2.getWorkers().size(),2);
-		assertEquals(project2.getWorker("service_worker").getName(), service_worker.getName());
-		WorkerType worker_retrieved = project2.getWorker("worker_1");
-		assertEquals("worker names are different",worker_retrieved.getName(),worker.getName());
-		assertEquals("Worker users are different",worker_retrieved.getUser(),worker.getUser());
-		assertEquals("Worker wdir are different",worker_retrieved.getWorkingDir(),worker.getWorkingDir());
-		assertEquals("Worker app dir are different",worker_retrieved.getAppDir(),worker.getAppDir());
-		assertEquals("Worker install dir are different",worker_retrieved.getInstallDir(),worker.getInstallDir());
-		assertEquals("Worker limitOfTasks are differetn", worker_retrieved.getLimitOfTasks(),worker.getLimitOfTasks());
-	}
-	
-	@Test
-	public void dataNodeTest() throws Exception {	
-		ProjectFile project = new ProjectFile();
-		assertTrue("Number of workers should be empty", project.getDataNodes().isEmpty());
-		DataNodeType dn = project.addDataNode("host", "data/node/path/", "protocol", "user");
-		String proStr = project.getString();
-		ProjectFile project2 = new ProjectFile(proStr);
-		assertEquals("Number of datanode should be 1", project2.getDataNodes().size(),1);
-		DataNodeType dn_retrieved = project2.getDataNode("host");
-		assertEquals("DN hosts are different",dn_retrieved.getHost(),dn.getHost());
-		assertEquals("DN users are different",dn_retrieved.getUser(),dn.getUser());
-		assertEquals("DN paths are different",dn_retrieved.getPath(),dn.getPath());
-		assertEquals("DN protocols are different",dn_retrieved.getProtocol(),dn.getProtocol());
-	}
-	
-	
 	
 	@AfterClass
 	public static void afterClass() throws Exception {
-		if (TMP_FILE.exists()){
-			TMP_FILE.delete();
+		if ( (new File(XML_TMP_PATH)).exists() ) {
+			(new File(XML_TMP_PATH)).delete();
 		}
 	}
 	
 	
+	/* ***************************************************************
+	 * CONSTRUCTOR TESTS
+	 * ***************************************************************/
+	@Test
+	public void creation_XMLfile_XSDschema() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+		// Instantiate XSD Schema
+		SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI); 
+        Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
+
+        // Get default resources file
+		File defaultProject = new File(DEFAULT_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		int numWorkers_byName = project.getComputeNodes_names().size();
+		assertEquals("Should have a worker", numWorkers_byName, 1);
+		
+		int numWorkers_byList = project.getComputeNodes_list().size();
+		assertEquals("Should have a worker", numWorkers_byList, 1);
+		
+		int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
+		assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+	}
+	
+	@Test
+	public void creation_XMLstring_XSDschema() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+		// Instantiate XSD Schema
+		SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI); 
+        Schema xsd = sf.newSchema(new File(SCHEMA_PATH));
+
+        // Get default resources file
+		String defaultProject = buildXMLString();
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		int numWorkers_byName = project.getComputeNodes_names().size();
+		assertEquals("Should have a worker", numWorkers_byName, 1);
+		
+		int numWorkers_byList = project.getComputeNodes_list().size();
+		assertEquals("Should have a worker", numWorkers_byList, 1);
+		
+		int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
+		assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+	}
+	
+	@Test
+	public void creation_XMLfile_XSDpath() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File defaultProject = new File(DEFAULT_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		int numWorkers_byName = project.getComputeNodes_names().size();
+		assertEquals("Should have a worker", numWorkers_byName, 1);
+		
+		int numWorkers_byList = project.getComputeNodes_list().size();
+		assertEquals("Should have a worker", numWorkers_byList, 1);
+		
+		int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
+		assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+	}
+	
+	@Test
+	public void creation_XMLstring_XSDpath() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		String defaultProject = buildXMLString();
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		int numWorkers_byName = project.getComputeNodes_names().size();
+		assertEquals("Should have a worker", numWorkers_byName, 1);
+		
+		int numWorkers_byList = project.getComputeNodes_list().size();
+		assertEquals("Should have a worker", numWorkers_byList, 1);
+		
+		int numWorkers_byHashMap = project.getComputeNodes_hashMap().size();
+		assertEquals("Should have a worker", numWorkers_byHashMap, 1);
+	}
+	
+	
+	/* ***************************************************************
+	 * Dumpers checkers
+	 * ***************************************************************/
+	@Test
+	public void XMLtoFile() throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File defaultProject = new File(DEFAULT_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(defaultProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	@Test 
+	public void XMLtoString() throws URISyntaxException, SAXException, JAXBException, ProjectFileValidationException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File defaultProject = new File(DEFAULT_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(defaultProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		String real_xml = project.getString();
+		String ideal_xml = buildXMLString();
+		assertEquals("To string method doesn't produce the correct dump", real_xml, ideal_xml);
+	}
+	
+	
+	/* ***************************************************************
+	 * Different types of XML checkers
+	 * ***************************************************************/
+	@Test
+	public void fullXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File fullProject = new File(FULL_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(fullProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(fullProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	@Test
+	public void gridXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File gridProject = new File(GRID_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(gridProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(gridProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	@Test
+	public void servicesXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File servicesProject = new File(SERVICES_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(servicesProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(servicesProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	@Test
+	public void rocciXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File rocciProject = new File(ROCCI_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(rocciProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(rocciProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	@Test
+	public void jclouds_gceXML() throws URISyntaxException, JAXBException, SAXException, ProjectFileValidationException, IOException {
+		// Get XSD Schema path
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+
+        // Get default resources file
+		File gceProject = new File(JCLOUDS_GCE_XML_PATH);
+		
+		// Instantiate ResourcesFile
+		ProjectFile project =  new ProjectFile(gceProject, xsd_path, logger);
+		
+		// Checkers
+		assertNotNull(project);
+		
+		File xml = new File(XML_TMP_PATH);
+		project.toFile(xml);
+		boolean compareFile = FileUtils.contentEquals(gceProject, xml);
+		assertEquals("Dump content not equal", true, compareFile);
+	}
+	
+	
+	/* ***************************************************************
+	 * XML String builder (PRIVATE)
+	 * ***************************************************************/
+	private String buildXMLString() {
+		StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+        sb.append("<Project>").append("\n");
+        sb.append("    ").append("<MasterNode/>").append("\n");
+        
+        sb.append("    ").append("<ComputeNode Name=\"localhost\">").append("\n");
+        sb.append("    ").append("    ").append("<InstallDir>/opt/COMPSs/</InstallDir>").append("\n");
+        sb.append("    ").append("    ").append("<WorkingDir>/tmp/COMPSsWorker/</WorkingDir>").append("\n");
+        sb.append("    ").append("</ComputeNode>").append("\n");
+        
+        sb.append("</Project>").append("\n");
+        
+        return sb.toString();
+	}
 	
 }

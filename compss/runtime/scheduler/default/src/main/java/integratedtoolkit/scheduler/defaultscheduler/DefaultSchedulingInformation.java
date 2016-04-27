@@ -17,8 +17,8 @@ public class DefaultSchedulingInformation extends SchedulingInformation {
     private final LinkedList<AllocatableAction> resourceSuccessors;
 
     public DefaultSchedulingInformation() {
-        resourcePredecessors = new LinkedList();
-        resourceSuccessors = new LinkedList();
+        resourcePredecessors = new LinkedList<AllocatableAction>();
+        resourceSuccessors = new LinkedList<AllocatableAction>();
 
         lastUpdate = System.currentTimeMillis();
         expectedStart = 0;

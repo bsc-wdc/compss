@@ -2,13 +2,17 @@ package integratedtoolkit.ws.master;
 
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.AdaptorDescription;
+import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.DataOperation;
-import java.util.HashMap;
+import integratedtoolkit.types.resources.configuration.Configuration;
+import integratedtoolkit.types.resources.jaxb.PriceType;
+import integratedtoolkit.ws.master.configuration.WSConfiguration;
+
 import java.util.LinkedList;
-import java.util.TreeMap;
+
 import org.apache.log4j.Logger;
+
 
 public class WSAdaptor implements CommAdaptor {
 
@@ -27,11 +31,48 @@ public class WSAdaptor implements CommAdaptor {
             logger.error("Can not initialize WS Adaptor");
         }
     }
+    
+	@Override
+	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+		integratedtoolkit.types.project.jaxb.ServiceType s_project = (integratedtoolkit.types.project.jaxb.ServiceType) project_properties;
+		integratedtoolkit.types.resources.jaxb.ServiceType s_resources = (integratedtoolkit.types.resources.jaxb.ServiceType) resources_properties;
+		
+		String wsdl = null;
+		if (s_project != null) {
+			wsdl = s_project.getWsdl();
+		} else if (s_resources != null) {
+			wsdl = s_resources.getWsdl();
+		} else {
+			// No wsdl (service unique key), throw exception
+			throw new Exception("Cannot configure service because no WSDL provided");
+		}
+		
+		WSConfiguration config = new WSConfiguration(this.getClass().getName(), wsdl);
+		if (s_project != null) {
+			config.setLimitOfTasks(s_project.getLimitOfTasks());
+		}
+		
+		if (s_resources != null) {
+			config.setServiceName(s_resources.getName());
+			config.setNamespace(s_resources.getNamespace());
+			String servicePort = s_resources.getPort();
+			if (servicePort != null && !servicePort.isEmpty()) {
+				config.setPort(s_resources.getPort());
+			}
+			PriceType p = s_resources.getPrice();
+			if (p != null) {
+				config.setPricePerUnitTime(p.getPricePerUnit());
+				config.setPriceUnitTime(p.getTimeUnit());
+			}
+		}
+		
+		return config;
+	}
 
-    @Override
-    public ServiceInstance initWorker(String workerName, HashMap<String, String> properties, TreeMap<String, AdaptorDescription> adaptorsDesc) {
-        return new ServiceInstance(workerName, properties);
-    }
+	@Override
+	public COMPSsWorker initWorker(String workerName, Configuration config) throws Exception {
+		return new ServiceInstance(workerName, (WSConfiguration)config);
+	}
 
     @Override
     public void stop() {
@@ -52,4 +93,5 @@ public class WSAdaptor implements CommAdaptor {
     public void completeMasterURI(URI u) {
         //No need to do nothing
     }
+    
 }

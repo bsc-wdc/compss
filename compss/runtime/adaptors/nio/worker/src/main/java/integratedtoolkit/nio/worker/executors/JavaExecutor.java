@@ -310,7 +310,6 @@ public class JavaExecutor extends Executor {
         Object retValue = null; 
                
 		if (targetPscoId == null) {		
-			
 			// Invoke the requested method from COMPSs
 			if (tracing) {
 				NIOTracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
@@ -328,7 +327,6 @@ public class JavaExecutor extends Executor {
 			}
 			
 		} else {
-			
 			// Invoke the requested method from the external platform
 			if (tracing) {
 				NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
@@ -337,10 +335,10 @@ public class JavaExecutor extends Executor {
 			// int n = method.getParameterCount();
 			int n = method.getParameterAnnotations().length;
 			ClassPool pool = ClassPool.getDefault();
-			Class[] cParams = method.getParameterTypes();
+			Class<?>[] cParams = method.getParameterTypes();
 			CtClass[] ctParams = new CtClass[n];
 			for (int i = 0; i < n; i++) {
-				ctParams[i] = pool.getCtClass(((Class) cParams[i]).getName());
+				ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
 			}
 
 			String descriptor = method.getName()
@@ -355,6 +353,7 @@ public class JavaExecutor extends Executor {
 			
 			try {
 				String call_result = StorageItf.executeTask(((PSCOId) targetPscoId).getId(), descriptor, values, nw.getHostName(), callback);
+				logger.debug(call_result);
 			} catch (StorageException e) {				
 				throw e;							
 			} finally {
@@ -368,15 +367,13 @@ public class JavaExecutor extends Executor {
 			}
 
 			retValue = null;
-			if (method.getReturnType().getName()
-					.compareTo(void.class.getName()) != 0) {
+			if (method.getReturnType().getName().compareTo(void.class.getName()) != 0) {
 				try {
 					retValue = callback.getResult();
 				} catch (StorageException e) {
 					retValue = null;
 				}
 			}
-			
 		}
 		
         // TRACING: Emit end task 
@@ -385,10 +382,8 @@ public class JavaExecutor extends Executor {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
         }
         
-		if (hasTarget && (npTarget.getType() == ParamType.SCO_T)
-				&& (targetPscoId == null)) {
-			String renaming = renamings[numParams - 1] = npTarget.getValue()
-					.toString();
+		if (hasTarget && (npTarget.getType() == ParamType.SCO_T) && (targetPscoId == null)) {
+			String renaming = renamings[numParams - 1] = npTarget.getValue().toString();
 			String name = renaming;			
 			writeFinalValue[numParams - 1] = npTarget.isWriteFinalValue();
 			StubItf sco = (StubItf) nw.getObject(name);

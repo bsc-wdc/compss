@@ -13,124 +13,121 @@ import java.lang.annotation.ElementType;
  */
 public @interface Constraints {
 
-    public static final String UNASSIGNED = "[unassigned]";
-
+    public static final String UNASSIGNED_STR 	= "[unassigned]";
+    public static final int UNASSIGNED_INT 		= -1;
+    public static final float UNASSIGNED_FLOAT 	= (float) -1.0;
+    
+    
     /**
-     * Returns the required processor architecture for the resource to run the
-     * CE.
+     * Returns the required processor name for the resource to run the CE
+     * 
+     * @return the required processor name to run the CE
+     */
+    String processorName() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the number of computing units required for the resource to run the CE
+     * 
+     * @return the required computing units to run the CE
+     */
+    int computingUnits() default UNASSIGNED_INT;
+    
+    /**
+     * Returns the processor speed required for the resource to run the CE
+     * 
+     * @return the required processor speed to run the CE
+     */
+    float processorSpeed() default UNASSIGNED_FLOAT;
+    
+    /**
+     * Returns the required processor architecture for the resource to run the CE
      *
      * @return the required architecture for the processor to run the CE
      */
-    String processorArchitecture() default UNASSIGNED;
-
-    /**
-     * Returns the required number of CPUs for the host to run the CE.
-     *
-     * @return the required number of CPUs for the host to run the CE.
-     */
-    int processorCPUCount() default 0;
-
-    /**
-     * Returns the required number of Cores for the host to run the CE.
-     *
-     * @return the required number of cores for the host to run the CE.
-     */
-    int processorCoreCount() default 0;
-
-    /**
-     * Returns the required processor frequency for the host to run the CE in
-     * GHz.
-     *
-     * @return the required processor frequency for the host to run the CE in
-     * GHz
-     */
-    float processorSpeed() default 0;
-
-    /**
-     * Returns the required physical memory size in GBs for the host to run the
-     * CE.
-     *
-     * @return the required physical memory size in GBs for the host to run the
-     * CE.
-     */
-    float memoryPhysicalSize() default 0;
-
-    /**
-     * Returns the required virtual memory size in GBs for the host to run the
-     * CE.
-     *
-     * @return the required virtual memory size in GBs for the host to run the
-     * CE.
-     */
-    float memoryVirtualSize() default 0;
-
-    /**
-     * Returns the top memory access time in nanoseconds for the host to run the
-     * CE.
-     *
-     * @return the top memory access time in nanoseconds for the host to run the
-     * CE.
-     */
-    float memoryAccessTime() default 0;
-
-    /**
-     * Returns the minimal memory bandwith in GB/s for the host to run the CE.
-     *
-     * @return the minimal memory bandwith in GB/s for the host to run the CE.
-     */
-    float memorySTR() default 0;
-
-    /**
-     * Returns the amount of required storage space in GB for the host to run
-     * the CE.
-     *
-     * @return the amount of required storage space in GB for the host to run
-     * the CE.
-     */
-    float storageElemSize() default 0;
-
-    /**
-     * Returns the top access time to the storage system in milliseconds for the
-     * host to run the CE.
-     *
-     * @return the top access time to the storage system in milliseconds for the
-     * host to run the CE.
-     */
-    float storageElemAccessTime() default 0;
-
-    /**
-     * Returns the minimal storage bandwith in MB/s for the host to run the CE.
-     *
-     * @return the minimal storage bandwith in MB/s for the host to run the CE.
-     */
-    float storageElemSTR() default 0;
-
-    /**
-     * Returns the required operative system for the resource to run the CE.
-     *
-     * @return the required operative system for the resource to run the CE.
-     */
-    String operatingSystemType() default UNASSIGNED;
-
-    /**
-     * Returns the required queues for the resource to run the CE.
-     *
-     * @return the required queues for the resource to run the CE.
-     */
-    String hostQueue() default UNASSIGNED;
-
-    /**
-     * Returns the required applications for the resource to run the CE.
-     *
-     * @return the required applications for the resource to run the CE.
-     */
-    String appSoftware() default UNASSIGNED;
+    String processorArchitecture() default UNASSIGNED_STR;
     
     /**
-     * Returns the wallClockLimit for running a CE in a resource.
-     *
-     * @return the required applications for the resource to run the CE.
+     * Returns the name of the processor property required for the resource to run the CE
+     * 
+     * @return the name of the required processor property to run the CE
      */
-    int wallClockLimit() default 0;
-
+    String processorPropertyName() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the value of the processor property required for the resource to run the CE
+     * 
+     * @return the value of the required processor property to run the CE
+     */
+    String processorPropertyValue() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the memory size required for the resource to run the CE
+     * 
+     * @return the required memory size to run the CE
+     */
+    float memorySize() default UNASSIGNED_FLOAT;
+    
+    /**
+     * Returns the memory type required for the resource to run the CE
+     * 
+     * @return the required memory type to run the CE
+     */
+    String memoryType() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the storage size required for the resource to run the CE
+     * 
+     * @return the required storage size to run the CE
+     */
+    float storageSize() default UNASSIGNED_FLOAT;
+    
+    /**
+     * Returns the storage type required for the resource to run the CE
+     * 
+     * @return the required storage type to run the CE
+     */
+    String storageType() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the Operating System type required for the resource to run the CE
+     * 
+     * @return the required Operating System type to run the CE
+     */
+    String operatingSystemType() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the Operating System distribution required for the resource to run the CE
+     * 
+     * @return the required Operating System distribution to run the CE
+     */
+    String operatingSystemDistribution() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the Operating System version required for the resource to run the CE
+     * 
+     * @return the required Operating System version to run the CE
+     */
+    String operatingSystemVersion() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the software applications required for the resource to run the CE
+     * 
+     * @return the required software applications to run the CE
+     */
+    String appSoftware() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the host queues where the CE can be run
+     * 
+     * @return the host queues where to run the CE
+     */
+    String hostQueues() default UNASSIGNED_STR;
+    
+    /**
+     * Returns the wallClockLimit required for the resource to run the CE
+     * 
+     * @return the required wallClockLimit to run the CE
+     */
+    int wallClockLimit() default UNASSIGNED_INT;
+    
 }

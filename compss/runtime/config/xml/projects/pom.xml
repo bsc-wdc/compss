@@ -26,6 +26,20 @@
 		<url>http://www.bsc.es</url>
 	</organization>
 	
+	<!-- DEPENDENCIES -->
+	<dependencies>
+		<!-- Log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+		<!--  Apache Commons IO (FileUtils) -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+	</dependencies>
+	
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -55,7 +69,6 @@
 					<schemaFiles>project_schema.xsd</schemaFiles>
 					<generateDirectory>${basedir}/src/main/java/</generateDirectory>
 					<generatePackage>integratedtoolkit.types.project.jaxb</generatePackage>
-					<forceRegenerate>true</forceRegenerate>
 				</configuration>
 			</plugin>
 		</plugins>

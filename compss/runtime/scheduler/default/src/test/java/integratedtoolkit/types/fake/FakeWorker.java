@@ -34,7 +34,7 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     }
 
     @Override
-    public boolean canRun(Implementation implementation) {
+    public boolean canRun(Implementation<?> implementation) {
         return true;
     }
 
@@ -65,12 +65,12 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     }
 
     @Override
-    public Integer fitCount(Implementation impl) {
+    public Integer fitCount(Implementation<?> impl) {
         return 10;
     }
 
     @Override
-    public Worker getSchedulingCopy() {
+    public Worker<?> getSchedulingCopy() {
         return new FakeWorker(this);
     }
 

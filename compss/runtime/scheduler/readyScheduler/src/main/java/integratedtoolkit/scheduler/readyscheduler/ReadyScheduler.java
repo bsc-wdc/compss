@@ -1,11 +1,10 @@
 package integratedtoolkit.scheduler.readyscheduler;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.AllocatableAction.BlockedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.InvalidSchedulingException;
-import integratedtoolkit.scheduler.types.AllocatableAction.UnassignedActionException;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.ObjectValue;
@@ -13,9 +12,11 @@ import integratedtoolkit.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ActionSet;
 import integratedtoolkit.util.CoreManager;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
+
 
 public class ReadyScheduler extends TaskScheduler {
 
@@ -48,19 +49,19 @@ public class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    protected void workerDetected(ResourceScheduler resource) {
+    protected void workerDetected(ResourceScheduler<?> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
 
     @Override
-    protected void workerRemoved(ResourceScheduler resource) {
+    protected void workerRemoved(ResourceScheduler<?> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
 
     @Override
-    public void workerUpdate(ResourceScheduler resource) {
+    public void workerUpdate(ResourceScheduler<?> resource) {
         Worker worker = resource.getResource();
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
@@ -68,7 +69,7 @@ public class ReadyScheduler extends TaskScheduler {
 
         //Selecting runnable actions and priorizing them
         LinkedList<Integer> runnableCores = new LinkedList<Integer>();
-        LinkedList<Implementation>[] fittingImpls = new LinkedList[CoreManager.getCoreCount()];
+        LinkedList<Implementation<?>>[] fittingImpls = new LinkedList[CoreManager.getCoreCount()];
         for (int coreId : (LinkedList<Integer>) worker.getExecutableCores()) {
             fittingImpls[coreId] = worker.getRunnableImplementations(coreId);
             if (!fittingImpls[coreId].isEmpty() && unassignedReadyActions.getActionCounts()[coreId] > 0) {
@@ -120,9 +121,9 @@ public class ReadyScheduler extends TaskScheduler {
             Iterator<Integer> coreIter = runnableCores.iterator();
             while (coreIter.hasNext()) {
                 int coreId = coreIter.next();
-                Iterator<Implementation> implIter = fittingImpls[coreId].iterator();
+                Iterator<Implementation<?>> implIter = fittingImpls[coreId].iterator();
                 while (implIter.hasNext()) {
-                    Implementation impl = implIter.next();
+                    Implementation<?> impl = implIter.next();
                     if (!worker.canRunNow(impl.getRequirements())) {
                         implIter.remove();
                     }
@@ -136,12 +137,12 @@ public class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    public ResourceScheduler generateSchedulerForResource(Worker w) {
+    public ResourceScheduler<?> generateSchedulerForResource(Worker<?> w) {
         return new ReadyResourceScheduler(w);
     }
 
-    private PriorityQueue<ObjectValue<AllocatableAction>> sortActionsForResource(LinkedList<AllocatableAction> actions, ResourceScheduler resource) {
-        PriorityQueue<ObjectValue<AllocatableAction>> pq = new PriorityQueue();
+    private PriorityQueue<ObjectValue<AllocatableAction>> sortActionsForResource(LinkedList<AllocatableAction> actions, ResourceScheduler<?> resource) {
+        PriorityQueue<ObjectValue<AllocatableAction>> pq = new PriorityQueue<ObjectValue<AllocatableAction>>();
         int counter = 0;
         for (AllocatableAction action : actions) {
             Score actionScore = action.schedulingScore(this);
@@ -149,7 +150,7 @@ public class ReadyScheduler extends TaskScheduler {
             if (score == null) {
                 continue;
             }
-            ObjectValue<AllocatableAction> ov = new ObjectValue(action, score);
+            ObjectValue<AllocatableAction> ov = new ObjectValue<AllocatableAction>(action, score);
             pq.offer(ov);
             counter++;
             if (counter == THRESHOLD) {

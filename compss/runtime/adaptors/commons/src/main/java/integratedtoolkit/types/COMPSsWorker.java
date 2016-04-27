@@ -1,18 +1,16 @@
 package integratedtoolkit.types;
 
-import java.util.HashMap;
+import integratedtoolkit.types.resources.configuration.Configuration;
 
 
 public abstract class COMPSsWorker extends COMPSsNode {
 
-    public COMPSsWorker(String name, HashMap<String, String> properties) {
+    public COMPSsWorker(String name, Configuration config) {
         super();
     }
 
     public abstract String getUser();
 
-    //public abstract boolean isTracingReady();
-    //public abstract void waitForTracingReady();
     public abstract void updateTaskCount(int processorCoreCount);
 
     public abstract void announceDestruction() throws Exception;

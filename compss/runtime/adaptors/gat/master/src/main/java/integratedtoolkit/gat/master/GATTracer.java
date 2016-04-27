@@ -18,23 +18,12 @@ import org.gridlab.gat.resources.SoftwareDescription;
 
 public class GATTracer extends Tracer {
 
-    /*private final static GATContext context;
-   
-    static {
-        context = new GATContext();
-        String brokerAdaptor = System.getProperty(ITConstants.GAT_BROKER_ADAPTOR);
-        logger.debug("Using GAT Adaptor "+ brokerAdaptor);
-        context.addPreference("ResourceBroker.adaptor.name", brokerAdaptor);
-    }
-
-    public static void addPreference(String name, String value) {
-        context.addPreference(name, value);
-    }*/
-
-    public static Job startTracing(GATWorkerNode worker, int numTasks) {
+    public static Job startTracing(GATWorkerNode worker) {
         if (debug){
             logger.debug("Starting trace for woker " + worker.getHost());
         }
+
+        int numTasks = worker.getTotalComputingUnits();
         if (numTasks <= 0) {
             if (debug) {
                 logger.debug("Resource " + worker.getName() + " has 0 slots, it won't appear in the trace");
@@ -85,21 +74,7 @@ public class GATTracer extends Tracer {
         }
         return job;
     }
-
-    public static boolean isReady(Job job) {
-        if (job.getState() == Job.JobState.STOPPED) {
-            String uri = (String) ((JobDescription) job.getJobDescription()).getSoftwareDescription().getAttributes().get("uri");
-            if (debug) {
-                logger.debug("Initialized tracing system in " + uri);
-            }
-            return true;
-        } else if (job.getState() == Job.JobState.SUBMISSION_ERROR) {
-            logger.error("Error initializing tracing system, host " + job);
-            return true;
-        }
-        return false;
-    }
-
+    
     public static void waitForTracing(Job job) {
         Long timeout = System.currentTimeMillis() + 60000l;
         while (System.currentTimeMillis() < timeout) {
@@ -114,6 +89,22 @@ public class GATTracer extends Tracer {
             }
         }
         logger.error("Error initializing tracing system, " + job + " job still pending.");
+    }
+
+    private static boolean isReady(Job job) {
+    	if (job != null) {
+	        if (job.getState() == Job.JobState.STOPPED) {
+	            String uri = (String) ((JobDescription) job.getJobDescription()).getSoftwareDescription().getAttributes().get("uri");
+	            if (debug) {
+	                logger.debug("Initialized tracing system in " + uri);
+	            }
+	            return true;
+	        } else if (job.getState() == Job.JobState.SUBMISSION_ERROR) {
+	            logger.error("Error initializing tracing system, host " + job);
+	            return true;
+	        }
+    	}
+        return false;
     }
 
     public static synchronized void emitEvent(long eventID, int eventType){
@@ -135,7 +126,7 @@ public class GATTracer extends Tracer {
         }
 
         try {
-            traceScripts.add(new URI("any://" + user + host + File.separator + installDir + File.separator + TRACE_SCRIPT));
+            traceScripts.add( new URI("any://" + user + host + File.separator + installDir + File.separator + TRACE_PATH + File.separator + TRACE_SCRIPT) );
         } catch (URISyntaxException e) {
             logger.error("Error deleting tracing host", e);
         }
@@ -147,4 +138,5 @@ public class GATTracer extends Tracer {
         new CleanerExecutor(node).executeScript(traceScripts, traceParams);
                 
     }
+    
 }

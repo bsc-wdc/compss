@@ -2,14 +2,20 @@ package integratedtoolkit.scheduler.types;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.FailedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ResourceScheduler;
+
 import java.util.Iterator;
 import java.util.LinkedList;
+
 import org.apache.log4j.Logger;
 
 public abstract class AllocatableAction {
@@ -41,9 +47,9 @@ public abstract class AllocatableAction {
     private final LinkedList<AllocatableAction> dataSuccessors;
 
     private State state;
-    protected ResourceScheduler selectedResource;
-    protected Implementation selectedImpl;
-    protected final LinkedList<ResourceScheduler> executingResources;
+    protected ResourceScheduler<?> selectedResource;
+    protected Implementation<?> selectedImpl;
+    protected final LinkedList<ResourceScheduler<?>> executingResources;
 
     private final SchedulingInformation schedulingInfo;
 
@@ -51,10 +57,10 @@ public abstract class AllocatableAction {
 
     public AllocatableAction(SchedulingInformation schedulingInformation) {
         state = State.RUNNABLE;
-        dataPredecessors = new LinkedList();
-        dataSuccessors = new LinkedList();
+        dataPredecessors = new LinkedList<AllocatableAction>();
+        dataSuccessors = new LinkedList<AllocatableAction>();
         selectedResource = null;
-        executingResources = new LinkedList();
+        executingResources = new LinkedList<ResourceScheduler<?>>();
         schedulingInfo = schedulingInformation;
     }
 
@@ -121,7 +127,7 @@ public abstract class AllocatableAction {
         return schedulingInfo.getConstrainingPredecessor();
     }
 
-    protected LinkedList<ResourceScheduler> getCoreElementExecutors(int coreId) {
+    protected LinkedList<ResourceScheduler<?>> getCoreElementExecutors(int coreId) {
         return schedulingInfo.getCoreElementExecutors(coreId);
     }
 
@@ -142,7 +148,7 @@ public abstract class AllocatableAction {
         return profile.getStartTime();
     }
 
-    public void assignImplementation(Implementation impl) {
+    public void assignImplementation(Implementation<?> impl) {
         selectedImpl = impl;
     }
 
@@ -151,11 +157,11 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public Implementation getAssignedImplementation() {
+    public Implementation<?> getAssignedImplementation() {
         return selectedImpl;
     }
 
-    public void assignResource(ResourceScheduler res) {
+    public void assignResource(ResourceScheduler<?> res) {
         selectedResource = res;
     }
 
@@ -164,7 +170,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public ResourceScheduler getAssignedResource() {
+    public ResourceScheduler<?> getAssignedResource() {
         return selectedResource;
     }
 
@@ -284,7 +290,7 @@ public abstract class AllocatableAction {
     protected abstract void doError() throws FailedActionException;
 
     public final LinkedList<AllocatableAction> failed() {
-        LinkedList<AllocatableAction> failed = new LinkedList();
+        LinkedList<AllocatableAction> failed = new LinkedList<AllocatableAction>();
         state = State.FAILED;
 
         //Predecessors -> ignore Action
@@ -345,14 +351,14 @@ public abstract class AllocatableAction {
      *
      * @return list of resources able to run the action
      */
-    public abstract LinkedList<ResourceScheduler> getCompatibleWorkers();
+    public abstract LinkedList<ResourceScheduler<?>> getCompatibleWorkers();
 
     /**
      * Returns all the possible implementations for the action.
      *
      * @return a list of implementations that can be executed to run the action.
      */
-    public abstract Implementation[] getImplementations();
+    public abstract Implementation<?>[] getImplementations();
 
     /**
      * Tells is the action can run in a given resource.
@@ -361,7 +367,7 @@ public abstract class AllocatableAction {
      *
      * @return {@literal true} if the action can run in the given resource.
      */
-    public abstract boolean isCompatible(Worker r);
+    public abstract boolean isCompatible(Worker<?> r);
 
     /**
      * Returns all the implementations for the action that can run on the given
@@ -371,25 +377,14 @@ public abstract class AllocatableAction {
      *
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler r);
+    public abstract LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r);
 
     public abstract Score schedulingScore(TaskScheduler ts);
 
-    public abstract Score schedulingScore(ResourceScheduler targetWorker, Score actionScore);
+    public abstract Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore);
 
     public abstract void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
 
-    public abstract void schedule(ResourceScheduler targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException;
+    public abstract void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException;
 
-    public static class BlockedActionException extends Exception {
-    }
-
-    public static class UnassignedActionException extends Exception {
-    }
-
-    public static class InvalidSchedulingException extends Exception {
-    }
-
-    public static class FailedActionException extends Exception {
-    }
 }

@@ -1,13 +1,12 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.CoreManager;
-import java.util.HashMap;
+
 import java.util.LinkedList;
-import java.util.TreeMap;
 
 public abstract class Worker<T extends ResourceDescription> extends Resource {
 
@@ -47,8 +46,8 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         this.description = description;
     }
 
-    public Worker(String name, T description, TreeMap<String, AdaptorDescription> adaptorsDesc, HashMap<String, String> properties, Integer maxTaskCount) throws Exception {
-        super(name, properties, adaptorsDesc);
+    public Worker(String name, T description, Configuration config, Integer maxTaskCount) throws Exception {
+        super(name, config);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
@@ -246,7 +245,7 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
      * ************************************************************************
      * -----------------------------------------------------------------------*/
     public LinkedList<Integer> getRunnableCores() {
-        LinkedList<Integer> cores = new LinkedList();
+        LinkedList<Integer> cores = new LinkedList<Integer>();
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (!getRunnableImplementations(coreId).isEmpty()) {
@@ -331,5 +330,5 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         w.announceDestruction();
     }
 
-    public abstract Worker getSchedulingCopy();
+    public abstract Worker<?> getSchedulingCopy();
 }

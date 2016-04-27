@@ -190,11 +190,11 @@ public class RuntimeConfigManager {
     }
 
     public String getGATAdaptor() {
-        return config.getString(ITConstants.GAT_ADAPTOR, System.getenv("GAT_LOCATION") + "/lib/adaptors");
+        return config.getString(ITConstants.GAT_ADAPTOR_PATH, System.getenv("GAT_LOCATION") + "/lib/adaptors");
     }
 
     public void setGATAdaptor(String adaptorPath) {
-        config.setProperty(ITConstants.GAT_ADAPTOR, adaptorPath);
+        config.setProperty(ITConstants.GAT_ADAPTOR_PATH, adaptorPath);
     }
 
     public boolean isGATDebug() {

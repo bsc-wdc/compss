@@ -1,10 +1,13 @@
 package integratedtoolkit.types;
 
-import static integratedtoolkit.types.Colors.*;
-import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.colors.ColorConfiguration;
+import integratedtoolkit.types.colors.ColorNode;
+
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class Task implements Comparable<Task> {
 
@@ -20,45 +23,20 @@ public class Task implements Comparable<Task> {
         FAILED
     }
 
-    private static final ColorConf[] COLORS = new ColorConf[]{
-        new ColorConf(DARK_BLUE, WHITE),
-        new ColorConf(YELLOW, BLACK),
-        new ColorConf(LIGHT_GREEN, BLACK),
-        new ColorConf(LIGHT_BLUE, BLACK),
-        new ColorConf(PINK, WHITE),
-        new ColorConf(GREY, BLACK),
-        new ColorConf(VIOLET, WHITE),
-        new ColorConf(PURPLE, WHITE),
-        new ColorConf(DARK_RED, WHITE),
-        new ColorConf(DARK_GREEN, WHITE),
-        new ColorConf(BROWN, WHITE),
-        new ColorConf(RED, WHITE)
-    };
-
-    private static class ColorConf {
-
-        String fillColor;
-        String fontColor;
-
-        ColorConf(String fillColor, String fontColor) {
-            this.fillColor = fillColor;
-            this.fontColor = fontColor;
-        }
-    }
-
     // Task fields
     private final long appId;
     private final int taskId;
     private TaskState status;
     private final TaskParams taskParams;
 
-    //Data Dependencies
+    // Data Dependencies
     private final LinkedList<Task> predecessors;
     private final LinkedList<Task> successors;
 
     // Scheduling info
     private Task enforcingTask;
     private SingleExecution execution;
+
 
     public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
         this.appId = appId;
@@ -77,7 +55,7 @@ public class Task implements Comparable<Task> {
         this.predecessors = new LinkedList<Task>();
         this.successors = new LinkedList<Task>();
     }
-
+    
     public static int getCurrentTaskCount() {
         return nextTaskId.get();
     }
@@ -135,18 +113,41 @@ public class Task implements Comparable<Task> {
     }
 
     public String getDotDescription() {
-        String shape; // black
-        ColorConf color = COLORS[taskParams.getId() % COLORS.length];
+    	int monitorTaskId = taskParams.getId() + 1; 	// Coherent with Trace.java
+        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
+        String shape;
         if (taskParams.getType() == TaskParams.Type.METHOD) {
             shape = "circle";
         } else { //Service
             shape = "diamond";
         }
         // Future Shapes "triangle" "square" "pentagon"
+        
         return getId()
                 + "[shape=" + shape + ", "
-                + "style=filled fillcolor=\"" + color.fillColor + "\" fontcolor=\"" + color.fontColor + "\"];";
+                + "style=filled fillcolor=\"" + color.getFillColor() + "\" fontcolor=\"" + color.getFontColor() + "\"];";
+    }
+    
+    public String getLegendDescription() {
+    	StringBuilder information = new StringBuilder();
+    	information.append("<tr>").append("\n");
+		information.append("<td align=\"right\">").append(this.getMethodName()).append("</td>").append("\n");
+		information.append("<td bgcolor=\"").append(this.getColor()).append("\">&nbsp;</td>").append("\n");
+		information.append("</tr>").append("\n");
+		
+		return information.toString();
+    }
+    
+    public String getMethodName() {
+    	String methodName = taskParams.getName();
+    	return methodName;
+    }
+    
+    public String getColor() {
+    	int monitorTaskId = taskParams.getId() + 1; 	// Coherent with Trace.java
+        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
+        return color.getFillColor();
     }
 
     public String toString() {
@@ -186,4 +187,5 @@ public class Task implements Comparable<Task> {
     public SingleExecution getExecution() {
         return execution;
     }
+
 }

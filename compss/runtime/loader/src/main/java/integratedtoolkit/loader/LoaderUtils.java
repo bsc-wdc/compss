@@ -46,8 +46,6 @@ public class LoaderUtils {
 	
 	// Storage: Check object type
 	public static ParamType checkSCOType(Object o) {
-    	String pscoID = null;
-    	
     	if (o instanceof PSCOId) {
     		return ParamType.PSCO_T;
     	}

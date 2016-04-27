@@ -1,9 +1,9 @@
 package integratedtoolkit.scheduler.defaultscheduler;
 
 import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
-import integratedtoolkit.scheduler.types.AllocatableAction.BlockedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.InvalidSchedulingException;
-import integratedtoolkit.scheduler.types.AllocatableAction.UnassignedActionException;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.types.Gap;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.fake.FakeAllocatableAction;
@@ -12,9 +12,12 @@ import integratedtoolkit.types.fake.FakeProfiles;
 import integratedtoolkit.types.fake.FakeResourceDescription;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.util.CoreManager;
+
 import java.util.LinkedList;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 
 public class OptimizationTest {
 
@@ -38,13 +41,13 @@ public class OptimizationTest {
 
         ds = new DefaultScheduler();
 
-        Implementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
+        Implementation<?> impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
         CoreManager.registerImplementations(0, new Implementation[]{impl00});
-        Implementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
+        Implementation<?> impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
         CoreManager.registerImplementations(1, new Implementation[]{impl10});
-        Implementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
+        Implementation<?> impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
         CoreManager.registerImplementations(2, new Implementation[]{impl20});
-        Implementation impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
+        Implementation<?> impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
         CoreManager.registerImplementations(3, new Implementation[]{impl30});
 
         FakeResourceDescription frd = new FakeResourceDescription(4);

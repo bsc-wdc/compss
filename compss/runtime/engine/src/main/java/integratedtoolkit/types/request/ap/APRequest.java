@@ -23,7 +23,6 @@ public abstract class APRequest extends Request {
      * response.
      */
     public enum APRequestType {
-
         ANALYSE_TASK,
         UPDATE_GRAPH,
         WAIT_FOR_TASK,

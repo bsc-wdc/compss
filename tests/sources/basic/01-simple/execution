@@ -12,11 +12,11 @@
   
   #----------------------------------------------------------------------------------
   #Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'\/scripts\/system<\/InstallDir>' ${base_app_dir}/project_simple.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_simple.xml
   
   #----------------------------------------------------------------------------------
   #Create all working dir folders
-  mkdir -p /tmp/WorkerLocalhost/
+  mkdir -p /tmp/COMPSsWorker01/
   
   #----------------------------------------------------------------------------------
   #Run application 1 - Simple
@@ -30,6 +30,7 @@
      --project=${base_app_dir}/project_simple.xml \
      --resources=${base_app_dir}/resources_simple.xml \
      --debug \
+     -g -t \
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/simple.jar \

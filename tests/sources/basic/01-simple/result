@@ -30,29 +30,13 @@
   # Compute result status
   init_counter=$(cat ${output_file} | grep "Initial counter value" | cut -c 26-)
   final_counter_got=$(cat ${output_file} | grep "Final counter value" | cut -c 24-)
-  final_counter_2_got=$(cat ${output_file} | grep "Final counter 2 value" | cut -c 26-)
-  final_counter_3_got=$(cat ${output_file} | grep "Final counter 3 value" | cut -c 26-)
   final_counter_expected=$((init_counter+1))
-  final_counter_2_expected=$((init_counter+2))
-  final_counter_3_expected=$((init_counter+3))
 
   # Report result status
   if [ "$final_counter_got" != "$final_counter_expected" ]; then
      echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
      echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a ${output_file}
      echo "GOT:      $final_counter_got" | tee -a ${output_file}
-     exit 1
-  fi
-  if [ "$final_counter_2_got" != "$final_counter_2_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
-     echo "EXPECTED SECOND INCREMENT: $final_counter_2_expected" | tee -a ${output_file}
-     echo "GOT:      $final_counter_2_got" | tee -a ${output_file}
-     exit 1
-  fi
-  if [ "$final_counter_3_got" != "$final_counter_3_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
-     echo "EXPECTED SECOND INCREMENT: $final_counter_2_expected" | tee -a ${output_file}
-     echo "GOT:      $final_counter_2_got" | tee -a ${output_file}
      exit 1
   fi
   

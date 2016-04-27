@@ -25,7 +25,7 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
     public static final long DATA_TRANSFER_DELAY = 200;
     private LinkedList<Gap> gaps;
 
-    public DefaultResourceScheduler(Worker w) {
+    public DefaultResourceScheduler(Worker<?> w) {
         super(w);
         gaps = new LinkedList<Gap>();
         TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
@@ -43,7 +43,7 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
         return new DefaultScore((DefaultScore) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
     }
 
-    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation<?> impl, Score resourceScore) {
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
         for (Gap g : gaps) {
@@ -59,7 +59,7 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
     }
 
     @Override
-    public void initialSchedule(AllocatableAction action, Implementation impl) {
+    public void initialSchedule(AllocatableAction action, Implementation<?> impl) {
         Iterator<Gap> gapIt = gaps.iterator();
         ResourceDescription constraints = impl.getRequirements().copy();
         long expectedStart = 0;
@@ -73,7 +73,8 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
                 addSchedulingDependency(predecessor, action);
             }
             ResourceDescription gapResource = gap.getResources();
-            ResourceDescription reduction = ResourceDescription.reduceCommonDynamics(gapResource, constraints);
+            //ResourceDescription reduction = ResourceDescription.reduceCommonDynamics(gapResource, constraints);
+            ResourceDescription.reduceCommonDynamics(gapResource, constraints);
             if (gapResource.isDynamicUseless()) {
                 gapIt.remove();
             }
@@ -144,12 +145,12 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
         return new Profile();
     }
 
-    public PriorityQueue[] seekGaps(long updateId, LinkedList<Gap> gaps) {
-        PriorityQueue[] actions = new PriorityQueue[CoreManager.getCoreCount()];
+    public PriorityQueue<OptimizationElement<?>>[] seekGaps(long updateId, LinkedList<Gap> gaps) {
+        PriorityQueue<OptimizationElement<?>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
         for (int i = 0; i < actions.length; i++) {
-            actions[i] = new PriorityQueue<OptimizationElement>();
+            actions[i] = new PriorityQueue<OptimizationElement<?>>();
         }
-        PriorityQueue<SchedulingEvent> pq = new PriorityQueue();
+        PriorityQueue<SchedulingEvent> pq = new PriorityQueue<SchedulingEvent>();
         LinkedList<Gap> resources = new LinkedList<Gap>();
         TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
         resources.add(new Gap(0, null, myWorker.getDescription().copy(), capacity.getFree()));
@@ -171,7 +172,7 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
                 pq.offer(r);
             }
         }
-        this.gaps = new LinkedList();
+        this.gaps = new LinkedList<Gap>();
         for (Gap g : resources) {
             g.setEndTime(Long.MAX_VALUE);
             this.gaps.add(g);

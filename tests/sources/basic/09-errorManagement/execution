@@ -1,0 +1,138 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  #Run application ErrorManagerTestNonExistingInFile
+  echo
+  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestNonExistingInFile"
+  output_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.outputlog"
+  error_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.errorlog"
+  expectedTime=80s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/ErrorManagerTest.jar \
+     testNonExistingInFile.Main 2>&1 | tee ${output_log} | tee ${error_log}
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testNonExistingInFile.Main_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testNonExistingInFile.Main_01/* ${target_log_folder}
+  fi
+ 
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s
+
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
+  mkdir -p /tmp/COMPSsWorker03/
+  mkdir -p /tmp/COMPSsWorker04/
+ 
+  #----------------------------------------------------------------------------------
+  #Run application ErrorManagerTestReschedulingFail
+  echo
+  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestReschedulingFail"
+  output_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.outputlog"
+  error_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.errorlog"
+  expectedTime=80s
+     
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project_4_workers.xml \
+     --resources=${base_app_dir}/resources_4_workers.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/ErrorManagerTest.jar \
+     testReschedulingFail.Main 2>&1 | tee ${output_log} | tee ${error_log}
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testReschedulingFail.Main_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testReschedulingFail.Main_01/* ${target_log_folder}
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s
+
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+
+  #----------------------------------------------------------------------------------
+  #Run application ErrorManagerTestAllBlocked
+  echo
+  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestAllBlocked"
+  output_log="${target_log_folder}/errorManagement_ErrorManagerTestAllBlocked.outputlog"
+  error_log="${target_log_folder}/errorManagement_ErrorManagerTestAllBlocked.errorlog"
+  expectedTime=90s
+     
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/ErrorManagerTest.jar \
+     testAllBlocked.Main 2>&1 | tee ${output_log} | tee ${error_log}
+  
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testAllBlocked.Main_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testAllBlocked.Main_01/* ${target_log_folder}
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Check result
+  ${base_app_dir}/result ${output_log} ${target_log_folder} 
+  exitValue=$?
+     
+  # Return execution status
+  exit $exitValue
+

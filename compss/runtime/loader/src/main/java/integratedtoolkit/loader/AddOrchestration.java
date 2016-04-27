@@ -23,8 +23,7 @@ public class AddOrchestration {
 	private static final Logger logger = Logger.getLogger(Loggers.LOADER);
 	
 	public static void main(String[] args) throws Exception {
-		
-		if (args.length<2){
+		if (args.length < 2){
 			ErrorManager.fatal("Error: missing arguments for loader");
 		}
 		String className = args[0];

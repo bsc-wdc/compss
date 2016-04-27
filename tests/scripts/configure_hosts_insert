@@ -7,15 +7,10 @@
   #Setup hosts
   echo "** Inserting new hosts on /etc/hosts"
 
-  echo "127.0.0.11        outputWriter" >> /etc/hosts    #Shared Disks Test
-  echo "127.0.0.12        outputReader" >> /etc/hosts    #Shared Disks Test
-  echo "127.0.0.13        useless" >> /etc/hosts         #DataLocality Basic Test
-  echo "127.0.0.14        WorkerDynamic" >> /etc/hosts   #Constraints Test
-
-  echo "127.0.0.21        COMPSsWorker01" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
-  echo "127.0.0.22        COMPSsWorker02" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
-  echo "127.0.0.23        COMPSsWorker03" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
-  echo "127.0.0.24        COMPSsWorker04" >> /etc/hosts   #Constraints Test + DataLocality ComplexTest
+  echo "127.0.0.21        COMPSsWorker01" >> /etc/hosts   #FREE
+  echo "127.0.0.22        COMPSsWorker02" >> /etc/hosts   #FREE
+  echo "127.0.0.23        COMPSsWorker03" >> /etc/hosts   #FREE
+  echo "127.0.0.24        COMPSsWorker04" >> /etc/hosts   #FREE
   echo "127.0.0.25        COMPSsWorker05" >> /etc/hosts   #FREE
   echo "127.0.0.26        COMPSsWorker06" >> /etc/hosts   #FREE
   echo "127.0.0.27        COMPSsWorker07" >> /etc/hosts   #FREE

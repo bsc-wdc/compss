@@ -14,71 +14,51 @@ import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
-
-import java.util.HashMap;
+import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
 
 public class ServiceInstance extends COMPSsWorker {
 
-    private String wsdl;
-    private String serviceName;
-    private String namespace;
-    private String port;
+    private WSConfiguration config;
 
-    public ServiceInstance(String name, HashMap<String, String> properties) {
-        super(name, properties);
-        this.wsdl = properties.get("wsdl");
-        this.serviceName = properties.get("name");
-        this.namespace = properties.get("namespace");
-        this.port = properties.get("port");
-    }
-
-    public void setWsdl(String wsdl) {
-        this.wsdl = wsdl;
+    public ServiceInstance(String name, WSConfiguration config) {
+        super(name, config);
+        this.config = config;
     }
 
     public String getWsdl() {
-        return wsdl;
+        return this.config.getWsdl();
     }
 
     public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+        this.config.setServiceName(serviceName);
     }
 
     public String getServiceName() {
-        return serviceName;
+        return this.config.getServiceName();
     }
 
     public void setNamespace(String namespace) {
-        this.namespace = namespace;
+        this.config.setNamespace(namespace);
     }
 
     public String getNamespace() {
-        return namespace;
+        return this.config.getNamespace();
     }
 
     public void setPort(String port) {
-        this.port = port;
+        this.config.setPort(port);
     }
 
     public String getPort() {
-        return this.port;
+        return this.config.getPort();
     }
 
     @Override
     public String getName() {
-        return wsdl;
+        return this.config.getWsdl();
     }
 
-/*
-    public boolean isTracingReady() {
-        return true;
-    }
-
-    public void waitForTracingReady() {
-        return;
-    }
-*/
     @Override
     public void setInternalURI(URI uri) {
 

@@ -2,20 +2,24 @@ package integratedtoolkit.types.fake;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.FailedActionException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ResourceScheduler;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 
 public class FakeAllocatableAction extends AllocatableAction {
 
     private int id;
-    private Implementation[] impls;
+    private Implementation<?>[] impls;
 
-    public FakeAllocatableAction(int id, Implementation[] impls) {
+    public FakeAllocatableAction(int id, Implementation<?>[] impls) {
         super(new DefaultSchedulingInformation());
         this.id = id;
         this.impls = impls;
@@ -44,40 +48,43 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler r) {
-        LinkedList<Implementation> ret = new LinkedList();
+    public LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r) {
+        LinkedList<Implementation<?>> ret = new LinkedList<Implementation<?>>();
         ret.addAll(Arrays.asList(impls));
         return ret;
     }
 
     @Override
-    public LinkedList<ResourceScheduler> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?>> getCompatibleWorkers() {
         return null;
     }
 
     @Override
-    public Implementation[] getImplementations() {
+    public Implementation<?>[] getImplementations() {
         return this.impls;
     }
 
     @Override
-    public boolean isCompatible(Worker r) {
+    public boolean isCompatible(Worker<?> r) {
         return true;
     }
 
     @Override
     protected boolean areEnoughResources() {
-        return selectedResource.getResource().canRunNow(selectedImpl.getRequirements());
+    	Worker r = selectedResource.getResource();
+        return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        selectedResource.getResource().runTask(selectedImpl.getRequirements());
+    	Worker r = selectedResource.getResource();
+        r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        selectedResource.getResource().endTask(selectedImpl.getRequirements());
+    	Worker r = selectedResource.getResource();
+        r.endTask(selectedImpl.getRequirements());
     }
 
     public void selectExecution(ResourceScheduler resource, Implementation impl) {
@@ -101,7 +108,7 @@ public class FakeAllocatableAction extends AllocatableAction {
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore) {
         return null;
     }
 

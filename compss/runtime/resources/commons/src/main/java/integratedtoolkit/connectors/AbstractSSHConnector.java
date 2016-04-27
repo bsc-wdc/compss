@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
@@ -15,8 +15,8 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpProgressMonitor;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.utils.KeyManager;
+import integratedtoolkit.types.ApplicationPackage;
 import integratedtoolkit.types.CloudImageDescription;
 
 
@@ -119,10 +119,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     public void prepareMachine(String ip, CloudImageDescription cid)
             throws ConnectorException {
         if (debug){
-        	logger.debug("Preparing new machine "+ ip);
+                logger.debug("Preparing new machine "+ ip);
         }
-    	String user = cid.getProperties().get(ITConstants.USER);
-        LinkedList<String[]> packages = cid.getPackages();
+        String user = cid.getConfig().getUser();
+        List<ApplicationPackage> packages = cid.getPackages();
         if (!packages.isEmpty()) {
             Session c = null;
             ChannelSftp client = null;
@@ -130,10 +130,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 c = getSession(ip, user, false, null);
                 client = (ChannelSftp) c.openChannel("sftp");
                 client.connect();
-                for (String[] p : packages) {
-                    String[] path = p[0].split(File.separator);
+                for (ApplicationPackage p : packages) {
+                    String[] path = p.getSource().split(File.separator);
                     String name = path[path.length - 1];
-                    String target = p[1] + File.separator + name;
+                    String target = p.getTarget() + File.separator + name;
                     if (client == null) {
                         if (c != null) {
                             c.disconnect();
@@ -142,13 +142,13 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         throw new ConnectorException("Can not connect to " + ip);
                     }
 
-                    client.put(p[0], target, new MyProgressMonitor());
+                    client.put(p.getSource(), target, new MyProgressMonitor());
                     client.chmod(Integer.parseInt("700", 8), target);
                     // Extracting Worker package
-                    String command = "tar xzf " + target + " -C " + p[1] + " && rm " + p[1] + File.separator + name;
+                    String command = "tar xzf " + target + " -C " + p.getTarget() + " && rm " + target;
                     executeTask(ip, user, command, c);
                     //Adding classpath in bashrc
-                    command = "echo \"\nfor i in " + p[1] + File.separator + "*.jar ; "
+                    command = "echo \"\nfor i in " + p.getTarget() + File.separator + "*.jar ; "
                             + "do\n"
                             + "\texport CLASSPATH=\\$CLASSPATH:\\$i\n"
                             + "done\" >> " + File.separator + "home" + File.separator + user + File.separator + ".bashrc";

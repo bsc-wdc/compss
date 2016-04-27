@@ -1,38 +1,39 @@
 package integratedtoolkit.components.impl;
 
-import integratedtoolkit.ITConstants;
+import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
+
+import org.apache.log4j.Logger;
+
 import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
-import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.TaskParams.Type;
-import integratedtoolkit.types.data.AccessParams.AccessMode;
-import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
-import integratedtoolkit.types.data.DataAccessId.WAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
+import integratedtoolkit.types.data.AccessParams.*;
+import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.DataAccessId.*;
+import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.parameter.DependencyParameter;
+import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.operation.ResultListener;
-import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
-import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.util.ErrorManager;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.Semaphore;
-
-import org.apache.log4j.Logger;
 
 public class TaskAnalyser {
 
@@ -41,6 +42,7 @@ public class TaskAnalyser {
 
     // Components
     private DataInfoProvider DIP;
+    private GraphGenerator GM;
 
     // <File id, Last writer task> table
     private TreeMap<Integer, Task> writers;
@@ -55,7 +57,7 @@ public class TaskAnalyser {
     // Map: app id -> set of written data ids (for result files)
     private HashMap<Long, TreeSet<Integer>> appIdToWrittenFiles;
     // Map: app id -> set of written data ids (for result SCOs)
-    private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;    
+    private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;  
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<Task, List<Semaphore>> waitedTasks;
 
@@ -63,9 +65,8 @@ public class TaskAnalyser {
     private static final Logger logger = Logger.getLogger(Loggers.TA_COMP);
     private static final boolean debug = logger.isDebugEnabled();
     // Graph drawing
-    private static final boolean drawGraph = System.getProperty(ITConstants.IT_GRAPH) != null
-            && System.getProperty(ITConstants.IT_GRAPH).equals("true") ? true : false;
-
+    private static final boolean drawGraph = GraphGenerator.isEnabled();
+    
     private static int synchronizationId;
 
     public TaskAnalyser() {
@@ -83,14 +84,18 @@ public class TaskAnalyser {
     public void setCoWorkers(DataInfoProvider DIP) {
         this.DIP = DIP;
     }
+    
+    public void setGM(GraphGenerator GM) {
+    	this.GM = GM;
+    }
 
     public void processTask(Task currentTask) {
         TaskParams params = currentTask.getTaskParams();
         logger.info("New " + (params.getType() == Type.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = " + currentTask.getId());
         if (drawGraph) {
-            RuntimeMonitor.addTaskToGraph(currentTask);
+            this.GM.addTaskToGraph(currentTask);
             if (synchronizationId > 0) {
-                RuntimeMonitor.addEdgeToGraph("Synchro" + synchronizationId, String.valueOf(currentTask.getId()), "");
+                this.GM.addEdgeToGraph("Synchro" + synchronizationId, String.valueOf(currentTask.getId()), "");
             }
         }
 
@@ -160,7 +165,7 @@ public class TaskAnalyser {
                 case PSCO_T:
             		SCOParameter sco = (SCOParameter) p;
                     daId = DIP.registerObjectAccess(am, sco.getValue(), sco.getCode(), methodId);
-            		break;                                        
+            		break;  
 
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
@@ -232,16 +237,15 @@ public class TaskAnalyser {
                         }
                     }
                     if (b) {
-                        RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
+                    	this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
                     }
                 } catch (Exception e) {
                     logger.error("Error drawing dependency in graph", e);
                 }
             }
             currentTask.addDataDependency(lastWriter);
-
-        } else if (drawGraph && lastWriter == null) {
-            RuntimeMonitor.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
+        } else if (drawGraph && lastWriter != null) {
+        	this.GM.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
         }
         return true;
     }
@@ -266,7 +270,7 @@ public class TaskAnalyser {
                 appIdToSCOWrittenIds.put(appId, idsWritten);
             }
             idsWritten.add(dataId);
-        }           
+        }
         if (debug) {
             logger.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
         }
@@ -376,10 +380,11 @@ public class TaskAnalyser {
             }
             synchronizationId++;
             try {
-                RuntimeMonitor.addSynchroToGraph(synchronizationId);
-                RuntimeMonitor.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
+            	this.GM.addSynchroToGraph(synchronizationId);
+            	this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
+
                 if (synchronizationId > 0) {
-                    RuntimeMonitor.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
+                	this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
                 }
             } catch (Exception e) {
                 logger.error("Error adding task to graph file", e);
@@ -401,7 +406,7 @@ public class TaskAnalyser {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
         if (drawGraph) {
-            RuntimeMonitor.commitGraph();
+            this.GM.commitGraph();
         }
         if (count == null || count == 0) {
             appIdToTaskCount.remove(appId);
@@ -418,21 +423,8 @@ public class TaskAnalyser {
 
     public void shutdown() {
         if (drawGraph) {
-            RuntimeMonitor.removeTemporaryGraph();
+            GraphGenerator.removeTemporaryGraph();
         }
-    }
-
-    public String getGraphDOTFormat() {
-        StringBuilder nodes = new StringBuilder();
-        StringBuilder edges = new StringBuilder();
-        LinkedList<Task> tasks = new LinkedList<Task>();
-        for (Task task : tasks) {
-            nodes.append(task.getDotDescription()).append("\n");
-            for (Task successor : task.getSuccessors()) {
-                edges.append(task.getId()).append(" -> ").append(successor.getId()).append("\n");
-            }
-        }
-        return nodes.toString() + edges.toString();
     }
 
     public String getTaskStateRequest() {

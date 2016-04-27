@@ -7,19 +7,17 @@ import integratedtoolkit.types.ServiceImplementation;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.types.resources.ResourceDescription;
-import integratedtoolkit.types.resources.MethodResourceDescription;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class CoreManager {
 
     // Constants definition
     private static ITConstants.Lang lang = ITConstants.Lang.JAVA;
 
-    public static final Map<String, Integer> SIGNATURE_TO_ID = new HashMap<String, Integer>();
+    public static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<String, Integer>();
     private static int coreCount = 0;
     private static int nextId = 0;
 
@@ -76,8 +74,6 @@ public class CoreManager {
             methodId = nextId++;
             SIGNATURE_TO_ID.put(signature, methodId);
             if (lang == ITConstants.Lang.PYTHON) {
-                MethodResourceDescription rd = new MethodResourceDescription();
-                rd.setProcessorCoreCount(1);
                 ((MethodImplementation) implementations[methodId][0]).setDeclaringClass(declaringClass);
             }
         }

@@ -34,6 +34,16 @@
 			<artifactId>compss-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-schema</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-project-schema</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	    
 		<dependency>
 			<groupId>log4j</groupId>

@@ -1,17 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
-	  <Worker Name="WorkerTS1">
-            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-            <WorkingDir>/tmp/WorkerTS1/</WorkingDir>
-            <AppDir>/home/user/tests/app01/</AppDir>
-            <LimitOfTasks>4</LimitOfTasks>
-      </Worker>
-      
-	  <Worker Name="WorkerTS2">
-            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-            <WorkingDir>/tmp/WorkerTS2/</WorkingDir>
-            <AppDir>/home/user/tests/app01/</AppDir>
-            <LimitOfTasks>4</LimitOfTasks>
-      </Worker>
-</Project>
+    <MasterNode/>
+    
+    <ComputeNode Name="COMPSsWorker01">
+        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+        <Application>
+        	<AppDir>/home/user/tests/app01/</AppDir>
+        </Application>
+        <LimitOfTasks>4</LimitOfTasks>
+    </ComputeNode>
+    
+    <ComputeNode Name="COMPSsWorker02">
+        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker02/</WorkingDir>
+        <LimitOfTasks>4</LimitOfTasks>
+        <Application>
+        	<AppDir>/home/user/tests/app01/</AppDir>
+        </Application>
+        <User>baduser</User>
+    </ComputeNode>
 
+</Project>

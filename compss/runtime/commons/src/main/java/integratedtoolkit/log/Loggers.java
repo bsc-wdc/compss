@@ -14,8 +14,13 @@ public final class Loggers {
 
     // API
     public static final String API = IT + ".API";
+    
+    // XML Parsers
+    public static final String XML_PARSER = IT + ".Xml";
+    public static final String XML_RESOURCES = XML_PARSER + ".Resources";
+    public static final String XML_PROJECT = XML_PARSER + ".Project";
 
-    //Resources
+    // Resources
     public static final String RESOURCES = IT + ".Resources";
 
     // Components

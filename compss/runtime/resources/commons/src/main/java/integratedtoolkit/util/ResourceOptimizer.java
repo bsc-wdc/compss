@@ -8,15 +8,19 @@ import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+
 import org.apache.log4j.Logger;
+
 
 public class ResourceOptimizer extends Thread {
 
@@ -351,20 +355,30 @@ public class ResourceOptimizer extends Thread {
         return unfulfilledConstraints;
     }
 
-    //classifies the constraints  depending on their arquitecture and leaves it on coreResourceList
-    //Return a list with all the Architectures Names
+    // Classifies the constraints depending on their arquitecture and leaves it on coreResourceList
+    // Returns a list with all the Architectures Names
+    /**
+     * Classifies the constraints depending on their architecture and leaves it on coreResourceList
+     * 
+     * @param constraints
+     * @return list with all the architectures' names
+     */
     private static HashMap<String, LinkedList<ConstraintsCore>> classifyArchitectures(LinkedList<ConstraintsCore>[] constraints) {
         HashMap<String, LinkedList<ConstraintsCore>> archs = new HashMap<String, LinkedList<ConstraintsCore>>();
+
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             if (constraints[coreId] != null) {
                 for (ConstraintsCore cc : constraints[coreId]) {
-                    String arch = cc.desc.getProcessorArchitecture();
-                    LinkedList<ConstraintsCore> archConstr = archs.get(arch);
-                    if (archConstr == null) {
-                        archConstr = new LinkedList<ConstraintsCore>();
-                        archs.put(arch, archConstr);
-                    }
-                    archConstr.add(cc);
+                        List<String> runnableArchitectures = cc.desc.getArchitectures();
+                        for (String arch : runnableArchitectures) {
+                                // Insert element into HashMap
+                                LinkedList<ConstraintsCore> archConstr = archs.get(arch);
+                                if (archConstr == null) {
+                            archConstr = new LinkedList<ConstraintsCore>();
+                            archs.put(arch, archConstr);
+                        }
+                        archConstr.add(cc);
+                        }
                 }
             }
         }
@@ -403,6 +417,10 @@ public class ResourceOptimizer extends Thread {
     }
 
     private static void reassignUnassignedConstraints(HashMap<String, LinkedList<ConstraintsCore>> arch2Ctrs) {
+        /*
+         * ATTENTION: Since this method is only evaluated from contraints, there is only
+         *                        1 PROCESSOR and 1 ARCHITECTURE
+         */
         LinkedList<ConstraintsCore> unassignedList = arch2Ctrs.get("[unassigned]");
         if (unassignedList == null) {
             return;
@@ -434,7 +452,7 @@ public class ResourceOptimizer extends Thread {
         while (!unassignedList.isEmpty()) {
             ConstraintsCore unassigned = unassignedList.removeFirst();
             CloudMethodResourceDescription candidate = unassigned.desc;
-            String bestArch = "";
+            String bestArch = CloudMethodResourceDescription.UNASSIGNED_STR;
             Float bestDifference = Float.MAX_VALUE;
             for (ConstraintsCore assigned : assignedList) {
                 CloudMethodResourceDescription option = assigned.desc;
@@ -442,20 +460,34 @@ public class ResourceOptimizer extends Thread {
                 if (bestDifference < 0) {
                     if (difference < 0) {
                         if (difference > bestDifference) {
-                            bestArch = option.getProcessorArchitecture();
+                                List<String> avail_archs = option.getArchitectures();
+                                if (avail_archs != null && !avail_archs.isEmpty()) {
+                                        bestArch = avail_archs.get(0);
+                                }
                             bestDifference = difference;
                         }
                     }
                 } else {
                     if (difference < bestDifference) {
-                        bestArch = option.getProcessorArchitecture();
+                        List<String> avail_archs = option.getArchitectures();
+                        if (avail_archs != null && !avail_archs.isEmpty()) {
+                                bestArch = avail_archs.get(0);
+                        }
                         bestDifference = difference;
                     }
                 }
             }
-            unassigned.desc.setProcessorArchitecture(bestArch);
-            arch2Ctrs.get(bestArch).add(unassigned);
 
+            // Add
+            List<Processor> procs = unassigned.desc.getProcessors();
+            if (procs != null && !procs.isEmpty()) {
+                procs.get(0).setArchitecture(bestArch);
+            } else {
+                Processor p = new Processor();
+                p.setArchitecture(bestArch);
+                procs.add(p);
+            }
+            arch2Ctrs.get(bestArch).add(unassigned);
         }
     }
 
@@ -477,24 +509,12 @@ public class ResourceOptimizer extends Thread {
      * constraint
      */
     public static int addExtraNodes(int alreadyCreated) {
-        String minVMs = ProjectManager.getCloudProperty("minVMCount");
-        int minVMsCount = 0;
-        if (minVMs != null) {
-            minVMsCount = Integer.parseInt(minVMs);
-        }
-        String initialVMs = ProjectManager.getCloudProperty("InitialVMs");
-        int initialVMsCount = 0;
-        if (initialVMs != null) {
-            initialVMsCount = Integer.parseInt(initialVMs);
-        }
-
-        //Check that initial VMs aren't lower than minVMs
-        initialVMsCount = Math.max(minVMsCount, initialVMsCount);
-
+        int initialVMsCount = CloudManager.getInitialVMs();
         int vmCount = initialVMsCount - alreadyCreated;
         if (vmCount <= 0) {
             return 0;
         }
+
         if (debug) {
             resourcesLogger.debug("DEBUG_MSG = [\n\tALREADY_CREATED_INSTANCES = " + alreadyCreated + "\n\tMAXIMUM_NEW_PETITIONS = " + vmCount + "\n]");
         }
@@ -580,29 +600,17 @@ public class ResourceOptimizer extends Thread {
      */
     private void applyPolicies(WorkloadStatus workload) {
         int currentCloudVMCount = CloudManager.getCurrentVMCount();
+        maxNumberOfVMs = (CloudManager.getMaxVMs() > 0) ? CloudManager.getMaxVMs() : null;
+        minNumberOfVMs = CloudManager.getMinVMs();
+
         long creationTime;
         try {
             creationTime = CloudManager.getNextCreationTime();
         } catch (Exception ex) {
             creationTime = 120000l;
         }
-        try {
-            ProjectManager.refresh();
-            String maxAmountString = ProjectManager.getCloudProperty("maxVMCount");
-            if (maxAmountString != null) {
-                maxNumberOfVMs = Integer.parseInt(maxAmountString);
-            }
-            String minAmountString = ProjectManager.getCloudProperty("minVMCount");
-            if (minAmountString != null) {
-                minNumberOfVMs = Integer.parseInt(minAmountString);
-            }
-            if (maxNumberOfVMs != null && minNumberOfVMs != null && minNumberOfVMs > maxNumberOfVMs) {
-                minNumberOfVMs = maxNumberOfVMs;
-            }
-        } catch (Exception e) {
-            logger.error("Cannot refresh project", e);
-        }
-        int coreCount = workload.getCoreCount();
+
+	int coreCount = workload.getCoreCount();
         int noResourceCount = workload.getNoResourceCount();
         int[] noResourceCounts = workload.getNoResourceCounts();
 

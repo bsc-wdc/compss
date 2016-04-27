@@ -2,7 +2,6 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
@@ -18,6 +17,7 @@ import integratedtoolkit.nio.commands.CommandShutdown;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.tracing.CommandGeneratePackage;
 import integratedtoolkit.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
+import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
@@ -30,9 +30,6 @@ import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 
-import java.io.File;
-import java.util.HashMap;
-
 import org.apache.log4j.Logger;
 
 
@@ -42,67 +39,21 @@ public class NIOWorkerNode extends COMPSsWorker {
 
 	private static final int MAX_RETRIES = 5;
 
-    private String user;
-    private String host;
-    private String installDir;
-    private String baseWorkingDir;
-    private String workingDir;
-    private String appDir;
-    private String libPath;
-    private String queue;
-    private int limitOfTasks;
     private NIONode node;
+    private NIOConfiguration config;
     private NIOAdaptor commManager;
     
     @Override
     public String getName() {
-        return host;
+        return config.getHost();
     }
 
-    public NIOWorkerNode(String name, HashMap<String, String> properties, NIOAdaptor adaptor) {
-        super(name, properties);
+    public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
+        super(name, config);
 
-        this.user = properties.get(ITConstants.USER);
-
-        this.host = name;
-        this.installDir = properties.get(ITConstants.INSTALL_DIR);
-        if (this.installDir == null) {
-            this.installDir = "";
-        } else if (!this.installDir.endsWith(File.separator)) {
-            this.installDir = this.installDir + File.separator;
-        }
-
-        this.baseWorkingDir = properties.get(ITConstants.WORKING_DIR);
-        if (this.baseWorkingDir == null) {
-        	// No working dir specified in the project file. Using default tmp
-            this.baseWorkingDir = File.separator + "tmp" + File.separator;
-        } else if (!this.baseWorkingDir.endsWith(File.separator)) {
-            this.baseWorkingDir = this.baseWorkingDir + File.separator;
-        }
-        
-        this.workingDir = this.baseWorkingDir + NIOAdaptor.DEPLOYMENT_ID + File.separator + this.host + File.separator;
-
-        this.appDir = properties.get(ITConstants.APP_DIR);
-        if (this.appDir == null) {
-            this.appDir = "";
-        }
-
-        this.libPath = properties.get(ITConstants.LIB_PATH);
-        if (this.libPath == null) {
-            this.libPath = "";
-        }
-        
-        this.queue = properties.get("queue");
-        if (this.queue == null) {
-            this.queue = "";
-        }
-        String value;
-        if ((value = properties.get(ITConstants.LIMIT_OF_TASKS)) != null) {
-            this.limitOfTasks = Integer.parseInt(value);
-        }
-        
+        this.config = config;
         this.commManager = adaptor;
-        
+
         if (tracing) {
             logger.debug("Initializing NIO tracer " + this.getName());
             NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
@@ -110,39 +61,35 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     public String getUser() {
-        return user;
+        return config.getUser();
     }
 
     public String getHost() {
-        return host;
+        return config.getHost();
     }
 
     public String getInstallDir() {
-        return installDir;
+        return config.getInstallDir();
     }
     
     public String getBaseWorkingDir() {
-        return baseWorkingDir;
+        return config.getWorkingDir();
     }
 
     public String getWorkingDir() {
-        return workingDir;
+        return config.getSandboxWorkingDir();
     }
 
     public String getAppDir() {
-        return appDir;
+        return config.getAppDir();
     }
 
     public String getLibPath() {
-        return libPath;
-    }
-
-    public String getQueue() {
-        return queue;
+        return config.getLibraryPath();
     }
     
     public int getLimitOfTasks() {
-        return this.limitOfTasks;
+        return config.getLimitOfTasks();
     }
 
     public void setNode(NIONode node) {
@@ -151,6 +98,10 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     public NIONode getNode() {
         return this.node;
+    }
+    
+    public NIOConfiguration getConfiguration() {
+    	return this.config;
     }
 
     @Override
@@ -166,7 +117,6 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-    	
         logger.info("Shutting down " + node);
         for (int retries = 0; retries < MAX_RETRIES; retries++){
         	if (tryShutdown(sl)) {
@@ -273,7 +223,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     public String getCompletePath(ITExecution.ParamType type, String name) {
         switch (type) {
             case FILE_T:
-                return workingDir + name;
+                return config.getSandboxWorkingDir() + name;
             case OBJECT_T:
             case SCO_T:
             case PSCO_T:            	

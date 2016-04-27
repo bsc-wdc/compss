@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 
 import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.connectors.ConnectorException;
+import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
 import java.io.BufferedReader;
@@ -217,14 +218,19 @@ public class EC2 extends AbstractSSHConnector {
     }
 
 	@Override
-	public Object create(String name, CloudMethodResourceDescription requested)
-			throws ConnectorException {
-		String arch = requested.getImage().getArch();
+	public Object create(String name, CloudMethodResourceDescription requested) throws ConnectorException {
+		// Get architecture (workarround for multi-architectures)
+		String arch = CloudMethodResourceDescription.UNASSIGNED_STR;
+        List<String> available_archs = requested.getArchitectures();
+        if (available_archs != null && !available_archs.isEmpty()) {
+        	arch = available_archs.get(0);
+        }
+        
         logger.debug("Requesting machine creation " + name + ", with arch " + arch + ", description: " + requested);
-        String instanceCode = AmazonVM.classifyMachine(requested.getProcessorCoreCount(), 
-        		requested.getMemoryPhysicalSize() * 1024f, requested.getStorageElemSize() * 1024f, arch);
+        String instanceCode = AmazonVM.classifyMachine(requested.getTotalComputingUnits(), 
+        		requested.getMemorySize() * 1024f, requested.getStorageSize() * 1024f, arch);
         try {
-           RunInstancesResult res = createMachine(instanceCode, requested.getImage().getName());
+           RunInstancesResult res = createMachine(instanceCode, requested.getImage().getImageName());
            logger.debug("Request for VM creation sent");
            return res;
         } catch (Exception e) {
@@ -279,33 +285,31 @@ public class EC2 extends AbstractSSHConnector {
         granted.setName(ip);
         AmazonVM vmInfo = new AmazonVM(instanceId, granted, instanceType, placement);
 
-        //float oneHourCost = AmazonVM.getPrice(instanceType, vmInfo.getPlacement());
-
-        int cpuCount = vmInfo.getType().getCpucount();
-        granted.setProcessorCoreCount(cpuCount);
-        granted.setProcessorArchitecture(requested.getProcessorArchitecture());
-        granted.setProcessorSpeed(requested.getProcessorSpeed());
+        granted.copy(requested);
+        
+        // Workaround for multi-processor
+        List<Processor> procs = granted.getProcessors();
+        if (procs != null && !procs.isEmpty()) {
+        	procs.get(0).setComputingUnits(vmInfo.getType().getCpucount());
+        } else {
+        	Processor p = new Processor();
+        	p.setComputingUnits(vmInfo.getType().getCpucount());
+        	granted.addProcessor(p);
+        }
 
         float memorySize = vmInfo.getType().getMemory() / 1024f;
-        granted.setMemoryAccessTime(requested.getMemoryAccessTime());
-        granted.setMemoryPhysicalSize(memorySize);
-        granted.setMemorySTR(requested.getMemorySTR());
-        granted.setMemoryVirtualSize(requested.getMemoryVirtualSize());
+        granted.setMemorySize(memorySize);
 
         float homeSize = vmInfo.getType().getDisk() / 1024f;
-        granted.setStorageElemAccessTime(requested.getStorageElemAccessTime());
-        granted.setStorageElemSTR(requested.getStorageElemSTR());
-        granted.setStorageElemSize(homeSize);
+        granted.setStorageSize(homeSize);
 
         granted.setOperatingSystemType("Linux");
-        granted.setSlots(requested.getSlots());
-        List<String> apps = requested.getAppSoftware();
-        for (int i = 0; i < apps.size(); i++) {
-            granted.addAppSoftware(apps.get(i));
-        }
         granted.setType(instanceType);
-        granted.setImage(requested.getImage());
         granted.setValue(getMachineCostPerHour(granted));
+        
+        float oneHourCost = AmazonVM.getPrice(instanceType, vmInfo.getPlacement());
+        granted.setPricePerUnit(oneHourCost);
+        granted.setPriceTimeUnit(60); // Minutess
         
 		return granted;
 	}

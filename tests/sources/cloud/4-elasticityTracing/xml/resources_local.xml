@@ -1,30 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourceList>
-    <Resource Name="localhost">
-        <Capabilities>
-            <Host>
-                <TaskCount>4</TaskCount>
-            </Host>
-            <Processor>
-                <Architecture>amd64</Architecture>
-                <Speed>2.0</Speed>
-                <CoreCount>4</CoreCount>
-            </Processor>
-            <OS>
-                <OSType>Linux</OSType>
-            </OS>
-            <StorageElement>
-                <Size>120.0</Size>
-            </StorageElement>
-            <Memory>
-                <PhysicalSize>8.0</PhysicalSize>
-            </Memory>
-        </Capabilities>
+<ResourcesList>
+    <ComputeNode Name="COMPSsWorker01">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
         <Adaptors>
-            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
-                <MinPort>43001</MinPort>
-                <MaxPort>43002</MaxPort>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
             </Adaptor>
         </Adaptors>
-    </Resource>
-</ResourceList>
+    </ComputeNode>
+</ResourcesList>

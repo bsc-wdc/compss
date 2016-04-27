@@ -4,6 +4,7 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Implementation.Type;
 import org.w3c.dom.Node;
 
+
 public class ServiceResourceDescription extends WorkerResourceDescription {
 
     private final String serviceName;
@@ -23,23 +24,24 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
         this.port = "";
     }
 
-    public String getPort() {
-        return port;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
     public String getServiceName() {
-        return serviceName;
-    }
+		return serviceName;
+	}
+
+	public String getNamespace() {
+		return namespace;
+	}
+
+	public String getPort() {
+		return port;
+	}
+
 
     public void hosts(Implementation<?> impl) {
         //Do nothing
     }
 
-    @Override
+	@Override
     public boolean canHost(Implementation<?> impl) {
         if (impl.getType() == Type.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();

@@ -73,14 +73,13 @@ public class CEIParser {
     	int n = i+1;
     	Parameter par = ((Parameter) m.getParameterAnnotations()[i][0]);
     	Parameter.Type annotType = par.type();
-    	String inferredType = inferType(m.getParameterTypes()[i], annotType);
     	
-    	final String WARNING_LOCATION = 
-				  "In parameter number " + n + " of method '" + m.getName() + "' " + 
-				  " in interface '" + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
+    	final String WARNING_LOCATION = "In parameter number " + n + " of method '" + m.getName() 
+    			+ "' in interface '" + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
     	
     	/* 
     	////////// Uncomment to enable warnings when the type of a parameter is inferred
+    	String inferredType = inferType(m.getParameterTypes()[i], annotType);
         if (annotType.equals(Parameter.Type.UNSPECIFIED)) { //Using inferred type, warn user 
         	ErrorManager.warn("No type specified for parameter number " + n + " of method '" + m.getName() + "'." + ErrorManager.NEWLINE +
         					  WARNING_LOCATION + ErrorManager.NEWLINE +  
@@ -89,18 +88,16 @@ public class CEIParser {
         */
         
         Parameter.Direction annotDirection = par.direction();
-        boolean outOrInout = annotDirection.equals(annotDirection.OUT) || annotDirection.equals(annotDirection.INOUT);
+        boolean outOrInout = annotDirection.equals(Parameter.Direction.OUT) || annotDirection.equals(Parameter.Direction.INOUT);
         if(annotType.equals(Parameter.Type.STRING) && outOrInout) {
 			ErrorManager.warn("Can't specify a String with direction OUT/INOUT since they are immutable." + ErrorManager.NEWLINE +
 							   WARNING_LOCATION + ErrorManager.NEWLINE +  
 							  "Using direction=IN instead.");
-		}
-        else if(annotType.equals(Parameter.Type.OBJECT) && annotDirection.equals(annotDirection.OUT)) {
+		} else if(annotType.equals(Parameter.Type.OBJECT) && annotDirection.equals(Parameter.Direction.OUT)) {
     		ErrorManager.warn("Can't specify an Object with direction OUT." + ErrorManager.NEWLINE +
 					   WARNING_LOCATION + ErrorManager.NEWLINE +  
 					  "Using direction=INOUT instead.");
-        }
-        else if(m.getParameterTypes()[i].isPrimitive() && outOrInout) {
+        } else if(m.getParameterTypes()[i].isPrimitive() && outOrInout) {
         	//int, boolean, long, float, char, byte, short, double
         	String primType  = m.getParameterTypes()[i].getName();
 			ErrorManager.warn("Can't specify a primitive type ('" + primType + "') with direction OUT/INOUT, " +
@@ -108,8 +105,6 @@ public class CEIParser {
 							  WARNING_LOCATION + ErrorManager.NEWLINE +  
 							  "Using direction=IN instead.");
         }
-        
-        String direction = annotDirection.toString();
     }
 
     /**
@@ -178,17 +173,11 @@ public class CEIParser {
                     for (int i = 0; i < implementationCount; i++) {
                         MethodResourceDescription specificConstraints = new MethodResourceDescription(mc.value()[i]);
                         specificConstraints.join(defaultConstraints);
-                        if (specificConstraints.getProcessorCoreCount() == 0) {
-                            specificConstraints.setProcessorCoreCount(1);
-                        }
                         implConstraints[i] = specificConstraints;
                     }
                 } else {
                     for (int i = 0; i < implementationCount; i++) {
                         implConstraints[i] = defaultConstraints;
-                        if (defaultConstraints.getProcessorCoreCount() == 0) {
-                            defaultConstraints.setProcessorCoreCount(1);
-                        }
                     }
                 }
                 for (int i = 0; i < implementationCount; i++) {
@@ -233,9 +222,6 @@ public class CEIParser {
     private static void loadMethodConstraints(int coreId, int implementationCount, String[] declaringClasses, MethodResourceDescription[] cts) {
         Implementation<?>[] implementations = new Implementation[implementationCount];
         for (int i = 0; i < implementationCount; i++) {
-            if (cts[i].getProcessorCoreCount() == 0) {
-                cts[i].setProcessorCoreCount(1);
-            }
             implementations[i] = new MethodImplementation(declaringClasses[i], coreId, i, cts[i]);
         }
         CoreManager.registerImplementations(coreId, implementations);

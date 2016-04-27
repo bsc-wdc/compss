@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
-	  <Worker Name="localhost">
-            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
-            <WorkingDir>/tmp/localhost/</WorkingDir>
-	    <!--<LimitOfTasks>4</LimitOfTasks>-->
-          </Worker>
-
-	  <Worker Name="http://bscgrid05.bsc.es:20390/hmmerobj/hmmerobj?wsdl">
-           <LimitOfTasks>3</LimitOfTasks>
-          </Worker>
+    <MasterNode/>
+    <ComputeNode Name="localhost">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker/</WorkingDir>
+        <LimitOfTasks>4</LimitOfTasks>
+    </ComputeNode>
+    <Service wsdl="http://bscgrid05.bsc.es:20390/hmmerobj/hmmerobj?wsdl">
+        <LimitOfTasks>2</LimitOfTasks>
+    </Service>
 </Project>
-

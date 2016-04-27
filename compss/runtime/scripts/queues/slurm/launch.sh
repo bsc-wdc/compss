@@ -160,7 +160,7 @@ then
         -Dit.project.file=$PROJECT_FILE \
         -Dit.resources.file=$RESOURCES_FILE \
 	-Dit.project.schema=$IT_HOME/xml/projects/project_schema.xsd \
-	-Dit.resources.schema=$IT_HOME/xml/resources/resource_schema.xsd \
+	-Dit.resources.schema=$IT_HOME/xml/resources/resources_schema.xsd \
         -Dit.appName=$APP_NAME \
         -Dit.graph=$GRAPH \
         -Dit.monitor=$MONITORING \
@@ -204,7 +204,7 @@ then
 -Dit.project.file=$PROJECT_FILE
 -Dit.resources.file=$RESOURCES_FILE
 -Dit.project.schema=$IT_HOME/xml/projects/project_schema.xsd
--Dit.resources.schema=$IT_HOME/xml/resources/resource_schema.xsd
+-Dit.resources.schema=$IT_HOME/xml/resources/resources_schema.xsd
 -Dit.appName=$app_no_py
 -Dit.graph=$GRAPH
 -Dit.monitor=$MONITORING

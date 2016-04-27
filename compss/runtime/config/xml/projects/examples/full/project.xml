@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode>
+        <SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/tmp/sharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+        <Price>
+            <TimeUnit>1</TimeUnit>
+            <PricePerUnit>1.23</PricePerUnit>
+        </Price>
+    </MasterNode>
+    <ComputeNode Name="CN_full">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/Worker/</WorkingDir>
+        <Application>
+            <AppDir>/home/user/apps/</AppDir>
+            <LibraryPath>/usr/lib/</LibraryPath>
+            <Classpath>/home/user/apps/jar/example.jar</Classpath>
+            <Pythonpath>/home/user/apps/</Pythonpath>
+        </Application>
+        <LimitOfTasks>4</LimitOfTasks>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+                <User>user</User>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <User>user</User>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+            <Adaptor Name="myCustomAdaptor.CustomAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <User>user</User>
+                <Properties>
+                    <Property>
+                        <Name>P1</Name>
+                        <Value>V1</Value>
+                    </Property>
+                    <Property>
+                        <Name>P2</Name>
+                        <Value>V2</Value>
+                    </Property>
+                </Properties>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="CN_half">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/Worker/</WorkingDir>
+        <Application>
+            <AppDir>/home/user/apps/</AppDir>
+            <Classpath>/home/user/apps/jar/example.jar</Classpath>
+        </Application>
+        <LimitOfTasks>2</LimitOfTasks>
+        <Adaptors>
+            <Adaptor Name="myCustomAdaptor.CustomAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                </SubmissionSystem>
+                <Properties/>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <ComputeNode Name="CN_empty">
+        <InstallDir>/opt/COMPSs/</InstallDir>
+        <WorkingDir>/tmp/Worker/</WorkingDir>
+    </ComputeNode>
+    <DataNode Name="DN_full">
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </DataNode>
+    <Service wsdl="http://bscgrid20.bsc.es/service_full?wsdl">
+        <LimitOfTasks>4</LimitOfTasks>
+    </Service>
+    <Service wsdl="http://bscgrid20.bsc.es/service_empty?wsdl"/>
+    <Cloud>
+        <InitialVMs>1</InitialVMs>
+        <MinimumVMs>1</MinimumVMs>
+        <MaximumVMs>4</MaximumVMs>
+        <CloudProvider Name="bsc1">
+            <LimitOfVMs>4</LimitOfVMs>
+            <Properties>
+                <Property Context="C1">
+                    <Name>P1</Name>
+                    <Value>V1</Value>
+                </Property>
+                <Property>
+                    <Name>P2</Name>
+                    <Value>V2</Value>
+                </Property>
+            </Properties>
+            <Images>
+                <Image Name="ImageFull">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                    <User>user</User>
+                    <Application>
+                        <Pythonpath>/home/user/apps/</Pythonpath>
+                    </Application>
+                    <LimitOfTasks>2</LimitOfTasks>
+                    <Package>
+                        <Source>/home/user/apps/</Source>
+                        <Target>/tmp/Worker/</Target>
+                        <IncludedSoftware>
+                            <Application>Java</Application>
+                            <Application>Python</Application>
+                        </IncludedSoftware>
+                    </Package>
+                    <Package>
+                        <Source>/home/user/apps/</Source>
+                        <Target>/tmp/Worker/</Target>
+                    </Package>
+                    <Adaptors>
+                        <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                            <SubmissionSystem>
+<Interactive/>
+                            </SubmissionSystem>
+                            <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+                        </Adaptor>
+                    </Adaptors>
+                </Image>
+                <Image Name="ImageEmpty">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                </Image>
+            </Images>
+            <InstanceTypes>
+                <InstanceType Name="Instance1"/>
+                <InstanceType Name="Instance2"/>
+            </InstanceTypes>
+        </CloudProvider>
+        <CloudProvider Name="bsc2">
+            <Images>
+                <Image Name="ImageFull">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                </Image>
+            </Images>
+            <InstanceTypes>
+                <InstanceType Name="Instance1"/>
+            </InstanceTypes>
+        </CloudProvider>
+    </Cloud>
+</Project>

@@ -8,7 +8,8 @@ import integratedtoolkit.types.annotations.Parameter.Type;
 
 
 public interface SimpleItf {
-	@Constraints(processorCPUCount = 1, memoryPhysicalSize = 0.3f)
+	
+	@Constraints(computingUnits = 1)
 	@Method(declaringClass = "simple.SimpleImpl")
 	void increment(
 		@Parameter(type = Type.FILE, direction = Direction.INOUT)

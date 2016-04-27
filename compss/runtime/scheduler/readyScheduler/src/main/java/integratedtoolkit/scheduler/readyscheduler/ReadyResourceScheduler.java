@@ -8,9 +8,10 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ResourceScheduler;
 
+
 public class ReadyResourceScheduler extends ResourceScheduler<Profile> {
 
-    public ReadyResourceScheduler(Worker w) {
+    public ReadyResourceScheduler(Worker<?> w) {
         super(w);
     }
 
@@ -20,8 +21,9 @@ public class ReadyResourceScheduler extends ResourceScheduler<Profile> {
      * execution, it ignores the implementation.
      */
     @Override
-    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation impl, Score resourceScore) {
-        if (myWorker.canRunNow(impl.getRequirements())) {
+    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation<?> impl, Score resourceScore) {
+    	Worker w = myWorker;
+        if (w.canRunNow(impl.getRequirements())) {
             long implScore = this.getProfile(impl).getAverageExecutionTime();
             return new Score(resourceScore, implScore);
         } else {

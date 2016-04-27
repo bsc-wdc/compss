@@ -2,5 +2,5 @@
 /opt/COMPSs/Runtime/configuration/log/it-log4j.debug
 /opt/COMPSs/Runtime/configuration/log/it-log4j.info
 /opt/COMPSs/Runtime/configuration/log/it-log4j.off
-/opt/COMPSs/Runtime/configuration/xml/projects/project.xml
-/opt/COMPSs/Runtime/configuration/xml/resources/resources.xml
+/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml
+/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml

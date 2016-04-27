@@ -69,7 +69,7 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
             numParams--;
         }
 
-        NIOTask nt = new NIOTask(lang, getResourceNode().getInstallDir(), getResourceNode().getLibPath(), getResourceNode().getAppDir(), workerClasspath, workerDebug, className, methodName, hasTarget, params, numParams, taskId, this.taskParams.getId(), jobId, history, transferId);
+        NIOTask nt = new NIOTask(lang, getResourceNode().getInstallDir(), getResourceNode().getLibPath(), getResourceNode().getAppDir(), workerClasspath, debug, className, methodName, hasTarget, params, numParams, taskId, this.taskParams.getId(), jobId, history, transferId);
         
         return nt;
     }

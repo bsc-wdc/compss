@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <SharedDisk Name="DiskFull">
+        <Storage>
+            <Size>100.0</Size>
+            <Type>Persistent</Type>
+        </Storage>
+    </SharedDisk>
+    <SharedDisk Name="DiskWithStorage">
+        <Storage>
+            <Size>2000.0</Size>
+        </Storage>
+    </SharedDisk>
+    <SharedDisk Name="DiskEmpty"/>
+    <DataNode Name="DNFull">
+        <Host>localhost</Host>
+        <Path>/tmp/</Path>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+                <User>user</User>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <User>user</User>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+            <Adaptor Name="myCustomAdaptor.CustomAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <User>user</User>
+                <Properties>
+                    <Property>
+                        <Name>P1</Name>
+                        <Value>V1</Value>
+                    </Property>
+                    <Property>
+                        <Name>P2</Name>
+                        <Value>V2</Value>
+                    </Property>
+                </Properties>
+            </Adaptor>
+        </Adaptors>
+        <Storage>
+            <Size>2000.0</Size>
+        </Storage>
+        <SharedDisks>
+            <AttachedDisk Name="DiskFull">
+                <MountPoint>/tmp/SharedDisk/</MountPoint>
+            </AttachedDisk>
+            <AttachedDisk Name="DiskWithStorage">
+                <MountPoint>/tmp/SharedDisk2/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </DataNode>
+    <DataNode Name="DN_NIO">
+        <Host>localhost</Host>
+        <Path>/tmp/</Path>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+        </Adaptors>
+    </DataNode>
+    <DataNode Name="DN_GAT">
+        <Host>localhost</Host>
+        <Path>/tmp/</Path>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <Storage>
+            <Size>2000.0</Size>
+        </Storage>
+    </DataNode>
+    <DataNode Name="DN_Other">
+        <Host>localhost</Host>
+        <Path>/tmp/</Path>
+        <Adaptors>
+            <Adaptor Name="myCustomAdaptor.CustomAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>training</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Properties/>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="DiskFull">
+                <MountPoint>/tmp/SharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </DataNode>
+    <ComputeNode Name="localhost_full">
+        <Processor Name="P1">
+            <ComputingUnits>4</ComputingUnits>
+            <Architecture>amd64</Architecture>
+            <Speed>3.0</Speed>
+            <ProcessorProperty>
+                <Key>procKey</Key>
+                <Value>procValue</Value>
+            </ProcessorProperty>
+        </Processor>
+        <Processor Name="P2">
+            <ComputingUnits>4</ComputingUnits>
+            <Speed>3.0</Speed>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+        </Adaptors>
+        <Memory>
+            <Size>256.2</Size>
+            <Type>Non-volatile</Type>
+        </Memory>
+        <Storage>
+            <Size>2000.0</Size>
+        </Storage>
+        <OperatingSystem>
+            <Type>Linux</Type>
+            <Distribution>OpenSUSE</Distribution>
+            <Version>13.2</Version>
+        </OperatingSystem>
+        <Software>
+            <Application>Java</Application>
+            <Application>Python</Application>
+        </Software>
+        <SharedDisks>
+            <AttachedDisk Name="DiskFull">
+                <MountPoint>/tmp/SharedDisk/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+        <Price>
+            <TimeUnit>1</TimeUnit>
+            <PricePerUnit>0.12</PricePerUnit>
+        </Price>
+    </ComputeNode>
+    <ComputeNode Name="localhost_half">
+        <Processor Name="P1">
+            <ComputingUnits>4</ComputingUnits>
+            <Speed>3.0</Speed>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+        </Adaptors>
+        <Memory>
+            <Size>1000.0</Size>
+        </Memory>
+        <OperatingSystem>
+            <Type>Windows</Type>
+        </OperatingSystem>
+        <Software>
+            <Application>Java</Application>
+        </Software>
+        <Price>
+            <TimeUnit>100</TimeUnit>
+            <PricePerUnit>36.0</PricePerUnit>
+        </Price>
+    </ComputeNode>
+    <ComputeNode Name="localhost_empty">
+        <Processor Name="P1">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    <Service wsdl="http://localhost:8080/my-service?wsdl">
+        <Name>FullService</Name>
+        <Namespace>http://localhost/</Namespace>
+        <Port>myServicePort</Port>
+    </Service>
+    <CloudProvider Name="BSC_full">
+        <Endpoint>
+            <Server>https://bscgrid20.bsc.es</Server>
+            <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+            <Port>11443</Port>
+        </Endpoint>
+        <Images>
+            <Image Name="Image_bsc_full">
+                <Adaptors>
+                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <SubmissionSystem>
+                            <Interactive/>
+                        </SubmissionSystem>
+                        <Ports>
+                            <MinPort>43001</MinPort>
+                            <MaxPort>43002</MaxPort>
+                        </Ports>
+                    </Adaptor>
+                </Adaptors>
+                <OperatingSystem>
+                    <Type>Linux</Type>
+                </OperatingSystem>
+                <Software>
+                    <Application>Java</Application>
+                </Software>
+                <SharedDisks>
+                    <AttachedDisk Name="DiskFull">
+                        <MountPoint>/tmp/SharedDisk/</MountPoint>
+                    </AttachedDisk>
+                </SharedDisks>
+                <Price>
+                    <TimeUnit>100</TimeUnit>
+                    <PricePerUnit>36.0</PricePerUnit>
+                </Price>
+            </Image>
+            <Image Name="Image_bsc_empty">
+                <Adaptors>
+                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <SubmissionSystem>
+                            <Interactive/>
+                        </SubmissionSystem>
+                        <Ports>
+                            <MinPort>43001</MinPort>
+                            <MaxPort>43002</MaxPort>
+                        </Ports>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </Images>
+        <InstanceTypes>
+            <InstanceType Name="Instance_full">
+                <Processor Name="P1">
+                    <ComputingUnits>4</ComputingUnits>
+                    <Architecture>amd64</Architecture>
+                    <Speed>3.0</Speed>
+                    <ProcessorProperty>
+                        <Key>procKey</Key>
+                        <Value>procValue</Value>
+                    </ProcessorProperty>
+                </Processor>
+                <Processor Name="P2">
+                    <ComputingUnits>4</ComputingUnits>
+                    <Speed>3.0</Speed>
+                </Processor>
+                <Memory>
+                    <Size>1000.0</Size>
+                </Memory>
+                <Storage>
+                    <Size>2000.0</Size>
+                </Storage>
+            </InstanceType>
+            <InstanceType Name="Instance_empty">
+                <Processor Name="P1">
+                    <ComputingUnits>4</ComputingUnits>
+                </Processor>
+            </InstanceType>
+        </InstanceTypes>
+    </CloudProvider>
+    <CloudProvider Name="BSC_empty">
+        <Endpoint>
+            <Server>https://bscgrid20.bsc.es:11443/</Server>
+            <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+        </Endpoint>
+        <Images>
+            <Image Name="Image_bsc_empty">
+                <Adaptors>
+                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <SubmissionSystem>
+                            <Interactive/>
+                        </SubmissionSystem>
+                        <Ports>
+                            <MinPort>43001</MinPort>
+                            <MaxPort>43002</MaxPort>
+                        </Ports>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </Images>
+        <InstanceTypes>
+            <InstanceType Name="Instance_empty">
+                <Processor Name="P1">
+                    <ComputingUnits>4</ComputingUnits>
+                </Processor>
+            </InstanceType>
+        </InstanceTypes>
+    </CloudProvider>
+</ResourcesList>

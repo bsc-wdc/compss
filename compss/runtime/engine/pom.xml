@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  	<modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-engine</artifactId>
@@ -27,7 +27,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-    
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<!-- Runtime dependencies -->
@@ -35,12 +35,12 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-loader</artifactId>
 			<version>${project.version}</version>
-		</dependency>		    
-        	<dependency>
+		</dependency>
+		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-resources-commons</artifactId>
 			<version>${project.version}</version>
-		</dependency>     
+		</dependency>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-scheduler-commons</artifactId>
@@ -52,13 +52,13 @@
 			<groupId>es.bsc.storage</groupId>
 			<artifactId>storageInterface</artifactId>
 		</dependency>
-		
+
 		<!-- Engine dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
-                </dependency>
+		</dependency>
 		<!-- Log4j -->
 		<dependency>
 			<groupId>log4j</groupId>
@@ -84,8 +84,8 @@
 		<finalName>${project.artifactId}</finalName>
 		<resources>
 			<resource>
-			    <directory>src/main/resources/</directory>
-			    <filtering>true</filtering>
+				<directory>src/main/resources/</directory>
+				<filtering>true</filtering>
 			</resource>
 		</resources>
 		<plugins>
@@ -98,7 +98,7 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-			
+
 			<!-- Generate build number -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -131,18 +131,18 @@
 					<execution>
 						<id>copy</id>
 						<phase>packaging</phase>
-						<goals> 
-							<goal>copy-dependencies</goal> 
-						</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			
-			<!-- Crea el Jar amb les dependencies-->
+
+			<!-- Crea el Jar amb les dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -159,7 +159,7 @@
 					</execution>
 				</executions>
 			</plugin>
-     		 
+
 			<!-- Copiar el compss-engine.jar al basedir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -185,23 +185,23 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-            <!-- Clean compss-engine.jar -->
-            <plugin>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>${maven-clean-plugin.version}</version>
-                    <configuration>
-                            <failOnError>false</failOnError>
-                            <filesets>
-                                    <fileset>
-                                            <directory>${basedir}/..</directory>
-                                            <includes>
-                                                    <include>${project.artifactId}.jar</include>
-                                            </includes>
-                                    </fileset>
-                            </filesets>
-                    </configuration>
-            </plugin>		
+
+			<!-- Clean compss-engine.jar -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>${maven-clean-plugin.version}</version>
+				<configuration>
+					<failOnError>false</failOnError>
+					<filesets>
+						<fileset>
+							<directory>${basedir}/..</directory>
+							<includes>
+								<include>${project.artifactId}.jar</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

@@ -10,11 +10,12 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public class VMMConnector extends AbstractSSHConnector {
 	
-	private static final String ENDPOINT_PROP = "Server";
-    private static final String ACTIVE = "ACTIVE";
-    private static final String ERROR = "ERROR";
+	private static final String ENDPOINT_PROP 	= "Server";
+    private static final String ACTIVE 			= "ACTIVE";
+    private static final String ERROR 			= "ERROR";
     private static final long POLLING_INTERVAL = 5;
     private static final int TIMEOUT = 1800;
+    
     private VMMClient client;
     
     public VMMConnector(String providerName, HashMap<String, String> props) {
@@ -39,10 +40,10 @@ public class VMMConnector extends AbstractSSHConnector {
 			throws ConnectorException {
 		try {
 			logger.debug("Image password:" + requested.getImage().getProperties().get(ITConstants.PASSWORD));
-			String id =  client.createVM(name, requested.getImage().getName(), 
-   				 requested.getProcessorCoreCount(), 
-   				 (int)(requested.getMemoryPhysicalSize()*1000), 
-   				 (int)requested.getStorageElemSize(), 
+			String id =  client.createVM(name, requested.getImage().getImageName(), 
+   				 requested.getTotalComputingUnits(), 
+   				 (int)(requested.getMemorySize()*1000), 
+   				 (int)requested.getStorageSize(), 
    				 System.getProperty(ITConstants.IT_APP_NAME));
 		logger.debug("Machine "+ id + " created");
    		return id; 
@@ -79,29 +80,12 @@ public class VMMConnector extends AbstractSSHConnector {
 				}
 				vmd = client.getVMDescription(vmId);
 			}
-
+			
+			granted.copy(requested);
 			granted.setName(vmd.getIpAddress());
-
-			granted.setType(requested.getType());
-			granted.setProcessorCPUCount(requested.getProcessorCPUCount());
-			granted.setProcessorCoreCount(vmd.getCpus());
-			granted.setProcessorArchitecture(requested.getProcessorArchitecture());
-			granted.setProcessorSpeed(requested.getProcessorSpeed());
-			granted.setMemoryPhysicalSize(requested.getMemoryPhysicalSize());
-			granted.setMemoryAccessTime(requested.getMemoryAccessTime());
-			granted.setMemorySTR(requested.getMemorySTR());
-			granted.setMemoryVirtualSize(requested.getMemoryVirtualSize());
-			granted.setStorageElemSize(vmd.getDiskGb());
-			granted.setStorageElemAccessTime(requested.getStorageElemAccessTime());
-			granted.setStorageElemSTR(requested.getStorageElemSTR());
-
 			granted.setOperatingSystemType("Linux");
-			granted.setSlots(requested.getSlots());
-
-			granted.getAppSoftware().addAll(requested.getAppSoftware());
-			granted.setImage(requested.getImage());
-			granted.setValue(requested.getValue());
 			granted.setValue(getMachineCostPerTimeSlot(granted));
+
 			return granted;
         } catch(Exception e) {
         	logger.error("Exception waiting for VM Creation");

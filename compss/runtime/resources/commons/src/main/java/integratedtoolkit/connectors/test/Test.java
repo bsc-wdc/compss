@@ -25,13 +25,17 @@ public class Test extends AbstractConnector {
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
-        try{
+        try {
             Thread.sleep(15000);
-        }catch(Exception e){}
-        System.out.println("Esperem a que acabi de crear-se " + vm);
+        } catch(Exception e) {
+        	// No need to handle such exception
+        }
+        
+        System.out.println("Waiting for VM creation " + vm);
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription(requested);
         granted.setName("127.0.0." + nextId.getAndIncrement());
-        granted.setOperatingSystemType(requested.getImage().getOperativeSystem());
+        granted.setOperatingSystemType(requested.getImage().getOperatingSystemType());
+        
         return granted;
     }
 
@@ -73,6 +77,6 @@ public class Test extends AbstractConnector {
 	@Override
 	protected void close() {
 		// Nothing to do
-		
 	}
+	
 }

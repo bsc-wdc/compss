@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
 public @interface Parameter {
 
     public static enum Type {
-
         FILE,
         BOOLEAN,
         CHAR,
@@ -27,7 +26,6 @@ public @interface Parameter {
     }
 
     public static enum Direction {
-
         IN,
         OUT,
         INOUT;

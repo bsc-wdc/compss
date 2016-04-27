@@ -2,28 +2,31 @@ package integratedtoolkit.types.allocatiableaction;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.FailedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.AllocatableAction.BlockedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.FailedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.InvalidSchedulingException;
-import integratedtoolkit.scheduler.types.AllocatableAction.UnassignedActionException;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.resources.Worker;
+
 import java.util.HashSet;
 import java.util.LinkedList;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class AllocatableActionTest {
 
-    private final ResourceScheduler r = new DummyResourceScheduler(new FakeWorker());
+    private final ResourceScheduler<?> r = new DummyResourceScheduler(new FakeWorker());
     private int[] executions;
     private int[] error;
     private int[] failed;
@@ -631,10 +634,10 @@ public class AllocatableActionTest {
      ----------------------------------------------------------
      --------------------------------------------------------*/
     public void completed(AllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler resource = action.getAssignedResource();
+        ResourceScheduler<?> resource = action.getAssignedResource();
         LinkedList<AllocatableAction> dataFree = action.completed();
         LinkedList<AllocatableAction> resourceFree = resource.unscheduleAction(action);
-        HashSet<AllocatableAction> freeTasks = new HashSet();
+        HashSet<AllocatableAction> freeTasks = new HashSet<AllocatableAction>();
         freeTasks.addAll(dataFree);
         freeTasks.addAll(resourceFree);
         for (AllocatableAction a : freeTasks) {
@@ -643,7 +646,7 @@ public class AllocatableActionTest {
     }
 
     public void error(AllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler resource = action.getAssignedResource();
+        ResourceScheduler<?> resource = action.getAssignedResource();
         LinkedList<AllocatableAction> resourceFree;
         try {
             action.error();
@@ -719,7 +722,7 @@ public class AllocatableActionTest {
 
     public class DummyResourceScheduler extends ResourceScheduler {
 
-        public DummyResourceScheduler(Worker w) {
+        public DummyResourceScheduler(Worker<?> w) {
             super(w);
         }
 
@@ -797,22 +800,22 @@ public class AllocatableActionTest {
         }
 
         @Override
-        public LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler r) {
+        public LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r) {
             return null;
         }
 
         @Override
-        public LinkedList<ResourceScheduler> getCompatibleWorkers() {
+        public LinkedList<ResourceScheduler<?>> getCompatibleWorkers() {
             return null;
         }
 
         @Override
-        public Implementation[] getImplementations() {
+        public Implementation<?>[] getImplementations() {
             return new Implementation[0];
         }
 
         @Override
-        public boolean isCompatible(Worker r) {
+        public boolean isCompatible(Worker<?> r) {
             return true;
         }
 
@@ -837,7 +840,7 @@ public class AllocatableActionTest {
         }
 
         @Override
-        public void schedule(ResourceScheduler targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+        public void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
         }
 
@@ -847,7 +850,7 @@ public class AllocatableActionTest {
         }
 
         @Override
-        public Score schedulingScore(ResourceScheduler targetWorker, Score actionScore) {
+        public Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore) {
             return null;
         }
 
@@ -867,8 +870,8 @@ public class AllocatableActionTest {
         private final LinkedList<AllocatableAction> resourceSuccessors;
 
         public ResourceDependencies() {
-            resourcePredecessors = new LinkedList();
-            resourceSuccessors = new LinkedList();
+            resourcePredecessors = new LinkedList<AllocatableAction>();
+            resourceSuccessors = new LinkedList<AllocatableAction>();
         }
 
         public void addPredecessor(AllocatableAction predecessor) {

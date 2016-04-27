@@ -1,15 +1,14 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.types.AdaptorDescription;
 import integratedtoolkit.types.COMPSsWorker;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 
-public class CloudMethodWorker<P> extends MethodWorker<P> {
+
+public class CloudMethodWorker extends MethodWorker {
 
     // Pending removals
     private final LinkedList<PendingReduction> pendingReductions;
@@ -21,14 +20,14 @@ public class CloudMethodWorker<P> extends MethodWorker<P> {
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, TreeMap<String, AdaptorDescription> adaptorsDesc, HashMap<String, String> properties, Integer maxTaskCount) throws Exception {
-        super(name, description, adaptorsDesc, properties, maxTaskCount);
-
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config, Integer maxTaskCount) throws Exception {
+    	super(name, description, config, maxTaskCount);
+    	
         if (description != null) {
             this.description.setSlots(maxTaskCount);
-            ((CloudMethodResourceDescription) this.description).setName(name);
+            ((CloudMethodResourceDescription)this.description).setName(name);
         }
-
+        
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
@@ -46,33 +45,31 @@ public class CloudMethodWorker<P> extends MethodWorker<P> {
 
     @Override
     public String getMonitoringData(String prefix) {
+    	// TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<CPU>").append(description.getProcessorCPUCount()).append("</CPU>").append("\n");
-        sb.append(prefix).append("<Core>").append(description.getProcessorCoreCount()).append("</Core>").append("\n");
-        sb.append(prefix).append("<Memory>").append(description.getMemoryPhysicalSize()).append("</Memory>").append("\n");
-        sb.append(prefix).append("<Disk>").append(description.getStorageElemSize()).append("</Disk>").append("\n");
-        String providerName = ((CloudMethodResourceDescription) description).getProviderName();
+        sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>").append("\n");
+        sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
+        sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
+        String providerName = ((CloudMethodResourceDescription)description).getProviderName();
         if (providerName == null) {
             providerName = new String("");
         }
         sb.append(prefix).append("<Provider>").append(providerName).append("</Provider>").append("\n");
-        String imageName = ((CloudMethodResourceDescription) description).getName();
+        String imageName = ((CloudMethodResourceDescription)description).getName();
         if (imageName == null) {
             imageName = new String("");
         }
         sb.append(prefix).append("<Image>").append(imageName).append("</Image>").append("\n");
-
+        
         return sb.toString();
     }
 
     public void increaseFeatures(CloudMethodResourceDescription increment) {
-        synchronized (available) {
-            available.setProcessorCoreCount(available.getProcessorCoreCount() + increment.getProcessorCoreCount());
-            available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() + increment.getMemoryPhysicalSize());
-        }
-        synchronized (description) {
-            description.setProcessorCoreCount(description.getProcessorCoreCount() + increment.getProcessorCoreCount());
-            description.setMemoryPhysicalSize(description.getMemoryPhysicalSize() + increment.getMemoryPhysicalSize());
+    	synchronized(available) {
+    		available.increase(increment);
+    	}
+        synchronized(description) {
+        	description.increase(increment);
         }
         updatedFeatures();
     }
@@ -82,126 +79,120 @@ public class CloudMethodWorker<P> extends MethodWorker<P> {
         if (!hasAvailable(consumption)) {
             return false;
         }
+        
         return super.reserveResource(consumption);
     }
 
     @Override
     public synchronized void releaseResource(MethodResourceDescription consumption) {
-        // Freeing task constraints
+    	logger.debug("Checking cloud resources to release...");
+    	// Freeing task constraints
         super.releaseResource(consumption);
-
+        
         // Performing as much as possible reductions
-        synchronized (pendingReductions) {
-            if (!pendingReductions.isEmpty()) {
-                logger.debug("Checking cloud resources to release...");
-                for (PendingReduction pRed : pendingReductions) {
-                    if (isValidReduction(pRed.reduction)) {
-                        // Perform reduction
-                        synchronized (available) {
-                            available.setProcessorCoreCount(available.getProcessorCoreCount() - pRed.reduction.getProcessorCoreCount());
-                            available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() - pRed.reduction.getMemoryPhysicalSize());
-                        }
-                        // Untag pending to remove reduction
-                        synchronized (toRemove) {
-                            toRemove.setProcessorCoreCount(toRemove.getProcessorCoreCount() - pRed.reduction.getProcessorCoreCount());
-                            toRemove.setMemoryPhysicalSize(toRemove.getMemoryPhysicalSize() - pRed.reduction.getMemoryPhysicalSize());
-                        }
-                        // Reduction is done, release sem
-                        logger.debug("Releasing cloud resource " + this.getName());
-                        pRed.sem.release();
-                        pendingReductions.remove(pRed);
-                    } else {
-                        break;
-                    }
-                }
-            }
+        
+        synchronized(pendingReductions) {
+	        if (!pendingReductions.isEmpty()) {     
+	        	PendingReduction[] lpr = pendingReductions.toArray(new PendingReduction[pendingReductions.size()]);
+	            for (PendingReduction pRed : lpr) {
+	                if (isValidReduction(pRed.reduction)) {
+	                	// Perform reduction
+	                	synchronized(available) {
+	                		available.reduce(pRed.reduction);
+	                	}
+	                    // Untag pending to remove reduction
+	                	synchronized(toRemove) {
+	                		toRemove.reduce(pRed.reduction);
+	                	}
+	                    // Reduction is done, release sem
+	                    logger.debug("Releasing cloud resource "+ this.getName());
+	                    pRed.sem.release();
+	                    pendingReductions.remove(pRed);
+	                } else {
+	                    break;
+	                }
+	            }
+	        }
         }
     }
 
     public synchronized Semaphore reduceFeatures(CloudMethodResourceDescription reduction) {
-        synchronized (description) {
-            description.setProcessorCoreCount(description.getProcessorCoreCount() - reduction.getProcessorCoreCount());
-            description.setMemoryPhysicalSize(description.getMemoryPhysicalSize() - reduction.getMemoryPhysicalSize());
-        }
+    	synchronized(description) {
+    		description.reduce(reduction);
+    	}
         Semaphore sem = null;
         if (hasAvailable(reduction)) {
-            synchronized (available) {
-                available.setProcessorCoreCount(available.getProcessorCoreCount() - reduction.getProcessorCoreCount());
-                available.setMemoryPhysicalSize(available.getMemoryPhysicalSize() - reduction.getMemoryPhysicalSize());
-            }
+        	synchronized(available) {
+        		available.reduce(reduction);
+        	}
         } else {
-            if (taskCount > 0) {
-                // This resource is still running tasks. Wait for them to finish...
-                // Mark to remove and enqueue pending reduction
-                synchronized (toRemove) {
-                    toRemove.setProcessorCoreCount(toRemove.getProcessorCoreCount() + reduction.getProcessorCoreCount());
-                    toRemove.setMemoryPhysicalSize(toRemove.getMemoryPhysicalSize() + reduction.getMemoryPhysicalSize());
-                }
+        	if (taskCount > 0) {
+        		// This resource is still running tasks. Wait for them to finish...
+        		// Mark to remove and enqueue pending reduction
+        		synchronized(toRemove) {
+        			toRemove.reduce(reduction);
+        		}
                 PendingReduction pRed = new PendingReduction(reduction);
-                synchronized (pendingReductions) {
-                    pendingReductions.add(pRed);
+                synchronized(pendingReductions) {
+                	pendingReductions.add(pRed);
                 }
                 sem = pRed.sem;
-            } else {
-                // Resource is not executing tasks. We can erase it, nothing to do
-            }
+        	} else {
+        		// Resource is not executing tasks. We can erase it, nothing to do
+        	}
         }
         updatedFeatures();
-
+        
         return sem;
     }
-
+    
     private boolean isValidReduction(MethodResourceDescription red) {
-        synchronized (available) {
-            boolean coreFits = (available.getProcessorCoreCount() >= red.getProcessorCoreCount());
-            boolean memFits = (available.getMemoryPhysicalSize() >= red.getMemoryPhysicalSize());
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("Cloud Method reduction received:");
-                logger.debug(available.getProcessorCoreCount() + " >= " + red.getProcessorCoreCount());
-                logger.debug(available.getMemoryPhysicalSize() + " >= " + red.getMemoryPhysicalSize());
-                logger.debug("With result: " + (coreFits & memFits));
-            }
-
-            return (coreFits & memFits);
-        }
+    	synchronized(available) {
+    		boolean fits = available.dynamicContains(red);
+	    	
+	    	if (logger.isDebugEnabled()) {
+	    		logger.debug("Cloud Method reduction received:");
+	    		logger.debug("With result: " + fits);
+	    	}
+	    	
+	    	return fits;
+    	}
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-        synchronized (available) {
-            synchronized (toRemove) {
-                boolean coreFits = (available.getProcessorCoreCount() - toRemove.getProcessorCoreCount() >= consumption.getProcessorCoreCount());
-                boolean memFits = (available.getMemoryPhysicalSize() - toRemove.getMemoryPhysicalSize() >= consumption.getMemoryPhysicalSize());
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Cloud Method Worker received:");
-                    logger.debug(available.getProcessorCoreCount() + " - " + toRemove.getProcessorCoreCount() + " >= " + consumption.getProcessorCoreCount());
-                    logger.debug(available.getMemoryPhysicalSize() + " - " + toRemove.getMemoryPhysicalSize() + " >= " + consumption.getMemoryPhysicalSize());
-                    logger.debug("With result: " + (coreFits & memFits));
-                }
-
-                return (coreFits & memFits);
-            }
-        }
+    	synchronized(available) {
+    		synchronized(toRemove) {
+    			consumption.increase(toRemove);
+    			boolean fits = available.dynamicContains(consumption);
+    			consumption.reduce(toRemove);
+    			
+    			if (logger.isDebugEnabled()) {
+    	    		logger.debug("Cloud Method Worker received:");
+    	    		logger.debug("With result: " + fits);
+    	    	}
+    	    	
+    	    	return fits;
+    		}
+    	}
     }
 
     @Override
     public String getResourceLinks(String prefix) {
         StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
         sb.append(prefix).append("TYPE = WORKER").append("\n");
-        sb.append(prefix).append("CPU = ").append(description.getProcessorCPUCount()).append("\n");
-        sb.append(prefix).append("MEMORY = ").append(description.getMemoryPhysicalSize()).append("\n");
+        sb.append(prefix).append("COMPUTING_UNITS = ").append(description.getTotalComputingUnits()).append("\n");
+        sb.append(prefix).append("MEMORY = ").append(description.getMemorySize()).append("\n");
 
         return sb.toString();
     }
 
     public boolean shouldBeStopped() {
-        synchronized (available) {
-            synchronized (toRemove) {
-                return ((available.getProcessorCoreCount() == 0) && (toRemove.getProcessorCoreCount() == 0));
-            }
-        }
+    	synchronized(available) {
+    		synchronized(toRemove) {
+    			return ((available.getTotalComputingUnits() == 0) && (toRemove.getTotalComputingUnits() == 0));
+    		}
+    	}
     }
 
     private class PendingReduction {
@@ -216,7 +207,8 @@ public class CloudMethodWorker<P> extends MethodWorker<P> {
     }
 
     @Override
-    public Worker getSchedulingCopy() {
+    public Worker<?> getSchedulingCopy() {
         return new CloudMethodWorker(this);
     }
+
 }

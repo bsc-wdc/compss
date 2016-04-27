@@ -1,20 +1,13 @@
 package integratedtoolkit.util;
 
-import integratedtoolkit.api.ITExecution;
-import integratedtoolkit.comm.Comm;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskParams;
-import integratedtoolkit.types.data.DataAccessId;
-import integratedtoolkit.types.data.DataInstanceId;
-import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
-import java.util.HashSet;
 import java.util.LinkedList;
+
 
 public class ResourceScheduler<P extends Profile> {
 
@@ -27,9 +20,9 @@ public class ResourceScheduler<P extends Profile> {
     //Profile information of the task executions
     private Profile[][] profiles;
 
-    protected final Worker myWorker;
+    protected final Worker<?> myWorker;
 
-    public ResourceScheduler(Worker w) {
+    public ResourceScheduler(Worker<?> w) {
         int coreCount = CoreManager.getCoreCount();
         profiles = new Profile[coreCount][];
         for (int coreId = 0; coreId < coreCount; ++coreId) {
@@ -39,8 +32,8 @@ public class ResourceScheduler<P extends Profile> {
                 profiles[coreId][implId] = generateProfileForAllocatable();
             }
         }
-        running = new LinkedList();
-        blocked = new LinkedList();
+        running = new LinkedList<AllocatableAction>();
+        blocked = new LinkedList<AllocatableAction>();
         myWorker = w;
     }
 
@@ -48,7 +41,7 @@ public class ResourceScheduler<P extends Profile> {
         return myWorker.getName();
     }
 
-    public final Worker getResource() {
+    public final Worker<?> getResource() {
         return myWorker;
     }
 
@@ -56,11 +49,11 @@ public class ResourceScheduler<P extends Profile> {
         return myWorker.getExecutableCores();
     }
 
-    public LinkedList<Implementation>[] getExecutableImpls() {
+    public LinkedList<Implementation<?>>[] getExecutableImpls() {
         return myWorker.getExecutableImpls();
     }
 
-    public LinkedList<Implementation> getExecutableImpls(int id) {
+    public LinkedList<Implementation<?>> getExecutableImpls(int id) {
         return myWorker.getExecutableImpls(id);
     }
 
@@ -93,14 +86,14 @@ public class ResourceScheduler<P extends Profile> {
         this.profiles = profiles;
     }
 
-    public final P getProfile(Implementation impl) {
+    public final P getProfile(Implementation<?> impl) {
         if (impl != null) {
             return (P) profiles[impl.getCoreId()][impl.getImplementationId()];
         }
         return null;
     }
 
-    public final void profiledExecution(Implementation impl, Profile profile) {
+    public final void profiledExecution(Implementation<?> impl, Profile profile) {
         if (impl != null) {
             int coreId = impl.getCoreId();
             int implId = impl.getImplementationId();
@@ -167,18 +160,18 @@ public class ResourceScheduler<P extends Profile> {
 
     }
 
-    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation<?> impl, Score resourceScore) {
         long implScore = this.getProfile(impl).getAverageExecutionTime();
         return new Score(resourceScore, implScore);
     }
 
-    public void initialSchedule(AllocatableAction action, Implementation bestImpl) {
+    public void initialSchedule(AllocatableAction action, Implementation<?> bestImpl) {
         //Assign no resource dependencies. The worker will automatically block 
         //the tasks when there are not enough resources available.
     }
 
     public LinkedList<AllocatableAction> unscheduleAction(AllocatableAction action) {
-        return new LinkedList();
+        return new LinkedList<AllocatableAction>();
     }
 
     public final void cancelAction(AllocatableAction action) {

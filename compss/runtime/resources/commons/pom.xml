@@ -33,6 +33,14 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-adaptors-commons</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-resources-schema</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-project-schema</artifactId>
+		</dependency>
 		
 		<!-- Log4j -->
 		<dependency>

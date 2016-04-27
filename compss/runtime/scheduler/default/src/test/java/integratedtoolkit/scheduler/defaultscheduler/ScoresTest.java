@@ -5,8 +5,8 @@ import integratedtoolkit.api.ITExecution.ParamDirection;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
-import integratedtoolkit.scheduler.types.AllocatableAction.BlockedActionException;
-import integratedtoolkit.scheduler.types.AllocatableAction.UnassignedActionException;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.types.DefaultScore;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Score;
@@ -22,11 +22,13 @@ import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.util.CoreManager;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 
 public class ScoresTest {
 
@@ -53,16 +55,16 @@ public class ScoresTest {
 
         ds = new DefaultScheduler();
 
-        Implementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
+        Implementation<?> impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
         CoreManager.registerImplementations(0, new Implementation[]{impl00});
-        Implementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
+        Implementation<?> impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
         CoreManager.registerImplementations(1, new Implementation[]{impl10});
-        Implementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
+        Implementation<?> impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
         CoreManager.registerImplementations(2, new Implementation[]{impl20});
-        Implementation impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
+        Implementation<?> impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
         CoreManager.registerImplementations(3, new Implementation[]{impl30});
-        Implementation impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(4));
-        Implementation impl41 = new FakeImplementation(4, 1, new FakeResourceDescription(2));
+        Implementation<?> impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(4));
+        Implementation<?> impl41 = new FakeImplementation(4, 1, new FakeResourceDescription(2));
         CoreManager.registerImplementations(4, new Implementation[]{impl40, impl41});
 
         FakeResourceDescription frd = new FakeResourceDescription(4);

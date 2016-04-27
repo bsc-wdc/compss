@@ -32,7 +32,6 @@
   # Configure, compile and install
   autoreconf --force --install
   ./configure --enable-gettimeofday-clock \
-              --without-mpi \
               --without-unwind \
               --without-dyninst \
               --without-binutils \
@@ -43,7 +42,6 @@
               --disable-nanos \
               --disable-smpss \
               --prefix=${targetDir} \
-              --with-mpi=/usr \
               --enable-parallel-merge \
               --libdir=${targetDir}/lib
 

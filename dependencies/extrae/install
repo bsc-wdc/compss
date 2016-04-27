@@ -37,7 +37,7 @@
               --without-binutils \
               ${mpiArg} \
               ${papiArg} \
-              --with-java-jdk=$JAVA_HOME \
+              --with-java-jdk=${JAVA_HOME} \
               --disable-openmp \
               --disable-nanos \
               --disable-smpss \

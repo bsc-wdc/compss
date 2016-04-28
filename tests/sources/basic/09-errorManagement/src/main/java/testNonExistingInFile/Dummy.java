@@ -16,4 +16,5 @@ public class Dummy implements Serializable {
 	public void foo() {
 		
 	}
+	
 }

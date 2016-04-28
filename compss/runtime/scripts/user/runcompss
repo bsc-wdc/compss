@@ -251,14 +251,14 @@ get_args() {
 	    # Custom project file
 	    projFile=$(echo $OPTARG | sed -e 's/project=//g')
 	    if [ ! -f $projFile ]; then
-	    	echo "[  WARNING ]: Project XML file '$projFile' could not be found."
+	    	echo "[ WARNING ]: Project XML file '$projFile' could not be found."
 	    fi 
 	    ;;
 	  resources=*)
 	    # Custom resources file
 	    resFile=$(echo $OPTARG | sed -e 's/resources=//g')
 	    if [ ! -f $resFile ]; then
-	    	echo "[ WARNING  ]: Resources XML file '$resFile' could not be found."
+	    	echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
 	    fi ;;
 	  storage_conf=*)
              storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;

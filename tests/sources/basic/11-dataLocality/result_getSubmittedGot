@@ -3,10 +3,9 @@
   runtimelog=$1
 
   submitList=$(cat $runtimelog | grep "New Job" | rev | cut -c 2-4 | rev)
-  hostList=$(cat $runtimelog | grep "Target host" | rev | cut -c -2 | rev)
+  hostList=$(cat $runtimelog  | grep "Target host" | tr ":" "\t" | awk {' print $11 '})
 
-  numcharBEGIN=1
-  numcharEND=2
+  position=1
   while  read -r line; do
     separator=$(echo $line | cut -c 1)
     if [ "$separator" != ":" ]; then 
@@ -22,9 +21,7 @@
        task=$(echo $line | cut -c 3-)
     fi
 
-    resource=$(echo $hostList | cut -c $numcharBEGIN-$numcharEND)
+    resource=$(echo $hostList | cut -d " " -f $position)
     echo "$task $resource"
-    numcharBEGIN=$((numcharBEGIN+3))
-    numcharEND=$((numcharEND+3))
+    position=$((position+1))
   done <<< "$submitList"
-

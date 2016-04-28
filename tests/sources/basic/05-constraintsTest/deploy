@@ -4,12 +4,23 @@
   source_base_dir=$1
   target_base_dir=$2
   
-  #Copy files
+  # Copy JAR
   cp -f ${source_base_dir}/target/05-constraintsTest.jar ${target_base_dir}/constraintsTest.jar   
                   
-  cp -f ${source_base_dir}/project.xml ${target_base_dir}/project_constraintsTest.xml                  
-  cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources_constraintsTest.xml
+  # Copy XML
+  cp -f ${source_base_dir}/project_constraintManager.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/project_resourceManager_Compatible.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/project_resourceManager_Available.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/project_cloudManager.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/project_dynamicTest.xml ${target_base_dir}/
   
+  cp -f ${source_base_dir}/resources_constraintManager.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/resources_resourceManager_Compatible.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/resources_resourceManager_Available.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/resources_cloudManager.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/resources_dynamicTest.xml ${target_base_dir}/
+  
+  # Copy result checkers
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
   cp -f ${source_base_dir}/result_constraintsTest ${target_base_dir}/result_constraintsTest
   cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest

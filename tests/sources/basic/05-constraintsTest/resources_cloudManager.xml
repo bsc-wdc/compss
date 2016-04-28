@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+
+ 	<CloudProvider Name="BSC_full">
+        <Endpoint>
+            <Server>https://bscgrid20:11443/</Server>
+        	<Connector>integratedtoolkit.connectors.test.Test</Connector>
+        </Endpoint>
+        <Images>
+            <Image Name="Image_bsc_full">
+                <Adaptors>
+                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <SubmissionSystem>
+                            <Interactive/>
+                        </SubmissionSystem>
+                        <Ports>
+                            <MinPort>43001</MinPort>
+                            <MaxPort>43002</MaxPort>
+                        </Ports>
+                    </Adaptor>
+                </Adaptors>
+                <OperatingSystem>
+                    <Type>Linux</Type>
+                </OperatingSystem>
+                <Software>
+                    <Application>Java</Application>
+                </Software>
+                <Price>
+                    <TimeUnit>100</TimeUnit>
+                    <PricePerUnit>36.0</PricePerUnit>
+                </Price>
+            </Image>
+        </Images>
+		<InstanceTypes>	
+            <InstanceType Name="small">
+                <Processor Name="P1">
+                    <ComputingUnits>1</ComputingUnits>
+                    <Architecture>amd64</Architecture>
+                </Processor>
+                <Memory>
+                    <Size>2.0</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+            </InstanceType>
+			<InstanceType Name="medium">
+                <Processor Name="P1">
+                    <ComputingUnits>2</ComputingUnits>
+                    <Architecture>amd64</Architecture>
+                </Processor>
+                <Memory>
+                    <Size>3.0</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+            </InstanceType>
+        </InstanceTypes>
+    </CloudProvider>
+    
+</ResourcesList>

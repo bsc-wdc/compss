@@ -3,90 +3,89 @@ package constraintManager;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.MultiConstraints;
-import integratedtoolkit.types.annotations.Service;
 
 
-public interface ConstraintManagerItf {
+public interface TestItf {
 	
 	/* ********************************************
 	 * EMPTY CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints()
 	void emptyCoreElement0();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	void emptyCoreElement1();
 
 	
 	/* ********************************************
 	 * SIMPLE CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 1)
 	void simpleCoreElement0();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(processorName = "Main")
 	void simpleCoreElement1();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(processorSpeed = (float)2.4)
 	void simpleCoreElement2();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(processorArchitecture = "amd64")
 	void simpleCoreElement3();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Big")
 	void simpleCoreElement4();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(memorySize = (float)8.0)
 	void simpleCoreElement5();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(memoryType = "Volatile")
 	void simpleCoreElement6();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(storageSize = (float)240.0)
 	void simpleCoreElement7();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(storageType = "SSD")
 	void simpleCoreElement8();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(operatingSystemType = "Linux")
 	void simpleCoreElement9();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(operatingSystemDistribution = "OpenSUSE")
 	void simpleCoreElement10();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(operatingSystemVersion = "13.2")
 	void simpleCoreElement11();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(appSoftware = "JAVA")
 	void simpleCoreElement12();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(appSoftware = "JAVA, PYTHON, COMPSS")
 	void simpleCoreElement13();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(hostQueues = "sequential")
 	void simpleCoreElement14();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(hostQueues = "sequential, debug, bsc")
 	void simpleCoreElement15();
 
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(wallClockLimit = (int)10)
 	void simpleCoreElement16();
 	
@@ -94,13 +93,13 @@ public interface ConstraintManagerItf {
 	/* ********************************************
 	 * COMPLEX CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 2, processorArchitecture="amd64", 
 					memorySize=(float)8.0, storageSize=(float)120.0, 
 					operatingSystemType="Windows")
 	void complexCoreElement0();
 	
-	@Method(declaringClass = "constraintsTest.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(   computingUnits = 2, 
 				  	processorName="Main", processorArchitecture="amd64", processorSpeed=(float)2.4, 
 				  	processorPropertyName="ThreadAffinity", processorPropertyValue="Big",
@@ -118,8 +117,8 @@ public interface ConstraintManagerItf {
 	 * MULTI-CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(computingUnits = 2)
 	@MultiConstraints({
@@ -129,8 +128,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement0();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(processorName = "Main")
 	@MultiConstraints({
@@ -140,8 +139,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement1();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(processorSpeed = (float)2.4)
 	@MultiConstraints({
@@ -151,8 +150,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement2();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(processorArchitecture = "amd64")
 	@MultiConstraints({
@@ -162,8 +161,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement3();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Big")
 	@MultiConstraints({
@@ -173,8 +172,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement4();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(memorySize = (float)8.0)
 	@MultiConstraints({
@@ -184,8 +183,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement5();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(memoryType = "Volatile")
 	@MultiConstraints({
@@ -195,8 +194,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement6();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(storageSize = (float)240.0)
 	@MultiConstraints({
@@ -206,8 +205,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement7();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(storageType = "SSD")
 	@MultiConstraints({
@@ -217,8 +216,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement8();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(operatingSystemType = "Linux")
 	@MultiConstraints({
@@ -228,8 +227,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement9();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(operatingSystemDistribution = "OpenSUSE")
 	@MultiConstraints({
@@ -239,8 +238,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement10();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(operatingSystemVersion = "13.2")
 	@MultiConstraints({
@@ -250,8 +249,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement11();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(appSoftware = "JAVA")
 	@MultiConstraints({
@@ -261,8 +260,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement12();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(appSoftware = "JAVA, PYTHON")
 	@MultiConstraints({
@@ -272,8 +271,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement13();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(hostQueues = "sequential")
 	@MultiConstraints({
@@ -283,8 +282,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement14();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(hostQueues = "sequential, debug")
 	@MultiConstraints({
@@ -294,8 +293,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement15();
 
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)
 	@Constraints(wallClockLimit = (int)10)
 	@MultiConstraints({
@@ -305,8 +304,8 @@ public interface ConstraintManagerItf {
 	void multiCoreElement16();
 	
 	@Method(declaringClass = {
-			"constraintsTest.Implementation1",
-			"constraintsTest.Implementation2"}
+			"constraintManager.Implementation1",
+			"constraintManager.Implementation2"}
 	)			// modified both		not modified						modified 1				modified 2
 	@Constraints(computingUnits = 2, processorArchitecture = "amd64", memorySize = (float)8.0, storageSize = (float) 240.0)
 	@MultiConstraints({
@@ -314,12 +313,5 @@ public interface ConstraintManagerItf {
 		@Constraints(computingUnits = 8, storageSize = (float)300.0)
 	})
 	void multiCoreElement17();
-	
-	
-	/* ********************************************
-	 * SERVICE CORE-ELEMENTS
-	 * *******************************************/
-	@Service(name = "DummyService", namespace = "http://localhost/", port = "DummyServicePort")
-	void service();
 	
 }

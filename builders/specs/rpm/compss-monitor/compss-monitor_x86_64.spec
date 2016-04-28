@@ -1,5 +1,5 @@
 %define name	 	compss-monitor 
-%define version 	1.4
+%define version 	1.4.rc05
 %define release		1
 
 Requires: compss-engine, java-1.7.0-openjdk, xdg-utils, graphviz

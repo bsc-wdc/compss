@@ -1,5 +1,5 @@
 %define name	 	compss-bindings-common 
-%define version 	1.4
+%define version 	1.4.rc05
 %define release		1
 
 Requires: compss-engine

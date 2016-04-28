@@ -4,7 +4,6 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 
 import integratedtoolkit.types.data.LogicalData;
-//import static integratedtoolkit.types.request.
 
 import java.io.File;
 import java.io.IOException;
@@ -28,34 +27,33 @@ public abstract class Tracer {
 
     public static final int DEFAULT_NUM_THREADS = 16;
 
-    private static final String taskDesc = "Task";
-    private static final String apiDesc = "Runtime";
-    private static final String taskIdDesc = "Task IDs";
-    private static final String dataTransfersDesc = "Data Transfers";
-    private static final String storageDesc = "Storage API";
+    private static final String taskDesc 			= "Task";
+    private static final String apiDesc 			= "Runtime";
+    private static final String taskIdDesc 			= "Task IDs";
+    private static final String dataTransfersDesc 	= "Data Transfers";
+    private static final String storageDesc 		= "Storage API";
 
-    protected static final String TRACE_SCRIPT = "trace.sh";
-    protected static final String traceOutRelativePath = "/trace/tracer.out";
-    protected static final String traceErrRelativePath = "/trace/tracer.err";
+    protected static final String TRACE_PATH 			= File.separator + "scripts" + File.separator + "system";
+    protected static final String TRACE_SCRIPT 			= "trace.sh";
+    protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
+    protected static final String traceErrRelativePath 	= File.separator + "trace" + File.separator + "tracer.err";
 
     protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-    protected static final int TASKS_FUNC_TYPE = 8_000_000;
-    protected static final int RUNTIME_EVENTS = 8_000_001;
-    protected static final int TASKS_ID_TYPE = 8_000_002;
-    protected static final int TASK_TRANSFERS = 8_000_003;
-    protected static final int DATA_TRANSFERS = 8_000_004;
-    protected static final int STORAGE_TYPE = 8_000_005;
+    protected static final int TASKS_FUNC_TYPE 	= 8_000_000;
+    protected static final int RUNTIME_EVENTS	= 8_000_001;
+    protected static final int TASKS_ID_TYPE 	= 8_000_002;
+    protected static final int TASK_TRANSFERS 	= 8_000_003;
+    protected static final int DATA_TRANSFERS 	= 8_000_004;
+    protected static final int STORAGE_TYPE 	= 8_000_005;
     
     public static final int EVENT_END = 0;
-    
 
-    public static final int NOT_ENABLED = 0;
-    public static final int BASIC_MODE = 1;
+    public static final int NOT_ENABLED   = 0;
+    public static final int BASIC_MODE    = 1;
     public static final int ADVANCED_MODE = 2;
-
     protected static int tracing_level;
     
     
@@ -176,8 +174,6 @@ public abstract class Tracer {
         }
     }
         
-
-
     public static String getTraceDirPath() {
         return traceDirPath;
     }
@@ -259,7 +255,6 @@ public abstract class Tracer {
             logger.debug("Tracing: finalizing");
         }
 
-
         synchronized(Tracer.class){
             defineEvents();
             
@@ -276,7 +271,6 @@ public abstract class Tracer {
         transferMasterPackage();
         generateTrace();
         cleanMasterPackage();
-
     }
 
     public static int getSizeByEventType(int type){
@@ -298,7 +292,7 @@ public abstract class Tracer {
 
         int size = getSizeByEventType(RUNTIME_EVENTS) + 1; 
         long[] values = new long[size];
-        int offset = Event.values().length;  // we offset the values of the defined api events (plus the 0 which is the end task always).
+        //int offset = Event.values().length;  // We offset the values of the defined API events (plus the 0 which is the end task always).
 
         String[] descriptionValues = new String[size];
 
@@ -327,7 +321,6 @@ public abstract class Tracer {
         descriptionValues[0] = "End";
 
         i = 1;
-
         for (Entry<String, Integer> entry : signatureToId.entrySet()) {
             String signature = entry.getKey();
             Integer methodId = entry.getValue();
@@ -344,7 +337,6 @@ public abstract class Tracer {
         Wrapper.defineEventType(TASKS_FUNC_TYPE, taskDesc, values, descriptionValues);
 
         // Definition of TRANSFER_TYPE events
-
         size = getSizeByEventType(TASK_TRANSFERS) + 1;
         values = new long[size];
         descriptionValues = new String[size];
@@ -366,7 +358,6 @@ public abstract class Tracer {
         Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
         
         // Definition of STORAGE_TYPE events
-
         size = getSizeByEventType(STORAGE_TYPE) + 1;
         values = new long[size];
         descriptionValues = new String[size];
@@ -387,7 +378,6 @@ public abstract class Tracer {
 
         Wrapper.defineEventType(STORAGE_TYPE, storageDesc, values, descriptionValues);
         
-
         // Definition of Scheduling and Transfer time events
         size = 0;
         values = new long[size];
@@ -428,7 +418,6 @@ public abstract class Tracer {
         }
     }
 
-
     public static void transferMasterPackage() {
         if (debug){
             logger.debug("Tracing: Transferring master package");
@@ -461,8 +450,8 @@ public abstract class Tracer {
         }
         String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace", System.getProperty(ITConstants.IT_APP_LOG_DIR),
-                                               appName, String.valueOf(hostToSlots.size()+1));
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace",
+                                               System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size()+1));
         Process p = null;
         pb.environment().remove("LD_PRELOAD");
         try {

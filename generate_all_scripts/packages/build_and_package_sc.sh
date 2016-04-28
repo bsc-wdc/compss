@@ -4,7 +4,7 @@
   package_folder=$1
   
   #Define script variables
-  COMPSs_version=1.4
+  COMPSs_version=1.4.rc05
 
   #---------------------------------------------------------------------------------------------------------------------
   #Create packages

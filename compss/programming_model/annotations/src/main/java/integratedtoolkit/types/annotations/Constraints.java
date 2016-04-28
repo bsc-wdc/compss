@@ -17,6 +17,12 @@ public @interface Constraints {
     public static final int UNASSIGNED_INT 		= -1;
     public static final float UNASSIGNED_FLOAT 	= (float) -1.0;
     
+    /**
+     * Returns the number of computing units required for the resource to run the CE
+     * 
+     * @return the required computing units to run the CE
+     */
+    int computingUnits() default UNASSIGNED_INT;
     
     /**
      * Returns the required processor name for the resource to run the CE
@@ -24,13 +30,6 @@ public @interface Constraints {
      * @return the required processor name to run the CE
      */
     String processorName() default UNASSIGNED_STR;
-    
-    /**
-     * Returns the number of computing units required for the resource to run the CE
-     * 
-     * @return the required computing units to run the CE
-     */
-    int computingUnits() default UNASSIGNED_INT;
     
     /**
      * Returns the processor speed required for the resource to run the CE

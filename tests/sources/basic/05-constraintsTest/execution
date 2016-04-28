@@ -12,108 +12,83 @@
   
   #----------------------------------------------------------------------------------
   #Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_constraintsTest.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_constraintManager.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_resourceManager_Compatible.xml 
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_resourceManager_Available.xml 
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_cloudManager.xml 
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_dynamicTest.xml
   
   #----------------------------------------------------------------------------------
-  #Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
-  mkdir -p /tmp/COMPSsWorker03/
-  mkdir -p /tmp/COMPSsWorker04/
-  mkdir -p /tmp/COMPSsWorker05/
-  
-  #----------------------------------------------------------------------------------
-  #Run application 1 - Constraints
-  echo
-  echo "*** RUNNING JAVA APPLICATION CONSTRAINTS TEST - Constraints Test"
-  log_folder="${target_log_folder}/constraintsTest"
-  mkdir -p ${log_folder}
-  output_log="${log_folder}/constraintsTest_constraintsTest.outputlog"
-  error_log="${log_folder}/constraintsTest_constraintsTest.errorlog"
-  expectedTime=120s
-  
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project_constraintsTest.xml \
-     --resources=${base_app_dir}/resources_constraintsTest.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --classpath=${base_app_dir}/constraintsTest.jar \
-     constraintsTest.ConstraintsTest 5 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-  
-  #Check timeout
-  ev1=0
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/constraintsTest.ConstraintsTest_01/* ${log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     ev1=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/constraintsTest.ConstraintsTest_01/* ${log_folder}
-  
-     #Check result
-     ${base_app_dir}/result_constraintsTest ${output_log} ${log_folder}
-     ev1=$?
-  fi
-
-  #----------------------------------------------------------------------------------
-  # Sleep between applications
-  sleep 1s
-
-  #----------------------------------------------------------------------------------
-  #Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
-  mkdir -p /tmp/COMPSsWorker03/
-  mkdir -p /tmp/COMPSsWorker04/
-  mkdir -p /tmp/COMPSsWorker05/
-  
-  #----------------------------------------------------------------------------------
-  #Run application 2 - Dynamic Test
-  sleep 5
-  echo
-  echo "*** RUNNING JAVA APPLICATION CONSTRAINTS TEST - Dynamic Test"
-  log_folder="${target_log_folder}/dynamicTest"
-  mkdir -p ${log_folder}
-  output_log="${log_folder}/constraintsTest_dynamicTest.outputlog"
-  error_log="${log_folder}/constraintsTest_dynamicTest.errorlog"
-  expectedTime=120s
-  
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project_constraintsTest.xml \
-     --resources=${base_app_dir}/resources_constraintsTest.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --classpath=${base_app_dir}/constraintsTest.jar \
-     dynamicTest.DynamicTest 5 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-  
-  #Check timeout
-  ev2=0
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/dynamicTest.DynamicTest_01/* ${log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     ev2=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/dynamicTest.DynamicTest_01/* ${log_folder}
+  # Perform executions
+  declare -a tests_names=('contraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest')
+  declare -a tests=('contraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest')
+  exitValue=0
+  i=0
+  while [ $i -lt ${#tests[@]} ]; do
+    test=${tests[$i]}
+    test_name=${test_names[$i]}
+    #----------------------------------------------------------------------------------
+    # Create all working dir folders
+    mkdir -p /tmp/COMPSsWorker01/
+    mkdir -p /tmp/COMPSsWorker02/
+    mkdir -p /tmp/COMPSsWorker03/
+    mkdir -p /tmp/COMPSsWorker04/
+    mkdir -p /tmp/COMPSsWorker05/
     
-     #Check result
-     ${base_app_dir}/result_dynamicTest ${output_log} ${log_folder}
-     ev2=$?
-  fi
+    #----------------------------------------------------------------------------------
+    # Run application
+    echo
+    echo "*** RUNNING JAVA APPLICATION CONSTRAINTS TEST - $test"
+    log_folder="${target_log_folder}/$test"
+    mkdir -p ${log_folder}
+    output_log="${log_folder}/constraintsTest_${test_name}.outputlog"
+    error_log="${log_folder}/constraintsTest_${test_name}.errorlog"
+    expectedTime=120s
+  
+    timeout --signal=2 $expectedTime ${COMPSs_exec} \
+      --project=${base_app_dir}/project_${test_name}.xml \
+      --resources=${base_app_dir}/resources_${test_name}.xml \
+      --debug \
+      --lang=java \
+      --comm=$comm \
+      --classpath=${base_app_dir}/constraintsTest.jar \
+      $test > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+    #Check timeout
+    ev1=0
+    if [[ "$?" = "124" ]]; then
+      #Copy LOG files
+      cp -rf ${COMPSs_log_folder}/$test_01/* ${log_folder}
+     
+      #Report time out
+      echo "[WARNING] Java Application timed out" >> ${output_log}
+      ev1=124
+    else
+      #Copy LOG files
+      cp -rf ${COMPSs_log_folder}/$test_01/* ${log_folder}
+  
+      #Check result
+      ${base_app_dir}/result_$test ${output_log} ${log_folder}
+      ev1=$?
+    fi
+    
+    #----------------------------------------------------------------------------------
+    # Update exitValue
+    if [ $ev1 -ne 0 ]; then
+      exitValue=$ev1
+    fi
+    
+    #----------------------------------------------------------------------------------
+    # Increase counter
+    i=$((i+1))
+    
+    #----------------------------------------------------------------------------------
+    # Sleep between applications
+    sleep 1s
+    
+  done
+  
   
   #----------------------------------------------------------------------------------
   #Return execution status
-  if [ $ev1 -gt $ev2 ]; then
-     exitValue=$ev1
-  else
-     exitValue=$ev2
-  fi
   exit $exitValue

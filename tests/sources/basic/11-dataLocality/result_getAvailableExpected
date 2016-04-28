@@ -1,43 +1,78 @@
-#!/bin/bash -e
+#!/bin/bash
 
+  ##############################################
+  # Helper methods
+  ##############################################
+  updateBest() {
+    bestActionScore=$1
+    bestResourceScore=$2
+    bestImplScore=$3
+    bestResourceId=$4
+  }
+
+
+  ##############################################
+  # MAIN
+  ##############################################
   runtimelog=$1
 
-  scoresList=$(cat $runtimelog | grep "Available Resource:" | cut -c 91-)
-  resource_actual="R3"  
-  score_actual=-1
-  task_actual=0
-
+  scoresList=$(cat $runtimelog | egrep -A 4 "Scheduling.*execution:")
+  
   while read -r line; do
     #PARSE LINE
-    score=$(echo $line | cut -c ${#line})
-    separator=$(echo $line | cut -c $((${#line}-11)))
-    if [ "$separator" != " " ]; then
-       separator2=$(echo $line | cut -c $((${#line}-12)))
-       if [ "$separator2" != " " ]; then
-          task=$(echo $line | cut -c $((${#line}-12))-$((${#line}-10)))
-          resource=$(echo $line | cut -c $((${#line}-22))-$((${#line}-21)))
-       else
-          task=$(echo $line | cut -c $((${#line}-11))-$((${#line}-10)))
-          resource=$(echo $line | cut -c $((${#line}-21))-$((${#line}-20)))
-       fi
-    else
-       task=$(echo $line | cut -c $((${#line}-10)))
-       resource=$(echo $line | cut -c $((${#line}-20))-$((${#line}-19)))
-    fi
+    taskId=$(echo $line | tr " " "\n" | sed -n 10p | rev | cut -c 2- | rev)
+    
+    # Next 4 lines are the resources
+    i=0
+    bestActionScore="null"
+    bestResourceScore=0
+    bestImplScore=0
+    bestResourceId="null"
+    while [ $i -lt 4 ]; do
+      read -r resource
+      # Get scores 
+      resourceId=$(echo $resource | tr " " "\n" | sed -n 2p)
+      actionScore=$(echo $resource | tr " " "\n" | sed -n 6p)
+      resourceScore=0
+      implScore=0
+      if [ "$actionScore" != "null" ]; then
+        actionScore=$(echo $actionScore | tr ":" " " | tr "," " " | awk {' print $2 '})
+        resourceScore=$(echo $resource | tr " " "\n" | sed -n 7p | tr ":" " " | tr "," " " | awk {' print $2 '})
+        implScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | tr "]" " " | awk {' print $2 '})
+      fi
 
-    #COMPARE TO ACTUAL
-    if [ "$resource" = "$resource_actual" ]; then
-       if [ $score -gt $score_actual ]; then
-          task_actual=$task
-          score_actual=$score
-       fi 
-    else
-      #Reset to new entry
-      echo "$task_actual $resource_actual"
-      resource_actual=$resource
-      task_actual=$task
-      score_actual=$score
+      # Update best
+      if [ "$actionScore" != "null" ]; then
+        if [ "$bestActionScore" == "null" ]; then
+          updateBest $actionScore $resourceScore $implScore $resourceId
+        else
+          if [ $actionScore -gt $bestActionScore ]; then
+            updateBest $actionScore $resourceScore $implScore $resourceId
+          elif [ $actionScore -eq $bestActionScore ]; then
+            if [ $resourceScore -gt $bestResourceScore ]; then
+              updateBest $actionScore $resourceScore $implScore $resourceId
+            elif [ $resourceScore -eq $bestResourceScore ]; then
+              if [ $implScore -ge $bestImplScore ]; then
+                updateBest $actionScore $resourceScore $implScore $resourceId
+              fi
+            fi
+          fi
+        fi
+      fi
+      i=$((i+1))
+    done
+    # If task had no resource, look for forced schedule message
+    if [ "$bestActionScore" == "null" ]; then
+     bestResourceId=$(cat $runtimelog | egrep "Scheduling SingleExecution \( Task ${taskId},.*execution for worker" | awk {' print $17 '} | tr "@" " " | tr ":" " " | awk {' print $2 '})
     fi
+    
+    # Print result
+    echo "$taskId $bestResourceId"
+
+    # Skip grep sep line
+    read -r skip
   done <<< "$scoresList"
-  echo "$task_actual $resource_actual"
-
+  
+  # End
+  exit 0
+  

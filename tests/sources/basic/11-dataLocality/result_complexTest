@@ -29,14 +29,17 @@
   
   #----------------------------------------------------------------------------------
   # Define log files
-  expected="${target_log_folder}/java_dataLocality.complexTest_expected.out"
-  got="${target_log_folder}/java_dataLocality.complexTest_got.out"
+  expected="${target_log_folder}/complexTest_expected.out"
+  got="${target_log_folder}/complexTest_got.out"
 
   #Parse log files
+  echo "[LOG] Parsing expected file"
   ${base_app_dir}/result_getAvailableExpected $runtime_log > $expected
+  echo "[LOG] Parsing got file"
   ${base_app_dir}/result_getSubmittedGot $runtime_log > $got
   
   #Compute result
+  echo "[LOG] Computing test result"
   resultTest=$(grep -v -x -f $got $expected)
 
   #----------------------------------------------------------------------------------

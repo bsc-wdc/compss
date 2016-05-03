@@ -278,8 +278,8 @@ public class NIOWorker extends NIOAgent {
 							// Data is already present at host
 							wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") found at host.");
 							try {
-								File source = new File(workingDir + File.separator + loc.getPath());
-								File target = new File(workingDir + File.separator + param.getValue().toString());
+								File source = new File(loc.getPath());
+								File target = new File(param.getValue().toString());
 								if (param.isPreserveSourceData()) {
 									wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") preserves sources. COPYING");
 									wLogger.debug("         Source: " + source);
@@ -292,6 +292,7 @@ public class NIOWorker extends NIOAgent {
 									Files.move(source.toPath(), target.toPath());
 								}
 								locationsInHost = true;
+								
 							} catch (IOException ioe) {
 								wLogger.error(ioe);
 							}

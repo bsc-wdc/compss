@@ -85,7 +85,7 @@ log4j.additivity.integratedtoolkit.Communication=false
 # ACON: ConsoleAppender, PatternLayout
 log4j.appender.ACON=org.apache.log4j.ConsoleAppender
 log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
-log4j.appender.ACON.layout.ConversionPattern=[%6c{1}]  -  %m%n
+log4j.appender.ACON.layout.ConversionPattern=[(%r) %6c{1}]  -  %m%n
 
 # COMPSs_FILE: FileAppender, PatternLayout
 log4j.appender.COMPSs_FILE=org.apache.log4j.FileAppender

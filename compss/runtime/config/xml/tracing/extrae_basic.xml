@@ -15,7 +15,7 @@
   </pthread>
 
   <counters enabled="yes">
-    <cpu enabled="yes" starting-set-distribution="2">
+    <cpu enabled="yes" starting-set-distribution="1">
       <set enabled="yes" domain="all" changeat-time="500000us">
         PAPI_TOT_INS, PAPI_TOT_CYC, PAPI_L1_DCM, PAPI_L2_DCM, PAPI_L3_TCM, PAPI_FP_INS
       </set>

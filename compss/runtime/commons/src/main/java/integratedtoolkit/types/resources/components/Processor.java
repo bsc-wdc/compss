@@ -5,7 +5,7 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 public class Processor {
 	
 	private String name = MethodResourceDescription.UNASSIGNED_STR;
-	private int computingUnits = MethodResourceDescription.UNASSIGNED_INT;
+	private int computingUnits = MethodResourceDescription.ZERO_INT;
 	private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;
 	private String architecture = MethodResourceDescription.UNASSIGNED_STR;
 	private String propName = MethodResourceDescription.UNASSIGNED_STR;

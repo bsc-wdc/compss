@@ -30,7 +30,6 @@
      --project=${base_app_dir}/project_simple.xml \
      --resources=${base_app_dir}/resources_simple.xml \
      --debug \
-     -g -t \
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/simple.jar \

@@ -11,7 +11,9 @@ import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.fake.FakeWorker;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.components.Processor;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,15 +26,27 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+
 public class AllocatableActionTest {
 
-    private final ResourceScheduler<?> r = new DummyResourceScheduler(new FakeWorker());
+	private final MethodResourceDescription description;
+    private final ResourceScheduler<?> r;
+    
     private int[] executions;
     private int[] error;
     private int[] failed;
 
     public AllocatableActionTest() {
-
+    	this.description = new MethodResourceDescription();
+    	
+    	// Slots
+    	Processor p = new Processor();
+    	p.setComputingUnits(3);
+    	this.description.addProcessor(p);
+    	this.description.setMaxTaskSlots(3);
+    	
+    	// Resource Scheduler
+    	this.r = new DummyResourceScheduler(new FakeWorker(description));
     }
 
     @BeforeClass

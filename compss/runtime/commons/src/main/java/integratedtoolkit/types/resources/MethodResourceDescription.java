@@ -10,15 +10,13 @@ import java.util.List;
 
 
 public class MethodResourceDescription extends WorkerResourceDescription {
-
-	// Empty Resource Description
-    public static final MethodResourceDescription EMPTY = new MethodResourceDescription();
+	
+	// Constant for weigth difference (dynamic increase/decrease)
+    private static final int DIFFERENCE_WEIGHT 	= 10_000;
     
-    // Unassigned values 
-    // !!!!!!!!!! WARNING: Coherent with constraints class
-    public static final String UNASSIGNED_STR 	= "[unassigned]";
-    public static final int UNASSIGNED_INT 		= -1;
-    public static final float UNASSIGNED_FLOAT 	= (float) -1.0;
+	// Empty Resource Description
+    public static final MethodResourceDescription EMPTY_FOR_RESOURCE 	= new MethodResourceDescription();
+    public static final MethodResourceDescription EMPTY_FOR_CONSTRAINTS = new MethodResourceDescription(ONE_INT);
     
     /* Tags for key-value string constraints description *****************/
     // !!!!!!!!!! WARNING: Coherent with constraints class
@@ -41,31 +39,30 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     
     /* Resource Description properties ***********************************/
     // Processor
-    protected List<Processor> processors;
-    protected int totalComputingUnits = 0;
+    protected List<Processor> processors 			= new LinkedList<Processor>();
+    protected int totalComputingUnits 				= ZERO_INT;
     
     // Memory
-    protected float memorySize = UNASSIGNED_FLOAT;
-	protected String memoryType = UNASSIGNED_STR;
+    protected float memorySize 						= UNASSIGNED_FLOAT;
+	protected String memoryType 					= UNASSIGNED_STR;
     // Storage
-    protected float storageSize = UNASSIGNED_FLOAT;
-    protected String storageType = UNASSIGNED_STR;
+    protected float storageSize 					= UNASSIGNED_FLOAT;
+    protected String storageType 					= UNASSIGNED_STR;
     // Operating System
-    protected String operatingSystemType = UNASSIGNED_STR;
-    protected String operatingSystemDistribution = UNASSIGNED_STR;
-    protected String operatingSystemVersion = UNASSIGNED_STR;
+    protected String operatingSystemType 			= UNASSIGNED_STR;
+    protected String operatingSystemDistribution 	= UNASSIGNED_STR;
+    protected String operatingSystemVersion 		= UNASSIGNED_STR;
     // Applications
-    protected List<String> appSoftware;
+    protected List<String> appSoftware 				= new LinkedList<String>();
     // Host queues
-    protected List<String> hostQueues;
+    protected List<String> hostQueues				= new LinkedList<String>();
     // Price
-    protected int priceTimeUnit = UNASSIGNED_INT;
-    protected float pricePerUnit = UNASSIGNED_FLOAT;
+    protected int priceTimeUnit 					= UNASSIGNED_INT;
+    protected float pricePerUnit 					= UNASSIGNED_FLOAT;
     // WallClock Limit (from constraints, not from XML files)
-    protected int wallClockLimit = UNASSIGNED_INT;
+    protected int wallClockLimit 					= UNASSIGNED_INT;
     
     /* Internal fields ***************************************************/
-    protected int slots = 0;
     protected Float value = 0.0f;
     
     
@@ -74,16 +71,19 @@ public class MethodResourceDescription extends WorkerResourceDescription {
      * *******************************************/
     public MethodResourceDescription() {
         super();
-        this.processors = new LinkedList<Processor>();    
-        this.appSoftware = new LinkedList<String>();
-        this.hostQueues = new LinkedList<String>();
+    }
+    
+    private MethodResourceDescription(int initialCUs) {
+    	super();
+    	
+        // Add processor structures (with an empty non assigned processor)
+    	Processor p = new Processor();
+    	p.setComputingUnits(initialCUs);
+    	this.addProcessor(p);	// Increases the total CUs
     }
 
     public MethodResourceDescription(Constraints constraints) {
     	super();
-    	this.processors = new LinkedList<Processor>();    
-        this.appSoftware = new LinkedList<String>();
-        this.hostQueues = new LinkedList<String>();
         
         // Parse processors - When comming from Constraints only one processor is available
         Processor p = new Processor();
@@ -92,9 +92,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         	p.setName(procName);
         }
         int cu = constraints.computingUnits();
-        if (cu != UNASSIGNED_INT) {
+        if (cu > ONE_INT) {
         	p.setComputingUnits(cu);
         	totalComputingUnits = cu;
+        } else {
+        	// When loading from constraints, always use at least one computing unit
+        	p.setComputingUnits(ONE_INT);
+        	totalComputingUnits = ONE_INT;
         }
         float speed = constraints.processorSpeed();
         if (speed != UNASSIGNED_FLOAT) {
@@ -118,7 +122,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String software = constraints.appSoftware();
         if (software != null && !software.equals(UNASSIGNED_STR)) {
             for (String value : software.split(",")){
-                this.appSoftware.add(value.trim());
+                this.appSoftware.add(value.trim().toUpperCase());
             } 
         }
         
@@ -126,7 +130,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         String queues = constraints.hostQueues();
         if (queues != null && !queues.equals(UNASSIGNED_STR)) {
         	for (String value : queues.split(",")){
-                this.hostQueues.add(value.trim());
+                this.hostQueues.add(value.trim().toUpperCase());
             } 
         }
         
@@ -172,12 +176,11 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     
     public MethodResourceDescription(String description){
     	super();
-    	this.processors = new LinkedList<Processor>();    
-        this.appSoftware = new LinkedList<String>();
-        this.hostQueues = new LinkedList<String>();
         
-        // Warning: When comming from contrains, only 1 PROCESSOR is available
+        // Warning: When comming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
+        proc.setComputingUnits(ONE_INT);
+        
         String[] constraints = description.split(";");
         for(String c : constraints){
             String key = c.split(":")[0].trim();
@@ -200,9 +203,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 		                proc.setPropValue(val);
 		                break;
 		            case COMPUTING_UNITS:
-		            	int cu = Integer.valueOf(val);
-		                proc.setComputingUnits(cu);
-		                totalComputingUnits = cu;
+		                proc.setComputingUnits( Integer.valueOf(val) );
 		                break;
 		            case MEM_SIZE:
 		                this.memorySize = Float.valueOf(val);
@@ -228,14 +229,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 		            case APP_SOFTWARE:
 		            	if (val.compareTo(UNASSIGNED_STR) != 0) {
 		                    for (String app : val.split(",")){
-		                        this.appSoftware.add(app.trim());
+		                        this.appSoftware.add(app.trim().toUpperCase());
 		                    } 
 		                }
 		                break;
 		            case HOST_QUEUES:
 		            	if (val.compareTo(UNASSIGNED_STR) != 0) {
 		                    for (String app : val.split(",")){
-		                        this.hostQueues.add(app.trim());
+		                        this.hostQueues.add(app.trim().toUpperCase());
 		                    } 
 		                }
 		                break;
@@ -246,17 +247,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
         }
         // Add the information retrieved from the processor constraints
-        this.processors.add(proc);
+        this.addProcessor(proc);	// Increases the totalCUs
     }
 
     public MethodResourceDescription(MethodResourceDescription clone) {
         super(clone);
-        
-        this.processors = new LinkedList<Processor>();
+
         this.totalComputingUnits = 0;
         for (Processor p : clone.processors) {
-            this.processors.add(p);
-            this.totalComputingUnits += p.getComputingUnits();
+        	this.addProcessor(p);	// Increases totalCUs
         }
         
         this.memorySize = clone.memorySize;
@@ -269,12 +268,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.operatingSystemDistribution = clone.operatingSystemDistribution;
         this.operatingSystemVersion = clone.operatingSystemVersion;
         
-        this.appSoftware = new LinkedList<String>();
         for (String app : clone.appSoftware) {
             this.appSoftware.add(app);
         }
-        
-        this.hostQueues = new LinkedList<String>();
+
         for (String queue : clone.hostQueues) {
             this.hostQueues.add(queue);
         }
@@ -284,7 +281,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         
         this.wallClockLimit = clone.wallClockLimit;
         
-        this.slots = clone.slots;
         this.value = clone.value;
     }
    
@@ -439,7 +435,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 	}
 
 	public void setAppSoftware(List<String> appSoftware) {
-		if (appSoftware != null && !appSoftware.isEmpty()) {
+		if (appSoftware != null) {
 			this.appSoftware = appSoftware;
 		}
 	}
@@ -450,7 +446,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     public void addApplication(String application) {
     	if (application != null && !application.isEmpty()) {
-    		appSoftware.add(application);
+    		appSoftware.add(application.toUpperCase());
     	}
     }
     
@@ -459,18 +455,18 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 	}
 
 	public void setHostQueues(List<String> hostQueues) {
-		if (hostQueues != null && !hostQueues.isEmpty()) {
+		if (hostQueues != null) {
 			this.hostQueues = hostQueues;
 		}
 	}
 	
-	public void resethostQueues() {
+	public void resetHostQueues() {
 		hostQueues = new LinkedList<String>();
     }
 
-    public void addQueue(String queue) {
+    public void addHostQueue(String queue) {
     	if (queue != null && !queue.isEmpty()) {
-    		hostQueues.add(queue);
+    		hostQueues.add(queue.toUpperCase());
     	}
     }
 
@@ -504,18 +500,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 		}
 	}
 
-	public int getSlots() {
-		return slots;
-	}
-
-	public void setSlots(int slots) {
-		this.slots = slots;
-	}
-	
-	public void addSlot() {
-	    this.slots++;
-	}
-
 	public Float getValue() {
 		return value;
 	}
@@ -524,25 +508,132 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 		this.value = value;
 	}
     
+
 	/* *******************************************
      * METHODRESOURCE OPERATIONS
      * *******************************************/
-    public void join(MethodResourceDescription mr2) {    	
+	// This method tries to substitute the implicit default values by defined mr2 values.
+	// Keeps the already defined values (do NOT overwrite)
+	// ONLY CALLED FROM CONSTRAINTS (1 processor always)
+    public void merge(MethodResourceDescription mr2) {  
+    	// Processor constraints
+    	Processor pthis = this.processors.get(0);
+    	Processor pmr2 = mr2.processors.get(0);
+    	if (pthis.getComputingUnits() <= ONE_INT) {
+    		int new_cus = pmr2.getComputingUnits();
+    		pthis.setComputingUnits(new_cus);
+    		this.totalComputingUnits = new_cus;
+    	}
+    	if (pthis.getSpeed() == UNASSIGNED_FLOAT) {
+    		pthis.setSpeed(pmr2.getSpeed());
+    	}
+    	if (pthis.getName().equals(UNASSIGNED_STR)) {
+    		pthis.setName(pmr2.getName());
+    	}
+    	if (pthis.getArchitecture().equals(UNASSIGNED_STR)) {
+    		pthis.setArchitecture(pmr2.getArchitecture());
+    	}
+    	if (pthis.getPropName().equals(UNASSIGNED_STR)) {
+    		pthis.setPropName(pmr2.getPropName());
+    	}
+    	if (pthis.getPropValue().equals(UNASSIGNED_STR)) {
+    		pthis.setPropValue(pmr2.getPropValue());
+    	}
+    	
+    	// Memory
+    	if (this.memorySize == UNASSIGNED_FLOAT) {
+    		this.setMemorySize(mr2.getMemorySize());
+    	}
+    	if (this.memoryType.equals(UNASSIGNED_STR)) {
+    		this.setMemoryType(mr2.getMemoryType());
+    	}
+    	
+    	// Storage
+    	if (this.storageSize == UNASSIGNED_FLOAT) {
+    		this.setStorageSize(mr2.getStorageSize());
+    	}
+    	if (this.storageType.equals(UNASSIGNED_STR)) {
+    		this.setStorageType(mr2.getStorageType());
+    	}
+    	
+    	// Operating System
+    	if (this.operatingSystemType.equals(UNASSIGNED_STR)) {
+    		this.setOperatingSystemType(mr2.getOperatingSystemType());
+    	}
+    	if (this.operatingSystemDistribution.equals(UNASSIGNED_STR)) {
+    		this.setOperatingSystemDistribution(mr2.getOperatingSystemDistribution());
+    	}
+    	if (this.operatingSystemVersion.equals(UNASSIGNED_STR)) {
+    		this.setOperatingSystemVersion(mr2.getOperatingSystemVersion());
+    	}
+    	
+    	// Applications
+    	for (String app : mr2.appSoftware) {
+    		if (!this.appSoftware.contains(app)) {
+    			this.appSoftware.add(app);
+    		}
+    	}
+    	
+    	// Host queues
+    	for (String queue : mr2.hostQueues) {
+    		if (!this.hostQueues.contains(queue)) {
+    			this.hostQueues.add(queue);
+    		}
+    	}
+    	
+    	// Price
+    	if (this.pricePerUnit == UNASSIGNED_FLOAT) {
+    		if (mr2.pricePerUnit > (float)0.0) {
+    			this.pricePerUnit = mr2.pricePerUnit;
+    		}
+    	}
+    	if (this.priceTimeUnit == UNASSIGNED_INT) {
+    		if (mr2.priceTimeUnit > 0) {
+    			this.priceTimeUnit = mr2.priceTimeUnit;
+    		}
+    	}
+    	
+    	// WallClock limit
+    	if (this.wallClockLimit == UNASSIGNED_INT) {
+    		this.setWallClockLimit(mr2.getWallClockLimit());
+    	}
+    	
+    	// Internal values
+    	if (this.maxTaskSlots == UNASSIGNED_INT) {
+    		this.maxTaskSlots = mr2.getMaxTaskSlots();
+    	}
+    }
+	
+	// This method expands the implicit value with the ones defined by mr2
+    // Keeps the unique values and gets the maximum of the common values
+    // Called from CLOUD for constraints
+	public void expand(MethodResourceDescription mr2) {  
         // Processor
     	for (Processor p : mr2.processors) {
+    		// Looks for a mergeable processor
     		boolean processorMerged = false;
     		for (Processor pthis : this.processors) {
-    			if (p.getArchitecture().equals(pthis.getArchitecture())
-    					&& p.getSpeed() == pthis.getSpeed()) {
-    				processorMerged = true;
-    				pthis.addComputingUnits(p.getComputingUnits());
-    				this.totalComputingUnits += p.getComputingUnits();
-    				break;
+    			if (pthis.getSpeed() != p.getSpeed()) {
+    				continue;
     			}
+    			if (!pthis.getArchitecture().equals(p.getArchitecture())) {
+    				continue;
+    			}
+    			if (!pthis.getPropName().equals(p.getPropName())) {
+    				continue;
+    			}
+    			if (!pthis.getPropValue().equals(p.getPropValue())) {
+    				continue;
+    			}
+    			
+    			processorMerged = true;
+    			pthis.addComputingUnits(p.getComputingUnits() - ONE_INT);	// Because constraints have an extra CU by default
+    			this.totalComputingUnits += p.getComputingUnits() - ONE_INT;
+    			break;
     		}
     		if (!processorMerged) {
-    			this.processors.add(p);
-    			this.totalComputingUnits += p.getComputingUnits();
+    			Processor newProc = new Processor(p);
+    			this.addProcessor(newProc);
     		}
     	}
     	
@@ -609,18 +700,17 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     	this.wallClockLimit = java.lang.Math.max(this.wallClockLimit, mr2.wallClockLimit);
     	
     	// Internal values
-        this.slots += mr2.slots;
+        this.maxTaskSlots += mr2.getMaxTaskSlots();
     }
 
     public float difference(MethodResourceDescription mr2) {
-        int weight = 10000;
         float processorDif = this.getTotalComputingUnits() - mr2.getTotalComputingUnits();
         float memoryDif = this.memorySize - mr2.memorySize;
         
-        return processorDif*weight + memoryDif;
+        return processorDif*DIFFERENCE_WEIGHT + memoryDif;
     }
 
-    public boolean contains(MethodResourceDescription rc2) {
+    public boolean contains(MethodResourceDescription rc2) {    	
         boolean contained = checkCompatibility(this.operatingSystemType, rc2.operatingSystemType);
         contained = contained && checkCompatibility(this.operatingSystemDistribution, rc2.operatingSystemDistribution);
         contained = contained && checkCompatibility(this.operatingSystemVersion, rc2.operatingSystemVersion);
@@ -629,7 +719,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         contained = contained && checkProcessors(rc2);
         contained = contained && checkMemory(rc2);
         contained = contained && checkStorage(rc2);
-        
+
         return contained;
     }
     
@@ -652,12 +742,27 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     
     private boolean checkProcessor(Processor p) {
     	for (Processor p_this : this.processors) {
-    		if (checkCompatibility(p_this.getArchitecture(),p.getArchitecture())
-    			 && checkInclusion(p_this.getSpeed(), p.getSpeed())
-    			 && checkInclusion(p_this.getComputingUnits(), p.getComputingUnits())) {
-    			
-    			return true;
+    		if (!checkCompatibility(p_this.getName(), p.getName())) {
+    			continue;
     		}
+    		if (!checkCompatibility(p_this.getArchitecture(), p.getArchitecture())) {
+    			continue;
+    		}
+    		if (!checkInclusion(p_this.getSpeed(), p.getSpeed())) {
+    			continue;
+    		}
+    		if (!checkCompatibility(p_this.getPropName(), p.getPropName())) {
+    			continue;
+    		}
+    		if (!checkCompatibility(p_this.getPropValue(), p.getPropValue())) {
+    			continue;
+    		}
+    		if (!checkInclusion(p_this.getComputingUnits(), p.getComputingUnits())) {
+    			continue;
+    		}
+
+    		// Satisfies all
+    		return true;
     	}
     	
     	return false;
@@ -665,7 +770,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     private boolean checkMemory(MethodResourceDescription rc2) {
         return checkInclusion(this.memorySize, rc2.memorySize)
-                && checkCompatibility(this.memoryType, rc2.memoryType);
+	        	&& checkCompatibility(this.memoryType, rc2.memoryType);
     }
 
     private boolean checkStorage(MethodResourceDescription rc2) {
@@ -678,7 +783,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private boolean checkInclusion(int value1, int value2) {
-        return value1 >= value2 || value1 == UNASSIGNED_INT || value2 == UNASSIGNED_INT;
+    	// If the value1 (implicit) is unassigned (in terms of CUs) it cannot run anything
+        return value1 >= value2 || value2 == UNASSIGNED_INT;
     }
 
     private boolean checkInclusion(float value1, float value2) {
@@ -686,19 +792,19 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
-        float min = Float.MAX_VALUE;
+        int min = Integer.MAX_VALUE;
         
-        if (rc2.getTotalComputingUnits() != 0) {
+        if (rc2.getTotalComputingUnits() >= 1) {
             float ratio = this.getTotalComputingUnits() / (float) rc2.getTotalComputingUnits();
-            min = ratio;
-        }
-        
-        if (rc2.memorySize != 0.0f) {
-            float ratio = this.memorySize / rc2.memorySize;
-            min = Math.min(min, ratio);
+            min = (int)ratio;
         }
 
-        return (int) min;
+        if (rc2.memorySize > 0.0f) {
+            float ratio = this.memorySize / rc2.memorySize;
+            min = Math.min(min, (int)ratio);
+        }
+
+        return min;
     }
 
     public MethodResourceDescription multiply(int amount) {
@@ -825,6 +931,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         	sb.append("]");
         }
         
+        sb.append("[GENERAL_COUNTS");
+        sb.append(" TOTAL_CU=").append(this.getTotalComputingUnits());
+        sb.append(" MAX_TASK_SLOTS=").append(this.getMaxTaskSlots());
+        sb.append(" USED_TASK_SLOTS=").append(this.getUsedTaskSlots());
+        sb.append("]");
+        
+        
         sb.append(" [MEMORY");
         sb.append(" SIZE=").append(this.memorySize);
         sb.append(" TYPE=").append(this.memoryType);
@@ -844,6 +957,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         sb.append(" [SOFTWARE ");
         for (String app : this.appSoftware) {
             sb.append(app).append(", ");
+        }
+        sb.append("]");
+        
+        sb.append(" [HOST_QUEUES ");
+        for (String queue : this.hostQueues) {
+            sb.append(queue).append(", ");
         }
         sb.append("]");
         

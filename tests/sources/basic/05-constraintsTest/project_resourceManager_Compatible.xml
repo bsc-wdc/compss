@@ -22,8 +22,13 @@
         <WorkingDir>/tmp/COMPSsWorker04/</WorkingDir>
     </ComputeNode>
     
-    <Service wsdl="http://localhost:28019/groupService?wsdl">
-        <LimitOfTasks>2</LimitOfTasks>
+    <ComputeNode Name="COMPSsWorker05">
+        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorker05/</WorkingDir>
+    </ComputeNode>
+    
+    <Service wsdl="http://localhost:9999/dummyService?wsdl">
+    	<LimitOfTasks>2</LimitOfTasks>
     </Service>
     
 </Project>

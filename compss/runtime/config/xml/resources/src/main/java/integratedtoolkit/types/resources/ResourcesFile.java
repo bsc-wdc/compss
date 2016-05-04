@@ -1265,7 +1265,8 @@ public class ResourcesFile {
 		if (innerElements != null) {
 			for (JAXBElement<?> elem : innerElements) {
 				if (elem.getName().equals(new QName("Type"))) {
-					return (String) elem.getValue();
+					OSTypeType osType = (OSTypeType) elem.getValue();
+					return osType.value();
 				}
 			}
 		}

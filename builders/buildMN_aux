@@ -150,7 +150,7 @@
   fi
   echo "- Deploying c-binding files"
   cd ${tmpDir}/compss/programming_model/bindings/c
-  ./install ${targetDir}/Bindings/c
+  ./install ${targetDir}/Bindings/c true
   if [ $? -ne 0 ]; then
     echo "ERROR: Failed to install C-binding"
     exit 1

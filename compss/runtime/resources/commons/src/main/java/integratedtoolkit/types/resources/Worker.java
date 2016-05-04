@@ -8,14 +8,11 @@ import integratedtoolkit.util.CoreManager;
 
 import java.util.LinkedList;
 
-public abstract class Worker<T extends ResourceDescription> extends Resource {
+
+public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     protected final T description;
 
-    // Max number of tasks
-    protected int maxTaskCount;
-    // Number of tasks assigned to the resource
-    protected int taskCount;
     // CoreIds that can be executed by this resource
     private LinkedList<Integer> executableCores;
     // Implementations that can be executed by the resource
@@ -28,13 +25,12 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
     // Number of tasks that can be run simultaneously per core id (maxTaskCount not considered)
     private int[] idealSimultaneousTasks;
 
-    public Worker(String name, T description, COMPSsNode worker, Integer maxTaskCount) {
+    
+    public Worker(String name, T description, COMPSsNode worker) {
         super(worker);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
-        this.maxTaskCount = maxTaskCount;
-        this.taskCount = 0;
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
@@ -46,13 +42,11 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         this.description = description;
     }
 
-    public Worker(String name, T description, Configuration config, Integer maxTaskCount) throws Exception {
+    public Worker(String name, T description, Configuration config) throws Exception {
         super(name, config);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
-        this.maxTaskCount = maxTaskCount;
-        this.taskCount = 0;
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
@@ -68,8 +62,6 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         super(w);
         this.coreSimultaneousTasks = w.coreSimultaneousTasks;
         this.idealSimultaneousTasks = w.idealSimultaneousTasks;
-        this.maxTaskCount = w.maxTaskCount;
-        this.taskCount = w.taskCount;
         this.executableCores = w.executableCores;
         this.implSimultaneousTasks = w.implSimultaneousTasks;
         this.executableImpls = w.executableImpls;
@@ -80,20 +72,20 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
         return description;
     }
 
-    public void setMaxTaskCount(int count) {
-        maxTaskCount = count;
-    }
-
-    public void setTaskCount(int taskCount) {
-        this.taskCount = taskCount;
-    }
-
-    public int getTaskCount() {
-        return taskCount;
-    }
-
     public int getMaxTaskCount() {
-        return maxTaskCount;
+        return this.description.getMaxTaskSlots();
+    }
+    
+    public int getUsedTaskCount() {
+        return this.description.getUsedTaskSlots();
+    }
+    
+    private void decreaseUsedTaskCount() {
+        this.description.setUsedTaskSlots(this.description.getUsedTaskSlots() - 1);
+    }
+    
+    private void increaseUsedTaskCount() {
+        this.description.setUsedTaskSlots(this.description.getUsedTaskSlots() + 1);
     }
 
     /*-------------------------------------------------------------------------
@@ -135,9 +127,9 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
                 executableImpls[coreId] = new LinkedList<Implementation<?>>();
                 for (Implementation<?> impl : impls) {
                     if (canRun(impl)) {
-                        int simultaneousCapacity = simultaneousCapacity(impl);
+                    	int simultaneousCapacity = simultaneousCapacity(impl);
                         idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
-                        implSimultaneousTasks[coreId][impl.getImplementationId()] = Math.min(maxTaskCount, simultaneousCapacity);
+                        implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
                         if (implSimultaneousTasks[coreId][impl.getImplementationId()] > 0) {
                             executableImpls[coreId].add(impl);
                             executableCore = true;
@@ -172,15 +164,15 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
                     idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
-                    implSimultaneousTasks[coreId][impl.getImplementationId()] = Math.min(maxTaskCount, simultaneousCapacity);
-                    if (implSimultaneousTasks[coreId][impl.getImplementationId()] > 0) {
+                    implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
+                    if (simultaneousCapacity > 0) {
                         executableImpls[coreId].add(impl);
                         executableCore = true;
                     }
                 }
             }
             if (executableCore) {
-                coreSimultaneousTasks[coreId] = Math.min(maxTaskCount, idealSimultaneousTasks[coreId]);
+                coreSimultaneousTasks[coreId] = Math.min(this.getMaxTaskCount(), idealSimultaneousTasks[coreId]);
                 executableCores.add(coreId);
             }
         }
@@ -207,7 +199,7 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
     }
 
     public Integer simultaneousCapacity(Implementation<?> impl) {
-        return Math.min(fitCount(impl), maxTaskCount);
+        return Math.min(fitCount(impl), this.getMaxTaskCount());
     }
 
     public String getResourceLinks(String prefix) {
@@ -289,18 +281,18 @@ public abstract class Worker<T extends ResourceDescription> extends Resource {
     }
 
     public boolean canRunNow(T consumption) {
-        return taskCount < maxTaskCount && this.hasAvailable(consumption);
+        return this.getUsedTaskCount() < this.getMaxTaskCount() && this.hasAvailable(consumption);
     }
 
     public void endTask(T consumption) {
         logger.debug("End task received. Releasing resource." + consumption.getClass().toString());
-        taskCount--;
+        this.decreaseUsedTaskCount();
         releaseResource(consumption);
     }
 
     public boolean runTask(T consumption) {
         if (reserveResource(consumption)) {
-            taskCount++;
+            this.increaseUsedTaskCount();
             return true;
         } else {
             return false;

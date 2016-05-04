@@ -81,7 +81,7 @@ public class VMMConnector extends AbstractSSHConnector {
 				vmd = client.getVMDescription(vmId);
 			}
 			
-			granted.copy(requested);
+			granted = requested.copy();
 			granted.setName(vmd.getIpAddress());
 			granted.setOperatingSystemType("Linux");
 			granted.setValue(getMachineCostPerTimeSlot(granted));

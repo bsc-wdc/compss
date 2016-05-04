@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
+import commons.ConstantValues;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.MultiConstraints;
@@ -38,7 +40,7 @@ public class Test {
     	// Wait for Runtime to be loaded
     	System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
-            Thread.sleep(7_000);
+            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
         	// No need to handle such exceptions
         }
@@ -61,7 +63,7 @@ public class Test {
             System.exit(-1);
         }
 
-        //Loading data from Cores
+        // Loading data from Cores
         signatureToId = CoreManager.SIGNATURE_TO_ID;
         idToSignatures = new LinkedList[coreCountItf];
         for (int coreId = 0; coreId < coreCountItf; coreId++) {
@@ -72,7 +74,8 @@ public class Test {
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);
         }
-        //loading Information from the interface
+        
+        // Loading Information from the interface
         declaringClassesItf = new String[coreCountItf][];
         constraintsItf = new Constraints[coreCountItf][];
         generalConstraintsItf = new Constraints[coreCountItf];
@@ -93,29 +96,27 @@ public class Test {
                 System.out.println("[ERROR] Method " + coreToName[i] + "not found.");
                 System.exit(-1);
             }
-
-            if (m.getAnnotation(integratedtoolkit.types.annotations.Service.class) == null) {
-                declaringClassesItf[i] = m.getAnnotation(Method.class).declaringClass();
-                if (m.isAnnotationPresent(MultiConstraints.class)) {
-                    constraintsItf[i] = m.getAnnotation(MultiConstraints.class).value();
-                } else {
-                    constraintsItf[i] = new Constraints[declaringClassesItf[i].length];
-                }
-                if (m.isAnnotationPresent(Constraints.class)) {
-                    generalConstraintsItf[i] = m.getAnnotation(Constraints.class);
-                }
+            
+            declaringClassesItf[i] = m.getAnnotation(Method.class).declaringClass();
+            if (m.isAnnotationPresent(MultiConstraints.class)) {
+                constraintsItf[i] = m.getAnnotation(MultiConstraints.class).value();
+            } else {
+                constraintsItf[i] = new Constraints[declaringClassesItf[i].length];
+            }
+            if (m.isAnnotationPresent(Constraints.class)) {
+                generalConstraintsItf[i] = m.getAnnotation(Constraints.class);
             }
         }
 
-        //Check all cores
+        // Check all cores
         for (int i = 0; i < coreCountItf; i++) {
             if (declaringClassesItf[i] != null) {
-                checkCoreConstraints(i);
+                checkCoreElementConstraints(i);
             }
         }
     }
 
-    private static void checkCoreConstraints(int coreId) {
+    private static void checkCoreElementConstraints(int coreId) {
         System.out.println("[LOG] Checking " + coreToName[coreId]);
         System.out.println("[LOG] \t Has " + declaringClassesItf[coreId].length + " declaring classes in the CEI");
         System.out.println("[LOG] \t Has " + idToSignatures[coreId].size() + " signatures registered");
@@ -134,7 +135,7 @@ public class Test {
 
         // Check all constraints
         for (int impl = 0; impl < declaringClassesItf[coreId].length; impl++) {
-            integratedtoolkit.types.MethodImplementation m = ((integratedtoolkit.types.MethodImplementation) implementations[impl]);
+            MethodImplementation m = ((MethodImplementation) implementations[impl]);
             System.out.println("[LOG] \t" + declaringClassesItf[coreId][impl]);
             if (declaringClassesItf[coreId][impl].compareTo(m.getDeclaringClass()) != 0) {
                 System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl] + " is not included registered in the system");
@@ -157,7 +158,7 @@ public class Test {
         if (general == null || general.computingUnits() == Constraints.UNASSIGNED_INT) {
         	if (specific == null || specific.computingUnits() == Constraints.UNASSIGNED_INT) {
         		// Default value
-        		ret = (registered.getTotalComputingUnits() == MethodResourceDescription.UNASSIGNED_INT);
+        		ret = (registered.getTotalComputingUnits() == MethodResourceDescription.ONE_INT);
         	} else {
         		// Specific constraint value
         		ret = (registered.getTotalComputingUnits() == specific.computingUnits());
@@ -172,6 +173,13 @@ public class Test {
         	}
         }
         if (!ret) {
+        	if (general != null) {
+        		System.out.println("GEN: " + general.computingUnits());
+        	}
+        	if (specific != null) {
+        		System.out.println("SPC: " + specific.computingUnits());
+        	}
+        	System.out.println("REG: " + registered.getTotalComputingUnits());
             return "computingUnits";
         }
         

@@ -2,12 +2,16 @@ package integratedtoolkit.types.fake;
 
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-public class FakeResourceDescription extends ResourceDescription {
+
+public class FakeResourceDescription extends WorkerResourceDescription {
 
     private int coreCount = 0;
 
+    
     public FakeResourceDescription(int coreCount) {
+    	this.setMaxTaskSlots(coreCount);
         this.coreCount = coreCount;
     }
 

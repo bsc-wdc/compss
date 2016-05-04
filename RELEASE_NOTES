@@ -143,7 +143,7 @@ New features:
                     - Support for Chameleon added
                     - Object cache for persistent workers
                     - Improved error management
-                    - Conector for submitting tasks to MN supercomputer from external COMPSs applications added
+                    - Connector for submitting tasks to MN supercomputer from external COMPSs applications added
 		    - Bug-fixes
 
             * Python:

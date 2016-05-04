@@ -23,7 +23,7 @@
     # Configure
     echo "   - Configure, compile and install"
     cd /opt/COMPSs/Bindings/c
-    ./install
+    ./install /opt/COMPSs/Bindings/c true
     mkdir -p /opt/COMPSs/Runtime/scripts/system/c
     mkdir -p /opt/COMPSs/Runtime/scripts/user
     cp /opt/COMPSs/Bindings/c/bin/* /opt/COMPSs/Runtime/scripts/system/c

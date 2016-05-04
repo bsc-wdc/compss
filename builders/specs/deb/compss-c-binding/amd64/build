@@ -11,7 +11,7 @@
 
   mkdir -p ${COMPSs_target}/Bindings/c
   cd ${trunk_rel_path}/compss/programming_model/bindings/c
-  ./install ${COMPSs_target}/Bindings/c
+  ./install ${COMPSs_target}/Bindings/c true
   cd -
   cp ${trunk_rel_path}/compss/programming_model/bindings/c/buildapp ${COMPSs_target}/Bindings/c/
 

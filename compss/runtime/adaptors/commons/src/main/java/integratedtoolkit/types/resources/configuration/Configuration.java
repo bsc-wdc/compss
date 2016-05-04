@@ -7,6 +7,7 @@ public class Configuration {
 	
 	private final String adaptorName;
 	private final HashMap<String, String> additionalProperties = new HashMap<String, String> ();
+	private int limitOfTasks = -1;
 	
 	/** 
 	 * Instantiates the class
@@ -54,6 +55,24 @@ public class Configuration {
 	 */
 	public final void addProperty(String name, String value) {
 		this.additionalProperties.put(name, value);
+	}
+	
+	/**
+	 * Gets the limit of tasks
+	 * 
+	 * @return
+	 */
+	public int getLimitOfTasks() {
+		return limitOfTasks;
+	}
+
+	/**
+	 * Sets the limit of tasks
+	 * 
+	 * @param limitOfTasks
+	 */
+	public void setLimitOfTasks(int limitOfTasks) {
+		this.limitOfTasks = limitOfTasks;
 	}
 
 }

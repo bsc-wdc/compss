@@ -1,11 +1,12 @@
 package integratedtoolkit.types.fake;
 
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.resources.ResourceDescription;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 
 public class FakeImplementation extends Implementation {
 
-    public FakeImplementation(int coreId, int implementationId, ResourceDescription annot) {
+    public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
         super(coreId, implementationId, annot);
     }
 

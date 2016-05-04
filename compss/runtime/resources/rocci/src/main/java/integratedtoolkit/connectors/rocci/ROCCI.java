@@ -241,7 +241,7 @@ public class ROCCI extends AbstractSSHConnector {
         }
         String IP = client.get_resource_address(vmId);
         
-        granted.copy(requested);
+        granted = requested.copy();
         granted.setName(IP);
         granted.setOperatingSystemType("Linux");
         granted.setValue(getMachineCostPerTimeSlot(granted));

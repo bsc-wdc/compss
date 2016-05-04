@@ -285,7 +285,7 @@ public class EC2 extends AbstractSSHConnector {
         granted.setName(ip);
         AmazonVM vmInfo = new AmazonVM(instanceId, granted, instanceType, placement);
 
-        granted.copy(requested);
+        granted = requested.copy();
         
         // Workaround for multi-processor
         List<Processor> procs = granted.getProcessors();

@@ -205,8 +205,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         NIONode n = null;
         try {
         	n = new WorkerStarter(worker).startWorker();
-        }
-        catch(Exception e) {
+        } catch(Exception e) {
             ErrorManager.warn("There was an error when initiating worker " + worker.getName() + ".", e);
             throw e;
         }
@@ -249,6 +248,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     protected static void submitTask(NIOJob job) throws Exception {
         logger.debug("NIO submitting new job " + job.getJobId());
+        
         Resource res = job.getResource();
         NIOWorkerNode node = (NIOWorkerNode) res.getNode();
         NIONode hostNode = node.getNode();
@@ -257,10 +257,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         runningJobs.put(job.getJobId(), job);
         NIOTask t = job.prepareJob();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
-        for (int retries=0;retries<MAX_RETRIES;retries++){
-        	if(trySubmitTask(hostNode, cmd)){
+        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
+        	if (trySubmitTask(hostNode, cmd)) {
         		return;
-        	}else{
+        	} else {
         		try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
@@ -268,7 +268,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 				}
         	}
         }
-        //Submission has failed
+        
+        // Submission has failed
         throw new Exception("Submit Job"+ job.getJobId()+ " failed.");
     }
 
@@ -282,12 +283,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles) {
-        //Can not run any task. Do nothing
+        // Can not run any task. Do nothing
     }
 
     @Override
     public void setMaster(NIONode master) {
-        // this is called on NIOWorker
+        // This is called on NIOWorker
         // Setting Master on Adaptor --> Nothig to be done
     }
 
@@ -305,7 +306,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
    
     public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
-
         NIOJob nj = runningJobs.remove(jobId);
 
         if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {
@@ -356,7 +356,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     protected void handleDataToSendNotAvailable(Connection c, Data d) {
-    	//Finish the connection asap. The comm library will notify this error upwards as a ClosedChannelError.
+    	// Finish the connection asap. The comm library will notify this error upwards as a ClosedChannelError.
     	c.finishConnection();
     }
 

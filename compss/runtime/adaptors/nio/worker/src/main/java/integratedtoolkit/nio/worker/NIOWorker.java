@@ -77,8 +77,8 @@ public class NIOWorker extends NIOAgent {
 		}
 	}
 
-	public NIOWorker(String uuid, int snd, int rcv, int masterPort,
-			String hostName) {
+	
+	public NIOWorker(String uuid, int snd, int rcv, int masterPort, String hostName) {
 		super(snd, rcv, masterPort);
 
 		// Log worker creation
@@ -189,12 +189,12 @@ public class NIOWorker extends NIOAgent {
 									// If exception is raised, locationsInCache
 									// remains false. We log the exception and
 									// try host files
-									wLogger.error(ioe);
+									wLogger.error("IOException", ioe);
 								} catch (ClassNotFoundException e) {
 									// If exception is raised, locationsInCache
 									// remains false. We log the exception and
 									// try host files
-									wLogger.error(e);
+									wLogger.error("ClassNotFoundException", e);
 								}
 								// Stop looking for locations
 								break;
@@ -229,12 +229,12 @@ public class NIOWorker extends NIOAgent {
 									// If exception is raised, existInHost
 									// remains false. We log the exception and
 									// try transfer
-									wLogger.error(ioe);
+									wLogger.error("IOException", ioe);
 								} catch (ClassNotFoundException e) {
 									// If exception is raised, existInHost
 									// remains false. We log the exception and
 									// try transfer
-									wLogger.error(e);
+									wLogger.error("ClassNotFoundException", e);
 								}
 							}
 
@@ -294,7 +294,7 @@ public class NIOWorker extends NIOAgent {
 								locationsInHost = true;
 								
 							} catch (IOException ioe) {
-								wLogger.error(ioe);
+								wLogger.error("IOException", ioe);
 							}
 						}
 
@@ -332,18 +332,18 @@ public class NIOWorker extends NIOAgent {
 			}
 		}
 
-	        // Request the transfers
-        	if (tracing) {
-            		NIOTracer.emitEvent(tt.task.getTaskId(), NIOTracer.getTaskTransfersType());
-       		}
-        	requestTransfers();
-        	if (tracing) {
-            		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
-        	}
+        // Request the transfers
+    	if (tracing) {
+        		NIOTracer.emitEvent(tt.task.getTaskId(), NIOTracer.getTaskTransfersType());
+   		}
+    	requestTransfers();
+    	if (tracing) {
+        		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
+    	}
 
-        	if (tt.params == 0) {
-            		executeTask(tt.task);
-        	}
+    	if (tt.params == 0) {
+        		executeTask(tt.task);
+    	}
 	}
 
 	@Override
@@ -357,8 +357,7 @@ public class NIOWorker extends NIOAgent {
 	// handles this as an error,
 	// which treats with its function handleError, and notifies the worker in
 	// this case.
-	public void handleRequestedDataNotAvailableError(
-			LinkedList<DataRequest> failedRequests, String dataId) {
+	public void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId) {
 
 		for (DataRequest dr : failedRequests) { // For every task pending on
 												// this request, flag it as an
@@ -380,8 +379,8 @@ public class NIOWorker extends NIOAgent {
 			// Same for the worker when sending, throwing an error when trying
 			// to read the job out, which wouldnt exist
 
-			String baseJobPath = workingDir + "/jobs/job"
-					+ wdr.task.task.getJobId() + "_" + wdr.task.task.getHist();
+			String baseJobPath = workingDir + File.separator + "jobs" + File.separator 
+					+ "job" + wdr.task.task.getJobId() + "_" + wdr.task.task.getHist();
 			File fout = new File(baseJobPath + ".out");
 			File ferr = new File(baseJobPath + ".err");
 			if (!fout.exists() || !ferr.exists()) {
@@ -394,15 +393,14 @@ public class NIOWorker extends NIOAgent {
 					fos = new FileOutputStream(ferr);
 					fos.write(errorMessage.getBytes());
 					fos.close();
-
 				} catch (IOException e) {
-					wLogger.error(e);
+					wLogger.error("IOException", e);
 				} finally {
 					if (fos != null) {
 						try {
 							fos.close();
 						} catch (IOException e) {
-							wLogger.error(e);
+							wLogger.error("IOException", e);
 						}
 					}
 				}
@@ -412,8 +410,7 @@ public class NIOWorker extends NIOAgent {
 	}
 
 	@Override
-	public void receivedValue(Destination type, String dataId, Object object,
-			LinkedList<DataRequest> achievedRequests) {
+	public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
 		if (type == Transfer.Destination.OBJECT) {
 			wLogger.info("Received data " + dataId + " with associated object " + object);
 			storeInCache(dataId, object);
@@ -532,7 +529,7 @@ public class NIOWorker extends NIOAgent {
 				}
 			}
 		} catch (Exception e) {
-			wLogger.error(e);
+			wLogger.error("Exception", e);
 		}
 	}
 
@@ -564,7 +561,7 @@ public class NIOWorker extends NIOAgent {
 				}
 			} 	
 		} catch (Exception e) {
-			wLogger.error(e);
+			wLogger.error("Exception", e);
 		}
 		wLogger.debug("Finish shutdown method on worker");
 	}

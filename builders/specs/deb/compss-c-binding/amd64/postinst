@@ -5,6 +5,10 @@
   if [ "$action" == "configure" ]; then
     # Configure new version successfully installed
     newversion=$1
+    # Rebuild c arch deps
+    cd /opt/COMPSs/Bindings/c/
+    ./install /opt/COMPSs/Bindings/c/ false
+    cd -
     # Copy scripts
     mkdir -p /opt/COMPSs/Runtime/scripts/system/c
     mkdir -p /opt/COMPSs/Runtime/scripts/user

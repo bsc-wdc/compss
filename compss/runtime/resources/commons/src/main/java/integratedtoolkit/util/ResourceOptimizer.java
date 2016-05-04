@@ -96,7 +96,7 @@ public class ResourceOptimizer extends Thread {
                     if (ResourceManager.useCloud()) {
                         applyPolicies(workload);
 
-                        //Theres a potentialBlock in cloud only if all the possible VMs have been created
+                        // There is a potentialBlock in cloud only if all the possible VMs have been created
                         int VMsBeingCreated = CloudManager.getPendingRequests().size();
                         potentialBlock = potentialBlock && (VMsBeingCreated == 0);
                     }
@@ -177,7 +177,7 @@ public class ResourceOptimizer extends Thread {
     }
 
     /**
-     * Asks for the vm needed for the runtime to be able to execute all method
+     * Asks for the VM needed for the runtime to be able to execute all method
      * cores.
      *
      * First it groups the constraints of all the methods per Architecture and
@@ -192,9 +192,9 @@ public class ResourceOptimizer extends Thread {
      * to fulfill the initial Constraint. It creates a single VM for each final
      * method constraint.
      *
-     * Although these agressive merges, the amount of different constraints can
+     * Although these aggressive merges, the amount of different constraints can
      * be higher than the initial VM Count constraint. In this case, it violates
-     * the initial Vm constraint and asks for more resources.
+     * the initial VM constraint and asks for more resources.
      *
      * @return the amount of requested VM
      */
@@ -297,7 +297,7 @@ public class ResourceOptimizer extends Thread {
         }
 
         public void join(ConstraintsCore c2) {
-            desc.join(c2.desc);
+            desc.expand(c2.desc);
             c2.desc = desc;
             for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
                 if (cores[coreId] != null) {
@@ -418,7 +418,7 @@ public class ResourceOptimizer extends Thread {
 
     private static void reassignUnassignedConstraints(HashMap<String, LinkedList<ConstraintsCore>> arch2Ctrs) {
         /*
-         * ATTENTION: Since this method is only evaluated from contraints, there is only
+         * ATTENTION: Since this method is only evaluated from constraints, there is only
          *                        1 PROCESSOR and 1 ARCHITECTURE
          */
         LinkedList<ConstraintsCore> unassignedList = arch2Ctrs.get("[unassigned]");

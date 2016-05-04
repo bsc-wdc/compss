@@ -197,7 +197,7 @@ public class ResourceLoader {
 		String name = cn_project.getName();
 		
 		/* Add properties given by the resources file *****************************************/
-		MethodResourceDescription rd = new MethodResourceDescription();
+		MethodResourceDescription mrd = new MethodResourceDescription();
 		List<integratedtoolkit.types.resources.jaxb.ProcessorType> processors = resources.getProcessors(cn_resources);
 		if (processors != null) {
 			for (integratedtoolkit.types.resources.jaxb.ProcessorType p : processors) {
@@ -208,26 +208,26 @@ public class ResourceLoader {
 				ProcessorPropertyType procProp = resources.getProcessorProperty(p);
 				String propKey = (procProp != null) ? procProp.getKey() : "";
 				String propValue = (procProp != null) ? procProp.getValue() : "";
-				rd.addProcessor(procName, computingUnits, architecture, speed, propKey, propValue);
+				mrd.addProcessor(procName, computingUnits, architecture, speed, propKey, propValue);
 			}
 		}
-		rd.setMemorySize( resources.getMemorySize(cn_resources) );
-		rd.setMemoryType( resources.getMemoryType(cn_resources) );
-		rd.setStorageSize( resources.getStorageSize(cn_resources) );
-		rd.setStorageType( resources.getStorageType(cn_resources) );
-		rd.setOperatingSystemType( resources.getOperatingSystemType(cn_resources) );
-		rd.setOperatingSystemDistribution( resources.getOperatingSystemDistribution(cn_resources) );
-		rd.setOperatingSystemVersion( resources.getOperatingSystemVersion(cn_resources) );
+		mrd.setMemorySize( resources.getMemorySize(cn_resources) );
+		mrd.setMemoryType( resources.getMemoryType(cn_resources) );
+		mrd.setStorageSize( resources.getStorageSize(cn_resources) );
+		mrd.setStorageType( resources.getStorageType(cn_resources) );
+		mrd.setOperatingSystemType( resources.getOperatingSystemType(cn_resources) );
+		mrd.setOperatingSystemDistribution( resources.getOperatingSystemDistribution(cn_resources) );
+		mrd.setOperatingSystemVersion( resources.getOperatingSystemVersion(cn_resources) );
 		List<String> apps = resources.getApplications(cn_resources);
 		if (apps != null) {
 			for (String appName : apps) {
-				rd.addApplication( appName );
+				mrd.addApplication( appName );
 			}
 		}
 		integratedtoolkit.types.resources.jaxb.PriceType p = resources.getPrice(cn_resources);
 		if (p != null) {
-			rd.setPriceTimeUnit( p.getTimeUnit());
-			rd.setPricePerUnit( p.getPricePerUnit() );
+			mrd.setPriceTimeUnit( p.getTimeUnit());
+			mrd.setPricePerUnit( p.getPricePerUnit() );
 		}
 		
 		// Add Shared Disks (Name, mountpoint)
@@ -248,44 +248,59 @@ public class ResourceLoader {
 		String loadedAdaptor = System.getProperty(ITConstants.COMM_ADAPTOR);
 		List<String> queues_project = project.getAdaptorQueues(cn_project, loadedAdaptor);
 		List<String> queues_resources = resources.getAdaptorQueues(cn_resources, loadedAdaptor);
-		for (String queue : queues_resources) {
-			if (queues_project.contains(queue)) {
-				rd.addQueue(queue);
+		if (queues_project == null) {
+			// Has no tag adaptors on project, get default resources complete
+			for (String queue : queues_resources) {
+				mrd.addHostQueue(queue);
+			}
+		} else {
+			// Project defines a subset of queues
+			for (String queue : queues_resources) {
+				if (queues_project.contains(queue)) {
+					mrd.addHostQueue(queue);
+				}
 			}
 		}
 		Object adaptorProperties_project = project.getAdaptorProperties(cn_project, loadedAdaptor);
 		Object adaptorProperties_resources = resources.getAdaptorProperties(cn_resources, loadedAdaptor);
 		
-		MethodConfiguration mp = null;
+		MethodConfiguration config = null;
 		try {
-			mp = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project, adaptorProperties_resources);
+			config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project, adaptorProperties_resources);
 		} catch (Exception e) {
 			ErrorManager.warn("Adaptor configuration constructor failed", e);
 			return false;
 		}
 		
-		// If we have reached this point the mp is SURELY not null
+		// If we have reached this point the config is SURELY not null
 		
 		/* Add properties given by the project file *****************************************/
-		mp.setHost( cn_project.getName() );
-		mp.setUser( project.getUser(cn_project) );
-		mp.setInstallDir( project.getInstallDir(cn_project) );
-		mp.setWorkingDir( project.getWorkingDir(cn_project) );
-		mp.setLimitOfTasks( project.getLimitOfTasks(cn_project) );
-		mp.setTotalComputingUnits( rd.getTotalComputingUnits() );
+		config.setHost( cn_project.getName() );
+		config.setUser( project.getUser(cn_project) );
+		config.setInstallDir( project.getInstallDir(cn_project) );
+		config.setWorkingDir( project.getWorkingDir(cn_project) );
+		int limitOfTasks = project.getLimitOfTasks(cn_project);
+		if (limitOfTasks >= 0) {
+			config.setLimitOfTasks( limitOfTasks );
+			mrd.setMaxTaskSlots(limitOfTasks);
+		} else {
+			config.setLimitOfTasks( mrd.getTotalComputingUnits() );
+			mrd.setMaxTaskSlots( mrd.getTotalComputingUnits() );
+		}
+		config.setTotalComputingUnits( mrd.getTotalComputingUnits() );
 		
 		ApplicationType app = project.getApplication(cn_project);
 		if (app != null) {
-			mp.setAppDir( app.getAppDir() );
-			mp.setLibraryPath( app.getLibraryPath() );
-			mp.setClasspath( app.getClasspath() );
-			mp.setPythonpath( app.getClasspath() );
+			config.setAppDir( app.getAppDir() );
+			config.setLibraryPath( app.getLibraryPath() );
+			config.setClasspath( app.getClasspath() );
+			config.setPythonpath( app.getClasspath() );
 		}
 		
 		
 		/* Pass all the information to the ResourceManager to insert it into the Runtime ***/
 		LOGGER.debug("Adding method worker " + name);
-		ResourceManager.newMethodWorker(name, rd, sharedDisks, mp);
+		ResourceManager.newMethodWorker(name, mrd, sharedDisks, config);
 		
 		// If we have reached this point the method worker has been correctly created
 		return true;
@@ -304,11 +319,11 @@ public class ResourceLoader {
 		String serviceName = s_resources.getName();
 		String namespace = s_resources.getNamespace();
 		String port = s_resources.getPort();
-		ServiceResourceDescription sd = new ServiceResourceDescription(serviceName, namespace, port);
+		ServiceResourceDescription srd = new ServiceResourceDescription(serviceName, namespace, port);
 		
-		ServiceConfiguration sc = null;
+		ServiceConfiguration config = null;
 		try {
-			sc = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, s_project, s_resources);
+			config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, s_project, s_resources);
 		} catch (Exception e) {
 			ErrorManager.warn("Service configuration constructor failed", e);
 			return false;
@@ -317,10 +332,15 @@ public class ResourceLoader {
 		// If we have reached this point the mp is SURELY not null
 
 		/* Add properties given by the project file *****************************************/
+		int limitOfTasks = s_project.getLimitOfTasks();
+		if (limitOfTasks >= 0) {
+			config.setLimitOfTasks( limitOfTasks );
+			srd.setMaxTaskSlots(limitOfTasks);
+		}
 		
 		/* Pass all the information to the ResourceManager to insert it into the Runtime ***/
 		LOGGER.debug("Adding service worker " + wsdl);
-		return ResourceManager.newServiceWorker(wsdl, sd, sc);
+		return ResourceManager.newServiceWorker(wsdl, srd, config);
 	}
 	
 	private static boolean loadCloud(CloudType cloud) {

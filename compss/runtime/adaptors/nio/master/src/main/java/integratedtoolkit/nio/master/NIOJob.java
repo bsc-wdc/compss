@@ -27,6 +27,7 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
             && System.getProperty(ITConstants.IT_WORKER_CP).compareTo("") != 0)
             ? System.getProperty(ITConstants.IT_WORKER_CP) : "\"\"";
 
+            
     public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
     }
@@ -52,7 +53,6 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         logger.info("Submit NIOJob with ID " + jobId);
 
         NIOAdaptor.submitTask(this);
-
     }
 
     public NIOTask prepareJob() {
@@ -69,7 +69,23 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
             numParams--;
         }
 
-        NIOTask nt = new NIOTask(lang, getResourceNode().getInstallDir(), getResourceNode().getLibPath(), getResourceNode().getAppDir(), workerClasspath, debug, className, methodName, hasTarget, params, numParams, taskId, this.taskParams.getId(), jobId, history, transferId);
+        NIOTask nt = new NIOTask(lang, 
+        						getResourceNode().getInstallDir(), 
+        						getResourceNode().getLibPath(), 
+        						getResourceNode().getAppDir(), 
+        						workerClasspath, 
+        						debug, 
+        						className, 
+        						methodName, 
+        						hasTarget, 
+        						params, 
+        						numParams, 
+        						taskId, 
+        						this.taskParams.getId(), 
+        						jobId, 
+        						history, 
+        						transferId
+        					);
         
         return nt;
     }
@@ -131,4 +147,5 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
     public void stop() throws Exception {
         //Do nothing
     }
+    
 }

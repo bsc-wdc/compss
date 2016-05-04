@@ -1,9 +1,17 @@
 package resourceManager;
 
+import java.util.LinkedList;
+import java.util.Map.Entry;
+
+import integratedtoolkit.types.annotations.Constraints;
+import integratedtoolkit.types.annotations.Method;
+import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 import commons.Action;
+import commons.ConstantValues;
+import constraintManager.TestItf;
 
 
 /*
@@ -17,6 +25,8 @@ public class TestAvailable {
 	private static final String NAME_WORKER 		= "COMPSsWorker01";
 
     // CoreManagerData
+	private static int coreCount;
+	private static LinkedList<String>[] idToSignatures;
     private static String[] coreToName;
     
 	
@@ -27,7 +37,7 @@ public class TestAvailable {
     	// Wait for Runtime to be loaded
     	System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
-            Thread.sleep(7_000);
+            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
         	// No need to handle such exceptions
         }
@@ -42,27 +52,40 @@ public class TestAvailable {
      * *************************************** */
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	private static void availableResourcesTest() {
-        //Find core numbers to execute
+    	// Get CoreCount
+    	coreCount = CoreManager.getCoreCount();
+    	
+        // Loading Core names from the interface
+        idToSignatures = new LinkedList[coreCount];
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            idToSignatures[coreId] = new LinkedList<String>();
+        }
+        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
+            String signature = entry.getKey();
+            Integer coreId = entry.getValue();
+            idToSignatures[coreId].add(signature);
+        }
+  
+        // Search for the specific CoreElement ids
         boolean found_ce1 = false;
         boolean found_ce2 = false;
         int ce1 = 0;
         int ce2 = 0;
-        while ((!found_ce1 || !found_ce2) && (ce1 < coreToName.length) && (ce2 < coreToName.length)) {
-            if (coreToName[ce1].equals(NAME_CORE_ELEMENT_1)) {
-                found_ce1 = true;
+        coreToName = new String[coreCount];
+        for (int i = 0; i < coreCount; i++) {
+            int cutValue = idToSignatures[i].getFirst().indexOf("(");
+            coreToName[i] = idToSignatures[i].getFirst().substring(0, cutValue);
+            if (coreToName[i].equals(NAME_CORE_ELEMENT_1)) {
+            	ce1 = i;
+            	found_ce1 = true;
             }
-            if (coreToName[ce2].equals(NAME_CORE_ELEMENT_2)) {
-                found_ce2 = true;
-            }
-            if (!found_ce1) {
-                ce1 = ce1 + 1;
-            }
-            if (!found_ce2) {
-                ce2 = ce2 + 1;
+            if (coreToName[i].equals(NAME_CORE_ELEMENT_2)) {
+            	ce2 = i;
+            	found_ce2 = true;
             }
         }
 
-        //Check results
+        // Check results
         if (!found_ce1) {
             System.out.println("[ERROR] " + NAME_CORE_ELEMENT_1 + " not found.");
             System.exit(-1);
@@ -76,7 +99,7 @@ public class TestAvailable {
          * Reserve and free for computingUnits test
          * *********************************************** */
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
-        System.out.println("DynWorker object is " + worker.getDescription() + "and  CoreImplementations requirements object is " + CoreManager.getCoreImplementations(ce1)[0]);
+        System.out.println(NAME_WORKER + " object is " + worker.getDescription() + "and CoreImplementations requirements object is " + CoreManager.getCoreImplementations(ce1)[0]);
         worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
         worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
         Action a = new Action(ce1);

@@ -59,8 +59,6 @@ public class JobLauncher extends RequestDispatcher<NIOTask> {
     }
 
     private boolean executeTask(NIOTask nt) {
-        //There is no sandbox create the sandbox??
-        //call trace.sh start eventType task_Id slot
         switch (Lang.valueOf(nt.lang.toUpperCase())) {
             case JAVA:
                 return java.execute(nt, nw);
@@ -69,6 +67,7 @@ public class JobLauncher extends RequestDispatcher<NIOTask> {
             case C:
                 return c.execute(nt, nw);
             default:
+            	// Print to the job.err file
                 System.err.println("Incorrect language " + nt.lang + " in job " + nt.getJobId());
                 return false;
         }

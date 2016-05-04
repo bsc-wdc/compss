@@ -8,9 +8,13 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
 
-    public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration config, Integer maxTaskCount) throws Exception {
-        super(wsdl, description, config, maxTaskCount);
+    public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration config) throws Exception {
+        super(wsdl, description, config);
         this.wsdl = wsdl;
+        
+        if (config.getLimitOfTasks() > 0) {
+        	this.description.setMaxTaskSlots(config.getLimitOfTasks());
+        }
     }
 
     public ServiceWorker(ServiceWorker sw) {

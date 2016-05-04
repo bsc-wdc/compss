@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
+    
     <ComputeNode Name="COMPSsWorker01">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>4</ComputingUnits>
+        <Processor Name="NotMain">
+            <ComputingUnits>16</ComputingUnits>
+            <Speed>1.2</Speed>
+            <Architecture>arm</Architecture>
+            <ProcessorProperty>
+            	<Key>Priority</Key>
+            	<Value>1</Value>
+            </ProcessorProperty>
         </Processor>
+        <Memory>
+        	<Size>2.0</Size>
+        	<Type>DRAM</Type>
+        </Memory>
+        <Storage>
+        	<Size>120.0</Size>
+        	<Type>NVRAM</Type>
+        </Storage>
+        <OperatingSystem>
+        	<Type>MacOS</Type>
+        	<Distribution>X</Distribution>
+        	<Version>10</Version>
+        </OperatingSystem>
+        <Software>
+            <Application>SPARK</Application>
+        </Software>
         <Adaptors>
             <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43002</MaxPort>
-                </Ports>
-            </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
-                        <Queue>sequential</Queue>
+                        <Queue>another</Queue>
                     </Batch>
-                    <Interactive/>
-                </SubmissionSystem>
-                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
-            </Adaptor>
-        </Adaptors>
-    </ComputeNode>
-    
-    <ComputeNode Name="COMPSsWorker02">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>4</ComputingUnits>
-        </Processor>
-        <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
-                <SubmissionSystem>
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
@@ -43,7 +43,7 @@
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
-                        <Queue>sequential</Queue>
+                        <Queue>another</Queue>
                     </Batch>
                     <Interactive/>
                 </SubmissionSystem>
@@ -52,13 +52,45 @@
         </Adaptors>
     </ComputeNode>
     
-    <ComputeNode Name="COMPSsWorker03">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>4</ComputingUnits>
+    <ComputeNode Name="COMPSsWorker02">
+        <Processor Name="Main">
+            <ComputingUnits>1</ComputingUnits>
+            <Speed>2.4</Speed>
+            <Architecture>amd64</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Big</Value>
+            </ProcessorProperty>
         </Processor>
+        <Processor Name="Slave">
+            <ComputingUnits>1</ComputingUnits>
+        </Processor>
+        <Memory>
+        	<Size>8.0</Size>
+        	<Type>Volatile</Type>
+        </Memory>
+        <Storage>
+        	<Size>240.0</Size>
+        	<Type>SSD</Type>
+        </Storage>
+        <OperatingSystem>
+        	<Type>Linux</Type>
+        	<Distribution>OpenSUSE</Distribution>
+        	<Version>13.2</Version>
+        </OperatingSystem>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>COMPSS</Application>
+        </Software>
         <Adaptors>
             <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
                 <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                        <Queue>debug</Queue>
+                        <Queue>bsc</Queue>
+                    </Batch>
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
@@ -70,6 +102,8 @@
                 <SubmissionSystem>
                     <Batch>
                         <Queue>sequential</Queue>
+                        <Queue>debug</Queue>
+                        <Queue>bsc</Queue>
                     </Batch>
                     <Interactive/>
                 </SubmissionSystem>
@@ -78,13 +112,49 @@
         </Adaptors>
     </ComputeNode>
     
-    <ComputeNode Name="COMPSsWorker04">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>4</ComputingUnits>
+    <ComputeNode Name="COMPSsWorker03">
+        <Processor Name="Slave">
+            <ComputingUnits>1</ComputingUnits>
+            <Speed>1.0</Speed>
+            <Architecture>x86</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Little</Value>
+            </ProcessorProperty>
         </Processor>
+        <Processor Name="Main">
+            <ComputingUnits>1</ComputingUnits>
+            <Speed>3.0</Speed>
+            <Architecture>amd64</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Big</Value>
+            </ProcessorProperty>
+        </Processor>
+        <Memory>
+        	<Size>10.0</Size>
+        	<Type>Volatile</Type>
+        </Memory>
+        <Storage>
+        	<Size>300.0</Size>
+        	<Type>SSD</Type>
+        </Storage>
+        <OperatingSystem>
+        	<Type>Linux</Type>
+        	<Distribution>OpenSUSE</Distribution>
+        	<Version>13.2</Version>
+        </OperatingSystem>
+        <Software>
+            <Application>PYTHON</Application>
+            <Application>JAVA</Application>
+        </Software>
         <Adaptors>
             <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
                 <SubmissionSystem>
+                    <Batch>
+                        <Queue>debug</Queue>
+                        <Queue>sequential</Queue>
+                    </Batch>
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
@@ -95,6 +165,7 @@
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
                 <SubmissionSystem>
                     <Batch>
+                        <Queue>debug</Queue>
                         <Queue>sequential</Queue>
                     </Batch>
                     <Interactive/>
@@ -104,10 +175,118 @@
         </Adaptors>
     </ComputeNode>
     
-    <Service wsdl="http://localhost:28019/groupService?wsdl">
-       	<Name>GroupService</Name>
-       	<Namespace>http://groupService</Namespace>
-       	<Port>GroupServicePort</Port>
+    <ComputeNode Name="COMPSsWorker04">
+        <Processor Name="Slave">
+            <ComputingUnits>2</ComputingUnits>
+            <Speed>1.0</Speed>
+            <Architecture>x86</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Little</Value>
+            </ProcessorProperty>
+        </Processor>
+        <Processor Name="Main">
+            <ComputingUnits>8</ComputingUnits>
+            <Speed>3.0</Speed>
+            <Architecture>amd64</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Big</Value>
+            </ProcessorProperty>
+        </Processor>
+        <Memory>
+        	<Size>8.0</Size>
+        	<Type>Non-Volatile</Type>
+        </Memory>
+        <Storage>
+        	<Size>500.0</Size>
+        	<Type>HDD</Type>
+        </Storage>
+        <OperatingSystem>
+        	<Type>Windows</Type>
+        	<Distribution>XP</Distribution>
+        	<Version>SP2</Version>
+        </OperatingSystem>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43005</MinPort>
+                    <MaxPort>43006</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    
+    <ComputeNode Name="COMPSsWorker05">
+        <Processor Name="Main">
+            <ComputingUnits>4</ComputingUnits>
+            <Speed>3.0</Speed>
+            <Architecture>amd64</Architecture>
+            <ProcessorProperty>
+            	<Key>ThreadAffinity</Key>
+            	<Value>Big</Value>
+            </ProcessorProperty>
+        </Processor>
+        <Processor Name="Slave">
+            <ComputingUnits>4</ComputingUnits>
+        </Processor>
+        <Memory>
+        	<Size>8.0</Size>
+        	<Type>Volatile</Type>
+        </Memory>
+        <Storage>
+        	<Size>300.0</Size>
+        	<Type>SSD</Type>
+        </Storage>
+        <OperatingSystem>
+        	<Type>Windows</Type>
+        	<Distribution>XP</Distribution>
+        	<Version>SP2</Version>
+        </OperatingSystem>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                	<Batch>
+                        <Queue>debug</Queue>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43006</MinPort>
+                    <MaxPort>43007</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                	<Batch>
+                        <Queue>debug</Queue>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+    </ComputeNode>
+    
+    <Service wsdl="http://localhost:9999/dummyService?wsdl">
+       	<Name>DummyService</Name>
+       	<Namespace>http://localhost:9999/</Namespace>
+       	<Port>DummyServicePort</Port>
     </Service>
     
 </ResourcesList>

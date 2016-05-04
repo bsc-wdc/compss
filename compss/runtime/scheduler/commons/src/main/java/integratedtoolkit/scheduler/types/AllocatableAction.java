@@ -32,7 +32,6 @@ public abstract class AllocatableAction {
     }
 
     private enum State {
-
         RUNNABLE,
         RUNNING,
         FINISHED,

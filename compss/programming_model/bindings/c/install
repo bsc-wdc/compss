@@ -16,6 +16,7 @@
 
 working_dir=$(pwd)/src
 build_root=$1
+require_build_libs=$2
 
 export GS_HOME=$build_root
 
@@ -49,32 +50,34 @@ fi
 echo " "
 echo "- Installation directory: $build_root"
 
-echo " "
-echo "Installing C/C++ Binding Library..."
-echo " "
-cd $working_dir/bindinglib
-
-machine_arch=$(uname -p | /usr/bin/cut -c 1);
-if [[ $machine_arch == i ]]; then
-   arch="i386"
-   subfolder="client"
-fi
-if [[ $machine_arch == x ]]; then
-     arch="amd64"
-     subfolder="server"
-fi
-
-echo "- ARCHITECTURE: $arch"
-echo "- SUB_FOLDER: $subfolder"
-export ARCH=$arch
-export SUBFLDR=$subfolder
-autoreconf -fvim
-./configure --prefix=${build_root} --libdir=${build_root}/lib
-make clean install
-if [ $? -ne 0 ]; then 
-    echo " "
-    echo "BindingLib Installation failed, please check errors above!";
-    exit 1;
+if [ "${require_build_libs}" == true ]; then
+  echo " "
+  echo "Installing C/C++ Binding Library..."
+  echo " "
+  cd $working_dir/bindinglib
+  
+  machine_arch=$(uname -p | /usr/bin/cut -c 1);
+  if [[ $machine_arch == i ]]; then
+     arch="i386"
+     subfolder="client"
+  fi
+  if [[ $machine_arch == x ]]; then
+       arch="amd64"
+       subfolder="server"
+  fi
+  
+  echo "- ARCHITECTURE: $arch"
+  echo "- SUB_FOLDER: $subfolder"
+  export ARCH=$arch
+  export SUBFLDR=$subfolder
+  autoreconf -fvim
+  ./configure --prefix=${build_root} --libdir=${build_root}/lib
+  make clean install
+  if [ $? -ne 0 ]; then 
+      echo " "
+      echo "BindingLib Installation failed, please check errors above!";
+      exit 1;
+  fi
 fi
 
 echo " "

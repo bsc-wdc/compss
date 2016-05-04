@@ -30,4 +30,9 @@ public class WorkerUpdateRequest extends TDRequest {
         ts.updatedWorker(worker);
     }
 
+
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.WORKER_UPDATE_REQUEST;
+    }
 }

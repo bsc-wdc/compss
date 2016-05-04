@@ -68,15 +68,15 @@ public abstract class Tracer {
         GET_OBJECT(8, RUNTIME_EVENTS, "Waiting for get object"),
         DELETE(9, RUNTIME_EVENTS, "Delete File"),
         TASK_RUNNING(10, RUNTIME_EVENTS, "Task Running"),
-        
-        // Task Dispatcher Events
-        SCHEDULE_TASK(11, RUNTIME_EVENTS, "Task Dispatcher: Scheduling task"),
-        FINISHED_TASK(12, RUNTIME_EVENTS, "Task Dispatcher: Finished task"),
-        RESCHEDULE_TASK(13, RUNTIME_EVENTS, "Task Dispatcher: Rescheduling task"),
-        NEW_WAITING_TASK(14, RUNTIME_EVENTS, "Task Dispatcher: New waiting task"),
-        DEBUG_TASK(15, RUNTIME_EVENTS, "Task Dispatcher: Debug task"),
-        DEFAULT_TASK(16, RUNTIME_EVENTS, "Task Dispatcher: Default task"),
-        
+
+//        // Task Dispatcher Events
+//        SCHEDULE_TASK(11, RUNTIME_EVENTS, "Task Dispatcher: Scheduling task"),
+//        FINISHED_TASK(12, RUNTIME_EVENTS, "Task Dispatcher: Finished task"),
+//        RESCHEDULE_TASK(13, RUNTIME_EVENTS, "Task Dispatcher: Rescheduling task"),
+//        NEW_WAITING_TASK(14, RUNTIME_EVENTS, "Task Dispatcher: New waiting task"),
+//        DEBUG_TASK(15, RUNTIME_EVENTS, "Task Dispatcher: Debug task"),
+//        DEFAULT_TASK(16, RUNTIME_EVENTS, "Task Dispatcher: Default task"),
+
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
         ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
@@ -105,13 +105,24 @@ public abstract class Tracer {
         STORAGE_NEWVERSION(39, STORAGE_TYPE, "newVersion"),
         STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"),
         STORAGE_EXECUTETASK(41, STORAGE_TYPE, "executeTask"),
-        STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations");
-        
+        STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"),
+
+        RECEIVED_NEW_TASK(43, RUNTIME_EVENTS, "Received new task"),
+
+        ACTION_UPDATE(44, RUNTIME_EVENTS, "Task Dispatcher: Action update"),
+        CE_REGISTRATION(45, RUNTIME_EVENTS, "Task Dispatcher: CE registration"),
+        EXECUTE_TASKS(46, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"),
+        GET_CURRENT_SCHEDULE(47, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"),
+        MONITORING_DATA(48, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"),
+        TD_SHUTDOWN(49, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"),
+        UPDATE_CEI_LOCAL(50, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
+        WORKER_UPDATE_REQUEST(51, RUNTIME_EVENTS, "Task Dispatcher: Worker update request");
+
         private final int id;
         private final int type;
         private final String signature;
 
-        private Event(int id, int type, String signature) {
+        Event(int id, int type, String signature) {
             this.id = id;
             this.type = type;
             this.signature = signature;
@@ -152,10 +163,6 @@ public abstract class Tracer {
 
         tracing_level = level;
     }
-    
-    public static boolean advancedModeEnabled(){
-        return tracing_level == Tracer.ADVANCED_MODE;
-    }
 
     public static boolean basicModeEnabled(){
         return tracing_level == Tracer.BASIC_MODE;
@@ -174,9 +181,6 @@ public abstract class Tracer {
         }
     }
         
-    public static String getTraceDirPath() {
-        return traceDirPath;
-    }
 
     public static int registerHost(String name, int slots) {
         if (debug){
@@ -210,10 +214,6 @@ public abstract class Tracer {
         }
         hostToSlots.get(host).freeSlot(slot);
     }
-    
-    public static int getDataTransfersType(){
-        return DATA_TRANSFERS;
-    }
 
     public static int getTaskTransfersType(){
         return TASK_TRANSFERS;
@@ -230,6 +230,10 @@ public abstract class Tracer {
     public static Event getAPRequestEvent(String eventType){
         return Event.valueOf(eventType);
     }
+
+    public static Event getTDRequestEvent(String eventType){
+        return Event.valueOf(eventType);
+    }
     
     public static void emitEvent(long eventID, int eventType){
         synchronized(Tracer.class){
@@ -240,7 +244,21 @@ public abstract class Tracer {
             logger.debug("Emitting synchronized event [type, id] = [" + eventType + " , " + eventID + "]");
         }
     }
-    
+
+    public static void emitEventAndCounters(int taskId, int eventType){
+        System.out.println("EAC lcs");
+        synchronized(Tracer.class){
+            System.out.println("EAC lcs_2");
+            Wrapper.Eventandcounters(eventType, taskId);
+            System.out.println("EAC lcs_3");
+
+        }
+
+        if (debug){
+            logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
+        }
+
+    }
     
     public static void masterEventStart(int taskId) {
         emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);

@@ -117,14 +117,29 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         while (keepGoing) {
             try {
                 TDRequest request = requestQueue.take();
+                if (tracing){
+                    Tracer.masterEventStart(Tracer.getTDRequestEvent(request.getType().name()).getId());
+                }
                 request.process(scheduler);
+                if (tracing){
+                    Tracer.masterEventFinish();
+                }
             } catch (InterruptedException ie) {
+                if (tracing){
+                    Tracer.masterEventFinish();
+                }
                 continue;
             } catch (ShutdownException se) {
                 logger.debug("Exiting dispatcher because of shutting down");
+                if (tracing){
+                    Tracer.masterEventFinish();
+                }
                 break;
             } catch (Exception e) {
                 logger.error("RequestError", e);
+                if (tracing){
+                    Tracer.masterEventFinish();
+                }
                 continue;
             }
         }

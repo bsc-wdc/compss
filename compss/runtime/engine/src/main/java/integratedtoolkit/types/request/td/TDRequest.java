@@ -13,6 +13,18 @@ import org.apache.log4j.Logger;
  */
 public abstract class TDRequest extends Request {
 
+    public enum TDRequestType {
+        ACTION_UPDATE,
+        CE_REGISTRATION,
+        EXECUTE_TASKS,
+        GET_CURRENT_SCHEDULE,
+        MONITORING_DATA,
+        TD_SHUTDOWN,
+        UPDATE_CEI_LOCAL,
+        WORKER_UPDATE_REQUEST;
+    }
+
+
     // Logging
     protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
@@ -20,6 +32,7 @@ public abstract class TDRequest extends Request {
     protected static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
     protected static final boolean resourcesLoggerDebug = resourcesLogger.isDebugEnabled();
 
-
+    public abstract TDRequestType getType();
     public abstract void process(TaskScheduler ts) throws ShutdownException;
+
 }

@@ -61,4 +61,9 @@ public class ShutdownRequest extends TDRequest {
         semaphore.release();
         throw new ShutdownException();
     }
+
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.TD_SHUTDOWN;
+    }
 }

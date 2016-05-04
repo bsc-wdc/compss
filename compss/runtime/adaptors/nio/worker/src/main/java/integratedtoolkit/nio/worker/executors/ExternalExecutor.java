@@ -193,7 +193,8 @@ public abstract class ExternalExecutor extends Executor {
         int taskId = nt.getTaskId();
 
         if (tracing) {
-            NIOTracer.emitEvent(taskType, NIOTracer.getTaskEventsType());
+            logger.debug("Emitting HW lcs");
+            NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
             NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
         }
 
@@ -223,8 +224,9 @@ public abstract class ExternalExecutor extends Executor {
             errorGobbler.start();
             int exitValue = execProc.waitFor();
 
-            if (tracing){ 
-            	NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
+            if (tracing){
+                logger.debug("Emitting end HW lcs");
+            	NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
             }
             logger.debug("Task finished. Waiting for gobblers to end...");

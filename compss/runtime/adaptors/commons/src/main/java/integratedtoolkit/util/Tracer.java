@@ -25,7 +25,6 @@ import java.util.concurrent.Semaphore;
 
 public abstract class Tracer {
 
-    public static final int DEFAULT_NUM_THREADS = 16;
 
     private static final String taskDesc 			= "Task";
     private static final String apiDesc 			= "Runtime";
@@ -51,13 +50,12 @@ public abstract class Tracer {
     
     public static final int EVENT_END = 0;
 
-    public static final int NOT_ENABLED   = 0;
     public static final int BASIC_MODE    = 1;
-    public static final int ADVANCED_MODE = 2;
+
     protected static int tracing_level;
     
     
-    public static enum Event {
+    public enum Event {
         STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"),
         START(2, RUNTIME_EVENTS, "Start"),
         STOP(3, RUNTIME_EVENTS, "Stop"),
@@ -68,14 +66,6 @@ public abstract class Tracer {
         GET_OBJECT(8, RUNTIME_EVENTS, "Waiting for get object"),
         DELETE(9, RUNTIME_EVENTS, "Delete File"),
         TASK_RUNNING(10, RUNTIME_EVENTS, "Task Running"),
-
-//        // Task Dispatcher Events
-//        SCHEDULE_TASK(11, RUNTIME_EVENTS, "Task Dispatcher: Scheduling task"),
-//        FINISHED_TASK(12, RUNTIME_EVENTS, "Task Dispatcher: Finished task"),
-//        RESCHEDULE_TASK(13, RUNTIME_EVENTS, "Task Dispatcher: Rescheduling task"),
-//        NEW_WAITING_TASK(14, RUNTIME_EVENTS, "Task Dispatcher: New waiting task"),
-//        DEBUG_TASK(15, RUNTIME_EVENTS, "Task Dispatcher: Debug task"),
-//        DEFAULT_TASK(16, RUNTIME_EVENTS, "Task Dispatcher: Default task"),
 
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
@@ -109,6 +99,7 @@ public abstract class Tracer {
 
         RECEIVED_NEW_TASK(43, RUNTIME_EVENTS, "Received new task"),
 
+        // Task Dispatcher Events
         ACTION_UPDATE(44, RUNTIME_EVENTS, "Task Dispatcher: Action update"),
         CE_REGISTRATION(45, RUNTIME_EVENTS, "Task Dispatcher: CE registration"),
         EXECUTE_TASKS(46, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"),
@@ -246,12 +237,8 @@ public abstract class Tracer {
     }
 
     public static void emitEventAndCounters(int taskId, int eventType){
-        System.out.println("EAC lcs");
         synchronized(Tracer.class){
-            System.out.println("EAC lcs_2");
             Wrapper.Eventandcounters(eventType, taskId);
-            System.out.println("EAC lcs_3");
-
         }
 
         if (debug){

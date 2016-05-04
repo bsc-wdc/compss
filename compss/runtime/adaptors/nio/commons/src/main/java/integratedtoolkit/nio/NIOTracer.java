@@ -65,16 +65,7 @@ public class NIOTracer extends Tracer {
         }
     }
     
-    public static void emitEventAndCounters(int taskId, int eventType){
-        synchronized(Tracer.class){
-            Wrapper.Eventandcounters(eventType, taskId);
-        }
-        
-        if (debug){
-            logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
-        }
-        
-    }
+
     public static void emitCommEvent(boolean send, int partnerID, int tag){
 
         int size = 0;

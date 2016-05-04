@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.LinkedList;
 
+import integratedtoolkit.util.*;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -30,12 +31,8 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOMessageHandler;
 import integratedtoolkit.nio.commands.CommandShutdownACK;
 import integratedtoolkit.nio.commands.CommandTaskDone;
-import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
-import integratedtoolkit.util.RequestQueue;
-import integratedtoolkit.util.Serializer;
-import integratedtoolkit.util.ThreadPool;
 import integratedtoolkit.nio.NIOTracer;
 
 
@@ -132,6 +129,7 @@ public class NIOWorker extends NIOAgent {
 
 	@Override
 	public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
+		NIOTracer.emitEvent(NIOTracer.Event.RECEIVED_NEW_TASK.getId(), NIOTracer.Event.RECEIVED_NEW_TASK.getType());
 		wLogger.info("Received Job " + task);
 
 		// Remove obsolete
@@ -341,9 +339,11 @@ public class NIOWorker extends NIOAgent {
         		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
     	}
 
-    	if (tt.params == 0) {
-        		executeTask(tt.task);
-    	}
+        if (tt.params == 0) {
+                executeTask(tt.task);
+        }
+        NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
+
 	}
 
 	@Override

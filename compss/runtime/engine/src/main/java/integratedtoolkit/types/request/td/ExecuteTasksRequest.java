@@ -50,4 +50,8 @@ public class ExecuteTasksRequest extends TDRequest {
         ts.newAllocatableAction(e);
     }
 
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.EXECUTE_TASKS;
+    }
 }

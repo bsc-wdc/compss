@@ -64,5 +64,8 @@ public class CERegistration extends TDRequest {
         logger.debug("Data structures resized and CE-resources links updated");
         sem.release();
     }
-
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.CE_REGISTRATION;
+    }
 }

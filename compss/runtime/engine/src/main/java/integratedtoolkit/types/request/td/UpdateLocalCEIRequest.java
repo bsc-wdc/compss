@@ -56,4 +56,8 @@ public class UpdateLocalCEIRequest extends TDRequest {
         sem.release();
     }
 
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.UPDATE_CEI_LOCAL;
+    }
 }

@@ -73,4 +73,10 @@ public class GetCurrentScheduleRequest extends TDRequest {
         ts.getWorkloadState(response);
         sem.release();
     }
+
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.GET_CURRENT_SCHEDULE;
+    }
+
 }

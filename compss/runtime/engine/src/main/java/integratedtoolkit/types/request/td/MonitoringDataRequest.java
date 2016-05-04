@@ -101,4 +101,9 @@ public class MonitoringDataRequest extends TDRequest {
         sem.release();
     }
 
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.MONITORING_DATA;
+    }
+
 }

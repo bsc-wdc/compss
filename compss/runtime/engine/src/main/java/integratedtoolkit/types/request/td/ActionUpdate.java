@@ -2,6 +2,7 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.request.ap.APRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 
 /**
@@ -52,6 +53,11 @@ public class ActionUpdate extends TDRequest {
         } else {
             ts.errorOnAction(action);
         }
+    }
+
+    @Override
+    public TDRequestType getType(){
+        return TDRequestType.ACTION_UPDATE;
     }
 
 }

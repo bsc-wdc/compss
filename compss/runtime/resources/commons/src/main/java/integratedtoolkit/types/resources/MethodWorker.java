@@ -12,20 +12,18 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
-    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, Integer maxTaskCount) {
-        super(name, description, worker, maxTaskCount);
-        
+    
+    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker) {
+        super(name, description, worker);
+
         this.name = name;
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration config, Integer maxTaskCount) throws Exception {
-        super(name, description, config, maxTaskCount);
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration config) throws Exception {
+        super(name, description, config);
         
         this.name = name;
-        if (description != null) {
-            this.description.setSlots(maxTaskCount);
-        }
         this.available = new MethodResourceDescription(description); // clone
     }
 

@@ -154,8 +154,8 @@ public class JClouds extends AbstractSSHConnector {
 			String ip = getIp(vmd);
 			
 			
-			granted.copy(requested);
-	        granted.setName(ip);
+			granted = requested.copy();
+			granted.setName(ip);
 	        granted.resetProcessors();
 	        
 	        String arch = CloudMethodResourceDescription.UNASSIGNED_STR;

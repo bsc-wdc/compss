@@ -35,7 +35,6 @@ import org.apache.log4j.Logger;
 public abstract class Resource implements Comparable<Resource> {
 
     public enum Type {
-
         MASTER,
         WORKER,
         SERVICE

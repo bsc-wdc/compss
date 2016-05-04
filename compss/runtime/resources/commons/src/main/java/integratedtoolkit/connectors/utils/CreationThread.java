@@ -92,7 +92,7 @@ public class CreationThread extends Thread {
                     return;
                 }
             } else {
-                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), granted.getDescription().getTotalComputingUnits());
+                r = new CloudMethodWorker(granted.getDescription(), granted.getNode());
                 
                 if (debug){
             		runtimeLogger.debug(" Worker for new resource "+ granted.getName()+" set.");
@@ -190,7 +190,7 @@ public class CreationThread extends Thread {
         }
         CloudMethodWorker worker;
         try {
-            worker = new CloudMethodWorker(granted.getName(), granted, cid.getConfig(), granted.getTotalComputingUnits());
+            worker = new CloudMethodWorker(granted.getName(), granted, cid.getConfig());
         } catch (Exception e) {
         	runtimeLogger.error("Error starting the worker application in machine " + granted.getName(),e);
         	resourceLogger.error("ERROR_MSG = [\n\tError starting the worker application in machine\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]");

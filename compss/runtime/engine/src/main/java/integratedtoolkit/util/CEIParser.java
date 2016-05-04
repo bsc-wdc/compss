@@ -5,7 +5,11 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.ServiceImplementation;
+import integratedtoolkit.types.annotations.Constraints;
+import integratedtoolkit.types.annotations.Method;
+import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.Service;
 import integratedtoolkit.types.exceptions.LangNotDefinedException;
 import integratedtoolkit.types.exceptions.UndefinedConstraintsSourceException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
@@ -27,6 +31,7 @@ public class CEIParser {
 
     private static final String CONSTR_LOAD_ERR = "Error loading constraints";
 
+    
     static {
         String l = System.getProperty(ITConstants.IT_LANG);
         lang = ITConstants.Lang.JAVA;
@@ -65,6 +70,7 @@ public class CEIParser {
     
     /**
      * Treats and display possible warnings related to ONE annotation of the Method/Service m
+     * 
      * @param m The method or service to be checked for warnings
      * @param type Type of the annotation
      * @param i Number of the annotation (0 for the first parameter, 1 for the second, etc.)
@@ -128,7 +134,7 @@ public class CEIParser {
         }
 
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {        	
-            //Computes the method's signature
+            // Computes the method's signature
             if (debug) {
                 logger.debug("Evaluating method " + m.getName());
             }
@@ -148,9 +154,9 @@ public class CEIParser {
                 }
             }
             buffer.append(")");
-            if (m.isAnnotationPresent(integratedtoolkit.types.annotations.Method.class)) {
+            if (m.isAnnotationPresent(Method.class)) {
                 String methodSignature = buffer.toString();
-                integratedtoolkit.types.annotations.Method methodAnnot = m.getAnnotation(integratedtoolkit.types.annotations.Method.class);
+                Method methodAnnot = m.getAnnotation(Method.class);
                 String[] declaringClasses = methodAnnot.declaringClass();
                 int implementationCount = declaringClasses.length;
                 String[] signatures = new String[implementationCount];
@@ -162,17 +168,17 @@ public class CEIParser {
                 if (methodId == CoreManager.getCoreCount()) {
                     CoreManager.increaseCoreCount();
                 }
-                MethodResourceDescription defaultConstraints = new MethodResourceDescription();
+                MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
                 MethodResourceDescription[] implConstraints = new MethodResourceDescription[implementationCount];
-                if (m.isAnnotationPresent(integratedtoolkit.types.annotations.Constraints.class)) {
-                    defaultConstraints = new MethodResourceDescription(m.getAnnotation(integratedtoolkit.types.annotations.Constraints.class));
+                if (m.isAnnotationPresent(Constraints.class)) {
+                    defaultConstraints = new MethodResourceDescription(m.getAnnotation(Constraints.class));
                 }
-                if (m.isAnnotationPresent(integratedtoolkit.types.annotations.MultiConstraints.class)) {
-                    integratedtoolkit.types.annotations.MultiConstraints mc = m.getAnnotation(integratedtoolkit.types.annotations.MultiConstraints.class);
+                if (m.isAnnotationPresent(MultiConstraints.class)) {
+                    MultiConstraints mc = m.getAnnotation(MultiConstraints.class);
                     mc.value();
                     for (int i = 0; i < implementationCount; i++) {
                         MethodResourceDescription specificConstraints = new MethodResourceDescription(mc.value()[i]);
-                        specificConstraints.join(defaultConstraints);
+                        specificConstraints.merge(defaultConstraints);
                         implConstraints[i] = specificConstraints;
                     }
                 } else {
@@ -184,7 +190,7 @@ public class CEIParser {
                     loadMethodConstraints(methodId, implementationCount, declaringClasses, implConstraints);
                 }
             } else { // Service 
-                integratedtoolkit.types.annotations.Service serviceAnnot = m.getAnnotation(integratedtoolkit.types.annotations.Service.class);
+                Service serviceAnnot = m.getAnnotation(Service.class);
                 buffer.append(serviceAnnot.namespace()).append(',').append(serviceAnnot.name()).append(',').append(serviceAnnot.port());
                 String signature = buffer.toString();
                 Integer methodId = CoreManager.getCoreId(new String[]{signature});
@@ -204,9 +210,9 @@ public class CEIParser {
      * format since there are no resource where its tasks can run
      *
      * @param coreId identifier for that core
-     * @param service Servive annotation describing the core
+     * @param service Service annotation describing the core
      */
-    private static void loadServiceConstraints(int coreId, integratedtoolkit.types.annotations.Service service) {
+    private static void loadServiceConstraints(int coreId, Service service) {
         Implementation<?>[] implementations = new Implementation[1];
         implementations[0] = new ServiceImplementation(coreId, service.namespace(), service.name(), service.port(), service.operation());
         CoreManager.registerImplementations(coreId, implementations);
@@ -231,7 +237,7 @@ public class CEIParser {
     private static LinkedList<Integer> loadC(String constraintsFile) {
         LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
         HashMap<Integer, MethodImplementation> readMethods = new HashMap<Integer, MethodImplementation>();
-        MethodResourceDescription defaultCtr = new MethodResourceDescription();
+        MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
         try {
             BufferedReader br = new BufferedReader(new FileReader(constraintsFile));
 
@@ -332,7 +338,7 @@ public class CEIParser {
         LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
         for (int i = 0; i < coreCount; i++) {
             Implementation<?>[] implementations = new Implementation[1];
-            implementations[0] = new MethodImplementation("", i, 0, new MethodResourceDescription());
+            implementations[0] = new MethodImplementation("", i, 0, MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy());
             CoreManager.registerImplementations(i, implementations);
             
             updatedMethods.add(i);

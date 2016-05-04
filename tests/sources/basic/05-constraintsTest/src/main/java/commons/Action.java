@@ -106,9 +106,12 @@ public class Action extends AllocatableAction {
 
     public HashMap<Worker<?>, LinkedList<Implementation<?>>> findAvailableWorkers() {
         HashMap<Worker<?>, LinkedList<Implementation<?>>> m = new HashMap<Worker<?>, LinkedList<Implementation<?>>>();
+        
         LinkedList<ResourceScheduler<?>> compatibleWorkers = getCoreElementExecutors(coreId);
+        System.out.println("CORE_ELEM_EXECS: " + compatibleWorkers.size());
         for (ResourceScheduler<?> ui : compatibleWorkers) {
             LinkedList<Implementation<?>> compatibleImpls = ui.getExecutableImpls(coreId);
+            System.out.println("COMPATIBLE_IMPLS: " + compatibleImpls.size());
             LinkedList<Implementation<?>> runnableImpls = new LinkedList<Implementation<?>>();
             for (Implementation<?> impl : compatibleImpls) {
             	Worker r = ui.getResource();

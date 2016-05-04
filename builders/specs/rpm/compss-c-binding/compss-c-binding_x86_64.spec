@@ -1,5 +1,5 @@
 %define name	 	compss-c-binding 
-%define version 	1.4.rc05
+%define version 	1.4
 %define release		1
 
 Requires: compss-bindings-common, libxml2, libtool, automake, make, boost-devel, tcsh, gcc-c++
@@ -35,13 +35,21 @@ targetFullPath=$(pwd)/COMPSs/Bindings/c
 echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
+# Compile non-location dependant c-binding
 cd ../c/
 ./install ${targetFullPath}
 cd ..
+
+# Copy location dependant c-binding
+cp c/install COMPSs/Bindings/c
+mkdir -p COMPSs/Bindings/c/src/
+cp -r c/src/gsbuilder COMPSs/Bindings/c/src
+
+# Copy user scripts
 cp c/buildapp COMPSs/Bindings/
 
+# Doc
 echo "   - Copy deployment files"
-#Doc
 cp changelog COMPSs/
 cp LICENSE COMPSs/
 cp NOTICE COMPSs/
@@ -61,6 +69,9 @@ echo "* Installing COMPSs C-Binding..."
 echo " - Creating COMPSs C-Binding structure..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
 cp -r COMPSs/Bindings/c $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+cd COMPSs/Bindings/c/
+./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c/ false
+cd -
 echo " - COMPSs C-Binding structure created"
 echo " "
 

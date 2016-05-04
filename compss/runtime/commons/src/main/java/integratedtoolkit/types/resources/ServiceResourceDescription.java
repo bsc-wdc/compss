@@ -2,7 +2,6 @@ package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Implementation.Type;
-import org.w3c.dom.Node;
 
 
 public class ServiceResourceDescription extends WorkerResourceDescription {
@@ -11,17 +10,11 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     private final String namespace;
     private final String port;
 
+    
     public ServiceResourceDescription(String serviceName, String namespace, String port) {
         this.serviceName = serviceName;
         this.namespace = namespace;
         this.port = port;
-    }
-
-    public ServiceResourceDescription(Node n) {
-        super(n);
-        this.serviceName = "";
-        this.namespace = "";
-        this.port = "";
     }
 
     public String getServiceName() {

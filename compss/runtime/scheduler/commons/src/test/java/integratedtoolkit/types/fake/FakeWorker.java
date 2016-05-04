@@ -1,14 +1,16 @@
 package integratedtoolkit.types.fake;
 
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 public class FakeWorker extends Worker {
 
-    public FakeWorker() {
-        super("a", null, new FakeNode(), 3);
+    public FakeWorker(MethodResourceDescription description ) {
+        super("a", description, new FakeNode());
     }
 
     @Override
@@ -37,23 +39,23 @@ public class FakeWorker extends Worker {
     }
 
     @Override
-    public boolean hasAvailable(ResourceDescription consumption) {
+    public boolean hasAvailable(WorkerResourceDescription consumption) {
         return true;
     }
 
     @Override
-    public boolean reserveResource(ResourceDescription consumption) {
+    public boolean reserveResource(WorkerResourceDescription consumption) {
         return true;
     }
 
     @Override
-    public void releaseResource(ResourceDescription consumption) {
+    public void releaseResource(WorkerResourceDescription consumption) {
 
     }
 
     @Override
     public Worker getSchedulingCopy() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

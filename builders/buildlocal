@@ -20,6 +20,7 @@
 DEFAULT_MONITOR=true
 DEFAULT_BINDINGS=true
 DEFAULT_TRACING=true
+DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
 
 INCORRECT_PARAMETER="Error: No such parameter"
@@ -60,6 +61,13 @@ show_opts() {
     --tracing           Enable tracing system installation
     --no-tracing        Disable tracing system installation
 			Default: ${DEFAULT_TRACING}
+    
+    --nothing		Disable all previous options
+			Default: unused
+
+    --user-exec=<str>   Enables a specific user execution for maven compilation
+                        When used the maven install is not cleaned.
+			Default: ${DEFAULT_USER}
 
 * Parameters:
     targetDir		COMPSs installation directory
@@ -154,6 +162,21 @@ get_args() {
             # Custom tracing value
             tracing=false
             ;;
+          nothing)
+            # Disables all flags
+            tracing=false
+            monitor=false
+            bindings=false
+            ;;
+          user-exec=*)
+            # Enables specific user mvn execution
+            user_exec=$(echo $OPTARG | sed -e 's/user-exec=//g')
+            ;;
+          *)
+          # Flag didn't match any patern. End of COMPSs flags
+          display_error "${INCORRECT_PARAMETER}"
+          break
+          ;;
 	esac
 	;;
       *)
@@ -188,6 +211,10 @@ check_args() {
     tracing=${DEFAULT_TRACING} 
   fi
 
+  if [ -z "${user_exec}" ]; then
+    user_exec=${DEFAULT_USER}
+  fi
+
   if [ -z "$targetDir" ]; then
     display_warning "${NO_TARGET_DIR}" 
     targetDir=${DEFAULT_TARGET_DIR} 
@@ -216,7 +243,11 @@ install() {
   # COMPILE
   echo "- Compile sources"
   cd ${sourcesDir}/compss/
-  mvn -U clean package
+  if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
+    mvn -U clean package
+  else 
+    sudo -E -u ${user_exec} mvn clean install
+  fi
   cd ${scriptDir}
 
   # COPY TRUNK
@@ -236,10 +267,12 @@ install() {
   find . -name .svn | xargs rm -rf  #Cleans svn files
 
   # CLEAN TRUNK COMPILATION
-  echo "- Clean sources"
-  cd ${sourcesDir}/compss/
-  mvn -U clean
-  cd ${scriptDir}
+  if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
+    echo "- Clean sources"
+    cd ${sourcesDir}/compss/
+    mvn -U clean
+    cd ${scriptDir}
+  fi
 
   # CREATE TARGET FOLDER
   echo "- Create target folder"
@@ -274,8 +307,8 @@ install() {
   #Dependencies
   echo "--- Copy dependencies"
   cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
-  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/ 
-  cp -r ${tmpDir}/files/storage ${targetDir}/Dependencies/     
+  cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/  
+  cp -r ${tmpDir}/files/storage ${targetDir}/Dependencies/
   if [ "$tracing" == "true" ]; then
     cd ${tmpDir}/dependencies/extrae
     ./install ${targetDir}/Dependencies/extrae
@@ -285,7 +318,7 @@ install() {
     fi
     cd ${scriptDir}
   fi
-  
+
   #Config
   echo "--- Copy configuration"
   find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
@@ -334,7 +367,7 @@ install() {
   for scheduler in $schedulers; do
     cp ${path_source}/$scheduler/target/*.jar ${path_target}
   done
-  
+
   #Connectors
   echo "--- Copy connectors"
   connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")
@@ -373,7 +406,7 @@ install() {
 
     echo "- Deploying c-binding files"
     cd ${tmpDir}/compss/programming_model/bindings/c
-    ./install ${targetDir}/Bindings/c
+    ./install ${targetDir}/Bindings/c true
     if [ $? -ne 0 ]; then
       echo "ERROR: Failed to install C-binding"
       exit 1

@@ -2,8 +2,7 @@
 %define version 	1.4.rc05
 %define release		1
 
-Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-fortran
-Suggests: papi, papi-devel, openmpi
+Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-fortran, papi, papi-devel
 Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}
@@ -31,7 +30,7 @@ echo " "
 
 echo "   - Create deployment folders"
 mkdir -p COMPSs/Dependencies/extrae
-targetFullPath=$(pwd)/Dependencies/extrae
+targetFullPath=$(pwd)/COMPSs/Dependencies/extrae
 
 echo "   - Configure, compile and install"
 cd extrae/

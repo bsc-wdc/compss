@@ -25,7 +25,6 @@ public abstract class Executor {
         if (tracing){
             NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId() , NIOTracer.Event.TASK_RUNNING.getType());
         }
-
         
         NIOWorker.registerOutputs(NIOWorker.workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist());
         String sandBox;

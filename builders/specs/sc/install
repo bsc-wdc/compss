@@ -83,7 +83,7 @@
   # Install C-binding
   echo "- Install C-binding"
   cd ${scriptDir}/Bindings/c
-  ./install ${targetDir}/Bindings/c
+  ./install ${targetDir}/Bindings/c true
   mkdir -p ${targetDir}/Runtime/scripts/system/c/
   cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
   cp ./buildapp ${targetDir}/Runtime/scripts/user/

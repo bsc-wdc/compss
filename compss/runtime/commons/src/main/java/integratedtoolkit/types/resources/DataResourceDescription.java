@@ -2,10 +2,8 @@ package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.Implementation;
 
-import org.w3c.dom.Node;
 
-
-public class DataResourceDescription extends WorkerResourceDescription {
+public class DataResourceDescription extends ResourceDescription {
 
     // Unassigned values 
     // !!!!!!!!!! WARNING: Coherent with constraints class
@@ -20,15 +18,10 @@ public class DataResourceDescription extends WorkerResourceDescription {
     protected float storageSize 	= UNASSIGNED_FLOAT;
     protected String storageType 	= UNASSIGNED_STR;
 
+    
     public DataResourceDescription(String host, String path) {
         this.host = host;
         this.path = path;
-    }
-
-    public DataResourceDescription(Node n) {
-        super(n);
-        this.host = "";
-        this.path = "";
     }
     
     public DataResourceDescription(DataResourceDescription clone) {

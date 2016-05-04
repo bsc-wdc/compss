@@ -169,9 +169,9 @@ public class WorkerStarter {
         cmd[3] = cp.isEmpty() ? "null" : cp;
         cmd[4] = workerDebug;
         cmd[5] = workingDir;
-        if (node.getLimitOfTasks()!= 0){
+        if (node.getLimitOfTasks() >= 0) {
         	cmd[6] = String.valueOf(node.getLimitOfTasks());
-        }else{
+        } else {
         	cmd[6] = String.valueOf(NUM_THREADS);
         }
         cmd[7] = String.valueOf(NIOAdaptor.MAX_SEND_WORKER);

@@ -98,7 +98,7 @@ public class ONE extends AbstractSSHConnector {
         }
 
         String ip = virtualMachine.xpath("//NIC/IP");
-        granted.copy(requested);
+        granted = requested.copy();
         granted.setName(ip);
         granted.setOperatingSystemType("Linux");
         granted.setValue(getMachineCostPerTimeSlot(granted));

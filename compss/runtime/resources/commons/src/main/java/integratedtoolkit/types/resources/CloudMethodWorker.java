@@ -14,17 +14,26 @@ public class CloudMethodWorker extends MethodWorker {
     private final LinkedList<PendingReduction> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
 
-    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, Integer maxTaskCount) {
-        super(description.getName(), description, worker, maxTaskCount);
+    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker) {
+        super(description.getName(), description, worker);
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config, Integer maxTaskCount) throws Exception {
-    	super(name, description, config, maxTaskCount);
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config) throws Exception {
+    	super(name, description, config);
     	
-        if (description != null) {
-            this.description.setSlots(maxTaskCount);
+        if (this.description != null) {
+        	// Compute task count
+            int limitOfTasks = config.getLimitOfTasks();
+            int computingUnits = this.description.getTotalComputingUnits();
+            if (limitOfTasks <= 0) {
+            	this.description.setMaxTaskSlots(computingUnits);
+            } else {
+            	this.description.setMaxTaskSlots(limitOfTasks);
+            }
+            
+            // Add name
             ((CloudMethodResourceDescription)this.description).setName(name);
         }
         
@@ -126,7 +135,7 @@ public class CloudMethodWorker extends MethodWorker {
         		available.reduce(reduction);
         	}
         } else {
-        	if (taskCount > 0) {
+        	if (this.description.getUsedTaskSlots() > 0) {
         		// This resource is still running tasks. Wait for them to finish...
         		// Mark to remove and enqueue pending reduction
         		synchronized(toRemove) {

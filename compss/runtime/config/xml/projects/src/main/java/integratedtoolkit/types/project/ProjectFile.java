@@ -641,8 +641,6 @@ public class ProjectFile {
 	 * @return
 	 */
 	public List<String> getAdaptorQueues(ComputeNodeType cn, String adaptorName) {
-		List<String> empty_queues = new ArrayList<String>();
-		
 		List<JAXBElement<?>> elementList = cn.getInstallDirOrWorkingDirOrUser();
 		if (elementList != null) {
 			// Loop for adaptors tag
@@ -657,13 +655,13 @@ public class ProjectFile {
 							}
 						}
 					} else {
-						return empty_queues; // Empty
+						return null;
 					}
 				}
 			}
 		}
 		
-		return empty_queues; // Empty
+		return null;
 	}
 	
 	/**

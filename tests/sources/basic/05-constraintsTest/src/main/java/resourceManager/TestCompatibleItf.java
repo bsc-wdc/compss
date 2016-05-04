@@ -3,6 +3,9 @@ package resourceManager;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.MultiConstraints;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.types.annotations.Parameter.Direction;
 
 
 public interface TestCompatibleItf {
@@ -310,8 +313,16 @@ public interface TestCompatibleItf {
 	@Constraints(computingUnits = 2, processorArchitecture = "amd64", memorySize = (float)8.0, storageSize = (float) 240.0)
 	@MultiConstraints({
 		@Constraints(computingUnits = 4, memorySize = (float)4.0 ), 
-		@Constraints(computingUnits = 8, storageSize = (float)300.0)
+		@Constraints(computingUnits = 8, storageSize = (float)300.0, operatingSystemType="Windows")
 	})
 	void multiCoreElement17();
+	
+	/* ********************************************
+	 * SERVICE CORE-ELEMENTS
+	 * *******************************************/
+	@Service(name = "DummyService", namespace = "http://localhost:9999/", port = "DummyServicePort")
+	public void getDummyService(
+		@Parameter(direction = Direction.IN) int index
+	);
 	
 }

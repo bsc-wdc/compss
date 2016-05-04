@@ -1,5 +1,5 @@
 %define name	 	compss-c-binding 
-%define version 	1.4.rc05
+%define version 	1.4
 %define release		1
 
 Requires: compss-bindings-common, libxml2-devel, libtool, automake, make, boost-devel, tcsh, gcc-c++
@@ -57,7 +57,7 @@ echo "   - Configure, compile and install"
 cd bindings-common/
 ./install_common
 cd ../c/
-./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c
+./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c true
 cd ..
 
 echo "   - Add binaries to path"

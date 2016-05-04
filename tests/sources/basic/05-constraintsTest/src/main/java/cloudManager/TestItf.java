@@ -10,7 +10,7 @@ public interface TestItf {
 	/* ********************************************
 	 * EMPTY CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintManager.Implementation1")
+	/*@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints()
 	void emptyCoreElement0();
 
@@ -21,7 +21,7 @@ public interface TestItf {
 	/* ********************************************
 	 * SIMPLE CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintManager.Implementation1")
+	/*@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 1)
 	void simpleCoreElement0();
 
@@ -93,7 +93,7 @@ public interface TestItf {
 	/* ********************************************
 	 * COMPLEX CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	@Method(declaringClass = "constraintManager.Implementation1")
+	/*@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 2, processorArchitecture="amd64", 
 					memorySize=(float)8.0, storageSize=(float)120.0, 
 					operatingSystemType="Windows")
@@ -127,7 +127,7 @@ public interface TestItf {
 	})
 	void multiCoreElement0();
 
-	@Method(declaringClass = {
+	/*@Method(declaringClass = {
 			"constraintManager.Implementation1",
 			"constraintManager.Implementation2"}
 	)
@@ -313,5 +313,5 @@ public interface TestItf {
 		@Constraints(computingUnits = 8, storageSize = (float)300.0)
 	})
 	void multiCoreElement17();
-	
+	*/
 }

@@ -1,9 +1,9 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.types.resources.ResourceDescription;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public abstract class Implementation <T extends ResourceDescription> {
+public abstract class Implementation <T extends WorkerResourceDescription> {
 
     public enum Type {
         METHOD,

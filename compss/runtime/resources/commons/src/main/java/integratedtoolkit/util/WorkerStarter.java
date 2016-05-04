@@ -25,7 +25,6 @@ public class WorkerStarter implements Runnable {
     private final HashMap<String, String> disks;
     private final MethodConfiguration configuration;
     
-    private final int taskCount;
     private final int[] expectedCoreCount;
     
 
@@ -42,14 +41,14 @@ public class WorkerStarter implements Runnable {
         // Compute task count
         int limitOfTasks = config.getLimitOfTasks();
         int computingUnits = rd.getTotalComputingUnits();
-        if (limitOfTasks < 0 && computingUnits < 0) {
-        	this.taskCount = 0;
+        if (limitOfTasks <= 0) {
+        	this.rd.setMaxTaskSlots(computingUnits);
         } else {
-        	this.taskCount = Math.max(limitOfTasks, computingUnits);
+        	this.rd.setMaxTaskSlots(limitOfTasks);
         }
         
         // Compute expected core count
-        expectedCoreCount = computeExpectedCoreCount(taskCount);
+        expectedCoreCount = computeExpectedCoreCount(this.rd.getMaxTaskSlots());
         synchronized (onStartCoreCounts) {
             for (int coreId = 0; coreId < expectedCoreCount.length; coreId++) {
                 onStartCoreCounts[coreId] += expectedCoreCount[coreId];
@@ -61,7 +60,7 @@ public class WorkerStarter implements Runnable {
         Thread.currentThread().setName(name + " starter");
         Worker<?> newResource;
         try {
-            newResource = new MethodWorker(name, rd, configuration, taskCount);
+            newResource = new MethodWorker(name, rd, configuration);
         } catch (Exception e) {
             logger.error("Error starting resource", e);
             ErrorManager.warn("Exception creating worker. Check runtime.log for more details", e);

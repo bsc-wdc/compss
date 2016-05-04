@@ -9,7 +9,7 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     private final FakeResourceDescription available;
 
     public FakeWorker(String name, FakeResourceDescription description) {
-        super(name, description, new FakeNode(name), 3);
+        super(name, description, new FakeNode(name));
         available = (FakeResourceDescription) description.copy();
     }
 

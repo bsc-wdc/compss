@@ -1,5 +1,7 @@
 package cloudManager;
 
+import commons.ConstantValues;
+
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
@@ -28,7 +30,7 @@ public class Test {
     	// Wait for Runtime to be loaded
     	System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
-            Thread.sleep(7_000);
+            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
         	// No need to handle such exceptions
         }

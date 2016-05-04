@@ -9,12 +9,15 @@ import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.components.Processor;
+import integratedtoolkit.util.CoreManager;
+import integratedtoolkit.util.ResourceManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import commons.Action;
+import commons.ConstantValues;
 
 
 /*
@@ -25,7 +28,7 @@ import commons.Action;
 public class TestCompatible {
 	
     //Interface data
-    private static int coreCountItf;
+    private static int coreCount;
 
 	
 	/* ***************************************
@@ -35,7 +38,7 @@ public class TestCompatible {
     	// Wait for Runtime to be loaded
     	System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
-            Thread.sleep(7_000);
+            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
         	// No need to handle such exceptions
         }
@@ -49,18 +52,28 @@ public class TestCompatible {
      * RESOURCE MANAGER TEST IMPLEMENTATION 
      * ************************************** */
     private static void resourceManagerTest() {
-        //Check for each implementation the correctness of its resources
-        System.out.println("[LOG] Number of cores = " + coreCountItf);
-        for (int coreId = 0; coreId < coreCountItf; coreId++) {
+    	coreCount = CoreManager.getCoreCount();
+    	
+        // Check for each implementation the correctness of its resources
+        System.out.println("[LOG] Number of cores = " + coreCount);
+        for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
+            
             Action a = new Action(coreId);
-            try {
-                HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
-                checkCoreResources(coreId, m);
-            } catch (Exception e) {
-                System.out.println("Action " + a);
-                e.printStackTrace();
+            HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
+            
+            // For the test construction, all implementations can be run. Check it
+            if (m.size() == 0) {
+            	System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
+            	Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
+            	for (Implementation<?> impl : impls) {
+            		System.out.println("-- Impl: " + impl.getRequirements().toString());
+            	}
+            	System.exit(-1);
             }
+            
+            // Check that all assigned resources are really valid
+            checkCoreResources(coreId, m);
         }
 
     }
@@ -78,9 +91,8 @@ public class TestCompatible {
                 hm_reverted.put(impl, aux);
             }
         }
-
+        
         //Check Resources assigned to each implementation
-        System.out.println("[LOG] ** Number of Implementations = " + hm_reverted.size());
         for (java.util.Map.Entry<Implementation<?>, LinkedList<Worker<?>>> entry : hm_reverted.entrySet()) {
             System.out.println("[LOG] ** Checking Implementation " + entry.getKey());
             System.out.println("[LOG] **** Number of resources = " + entry.getValue().size());
@@ -88,7 +100,8 @@ public class TestCompatible {
                 System.out.println("[LOG] **** Checking Resource " + resource.getName());
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
-                    String error = "Implementation: Core = " + coreId + " Impl = " + entry.getKey().getImplementationId() + ". ";
+                    String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId() 
+                    		+ " and Resource " + resource.getName() + ". ";
                     error = error.concat("Implementation and resource not matching on: " + res);
                     System.out.println(error);
                     System.exit(-1);
@@ -110,11 +123,14 @@ public class TestCompatible {
             MethodWorker worker = (MethodWorker) resource;
             MethodResourceDescription wDescription = (MethodResourceDescription) worker.getDescription();
             
+            //System.out.println("-- Impl Details:   " + iDescription);
+            //System.out.println("-- Worker Details: " + wDescription);
+            
             /* ***********************************************
              * COMPUTING UNITS
              * ***********************************************/
-            if ( (iDescription.getTotalComputingUnits() != MethodResourceDescription.UNASSIGNED_INT)
-            		&& (wDescription.getTotalComputingUnits() != MethodResourceDescription.UNASSIGNED_INT)
+            if ( (iDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
+            		&& (wDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
             		&& (wDescription.getTotalComputingUnits() < iDescription.getTotalComputingUnits()) ) {
             	return "computingUnits";
             }
@@ -127,25 +143,43 @@ public class TestCompatible {
             	boolean canBeHosted = false;
             	for (Processor wp : wDescription.getProcessors()) {
             		// Static checks
-            		if (wp.getSpeed() < ip.getSpeed()) {
+            		if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+            				&& !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+            				&& !wp.getName().equals(ip.getName())) {
+            			System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
             			continue;
             		}
-            		if (!wp.getArchitecture().equals(ip.getArchitecture())) {
+            		if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+            				&& wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+            				&& wp.getSpeed() < ip.getSpeed() ) {
+            			System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
+            			continue;
+            		}
+            		if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR) 
+            				&& !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+            			    && !wp.getArchitecture().equals(ip.getArchitecture())) {
+            			System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
             			continue;
             		}
             		if ( (!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+            				&& (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!ip.getPropName().equals(wp.getPropName())) ) {
+            			System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
             			continue;
             		}
             		if ( (!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+            				&& (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!ip.getPropValue().equals(wp.getPropValue())) ) {
+            			System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
             			continue;
             		}
             		
             		// Dynamic checks
-            		if (wp.getComputingUnits() > ip.getComputingUnits()) {
+            		if (wp.getComputingUnits() >= ip.getComputingUnits()) {
             			canBeHosted = true;
             			break;
+            		} else {
+            			System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
             		}
             	}
             	if (!canBeHosted) {
@@ -222,8 +256,8 @@ public class TestCompatible {
             }
 
         } else if (resource.getType() == Worker.Type.SERVICE) {
-            ServiceImplementation mImpl = (ServiceImplementation) impl;
-            ServiceResourceDescription iDescription = mImpl.getRequirements();
+            ServiceImplementation sImpl = (ServiceImplementation) impl;
+            ServiceResourceDescription iDescription = sImpl.getRequirements();
             ServiceWorker worker = (ServiceWorker) resource;
             ServiceResourceDescription wDescription = (ServiceResourceDescription) worker.getDescription();
 

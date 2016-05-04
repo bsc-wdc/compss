@@ -22,5 +22,9 @@
   
   # Copy result checkers
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
-  cp -f ${source_base_dir}/result_constraintsTest ${target_base_dir}/result_constraintsTest
+  cp -f ${source_base_dir}/result_constraintManager ${target_base_dir}/result_constraintManager
+  cp -f ${source_base_dir}/result_resourceManager_Compatible ${target_base_dir}/result_resourceManager_Compatible
+  cp -f ${source_base_dir}/result_resourceManager_Available ${target_base_dir}/result_resourceManager_Available
+  cp -f ${source_base_dir}/result_cloudManager ${target_base_dir}/result_cloudManager
+  cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest
   cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest

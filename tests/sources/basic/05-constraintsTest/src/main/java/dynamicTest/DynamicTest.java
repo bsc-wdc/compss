@@ -1,5 +1,7 @@
 package dynamicTest;
 
+import commons.ConstantValues;
+
 
 public class DynamicTest {
 
@@ -7,7 +9,7 @@ public class DynamicTest {
 		// Wait for Runtime to be loaded
     	System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
-            Thread.sleep(7_000);
+            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
         	// No need to handle such exceptions
         }

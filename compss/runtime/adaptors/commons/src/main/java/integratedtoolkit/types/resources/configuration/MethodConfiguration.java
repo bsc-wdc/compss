@@ -11,7 +11,6 @@ public class MethodConfiguration extends Configuration {
 	private String installDir = "";
 	private String workingDir = "";
 	
-	private int limitOfTasks = 0;
 	private int totalComputingUnits = 0;
 	
 	private String appDir = "";
@@ -54,18 +53,6 @@ public class MethodConfiguration extends Configuration {
             this.workingDir = workingDir + File.separator;
 		} else {
 			this.workingDir = workingDir;
-		}
-	}
-	
-	public int getLimitOfTasks() {
-		return limitOfTasks;
-	}
-	
-	public void setLimitOfTasks(int limitOfTasks) {
-		if (limitOfTasks > 0) {
-			this.limitOfTasks = limitOfTasks;
-		} else {
-			this.limitOfTasks = 0;
 		}
 	}
 	

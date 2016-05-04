@@ -260,7 +260,7 @@ public class ResourceManager {
     public static boolean newServiceWorker(String wsdl, ServiceResourceDescription sd, ServiceConfiguration sc) {
     	Worker<ServiceResourceDescription> newResource = null;
     	try {
-    		newResource = new ServiceWorker(wsdl, sd, sc, sc.getLimitOfTasks());
+    		newResource = new ServiceWorker(wsdl, sd, sc);
     	} catch (Exception e) {
     		runtimeLogger.error("Error starting service " + wsdl, e);
             ErrorManager.warn("Exception creating service " + wsdl + ". Check runtime.log for more details", e);

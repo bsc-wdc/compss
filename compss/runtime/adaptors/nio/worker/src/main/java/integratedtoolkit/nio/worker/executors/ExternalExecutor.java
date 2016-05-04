@@ -193,7 +193,6 @@ public abstract class ExternalExecutor extends Executor {
         int taskId = nt.getTaskId();
 
         if (tracing) {
-            logger.debug("Emitting HW lcs");
             NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
             NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
         }
@@ -225,7 +224,6 @@ public abstract class ExternalExecutor extends Executor {
             int exitValue = execProc.waitFor();
 
             if (tracing){
-                logger.debug("Emitting end HW lcs");
             	NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
             }

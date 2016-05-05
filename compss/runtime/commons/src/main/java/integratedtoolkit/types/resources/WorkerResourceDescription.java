@@ -11,10 +11,6 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
     
     public static final int ZERO_INT			= 0;
     public static final int ONE_INT				= 1;
-   
-    // Slots for task execution
-	protected int maxTaskSlots 	= UNASSIGNED_INT;
-	protected int usedTaskSlots = ZERO_INT;
 
 	
     public WorkerResourceDescription() {
@@ -23,26 +19,6 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
 
     public WorkerResourceDescription(WorkerResourceDescription desc) {
         super(desc);
-        
-        this.maxTaskSlots = desc.maxTaskSlots;
-        this.usedTaskSlots = desc.maxTaskSlots;
     }
-
-    
-	public int getMaxTaskSlots() {
-		return maxTaskSlots;
-	}
-
-	public void setMaxTaskSlots(int maxTaskSlots) {
-		this.maxTaskSlots = maxTaskSlots;
-	}
-
-	public int getUsedTaskSlots() {
-		return usedTaskSlots;
-	}
-
-	public void setUsedTaskSlots(int usedTaskSlots) {
-		this.usedTaskSlots = usedTaskSlots;
-	}
     
 }

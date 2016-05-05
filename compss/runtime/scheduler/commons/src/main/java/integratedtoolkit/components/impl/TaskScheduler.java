@@ -14,6 +14,7 @@ import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ActionSet;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
@@ -22,18 +23,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-public class TaskScheduler {
+
+public class TaskScheduler<P extends Profile, T extends WorkerResourceDescription> {
 
     // Logger
     protected static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private final ActionSet blockedActions = new ActionSet();
+    private final ActionSet<P,T> blockedActions = new ActionSet<P,T>();
     private int[] readyCounts = new int[CoreManager.getCoreCount()];
-    private final HashMap<Worker<?>, ResourceScheduler<?>> workers = new HashMap<Worker<?>, ResourceScheduler<?>>();
+    private final HashMap<Worker<T>, ResourceScheduler<P,T>> workers = new HashMap<Worker<T>, ResourceScheduler<P,T>>();
 
     /**
      * New Core Elements have been detected; the Task Scheduler needs to be
@@ -51,7 +54,7 @@ public class TaskScheduler {
      *
      * @param action Action to be schedule.
      */
-    public final void newAllocatableAction(AllocatableAction action) {
+    public final void newAllocatableAction(AllocatableAction<P,T> action) {
         if (!action.hasDataPredecessors()) {
             if (action.getImplementations().length > 0) {
                 int coreId = action.getImplementations()[0].getCoreId();
@@ -87,14 +90,14 @@ public class TaskScheduler {
      *
      * @param action action that has finished
      */
-    public final void actionCompleted(AllocatableAction action) {
-        ResourceScheduler<?> resource = action.getAssignedResource();
+    public final void actionCompleted(AllocatableAction<P,T> action) {
+        ResourceScheduler<P,T> resource = action.getAssignedResource();
         if (action.getImplementations().length > 0) {
             int coreId = action.getImplementations()[0].getCoreId();
             readyCounts[coreId]--;
         }
-        LinkedList<AllocatableAction> dataFreeActions = action.completed();
-        for (AllocatableAction dataFreeAction : dataFreeActions) {
+        LinkedList<AllocatableAction<P,T>> dataFreeActions = action.completed();
+        for (AllocatableAction<P,T> dataFreeAction : dataFreeActions) {
             if (dataFreeAction.getImplementations().length > 0) {
                 int coreId = dataFreeAction.getImplementations()[0].getCoreId();
                 readyCounts[coreId]++;
@@ -106,12 +109,12 @@ public class TaskScheduler {
                 blockedActions.addAction(action);
             }
         }
-        LinkedList<AllocatableAction> resourceFree = resource.unscheduleAction(action);
-        workerUpdate(action.getAssignedResource());
-        HashSet<AllocatableAction> freeTasks = new HashSet<AllocatableAction>();
+        LinkedList<AllocatableAction<P,T>> resourceFree = resource.unscheduleAction(action);
+        workerUpdate((ResourceScheduler<P,T>) action.getAssignedResource());
+        HashSet<AllocatableAction<P,T>> freeTasks = new HashSet<AllocatableAction<P,T>>();
         freeTasks.addAll(dataFreeActions);
         freeTasks.addAll(resourceFree);
-        for (AllocatableAction a : freeTasks) {
+        for (AllocatableAction<P,T> a : freeTasks) {
             try {
                 try {
                     a.tryToLaunch();
@@ -143,9 +146,9 @@ public class TaskScheduler {
      *
      * @param action action raising the error
      */
-    public final void errorOnAction(AllocatableAction action) {
-        ResourceScheduler<?> resource = action.getAssignedResource();
-        LinkedList<AllocatableAction> resourceFree;
+    public final void errorOnAction(AllocatableAction<P,T> action) {
+        ResourceScheduler<P,T> resource = action.getAssignedResource();
+        LinkedList<AllocatableAction<P,T>> resourceFree;
         try {
             action.error();
             resourceFree = resource.unscheduleAction(action);
@@ -181,13 +184,13 @@ public class TaskScheduler {
                 int coreId = action.getImplementations()[0].getCoreId();
                 readyCounts[coreId]--;
             }
-            resourceFree = new LinkedList<AllocatableAction>();
-            for (AllocatableAction failed : action.failed()) {
+            resourceFree = new LinkedList<AllocatableAction<P,T>>();
+            for (AllocatableAction<P,T> failed : action.failed()) {
                 resourceFree.addAll(resource.unscheduleAction(failed));
             }
             workerUpdate(action.getAssignedResource());
         }
-        for (AllocatableAction a : resourceFree) {
+        for (AllocatableAction<P,T> a : resourceFree) {
             try {
                 try {
                     a.tryToLaunch();
@@ -211,8 +214,8 @@ public class TaskScheduler {
         }
     }
 
-    public final void updatedWorker(Worker<?> worker) {
-        ResourceScheduler<?> ui = workers.get(worker);
+    public final void updatedWorker(Worker<T> worker) {
+        ResourceScheduler<P,T> ui = workers.get(worker);
         if (ui == null) {
             //Register worker if it's the first time it is useful.
             ui = generateSchedulerForResource(worker);
@@ -232,8 +235,8 @@ public class TaskScheduler {
             this.workerRemoved(ui);
         } else {
             //Inspect blocked actions to be freed
-            LinkedList<AllocatableAction> stillBlocked = new LinkedList<AllocatableAction>();
-            for (AllocatableAction action : blockedActions.removeAllCompatibleActions(worker)) {
+            LinkedList<AllocatableAction<P,T>> stillBlocked = new LinkedList<AllocatableAction<P,T>>();
+            for (AllocatableAction<P,T> action : blockedActions.removeAllCompatibleActions(worker)) {
                 Score actionScore = action.schedulingScore(this);
                 try {
                     logger.info("Unblocked Action: " + action);
@@ -266,7 +269,7 @@ public class TaskScheduler {
                 }
             }
 
-            for (AllocatableAction a : stillBlocked) {
+            for (AllocatableAction<P,T> a : stillBlocked) {
                 blockedActions.addAction(a);
             }
             this.workerUpdate(ui);
@@ -274,12 +277,12 @@ public class TaskScheduler {
 
     }
 
-    public String getRunningActionMonitorData(Worker<?> worker, String prefix) {
+    public String getRunningActionMonitorData(Worker<T> worker, String prefix) {
         StringBuilder runningActions = new StringBuilder();
 
-        ResourceScheduler<?> ui = workers.get(worker);
-        LinkedList<AllocatableAction> hostedActions = ui.getHostedActions();
-        for (AllocatableAction action : hostedActions) {
+        ResourceScheduler<P,T> ui = workers.get(worker);
+        LinkedList<AllocatableAction<P,T>> hostedActions = ui.getHostedActions();
+        for (AllocatableAction<P,T> action : hostedActions) {
             runningActions.append(prefix);
             runningActions.append("<Action>").append(action.toString()).append("</Action>");
             runningActions.append("\n");
@@ -297,19 +300,19 @@ public class TaskScheduler {
             coreProfile[coreId] = new Profile();
         }
 
-        for (ResourceScheduler<?> ui : workers.values()) {
+        for (ResourceScheduler<P,T> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
-            LinkedList<Implementation<?>>[] impls = ui.getExecutableImpls();
+            LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                for (Implementation<?> impl : impls[coreId]) {
+                for (Implementation<T> impl : impls[coreId]) {
                     coreProfile[coreId].accumulate(ui.getProfile(impl));
                 }
             }
         }
 
-        for (java.util.Map.Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
             int coreId = entry.getValue();
             String signature = entry.getKey();
             coresInfo.append(prefix).append("\t").append("<Core id=\"").append(coreId).append("\" signature=\"" + signature + "\">").append("\n");
@@ -332,20 +335,20 @@ public class TaskScheduler {
             coreProfile[coreId] = new Profile();
         }
 
-        for (ResourceScheduler<?> ui : workers.values()) {
+        for (ResourceScheduler<P,T> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
-            LinkedList<Implementation<?>>[] impls = ui.getExecutableImpls();
+            LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                for (Implementation<?> impl : impls[coreId]) {
+                for (Implementation<T> impl : impls[coreId]) {
                     coreProfile[coreId].accumulate(ui.getProfile(impl));
                 }
             }
 
-            LinkedList<AllocatableAction> runningActions = ui.getHostedActions();
+            LinkedList<AllocatableAction<P,T>> runningActions = ui.getHostedActions();
             long now = System.currentTimeMillis();
-            for (AllocatableAction running : runningActions) {
+            for (AllocatableAction<P,T> running : runningActions) {
                 if (running.getImplementations().length > 0) {
                     int coreId = running.getImplementations()[0].getCoreId();
                     response.registerRunning(coreId, now - running.getStartTime());
@@ -377,7 +380,7 @@ public class TaskScheduler {
      * @throws integratedtoolkit.scheduler.types.Action.BlockedActionException
      *
      */
-    protected void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
+    protected void scheduleAction(AllocatableAction<P,T> action, Score actionScore) throws BlockedActionException {
         System.out.println("Scheduling action " + action);
         try {
             action.schedule(actionScore);
@@ -394,8 +397,8 @@ public class TaskScheduler {
      *
      * @param dataFree Data dependency-free action
      */
-    public void dependencyFreeAction(AllocatableAction dataFree) throws BlockedActionException {
-        // All actions should have already been asigned to a resource, no need
+    public void dependencyFreeAction(AllocatableAction<P,T> dataFree) throws BlockedActionException {
+        // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
     }
 
@@ -405,7 +408,7 @@ public class TaskScheduler {
      *
      * @param resource new worker
      */
-    protected void workerDetected(ResourceScheduler<?> resource) {
+    protected void workerDetected(ResourceScheduler<P,T> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
@@ -416,7 +419,7 @@ public class TaskScheduler {
      *
      * @param resource removed worker
      */
-    protected void workerRemoved(ResourceScheduler<?> resource) {
+    protected void workerRemoved(ResourceScheduler<P,T> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
@@ -427,28 +430,28 @@ public class TaskScheduler {
      *
      * @param resources updated resource
      */
-    public void workerUpdate(ResourceScheduler<?> resources) {
+    public void workerUpdate(ResourceScheduler<P,T> resources) {
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
 
     }
 
-    public ResourceScheduler<?> generateSchedulerForResource(Worker<?> w) {
-        return new ResourceScheduler(w);
+    public ResourceScheduler<P,T> generateSchedulerForResource(Worker<T> w) {
+        return new ResourceScheduler<P,T>(w);
     }
 
-    public SchedulingInformation generateSchedulingInformation() {
-        return new SchedulingInformation();
+    public SchedulingInformation<P,T> generateSchedulingInformation() {
+        return new SchedulingInformation<P,T>();
     }
 
-    public Score getActionScore(AllocatableAction action, TaskParams params) {
+    public Score getActionScore(AllocatableAction<P,T> action, TaskParams params) {
         return new Score(params.hasPriority() ? 1 : 0, 0, 0);
     }
 
-    public ResourceScheduler<?>[] getWorkers() {
+    public ResourceScheduler<P,T>[] getWorkers() {
         synchronized (workers) {
-            Collection<ResourceScheduler<?>> resScheds = workers.values();
-            ResourceScheduler<?>[] scheds = new ResourceScheduler[resScheds.size()];
+            Collection<ResourceScheduler<P,T>> resScheds = workers.values();
+            ResourceScheduler<P,T>[] scheds = new ResourceScheduler[resScheds.size()];
             workers.values().toArray(scheds);
             return scheds;
         }

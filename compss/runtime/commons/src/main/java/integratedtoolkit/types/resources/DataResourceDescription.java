@@ -102,8 +102,9 @@ public class DataResourceDescription extends ResourceDescription {
 	}
 
 	@Override
-	public void reduceDynamic(ResourceDescription rd) {
+	public ResourceDescription reduceDynamic(ResourceDescription rd) {
 		// A DataNode cannot be increased nor decreased, nothing to do
+		return null;
 	}
 
 	@Override

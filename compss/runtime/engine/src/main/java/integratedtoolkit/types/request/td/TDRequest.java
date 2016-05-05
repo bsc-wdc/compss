@@ -2,8 +2,11 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.request.Request;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 import org.apache.log4j.Logger;
 
 
@@ -11,7 +14,7 @@ import org.apache.log4j.Logger;
  * The TDRequest class represents any interaction with the TaskDispatcher
  * component.
  */
-public abstract class TDRequest extends Request {
+public abstract class TDRequest<P extends Profile, T extends WorkerResourceDescription> extends Request {
 
     public enum TDRequestType {
         ACTION_UPDATE,
@@ -24,7 +27,6 @@ public abstract class TDRequest extends Request {
         WORKER_UPDATE_REQUEST;
     }
 
-
     // Logging
     protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
@@ -33,6 +35,6 @@ public abstract class TDRequest extends Request {
     protected static final boolean resourcesLoggerDebug = resourcesLogger.isDebugEnabled();
 
     public abstract TDRequestType getType();
-    public abstract void process(TaskScheduler ts) throws ShutdownException;
+    public abstract void process(TaskScheduler<P,T> ts) throws ShutdownException;
 
 }

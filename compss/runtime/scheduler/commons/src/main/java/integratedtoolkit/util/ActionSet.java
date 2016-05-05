@@ -2,23 +2,27 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class ActionSet {
 
-    private LinkedList<AllocatableAction> noCore;
-    private LinkedList<AllocatableAction>[] coreIndexed;
+public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
+
+    private LinkedList<AllocatableAction<P,T>> noCore;
+    private LinkedList<AllocatableAction<P,T>>[] coreIndexed;
     private int[] counts;
 
     public ActionSet() {
-        noCore = new LinkedList<AllocatableAction>();
+        noCore = new LinkedList<AllocatableAction<P,T>>();
         int coreCount = CoreManager.getCoreCount();
         coreIndexed = new LinkedList[coreCount];
         counts = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList<AllocatableAction>();
+            coreIndexed[coreId] = new LinkedList<AllocatableAction<P,T>>();
             counts[coreId] = 0;
         }
     }
@@ -26,7 +30,7 @@ public class ActionSet {
     public void updateCoreCount() {
         int oldCoreCount = coreIndexed.length;
         int newCoreCount = CoreManager.getCoreCount();
-        LinkedList<AllocatableAction>[] coreIndexed = new LinkedList[newCoreCount];
+        LinkedList<AllocatableAction<P,T>>[] coreIndexed = new LinkedList[newCoreCount];
         int[] counts = new int[newCoreCount];
         int coreId = 0;
         for (; coreId < oldCoreCount; coreId++) {
@@ -34,14 +38,14 @@ public class ActionSet {
             counts[coreId] = this.counts[coreId];
         }
         for (; coreId < newCoreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList<AllocatableAction>();
+            coreIndexed[coreId] = new LinkedList<AllocatableAction<P,T>>();
             counts[coreId] = 0;
         }
         this.coreIndexed = coreIndexed;
         this.counts = counts;
     }
 
-    public void addAction(AllocatableAction aa) {
+    public void addAction(AllocatableAction<P,T> aa) {
         Implementation<?>[] impls = aa.getImplementations();
         if (impls.length == 0) {
             noCore.add(aa);
@@ -52,11 +56,11 @@ public class ActionSet {
         }
     }
 
-    public LinkedList<AllocatableAction> removeAllCompatibleActions(Worker<?> r) {
-        LinkedList<AllocatableAction> runnable = new LinkedList<AllocatableAction>();
-        Iterator<AllocatableAction> actions = noCore.iterator();
+    public LinkedList<AllocatableAction<P,T>> removeAllCompatibleActions(Worker<T> r) {
+        LinkedList<AllocatableAction<P,T>> runnable = new LinkedList<AllocatableAction<P,T>>();
+        Iterator<AllocatableAction<P,T>> actions = noCore.iterator();
         while (actions.hasNext()) {
-            AllocatableAction action = actions.next();
+            AllocatableAction<P,T> action = actions.next();
             if (action.isCompatible(r)) {
                 actions.remove();
                 runnable.add(action);
@@ -66,7 +70,7 @@ public class ActionSet {
         LinkedList<Integer> executableCores = r.getExecutableCores();
         for (int core : executableCores) {
             runnable.addAll(coreIndexed[core]);
-            coreIndexed[core] = new LinkedList<AllocatableAction>();
+            coreIndexed[core] = new LinkedList<AllocatableAction<P,T>>();
             counts[core] = 0;
         }
         return runnable;
@@ -76,7 +80,7 @@ public class ActionSet {
         return counts;
     }
 
-    public LinkedList<AllocatableAction> getActions(Integer coreId) {
+    public LinkedList<AllocatableAction<P,T>> getActions(Integer coreId) {
         if (coreId == null) {
             return noCore;
         } else {
@@ -84,7 +88,7 @@ public class ActionSet {
         }
     }
 
-    public void removeAction(AllocatableAction action) {
+    public void removeAction(AllocatableAction<P,T> action) {
         Integer coreId = action.getCoreId();
         if (coreId == null) {
             noCore.remove(action);

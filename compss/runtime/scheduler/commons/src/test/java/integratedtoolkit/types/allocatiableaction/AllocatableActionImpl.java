@@ -1,7 +1,6 @@
-package integratedtoolkit.types.fake;
+package integratedtoolkit.types.allocatiableaction;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -9,27 +8,30 @@ import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
+import integratedtoolkit.types.allocatiableaction.AllocatableActionTest.ResourceDependencies;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 
-public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
+
+public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
 
     private int id;
-    private Implementation<T>[] impls;
+    public static int[] executions;
+    public static int[] error;
+    public static int[] failed;
+    
 
-    public FakeAllocatableAction(int id, Implementation<T>[] impls) {
-        super(new DefaultSchedulingInformation<P,T>());
+    public AllocatableActionImpl(int id) {
+        super(new ResourceDependencies<P,T>());
         this.id = id;
-        this.impls = impls;
     }
 
     @Override
     public void doAction() {
-
+        executions[id]++;
     }
 
     @Override
@@ -39,10 +41,15 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public void doError() throws FailedActionException {
+        error[id]++;
+        if (error[id] == 2) {
+            throw new FailedActionException();
+        }
     }
 
     @Override
     public void doFailed() {
+        failed[id]++;
     }
 
     public String toString() {
@@ -51,9 +58,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
-        LinkedList<Implementation<T>> ret = new LinkedList<Implementation<T>>();
-        ret.addAll(Arrays.asList(impls));
-        return ret;
+        return null;
     }
 
     @Override
@@ -63,7 +68,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public Implementation<T>[] getImplementations() {
-        return this.impls;
+        return new Implementation[0];
     }
 
     @Override
@@ -73,25 +78,17 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     protected boolean areEnoughResources() {
-    	Worker<T> r = selectedResource.getResource();
-        return r.canRunNow(selectedImpl.getRequirements());
+        return true;
     }
 
     @Override
     protected void reserveResources() {
-    	Worker<T> r = selectedResource.getResource();
-        r.runTask(selectedImpl.getRequirements());
+
     }
 
     @Override
     protected void releaseResources() {
-    	Worker<T> r = selectedResource.getResource();
-        r.endTask(selectedImpl.getRequirements());
-    }
 
-    public void selectExecution(ResourceScheduler<P,T> resource, Implementation<T> impl) {
-        selectedResource = resource;
-        selectedImpl = impl;
     }
 
     @Override
@@ -105,7 +102,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler<P,T> ts) {
+    public Score schedulingScore(TaskScheduler<P,T> TS) {
         return null;
     }
 
@@ -114,26 +111,9 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
         return null;
     }
 
-    public String dependenciesDescription() {
-        StringBuilder sb = new StringBuilder("Action" + id + "\n");
-        DefaultSchedulingInformation<P,T> dsi = (DefaultSchedulingInformation<P,T>) this.getSchedulingInfo();
-        sb.append("\t depends on\n");
-        sb.append("\t\tData : ").append(this.getDataPredecessors()).append("\n");
-        sb.append("\t\tResource : ").append(dsi.getPredecessors()).append("\n");
-        sb.append("\t enables\n");
-        sb.append("\t\tData : ").append(this.getDataSuccessors()).append("\n");
-        sb.append("\t\tResource : ").append(dsi.getSuccessors()).append("\n");
-
-        return sb.toString();
-    }
-
     @Override
     public Integer getCoreId() {
-        if (impls == null || impls.length == 0) {
-            return null;
-        } else {
-            return impls[0].getCoreId();
-        }
+        return null;
     }
 
 }

@@ -1,18 +1,17 @@
 package integratedtoolkit.types.allocatiableaction;
 
-import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.types.Implementation;
+
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
-import integratedtoolkit.types.Score;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
 
 import java.util.HashSet;
@@ -27,26 +26,23 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 
-public class AllocatableActionTest {
+public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDescription> {
 
 	private final MethodResourceDescription description;
-    private final ResourceScheduler<?> r;
-    
-    private int[] executions;
-    private int[] error;
-    private int[] failed;
+    private final ResourceScheduler<P,T> r;
+ 
 
     public AllocatableActionTest() {
+    	int maxSlots = 3;
     	this.description = new MethodResourceDescription();
     	
     	// Slots
     	Processor p = new Processor();
-    	p.setComputingUnits(3);
+    	p.setComputingUnits(maxSlots);
     	this.description.addProcessor(p);
-    	this.description.setMaxTaskSlots(3);
     	
     	// Resource Scheduler
-    	this.r = new DummyResourceScheduler(new FakeWorker(description));
+    	this.r = new DummyResourceScheduler<P,T>(new FakeWorker<T>(description, maxSlots));
     }
 
     @BeforeClass
@@ -72,7 +68,7 @@ public class AllocatableActionTest {
     public void testExecute() throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
         //Create one instance 
         prepare(1);
-        AllocatableAction instance = new AllocatableActionImpl(0);
+        AllocatableAction<P,T> instance = new AllocatableActionImpl<P,T>(0);
         //Run it
         instance.assignResource(r);
         instance.tryToLaunch();
@@ -103,13 +99,13 @@ public class AllocatableActionTest {
         System.out.println("testEndNoSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance0.tryToLaunch();
             completed(instance0);
@@ -124,13 +120,13 @@ public class AllocatableActionTest {
         System.out.println("testEndDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance1.addDataPredecessor(instance0);
             instance0.tryToLaunch();
@@ -146,13 +142,13 @@ public class AllocatableActionTest {
         System.out.println("testEndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             addResourceDependency(instance0, instance1);
             instance0.tryToLaunch();
@@ -168,13 +164,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
@@ -191,13 +187,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             addResourceDependency(instance0, instance1);
             addResourceDependency(instance0, instance2);
@@ -214,13 +210,13 @@ public class AllocatableActionTest {
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
@@ -237,13 +233,13 @@ public class AllocatableActionTest {
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
@@ -260,13 +256,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance2.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance1);
@@ -286,13 +282,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoResourcesPredecessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             addResourceDependency(instance0, instance2);
             addResourceDependency(instance1, instance2);
@@ -312,13 +308,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance2.addDataPredecessor(instance0);
             addResourceDependency(instance1, instance2);
@@ -338,13 +334,13 @@ public class AllocatableActionTest {
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             addResourceDependency(instance0, instance2);
             instance2.addDataPredecessor(instance1);
@@ -377,24 +373,24 @@ public class AllocatableActionTest {
          */
         try {
             prepare(7);
-            AllocatableAction task1 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> task1 = new AllocatableActionImpl<P,T>(0);
             task1.assignResource(r);
-            AllocatableAction task2 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> task2 = new AllocatableActionImpl<P,T>(1);
             task2.assignResource(r);
-            AllocatableAction task3 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> task3 = new AllocatableActionImpl<P,T>(2);
             task3.assignResource(r);
-            AllocatableAction task4 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> task4 = new AllocatableActionImpl<P,T>(3);
             task4.assignResource(r);
             task4.addDataPredecessor(task1);
             task4.addDataPredecessor(task2);
             task4.addDataPredecessor(task3);
-            AllocatableAction task5 = new AllocatableActionImpl(4);
+            AllocatableAction<P,T> task5 = new AllocatableActionImpl<P,T>(4);
             task5.assignResource(r);
             task5.addDataPredecessor(task4);
-            AllocatableAction task6 = new AllocatableActionImpl(5);
+            AllocatableAction<P,T> task6 = new AllocatableActionImpl<P,T>(5);
             task6.assignResource(r);
             task6.addDataPredecessor(task4);
-            AllocatableAction task7 = new AllocatableActionImpl(6);
+            AllocatableAction<P,T> task7 = new AllocatableActionImpl<P,T>(6);
             task7.assignResource(r);
             task7.addDataPredecessor(task4);
 
@@ -446,8 +442,8 @@ public class AllocatableActionTest {
         System.out.println("testOneError");
         try {
             prepare(2);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance0.assignResource(r);
             instance1.assignResource(r);
             instance0.tryToLaunch();
@@ -465,8 +461,8 @@ public class AllocatableActionTest {
         System.out.println("testOneFail");
         try {
             prepare(2);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance0.assignResource(r);
             instance1.assignResource(r);
             instance0.tryToLaunch();
@@ -491,13 +487,13 @@ public class AllocatableActionTest {
         System.out.println("testBasicErrorDependencies");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
@@ -536,13 +532,13 @@ public class AllocatableActionTest {
         System.out.println("testBasicFailDependencies");
         try {
             prepare(4);
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
             instance2.addDataPredecessor(instance0);
 
@@ -592,17 +588,17 @@ public class AllocatableActionTest {
              *    \    /  \
              *      3       6
              */
-            AllocatableAction instance0 = new AllocatableActionImpl(0);
+            AllocatableAction<P,T> instance0 = new AllocatableActionImpl<P,T>(0);
             instance0.assignResource(r);
-            AllocatableAction instance1 = new AllocatableActionImpl(1);
+            AllocatableAction<P,T> instance1 = new AllocatableActionImpl<P,T>(1);
             instance1.assignResource(r);
-            AllocatableAction instance2 = new AllocatableActionImpl(2);
+            AllocatableAction<P,T> instance2 = new AllocatableActionImpl<P,T>(2);
             instance2.assignResource(r);
-            AllocatableAction instance3 = new AllocatableActionImpl(3);
+            AllocatableAction<P,T> instance3 = new AllocatableActionImpl<P,T>(3);
             instance3.assignResource(r);
-            AllocatableAction instance4 = new AllocatableActionImpl(4);
+            AllocatableAction<P,T> instance4 = new AllocatableActionImpl<P,T>(4);
             instance4.assignResource(r);
-            AllocatableAction instance5 = new AllocatableActionImpl(5);
+            AllocatableAction<P,T> instance5 = new AllocatableActionImpl<P,T>(5);
             instance5.assignResource(r);
             instance3.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance1);
@@ -647,35 +643,36 @@ public class AllocatableActionTest {
      --------------------- SCHEDULER ACTIONS ------------------
      ----------------------------------------------------------
      --------------------------------------------------------*/
-    public void completed(AllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler<?> resource = action.getAssignedResource();
-        LinkedList<AllocatableAction> dataFree = action.completed();
-        LinkedList<AllocatableAction> resourceFree = resource.unscheduleAction(action);
-        HashSet<AllocatableAction> freeTasks = new HashSet<AllocatableAction>();
+    public void completed(AllocatableAction<P,T> action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
+        ResourceScheduler<P,T> resource = action.getAssignedResource();
+        LinkedList<AllocatableAction<P,T>> dataFree = action.completed();
+        LinkedList<AllocatableAction<P,T>> resourceFree = resource.unscheduleAction(action);
+        HashSet<AllocatableAction<P,T>> freeTasks = new HashSet<AllocatableAction<P,T>>();
         freeTasks.addAll(dataFree);
         freeTasks.addAll(resourceFree);
-        for (AllocatableAction a : freeTasks) {
+        for (AllocatableAction<P,T> a : freeTasks) {
             a.tryToLaunch();
         }
     }
 
-    public void error(AllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler<?> resource = action.getAssignedResource();
-        LinkedList<AllocatableAction> resourceFree;
+    public void error(AllocatableAction<P,T> action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
+        ResourceScheduler<P,T> resource = action.getAssignedResource();
+        LinkedList<AllocatableAction<P,T>> resourceFree;
         try {
             action.error();
             resourceFree = resource.unscheduleAction(action);
         } catch (FailedActionException fae) {
-            resourceFree = new LinkedList<AllocatableAction>();
-            for (AllocatableAction failed : action.failed()) {
+            resourceFree = new LinkedList<AllocatableAction<P,T>>();
+            for (AllocatableAction<P,T> failed : action.failed()) {
                 resourceFree.addAll(resource.unscheduleAction(failed));
             }
         }
-        for (AllocatableAction a : resourceFree) {
+        for (AllocatableAction<P,T> a : resourceFree) {
             a.tryToLaunch();
         }
 
     }
+    
     /*---------------------------------------------------------
      ----------------------------------------------------------
      ----------------------- TEST CHECKERS --------------------
@@ -683,49 +680,49 @@ public class AllocatableActionTest {
      --------------------------------------------------------*/
 
     private void prepare(int size) {
-        executions = new int[size];
-        error = new int[size];
-        failed = new int[size];
+    	AllocatableActionImpl.executions = new int[size];
+    	AllocatableActionImpl.error = new int[size];
+    	AllocatableActionImpl.failed = new int[size];
     }
 
     private void checkExecutions(int[] pattern) {
-        if (pattern.length != executions.length) {
-            fail("Unconsistent execution arrays. " + executions.length + " results obtained and " + pattern.length + " expected");
+        if (pattern.length != AllocatableActionImpl.executions.length) {
+            fail("Unconsistent execution arrays. " + AllocatableActionImpl.executions.length + " results obtained and " + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != executions[i]) {
-                fail("AllocatableAction " + i + " should be executed " + pattern[i] + " time and it was " + executions[i]);
+            if (pattern[i] != AllocatableActionImpl.executions[i]) {
+                fail("AllocatableAction " + i + " should be executed " + pattern[i] + " time and it was " + AllocatableActionImpl.executions[i]);
             }
         }
     }
 
     private void checkErrors(int[] pattern) {
-        if (pattern.length != error.length) {
-            fail("Unconsistent error arrays. " + error.length + " results obtained and " + pattern.length + " expected");
+        if (pattern.length != AllocatableActionImpl.error.length) {
+            fail("Unconsistent AllocatableActionImpl.error arrays. " + AllocatableActionImpl.error.length + " results obtained and " + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != error[i]) {
-                fail("AllocatableAction " + i + " should had " + pattern[i] + " error and it was " + error[i]);
+            if (pattern[i] != AllocatableActionImpl.error[i]) {
+                fail("AllocatableAction " + i + " should had " + pattern[i] + " AllocatableActionImpl.error and it was " + AllocatableActionImpl.error[i]);
             }
         }
     }
 
     private void checkFailed(int[] pattern) {
-        if (pattern.length != failed.length) {
-            fail("Unconsistent failed arrays. " + failed.length + " results obtained and " + pattern.length + " expected");
+        if (pattern.length != AllocatableActionImpl.failed.length) {
+            fail("Unconsistent AllocatableActionImpl.failed arrays. " + AllocatableActionImpl.failed.length + " results obtained and " + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != failed[i]) {
-                fail("AllocatableAction " + i + " should had failed " + pattern[i] + " time and it was " + failed[i]);
+            if (pattern[i] != AllocatableActionImpl.failed[i]) {
+                fail("AllocatableAction " + i + " should had AllocatableActionImpl.failed " + pattern[i] + " time and it was " + AllocatableActionImpl.failed[i]);
 
             }
         }
     }
 
-    public static void addResourceDependency(AllocatableAction pred, AllocatableAction succ) {
+    public static void addResourceDependency(AllocatableAction<?,?> pred, AllocatableAction<?,?> succ) {
         ResourceDependencies dsiPred = (ResourceDependencies) pred.getSchedulingInfo();
         ResourceDependencies dsiSucc = (ResourceDependencies) succ.getSchedulingInfo();
         if (pred.isPending()) {
@@ -734,161 +731,20 @@ public class AllocatableActionTest {
         }
     }
 
-    public class DummyResourceScheduler extends ResourceScheduler {
-
-        public DummyResourceScheduler(Worker<?> w) {
-            super(w);
-        }
-
-        @Override
-        public LinkedList<AllocatableAction> unscheduleAction(AllocatableAction action) {
-
-            LinkedList<AllocatableAction> freeTasks = new LinkedList<AllocatableAction>();
-            ResourceDependencies actionDSI = (ResourceDependencies) action.getSchedulingInfo();
-
-            //Remove action from predecessors
-            for (AllocatableAction pred : actionDSI.getPredecessors()) {
-                ResourceDependencies predDSI = (ResourceDependencies) pred.getSchedulingInfo();
-                predDSI.removeSuccessor(action);
-            }
-
-            for (AllocatableAction successor : actionDSI.getSuccessors()) {
-                ResourceDependencies successorDSI = (ResourceDependencies) successor.getSchedulingInfo();
-                //Remove predecessor
-                successorDSI.removePredecessor(action);
-
-                //Link with action predecessors
-                for (AllocatableAction predecessor : actionDSI.getPredecessors()) {
-                    ResourceDependencies predecessorDSI = (ResourceDependencies) predecessor.getSchedulingInfo();
-                    if (predecessor.isPending()) {
-                        successorDSI.addPredecessor(predecessor);
-                        predecessorDSI.addSuccessor(successor);
-                    }
-                }
-                //Check executability
-                if (successorDSI.isExecutable()) {
-                    freeTasks.add(successor);
-                }
-            }
-            actionDSI.clearPredecessors();
-            actionDSI.clearSuccessors();
-
-            return freeTasks;
-        }
-    }
-
-    public class AllocatableActionImpl extends AllocatableAction {
-
-        private int id;
-
-        public AllocatableActionImpl(int id) {
-            super(new ResourceDependencies());
-            this.id = id;
-        }
-
-        @Override
-        public void doAction() {
-            executions[id]++;
-        }
-
-        @Override
-        public void doCompleted() {
-
-        }
-
-        @Override
-        public void doError() throws FailedActionException {
-            error[id]++;
-            if (error[id] == 2) {
-                throw new FailedActionException();
-            }
-        }
-
-        @Override
-        public void doFailed() {
-            failed[id]++;
-        }
-
-        public String toString() {
-            return "AllocatableAction " + id;
-        }
-
-        @Override
-        public LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r) {
-            return null;
-        }
-
-        @Override
-        public LinkedList<ResourceScheduler<?>> getCompatibleWorkers() {
-            return null;
-        }
-
-        @Override
-        public Implementation<?>[] getImplementations() {
-            return new Implementation[0];
-        }
-
-        @Override
-        public boolean isCompatible(Worker<?> r) {
-            return true;
-        }
-
-        @Override
-        protected boolean areEnoughResources() {
-            return true;
-        }
-
-        @Override
-        protected void reserveResources() {
-
-        }
-
-        @Override
-        protected void releaseResources() {
-
-        }
-
-        @Override
-        public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-
-        }
-
-        @Override
-        public void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-
-        }
-
-        @Override
-        public Score schedulingScore(TaskScheduler TS) {
-            return null;
-        }
-
-        @Override
-        public Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore) {
-            return null;
-        }
-
-        @Override
-        public Integer getCoreId() {
-            return null;
-        }
-
-    }
-
-    public static class ResourceDependencies extends SchedulingInformation {
+    public static class ResourceDependencies<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P,T> {
 
         //Allocatable actions that the action depends on due to resource availability
-        private final LinkedList<AllocatableAction> resourcePredecessors;
+        private final LinkedList<AllocatableAction<P,T>> resourcePredecessors;
 
         //Allocatable actions depending on the allocatable action due to resource availability
-        private final LinkedList<AllocatableAction> resourceSuccessors;
+        private final LinkedList<AllocatableAction<P,T>> resourceSuccessors;
 
         public ResourceDependencies() {
-            resourcePredecessors = new LinkedList<AllocatableAction>();
-            resourceSuccessors = new LinkedList<AllocatableAction>();
+            resourcePredecessors = new LinkedList<AllocatableAction<P,T>>();
+            resourceSuccessors = new LinkedList<AllocatableAction<P,T>>();
         }
 
-        public void addPredecessor(AllocatableAction predecessor) {
+        public void addPredecessor(AllocatableAction<P,T> predecessor) {
             resourcePredecessors.add(predecessor);
         }
 
@@ -901,11 +757,11 @@ public class AllocatableActionTest {
             return resourcePredecessors.isEmpty();
         }
 
-        public LinkedList<AllocatableAction> getPredecessors() {
+        public LinkedList<AllocatableAction<P,T>> getPredecessors() {
             return resourcePredecessors;
         }
 
-        public void removePredecessor(AllocatableAction successor) {
+        public void removePredecessor(AllocatableAction<P,T> successor) {
             resourcePredecessors.remove(successor);
         }
 
@@ -913,15 +769,15 @@ public class AllocatableActionTest {
             resourcePredecessors.clear();
         }
 
-        public void addSuccessor(AllocatableAction successor) {
+        public void addSuccessor(AllocatableAction<P,T> successor) {
             resourceSuccessors.add(successor);
         }
 
-        public LinkedList<AllocatableAction> getSuccessors() {
+        public LinkedList<AllocatableAction<P,T>> getSuccessors() {
             return resourceSuccessors;
         }
 
-        public synchronized void removeSuccessor(AllocatableAction successor) {
+        public synchronized void removeSuccessor(AllocatableAction<P,T> successor) {
             resourceSuccessors.remove(successor);
         }
 

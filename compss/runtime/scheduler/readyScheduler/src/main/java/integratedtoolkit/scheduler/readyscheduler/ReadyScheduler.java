@@ -8,8 +8,10 @@ import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.ObjectValue;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ActionSet;
 import integratedtoolkit.util.CoreManager;
 
@@ -18,14 +20,14 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 
-public class ReadyScheduler extends TaskScheduler {
+public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P,T> {
 
     private static final int THRESHOLD = 50;
-    private ActionSet dependingActions = new ActionSet();
-    private ActionSet unassignedReadyActions = new ActionSet();
+    private ActionSet<P,T> dependingActions = new ActionSet<P,T>();
+    private ActionSet<P,T> unassignedReadyActions = new ActionSet<P,T>();
 
     @Override
-    protected final void scheduleAction(AllocatableAction action, Score actionScore) throws BlockedActionException {
+    protected final void scheduleAction(AllocatableAction<P,T> action, Score actionScore) throws BlockedActionException {
         if (action.hasDataPredecessors()) {
             dependingActions.addAction(action);
         } else {
@@ -38,7 +40,7 @@ public class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    public void dependencyFreeAction(AllocatableAction action) throws BlockedActionException {
+    public void dependencyFreeAction(AllocatableAction<P,T> action) throws BlockedActionException {
         dependingActions.removeAction(action);
         try {
             Score actionScore = action.schedulingScore(this);
@@ -49,27 +51,27 @@ public class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    protected void workerDetected(ResourceScheduler<?> resource) {
+    protected void workerDetected(ResourceScheduler<P,T> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
 
     @Override
-    protected void workerRemoved(ResourceScheduler<?> resource) {
+    protected void workerRemoved(ResourceScheduler<P,T> resource) {
         // There are no internal structures worker-related. No need to do 
         // anything.
     }
 
     @Override
-    public void workerUpdate(ResourceScheduler<?> resource) {
+    public void workerUpdate(ResourceScheduler<P,T> resource) {
         Worker worker = resource.getResource();
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
-        PriorityQueue<ObjectValue<AllocatableAction>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
+        PriorityQueue<ObjectValue<AllocatableAction<P,T>>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
 
         //Selecting runnable actions and priorizing them
         LinkedList<Integer> runnableCores = new LinkedList<Integer>();
-        LinkedList<Implementation<?>>[] fittingImpls = new LinkedList[CoreManager.getCoreCount()];
+        LinkedList<Implementation<T>>[] fittingImpls = new LinkedList[CoreManager.getCoreCount()];
         for (int coreId : (LinkedList<Integer>) worker.getExecutableCores()) {
             fittingImpls[coreId] = worker.getRunnableImplementations(coreId);
             if (!fittingImpls[coreId].isEmpty() && unassignedReadyActions.getActionCounts()[coreId] > 0) {
@@ -89,8 +91,8 @@ public class ReadyScheduler extends TaskScheduler {
                     bestCore = i;
                 }
             }
-            ObjectValue<AllocatableAction> ov = actions[bestCore].poll();
-            AllocatableAction selectedAction = ov.o;
+            ObjectValue<AllocatableAction<P,T>> ov = actions[bestCore].poll();
+            AllocatableAction<P,T> selectedAction = ov.o;
 
             //Get the best Implementation
             try {
@@ -121,7 +123,7 @@ public class ReadyScheduler extends TaskScheduler {
             Iterator<Integer> coreIter = runnableCores.iterator();
             while (coreIter.hasNext()) {
                 int coreId = coreIter.next();
-                Iterator<Implementation<?>> implIter = fittingImpls[coreId].iterator();
+                Iterator<Implementation<T>> implIter = fittingImpls[coreId].iterator();
                 while (implIter.hasNext()) {
                     Implementation<?> impl = implIter.next();
                     if (!worker.canRunNow(impl.getRequirements())) {
@@ -137,20 +139,20 @@ public class ReadyScheduler extends TaskScheduler {
     }
 
     @Override
-    public ResourceScheduler<?> generateSchedulerForResource(Worker<?> w) {
-        return new ReadyResourceScheduler(w);
+    public ResourceScheduler<P,T> generateSchedulerForResource(Worker<T> w) {
+        return new ReadyResourceScheduler<P,T>(w);
     }
 
-    private PriorityQueue<ObjectValue<AllocatableAction>> sortActionsForResource(LinkedList<AllocatableAction> actions, ResourceScheduler<?> resource) {
-        PriorityQueue<ObjectValue<AllocatableAction>> pq = new PriorityQueue<ObjectValue<AllocatableAction>>();
+    private PriorityQueue<ObjectValue<AllocatableAction<P,T>>> sortActionsForResource(LinkedList<AllocatableAction<P,T>> actions, ResourceScheduler<P,T> resource) {
+        PriorityQueue<ObjectValue<AllocatableAction<P,T>>> pq = new PriorityQueue<ObjectValue<AllocatableAction<P,T>>>();
         int counter = 0;
-        for (AllocatableAction action : actions) {
+        for (AllocatableAction<P,T> action : actions) {
             Score actionScore = action.schedulingScore(this);
             Score score = action.schedulingScore(resource, actionScore);
             if (score == null) {
                 continue;
             }
-            ObjectValue<AllocatableAction> ov = new ObjectValue<AllocatableAction>(action, score);
+            ObjectValue<AllocatableAction<P,T>> ov = new ObjectValue<AllocatableAction<P,T>>(action, score);
             pq.offer(ov);
             counter++;
             if (counter == THRESHOLD) {

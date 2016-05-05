@@ -282,10 +282,8 @@ public class ResourceLoader {
 		int limitOfTasks = project.getLimitOfTasks(cn_project);
 		if (limitOfTasks >= 0) {
 			config.setLimitOfTasks( limitOfTasks );
-			mrd.setMaxTaskSlots(limitOfTasks);
 		} else {
 			config.setLimitOfTasks( mrd.getTotalComputingUnits() );
-			mrd.setMaxTaskSlots( mrd.getTotalComputingUnits() );
 		}
 		config.setTotalComputingUnits( mrd.getTotalComputingUnits() );
 		
@@ -335,7 +333,8 @@ public class ResourceLoader {
 		int limitOfTasks = s_project.getLimitOfTasks();
 		if (limitOfTasks >= 0) {
 			config.setLimitOfTasks( limitOfTasks );
-			srd.setMaxTaskSlots(limitOfTasks);
+		} else {
+			config.setLimitOfTasks(Integer.MAX_VALUE);
 		}
 		
 		/* Pass all the information to the ResourceManager to insert it into the Runtime ***/
@@ -374,14 +373,14 @@ public class ResourceLoader {
 		
 		// Load cloud providers
 		boolean cloudEnabled = false;
-		List<String> cp_resources = new ArrayList<String>();
+		List<String> cp_resources = resources.getCloudProviders_names();
 		for (CloudProviderType cp : project.getCloudProviders_list()) {
 			if (cp_resources.contains(cp.getName())) {
 				// Resources contains information, loading cp
 				boolean isEnabled = loadCloudProvider(cp, resources.getCloudProvider(cp.getName()));
 				cloudEnabled = (cloudEnabled || isEnabled);
 			} else {
-				
+				ErrorManager.warn("CloudProvider " + cp.getName() + " not defined in resources.xml file. Skipping");
 			}
 		}
 		

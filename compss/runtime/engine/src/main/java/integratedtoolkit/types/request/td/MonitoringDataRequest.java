@@ -1,15 +1,18 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceManager;
+
 import java.util.concurrent.Semaphore;
 
 /**
  * The MonitoringDataRequest class represents a request to obtain the current
  * resources and cores that can be run
  */
-public class MonitoringDataRequest extends TDRequest {
+public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P,T> {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -71,18 +74,19 @@ public class MonitoringDataRequest extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts) {
+    public void process(TaskScheduler<P,T> ts) {
         String prefix = "\t";
         StringBuilder monitorData = new StringBuilder();
         monitorData.append(ts.getCoresMonitoringData(prefix));
 
         monitorData.append(prefix).append("<ResourceInfo>").append("\n");
         monitorData.append(ResourceManager.getPendingRequestsMonitorData(prefix + "\t"));
-        for (Worker r : ResourceManager.getAllWorkers()) {
-            monitorData.append(prefix + "\t").append("<Resource id=\"" + r.getName() + "\">").append("\n");
+        for (Worker<?> r : ResourceManager.getAllWorkers()) {
+        	Worker<T> worker = (Worker<T>) r;
+            monitorData.append(prefix + "\t").append("<Resource id=\"" + worker.getName() + "\">").append("\n");
             //CPU, Core, Memory, Disk, Provider, Image --> Inside resource
             monitorData.append(r.getMonitoringData(prefix + "\t\t"));
-            String runnningActions = ts.getRunningActionMonitorData(r, prefix + "\t\t\t");
+            String runnningActions = ts.getRunningActionMonitorData(worker, prefix + "\t\t\t");
             if (runnningActions != null) {
                 //Resource state = running
                 monitorData.append(prefix + "\t\t").append("<Status>").append("Running").append("</Status>").append("\n");

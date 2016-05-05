@@ -92,7 +92,8 @@ public class CreationThread extends Thread {
                     return;
                 }
             } else {
-                r = new CloudMethodWorker(granted.getDescription(), granted.getNode());
+            	int limitOfTasks = granted.getDescription().getTotalComputingUnits();
+                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks);
                 
                 if (debug){
             		runtimeLogger.debug(" Worker for new resource "+ granted.getName()+" set.");

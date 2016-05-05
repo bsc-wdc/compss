@@ -34,7 +34,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     }
 
     // Subcomponents
-    protected TaskScheduler scheduler;
+    protected TaskScheduler<?,?> scheduler;
 
     protected LinkedBlockingDeque<TDRequest> requestQueue;
     // Scheduler thread
@@ -90,7 +90,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             } else {
                 Class<?> conClass = Class.forName(schedulerPath);
                 Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
-                scheduler = (TaskScheduler) ctor.newInstance();
+                scheduler = (TaskScheduler<?,?>) ctor.newInstance();
             }
         } catch (Exception e) {
             ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
@@ -165,13 +165,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     // Notification thread
     @Override
-    public void actionCompletion(AllocatableAction action) {
+    public void actionCompletion(AllocatableAction<?,?> action) {
         addRequest(new ActionUpdate(action, ActionUpdate.Update.COMPLETED));
     }
 
     // Notification thread
     @Override
-    public void actionError(AllocatableAction action) {
+    public void actionError(AllocatableAction<?,?> action) {
         addRequest(new ActionUpdate(action, ActionUpdate.Update.ERROR));
     }
 
@@ -255,4 +255,5 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             // Nothing to do
         }
     }
+    
 }

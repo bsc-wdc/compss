@@ -67,12 +67,13 @@ public class ScoresTest {
         Implementation<?> impl41 = new FakeImplementation(4, 1, new FakeResourceDescription(2));
         CoreManager.registerImplementations(4, new Implementation[]{impl40, impl41});
 
-        FakeResourceDescription frd = new FakeResourceDescription(4);
-        FakeWorker fw = new FakeWorker("worker1", frd);
+        int maxSlots = 4;
+        FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
+        FakeWorker fw = new FakeWorker("worker1", frd, maxSlots);
         drs = new DefaultResourceScheduler(fw);
 
-        FakeResourceDescription frd2 = new FakeResourceDescription(4);
-        FakeWorker fw2 = new FakeWorker("worker2", frd2);
+        FakeResourceDescription frd2 = new FakeResourceDescription(maxSlots);
+        FakeWorker fw2 = new FakeWorker("worker2", frd2, maxSlots);
         secondDRS = new DefaultResourceScheduler(fw2);
 
         drs.profiledExecution(impl00, FakeProfiles.P5);

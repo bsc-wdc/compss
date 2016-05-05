@@ -10,11 +10,11 @@ import java.util.concurrent.Semaphore;
 public class SchedulingOptimizer extends Thread {
 
     private static long OPTIMIZATION_THRESHOLD = 5_000;
-    private DefaultScheduler scheduler;
+    private DefaultScheduler<?,?> scheduler;
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-    public SchedulingOptimizer(DefaultScheduler scheduler) {
+    public SchedulingOptimizer(DefaultScheduler<?,?> scheduler) {
         this.scheduler = scheduler;
     }
 
@@ -22,7 +22,7 @@ public class SchedulingOptimizer extends Thread {
         long lastUpdate = System.currentTimeMillis();
         while (!stop) {
             long optimizationTS = System.currentTimeMillis();
-            ResourceScheduler<?>[] workers = scheduler.getWorkers();
+            ResourceScheduler<?,?>[] workers = scheduler.getWorkers();
             OptimizedWorker[] optimizeds = new OptimizedWorker[workers.length];
             for (int i = 0; i < workers.length; i++) {
                 optimizeds[i] = optimizeLocal(workers[i], optimizationTS);
@@ -51,15 +51,15 @@ public class SchedulingOptimizer extends Thread {
         sem.acquire();
     }
 
-    public OptimizedWorker optimizeLocal(ResourceScheduler<?> worker, long updateTimeStamp) {
-        DefaultResourceScheduler drs = (DefaultResourceScheduler) worker;
+    public OptimizedWorker optimizeLocal(ResourceScheduler<?,?> worker, long updateTimeStamp) {
+        DefaultResourceScheduler<?,?> drs = (DefaultResourceScheduler<?,?>) worker;
         //PriorityQueue[] actions = drs.seekGaps(updateTimeStamp, new LinkedList<Gap>());
         drs.seekGaps(updateTimeStamp, new LinkedList<Gap>());
-        long PI = ((DefaultResourceScheduler) worker).getPerformanceIndicator();
+        long PI = ((DefaultResourceScheduler<?,?>) worker).getPerformanceIndicator();
         return new OptimizedWorker(worker, PI);
     }
 
-    public void optimize(ResourceScheduler<?>[] workers, long updateTimeStamp) {
+    public void optimize(ResourceScheduler<?,?>[] workers, long updateTimeStamp) {
         //Update Resource end Times
         long avgPI = 0;
         try {
@@ -68,18 +68,18 @@ public class SchedulingOptimizer extends Thread {
             }
             System.out.println("Optimizing @ " + updateTimeStamp);
             //Local Optimization
-            for (ResourceScheduler<?> rs : workers) {
-                DefaultResourceScheduler drs = (DefaultResourceScheduler) rs;
+            for (ResourceScheduler<?,?> rs : workers) {
+                DefaultResourceScheduler<?,?> drs = (DefaultResourceScheduler<?,?>) rs;
                 drs.seekGaps(updateTimeStamp, new LinkedList<Gap>());
-                long PI = ((DefaultResourceScheduler) rs).getPerformanceIndicator();
+                long PI = ((DefaultResourceScheduler<?,?>) rs).getPerformanceIndicator();
                 avgPI += PI;
             }
             avgPI = avgPI / workers.length;
 
             LinkedList<OptimizedWorker> donors = new LinkedList<OptimizedWorker>();
             LinkedList<OptimizedWorker> receivers = new LinkedList<OptimizedWorker>();
-            for (ResourceScheduler<?> rs : workers) {
-                long PI = ((DefaultResourceScheduler) rs).getPerformanceIndicator();
+            for (ResourceScheduler<?,?> rs : workers) {
+                long PI = ((DefaultResourceScheduler<?,?>) rs).getPerformanceIndicator();
                 OptimizedWorker ow = new OptimizedWorker(rs, PI);
                 if (avgPI != PI) {
                     if (avgPI > PI) {
@@ -91,7 +91,7 @@ public class SchedulingOptimizer extends Thread {
             }
 
             for (OptimizedWorker donor : donors) {
-                LinkedList<AllocatableAction> donedActions = donor.getExtraTasks();
+                LinkedList<AllocatableAction<?,?>> donedActions = donor.getExtraTasks();
                 for (AllocatableAction action : donedActions) {
                     for (OptimizedWorker receptor : receivers) {
                         if (action.isCompatible(receptor.rs.getResource())) {
@@ -125,15 +125,15 @@ public class SchedulingOptimizer extends Thread {
     private class OptimizedWorker {
 
         long performanceIndicator;
-        ResourceScheduler<?> rs;
+        ResourceScheduler<?,?> rs;
 
-        public OptimizedWorker(ResourceScheduler<?> rs, long performanceIndicator) {
+        public OptimizedWorker(ResourceScheduler<?,?> rs, long performanceIndicator) {
             this.performanceIndicator = performanceIndicator;
             this.rs = rs;
         }
 
-        private LinkedList<AllocatableAction> getExtraTasks() {
-            return new LinkedList<AllocatableAction>();
+        private LinkedList<AllocatableAction<?,?>> getExtraTasks() {
+            return new LinkedList<AllocatableAction<?,?>>();
         }
 
     }

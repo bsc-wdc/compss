@@ -11,10 +11,6 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration config) throws Exception {
         super(wsdl, description, config);
         this.wsdl = wsdl;
-        
-        if (config.getLimitOfTasks() > 0) {
-        	this.description.setMaxTaskSlots(config.getLimitOfTasks());
-        }
     }
 
     public ServiceWorker(ServiceWorker sw) {
@@ -58,8 +54,9 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public boolean reserveResource(ServiceResourceDescription consumption) {
-        return true;
+    public ServiceResourceDescription reserveResource(ServiceResourceDescription consumption) {
+    	// Always can be hosted and uses the same amount of resource than asked
+        return consumption;
     }
 
     @Override

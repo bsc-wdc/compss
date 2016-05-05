@@ -4,6 +4,7 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.allocatableactions.SingleExecution;
 import org.apache.log4j.Logger;
 
+
 public class JobTransfersListener extends DataOperation.EventListener {
 
     private int operation = 0;
@@ -13,9 +14,10 @@ public class JobTransfersListener extends DataOperation.EventListener {
     private static final Logger logger = Logger.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    private SingleExecution execution;
+    private SingleExecution<?,?> execution;
 
-    public JobTransfersListener(SingleExecution execution) {
+    
+    public JobTransfersListener(SingleExecution<?,?> execution) {
         this.execution = execution;
     }
 

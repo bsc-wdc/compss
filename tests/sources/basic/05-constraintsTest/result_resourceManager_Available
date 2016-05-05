@@ -27,5 +27,13 @@
   fi
 
   #----------------------------------------------------------------------------------
-  #Compute result status  
+  #Compute result status
+  test_result_available_resources=$(cat ${output_file} | grep "\[LOG\] \* Available Resources test passed")
+  
+  #Report result status
+  if [ -z "${test_result_available_resources}" ]; then
+    echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+    exit 2
+  fi
+  
   exit 0

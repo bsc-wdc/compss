@@ -146,31 +146,31 @@ public class TestCompatible {
             		if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
             				&& !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
             				&& !wp.getName().equals(ip.getName())) {
-            			System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
+            			//System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
             			continue;
             		}
             		if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
             				&& wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
             				&& wp.getSpeed() < ip.getSpeed() ) {
-            			System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
+            			//System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
             			continue;
             		}
             		if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR) 
             				&& !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
             			    && !wp.getArchitecture().equals(ip.getArchitecture())) {
-            			System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
+            			//System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
             			continue;
             		}
             		if ( (!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!ip.getPropName().equals(wp.getPropName())) ) {
-            			System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
+            			//System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
             			continue;
             		}
             		if ( (!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
             				&& (!ip.getPropValue().equals(wp.getPropValue())) ) {
-            			System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
+            			//System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
             			continue;
             		}
             		
@@ -179,7 +179,7 @@ public class TestCompatible {
             			canBeHosted = true;
             			break;
             		} else {
-            			System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
+            			//System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
             		}
             	}
             	if (!canBeHosted) {

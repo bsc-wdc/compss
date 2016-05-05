@@ -38,17 +38,8 @@ public class WorkerStarter implements Runnable {
         	this.disks = disks;
         }
         
-        // Compute task count
-        int limitOfTasks = config.getLimitOfTasks();
-        int computingUnits = rd.getTotalComputingUnits();
-        if (limitOfTasks <= 0) {
-        	this.rd.setMaxTaskSlots(computingUnits);
-        } else {
-        	this.rd.setMaxTaskSlots(limitOfTasks);
-        }
-        
         // Compute expected core count
-        expectedCoreCount = computeExpectedCoreCount(this.rd.getMaxTaskSlots());
+        expectedCoreCount = computeExpectedCoreCount(this.configuration.getLimitOfTasks());
         synchronized (onStartCoreCounts) {
             for (int coreId = 0; coreId < expectedCoreCount.length; coreId++) {
                 onStartCoreCounts[coreId] += expectedCoreCount[coreId];

@@ -20,10 +20,9 @@
   
   #----------------------------------------------------------------------------------
   # Perform executions
-  #declare -a tests_names=('constraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest')
-  #declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest')
-declare -a tests_names=('resourceManager_Compatible')
-declare -a tests=('resourceManager.TestCompatible')
+  declare -a tests_names=('constraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest')
+  declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest')
+  
   exitValue=0
   i=0
   while [ $i -lt ${#tests[@]} ]; do

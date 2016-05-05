@@ -2,9 +2,11 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 import java.util.LinkedList;
 
-public class DefaultScore extends Score {
+public class DefaultScore<P extends Profile, T extends WorkerResourceDescription> extends Score {
 
     /*
      * ActionScore -> task Priority
@@ -14,14 +16,15 @@ public class DefaultScore extends Score {
      */
     private final long expectedDataAvailable;
     private long expectedStart;
-
+    
+    
     public DefaultScore(long actionScore, long dataAvailability, long res, long impl) {
         super(actionScore, res, impl);
         expectedDataAvailable = dataAvailability;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
 
-    public DefaultScore(DefaultScore actionScore, long transferTime, long resourceTime, long impl) {
+    public DefaultScore(DefaultScore<P,T> actionScore, long transferTime, long resourceTime, long impl) {
         super(actionScore, resourceTime, impl);
         expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
@@ -29,7 +32,7 @@ public class DefaultScore extends Score {
 
     @Override
     public boolean isBetter(Score other) {
-        DefaultScore otherDS = (DefaultScore) other;
+        DefaultScore<P,T> otherDS = (DefaultScore<P,T>) other;
         if (actionScore != other.actionScore) {
             return actionScore > other.actionScore;
         }
@@ -42,10 +45,10 @@ public class DefaultScore extends Score {
         return params.hasPriority() ? 1l : 0l;
     }
 
-    public static long getDataPredecessorTime(LinkedList<AllocatableAction> predecessors) {
+    public long getDataPredecessorTime(LinkedList<AllocatableAction<P,T>> predecessors) {
         long dataTime = 0;
-        for (AllocatableAction pred : predecessors) {
-            dataTime = Math.max(dataTime, ((DefaultSchedulingInformation) pred.getSchedulingInfo()).getExpectedEnd());
+        for (AllocatableAction<P,T> pred : predecessors) {
+            dataTime = Math.max(dataTime, ((DefaultSchedulingInformation<P,T>) pred.getSchedulingInfo()).getExpectedEnd());
         }
         return dataTime;
     }

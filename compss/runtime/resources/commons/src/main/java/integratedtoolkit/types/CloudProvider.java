@@ -21,13 +21,15 @@ import org.apache.log4j.Logger;
 
 public class CloudProvider {
 
-    public String name;
-    private Connector connector;
-    private Cost cost;
+    private final String name;
+    private final Integer limitOfVMs;
+    private int currentVMCount;
+    
     private CloudImageManager imgManager;
     private CloudTypeManager typeManager;
-    private int currentVMCount;
-    private Integer limitOfVMs;
+    
+    private Connector connector;
+    private Cost cost;
 
     //Loggers
     private static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
@@ -38,18 +40,16 @@ public class CloudProvider {
 
         this.name = name;
         this.limitOfVMs = limitOfVMs;
+        this.currentVMCount = 0;
         
-        imgManager = new CloudImageManager();
+        this.imgManager = new CloudImageManager();
+        this.typeManager = new CloudTypeManager();
         
         Class<?> conClass = Class.forName(connectorPath);
         Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
         Object conector = ctor.newInstance(name, connectorProperties);
         connector = (Connector) conector;
         cost = (Cost) conector;
-        
-        typeManager = new CloudTypeManager();
-        
-        currentVMCount = 0;
     }
 
     /*
@@ -149,24 +149,27 @@ public class CloudProvider {
      * ------------------------------------------
      */
     public CloudMethodResourceDescription getBestIncrease(Integer amount, MethodResourceDescription constraints, boolean contained) {
-        CloudMethodResourceDescription result = null;
-        if (limitOfVMs != null && currentVMCount >= limitOfVMs) {
-            return result;
+    	// Check Cloud capabilities
+        if (limitOfVMs != null && limitOfVMs != -1 && currentVMCount >= limitOfVMs) {
+            return null;
         }
-        // Select all the compatible Type with the bigger amount possible
+        
+        // Select all the compatible types
         LinkedList<CloudMethodResourceDescription> instances = typeManager.getCompatibleTypes(constraints);
         if (instances.isEmpty()) {
-            return result;
+            return null;
         }
 
+        CloudMethodResourceDescription result = null;
         if (contained) {
             result = selectContainedInstance(instances, constraints, amount);
         } else {
             result = selectContainingInstance(instances, constraints, amount);
         }
 
+        // Pick an image to be loaded in the Type (or return null)
         if (result != null) {
-            // Pick an image to be loaded in the Type
+        	// Select all the compatible images
             LinkedList<CloudImageDescription> images = imgManager.getCompatibleImages(constraints);
             if (images.isEmpty()) {
                 return null;
@@ -175,6 +178,7 @@ public class CloudProvider {
             result.setImage(images.get(0));
             result.setValue(cost.getMachineCostPerHour(result));
         }
+        
         return result;
     }
 
@@ -186,7 +190,8 @@ public class CloudProvider {
         for (CloudMethodResourceDescription rd : instances) {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-	    logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            logger.debug("Can host: slots = " + slots + " amount = " + amount 
+            		+ " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance > 0) {
                 continue;
             }
@@ -218,7 +223,8 @@ public class CloudProvider {
         for (CloudMethodResourceDescription rd : instances) {
             int slots = rd.canHostSimultaneously(constraints);
             float distance = slots - amount;
-            logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            logger.debug("Can host: slots = " + slots + " amount = " + amount 
+            		+ " distance = " + distance + " bestDistance = " + bestDistance);
             if (distance < 0) {
                 continue;
             }

@@ -3,15 +3,12 @@ package resourceManager;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 import commons.Action;
 import commons.ConstantValues;
-import constraintManager.TestItf;
 
 
 /*
@@ -99,39 +96,67 @@ public class TestAvailable {
          * Reserve and free for computingUnits test
          * *********************************************** */
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
-        System.out.println(NAME_WORKER + " object is " + worker.getDescription() + "and CoreImplementations requirements object is " + CoreManager.getCoreImplementations(ce1)[0]);
-        worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
-        worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        
+        //System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
+        //System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1)[0]);
+        
+        WorkerResourceDescription consumed1 = worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        WorkerResourceDescription consumed2 = worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        
+        //System.out.println("CONSUMED: " + consumed1);
+        //System.out.println("CONSUMED: " + consumed2);
+        //System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
+        
         Action a = new Action(ce1);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CORE reserve is not working");
             System.exit(-1);
         }
 
-        worker.endTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        worker.endTask(consumed1);
         if (!a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CORE free is not working");
             System.exit(-1);
         }
-        worker.endTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        worker.endTask(consumed2);
+        
+        //System.out.println("FREE");
+        //System.out.println("FREE");
+        //System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
+        //System.out.println();
 
         
         /* *************************************************
          * Reserve and free for memorySize test
          * *********************************************** */
         a = new Action(ce2);
-        worker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
-        worker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        //System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
+        //System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce2)[0]);
+        
+        consumed1 = worker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        consumed2 = worker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        
+        //System.out.println("CONSUMED: " + consumed1);
+        //System.out.println("CONSUMED: " + consumed2);
+        //System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
+        
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for MEMORY reserve is not working");
             System.exit(-1);
         }
-        worker.endTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        
+        worker.endTask(consumed1);
         if (!a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for MEMORY free is not working");
             System.exit(-1);
         }
-        worker.endTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        worker.endTask(consumed2);
+        
+        //System.out.println("FREE");
+        //System.out.println("FREE");
+        //System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
+        //System.out.println();
+        
         System.out.println("[LOG] * Available Resources test passed");
     }
     

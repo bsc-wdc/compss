@@ -508,7 +508,7 @@ public class Test {
                 HashSet<String> values = new HashSet<String>();
                 for (String s : specific.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
-                        values.add(s.replaceAll(" ", ""));
+                        values.add(s.replaceAll(" ", "").toUpperCase());
                     }
                 }
                 ret = registered.getHostQueues().containsAll(values);
@@ -519,7 +519,7 @@ public class Test {
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
-                        values.add(s.replaceAll(" ", ""));
+                        values.add(s.replaceAll(" ", "").toUpperCase());
                     }
                 }
                 ret = registered.getHostQueues().containsAll(values);
@@ -528,12 +528,12 @@ public class Test {
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
-                        values.add(s.replaceAll(" ", ""));
+                        values.add(s.replaceAll(" ", "").toUpperCase());
                     }
                 }
                 for (String s : specific.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
-                        values.add(s.replaceAll(" ", ""));
+                        values.add(s.replaceAll(" ", "").toUpperCase());
                     }
                 }
                 ret = registered.getHostQueues().containsAll(values);

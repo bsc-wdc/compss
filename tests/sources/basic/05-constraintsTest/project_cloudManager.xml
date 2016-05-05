@@ -50,7 +50,7 @@
 	            </Property>
             </Properties>
             <Images>
-                <Image Name="uuid_test_XX_unstable_XX">
+                <Image Name="Image_Linux">
                     <InstallDir>/opt/COMPSs/</InstallDir>
                     <WorkingDir>/tmp/Worker/</WorkingDir>
                     <User>user</User>
@@ -58,15 +58,41 @@
                         <Source>constraintsTest.tar.gz</Source>
                         <Target>/home/user/apps</Target>
                         <IncludedSoftware>
-                        	<Application>Java</Application>
+                        	<Application>constraintsTest</Application>
+                        </IncludedSoftware>
+                    </Package>
+                </Image>
+                <Image Name="Image_Windows">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                    <User>user</User>
+                    <Package>
+                        <Source>constraintsTest.tar.gz</Source>
+                        <Target>/home/user/apps</Target>
+                        <IncludedSoftware>
+                        	<Application>constraintsTest</Application>
+                        </IncludedSoftware>
+                    </Package>
+                </Image>
+                <Image Name="Image_MacOS">
+                    <InstallDir>/opt/COMPSs/</InstallDir>
+                    <WorkingDir>/tmp/Worker/</WorkingDir>
+                    <User>user</User>
+                    <Package>
+                        <Source>constraintsTest.tar.gz</Source>
+                        <Target>/home/user/apps</Target>
+                        <IncludedSoftware>
                         	<Application>constraintsTest</Application>
                         </IncludedSoftware>
                     </Package>
                 </Image>
             </Images>
+            
             <InstanceTypes>
                 <InstanceType Name="small"/>
                 <InstanceType Name="medium"/>
+                <InstanceType Name="big"/>
+                <InstanceType Name="huge"/>
             </InstanceTypes>
         </CloudProvider>
     </Cloud>

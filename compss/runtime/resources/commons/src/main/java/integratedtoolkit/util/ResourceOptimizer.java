@@ -297,7 +297,7 @@ public class ResourceOptimizer extends Thread {
         }
 
         public void join(ConstraintsCore c2) {
-            desc.expand(c2.desc);
+            desc.increase(c2.desc);
             c2.desc = desc;
             for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
                 if (cores[coreId] != null) {

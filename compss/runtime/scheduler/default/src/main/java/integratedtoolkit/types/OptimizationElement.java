@@ -1,6 +1,7 @@
 package integratedtoolkit.types;
 
-public class OptimizationElement<T> implements Comparable<OptimizationElement> {
+
+public class OptimizationElement<T> implements Comparable<OptimizationElement<?>> {
 
     private final T element;
     private long expectedStart;
@@ -11,7 +12,7 @@ public class OptimizationElement<T> implements Comparable<OptimizationElement> {
     }
 
     @Override
-    public int compareTo(OptimizationElement o) {
+    public int compareTo(OptimizationElement<?> o) {
         return (int) (expectedStart - o.expectedStart);
     }
 

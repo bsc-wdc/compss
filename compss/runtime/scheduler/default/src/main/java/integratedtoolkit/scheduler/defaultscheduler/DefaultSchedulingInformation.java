@@ -1,31 +1,34 @@
 package integratedtoolkit.scheduler.defaultscheduler;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 import java.util.LinkedList;
 
-public class DefaultSchedulingInformation extends SchedulingInformation {
+public class DefaultSchedulingInformation<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P,T> {
 
     private long lastUpdate;
     private long expectedStart;
     private long expectedEnd;
 
     //Allocatable actions that the action depends on due to resource availability
-    private final LinkedList<AllocatableAction> resourcePredecessors;
+    private final LinkedList<AllocatableAction<P,T>> resourcePredecessors;
 
     //Allocatable actions depending on the allocatable action due to resource availability
-    private final LinkedList<AllocatableAction> resourceSuccessors;
+    private final LinkedList<AllocatableAction<P,T>> resourceSuccessors;
 
     public DefaultSchedulingInformation() {
-        resourcePredecessors = new LinkedList<AllocatableAction>();
-        resourceSuccessors = new LinkedList<AllocatableAction>();
+        resourcePredecessors = new LinkedList<AllocatableAction<P,T>>();
+        resourceSuccessors = new LinkedList<AllocatableAction<P,T>>();
 
         lastUpdate = System.currentTimeMillis();
         expectedStart = 0;
         expectedEnd = 0;
     }
 
-    public void addPredecessor(AllocatableAction predecessor) {
+    public void addPredecessor(AllocatableAction<P,T> predecessor) {
         resourcePredecessors.add(predecessor);
     }
 
@@ -38,11 +41,11 @@ public class DefaultSchedulingInformation extends SchedulingInformation {
         return resourcePredecessors.isEmpty();
     }
 
-    public LinkedList<AllocatableAction> getPredecessors() {
+    public LinkedList<AllocatableAction<P,T>> getPredecessors() {
         return resourcePredecessors;
     }
 
-    public void removePredecessor(AllocatableAction successor) {
+    public void removePredecessor(AllocatableAction<P,T> successor) {
         resourcePredecessors.remove(successor);
     }
 
@@ -50,15 +53,15 @@ public class DefaultSchedulingInformation extends SchedulingInformation {
         resourcePredecessors.clear();
     }
 
-    public void addSuccessor(AllocatableAction successor) {
+    public void addSuccessor(AllocatableAction<P,T> successor) {
         resourceSuccessors.add(successor);
     }
 
-    public LinkedList<AllocatableAction> getSuccessors() {
+    public LinkedList<AllocatableAction<P,T>> getSuccessors() {
         return resourceSuccessors;
     }
 
-    public void removeSuccessor(AllocatableAction successor) {
+    public void removeSuccessor(AllocatableAction<P,T> successor) {
         resourceSuccessors.remove(successor);
     }
 
@@ -92,13 +95,13 @@ public class DefaultSchedulingInformation extends SchedulingInformation {
 
     public String toString() {
         StringBuilder sb = new StringBuilder("lastUpdate: " + lastUpdate + " expectedStart: " + expectedStart + " expectedEnd:" + expectedEnd);
-        sb.append("\tschedPredecessors: ");
-        for (AllocatableAction aa : getPredecessors()) {
+        sb.append("\t").append("schedPredecessors: ");
+        for (AllocatableAction<P,T> aa : getPredecessors()) {
             sb.append(" ").append(aa.hashCode());
         }
         sb.append("\n");
-        sb.append("\tschedSuccessors: ");
-        for (AllocatableAction aa : getSuccessors()) {
+        sb.append("\t").append("schedSuccessors: ");
+        for (AllocatableAction<P,T> aa : getSuccessors()) {
             sb.append(" ").append(aa.hashCode());
         }
         return sb.toString();

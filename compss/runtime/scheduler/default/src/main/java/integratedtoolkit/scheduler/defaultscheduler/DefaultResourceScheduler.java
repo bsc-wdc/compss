@@ -13,26 +13,28 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.TokensWrapper;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceScheduler;
+
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
+public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ResourceScheduler<P,T> {
 
     public static final long DATA_TRANSFER_DELAY = 200;
     private LinkedList<Gap> gaps;
 
-    public DefaultResourceScheduler(Worker<?> w) {
+    public DefaultResourceScheduler(Worker<T> w) {
         super(w);
         gaps = new LinkedList<Gap>();
         TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
         gaps.add(new Gap(0, Long.MAX_VALUE, null, myWorker.getDescription().copy(), capacity.getFree()));
     }
 
-    public Score getResourceScore(AllocatableAction action, TaskParams params, Score actionScore) {
+    public Score getResourceScore(AllocatableAction<P,T> action, TaskParams params, Score actionScore) {
         long resScore = Score.getLocalityScore(params, myWorker);
         long lessTimeStamp = Long.MAX_VALUE;
         for (Gap g : gaps) {
@@ -40,10 +42,10 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
                 lessTimeStamp = g.getInitialTime();
             }
         }
-        return new DefaultScore((DefaultScore) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
+        return new DefaultScore<P,T>((DefaultScore<P,T>) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
     }
 
-    public Score getImplementationScore(AllocatableAction action, TaskParams params, Implementation<?> impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction<P,T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
         for (Gap g : gaps) {
@@ -55,20 +57,20 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
         }
         long implScore = this.getProfile(impl).getAverageExecutionTime();
         //The data transfer penalty is already included on the datadependency time of the resourceScore
-        return new DefaultScore((DefaultScore) resourceScore, 0, resourceFreeTime, implScore);
+        return new DefaultScore<P,T>((DefaultScore<P,T>) resourceScore, 0, resourceFreeTime, implScore);
     }
 
     @Override
-    public void initialSchedule(AllocatableAction action, Implementation<?> impl) {
+    public void initialSchedule(AllocatableAction<P,T> action, Implementation<T> impl) {
         Iterator<Gap> gapIt = gaps.iterator();
         ResourceDescription constraints = impl.getRequirements().copy();
         long expectedStart = 0;
 
         while (gapIt.hasNext()) {
             Gap gap = gapIt.next();
-            AllocatableAction predecessor = gap.getOrigin();
+            AllocatableAction<P,T> predecessor = (AllocatableAction<P,T>) gap.getOrigin();
             if (predecessor != null) {
-                long predEnd = ((DefaultSchedulingInformation) predecessor.getSchedulingInfo()).getExpectedEnd();
+                long predEnd = ((DefaultSchedulingInformation<P,T>) predecessor.getSchedulingInfo()).getExpectedEnd();
                 expectedStart = Math.max(expectedStart, predEnd);
                 addSchedulingDependency(predecessor, action);
             }
@@ -83,7 +85,7 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
             }
         }
 
-        DefaultSchedulingInformation schedInfo = (DefaultSchedulingInformation) action.getSchedulingInfo();
+        DefaultSchedulingInformation<P,T> schedInfo = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
         Profile p = getProfile(impl);
         schedInfo.setExpectedStart(expectedStart);
         long expectedEnd = expectedStart + p.getAverageExecutionTime();
@@ -101,9 +103,9 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
 
     }
 
-    public void addSchedulingDependency(AllocatableAction predecessor, AllocatableAction successor) {
-        DefaultSchedulingInformation dsiPred = (DefaultSchedulingInformation) predecessor.getSchedulingInfo();
-        DefaultSchedulingInformation dsiSucc = (DefaultSchedulingInformation) successor.getSchedulingInfo();
+    public void addSchedulingDependency(AllocatableAction<P,T> predecessor, AllocatableAction<P,T> successor) {
+        DefaultSchedulingInformation<P,T> dsiPred = (DefaultSchedulingInformation<P,T>) predecessor.getSchedulingInfo();
+        DefaultSchedulingInformation<P,T> dsiSucc = (DefaultSchedulingInformation<P,T>) successor.getSchedulingInfo();
         if (predecessor.isPending()) {
             dsiSucc.addPredecessor(predecessor);
             dsiPred.addSuccessor(successor);
@@ -111,22 +113,22 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
     }
 
     @Override
-    public LinkedList<AllocatableAction> unscheduleAction(AllocatableAction action) {
-        LinkedList<AllocatableAction> freeTasks = new LinkedList<AllocatableAction>();
-        DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+    public LinkedList<AllocatableAction<P,T>> unscheduleAction(AllocatableAction<P,T> action) {
+        LinkedList<AllocatableAction<P,T>> freeTasks = new LinkedList<AllocatableAction<P,T>>();
+        DefaultSchedulingInformation<P,T> actionDSI = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
 
         //Remove action from predecessors
-        for (AllocatableAction pred : actionDSI.getPredecessors()) {
-            DefaultSchedulingInformation predDSI = (DefaultSchedulingInformation) pred.getSchedulingInfo();
+        for (AllocatableAction<P,T> pred : actionDSI.getPredecessors()) {
+            DefaultSchedulingInformation<P,T> predDSI = (DefaultSchedulingInformation<P,T>) pred.getSchedulingInfo();
             predDSI.removeSuccessor(action);
         }
 
-        for (AllocatableAction successor : actionDSI.getSuccessors()) {
-            DefaultSchedulingInformation successorDSI = (DefaultSchedulingInformation) successor.getSchedulingInfo();
+        for (AllocatableAction<P,T> successor : actionDSI.getSuccessors()) {
+            DefaultSchedulingInformation<P,T> successorDSI = (DefaultSchedulingInformation<P,T>) successor.getSchedulingInfo();
             //Remove predecessor
             successorDSI.removePredecessor(action);
             //Link with action predecessors
-            for (AllocatableAction predecessor : actionDSI.getPredecessors()) {
+            for (AllocatableAction<P,T> predecessor : actionDSI.getPredecessors()) {
                 addSchedulingDependency(predecessor, successor);
             }
             //Check executability
@@ -141,8 +143,8 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
     }
 
     @Override
-    public Profile generateProfileForAllocatable() {
-        return new Profile();
+    public P generateProfileForAllocatable() {
+        return (P) new Profile();
     }
 
     public PriorityQueue<OptimizationElement<?>>[] seekGaps(long updateId, LinkedList<Gap> gaps) {
@@ -150,15 +152,15 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
         for (int i = 0; i < actions.length; i++) {
             actions[i] = new PriorityQueue<OptimizationElement<?>>();
         }
-        PriorityQueue<SchedulingEvent> pq = new PriorityQueue<SchedulingEvent>();
+        PriorityQueue<SchedulingEvent<P,T>> pq = new PriorityQueue<SchedulingEvent<P,T>>();
         LinkedList<Gap> resources = new LinkedList<Gap>();
         TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
         resources.add(new Gap(0, null, myWorker.getDescription().copy(), capacity.getFree()));
         boolean retry = true;
         while (retry) {
             try {
-                for (AllocatableAction action : getHostedActions()) {
-                    pq.offer(new StartEvent(0, action));
+                for (AllocatableAction<P,T> action : getHostedActions()) {
+                    pq.offer(new StartEvent<P,T>(0, action));
                 }
                 retry = false;
             } catch (ConcurrentModificationException cme) {
@@ -166,9 +168,9 @@ public class DefaultResourceScheduler extends ResourceScheduler<Profile> {
             }
         }
         while (!pq.isEmpty()) {
-            SchedulingEvent e = pq.poll();
-            LinkedList<SchedulingEvent> result = e.process(updateId, this, resources, capacity, gaps, actions);
-            for (SchedulingEvent r : result) {
+            SchedulingEvent<P,T> e = pq.poll();
+            LinkedList<SchedulingEvent<P,T>> result = e.process(updateId, this, resources, capacity, gaps, actions);
+            for (SchedulingEvent<P,T> r : result) {
                 pq.offer(r);
             }
         }

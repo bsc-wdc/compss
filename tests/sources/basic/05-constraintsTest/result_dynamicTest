@@ -32,13 +32,13 @@
   TASK_CORE_REQ=(0 3 3 1 1)
   
   TASK_JOBS=()
-  jobs=`cat ${runtime_log} | grep -v "Communication" | egrep "completedJob|New Job" | cut -c 79-`
+  jobs=$(cat ${runtime_log} | grep -v "Communication" | egrep "completedJob|New Job" | cut -c 79-)
 
   while read -r line; do
-    first=`echo $line | awk '{ print $1 }'`
+    first=$(echo $line | awk '{ print $1 }')
     if [ "$first" == "New" ]; then
-      jobId=`echo $line | awk '{ print $3 }'`
-      taskId=`echo $line | awk '{ print $5 }'`
+      jobId=$(echo $line | awk '{ print $3 }')
+      taskId=$(echo $line | awk '{ print $5 }')
       taskId=${taskId::-1}
       TASK_JOBS[$jobId]=$taskId
 
@@ -50,7 +50,7 @@
         exit 1
       fi
     else
-      jobId=`echo $line | awk '{ print $6 }'`
+      jobId=$(echo $line | awk '{ print $6 }')
       taskId=${TASK_JOBS[$jobId]}
       cpu=${TASK_CORE_REQ[$taskId]}
       WORKER_CORES=$(($WORKER_CORES+$cpu))
@@ -58,4 +58,3 @@
   done <<< "$jobs"
   
   exit 0
-  

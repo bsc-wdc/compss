@@ -13,8 +13,8 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     protected final MethodResourceDescription available;
 
     
-    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker) {
-        super(name, description, worker);
+    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks) {
+        super(name, description, worker, limitOfTasks);
 
         this.name = name;
         available = new MethodResourceDescription(description);
@@ -36,28 +36,33 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public String getName() {
         return this.name;
     }
+    
+    public MethodResourceDescription getAvailable() {
+        return this.available;
+    }
 
     @Override
-    public boolean reserveResource(MethodResourceDescription consumption) {
+    public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
     	synchronized(available) {
-    		available.reduce(consumption);
+    		if (this.hasAvailable(consumption)) {
+    			return (MethodResourceDescription) available.reduceDynamic(consumption);
+    		} else {
+    			return null;
+    		}
     	}
-        
-        return true;
     }
 
     @Override
     public void releaseResource(MethodResourceDescription consumption) {
     	synchronized(available) {
-    		available.increase(consumption);
+    		available.increaseDynamic(consumption);
     	}
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
     	synchronized(available) {
-    		return ((available.getTotalComputingUnits() >= consumption.getTotalComputingUnits())
-    				&& (available.getMemorySize() >= consumption.getMemorySize()));
+    		return available.dynamicContains(consumption);
     	}
     }
 

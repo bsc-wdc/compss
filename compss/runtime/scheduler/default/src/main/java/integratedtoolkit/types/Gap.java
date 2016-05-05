@@ -7,18 +7,18 @@ public class Gap {
 
     private final long initialTime;
     private long endTime;
-    private final AllocatableAction origin;
+    private final AllocatableAction<?,?> origin;
     private final ResourceDescription resources;
     private final int capacity;
 
-    public Gap(long start, AllocatableAction origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, AllocatableAction<?,?> origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.origin = origin;
         this.resources = resources.copy();
         this.capacity = capacity;
     }
 
-    public Gap(long start, long endTime, AllocatableAction origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, long endTime, AllocatableAction<?,?> origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.endTime = endTime;
         this.origin = origin;
@@ -34,7 +34,7 @@ public class Gap {
         return endTime;
     }
 
-    public AllocatableAction getOrigin() {
+    public AllocatableAction<?,?> getOrigin() {
         return origin;
     }
 

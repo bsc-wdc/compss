@@ -10,8 +10,9 @@ public class FakeProfiles {
     public static final Profile P5;
 
     static {
-            FakeResourceDescription frd = new FakeResourceDescription(4);
-            FakeWorker fw = new FakeWorker("worker1", frd);
+    	    int maxSlots = 4;
+            FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
+            FakeWorker fw = new FakeWorker("worker1", frd, maxSlots);
             DefaultResourceScheduler drs = new DefaultResourceScheduler(fw);
 
             P2 = drs.generateProfileForAllocatable();

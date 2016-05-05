@@ -3,6 +3,9 @@ package cloudManager;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.MultiConstraints;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.types.annotations.Parameter.Direction;
 
 
 public interface TestItf {
@@ -10,7 +13,7 @@ public interface TestItf {
 	/* ********************************************
 	 * EMPTY CORE-ELEMENTS
 	 * *******************************************/
-	/*@Method(declaringClass = "constraintManager.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints()
 	void emptyCoreElement0();
 
@@ -21,7 +24,7 @@ public interface TestItf {
 	/* ********************************************
 	 * SIMPLE CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	/*@Method(declaringClass = "constraintManager.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 1)
 	void simpleCoreElement0();
 
@@ -93,7 +96,7 @@ public interface TestItf {
 	/* ********************************************
 	 * COMPLEX CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
-	/*@Method(declaringClass = "constraintManager.Implementation1")
+	@Method(declaringClass = "constraintManager.Implementation1")
 	@Constraints(computingUnits = 2, processorArchitecture="amd64", 
 					memorySize=(float)8.0, storageSize=(float)120.0, 
 					operatingSystemType="Windows")
@@ -127,7 +130,7 @@ public interface TestItf {
 	})
 	void multiCoreElement0();
 
-	/*@Method(declaringClass = {
+	@Method(declaringClass = {
 			"constraintManager.Implementation1",
 			"constraintManager.Implementation2"}
 	)
@@ -310,8 +313,16 @@ public interface TestItf {
 	@Constraints(computingUnits = 2, processorArchitecture = "amd64", memorySize = (float)8.0, storageSize = (float) 240.0)
 	@MultiConstraints({
 		@Constraints(computingUnits = 4, memorySize = (float)4.0 ), 
-		@Constraints(computingUnits = 8, storageSize = (float)300.0)
+		@Constraints(computingUnits = 8, storageSize = (float)300.0, operatingSystemType="Windows")
 	})
 	void multiCoreElement17();
-	*/
+	
+	/* ********************************************
+	 * SERVICE CORE-ELEMENTS
+	 * *******************************************/
+	@Service(name = "DummyService", namespace = "http://localhost:9999/", port = "DummyServicePort")
+	public void getDummyService(
+		@Parameter(direction = Direction.IN) int index
+	);
+	
 }

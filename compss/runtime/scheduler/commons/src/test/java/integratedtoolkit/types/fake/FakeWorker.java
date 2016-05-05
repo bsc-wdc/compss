@@ -3,14 +3,14 @@ package integratedtoolkit.types.fake;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
-import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-public class FakeWorker extends Worker {
 
-    public FakeWorker(MethodResourceDescription description ) {
-        super("a", description, new FakeNode());
+public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
+
+    public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
+        super("a", (T) description, new FakeNode(), limitOfTasks);
     }
 
     @Override
@@ -29,12 +29,12 @@ public class FakeWorker extends Worker {
     }
 
     @Override
-    public boolean canRun(Implementation implementation) {
+    public boolean canRun(Implementation<?> implementation) {
         return true;
     }
 
     @Override
-    public Integer fitCount(Implementation impl) {
+    public Integer fitCount(Implementation<?> impl) {
         return 10;
     }
 
@@ -44,8 +44,8 @@ public class FakeWorker extends Worker {
     }
 
     @Override
-    public boolean reserveResource(WorkerResourceDescription consumption) {
-        return true;
+    public T reserveResource(T consumption) {
+        return consumption;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class FakeWorker extends Worker {
     }
 
     @Override
-    public Worker getSchedulingCopy() {
+    public Worker<T> getSchedulingCopy() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

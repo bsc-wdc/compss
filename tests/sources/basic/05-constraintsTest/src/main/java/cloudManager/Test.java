@@ -1,7 +1,6 @@
 package cloudManager;
 
 import commons.ConstantValues;
-
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
@@ -20,7 +19,7 @@ import integratedtoolkit.util.CoreManager;
 public class Test {
 
     // Interface data
-	private static int coreCountItf;
+	private static int coreCount;
 
 	
 	/* ***************************************
@@ -49,8 +48,8 @@ public class Test {
         System.out.println("[LOG] CloudManager Static Structures definition");
 
         //Check for each implementation the correctness of its resources
-        System.out.println("[LOG] Number of cores = " + coreCountItf);
-        for (int coreId = 0; coreId < coreCountItf; coreId++) {
+        coreCount = CoreManager.getCoreCount();
+        for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
             for (Implementation<?> impl : CoreManager.getCoreImplementations(coreId)) {
                 if (impl.getType().equals(impl.getType().METHOD)) {
@@ -123,8 +122,8 @@ public class Test {
     	/* ***********************************************
          * COMPUTING UNITS
          * ***********************************************/
-        if ( (rdImpl.getTotalComputingUnits() != MethodResourceDescription.UNASSIGNED_INT)
-        		&& (rdType.getTotalComputingUnits() != MethodResourceDescription.UNASSIGNED_INT)
+        if ( (rdImpl.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
+        		&& (rdType.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
         		&& (rdType.getTotalComputingUnits() < rdImpl.getTotalComputingUnits()) ) {
         	return "computingUnits";
         }
@@ -137,25 +136,43 @@ public class Test {
         	boolean canBeHosted = false;
         	for (Processor wp : rdType.getProcessors()) {
         		// Static checks
-        		if (wp.getSpeed() < ip.getSpeed()) {
+        		if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+        				&& !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+        				&& !wp.getName().equals(ip.getName())) {
+        			//System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
         			continue;
         		}
-        		if (!wp.getArchitecture().equals(ip.getArchitecture())) {
+        		if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+        				&& wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+        				&& wp.getSpeed() < ip.getSpeed() ) {
+        			//System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
+        			continue;
+        		}
+        		if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR) 
+        				&& !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+        			    && !wp.getArchitecture().equals(ip.getArchitecture())) {
+        			//System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
         			continue;
         		}
         		if ( (!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+        				&& (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
         				&& (!ip.getPropName().equals(wp.getPropName())) ) {
+        			//System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
         			continue;
         		}
         		if ( (!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+        				&& (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
         				&& (!ip.getPropValue().equals(wp.getPropValue())) ) {
+        			//System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
         			continue;
         		}
         		
         		// Dynamic checks
-        		if (wp.getComputingUnits() > ip.getComputingUnits()) {
+        		if (wp.getComputingUnits() >= ip.getComputingUnits()) {
         			canBeHosted = true;
         			break;
+        		} else {
+        			//System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
         		}
         	}
         	if (!canBeHosted) {
@@ -198,19 +215,19 @@ public class Test {
          * OPERATING SYSTEM
          * ***********************************************/
         if ( (!rdImpl.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-        		&& (!rdImpl.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+        		&& (!rdType.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
         		&& (!rdType.getOperatingSystemType().equals(rdImpl.getOperatingSystemType())) ) {
         	return "operatingSystemType";
         }
         
         if ( (!rdImpl.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-        		&& (!rdImpl.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+        		&& (!rdType.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
         		&& (!rdType.getOperatingSystemDistribution().equals(rdImpl.getOperatingSystemDistribution())) ) {
         	return "operatingSystemDistribution";
         }
 
         if ( (!rdImpl.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-        		&& (!rdImpl.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+        		&& (!rdType.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
         		&& (!rdType.getOperatingSystemVersion().equals(rdImpl.getOperatingSystemVersion())) ) {
         	return "operatingSystemVersion";
         }

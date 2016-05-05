@@ -58,16 +58,16 @@ public class CloudImageManager {
             	continue;
             }
             
-            String imageOSDistr = cid.getOperatingSystemType();
-            String reqOSDistr = requested.getOperatingSystemType();
+            String imageOSDistr = cid.getOperatingSystemDistribution();
+            String reqOSDistr = requested.getOperatingSystemDistribution();
             if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
             		&& !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
             		&& !imageOSDistr.equals(reqOSDistr)) {
             	continue;
             }
             
-            String imageOSVersion = cid.getOperatingSystemType();
-            String reqOSVersion = requested.getOperatingSystemType();
+            String imageOSVersion = cid.getOperatingSystemVersion();
+            String reqOSVersion = requested.getOperatingSystemVersion();
             if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
             		&& !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
             		&& !imageOSVersion.equals(reqOSVersion)) {

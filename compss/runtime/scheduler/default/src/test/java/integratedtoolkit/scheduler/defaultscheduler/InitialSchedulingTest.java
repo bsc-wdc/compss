@@ -42,8 +42,9 @@ public class InitialSchedulingTest {
         Implementation<?> impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
         CoreManager.registerImplementations(2, new Implementation[]{impl20});
 
-        FakeResourceDescription frd = new FakeResourceDescription(4);
-        FakeWorker fw = new FakeWorker("worker1", frd);
+        int maxSlots = 4;
+        FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
+        FakeWorker fw = new FakeWorker("worker1", frd, maxSlots);
         drs = new DefaultResourceScheduler(fw);
 
         drs.profiledExecution(impl00, FakeProfiles.P5);

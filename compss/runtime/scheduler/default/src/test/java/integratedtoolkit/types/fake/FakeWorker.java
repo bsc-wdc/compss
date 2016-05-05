@@ -4,12 +4,13 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
+
 public class FakeWorker extends Worker<FakeResourceDescription> {
 
     private final FakeResourceDescription available;
 
-    public FakeWorker(String name, FakeResourceDescription description) {
-        super(name, description, new FakeNode(name));
+    public FakeWorker(String name, FakeResourceDescription description, int limitOfTasks) {
+        super(name, description, new FakeNode(name), limitOfTasks);
         available = (FakeResourceDescription) description.copy();
     }
 
@@ -39,22 +40,21 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     }
 
     @Override
-    public boolean reserveResource(FakeResourceDescription consumption) {
-        synchronized (available) {
-            if (hasAvailable(consumption)) {
-                available.reduce(consumption);
-                return true;
-            } else {
-                return false;
-            }
-        }
+    public FakeResourceDescription reserveResource(FakeResourceDescription consumption) {
+    	synchronized(available) {
+    		if (this.hasAvailable(consumption)) {
+    			return (FakeResourceDescription)available.reduceDynamic(consumption);
+    		} else {
+    			return null;
+    		}
+    	}
     }
 
     @Override
     public void releaseResource(FakeResourceDescription consumption) {
-        synchronized (available) {
-            available.increase(consumption);
-        }
+    	synchronized(available) {
+    		available.increaseDynamic(consumption);
+    	}
     }
 
     @Override

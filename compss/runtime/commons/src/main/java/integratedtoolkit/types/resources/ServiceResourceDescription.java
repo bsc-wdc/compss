@@ -61,8 +61,9 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public void reduceDynamic(ResourceDescription rd) {
-
+    public ResourceDescription reduceDynamic(ResourceDescription rd) {
+    	// Nothing to reduce
+    	return null;
     }
 
     @Override

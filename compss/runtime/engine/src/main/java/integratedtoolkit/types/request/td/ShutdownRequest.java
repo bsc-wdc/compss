@@ -2,8 +2,10 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 
@@ -12,7 +14,7 @@ import java.util.concurrent.Semaphore;
 /**
  * This class represents a notification to end the execution
  */
-public class ShutdownRequest extends TDRequest {
+public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P,T> {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -48,7 +50,7 @@ public class ShutdownRequest extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts) throws ShutdownException {
+    public void process(TaskScheduler<P,T> ts) throws ShutdownException {
         //ts.shutdown();
         logger.debug("Processing ShutdownRequest request...");
         SingleExecution.shutdown();

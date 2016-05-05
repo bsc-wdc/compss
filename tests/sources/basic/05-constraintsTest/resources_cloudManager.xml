@@ -1,62 +1,241 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
 
- 	<CloudProvider Name="BSC_full">
-        <Endpoint>
-            <Server>https://bscgrid20:11443/</Server>
-        	<Connector>integratedtoolkit.connectors.test.Test</Connector>
-        </Endpoint>
-        <Images>
-            <Image Name="Image_bsc_full">
-                <Adaptors>
-                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
-                        <SubmissionSystem>
-                            <Interactive/>
-                        </SubmissionSystem>
-                        <Ports>
-                            <MinPort>43001</MinPort>
-                            <MaxPort>43002</MaxPort>
-                        </Ports>
-                    </Adaptor>
-                </Adaptors>
-                <OperatingSystem>
-                    <Type>Linux</Type>
-                </OperatingSystem>
-                <Software>
-                    <Application>Java</Application>
-                </Software>
-                <Price>
-                    <TimeUnit>100</TimeUnit>
-                    <PricePerUnit>36.0</PricePerUnit>
-                </Price>
-            </Image>
-        </Images>
-		<InstanceTypes>	
-            <InstanceType Name="small">
-                <Processor Name="P1">
-                    <ComputingUnits>1</ComputingUnits>
-                    <Architecture>amd64</Architecture>
-                </Processor>
-                <Memory>
-                    <Size>2.0</Size>
-                </Memory>
-                <Storage>
-                    <Size>10.0</Size>
-                </Storage>
-            </InstanceType>
+	<CloudProvider Name="BSC">
+		<Endpoint>
+			<Server>https://bscgrid20:11443/</Server>
+			<Connector>integratedtoolkit.connectors.test.Test</Connector>
+		</Endpoint>
+		
+		<Images>
+			<Image Name="Image_Linux">
+				<Adaptors>
+					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>sequential</Queue>
+								<Queue>debug</Queue>
+								<Queue>bsc</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<Ports>
+							<MinPort>43002</MinPort>
+							<MaxPort>43003</MaxPort>
+						</Ports>
+					</Adaptor>
+					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>sequential</Queue>
+								<Queue>debug</Queue>
+								<Queue>bsc</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+					</Adaptor>
+				</Adaptors>
+				<OperatingSystem>
+					<Type>Linux</Type>
+					<Distribution>OpenSUSE</Distribution>
+					<Version>13.2</Version>
+				</OperatingSystem>
+				<Software>
+					<Application>JAVA</Application>
+					<Application>PYTHON</Application>
+					<Application>COMPSS</Application>
+				</Software>
+				<Price>
+					<TimeUnit>100</TimeUnit>
+					<PricePerUnit>12.0</PricePerUnit>
+				</Price>
+			</Image>
+
+			<Image Name="Image_Windows">
+				<Adaptors>
+					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>sequential</Queue>
+								<Queue>debug</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<Ports>
+							<MinPort>43002</MinPort>
+							<MaxPort>43003</MaxPort>
+						</Ports>
+					</Adaptor>
+					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>sequential</Queue>
+								<Queue>debug</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+					</Adaptor>
+				</Adaptors>
+				<OperatingSystem>
+					<Type>Windows</Type>
+					<Distribution>XP</Distribution>
+					<Version>SP2</Version>
+				</OperatingSystem>
+				<Software>
+					<Application>JAVA</Application>
+					<Application>PYTHON</Application>
+				</Software>
+				<Price>
+					<TimeUnit>100</TimeUnit>
+					<PricePerUnit>23.0</PricePerUnit>
+				</Price>
+			</Image>
+			
+			<Image Name="Image_MacOS">
+				<Adaptors>
+					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>another</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<Ports>
+							<MinPort>43002</MinPort>
+							<MaxPort>43003</MaxPort>
+						</Ports>
+					</Adaptor>
+					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>another</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+					</Adaptor>
+				</Adaptors>
+				<OperatingSystem>
+					<Type>MacOS</Type>
+					<Distribution>X</Distribution>
+					<Version>10</Version>
+				</OperatingSystem>
+				<Software>
+					<Application>SPARK</Application>
+				</Software>
+				<Price>
+					<TimeUnit>100</TimeUnit>
+					<PricePerUnit>36.0</PricePerUnit>
+				</Price>
+			</Image>
+		</Images>
+		
+		<InstanceTypes>
+			<InstanceType Name="small">
+				<Processor Name="Slave">
+					<ComputingUnits>1</ComputingUnits>
+					<Speed>1.0</Speed>
+					<Architecture>x86</Architecture>
+					<ProcessorProperty>
+						<Key>ThreadAffinity</Key>
+						<Value>Little</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Processor Name="Main">
+					<ComputingUnits>1</ComputingUnits>
+					<Speed>3.0</Speed>
+					<Architecture>amd64</Architecture>
+					<ProcessorProperty>
+						<Key>ThreadAffinity</Key>
+						<Value>Big</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Memory>
+					<Size>10.0</Size>
+					<Type>Volatile</Type>
+				</Memory>
+				<Storage>
+					<Size>300.0</Size>
+					<Type>SSD</Type>
+				</Storage>
+			</InstanceType>
+			
 			<InstanceType Name="medium">
-                <Processor Name="P1">
-                    <ComputingUnits>2</ComputingUnits>
-                    <Architecture>amd64</Architecture>
-                </Processor>
-                <Memory>
-                    <Size>3.0</Size>
-                </Memory>
-                <Storage>
-                    <Size>10.0</Size>
-                </Storage>
-            </InstanceType>
-        </InstanceTypes>
-    </CloudProvider>
-    
+				<Processor Name="Main">
+					<ComputingUnits>4</ComputingUnits>
+					<Speed>3.0</Speed>
+					<Architecture>amd64</Architecture>
+					<ProcessorProperty>
+						<Key>ThreadAffinity</Key>
+						<Value>Big</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Processor Name="Slave">
+					<ComputingUnits>4</ComputingUnits>
+					<Speed>1.0</Speed>
+				</Processor>
+				<Memory>
+					<Size>10.0</Size>
+					<Type>Volatile</Type>
+				</Memory>
+				<Storage>
+					<Size>300.0</Size>
+					<Type>SSD</Type>
+				</Storage>
+			</InstanceType>
+			
+			<InstanceType Name="big">
+				<Processor Name="Main">
+					<ComputingUnits>8</ComputingUnits>
+					<Speed>3.0</Speed>
+					<Architecture>amd64</Architecture>
+					<ProcessorProperty>
+						<Key>ThreadAffinity</Key>
+						<Value>Big</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Processor Name="Slave">
+					<ComputingUnits>2</ComputingUnits>
+					<Speed>1.0</Speed>
+					<Architecture>x86</Architecture>
+					<ProcessorProperty>
+						<Key>ThreadAffinity</Key>
+						<Value>Little</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Memory>
+					<Size>8.0</Size>
+					<Type>Non-Volatile</Type>
+				</Memory>
+				<Storage>
+					<Size>500.0</Size>
+					<Type>HDD</Type>
+				</Storage>
+			</InstanceType>
+			
+			<InstanceType Name="huge">
+				<Processor Name="NotMain">
+					<ComputingUnits>16</ComputingUnits>
+					<Speed>1.2</Speed>
+					<Architecture>arm</Architecture>
+					<ProcessorProperty>
+						<Key>Priority</Key>
+						<Value>1</Value>
+					</ProcessorProperty>
+				</Processor>
+				<Memory>
+					<Size>2.0</Size>
+					<Type>DRAM</Type>
+				</Memory>
+				<Storage>
+					<Size>120.0</Size>
+					<Type>NVRAM</Type>
+				</Storage>
+			</InstanceType>
+		</InstanceTypes>
+		
+	</CloudProvider>
+
 </ResourcesList>

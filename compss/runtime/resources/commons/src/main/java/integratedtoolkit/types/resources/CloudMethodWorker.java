@@ -14,8 +14,8 @@ public class CloudMethodWorker extends MethodWorker {
     private final LinkedList<PendingReduction> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
 
-    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker) {
-        super(description.getName(), description, worker);
+    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks) {
+        super(description.getName(), description, worker, limitOfTasks);
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
@@ -23,16 +23,7 @@ public class CloudMethodWorker extends MethodWorker {
     public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config) throws Exception {
     	super(name, description, config);
     	
-        if (this.description != null) {
-        	// Compute task count
-            int limitOfTasks = config.getLimitOfTasks();
-            int computingUnits = this.description.getTotalComputingUnits();
-            if (limitOfTasks <= 0) {
-            	this.description.setMaxTaskSlots(computingUnits);
-            } else {
-            	this.description.setMaxTaskSlots(limitOfTasks);
-            }
-            
+        if (this.description != null) {            
             // Add name
             ((CloudMethodResourceDescription)this.description).setName(name);
         }
@@ -84,9 +75,9 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     @Override
-    public boolean reserveResource(MethodResourceDescription consumption) {
+    public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
         if (!hasAvailable(consumption)) {
-            return false;
+            return null;
         }
         
         return super.reserveResource(consumption);
@@ -135,7 +126,7 @@ public class CloudMethodWorker extends MethodWorker {
         		available.reduce(reduction);
         	}
         } else {
-        	if (this.description.getUsedTaskSlots() > 0) {
+        	if (this.getUsedTaskCount() > 0) {
         		// This resource is still running tasks. Wait for them to finish...
         		// Mark to remove and enqueue pending reduction
         		synchronized(toRemove) {

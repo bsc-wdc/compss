@@ -49,19 +49,15 @@ public class CloudTypeManager {
      */
     public LinkedList<CloudMethodResourceDescription> getCompatibleTypes(MethodResourceDescription requested) {
         LinkedList<CloudMethodResourceDescription> compatiblesList = new LinkedList<CloudMethodResourceDescription>();
-        if (types.isEmpty()) {
-            compatiblesList.add(new CloudMethodResourceDescription(requested));
-        }
 
         for (Type type : types.values()) {
-            CloudMethodResourceDescription rd = type.rd;
-            CloudMethodResourceDescription mixedDescription = new CloudMethodResourceDescription(rd);
-
-            if (mixedDescription.contains(rd)) {
+            CloudMethodResourceDescription mixedDescription = new CloudMethodResourceDescription(type.rd);
+            if (mixedDescription.contains(requested)) {
 	            // Satisfies the constraints, add compatible
             	compatiblesList.add(mixedDescription);
             }
         }
+        
         return compatiblesList;
     }
 

@@ -2,15 +2,17 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 /**
  * The ExecuteTasksRequest class represents the request to execute a group of
  * dependency-free tasks.
  */
-public class ExecuteTasksRequest extends TDRequest {
+public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P,T> {
 
     private final TaskProducer producer;
     /**
@@ -39,14 +41,14 @@ public class ExecuteTasksRequest extends TDRequest {
     }
 
     @Override
-    public void process(TaskScheduler ts) throws ShutdownException {
+    public void process(TaskScheduler<P,T> ts) throws ShutdownException {
         int coreID = task.getTaskParams().getId();
         if (debug) {
             logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreID + ")");
         }
         task.setStatus(Task.TaskState.TO_EXECUTE);
 
-        SingleExecution e = new SingleExecution(ts.generateSchedulingInformation(), producer, task);
+        SingleExecution<P,T> e = new SingleExecution<P,T>(ts.generateSchedulingInformation(), producer, task);
         ts.newAllocatableAction(e);
     }
 

@@ -11,7 +11,6 @@ public class FakeResourceDescription extends WorkerResourceDescription {
 
     
     public FakeResourceDescription(int coreCount) {
-    	this.setMaxTaskSlots(coreCount);
         this.coreCount = coreCount;
     }
 
@@ -44,9 +43,11 @@ public class FakeResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public void reduceDynamic(ResourceDescription rd) {
+    public ResourceDescription reduceDynamic(ResourceDescription rd) {
         FakeResourceDescription desc = (FakeResourceDescription) rd;
         this.coreCount -= desc.coreCount;
+        
+        return desc;
     }
 
     @Override

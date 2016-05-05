@@ -35,7 +35,7 @@ public class Task implements Comparable<Task> {
 
     // Scheduling info
     private Task enforcingTask;
-    private SingleExecution execution;
+    private SingleExecution<?,?> execution;
 
 
     public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
@@ -180,11 +180,11 @@ public class Task implements Comparable<Task> {
         return super.hashCode();
     }
 
-    public void setExecution(SingleExecution execution) {
+    public void setExecution(SingleExecution<?,?> execution) {
         this.execution = execution;
     }
 
-    public SingleExecution getExecution() {
+    public SingleExecution<?,?> getExecution() {
         return execution;
     }
 

@@ -11,6 +11,7 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
+import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.ServiceImplementation;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
@@ -30,12 +31,13 @@ import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.apache.log4j.Logger;
 
-public class WSJob extends Job {
+
+public class WSJob<T extends COMPSsNode> extends Job<T> {
 
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private static RequestQueue<WSJob> callerQueue;
+    private static RequestQueue<WSJob<?>> callerQueue;
     private static WSCaller caller;
     private static final JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
     //wsdl-port--> Client
@@ -54,7 +56,7 @@ public class WSJob extends Job {
     public static void init() throws Exception {
         // Create thread that will handle job submission requests
         if (callerQueue == null) {
-            callerQueue = new RequestQueue<WSJob>();
+            callerQueue = new RequestQueue<WSJob<?>>();
         } else {
             callerQueue.clear();
         }
@@ -98,7 +100,6 @@ public class WSJob extends Job {
 
     @Override
     public String toString() {
-
         StringBuilder buffer = new StringBuilder();
 
         buffer.append("[[Job id: ").append(getJobId()).append("]");
@@ -113,15 +114,15 @@ public class WSJob extends Job {
         return this.getResourceNode().getName();
     }
 
-    static class WSCaller extends RequestDispatcher<WSJob> {
+    static class WSCaller extends RequestDispatcher<WSJob<?>> {
 
-        public WSCaller(RequestQueue<WSJob> queue) {
+        public WSCaller(RequestQueue<WSJob<?>> queue) {
             super(queue);
         }
 
         public void processRequests() {
             while (true) {
-                WSJob job = null;
+                WSJob<?> job = null;
                 job = queue.dequeue();
                 if (job == null) {
                     break;
@@ -222,4 +223,5 @@ public class WSJob extends Job {
 
         }
     }
+    
 }

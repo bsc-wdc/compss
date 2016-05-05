@@ -11,6 +11,7 @@ import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.Iterator;
@@ -18,7 +19,8 @@ import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
-public abstract class AllocatableAction {
+
+public abstract class AllocatableAction<P extends Profile, T extends WorkerResourceDescription> {
 
     // Logger
     protected static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
@@ -26,9 +28,9 @@ public abstract class AllocatableAction {
 
     public static interface ActionOrchestrator {
 
-        public void actionCompletion(AllocatableAction action);
+        public void actionCompletion(AllocatableAction<?,?> action);
 
-        public void actionError(AllocatableAction action);
+        public void actionError(AllocatableAction<?,?> action);
     }
 
     private enum State {
@@ -41,25 +43,25 @@ public abstract class AllocatableAction {
     public static ActionOrchestrator orchestrator;
 
     //Allocatable actions that the action depends on due data dependencies
-    private final LinkedList<AllocatableAction> dataPredecessors;
+    private final LinkedList<AllocatableAction<P,T>> dataPredecessors;
     //Allocatable actions depending on the allocatable action due data dependencies
-    private final LinkedList<AllocatableAction> dataSuccessors;
+    private final LinkedList<AllocatableAction<P,T>> dataSuccessors;
 
     private State state;
-    protected ResourceScheduler<?> selectedResource;
-    protected Implementation<?> selectedImpl;
-    protected final LinkedList<ResourceScheduler<?>> executingResources;
+    protected ResourceScheduler<P,T> selectedResource;
+    protected Implementation<T> selectedImpl;
+    protected final LinkedList<ResourceScheduler<P,T>> executingResources;
 
-    private final SchedulingInformation schedulingInfo;
+    private final SchedulingInformation<P,T> schedulingInfo;
 
     protected Profile profile;
 
-    public AllocatableAction(SchedulingInformation schedulingInformation) {
+    public AllocatableAction(SchedulingInformation<P,T> schedulingInformation) {
         state = State.RUNNABLE;
-        dataPredecessors = new LinkedList<AllocatableAction>();
-        dataSuccessors = new LinkedList<AllocatableAction>();
+        dataPredecessors = new LinkedList<AllocatableAction<P,T>>();
+        dataSuccessors = new LinkedList<AllocatableAction<P,T>>();
         selectedResource = null;
-        executingResources = new LinkedList<ResourceScheduler<?>>();
+        executingResources = new LinkedList<ResourceScheduler<P,T>>();
         schedulingInfo = schedulingInformation;
     }
 
@@ -68,7 +70,7 @@ public abstract class AllocatableAction {
      * ----------- PREDECESSORS MANAGEMENT ------------
      * ------------------------------------------------
      * ----------------------------------------------*/
-    public final void addDataPredecessor(AllocatableAction predecessor) {
+    public final void addDataPredecessor(AllocatableAction<P,T> predecessor) {
         if (predecessor.isPending()) {
             dataPredecessors.add(predecessor);
             predecessor.dataSuccessors.add(this);
@@ -76,21 +78,21 @@ public abstract class AllocatableAction {
 
     }
 
-    private void dataPredecessorDone(AllocatableAction finishedAction) {
-        Iterator<AllocatableAction> it = dataPredecessors.iterator();
+    private void dataPredecessorDone(AllocatableAction<P,T> finishedAction) {
+        Iterator<AllocatableAction<P,T>> it = dataPredecessors.iterator();
         while (it.hasNext()) {
-            AllocatableAction aa = it.next();
+            AllocatableAction<P,T> aa = it.next();
             if (aa == finishedAction) {
                 it.remove();
             }
         }
     }
 
-    public LinkedList<AllocatableAction> getDataPredecessors() {
+    public LinkedList<AllocatableAction<P,T>> getDataPredecessors() {
         return dataPredecessors;
     }
 
-    public LinkedList<AllocatableAction> getDataSuccessors() {
+    public LinkedList<AllocatableAction<P,T>> getDataSuccessors() {
         return dataSuccessors;
     }
 
@@ -98,7 +100,7 @@ public abstract class AllocatableAction {
         return dataPredecessors.size() > 0;
     }
 
-    public void setResourceConstraint(AllocatableAction predecessor) {
+    public void setResourceConstraint(AllocatableAction<P,T> predecessor) {
         schedulingInfo.setResourceConstraint(predecessor);
     }
 
@@ -122,15 +124,15 @@ public abstract class AllocatableAction {
      *
      * @return action that constraints the scheduling of the action.
      */
-    public AllocatableAction getConstrainingPredecessor() {
+    public AllocatableAction<P,T> getConstrainingPredecessor() {
         return schedulingInfo.getConstrainingPredecessor();
     }
 
-    protected LinkedList<ResourceScheduler<?>> getCoreElementExecutors(int coreId) {
+    protected LinkedList<ResourceScheduler<?,?>> getCoreElementExecutors(int coreId) {
         return schedulingInfo.getCoreElementExecutors(coreId);
     }
 
-    public SchedulingInformation getSchedulingInfo() {
+    public SchedulingInformation<P,T> getSchedulingInfo() {
         return schedulingInfo;
     }
 
@@ -147,7 +149,7 @@ public abstract class AllocatableAction {
         return profile.getStartTime();
     }
 
-    public void assignImplementation(Implementation<?> impl) {
+    public void assignImplementation(Implementation<T> impl) {
         selectedImpl = impl;
     }
 
@@ -156,11 +158,11 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public Implementation<?> getAssignedImplementation() {
+    public Implementation<T> getAssignedImplementation() {
         return selectedImpl;
     }
 
-    public void assignResource(ResourceScheduler<?> res) {
+    public void assignResource(ResourceScheduler<P,T> res) {
         selectedResource = res;
     }
 
@@ -169,7 +171,7 @@ public abstract class AllocatableAction {
      *
      * @return
      */
-    public ResourceScheduler<?> getAssignedResource() {
+    public ResourceScheduler<P,T> getAssignedResource() {
         return selectedResource;
     }
 
@@ -221,7 +223,7 @@ public abstract class AllocatableAction {
         orchestrator.actionCompletion(this);
     }
 
-    public final LinkedList<AllocatableAction> completed() {
+    public final LinkedList<AllocatableAction<P,T>> completed() {
         //Mark as finished
         state = State.FINISHED;
 
@@ -229,7 +231,7 @@ public abstract class AllocatableAction {
         releaseResources();
         selectedResource.unhostAction(this);
         while (selectedResource.hasBlockedTasks()) {
-            AllocatableAction firstBlocked = selectedResource.getFirstBlocked();
+            AllocatableAction<P,T> firstBlocked = selectedResource.getFirstBlocked();
             if (firstBlocked.areEnoughResources()) {
                 selectedResource.removeFirstBlocked();
                 logger.info(this + " execution resumed on worker " + selectedResource.getName());
@@ -243,9 +245,9 @@ public abstract class AllocatableAction {
         doCompleted();
 
         //Release data dependencies of the task
-        LinkedList<AllocatableAction> freeTasks = new LinkedList<AllocatableAction>();
+        LinkedList<AllocatableAction<P,T>> freeTasks = new LinkedList<AllocatableAction<P,T>>();
         //Release data dependencies of the task
-        for (AllocatableAction aa : dataSuccessors) {
+        for (AllocatableAction<P,T> aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
             if (!aa.hasDataPredecessors()) {
                 freeTasks.add(aa);
@@ -272,7 +274,7 @@ public abstract class AllocatableAction {
         releaseResources();
         selectedResource.unhostAction(this);
         while (selectedResource.hasBlockedTasks()) {
-            AllocatableAction firstblocked = selectedResource.getFirstBlocked();
+            AllocatableAction<P,T> firstblocked = selectedResource.getFirstBlocked();
             if (firstblocked.areEnoughResources()) {
                 selectedResource.removeFirstBlocked();
                 logger.info(this + " execution resumed on worker " + selectedResource.getName());
@@ -288,12 +290,12 @@ public abstract class AllocatableAction {
 
     protected abstract void doError() throws FailedActionException;
 
-    public final LinkedList<AllocatableAction> failed() {
-        LinkedList<AllocatableAction> failed = new LinkedList<AllocatableAction>();
+    public final LinkedList<AllocatableAction<P,T>> failed() {
+        LinkedList<AllocatableAction<P,T>> failed = new LinkedList<AllocatableAction<P,T>>();
         state = State.FAILED;
 
         //Predecessors -> ignore Action
-        for (AllocatableAction pred : dataPredecessors) {
+        for (AllocatableAction<P,T> pred : dataPredecessors) {
             pred.dataSuccessors.remove(this);
         }
 
@@ -301,7 +303,7 @@ public abstract class AllocatableAction {
 
         //Remove data links
         //Triggering failure on Data Predecessors
-        for (AllocatableAction succ : dataSuccessors) {
+        for (AllocatableAction<P,T> succ : dataSuccessors) {
             failed.addAll(succ.failed());
         }
 
@@ -324,12 +326,12 @@ public abstract class AllocatableAction {
         StringBuilder sb = new StringBuilder();
         sb.append("HashCode ").append(this.hashCode()).append("\n");
         sb.append("\tdataPredecessors:");
-        for (AllocatableAction aa : dataPredecessors) {
+        for (AllocatableAction<P,T> aa : dataPredecessors) {
             sb.append(" ").append(aa.hashCode());
         }
         sb.append("\n");
         sb.append("\tdataSuccessors: ");
-        for (AllocatableAction aa : dataSuccessors) {
+        for (AllocatableAction<P,T> aa : dataSuccessors) {
             sb.append(" ").append(aa.hashCode());
         }
         sb.append("\n");
@@ -350,14 +352,14 @@ public abstract class AllocatableAction {
      *
      * @return list of resources able to run the action
      */
-    public abstract LinkedList<ResourceScheduler<?>> getCompatibleWorkers();
+    public abstract LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers();
 
     /**
      * Returns all the possible implementations for the action.
      *
      * @return a list of implementations that can be executed to run the action.
      */
-    public abstract Implementation<?>[] getImplementations();
+    public abstract Implementation<T>[] getImplementations();
 
     /**
      * Tells is the action can run in a given resource.
@@ -366,7 +368,7 @@ public abstract class AllocatableAction {
      *
      * @return {@literal true} if the action can run in the given resource.
      */
-    public abstract boolean isCompatible(Worker<?> r);
+    public abstract boolean isCompatible(Worker<T> r);
 
     /**
      * Returns all the implementations for the action that can run on the given
@@ -376,14 +378,14 @@ public abstract class AllocatableAction {
      *
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r);
+    public abstract LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r);
 
-    public abstract Score schedulingScore(TaskScheduler ts);
+    public abstract Score schedulingScore(TaskScheduler<P,T> ts);
 
-    public abstract Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore);
+    public abstract Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore);
 
     public abstract void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException;
 
-    public abstract void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException;
+    public abstract void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException;
 
 }

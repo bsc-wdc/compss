@@ -4,10 +4,10 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class FakeImplementation extends Implementation {
+public class FakeImplementation<T extends WorkerResourceDescription> extends Implementation<T> {
 
     public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
-        super(coreId, implementationId, annot);
+        super(coreId, implementationId, (T) annot);
     }
 
     @Override

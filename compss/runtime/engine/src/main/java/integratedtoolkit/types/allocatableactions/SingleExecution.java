@@ -7,6 +7,7 @@ import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
@@ -28,6 +29,7 @@ import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.JobDispatcher;
@@ -38,7 +40,7 @@ import java.util.LinkedList;
 import org.apache.log4j.Logger;
 
 
-public class SingleExecution extends AllocatableAction {
+public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
     private static final int TRANSFER_CHANCES 	= 2;
     private static final int SUBMISSION_CHANCES = 2;
@@ -55,15 +57,18 @@ public class SingleExecution extends AllocatableAction {
     private int transferErrors = 0;
     private int executionErrors = 0;
     private LinkedList<Integer> jobs = new LinkedList<Integer>();
+    
+    private WorkerResourceDescription resourceConsumption;
 
-    public SingleExecution(SchedulingInformation schedulingInformation, TaskProducer producer, Task task) {
+    
+    public SingleExecution(SchedulingInformation<P,T> schedulingInformation, TaskProducer producer, Task task) {
         super(schedulingInformation);
         this.producer = producer;
         this.task = task;
         task.setExecution(this);
         //Register data dependencies events
         for (Task predecessor : task.getPredecessors()) {
-            SingleExecution e = predecessor.getExecution();
+            SingleExecution<P,T> e = (SingleExecution<P,T>) predecessor.getExecution();
             if (e != null && e.isPending()) {
                 this.addDataPredecessor(e);
             }
@@ -72,27 +77,28 @@ public class SingleExecution extends AllocatableAction {
         //Restricted resource
         Task resourceConstraintTask = task.getEnforcingTask();
         if (resourceConstraintTask != null) {
-            this.setResourceConstraint(resourceConstraintTask.getExecution());
+        	SingleExecution<P,T> e = (SingleExecution<P,T>) resourceConstraintTask.getExecution();
+            this.setResourceConstraint(e);
         }
 
     }
 
     @Override
     protected boolean areEnoughResources() {
-    	Worker w = selectedResource.getResource();
+    	Worker<T> w = selectedResource.getResource();
         return w.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-    	Worker w = selectedResource.getResource();
-        w.runTask(selectedImpl.getRequirements());
+    	Worker<T> w = selectedResource.getResource();
+    	resourceConsumption = w.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
     	Worker w = selectedResource.getResource();
-        w.endTask(selectedImpl.getRequirements());
+        w.endTask(resourceConsumption);
     }
 
     @Override
@@ -305,53 +311,54 @@ public class SingleExecution extends AllocatableAction {
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
         return getCoreElementExecutors(task.getTaskParams().getId());
     }
 
     @Override
-    public LinkedList<Implementation<?>> getCompatibleImplementations(ResourceScheduler<?> r) {
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
         return r.getExecutableImpls(task.getTaskParams().getId());
     }
 
     @Override
-    public Implementation<?>[] getImplementations() {
-        return CoreManager.getCoreImplementations(task.getTaskParams().getId());
+    public Implementation<T>[] getImplementations() {
+        return (Implementation<T>[]) CoreManager.getCoreImplementations(task.getTaskParams().getId());
     }
 
     @Override
-    public boolean isCompatible(Worker<?> r) {
+    public boolean isCompatible(Worker<T> r) {
         return r.canRun(task.getTaskParams().getId());
     }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        ResourceScheduler<?> bestWorker = null;
-        Implementation<?> bestImpl = null;
+        ResourceScheduler<P,T> bestWorker = null;
+        Implementation<T> bestImpl = null;
         Score bestScore = null;
-        LinkedList<ResourceScheduler<?>> candidates;
+        LinkedList<ResourceScheduler<?,?>> candidates;
         if (isSchedulingConstrained()) {
-            candidates = new LinkedList<ResourceScheduler<?>>();
+            candidates = new LinkedList<ResourceScheduler<?,?>>();
             candidates.add(this.getConstrainingPredecessor().getAssignedResource());
         } else {
             candidates = getCompatibleWorkers();
         }
         int usefulResources = 0;
-        for (ResourceScheduler<?> w : candidates) {
+        for (ResourceScheduler<?,?> w : candidates) {
+        	ResourceScheduler<P,T> worker = (ResourceScheduler<P,T>) w;
             if (executingResources.contains(w)) {
                 continue;
             }
-            Score resourceScore = w.getResourceScore(this, task.getTaskParams(), actionScore);
+            Score resourceScore = worker.getResourceScore(this, task.getTaskParams(), actionScore);
             usefulResources++;
-            for (Implementation<?> impl : getCompatibleImplementations(w)) {
-                Score implScore = w.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
+            for (Implementation<T> impl : getCompatibleImplementations(worker)) {
+                Score implScore = worker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
                 debugString
                         .append(" Resource ").append(w.getName()).append(" ")
                         .append(" Implementation ").append(impl.getImplementationId()).append(" ")
                         .append(" Score ").append(implScore).append("\n");
                 if (Score.isBetter(implScore, bestScore)) {
-                    bestWorker = w;
+                    bestWorker = worker;
                     bestImpl = impl;
                     bestScore = implScore;
                 }
@@ -377,20 +384,20 @@ public class SingleExecution extends AllocatableAction {
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler ts) {
+    public Score schedulingScore(TaskScheduler<P,T> ts) {
         return ts.getActionScore(this, task.getTaskParams());
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<?> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
         return targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
     }
 
     @Override
-    public void schedule(ResourceScheduler<?> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
-        ResourceScheduler<?> bestWorker = null;
-        Implementation<?> bestImpl = null;
+        ResourceScheduler<P,T> bestWorker = null;
+        Implementation<T> bestImpl = null;
         Score bestScore = null;
 
         if ( //Resource is not compatible with the Core
@@ -402,7 +409,7 @@ public class SingleExecution extends AllocatableAction {
         Score resourceScore = targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
         debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
 
-        for (Implementation<?> impl : getCompatibleImplementations(targetWorker)) {
+        for (Implementation<T> impl : getCompatibleImplementations(targetWorker)) {
             Score implScore = targetWorker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
             debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
             if (Score.isBetter(implScore, bestScore)) {

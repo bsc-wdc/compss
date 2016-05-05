@@ -255,7 +255,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         this.totalComputingUnits = 0;
         for (Processor p : clone.processors) {
-        	this.addProcessor(p);	// Increases totalCUs
+        	Processor newP = new Processor(p);
+        	this.addProcessor(newP);	// Increases totalCUs
         }
         
         this.memorySize = clone.memorySize;
@@ -520,9 +521,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     	Processor pthis = this.processors.get(0);
     	Processor pmr2 = mr2.processors.get(0);
     	if (pthis.getComputingUnits() <= ONE_INT) {
-    		int new_cus = pmr2.getComputingUnits();
-    		pthis.setComputingUnits(new_cus);
-    		this.totalComputingUnits = new_cus;
+    		int newCus = pmr2.getComputingUnits();
+    		pthis.setComputingUnits(newCus);
+    		this.totalComputingUnits = newCus;
     	}
     	if (pthis.getSpeed() == UNASSIGNED_FLOAT) {
     		pthis.setSpeed(pmr2.getSpeed());
@@ -598,109 +599,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     		this.setWallClockLimit(mr2.getWallClockLimit());
     	}
     	
-    	// Internal values
-    	if (this.maxTaskSlots == UNASSIGNED_INT) {
-    		this.maxTaskSlots = mr2.getMaxTaskSlots();
-    	}
-    }
-	
-	// This method expands the implicit value with the ones defined by mr2
-    // Keeps the unique values and gets the maximum of the common values
-    // Called from CLOUD for constraints
-	public void expand(MethodResourceDescription mr2) {  
-        // Processor
-    	for (Processor p : mr2.processors) {
-    		// Looks for a mergeable processor
-    		boolean processorMerged = false;
-    		for (Processor pthis : this.processors) {
-    			if (pthis.getSpeed() != p.getSpeed()) {
-    				continue;
-    			}
-    			if (!pthis.getArchitecture().equals(p.getArchitecture())) {
-    				continue;
-    			}
-    			if (!pthis.getPropName().equals(p.getPropName())) {
-    				continue;
-    			}
-    			if (!pthis.getPropValue().equals(p.getPropValue())) {
-    				continue;
-    			}
-    			
-    			processorMerged = true;
-    			pthis.addComputingUnits(p.getComputingUnits() - ONE_INT);	// Because constraints have an extra CU by default
-    			this.totalComputingUnits += p.getComputingUnits() - ONE_INT;
-    			break;
-    		}
-    		if (!processorMerged) {
-    			Processor newProc = new Processor(p);
-    			this.addProcessor(newProc);
-    		}
-    	}
-    	
-    	// Memory
-    	this.memorySize = Math.max(this.memorySize, mr2.memorySize);
-    	if (this.memoryType.equals(UNASSIGNED_STR)) {
-    		if (mr2.memoryType != null && !mr2.memoryType.isEmpty()) {
-    			this.memoryType = mr2.memoryType;
-    		}
-    	}
-    	
-    	// Storage
-    	this.storageSize = Math.max(this.storageSize, mr2.storageSize);
-    	if (this.storageType.equals(UNASSIGNED_STR)) {
-    		if (mr2.storageType != null && !mr2.storageType.isEmpty()) {
-    			this.storageType = mr2.storageType;
-    		}
-    	}
-    	
-    	// OperatingSystem
-    	if (this.operatingSystemType.equals(UNASSIGNED_STR)) {
-    		if (mr2.operatingSystemType != null && !mr2.operatingSystemType.isEmpty()) {
-    			this.operatingSystemType = mr2.operatingSystemType;
-    		}
-    	}
-    	if (this.operatingSystemDistribution.equals(UNASSIGNED_STR)) {
-    		if (mr2.operatingSystemDistribution != null && !mr2.operatingSystemDistribution.isEmpty()) {
-    			this.operatingSystemDistribution = mr2.operatingSystemDistribution;
-    		}
-    	}
-    	if (this.operatingSystemVersion.equals(UNASSIGNED_STR)) {
-    		if (mr2.memoryType != null && !mr2.memoryType.isEmpty()) {
-    			this.operatingSystemVersion = mr2.operatingSystemVersion;
-    		}
-    	}
-    	
-    	// Applications
-    	for (String app : mr2.appSoftware) {
-    		if (!this.appSoftware.contains(app)) {
-    			this.appSoftware.add(app);
-    		}
-    	}
-    	
-    	// Host queues
-    	for (String queue : mr2.hostQueues) {
-    		if (!this.hostQueues.contains(queue)) {
-    			this.hostQueues.add(queue);
-    		}
-    	}
-    	
-    	// Price
-    	if (this.pricePerUnit == UNASSIGNED_FLOAT) {
-    		if (mr2.pricePerUnit > (float)0.0) {
-    			this.pricePerUnit = mr2.pricePerUnit;
-    		}
-    	}
-    	if (this.priceTimeUnit == UNASSIGNED_INT) {
-    		if (mr2.priceTimeUnit > 0) {
-    			this.priceTimeUnit = mr2.priceTimeUnit;
-    		}
-    	}
-    	
-    	// WallClock limit
-    	this.wallClockLimit = java.lang.Math.max(this.wallClockLimit, mr2.wallClockLimit);
-    	
-    	// Internal values
-        this.maxTaskSlots += mr2.getMaxTaskSlots();
+    	// Internal fields
+    	this.value = mr2.value;
     }
 
     public float difference(MethodResourceDescription mr2) {
@@ -741,31 +641,31 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
     
     private boolean checkProcessor(Processor p) {
-    	for (Processor p_this : this.processors) {
-    		if (!checkCompatibility(p_this.getName(), p.getName())) {
-    			continue;
+    	for (Processor pThis : this.processors) {
+    		if (checkProcessorContains(pThis, p)) {
+	    		// Satisfies all
+	    		return true;
     		}
-    		if (!checkCompatibility(p_this.getArchitecture(), p.getArchitecture())) {
-    			continue;
-    		}
-    		if (!checkInclusion(p_this.getSpeed(), p.getSpeed())) {
-    			continue;
-    		}
-    		if (!checkCompatibility(p_this.getPropName(), p.getPropName())) {
-    			continue;
-    		}
-    		if (!checkCompatibility(p_this.getPropValue(), p.getPropValue())) {
-    			continue;
-    		}
-    		if (!checkInclusion(p_this.getComputingUnits(), p.getComputingUnits())) {
-    			continue;
-    		}
-
-    		// Satisfies all
-    		return true;
     	}
     	
     	return false;
+    }
+    
+    private boolean checkProcessorContains(Processor pThis, Processor pRc2) {
+    	boolean contains = checkProcessorCompatibility(pThis, pRc2)
+    			&& checkInclusion(pThis.getComputingUnits(), pRc2.getComputingUnits());
+    	
+    	return contains;
+    }
+    
+    private boolean checkProcessorCompatibility(Processor pThis, Processor pRc2) {
+    	boolean compatible = checkCompatibility(pThis.getName(), pRc2.getName());
+    	compatible = compatible && checkCompatibility(pThis.getArchitecture(), pRc2.getArchitecture());
+    	compatible = compatible && checkInclusion(pThis.getSpeed(), pRc2.getSpeed());
+    	compatible = compatible && checkCompatibility(pThis.getPropName(), pRc2.getPropName());
+    	compatible = compatible && checkCompatibility(pThis.getPropValue(), pRc2.getPropValue());
+		
+    	return compatible;    						
     }
 
     private boolean checkMemory(MethodResourceDescription rc2) {
@@ -794,11 +694,23 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public Integer canHostSimultaneously(MethodResourceDescription rc2) {
         int min = Integer.MAX_VALUE;
         
+        // Global CUs restriction
         if (rc2.getTotalComputingUnits() >= 1) {
             float ratio = this.getTotalComputingUnits() / (float) rc2.getTotalComputingUnits();
             min = (int)ratio;
         }
+        
+        // Per processor CUs restriction
+        for (Processor p : rc2.processors) {
+        	for (Processor pThis : this.processors) {
+        		if (checkProcessorCompatibility(pThis, p)) {
+        			float ratio = pThis.getComputingUnits() / p.getComputingUnits();
+        			min = Math.min(min, (int)ratio);
+        		}
+        	}
+        }
 
+        // Memory restriction
         if (rc2.memorySize > 0.0f) {
             float ratio = this.memorySize / rc2.memorySize;
             min = Math.min(min, (int)ratio);
@@ -826,60 +738,229 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return rd;
     }
     
+	// This method expands the implicit value with the ones defined by mr2
+    // Keeps the unique values and gets the maximum of the common values
     @Override
-	public void increase(ResourceDescription rd) {
-    	MethodResourceDescription mrd = (MethodResourceDescription) rd;
-    	for (Processor p : mrd.processors) {
-    		increaseProcessor(p);
-    	}
-        
-        this.memorySize += mrd.memorySize;
-        this.storageSize += mrd.storageSize;
-    }
-    
-    private void increaseProcessor(Processor p) {
-    	for (Processor p_this : this.processors) {
-    		if (checkCompatibility(p_this.getArchitecture(),p.getArchitecture())
-       			 && checkInclusion(p_this.getSpeed(), p.getSpeed())) {
-    			
-    			p_this.addComputingUnits(p.getComputingUnits());
-    			this.totalComputingUnits += p.getComputingUnits();
-    			return;
+	public void increase(ResourceDescription rd2) {
+    	MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
+    	
+    	// Increase Processors and Memory
+    	increaseDynamic(rd2);
+    	
+    	// Storage
+    	this.storageSize = Math.max(this.storageSize, mrd2.storageSize);
+    	if (this.storageType.equals(UNASSIGNED_STR)) {
+    		if (mrd2.storageType != null && !mrd2.storageType.isEmpty()) {
+    			this.storageType = mrd2.storageType;
     		}
     	}
-    }
-
-    @Override
-	public void reduce(ResourceDescription rd) {
-    	MethodResourceDescription mrd = (MethodResourceDescription) rd;
-    	for (Processor p : mrd.processors) {
-    		decreaseProcessor(p);
-    	}
-        
-        this.memorySize -= mrd.memorySize;
-        this.storageSize -= mrd.storageSize;
-    }
-    
-    private void decreaseProcessor(Processor p) {
-    	for (Processor p_this : this.processors) {
-    		if (checkCompatibility(p_this.getArchitecture(),p.getArchitecture())
-       			 && checkInclusion(p_this.getSpeed(), p.getSpeed())) {
-    			
-    			p_this.removeComputingUnits(p.getComputingUnits());
-    			this.totalComputingUnits -= p.getComputingUnits();
-    			return;
+    	
+    	// OperatingSystem
+    	if (this.operatingSystemType.equals(UNASSIGNED_STR)) {
+    		if (mrd2.operatingSystemType != null && !mrd2.operatingSystemType.isEmpty()) {
+    			this.operatingSystemType = mrd2.operatingSystemType;
     		}
     	}
+    	if (this.operatingSystemDistribution.equals(UNASSIGNED_STR)) {
+    		if (mrd2.operatingSystemDistribution != null && !mrd2.operatingSystemDistribution.isEmpty()) {
+    			this.operatingSystemDistribution = mrd2.operatingSystemDistribution;
+    		}
+    	}
+    	if (this.operatingSystemVersion.equals(UNASSIGNED_STR)) {
+    		if (mrd2.memoryType != null && !mrd2.memoryType.isEmpty()) {
+    			this.operatingSystemVersion = mrd2.operatingSystemVersion;
+    		}
+    	}
+    	
+    	// Applications
+    	for (String app : mrd2.appSoftware) {
+    		if (!this.appSoftware.contains(app)) {
+    			this.appSoftware.add(app);
+    		}
+    	}
+    	
+    	// Host queues
+    	for (String queue : mrd2.hostQueues) {
+    		if (!this.hostQueues.contains(queue)) {
+    			this.hostQueues.add(queue);
+    		}
+    	}
+    	
+    	// Price
+    	if (this.pricePerUnit == UNASSIGNED_FLOAT) {
+    		if (mrd2.pricePerUnit > (float)0.0) {
+    			this.pricePerUnit = mrd2.pricePerUnit;
+    		}
+    	}
+    	if (this.priceTimeUnit == UNASSIGNED_INT) {
+    		if (mrd2.priceTimeUnit > 0) {
+    			this.priceTimeUnit = mrd2.priceTimeUnit;
+    		}
+    	}
+    	
+    	// WallClock limit
+    	this.wallClockLimit = Math.max(this.wallClockLimit, mrd2.wallClockLimit);
+    	
+    	// Internal fields
+    	this.value = Math.max(this.value, mrd2.value);
     }
 
     @Override
-    public void increaseDynamic(ResourceDescription resources) {
-    	increase(resources);
+	public void reduce(ResourceDescription rd2) {
+    	MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
+    	
+    	// Increase Processors and Memory
+    	reduceDynamic(rd2);
+    	
+    	// Storage
+    	this.storageSize = Math.min(this.storageSize, mrd2.storageSize);
+    	if (this.storageType.equals(UNASSIGNED_STR)) {
+    		if (mrd2.storageType != null && !mrd2.storageType.isEmpty()) {
+    			this.storageType = mrd2.storageType;
+    		}
+    	}
+    	
+    	// OperatingSystem
+    	if (this.operatingSystemType.equals(UNASSIGNED_STR)) {
+    		if (mrd2.operatingSystemType != null && !mrd2.operatingSystemType.isEmpty()) {
+    			this.operatingSystemType = mrd2.operatingSystemType;
+    		}
+    	}
+    	if (this.operatingSystemDistribution.equals(UNASSIGNED_STR)) {
+    		if (mrd2.operatingSystemDistribution != null && !mrd2.operatingSystemDistribution.isEmpty()) {
+    			this.operatingSystemDistribution = mrd2.operatingSystemDistribution;
+    		}
+    	}
+    	if (this.operatingSystemVersion.equals(UNASSIGNED_STR)) {
+    		if (mrd2.memoryType != null && !mrd2.memoryType.isEmpty()) {
+    			this.operatingSystemVersion = mrd2.operatingSystemVersion;
+    		}
+    	}
+    	
+    	// Applications
+    	for (String app : mrd2.appSoftware) {
+    		if (this.appSoftware.contains(app)) {
+    			this.appSoftware.remove(app);
+    		}
+    	}
+    	
+    	// Host queues
+    	for (String queue : mrd2.hostQueues) {
+    		if (this.hostQueues.contains(queue)) {
+    			this.hostQueues.remove(queue);
+    		}
+    	}
+    	
+    	// Price
+    	if (this.pricePerUnit == UNASSIGNED_FLOAT) {
+    		if (mrd2.pricePerUnit > (float)0.0) {
+    			this.pricePerUnit = mrd2.pricePerUnit;
+    		}
+    	} else {
+    		if ( (mrd2.pricePerUnit > (float)0.0) && (mrd2.pricePerUnit < this.pricePerUnit) ) {
+    			this.pricePerUnit = mrd2.pricePerUnit;
+    		}
+    	}
+    	if (this.priceTimeUnit == UNASSIGNED_INT) {
+    		if (mrd2.priceTimeUnit > 0) {
+    			this.priceTimeUnit = mrd2.priceTimeUnit;
+    		}
+    	} else {
+    		if ( (mrd2.priceTimeUnit > 0) && (mrd2.priceTimeUnit < this.priceTimeUnit) ) {
+    			this.priceTimeUnit = mrd2.priceTimeUnit;
+    		}
+    	}
+    	
+    	// WallClock limit
+    	this.wallClockLimit = Math.min(this.wallClockLimit, mrd2.wallClockLimit);
+    	
+    	// Internal fields
+    	this.value = Math.min(this.value, mrd2.value);
     }
 
     @Override
-    public void reduceDynamic(ResourceDescription resources) {
-        reduce(resources);
+    public void increaseDynamic(ResourceDescription rd2) {
+    	MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
+    	
+    	// Processor
+    	for (Processor p : mrd2.processors) {
+    		// Looks for a mergeable processor
+    		boolean processorMerged = false;
+    		for (Processor pThis : this.processors) {
+    			if (checkProcessorCompatibility(pThis, p)) {
+    				processorMerged = true;
+    				
+    				// Increase current
+    				int cus = p.getComputingUnits();
+    				pThis.addComputingUnits(cus);
+    				this.totalComputingUnits += cus;
+    				
+    				// Go for next processor
+    				break;    				
+    			}
+    		}
+    		if (!processorMerged) {
+    			Processor newProc = new Processor(p);
+    			this.addProcessor(newProc); // Increases totalCUs
+    		}
+    	}
+    	
+    	// Memory
+    	if ( (this.memorySize != UNASSIGNED_FLOAT) && (mrd2.memorySize != UNASSIGNED_FLOAT) ) {
+    		this.memorySize += mrd2.memorySize;
+    	}
+    }
+
+    @Override
+    public ResourceDescription reduceDynamic(ResourceDescription rd2) {
+    	MethodResourceDescription mrd2 = (MethodResourceDescription) rd2;
+    	MethodResourceDescription reduced = new MethodResourceDescription();
+    	
+    	// Processor
+    	for (Processor p : mrd2.processors) {
+    		// Looks for a mergeable processor
+    		boolean processorMerged = false;
+    		for (Processor pThis : this.processors) {
+    			if (checkProcessorCompatibility(pThis, p)) {
+    				processorMerged = true;
+    				int cus = p.getComputingUnits();
+    				
+    				// Copy the real decreased capabilities
+    				Processor p_reduced = new Processor(pThis);
+    				p_reduced.setComputingUnits(cus);
+    				reduced.addProcessor(p_reduced);
+    				
+    				// Decrease current
+    				pThis.removeComputingUnits(cus);
+    				this.totalComputingUnits -= cus;
+    				
+    				// Go for next processor
+    				break;    				
+    			}
+    		}
+    		if (!processorMerged) {
+    			// The reduce is invalid
+    			return null;
+    		}
+    	}
+    	
+    	// Memory
+    	if (checkMemory(mrd2)) {
+    		// Copy the real decreased capabilities
+    		reduced.setMemoryType(this.memoryType);    		
+    		if ((mrd2.memorySize == UNASSIGNED_FLOAT) || (this.memorySize == UNASSIGNED_FLOAT)) {
+    			reduced.setMemorySize(UNASSIGNED_FLOAT);
+    		} else {
+    			this.memorySize -= mrd2.memorySize; 
+    			reduced.setMemorySize(mrd2.memorySize);
+    		}    		
+    	} else {
+    		// The reduce is invalid
+    		return null;
+    	}
+    	
+    	// Return the real decreased capabilities
+    	return reduced;
     }
 
     @Override
@@ -890,11 +971,22 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         // Processor
         for (Processor p : otherMRD.getProcessors()) {
         	if (checkProcessor(p)) {
-        		common.addProcessor(p);
+        		common.addProcessor(p); // Increases totalCUs
         	}
         }
+        
         // Memory
-        common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
+        if (checkMemory(otherMRD)) {
+        	String memType = UNASSIGNED_STR;
+        	if (!otherMRD.getMemoryType().equals(UNASSIGNED_STR)) {
+        		memType = otherMRD.getMemoryType();
+        	} else {
+        		memType = this.getMemoryType();
+        	}
+        	
+        	common.setMemoryType(memType);
+        	common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
+        }
         
         return common;
     }
@@ -932,9 +1024,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
         
         sb.append("[GENERAL_COUNTS");
-        sb.append(" TOTAL_CU=").append(this.getTotalComputingUnits());
-        sb.append(" MAX_TASK_SLOTS=").append(this.getMaxTaskSlots());
-        sb.append(" USED_TASK_SLOTS=").append(this.getUsedTaskSlots());
+        sb.append(" TOTAL_CU=").append(this.totalComputingUnits);
         sb.append("]");
         
         

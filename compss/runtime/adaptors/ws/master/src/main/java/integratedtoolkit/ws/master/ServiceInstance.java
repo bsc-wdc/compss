@@ -21,6 +21,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
 
+    
     public ServiceInstance(String name, WSConfiguration config) {
         super(name, config);
         this.config = config;
@@ -66,7 +67,7 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        return new WSJob(taskId, taskParams, impl, res, listener);
+        return new WSJob<COMPSsWorker>(taskId, taskParams, impl, res, listener);
     }
 
     @Override
@@ -132,4 +133,5 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public void generateWorkersDebugInfo() {
     }
+    
 }

@@ -63,6 +63,7 @@ public class CommandTaskDone extends Command implements Externalizable {
         out.writeObject(nt);
     }
 
+    @Override
     public String toString() {
         return "Job" + jobID + " finishes " + (successful ? "properly" : "with some errors");
     }

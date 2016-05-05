@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.commands;
 
 import integratedtoolkit.nio.NIOTask;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -50,6 +51,7 @@ public class CommandNewTask extends Command implements Externalizable {
         out.writeObject(task);
     }
 
+    @Override
     public String toString() {
         return "new Task " + task.toString();
     }

@@ -7,32 +7,22 @@ import integratedtoolkit.nio.NIOAgent;
 
 public abstract class Command implements Externalizable {
 
-    // Type of command
-    // NEW TASK: send a new task to a node with a list of the files and its locations
-    // DATA DEMAND: ask a node for some data
-    // DATA NEGATE: can not send the data now
-    // DATA RECEIVED: notify the master that the worker has received the data
-    // TASK DONE: notify the master that the task has been done
-    // SHUTDOWN: tell the worker to shutdown
-    // SHUTDOWN: lets the master know that the worker is stopping
-	// GEN_TRACE_PACKAGE: Generate Trace package.
-	// GEN_TRACE_PACKAGE_DONE: Notification of the end of trace package.
 	
     public enum CommandType {
-        NEW_TASK, 
-        DATA_DEMAND, 
-        DATA_NEGATE, 
-        DATA_RECEIVED, 
-        TASK_DONE, 
-        START_WORKER, 
-        STOP_WORKER, 
-        STOP_WORKER_ACK, 
-        GEN_TRACE_PACKAGE, 
-        GEN_TRACE_PACKAGE_DONE, 
-        GEN_WORKERS_INFO,
-        GEN_WORKERS_INFO_DONE,
-        CHECK_WORKER, 
-        CHECK_WORKER_ACK
+        NEW_TASK, 					// Send a new task to a node with a list of the files and its locations
+        DATA_DEMAND, 				// Ask a node for some data
+        DATA_NEGATE, 				// Can not send the data now
+        DATA_RECEIVED, 				// Notify the master that the worker has received the data
+        TASK_DONE, 					// Notify the master that the task has been done
+        START_WORKER, 				// Tell the worker to start
+        CHECK_WORKER, 				// Checks if the worker has started
+        CHECK_WORKER_ACK,			// Notify the master that the worker has been started
+        STOP_WORKER, 				// Tell the worker to shutdown
+        STOP_WORKER_ACK, 			// Lets the master know that the worker is stopping
+        GEN_TRACE_PACKAGE, 			// Generate Trace package
+        GEN_TRACE_PACKAGE_DONE, 	// Notification of the end of trace package
+        GEN_WORKERS_INFO,			// Generate worker debug log files
+        GEN_WORKERS_INFO_DONE,		// Notification of the end of worker debug log files generation
     }
 
     public NIOAgent agent;

@@ -49,6 +49,7 @@ public class CommandCheckWorker extends Command implements Externalizable {
         out.writeUTF(nodeName);
     }
 
+    @Override
     public String toString() {
         return "CommandCheckWorker for deployment ID " + uuid + " on nodeName " + nodeName;
     }

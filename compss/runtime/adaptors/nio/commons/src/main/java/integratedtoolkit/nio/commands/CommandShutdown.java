@@ -42,6 +42,7 @@ public class CommandShutdown extends Command implements Externalizable {
         out.writeObject(filesToSend);
     }
 
+    @Override
     public String toString() {
         return "Shutdown";
     }

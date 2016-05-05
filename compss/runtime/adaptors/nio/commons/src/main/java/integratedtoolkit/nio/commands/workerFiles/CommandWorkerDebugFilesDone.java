@@ -8,10 +8,21 @@ import java.io.ObjectOutput;
 import es.bsc.comm.Connection;
 import integratedtoolkit.nio.commands.Command;
 
-public class CommandWorkerDebugFilesDone extends Command implements Externalizable{
+
+public class CommandWorkerDebugFilesDone extends Command implements Externalizable {
 
 	public CommandWorkerDebugFilesDone() {
 		super();
+	}
+	
+	@Override
+	public CommandType getType() {
+		return CommandType.GEN_WORKERS_INFO_DONE;
+	}
+
+	@Override
+	public void handle(Connection c) {
+		agent.notifyWorkersDebugInfoGeneration();
 	}
 
 	@Override
@@ -22,15 +33,10 @@ public class CommandWorkerDebugFilesDone extends Command implements Externalizab
 	public void writeExternal(ObjectOutput out) throws IOException {
 		
 	}
-
-	@Override
-	public CommandType getType() {
-		return CommandType.GEN_WORKERS_INFO_DONE;
-	}
-
-	@Override
-	public void handle(Connection c) {
-		agent.notifyWorkersDebugInfoGeneration();
-	}
+	
+    @Override
+    public String toString() {
+        return "GeneratingWorkerDebugFilesDone";
+    }
 
 }

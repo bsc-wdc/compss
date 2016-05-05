@@ -40,6 +40,7 @@ public class CommandDataReceived extends Command implements Externalizable {
         out.writeInt(transfergroupID);
     }
 
+    @Override
     public String toString() {
         return "Data for transfer group" + transfergroupID + "has been received in the remote worker";
     }

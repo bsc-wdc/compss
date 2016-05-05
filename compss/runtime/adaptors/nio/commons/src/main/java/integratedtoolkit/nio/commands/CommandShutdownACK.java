@@ -38,5 +38,10 @@ public class CommandShutdownACK extends Command implements Externalizable {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 
     }
+    
+    @Override
+    public String toString() {
+        return "ShutdownACK";
+    }
 
 }

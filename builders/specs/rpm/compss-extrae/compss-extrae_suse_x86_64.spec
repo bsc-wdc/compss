@@ -2,7 +2,8 @@
 %define version 	1.4.rc05
 %define release		1
 
-Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-fortran, papi, papi-devel
+Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-fortran
+Suggests: papi, papi-devel, openmpi
 Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}

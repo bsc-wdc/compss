@@ -1,10 +1,12 @@
 package integratedtoolkit.nio.commands.workerFiles;
 
 import integratedtoolkit.nio.commands.Command;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 import es.bsc.comm.Connection;
 
 
@@ -52,5 +54,10 @@ public class CommandGenerateWorkerDebugFiles extends Command implements External
 	public void handle(Connection c) {
 		agent.generateWorkersDebugInfo(c);
 	}
+	
+    @Override
+    public String toString() {
+        return "GenerateWorkerDebugFiles";
+    }
 
 }

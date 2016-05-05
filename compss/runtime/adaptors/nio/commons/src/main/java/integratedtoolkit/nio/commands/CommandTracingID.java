@@ -42,6 +42,7 @@ public class CommandTracingID extends Command implements Externalizable {
         out.writeInt(tag);
     }
 
+    @Override
     public String toString() {
         return "Request with sender ID: " + id;
     }

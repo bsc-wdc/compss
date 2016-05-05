@@ -1,10 +1,12 @@
 package integratedtoolkit.nio.commands.tracing;
 
 import integratedtoolkit.nio.commands.Command;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 import es.bsc.comm.Connection;
 
 
@@ -19,8 +21,7 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 		super();
 	}
 	
-	public CommandGeneratePackage(String host, String installDir,
-			String workingDir, String name) {
+	public CommandGeneratePackage(String host, String installDir, String workingDir, String name) {
 		super();
 		this.host=host;
 		this.installDir=installDir;
@@ -55,5 +56,10 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 	public void handle(Connection c) {
 		agent.generatePackage(c, host, installDir, workingDir, name);
 	}
+	
+    @Override
+    public String toString() {
+        return "GenerateTraceCommand";
+    }
 
 }

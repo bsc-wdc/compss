@@ -41,7 +41,8 @@ public class CommandCheckWorkerACK extends Command implements Externalizable {
         out.writeUTF(uuid);
         out.writeUTF(nodeName);
     }
-
+    
+    @Override
     public String toString() {
         return "CommandCheckWorkerACK for deployment ID " + uuid;
     }

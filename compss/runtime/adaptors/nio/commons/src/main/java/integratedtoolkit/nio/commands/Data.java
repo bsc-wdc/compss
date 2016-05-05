@@ -4,6 +4,7 @@ import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.nio.NIOURI;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -99,6 +100,7 @@ public class Data implements Externalizable {
         out.writeObject(sources);
     }
 
+    @Override
     public String toString() {
         return name + "@" + sources;
     }

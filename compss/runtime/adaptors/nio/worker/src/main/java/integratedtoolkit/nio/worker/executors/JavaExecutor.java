@@ -29,7 +29,7 @@ import storage.StubItf;
 public class JavaExecutor extends Executor {
 
     @Override
-    String createSandBox() {
+    String createSandBox(String baseWorkingDir) {
         //SandBox not supported
         return null;
     }
@@ -41,7 +41,7 @@ public class JavaExecutor extends Executor {
         int taskId = nt.getTaskId();
 
         /* Task information */
-        boolean debug = NIOWorker.workerDebug;
+        boolean debug = NIOWorker.isWorkerDebugEnabled;
         String className = nt.getClassName();
         String methodName = nt.getMethodName();
         boolean hasTarget = nt.isHasTarget();
@@ -109,7 +109,9 @@ public class JavaExecutor extends Executor {
 							System.out.println("[Worker] Hostname: " + nw.getHostName());
 							*/
 												
-							if ((NIOWorker.executionType.compareTo(ITConstants.COMPSs) != 0) && !pscoId.getBackends().contains(nw.getHostName())) {							
+							if ((NIOWorker.getExecutionType().compareTo(ITConstants.COMPSs) != 0) 
+									&& !pscoId.getBackends().contains(nw.getHostName())) {	
+								
 								if (tracing) {
 									NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
 								}

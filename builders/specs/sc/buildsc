@@ -45,10 +45,12 @@
   cp ${trunk_rel_path}/NOTICE ${COMPSs_target}
   cp README ${COMPSs_target}
   cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
+
   #Dependencies
   cp -r ${trunk_rel_path}/dependencies/JAVA_GAT ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/files/paraver ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/extrae ${COMPSs_target}/Dependencies/
+
   #Config
   cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/
   find ${COMPSs_target}/Runtime/configuration -name src | xargs rm -rf
@@ -57,8 +59,10 @@
   find ${COMPSs_target}/Runtime/configuration/ -name .settings | xargs rm -rf
   find ${COMPSs_target}/Runtime/configuration/ -name .project | xargs rm -f
   find ${COMPSs_target}/Runtime/configuration/ -name .classpath | xargs rm -f
+
   #Scripts
   cp -r ${trunk_rel_path}/compss/runtime/scripts/* ${COMPSs_target}/Runtime/scripts/
+
   #Adaptors
   echo "--- Copy adaptors"
   path_source=${trunk_rel_path}/compss/runtime/adaptors
@@ -86,14 +90,25 @@
     fi
   done
   find ${COMPSs_target}/Runtime/adaptors -name pom.xml | xargs rm -f
+
+  #Schedulers
+  echo "--- Copy schedulers"
+  schedulers=$(find ${trunk_rel_path}/compss/runtime/scheduler/ -name "*.jar")
+  for scheduler in $schedulers; do
+    cp $scheduler ${COMPSs_target}/Runtime/scheduler/
+  done
+  rm ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
+
   #Connectors
   echo "--- Copy connectors"
   connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar")
   for conn in $connectors; do
     cp -f $conn ${COMPSs_target}/Runtime/connectors/
   done
+
   #Engine
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
+
   # TOOLS DEPLOYMENT
   echo "--- Copy tools"
   cd tmp/

@@ -41,9 +41,11 @@
   cp ${trunk_rel_path}/NOTICE ${COMPSs_target}
   cp ../README ${COMPSs_target}
   cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
+
   #Dependencies
   cp -r ${trunk_rel_path}/files/paraver ${COMPSs_target}/Dependencies/
   cp -r ${trunk_rel_path}/dependencies/JAVA_GAT ${COMPSs_target}/Dependencies/
+
   #Config
   cp -r ${trunk_rel_path}/compss/runtime/config/* ${COMPSs_target}/Runtime/configuration/
   find ${COMPSs_target}/Runtime/configuration -name src | xargs rm -rf
@@ -52,8 +54,10 @@
   find ${COMPSs_target}/Runtime/configuration/ -name .settings | xargs rm -rf
   find ${COMPSs_target}/Runtime/configuration/ -name .project | xargs rm -f
   find ${COMPSs_target}/Runtime/configuration/ -name .classpath | xargs rm -f
+
   #Scripts
   cp -r ${trunk_rel_path}/compss/runtime/scripts/* ${COMPSs_target}/Runtime/scripts/
+
   #Adaptors
   path_source="${trunk_rel_path}/compss/runtime/adaptors"
   path_target="${COMPSs_target}/Runtime/adaptors"
@@ -73,8 +77,17 @@
     fi
   done
   find ${COMPSs_target}/Runtime/adaptors -name pom.xml | xargs rm -f
+
+  #Schedulers
+  schedulers=$(find ${trunk_rel_path}/compss/runtime/scheduler/ -name "*.jar")
+  for scheduler in $schedulers; do
+    cp $scheduler COMPSs/Runtime/scheduler/
+  done
+  rm -r COMPSs/Runtime/scheduler/compss-scheduler-commons.jar
+
   #Engine
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/
+
   #Clean svn files
   find ${COMPSs_target} -name .svn -print0 | xargs -0 rm -rf  
 

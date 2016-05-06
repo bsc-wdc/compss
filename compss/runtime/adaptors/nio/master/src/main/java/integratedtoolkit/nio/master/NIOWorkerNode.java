@@ -103,6 +103,14 @@ public class NIOWorkerNode extends COMPSsWorker {
         return config.getLibraryPath();
     }
 
+    public String getClasspath() {
+    	return config.getClasspath();
+    }
+    
+    public String getPythonpath() {
+    	return config.getPythonpath();
+    }
+    
     public int getLimitOfTasks() {
         return config.getLimitOfTasks();
     }

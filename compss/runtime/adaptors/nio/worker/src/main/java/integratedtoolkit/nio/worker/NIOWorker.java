@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 
 import integratedtoolkit.util.*;
+
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -217,7 +219,7 @@ public class NIOWorker extends NIOAgent {
 										wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. MOVING");
 										wLogger.debug("         Source: " + source);
 										wLogger.debug("         Target: " + target);
-										Files.move(source.toPath(), target.toPath());
+										source.renameTo(target);
 									}
 									// Move object to cache
 									Object o = Serializer.deserialize((String) param.getValue());
@@ -280,14 +282,15 @@ public class NIOWorker extends NIOAgent {
 								File target = new File(param.getValue().toString());
 								if (param.isPreserveSourceData()) {
 									wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-									wLogger.debug("         Source: " + source);
-									wLogger.debug("         Target: " + target);
+									wLogger.debug("         Source file: " + source);
+									wLogger.debug("         Target file: " + target);
 									Files.copy(source.toPath(), target.toPath());
 								} else {
 									wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. MOVING");
-									wLogger.debug("         Source: " + source);
-									wLogger.debug("         Target: " + target);
-									Files.move(source.toPath(), target.toPath());
+									wLogger.debug("         Source file: " + source);
+									wLogger.debug("         Target file: " + target);
+									
+									Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
 								}
 								locationsInHost = true;
 								
@@ -298,6 +301,11 @@ public class NIOWorker extends NIOAgent {
 
 						if (!locationsInHost) {
 							// We must transfer the file
+							askTransfer = true;
+						}
+					}else{
+						//Check if it is not currently transferred
+						if (getDataRequests(param.getData().getName()) != null){
 							askTransfer = true;
 						}
 					}

@@ -49,7 +49,7 @@ public interface ObjectTestItf {
 	);
 	
 	@Method(declaringClass = "objectTest.ObjectTestImpl")
-	void printObjects(
+	void printContent(
 		@Parameter(type = Type.OBJECT, direction = Direction.IN)
 		Integer i,
 		@Parameter(type = Type.OBJECT, direction = Direction.IN)

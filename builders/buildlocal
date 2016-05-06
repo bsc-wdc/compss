@@ -360,7 +360,7 @@ install() {
   #Schedulers
   echo "--- Copy schedulers"
   rm -r ${tmpDir}/compss/runtime/scheduler/commons
-  schedulers=$(find ${tmpsDir}/compss/runtime/scheduler/ -name "*.jar")
+  schedulers=$(find ${tmpDir}/compss/runtime/scheduler/ -name "*.jar")
   for scheduler in $schedulers; do
     cp $scheduler ${targetDir}/Runtime/scheduler/
   done

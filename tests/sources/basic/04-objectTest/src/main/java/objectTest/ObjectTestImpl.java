@@ -29,7 +29,7 @@ public class ObjectTestImpl {
 		return s.concat(s).concat(s);
 	}
 	
-	public static void printObjects(Integer i, String s) {
+	public static void printContent(Integer i, String s) {
 		System.out.println("Integer: " + i);
 		System.out.println("String: " + s);
 	}

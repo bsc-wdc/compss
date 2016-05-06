@@ -40,7 +40,7 @@ public class ObjectTest {
 		System.out.println("Integer value: " + i);
 		System.out.println("String value: " + s);
 		
-		ObjectTestImpl.printObjects(i, s);
+		ObjectTestImpl.printContent(i, s);
 	}
 	
 	private static void testTargetObjects() {

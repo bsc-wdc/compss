@@ -3,6 +3,7 @@ package integratedtoolkit.types.resources;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
@@ -31,7 +32,6 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
-
 public abstract class Resource implements Comparable<Resource> {
 
     public enum Type {
@@ -48,25 +48,33 @@ public abstract class Resource implements Comparable<Resource> {
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
     public static final boolean debug = logger.isDebugEnabled();
 
+    private final String name;
     private final COMPSsNode node;
 
     private LinkedList<String> obsoletes = new LinkedList<String>();
 
+    public Resource(String name, Configuration conf) {
+        this.name = name;
+        this.node = Comm.initWorker(name, conf);
+        SharedDiskManager.addMachine(this);
+    }
+
     public Resource(COMPSsNode node) {
+        this.name = node.getName();
         this.node = node;
         SharedDiskManager.addMachine(this);
     }
 
-    public Resource(String name, Configuration config) throws Exception {
-        this.node = Comm.initWorker(name, config);
-        if (this.node == null){
-        	throw new Exception("Error initializing worker " + name);
-        }
-        SharedDiskManager.addMachine(this);
+    public Resource(Resource clone) {
+        name = clone.name;
+        node = clone.node;
     }
 
-    public Resource(Resource clone) {
-        node = clone.node;
+    public void start(HashMap<String, String> disks) throws Exception {
+        this.node.start();
+        for (java.util.Map.Entry<String, String> disk : disks.entrySet()) {
+            addSharedDisk(disk.getKey(), disk.getValue());
+        }
     }
 
     public void addSharedDisk(String diskName, String diskMountpoint) {
@@ -94,14 +102,14 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     public String getName() {
-        return node.getName();
+        return name;
     }
 
     public COMPSsNode getNode() {
         return node;
     }
 
-    public void setInternalURI(URI u) {
+    public void setInternalURI(URI u) throws UnstartedNodeException {
         node.setInternalURI(u);
     }
 
@@ -192,14 +200,15 @@ public abstract class Resource implements Comparable<Resource> {
             logger.error("Error waiting for files in resource " + getName() + " to get saved");
         }
 
-	if (this.getType() != Type.SERVICE && tracing) {
-            node.generatePackage();
-            getTracingPackageToMaster();
-        }
-
-        if (this.getType() != Type.SERVICE && debug) {
-            node.generateWorkersDebugInfo();
-            getWorkersDebugInfo();
+        if (this.getType() != Type.SERVICE) {
+            if (tracing) {
+                node.generatePackage();
+                getTracingPackageToMaster();
+            }
+            if (debug) {
+                node.generateWorkersDebugInfo();
+                getWorkersDebugInfo();
+            }
         }
 
         this.deleteIntermediate();

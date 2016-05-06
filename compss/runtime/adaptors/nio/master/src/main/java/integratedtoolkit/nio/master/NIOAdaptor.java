@@ -51,7 +51,6 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
-
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     public static final int MAX_SEND = 1000;
@@ -60,21 +59,21 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static final int MAX_SEND_WORKER = 5;
     public static final int MAX_RECEIVE_WORKER = 5;
 
-	private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 5;
 
     /*
      *  The master port can be:
      *  1. Given by the IT_MASTER_PORT property
      *  2. A BASE_MASTER_PORT plus a random number
      */
-	public static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
+    public static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
     private static final int BASE_MASTER_PORT = 43000;
     private static final int MAX_RANDOM_VALUE = 1000;
     private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(ITConstants.IT_MASTER_PORT);
-    public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty()) ?
-    		Integer.valueOf(MASTER_PORT_PROPERTY) : MASTER_PORT_CALCULATED;
+    public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
+            ? Integer.valueOf(MASTER_PORT_PROPERTY) : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(ITConstants.IT_APP_LOG_DIR) + "jobs" + File.separator;
@@ -94,9 +93,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore workersDebugInfo = new Semaphore(0);
 
     public static boolean workerDebug = Logger.getLogger(Loggers.WORKER).isDebugEnabled();
-    
+
     public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
-    
 
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
@@ -116,102 +114,91 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Init the Transfer Manager
         logger.debug("  Initializing the TransferManager structures...");
         try {
-        	tm.init(NIOEventManagerClass, null, mhm);
+            tm.init(NIOEventManagerClass, null, mhm);
         } catch (CommException ce) {
-        	String errMsg = "Error initializing the TransferManager";
-        	ErrorManager.error(errMsg, ce);
+            String errMsg = "Error initializing the TransferManager";
+            ErrorManager.error(errMsg, ce);
         }
 
         /* Init tracing values */
         tracing = System.getProperty(ITConstants.IT_TRACING) != null
-               && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+                && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
         tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
-
 
         // Start the server
         logger.debug("  Starting transfer server...");
         try {
-        	tm.startServer(masterNode);
+            tm.startServer(masterNode);
         } catch (CommException ce) {
-        	String errMsg = "Error starting transfer server";
-        	ErrorManager.error(errMsg, ce);
+            String errMsg = "Error starting transfer server";
+            ErrorManager.error(errMsg, ce);
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
         logger.debug("  Starting TransferManager Thread");
         tm.start();
     }
-    
-	@Override
-	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
-		NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
-		
-		integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
-		integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
-		
-		int min_project = (props_project != null) ? props_project.getMinPort() : -1;
-		int min_resources = -1;
-		if (props_resources != null) {
-			min_resources = props_resources.getMinPort();
-		} else {
-			// MinPort on resources is mandatory
-			throw new Exception("Resources file doesn't contain a minimum port value");
-		}
-		int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
-		int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
-		
-		// Merge ranges
-		int min_final = -1;
-		if (min_project < 0) {
-			min_final = min_resources;
-		} else if (min_project < min_resources) {
-			logger.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
-			min_final = min_resources;
-		} else {
-			min_final = min_project;
-		}
-		
-		int max_final = -1;
-		if (max_project < 0) {
-			if (max_resources < 0) {
-				// No max port defined
-				logger.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
-			} else {
-				logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-				max_final = max_resources;
-			}
-		} else if (max_resources < 0) {
-			max_final = max_project;
-		} else if (max_project < max_resources) {
-			max_final = max_project;
-		} else {
-			logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
-			max_final = max_resources;
-		}
-		
-		logger.info("NIO Min Port: " + min_final);
-		logger.info("NIO MAX Port: " + max_final);
-		config.setMinPort(min_final);
-		config.setMaxPort(max_final);
-		
-		return config;
-	}
 
     @Override
-    public NIOWorkerNode initWorker(String workerName, Configuration config) throws Exception {
-        logger.debug("Init NIO Worker Node");
-        NIOWorkerNode worker = null;
-        worker = new NIOWorkerNode(workerName, (NIOConfiguration)config, this);
-        NIONode n = null;
-        try {
-        	n = new WorkerStarter(worker).startWorker();
-        } catch(Exception e) {
-            ErrorManager.warn("There was an error when initiating worker " + worker.getName() + ".", e);
-            throw e;
-        }
-        worker.setNode(n);
-        nodes.add(worker);
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+        NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
+        integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
+        integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
+
+        int min_project = (props_project != null) ? props_project.getMinPort() : -1;
+        int min_resources = -1;
+        if (props_resources != null) {
+            min_resources = props_resources.getMinPort();
+        } else {
+            // MinPort on resources is mandatory
+            throw new Exception("Resources file doesn't contain a minimum port value");
+        }
+        int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
+        int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
+
+        // Merge ranges
+        int min_final = -1;
+        if (min_project < 0) {
+            min_final = min_resources;
+        } else if (min_project < min_resources) {
+            logger.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
+            min_final = min_resources;
+        } else {
+            min_final = min_project;
+        }
+
+        int max_final = -1;
+        if (max_project < 0) {
+            if (max_resources < 0) {
+                // No max port defined
+                logger.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
+            } else {
+                logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                max_final = max_resources;
+            }
+        } else if (max_resources < 0) {
+            max_final = max_project;
+        } else if (max_project < max_resources) {
+            max_final = max_project;
+        } else {
+            logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+            max_final = max_resources;
+        }
+
+        logger.info("NIO Min Port: " + min_final);
+        logger.info("NIO MAX Port: " + max_final);
+        config.setMinPort(min_final);
+        config.setMaxPort(max_final);
+
+        return config;
+    }
+
+    @Override
+    public NIOWorkerNode initWorker(String workerName, Configuration config) {
+        logger.debug("Init NIO Worker Node");
+        NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
+        nodes.add(worker);
         return worker;
     }
 
@@ -248,38 +235,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     protected static void submitTask(NIOJob job) throws Exception {
         logger.debug("NIO submitting new job " + job.getJobId());
-        
         Resource res = job.getResource();
-        NIOWorkerNode node = (NIOWorkerNode) res.getNode();
-        NIONode hostNode = node.getNode();
+        NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
         LinkedList<String> obsolete = res.clearObsoletes();
-
         runningJobs.put(job.getJobId(), job);
-        NIOTask t = job.prepareJob();
-        CommandNewTask cmd = new CommandNewTask(t, obsolete);
-        for (int retries = 0; retries < MAX_RETRIES; ++retries) {
-        	if (trySubmitTask(hostNode, cmd)) {
-        		return;
-        	} else {
-        		try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					// Nothing to do
-				}
-        	}
-        }
-        
-        // Submission has failed
-        throw new Exception("Submit Job"+ job.getJobId()+ " failed.");
+        worker.submitTask(job, obsolete);
     }
-
-    private static boolean trySubmitTask(NIONode hostNode, CommandNewTask cmd) {
-    	Connection c = tm.startConnection(hostNode);
-		c.sendCommand(cmd);
-		c.finishConnection();
-
-		return true;
-	}
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles) {
@@ -288,13 +249,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void setMaster(NIONode master) {
-        // This is called on NIOWorker
+        // this is called on NIOWorker
         // Setting Master on Adaptor --> Nothig to be done
     }
 
     @Override
     public boolean isMyUuid(String uuid) {
-        // this is used on NIOWorker to check sent UUID against worker UUID
+        // This is used on NIOWorker to check sent UUID against worker UUID
         return false;
     }
 
@@ -304,41 +265,41 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
         ws.setWorkerIsReady();
     }
-   
+
     public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
         NIOJob nj = runningJobs.remove(jobId);
 
         if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {
-                int numParams = nj.getTaskParams().getParameters().length;
-                for (int i = 0; i < numParams; i++) {
-                        Parameter dp = nj.getTaskParams().getParameters()[i];
-                        if (dp instanceof SCOParameter) {
-                                SCOParameter scop = (SCOParameter) dp;
-                                NIOParam np = (NIOParam) nt.getParams().get(i);
-                                Object value = np.getValue();
-                                if (value instanceof PSCOId) {
-                                        scop.setValue(value);
-                                }
-                        }
+            int numParams = nj.getTaskParams().getParameters().length;
+            for (int i = 0; i < numParams; i++) {
+                Parameter dp = nj.getTaskParams().getParameters()[i];
+                if (dp instanceof SCOParameter) {
+                    SCOParameter scop = (SCOParameter) dp;
+                    NIOParam np = (NIOParam) nt.getParams().get(i);
+                    Object value = np.getValue();
+                    if (value instanceof PSCOId) {
+                        scop.setValue(value);
+                    }
                 }
+            }
         }
 
         if (nj != null) {
-                // Check if all the FILE outs have been generated
-                // nj.getCore().getParameters()
+            // Check if all the FILE outs have been generated
+            // nj.getCore().getParameters()
 
-                JobHistory h = nj.getHistory();
-                nj.taskFinished(successful);
-                if (workerDebug) {
-                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
-                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
-                } else {
-                    if (!successful) {
-                        c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
-                        c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
-                    }
+            JobHistory h = nj.getHistory();
+            nj.taskFinished(successful);
+            if (workerDebug) {
+                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
+                c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
+            } else {
+                if (!successful) {
+                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".out");
+                    c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
                 }
-                c.finishConnection();
+            }
+            c.finishConnection();
         }
     }
 
@@ -356,8 +317,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     protected void handleDataToSendNotAvailable(Connection c, Data d) {
-    	// Finish the connection asap. The comm library will notify this error upwards as a ClosedChannelError.
-    	c.finishConnection();
+        // Finish the connection asap. The comm library will notify this error upwards as a ClosedChannelError.
+        c.finishConnection();
     }
 
     @Override
@@ -385,7 +346,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             }
             c.end(DataOperation.OpEndState.OP_OK);
         }
-        if(tracing){
+        if (tracing) {
             NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
         }
     }
@@ -425,37 +386,37 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     public Object getObject(String name) throws SerializedObjectException {
-    	LogicalData ld = Comm.getData(name);
-    	Object o = ld.getValue();
+        LogicalData ld = Comm.getData(name);
+        Object o = ld.getValue();
 
-    	// Check if the object has been serialized meanwhile
-    	if (o == null) {
-    		for (URI loc : ld.getURIs()) {
-    			if (loc.getHost().getName().equals(Comm.appHost.getName())) {
-    				// The object is null because it has been serialized by the master, raise exception
-    				throw new SerializedObjectException(name);
-    			}
-    		}
-    	}
+        // Check if the object has been serialized meanwhile
+        if (o == null) {
+            for (URI loc : ld.getURIs()) {
+                if (loc.getHost().getName().equals(Comm.appHost.getName())) {
+                    // The object is null because it has been serialized by the master, raise exception
+                    throw new SerializedObjectException(name);
+                }
+            }
+        }
 
-    	// If we arrive to this return means:
-    	//    1- The object has been found		or
-    	//    2- The object is really null (no exception thown)
-    	return o;
+        // If we arrive to this return means:
+        //    1- The object has been found		or
+        //    2- The object is really null (no exception thown)
+        return o;
     }
 
     public String getObjectAsFile(String name) {
-    	LogicalData ld = Comm.getData(name);
+        LogicalData ld = Comm.getData(name);
 
-    	// Get a Master location
-		for (URI loc : ld.getURIs()) {
-			if (loc.getHost().getName().equals(Comm.appHost.getName())) {
-				return loc.getPath();
-			}
-		}
+        // Get a Master location
+        for (URI loc : ld.getURIs()) {
+            if (loc.getHost().getName().equals(Comm.appHost.getName())) {
+                return loc.getPath();
+            }
+        }
 
-		// No location found in master
-    	return null;
+        // No location found in master
+        return null;
     }
 
     public String getWorkingDir() {
@@ -502,7 +463,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void shutdown(Connection closingConnection) {
-    	// Master side, nothing to do
+        // Master side, nothing to do
     }
 
     @Override
@@ -532,10 +493,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void notifyWorkersDebugInfoGeneration() {
-    	workersDebugInfo.release();
+        workersDebugInfo.release();
     }
 
-	@Override
+    @Override
     public void generateWorkersDebugInfo(Connection c) {
         c.sendCommand(new CommandWorkerDebugFilesDone());
         c.finishConnection();

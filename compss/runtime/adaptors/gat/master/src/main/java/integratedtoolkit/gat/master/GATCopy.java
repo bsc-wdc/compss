@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import org.gridlab.gat.GATInvocationException;
 import org.gridlab.gat.io.FileInterface;
 
-
 public class GATCopy extends ImmediateCopy {
 
     private static final String ERR_NO_TGT_URI = "No valid target URIs";
@@ -26,7 +25,7 @@ public class GATCopy extends ImmediateCopy {
     public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason, EventListener listener) {
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         this.reason = reason;
-        
+
         for (URI uri : prefTgt.getURIs()) {
             String path = uri.getPath();
             if (path.startsWith(File.separator)) {
@@ -118,20 +117,20 @@ public class GATCopy extends ImmediateCopy {
         FileInterface f = null;
         logger.debug("RawPath: " + src.getRawPath());
         logger.debug("isLocal: " + src.isLocal());
-        if(src.isLocal() && !(new File(src.getRawPath())).exists()) {
-        	String errorMessage = null;
-        	if (this.reason instanceof WorkersDebugInfoCopyTransferable) {
-        		// Only warn, hide error to ErrorManager
-        		errorMessage = "Workers Debug Information not supported in GAT Adaptor";
-        		logger.warn(errorMessage);
-        	} else {
-        		// Notify error to ErrorManager
-        		errorMessage = "File '" + src.toString() + "' could not be copied to '" + dest.toString() + "' because it does not exist.";
-	        	ErrorManager.warn(errorMessage);
-	        	logger.warn(errorMessage);
-        	}
-        	throw new Exception(errorMessage);
-        }	
+        if (src.isLocal() && !(new File(src.getRawPath())).exists()) {
+            String errorMessage = null;
+            if (this.reason instanceof WorkersDebugInfoCopyTransferable) {
+                // Only warn, hide error to ErrorManager
+                errorMessage = "Workers Debug Information not supported in GAT Adaptor";
+                logger.warn(errorMessage);
+            } else {
+                // Notify error to ErrorManager
+                errorMessage = "File '" + src.toString() + "' could not be copied to '" + dest.toString() + "' because it does not exist.";
+                ErrorManager.warn(errorMessage);
+                logger.warn(errorMessage);
+            }
+            throw new Exception(errorMessage);
+        }
         f = org.gridlab.gat.GAT.createFile(GATAdaptor.getTransferContext(), src).getFileInterface();
         f.copy(dest);
     }

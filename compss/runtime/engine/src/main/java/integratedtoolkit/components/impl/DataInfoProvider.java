@@ -47,7 +47,7 @@ public class DataInfoProvider {
     // Component logger - No need to configure, ProActive does
     private static final Logger logger = Logger.getLogger(Loggers.DIP_COMP);
     private static final boolean debug = logger.isDebugEnabled();
-
+    
     public DataInfoProvider() {
         nameToId = new TreeMap<String, Integer>();
         codeToId = new TreeMap<Integer, Integer>();
@@ -57,7 +57,7 @@ public class DataInfoProvider {
         blockedData = new LinkedList<Integer>();
         pendingObsoleteRenamings = new LinkedList<String>();
         DataInfo.init();
-
+        
         logger.info("Initialization finished");
     }
 
@@ -76,7 +76,7 @@ public class DataInfoProvider {
                     -1);
         }
     }
-
+    
     public synchronized DataAccessId registerFileAccess(AccessMode mode, DataLocation location, int readerId) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
@@ -134,18 +134,18 @@ public class DataInfoProvider {
             if (mode != AccessMode.W) {
                 Comm.registerValue(renaming, value);
             }
-
+            
         } else {// The datum has already been accessed
             if (debug) {
                 logger.debug("Another access to object " + code);
             }
-
+            
             oInfo = idToData.get(aoId);
         }
         // Version management
         return oInfo.manageAccess(mode, readerId, debug, logger);
     }
-
+    
     public synchronized boolean alreadyAccessed(DataLocation loc) {
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
@@ -158,12 +158,12 @@ public class DataInfoProvider {
         DataInfo oInfo = idToData.get(aoId);
         return oInfo.getLastDataInstanceId().getRenaming();
     }
-
+    
     public synchronized DataLocation getOriginalLocation(int fileId) {
         FileInfo info = (FileInfo) idToData.get(fileId);
         return info.getOriginalLocation();
     }
-
+    
     public synchronized void dataHasBeenRead(List<DataAccessId> dataIds, int readerId) {
         if (!pendingObsoleteRenamings.isEmpty() && blockedData.isEmpty()) {// Flush pending obsolete renamings when there's no blocked data
             for (String renaming : pendingObsoleteRenamings) {
@@ -171,7 +171,7 @@ public class DataInfoProvider {
             }
             pendingObsoleteRenamings.clear();
         }
-
+        
         for (DataAccessId dAccId : dataIds) {
             Integer rDataId = null;
             Integer rVersionId = null;
@@ -230,30 +230,30 @@ public class DataInfoProvider {
             }
         }
     }
-
+    
     public synchronized void setObjectVersionValue(String renaming, Object value) {
         renamingToValue.put(renaming, value);
         Comm.registerValue(renaming, value);
     }
-
+    
     public synchronized boolean isHere(DataInstanceId dId) {
         return renamingToValue.get(dId.getRenaming()) != null;
     }
-
+    
     public synchronized Object getObject(String renaming) {
         return renamingToValue.get(renaming);
     }
-
+    
     public synchronized void newVersionSameValue(String rRenaming, String wRenaming) {
         renamingToValue.put(wRenaming, renamingToValue.get(rRenaming));
     }
-
+    
     public synchronized DataInstanceId getLastDataAccess(int code) {
         Integer aoId = codeToId.get(code);
         DataInfo oInfo = idToData.get(aoId);
         return oInfo.getLastDataInstanceId();
     }
-
+    
     public synchronized List<DataInstanceId> getLastVersions(TreeSet<Integer> dataIds) {
         List<DataInstanceId> versionIds = new ArrayList<DataInstanceId>(dataIds.size());
         for (Integer dataId : dataIds) {
@@ -266,22 +266,22 @@ public class DataInfoProvider {
         }
         return versionIds;
     }
-
+    
     public synchronized void blockDataIds(TreeSet<Integer> dataIds) {
         blockedData.addAll(dataIds);
     }
-
+    
     public synchronized void unblockDataId(Integer dataId) {
         blockedData.remove(dataId);
     }
-
+    
     public synchronized FileInfo deleteData(DataLocation loc) {
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
         if (fileId == null) {
             return null;
         }
-
+        
         FileInfo fileInfo = (FileInfo) idToData.get(fileId);
         if (fileInfo.getReaders() == 0) {
             nameToId.remove(locationKey);
@@ -292,17 +292,17 @@ public class DataInfoProvider {
         }
         return fileInfo;
     }
-
+    
     public synchronized void transferObjectValue(TransferObjectRequest toRequest) {
         Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
-
+        
         String sourceName = rwaId.getReadDataInstance().getRenaming();
         //String targetName = rwaId.getWrittenDataInstance().getRenaming();
 
         LogicalData ld = Comm.getData(sourceName);
-
+        
         if (ld.isInMemory()) {
             if (!ld.isOnFile()) { // Only if there are no readers
                 try {
@@ -311,16 +311,16 @@ public class DataInfoProvider {
                     logger.fatal("Exception writing object to file.", e);
                 }
             } else {
-            	Comm.clearValue(sourceName);
+                Comm.clearValue(sourceName);
             }
             toRequest.setResponse(ld.getValue());
             toRequest.getSemaphore().release();
         } else {
             DataLocation targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + sourceName);
-            Comm.appHost.getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
+                Comm.appHost.getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
     }
-
+    
     public synchronized ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
@@ -336,7 +336,7 @@ public class DataInfoProvider {
             lastVersion = fileInfo.getLastDataInstanceId();
             blockedData.add(dataId);
             ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
-
+            
             DataInstanceId fId = rf.getFileInstanceId();
             String renaming = fId.getRenaming();
 
@@ -348,16 +348,16 @@ public class DataInfoProvider {
                 logger.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming() + " nor any of its previous versions");
                 return null;
             }
-
+            
             listener.addOperation();
             Comm.appHost.getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
         }
         return null;
     }
-
+    
     public synchronized void shutdown() {
         //Nothing to do
     }
-
+    
 }

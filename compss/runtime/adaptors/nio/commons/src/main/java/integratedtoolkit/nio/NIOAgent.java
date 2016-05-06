@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 
 public abstract class NIOAgent {
 
-	protected static final String NIOEventManagerClass = "es.bsc.comm.nio.NIOEventManager";
+    protected static final String NIOEventManagerClass = "es.bsc.comm.nio.NIOEventManager";
 
     public static final String ID = NIOAgent.class.getCanonicalName();
     private int sendTransfers;
@@ -65,7 +65,7 @@ public abstract class NIOAgent {
     protected static boolean tracing;
     protected static int tracing_level;
     protected static int tracingID = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
-     protected static HashMap<Connection, Integer> connection2Partner;
+    protected static HashMap<Connection, Integer> connection2Partner;
 
     public NIOAgent(int snd, int rcv, int port) {
         sendTransfers = 0;
@@ -89,14 +89,14 @@ public abstract class NIOAgent {
 
     public abstract void setWorkerIsReady(String nodeName); // this will use the Treemap to set the corresponding worker starter as ready (I can use connection.getNode())
 
-    public void addConnectionAndPartner(Connection c, int partner, int tag){
+    public void addConnectionAndPartner(Connection c, int partner, int tag) {
         connection2Partner.put(c, partner);
     }
 
     // Reply the data
     public void sendData(Connection c, Data d, int receiverID) {
 
-        if (tracing){
+        if (tracing) {
             int tag = abs(d.getName().hashCode());
             CommandTracingID cmd = new CommandTracingID(tracingID, tag);
             c.sendCommand(cmd);
@@ -112,23 +112,23 @@ public abstract class NIOAgent {
                 logger.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
                 c.sendDataFile(path);
             } else {
-            	ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
-            	handleDataToSendNotAvailable(c, d);
+                ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
+                handleDataToSendNotAvailable(c, d);
             }
         } else {
             try {
-            	Object o = getObject(path);
-            	logger.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
+                Object o = getObject(path);
+                logger.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
                 c.sendDataObject(o);
             } catch (SerializedObjectException soe) {
-            	// Exception has been raised because object has been serialized
-            	String newLocation = getObjectAsFile(path);
-            	logger.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
-            	c.sendDataFile(newLocation);
+                // Exception has been raised because object has been serialized
+                String newLocation = getObjectAsFile(path);
+                logger.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
+                c.sendDataFile(newLocation);
             }
 
         }
-        if (tracing){
+        if (tracing) {
             NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
         }
         c.finishConnection();
@@ -190,7 +190,6 @@ public abstract class NIOAgent {
 
     // Check if this node has the data
     //public abstract boolean checkData(Data d);
-
     public NIONode getMaster() {
         return masterNode;
     }
@@ -282,7 +281,7 @@ public abstract class NIOAgent {
             Data source = dr.source;
             NIOURI uri = source.getFirstURI();
 
-            if (tracing){
+            if (tracing) {
                 NIOTracer.emitDataTransferEvent(source.getName());
             }
             NIONode nn = uri.getHost();
@@ -298,7 +297,7 @@ public abstract class NIOAgent {
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
                 ongoingTransfers.put(c, dr.source.getName());
                 c.sendCommand(cdd);
-                if (tracing){
+                if (tracing) {
                     c.receive();
                 }
                 if (dr.type == ITExecution.ParamType.FILE_T) {
@@ -321,7 +320,7 @@ public abstract class NIOAgent {
                     dr = null;
                 }
             }
-            if (tracing){
+            if (tracing) {
                 NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             }
         }
@@ -329,7 +328,7 @@ public abstract class NIOAgent {
 
     public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
 
-    	String dataId = ongoingTransfers.remove(c);
+        String dataId = ongoingTransfers.remove(c);
         if (dataId == null) { // It has received the output and error of a job execution
             return;
         }
@@ -362,8 +361,8 @@ public abstract class NIOAgent {
             }
             sameTarget.add(req);
         }
-            
-        if (tracing){
+
+        if (tracing) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
             NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag);
@@ -407,7 +406,7 @@ public abstract class NIOAgent {
     }
 
     protected LinkedList<DataRequest> getDataRequests(String dataId) {
-    	return dataToRequests.get(dataId);
+        return dataToRequests.get(dataId);
     }
 
     //Called when a value couldn't be SENT because, for example, the file to be sent it didnt exist
@@ -441,6 +440,3 @@ public abstract class NIOAgent {
     public abstract void notifyWorkersDebugInfoGeneration();
 
 }
-
-
-

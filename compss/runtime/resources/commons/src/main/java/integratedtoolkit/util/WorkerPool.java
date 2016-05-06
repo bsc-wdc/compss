@@ -20,9 +20,7 @@ public class WorkerPool {
 
     //TreeSet : Priority on criticalSet based on cost
     private TreeSet<CloudMethodWorker> criticalOrder;
-    //Map: coreId -> List <Implementations -> List <names of the resources where implementation suits> >
 
-    //public static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(integratedtoolkit.log.Loggers.RESOURCES);
     public WorkerPool() {
         staticSet = new HashMap<String, Worker<?>>();
         criticalSet = new HashMap<String, CloudMethodWorker>();
@@ -96,8 +94,10 @@ public class WorkerPool {
     public void delete(Worker<?> resource) {
         String resourceName = resource.getName();
         //Remove resource from sets
-        if (criticalSet.remove(resourceName) == null) {
-            nonCriticalSet.remove(resourceName);
+        if (nonCriticalSet.remove(resourceName) == null) {
+            if (criticalSet.remove(resourceName) == null) {
+                staticSet.remove(resourceName);
+            }
         }
     }
 

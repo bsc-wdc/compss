@@ -4,7 +4,6 @@ import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-
 public class MethodWorker extends Worker<MethodResourceDescription> {
 
     private String name;
@@ -12,17 +11,14 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
-    
     public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks) {
         super(name, description, worker, limitOfTasks);
-
         this.name = name;
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration config) throws Exception {
-        super(name, description, config);
-        
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf) {
+        super(name, description, conf);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
     }
@@ -36,34 +32,34 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public String getName() {
         return this.name;
     }
-    
+
     public MethodResourceDescription getAvailable() {
         return this.available;
     }
 
     @Override
     public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		if (this.hasAvailable(consumption)) {
-    			return (MethodResourceDescription) available.reduceDynamic(consumption);
-    		} else {
-    			return null;
-    		}
-    	}
+        synchronized (available) {
+            if (this.hasAvailable(consumption)) {
+                return (MethodResourceDescription) available.reduceDynamic(consumption);
+            } else {
+                return null;
+            }
+        }
     }
 
     @Override
     public void releaseResource(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		available.increaseDynamic(consumption);
-    	}
+        synchronized (available) {
+            available.increaseDynamic(consumption);
+        }
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		return available.dynamicContains(consumption);
-    	}
+        synchronized (available) {
+            return available.containsDynamic(consumption);
+        }
     }
 
     @Override

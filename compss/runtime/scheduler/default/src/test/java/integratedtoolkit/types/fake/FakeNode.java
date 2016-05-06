@@ -45,6 +45,10 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
+    public void start() {
+    }
+
+    @Override
     public void stop(ShutdownListener sl) {
     }
 

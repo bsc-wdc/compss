@@ -12,7 +12,9 @@ import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.operation.FileTransferable;
 import integratedtoolkit.types.data.operation.OneOpWithSemListener;
-
+import integratedtoolkit.util.ErrorManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The TransferRawFileRequest class represents a request to transfer a file

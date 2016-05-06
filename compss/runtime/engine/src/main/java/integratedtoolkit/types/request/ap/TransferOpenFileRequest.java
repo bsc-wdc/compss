@@ -14,7 +14,7 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.operation.FileTransferable;
 import integratedtoolkit.types.data.operation.OneOpWithSemListener;
-
+import integratedtoolkit.util.ErrorManager;
 
 /**
  * The TransferRawFileRequest class represents a request to transfer a file
@@ -103,7 +103,7 @@ public class TransferOpenFileRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-    	logger.debug("Process TransferOpenFileRequest");
+        logger.debug("Process TransferOpenFileRequest");
         DataLocation targetLocation;
         if (faId instanceof DataAccessId.WAccessId) {
             DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;

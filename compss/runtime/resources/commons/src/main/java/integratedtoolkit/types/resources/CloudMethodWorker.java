@@ -7,7 +7,6 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
-
 public class CloudMethodWorker extends MethodWorker {
 
     // Pending removals
@@ -20,14 +19,14 @@ public class CloudMethodWorker extends MethodWorker {
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config) throws Exception {
-    	super(name, description, config);
-    	
-        if (this.description != null) {            
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config) {
+        super(name, description, config);
+
+        if (this.description != null) {
             // Add name
-            ((CloudMethodResourceDescription)this.description).setName(name);
+            ((CloudMethodResourceDescription) this.description).setName(name);
         }
-        
+
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
@@ -45,31 +44,31 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public String getMonitoringData(String prefix) {
-    	// TODO: Add full information about description (mem type, each processor information, etc)
+        // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>").append("\n");
         sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
         sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
-        String providerName = ((CloudMethodResourceDescription)description).getProviderName();
+        String providerName = ((CloudMethodResourceDescription) description).getProviderName();
         if (providerName == null) {
             providerName = new String("");
         }
         sb.append(prefix).append("<Provider>").append(providerName).append("</Provider>").append("\n");
-        String imageName = ((CloudMethodResourceDescription)description).getName();
+        String imageName = ((CloudMethodResourceDescription) description).getName();
         if (imageName == null) {
             imageName = new String("");
         }
         sb.append(prefix).append("<Image>").append(imageName).append("</Image>").append("\n");
-        
+
         return sb.toString();
     }
 
     public void increaseFeatures(CloudMethodResourceDescription increment) {
-    	synchronized(available) {
-    		available.increase(increment);
-    	}
-        synchronized(description) {
-        	description.increase(increment);
+        synchronized (available) {
+            available.increase(increment);
+        }
+        synchronized (description) {
+            description.increase(increment);
         }
         updatedFeatures();
     }
@@ -79,102 +78,101 @@ public class CloudMethodWorker extends MethodWorker {
         if (!hasAvailable(consumption)) {
             return null;
         }
-        
+
         return super.reserveResource(consumption);
     }
 
     @Override
     public synchronized void releaseResource(MethodResourceDescription consumption) {
-    	logger.debug("Checking cloud resources to release...");
-    	// Freeing task constraints
+        logger.debug("Checking cloud resources to release...");
+        // Freeing task constraints
         super.releaseResource(consumption);
-        
+
         // Performing as much as possible reductions
-        
-        synchronized(pendingReductions) {
-	        if (!pendingReductions.isEmpty()) {     
-	        	PendingReduction[] lpr = pendingReductions.toArray(new PendingReduction[pendingReductions.size()]);
-	            for (PendingReduction pRed : lpr) {
-	                if (isValidReduction(pRed.reduction)) {
-	                	// Perform reduction
-	                	synchronized(available) {
-	                		available.reduce(pRed.reduction);
-	                	}
-	                    // Untag pending to remove reduction
-	                	synchronized(toRemove) {
-	                		toRemove.reduce(pRed.reduction);
-	                	}
-	                    // Reduction is done, release sem
-	                    logger.debug("Releasing cloud resource "+ this.getName());
-	                    pRed.sem.release();
-	                    pendingReductions.remove(pRed);
-	                } else {
-	                    break;
-	                }
-	            }
-	        }
+        synchronized (pendingReductions) {
+            if (!pendingReductions.isEmpty()) {
+                PendingReduction[] lpr = pendingReductions.toArray(new PendingReduction[pendingReductions.size()]);
+                for (PendingReduction pRed : lpr) {
+                    if (isValidReduction(pRed.reduction)) {
+                        // Perform reduction
+                        synchronized (available) {
+                            available.reduce(pRed.reduction);
+                        }
+                        // Untag pending to remove reduction
+                        synchronized (toRemove) {
+                            toRemove.reduce(pRed.reduction);
+                        }
+                        // Reduction is done, release sem
+                        logger.debug("Releasing cloud resource " + this.getName());
+                        pRed.sem.release();
+                        pendingReductions.remove(pRed);
+                    } else {
+                        break;
+                    }
+                }
+            }
         }
     }
 
     public synchronized Semaphore reduceFeatures(CloudMethodResourceDescription reduction) {
-    	synchronized(description) {
-    		description.reduce(reduction);
-    	}
+        synchronized (description) {
+            description.reduce(reduction);
+        }
         Semaphore sem = null;
         if (hasAvailable(reduction)) {
-        	synchronized(available) {
-        		available.reduce(reduction);
-        	}
+            synchronized (available) {
+                available.reduce(reduction);
+            }
         } else {
-        	if (this.getUsedTaskCount() > 0) {
-        		// This resource is still running tasks. Wait for them to finish...
-        		// Mark to remove and enqueue pending reduction
-        		synchronized(toRemove) {
-        			toRemove.reduce(reduction);
-        		}
+            if (this.getUsedTaskCount() > 0) {
+                // This resource is still running tasks. Wait for them to finish...
+                // Mark to remove and enqueue pending reduction
+                synchronized (toRemove) {
+                    toRemove.reduce(reduction);
+                }
                 PendingReduction pRed = new PendingReduction(reduction);
-                synchronized(pendingReductions) {
-                	pendingReductions.add(pRed);
+                synchronized (pendingReductions) {
+                    pendingReductions.add(pRed);
                 }
                 sem = pRed.sem;
-        	} else {
-        		// Resource is not executing tasks. We can erase it, nothing to do
-        	}
+            } else {
+                // Resource is not executing tasks. We can erase it, nothing to do
+            }
         }
         updatedFeatures();
-        
+
         return sem;
     }
-    
+
     private boolean isValidReduction(MethodResourceDescription red) {
-    	synchronized(available) {
-    		boolean fits = available.dynamicContains(red);
-	    	
-	    	if (logger.isDebugEnabled()) {
-	    		logger.debug("Cloud Method reduction received:");
-	    		logger.debug("With result: " + fits);
-	    	}
-	    	
-	    	return fits;
-    	}
+        synchronized (available) {
+            boolean fits = available.containsDynamic(red);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Cloud Method reduction received:");
+                logger.debug("With result: " + fits);
+            }
+
+            return fits;
+        }
     }
 
     @Override
     public boolean hasAvailable(MethodResourceDescription consumption) {
-    	synchronized(available) {
-    		synchronized(toRemove) {
-    			consumption.increase(toRemove);
-    			boolean fits = available.dynamicContains(consumption);
-    			consumption.reduce(toRemove);
-    			
-    			if (logger.isDebugEnabled()) {
-    	    		logger.debug("Cloud Method Worker received:");
-    	    		logger.debug("With result: " + fits);
-    	    	}
-    	    	
-    	    	return fits;
-    		}
-    	}
+        synchronized (available) {
+            synchronized (toRemove) {
+                consumption.increase(toRemove);
+                boolean fits = available.containsDynamic(consumption);
+                consumption.reduce(toRemove);
+
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Cloud Method Worker received:");
+                    logger.debug("With result: " + fits);
+                }
+
+                return fits;
+            }
+        }
     }
 
     @Override
@@ -188,11 +186,11 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     public boolean shouldBeStopped() {
-    	synchronized(available) {
-    		synchronized(toRemove) {
-    			return ((available.getTotalComputingUnits() == 0) && (toRemove.getTotalComputingUnits() == 0));
-    		}
-    	}
+        synchronized (available) {
+            synchronized (toRemove) {
+                return ((available.getTotalComputingUnits() == 0) && (toRemove.getTotalComputingUnits() == 0));
+            }
+        }
     }
 
     private class PendingReduction {

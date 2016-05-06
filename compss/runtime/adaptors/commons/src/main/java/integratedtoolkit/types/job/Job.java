@@ -22,6 +22,7 @@ public abstract class Job<T extends COMPSsNode> {
 
     // Job history
     public enum JobHistory {
+
         NEW,
         RESUBMITTED_FILES,
         RESUBMITTED,
@@ -30,6 +31,7 @@ public abstract class Job<T extends COMPSsNode> {
 
     // Job kind
     public enum JobKind {
+
         METHOD,
         SERVICE;
     }
@@ -117,6 +119,7 @@ public abstract class Job<T extends COMPSsNode> {
     public static interface JobListener {
 
         enum JobEndStatus {
+
             OK,
             TO_RESCHEDULE,
             TRANSFERS_FAILED,

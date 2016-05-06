@@ -17,65 +17,62 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-
 public class WorkerStarter {
-    
+
     // Tracing
     protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0
             ? true : false;
     protected static final int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
-    
+
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
-       
-    private static final String STARTER_SCRIPT_PATH = "scripts" + File.separator + "system" 
-    								+ File.separator + "adaptors" + File.separator + "nio" + File.separator;
+
+    private static final String STARTER_SCRIPT_PATH = "scripts" + File.separator + "system"
+            + File.separator + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
-    
+
     private static final int NUM_THREADS = 16;
     private static final long MAX_WAIT_FOR_INIT = 20000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
-    
+
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
-    
-    private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<String, WorkerStarter>();    
+
+    private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<String, WorkerStarter>();
     private boolean workerIsReady = false;
     private NIOWorkerNode nw;
-    
-    
+
     public WorkerStarter(NIOWorkerNode nw) {
         this.nw = nw;
     }
-    
-    public static WorkerStarter getWorkerStarter(String address){
+
+    public static WorkerStarter getWorkerStarter(String address) {
         return addresstoWorkerStarter.get(address);
     }
 
-    public void setWorkerIsReady(){
+    public void setWorkerIsReady() {
         workerIsReady = true;
     }
-    
+
     public NIONode startWorker() throws Exception {
         String name = nw.getName();
         String user = nw.getUser();
         int minPort = nw.getConfiguration().getMinPort();
         int maxPort = nw.getConfiguration().getMaxPort();
         int port = minPort;
-        
-        
+
         NIONode n = null;
         int pid = -1;
-        while (port <= maxPort){
+        while (port <= maxPort) {
             String[] command;
             if (pid != -1) {
                 command = getStopCommand(pid);
                 ProcessOut po = executeCommand(user, name, command);
                 if (po.getExitValue() != 0) {
-                	logger.error(ERROR_SHUTTING_DOWN_RETRY);
+                    logger.error(ERROR_SHUTTING_DOWN_RETRY);
                 }
             }
-            
+
             command = getStartCommand(nw, port);
             ProcessOut po = executeCommand(user, name, command);
             if (po.getExitValue() == 0) {
@@ -89,23 +86,23 @@ public class WorkerStarter {
                 n = new NIONode(name, port);
                 String nodeName = nw.getName();
 
-                addresstoWorkerStarter.put( nodeName, this);
-                
+                addresstoWorkerStarter.put(nodeName, this);
+
                 logger.debug("Worker process started. Checking connectivity...");
-                
+
                 CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
-                while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT)) { 
-                	Thread.sleep(delay);
-                	if (debug){
-                		logger.debug("Sending check command to worker "+ nodeName);
-                	}
+                while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT)) {
+                    Thread.sleep(delay);
+                    if (debug) {
+                        logger.debug("Sending check command to worker " + nodeName);
+                    }
                     Connection c = NIOAdaptor.tm.startConnection(n);
                     c.sendCommand(cmd);
                     c.receive();
                     c.finishConnection();
 
                     totalWait += delay;
-                    delay = (delay < 1900 )? delay*2 : 2000;
+                    delay = (delay < 1900) ? delay * 2 : 2000;
                 }
             } else {
                 throw new Exception("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user " + user + ".\n"
@@ -117,9 +114,9 @@ public class WorkerStarter {
             } else {
                 Runtime.getRuntime().addShutdownHook(new Ender(nw, pid));
                 return n;
-            } 
+            }
         }
-        
+
         if (!workerIsReady) {
             throw new Exception("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
@@ -131,11 +128,11 @@ public class WorkerStarter {
     public static void ender(NIOWorkerNode node, int pid) {
         String user = node.getUser();
         String wD = node.getWorkingDir();
-        
+
         // Execute stop command
         String[] command = getStopCommand(pid);
         executeCommand(user, node.getName(), command);
-        
+
         // Execute clean command
         command = getCleanCommand(wD);
         executeCommand(user, node.getName(), command);
@@ -146,10 +143,10 @@ public class WorkerStarter {
     private static String[] getStartCommand(NIOWorkerNode node, int workerPort) {
 
         String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-        if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 )) {
-                storageConf = "null";
-                logger.warn("No storage configuration file passed");
-                }
+        if ((storageConf == null) || (storageConf.compareTo("") == 0) || (storageConf.compareTo("null") == 0)) {
+            storageConf = "null";
+            logger.warn("No storage configuration file passed");
+        }
 
         String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
 
@@ -159,7 +156,7 @@ public class WorkerStarter {
         String cp = (System.getProperty(ITConstants.IT_WORKER_CP) != null && System.getProperty(ITConstants.IT_WORKER_CP).compareTo("") != 0) ? System.getProperty(ITConstants.IT_WORKER_CP) : "\"\"";
         String installDir = node.getInstallDir();
         String workerDebug = Boolean.toString(Logger.getLogger(Loggers.WORKER).isDebugEnabled());
-        
+
         // Gets the max cores of the machine
         // int numThreads = r.getMaxTaskCount();
         String[] cmd = new String[18];
@@ -170,9 +167,9 @@ public class WorkerStarter {
         cmd[4] = workerDebug;
         cmd[5] = workingDir;
         if (node.getLimitOfTasks() >= 0) {
-        	cmd[6] = String.valueOf(node.getLimitOfTasks());
+            cmd[6] = String.valueOf(node.getLimitOfTasks());
         } else {
-        	cmd[6] = String.valueOf(NUM_THREADS);
+            cmd[6] = String.valueOf(NUM_THREADS);
         }
         cmd[7] = String.valueOf(NIOAdaptor.MAX_SEND_WORKER);
         cmd[8] = String.valueOf(NIOAdaptor.MAX_RECEIVE_WORKER);
@@ -180,18 +177,18 @@ public class WorkerStarter {
         cmd[10] = String.valueOf(workerPort);
         cmd[11] = String.valueOf(NIOAdaptor.MASTER_PORT);
         cmd[12] = String.valueOf(tracing_level);
-        
+
         if (tracing) {
             Integer hostId = NIOTracer.registerHost(node.getName(), NUM_THREADS);
             cmd[13] = String.valueOf(hostId.toString());
         } else {
-        	cmd[13] ="NoTracinghostID";
+            cmd[13] = "NoTracinghostID";
         }
         cmd[14] = node.getInstallDir();
         cmd[15] = DEPLOYMENT_ID;
         cmd[16] = storageConf;
         cmd[17] = executionType;
-        
+
         return cmd;
     }
 
@@ -204,8 +201,8 @@ public class WorkerStarter {
     }
 
     private static String[] getCleanCommand(String wDir) {
-    	// The working dir is an application sandbox within the base working directory
-    	// We can erase it all
+        // The working dir is an application sandbox within the base working directory
+        // We can erase it all
         wDir = wDir.substring(0, wDir.indexOf(DEPLOYMENT_ID) + DEPLOYMENT_ID.length());
         wDir = wDir.endsWith(File.separator) ? wDir : wDir + File.separator;
         String[] cmd = new String[3];
@@ -216,7 +213,7 @@ public class WorkerStarter {
         return cmd;
     }
 
-    protected static ProcessOut executeCommand(String user, String resource, String[] command) {        
+    protected static ProcessOut executeCommand(String user, String resource, String[] command) {
         ProcessOut processOut = new ProcessOut();
 
         String[] cmd = new String[5 + command.length];
@@ -233,7 +230,7 @@ public class WorkerStarter {
         }
         logger.debug("COMM CMD: " + sb.toString());
         try {
-            
+
             ProcessBuilder pb = new ProcessBuilder();
             pb.environment().remove("LD_PRELOAD");
             pb.command(cmd);
@@ -243,7 +240,7 @@ public class WorkerStarter {
             InputStream stdout = process.getInputStream();
 
             process.getOutputStream().close();
-            
+
             process.waitFor();
             processOut.setExitValue(process.exitValue());
 
@@ -259,7 +256,7 @@ public class WorkerStarter {
                 logger.debug("COMM CMD ERR: " + line);
             }
         } catch (Exception e) {
-        	logger.error("Exception initializing worker ", e);
+            logger.error("Exception initializing worker ", e);
         }
         return processOut;
     }

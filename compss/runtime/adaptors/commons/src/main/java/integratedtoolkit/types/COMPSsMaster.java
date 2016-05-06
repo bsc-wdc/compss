@@ -47,6 +47,11 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
+    public void start() {
+        //Do nothing.
+    }
+
+    @Override
     public String getName() {
         return name;
     }
@@ -66,14 +71,18 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener) {
         for (Resource targetRes : target.getHosts()) {
-            if (targetRes.getNode() != this) {
+            COMPSsNode node = targetRes.getNode();
+            if (node != this) {
                 try {
-                    targetRes.getNode().obtainData(ld, source, target, tgtData, reason, listener);
+                    node.obtainData(ld, source, target, tgtData, reason, listener);
                 } catch (Exception e) {
+                    //Can not copy the file. 
+                    //Cannot receive the file, try with the following
                     continue;
                 }
                 return;
             }
+
         }
     }
 
@@ -98,7 +107,7 @@ public class COMPSsMaster extends COMPSsNode {
         }
 
         ld.lockHostRemove();
-    	//Check if there are current copies in progress
+        //Check if there are current copies in progress
 
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
 
@@ -201,14 +210,13 @@ public class COMPSsMaster extends COMPSsNode {
         }
         if (source != null) {
             for (Resource sourceRes : source.getHosts()) {
-
-                if (sourceRes.getNode() != this) {
+                COMPSsNode node = sourceRes.getNode();
+                if (node != this) {
                     try {
-
                         if (debug) {
                             logger.debug("Sending data " + ld.getName() + " from " + source.getPath() + " to " + target.getPath());
                         }
-                        sourceRes.getNode().sendData(ld, source, target, tgtData, reason, listener);
+                        node.sendData(ld, source, target, tgtData, reason, listener);
                     } catch (Exception e) {
                         ErrorManager.warn("Not posible to sending data master to " + target.getPath(), e);
                         continue;
@@ -236,10 +244,11 @@ public class COMPSsMaster extends COMPSsNode {
             logger.debug("Source data location if null. Trying other alternatives");
         }
         for (Resource sourceRes : ld.getAllHosts()) {
-            if (sourceRes.getNode() != this) {
+            COMPSsNode node = sourceRes.getNode();
+            if (node != this) {
                 try {
                     logger.debug("Sending data " + ld.getName() + " from " + sourceRes.getName() + " to " + target.getPath());
-                    sourceRes.getNode().sendData(ld, source, target, tgtData, reason, listener);
+                    node.sendData(ld, source, target, tgtData, reason, listener);
                 } catch (Exception e) {
                     logger.error("Error: exception sending data", e);
                     continue;

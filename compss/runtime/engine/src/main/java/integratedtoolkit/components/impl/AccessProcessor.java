@@ -150,6 +150,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     // Notification thread (JM)
+    @Override
     public void notifyTaskEnd(Task task) {
         requestQueue.offer(new TaskEndNotification(task));
     }

@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
-
 public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P,T> {
 
     private static final int THRESHOLD = 50;
@@ -63,7 +62,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
     }
 
     @Override
-    public void workerUpdate(ResourceScheduler<P,T> resource) {
+    public void workerLoadUpdate(ResourceScheduler<P,T> resource) {
         Worker worker = resource.getResource();
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.

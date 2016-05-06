@@ -15,7 +15,6 @@ import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.ShutdownListener;
 
-
 public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     private float currentCostPerHour;
@@ -54,11 +53,11 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         //ipToConnection = Collections.synchronizedMap(new HashMap<String, Connection>());
         String creationTimeStr = props.get("estimated-creation-time");
         if (creationTimeStr != null) {
-        	meanCreationTime = Integer.parseInt(creationTimeStr)*1000;    	
+            meanCreationTime = Integer.parseInt(creationTimeStr) * 1000;
         } else {
-        	meanCreationTime = INITIAL_CREATION_TIME;
+            meanCreationTime = INITIAL_CREATION_TIME;
         }
-        
+
         logger.debug("Initial mean creation time is" + meanCreationTime);
         createdVMs = 0;
         currentCostPerHour = 0.0f;
@@ -105,9 +104,9 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             if (!vm.rd.getImage().getImageName().equals(imageReq)) {
                 continue;
             }
-            
+
             if (!vm.rd.contains(requested)) {
-            	continue;
+                continue;
             }
 
             reusedVM = vm;
@@ -115,7 +114,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             vmsToDelete.remove(reusedVM);
             break;
         }
-        
+
         return reusedVM;
     }
 
@@ -127,7 +126,6 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             throws ConnectorException {
         return meanCreationTime;
     }
-    
 
     public void terminate(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         (new DeletionThread(this, worker, reduction)).start();
@@ -139,20 +137,20 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         dead.terminate();
 
         for (VM vm : IPToVM.values()) {
-        
+
             logger.info("Destroying VM " + vm.getName());
-            
+
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
             vm.getWorker().stop(false, sl);
-            
+
             sl.enable();
             try {
                 sem.acquire();
             } catch (Exception e) {
                 logger.error("ERROR: Exception raised on worker shutdown");
-            }      
-            try {    
+            }
+            try {
                 destroy(vm.getEnvId());
             } catch (Exception e) {
                 logger.error("ERROR: Exception while trying to destroy the virtual machine " + vm.getName(), e);
@@ -167,7 +165,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         this.close();
 
     }
-    
+
     protected abstract void close();
 
     @Override
@@ -409,7 +407,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             //logger.info("MONITOR STATUS DEAD Started at "+time+" now is "+now+" remaining --> "+(now - time)+" " +result+" ms to deadline");
             return result;
         }
-        
+
     }
 
     private class Ender extends Thread {
@@ -425,11 +423,11 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 try {
                     logger.info("Destroying VM " + vm.getName());
                     ac.destroy(vm.getEnvId());
-                    
+
                 } catch (Exception e) {
                     logger.info("Error while trying to  the virtual machine " + vm.getName());
-                }finally{
-                	ac.close();
+                } finally {
+                    ac.close();
                 }
             }
         }

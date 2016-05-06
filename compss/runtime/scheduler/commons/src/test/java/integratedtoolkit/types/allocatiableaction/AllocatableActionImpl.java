@@ -15,17 +15,15 @@ import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
 
-
-public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
+public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
     private int id;
     public static int[] executions;
     public static int[] error;
     public static int[] failed;
-    
 
     public AllocatableActionImpl(int id) {
-        super(new ResourceDependencies<P,T>());
+        super(new ResourceDependencies<P, T>());
         this.id = id;
     }
 
@@ -57,12 +55,12 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
         return null;
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
         return null;
     }
 
@@ -97,17 +95,17 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler<P,T> TS) {
+    public Score schedulingScore(TaskScheduler<P, T> TS) {
         return null;
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
         return null;
     }
 

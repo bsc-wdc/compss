@@ -2,6 +2,7 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.URI;
@@ -35,17 +36,15 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public COMPSsNode() {
     }
 
-    public abstract void setInternalURI(URI u);
+    public abstract void start() throws Exception;
+
+    public abstract void setInternalURI(URI u) throws UnstartedNodeException;
+
+    public abstract Job<?> newJob(int taskId, TaskParams taskparams, Implementation<?> impl, Resource res, JobListener listener);
 
     public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener);
 
     public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener);
-
-    public abstract Job<?> newJob(int taskId, TaskParams taskparams, Implementation<?> impl, Resource res, JobListener listener);
-
-    public int compareTo(COMPSsNode host) {
-        return getName().compareTo(host.getName());
-    }
 
     public abstract void stop(ShutdownListener sl);
 
@@ -57,4 +56,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void generateWorkersDebugInfo();
 
+    public int compareTo(COMPSsNode host) {
+        return getName().compareTo(host.getName());
+    }
 }

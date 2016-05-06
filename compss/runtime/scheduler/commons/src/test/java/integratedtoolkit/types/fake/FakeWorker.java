@@ -1,15 +1,13 @@
 package integratedtoolkit.types.fake;
 
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-
 public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
 
-    public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
+    public FakeWorker(WorkerResourceDescription description, int limitOfTasks) {
         super("a", (T) description, new FakeNode(), limitOfTasks);
     }
 

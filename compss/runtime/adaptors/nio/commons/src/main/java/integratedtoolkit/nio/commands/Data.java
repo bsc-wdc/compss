@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.commands;
 
+import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.URI;
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
-
 
 public class Data implements Externalizable {
 
@@ -33,9 +33,13 @@ public class Data implements Externalizable {
         this.name = ld.getName();
         sources = new LinkedList<NIOURI>();
         for (URI uri : ld.getURIs()) {
-            Object o = uri.getInternalURI(NIOAgent.ID);
-            if (o != null) {
-                this.sources.add((NIOURI) o);
+            try {
+                Object o = uri.getInternalURI(NIOAgent.ID);
+                if (o != null) {
+                    this.sources.add((NIOURI) o);
+                }
+            } catch (UnstartedNodeException une) {
+                //Ignore internal URI.
             }
         }
     }
@@ -45,9 +49,13 @@ public class Data implements Externalizable {
         sources = new LinkedList<NIOURI>();
         sources.add(source);
         for (URI uri : ld.getURIs()) {
-            Object o = uri.getInternalURI(NIOAgent.ID);
-            if (o != null) {
-                this.sources.add((NIOURI) o);
+            try {
+                Object o = uri.getInternalURI(NIOAgent.ID);
+                if (o != null) {
+                    this.sources.add((NIOURI) o);
+                }
+            } catch (UnstartedNodeException une) {
+                //Ignore internal URI.
             }
         }
     }
@@ -76,18 +84,18 @@ public class Data implements Externalizable {
         }
         return null;
     }
-    
+
     // Returns a URI inside the same host or null if the data is not available
-    public NIOURI getURIinHost (String hostname) {
-    	for (NIOURI loc : sources) {
-    		String hostAndPort = loc.getHost().toString();
-    		String host = hostAndPort.substring(0, hostAndPort.indexOf(":"));
-    		if (host.equals(hostname)) {
-    			return loc;
-    		}
+    public NIOURI getURIinHost(String hostname) {
+        for (NIOURI loc : sources) {
+            String hostAndPort = loc.getHost().toString();
+            String host = hostAndPort.substring(0, hostAndPort.indexOf(":"));
+            if (host.equals(hostname)) {
+                return loc;
+            }
         }
-    	
-    	return null;
+
+        return null;
     }
 
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {

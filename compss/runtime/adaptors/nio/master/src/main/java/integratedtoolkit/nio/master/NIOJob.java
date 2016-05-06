@@ -67,12 +67,25 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         if (taskParams.hasReturnValue()) {
             numParams--;
         }
+        
+        // Merge command classpath and worker defined classpath
+        String resourceClasspath = getResourceNode().getClasspath();
+        String finalClasspath = workerClasspath;
+        if (resourceClasspath != "") {
+        	if (finalClasspath != "") {
+        		finalClasspath += ":" + resourceClasspath;
+        	} else {
+        		finalClasspath = resourceClasspath;
+        	}
+        }
 
+        // Create NIOTask
         NIOTask nt = new NIOTask(lang, 
         						getResourceNode().getInstallDir(), 
         						getResourceNode().getLibPath(), 
         						getResourceNode().getAppDir(), 
-        						workerClasspath, 
+        						finalClasspath,
+        						getResourceNode().getPythonpath(),
         						debug, 
         						className, 
         						methodName, 

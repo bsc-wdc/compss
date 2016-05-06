@@ -26,10 +26,9 @@ import storage.StorageItf;
 
 public abstract class ExternalExecutor extends Executor {
     
-
     @Override
-    String createSandBox() throws Exception {
-        File wdirFile = new File(NIOWorker.workingDir + File.separator + "sand_" + UUID.randomUUID().hashCode());
+    String createSandBox(String baseWorkingDir) throws Exception {
+        File wdirFile = new File(baseWorkingDir + "sand_" + UUID.randomUUID().hashCode());
         if (wdirFile.mkdir()) {
             return wdirFile.getAbsolutePath();
         } else {
@@ -98,7 +97,7 @@ public abstract class ExternalExecutor extends Executor {
     public abstract ArrayList<String> getLaunchCommand(NIOTask nt);
 
     private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
-        lArgs.add(Boolean.toString(nt.workerDebug));
+        lArgs.add(Boolean.toString(nt.isWorkerDebug()));
         lArgs.add(nt.getClassName());
         lArgs.add(nt.getMethodName());
         lArgs.add(Boolean.toString(nt.isHasTarget()));
@@ -177,7 +176,7 @@ public abstract class ExternalExecutor extends Executor {
 
     private void addEnvironment(Map<String, String> env, NIOTask nt, NIOWorker nw) {
         env.put("IT_WORKING_DIR", nw.getWorkingDir());
-        env.put("IT_APP_DIR", nt.appDir);
+        env.put("IT_APP_DIR", nt.getAppDir());
     }
 
     private void executeExternal(int jobId, ArrayList<String> command, Map<String, String> env, String sandbox, NIOTask nt, NIOWorker nw) throws Exception {

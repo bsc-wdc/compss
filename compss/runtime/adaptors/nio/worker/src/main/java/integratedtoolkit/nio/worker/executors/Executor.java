@@ -26,11 +26,11 @@ public abstract class Executor {
             NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId() , NIOTracer.Event.TASK_RUNNING.getType());
         }
         
-        NIOWorker.registerOutputs(NIOWorker.workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist());
+        NIOWorker.registerOutputs(nw.getWorkingDir() + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist());
         String sandBox;
         try {
             logger.debug("Creating sandbox for job "+nt.getJobId());
-            sandBox = createSandBox();
+            sandBox = createSandBox(nw.getWorkingDir());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             NIOWorker.unregisterOutputs();
@@ -63,7 +63,7 @@ public abstract class Executor {
         return true;
     }
 
-    abstract String createSandBox() throws Exception;
+    abstract String createSandBox(String baseWorkingDir) throws Exception;
 
     abstract void executeTask(String sandBox, NIOTask nt, NIOWorker nw) throws Exception;
 

@@ -88,9 +88,11 @@
   find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
   find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
   cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+
   #Scripts
   echo "--- Copy scripts"
   cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
+
   #Adaptors
   echo "--- Copy adaptors"
   find ${tmpDir}/compss/runtime/adaptors -name pom.xml | xargs rm -rf
@@ -117,12 +119,22 @@
       cp -r ${path_source}/$adaptor/scripts/* ${targetDir}/Runtime/scripts/system/adaptors/$adaptor/
     fi
   done
+
+  #Schedulers
+  echo "--- Copy schedulers"
+  rm -r ${tmpDir}/compss/runtime/scheduler/commons
+  schedulers=$(find ${tmpsDir}/compss/runtime/scheduler/ -name "*.jar")
+  for scheduler in $schedulers; do
+    cp $scheduler ${targetDir}/Runtime/scheduler/
+  done
+
   #Connectors
   echo "--- Copy connectors"
   connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")
   for conn in $connectors; do
     cp -f $conn ${targetDir}/Runtime/connectors/
   done
+
   #Engine
   echo "--- Copy engine"
   cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/

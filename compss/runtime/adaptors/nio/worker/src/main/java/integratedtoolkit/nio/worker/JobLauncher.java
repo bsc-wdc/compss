@@ -59,7 +59,7 @@ public class JobLauncher extends RequestDispatcher<NIOTask> {
     }
 
     private boolean executeTask(NIOTask nt) {
-        switch (Lang.valueOf(nt.lang.toUpperCase())) {
+        switch (Lang.valueOf(nt.getLang().toUpperCase())) {
             case JAVA:
                 return java.execute(nt, nw);
             case PYTHON:
@@ -68,7 +68,7 @@ public class JobLauncher extends RequestDispatcher<NIOTask> {
                 return c.execute(nt, nw);
             default:
             	// Print to the job.err file
-                System.err.println("Incorrect language " + nt.lang + " in job " + nt.getJobId());
+                System.err.println("Incorrect language " + nt.getLang() + " in job " + nt.getJobId());
                 return false;
         }
     }

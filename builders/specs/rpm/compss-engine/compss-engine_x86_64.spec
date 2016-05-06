@@ -50,16 +50,20 @@ cp LICENSE COMPSs/
 cp NOTICE COMPSs/
 cp README COMPSs/
 cp RELEASE_NOTES COMPSs/
+
 #Dependencies
 cp -r files/paraver COMPSs/Dependencies/
 cp -r dependencies/JAVA_GAT COMPSs/Dependencies/
+
 #Config
 find compss/runtime/config -name src | xargs rm -rf
 find compss/runtime/config -name target | xargs rm -rf
 find compss/runtime/config -name pom.xml | xargs rm -rf
 cp -r compss/runtime/config/* COMPSs/Runtime/configuration/
+
 #Scripts
 cp -r compss/runtime/scripts/* COMPSs/Runtime/scripts/
+
 #Adaptors
 find compss/runtime/adaptors -name pom.xml | xargs rm -rf
 rm -r compss/runtime/adaptors/commons
@@ -78,6 +82,15 @@ for adaptor in $adaptors; do
     cp -r ${path_source}/$adaptor/scripts/* COMPSs/Runtime/scripts/system/adaptors/$adaptor/
   fi
 done
+
+#Schedulers
+find compss/runtime/scheduler/ -name pom.xml | xargs rm -rf
+rm -r compss/runtime/scheduler/commons
+schedulers=$(find compss/runtime/scheduler/ -name "*.jar")
+for scheduler in $schedulers; do
+  cp $scheduler COMPSs/Runtime/scheduler/
+done
+
 #Engine
 cp compss/runtime/compss-engine.jar COMPSs/Runtime/
 

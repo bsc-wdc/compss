@@ -8,14 +8,16 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.LinkedList;
 
+
 public class NIOTask implements Externalizable {
 
-    public String lang;
-    public String installDir;
-    public String libPath;
-    public String appDir;
-    public String classPath;
-    public boolean workerDebug;
+    private String lang;
+    private String installDir;
+    private String libPath;
+    private String appDir;
+    private String classPath;
+    private String pythonPath;
+    private boolean workerDebug;
 
     private String className;
     private String methodName;
@@ -28,17 +30,21 @@ public class NIOTask implements Externalizable {
     private int transferGroupId;
     private int numParams;
 
+    
     public NIOTask() {
-
+    	
     }
-
-    public NIOTask(String lang, String installDir, String libPath, String appDir, String classPath, boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params, int numParams, int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
-
+    
+    public NIOTask(String lang, String installDir, String libPath, String appDir, String classPath, String pythonPath, 
+    		boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params, 
+    		int numParams, int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
+    	
         this.lang = lang;
         this.installDir = installDir;
         this.libPath = libPath;
         this.appDir = appDir;
         this.classPath = classPath;
+        this.pythonPath = pythonPath;
         this.workerDebug = workerDebug;
 
         this.className = className;
@@ -53,53 +59,82 @@ public class NIOTask implements Externalizable {
         this.transferGroupId = transferGroupId;
     }
 
-    public String getClassName() {
-        return className;
-    }
+    public String getLang() {
+		return lang;
+	}
 
-    public String getMethodName() {
-        return methodName;
-    }
+	public String getInstallDir() {
+		return installDir;
+	}
 
-    public boolean isHasTarget() {
-        return hasTarget;
-    }
+	public String getLibPath() {
+		return libPath;
+	}
 
-    public LinkedList<NIOParam> getParams() {
-        return params;
-    }
+	public String getAppDir() {
+		return appDir;
+	}
 
-    public int getJobId() {
-        return jobId;
-    }
+	public String getClassPath() {
+		return classPath;
+	}
 
-    public int getTaskId() {
-        return taskId;
-    }
+	public String getPythonPath() {
+		return pythonPath;
+	}
 
-    public int getTaskType() {
-        return taskType;
-    }
+	public boolean isWorkerDebug() {
+		return workerDebug;
+	}
 
-    public JobHistory getHist() {
-        return hist;
-    }
+	public String getClassName() {
+		return className;
+	}
 
-    public int getNumParams() {
-        return numParams;
-    }
+	public String getMethodName() {
+		return methodName;
+	}
 
-    public int getTransferGroupId() {
-        return transferGroupId;
-    }
+	public boolean isHasTarget() {
+		return hasTarget;
+	}
 
-    @SuppressWarnings("unchecked")
+	public LinkedList<NIOParam> getParams() {
+		return params;
+	}
+
+	public int getTaskId() {
+		return taskId;
+	}
+
+	public int getTaskType() {
+		return taskType;
+	}
+
+	public int getJobId() {
+		return jobId;
+	}
+
+	public JobHistory getHist() {
+		return hist;
+	}
+
+	public int getTransferGroupId() {
+		return transferGroupId;
+	}
+
+	public int getNumParams() {
+		return numParams;
+	}
+
+	@SuppressWarnings("unchecked")
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         lang = (String) in.readObject();
         installDir = (String) in.readObject();
         libPath = (String) in.readObject();
         appDir = (String) in.readObject();
         classPath = (String) in.readObject();
+        pythonPath = (String) in.readObject();
         workerDebug = in.readBoolean();
         className = (String) in.readObject();
         methodName = (String) in.readObject();
@@ -119,6 +154,7 @@ public class NIOTask implements Externalizable {
         out.writeObject(libPath);
         out.writeObject(appDir);
         out.writeObject(classPath);
+        out.writeObject(pythonPath);
         out.writeBoolean(workerDebug);
         out.writeObject(className);
         out.writeObject(methodName);

@@ -18,9 +18,9 @@ public class CExecutor extends ExternalExecutor {
 
     public ArrayList<String> getLaunchCommand(NIOTask nt) {
         ArrayList<String> lArgs = new ArrayList<String>();
-        lArgs.add(nt.appDir + "/worker/worker_c");
-        lArgs.add(nt.appDir);
-        lArgs.add(nt.classPath);
+        lArgs.add(nt.getAppDir() + "/worker/worker_c");
+        lArgs.add(nt.getAppDir());
+        lArgs.add(nt.getClassPath());
         return lArgs;
     }
 
@@ -30,14 +30,14 @@ public class CExecutor extends ExternalExecutor {
     	Map<String, String> env = new HashMap<String, String>();
         String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
         if (ldLibraryPath == null) {
-            ldLibraryPath = nt.libPath;
+            ldLibraryPath = nt.getLibPath();
         } else {
-            ldLibraryPath = ldLibraryPath.concat(":" + nt.libPath);
+            ldLibraryPath = ldLibraryPath.concat(":" + nt.getLibPath());
         }
         
         // Add C and commons libs
-        ldLibraryPath.concat(":" + nt.installDir + C_LIB_RELATIVE_PATH);
-        ldLibraryPath.concat(":" + nt.installDir + COMMONS_LIB_RELATIVE_PATH);
+        ldLibraryPath.concat(":" + nt.getInstallDir() + C_LIB_RELATIVE_PATH);
+        ldLibraryPath.concat(":" + nt.getInstallDir() + COMMONS_LIB_RELATIVE_PATH);
         
         env.put("LD_LIBRARY_PATH", ldLibraryPath);
         return env;

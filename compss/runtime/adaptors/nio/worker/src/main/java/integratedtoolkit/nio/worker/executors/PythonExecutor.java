@@ -16,7 +16,7 @@ public class PythonExecutor extends ExternalExecutor {
 	@Override
 	public ArrayList<String> getLaunchCommand(NIOTask nt) {
 		ArrayList<String> lArgs = new ArrayList<String>();
-		String pycompssHome = nt.installDir + PYCOMPSS_RELATIVE_PATH;
+		String pycompssHome = nt.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
 		/*lArgs.add("/bin/bash");
 		lArgs.add("-e");
 		lArgs.add("-c");*/
@@ -28,25 +28,26 @@ public class PythonExecutor extends ExternalExecutor {
 
 	@Override
 	public Map<String, String> getEnvironment(NIOTask nt) {
-		/*
-		 * export PYCOMPSS_HOME=`dirname $0`/../../bindings/pythonport
-		 * PYTHONPATH=$app_dir:$py_path:$PYCOMPSS_HOME
-		 */
+		// PyCOMPSs HOME
 		Map<String, String> env = new HashMap<String, String>();
-		String pycompssHome = nt.installDir + PYCOMPSS_RELATIVE_PATH;
+		String pycompssHome = nt.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
 		env.put("PYCOMPSS_HOME", pycompssHome);
+		
+		// PYTHONPATH
 		String pythonPath = System.getenv("PYTHONPATH");
 		if (pythonPath == null) {
-			pythonPath = nt.appDir + ":" + nt.classPath + ":" + pycompssHome;
+			pythonPath = pycompssHome + ":" + nt.getPythonPath() + ":" + nt.getAppDir();
 		} else {
-			pythonPath = pythonPath.concat(":" + nt.appDir + ":" + nt.classPath + ":" + pycompssHome);
+			pythonPath = pycompssHome + ":" + nt.getPythonPath() + ":" + nt.getAppDir() + pythonPath;
 		}
 		env.put("PYTHONPATH", pythonPath);
+		
+		// LD_LIBRARY_PATH
 		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
 		if (ldLibraryPath == null) {
-			ldLibraryPath = nt.libPath;
+			ldLibraryPath = nt.getLibPath();
 		} else {
-			ldLibraryPath = ldLibraryPath.concat(":" + nt.libPath);
+			ldLibraryPath = ldLibraryPath.concat(":" + nt.getLibPath());
 		}
 		env.put("LD_LIBRARY_PATH", ldLibraryPath);
                

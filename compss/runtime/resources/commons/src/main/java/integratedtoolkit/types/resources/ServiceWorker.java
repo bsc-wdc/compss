@@ -3,13 +3,13 @@ package integratedtoolkit.types.resources;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
-
 public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
 
-    public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration config) throws Exception {
-        super(wsdl, description, config);
+
+    public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
+        super(wsdl, description, conf);
         this.wsdl = wsdl;
     }
 

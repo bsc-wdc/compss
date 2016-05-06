@@ -35,11 +35,8 @@ import integratedtoolkit.util.RuntimeConfigManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import storage.StorageException;
-import storage.StorageItf;
 import storage.StubItf;
 import integratedtoolkit.util.Tracer;
-
 
 public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, LoaderAPI {
 
@@ -293,12 +290,12 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (COMPSs_VERSION == null) {
             logger.info("Deploying COMPSs Runtime");
         } else if (COMPSs_BUILDNUMBER == null) {
-        	logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION);
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION);
         } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-        	COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-        	logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         } else {
-        	logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
         if (System.getProperty(ITConstants.IT_TRACING) != null
@@ -312,14 +309,13 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     public String getApplicationDirectory() {
         return Comm.appHost.getAppLogDirPath();
     }
-    
-    public void emitEvent(int type, long id){
+
+    public void emitEvent(int type, long id) {
         Tracer.emitEvent(id, type);
     }
 
-
     public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
-            int parameterCount, Object... parameters){
+            int parameterCount, Object... parameters) {
 
         logger.debug("\nRegister CE parameters:");
         logger.debug("\tMethodClass: " + methodClass);
@@ -328,7 +324,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         logger.debug("\tHasReturn: " + hasReturn);
         logger.debug("\tConstraints: " + constraints);
         logger.debug("\tParameters:");
-        for (Object o : parameters){
+        for (Object o : parameters) {
             logger.debug("\t: " + o.toString());
         }
 
@@ -342,7 +338,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
 
     // Integrated Toolkit user interface implementation
     public synchronized void startIT() {
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
             Tracer.masterEventStart(Tracer.Event.START.getId());
         }
@@ -352,129 +348,100 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (COMPSs_VERSION == null) {
             logger.info("Starting COMPSs Runtime");
         } else if (COMPSs_BUILDNUMBER == null) {
-        	logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION);
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION);
         } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-        	COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-        	logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         } else {
-        	logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
         // Init Runtime
         if (!initialized) {
-        	// Application
-            synchronized(this){
-            	logger.debug("Initializing components");
-            	
-            	String storageConf = null;
-            	try {
-            		storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-            		if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 ))
-            			logger.warn("No storage configuration file passed");
-            		else
-            			StorageItf.init(storageConf);
-        		} catch (StorageException e) {
-                    logger.fatal("Error loading storage configuration file: " + storageConf, e);
-                    System.exit(1);
-        		}
-            	
-            	td = new TaskDispatcher();
-            	ap = new AccessProcessor(td);
-            	
-            	if (GraphGenerator.isEnabled()) {
-                	graphMonitor = new GraphGenerator();
-                	ap.setGM(graphMonitor);
+            // Application
+            synchronized (this) {
+                logger.debug("Initializing components");
+
+                td = new TaskDispatcher();
+                ap = new AccessProcessor(td);
+
+                if (GraphGenerator.isEnabled()) {
+                    graphMonitor = new GraphGenerator();
+                    ap.setGM(graphMonitor);
                 }
                 if (RuntimeMonitor.isEnabled()) {
-                	runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
+                    runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
                 }
-                
+
                 // Python and C++
                 String lang = System.getProperty(ITConstants.IT_LANG);
                 if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
-                	this.setObjectRegistry(new ObjectRegistry(this));
+                    this.setObjectRegistry(new ObjectRegistry(this));
                 }
-            	
-            	initialized = true;
-            	logger.debug("Ready to process tasks");
+
+                initialized = true;
+                logger.debug("Ready to process tasks");
             }
         } else {
-        	// Service
+            // Service
             String className = Thread.currentThread().getStackTrace()[2].getClassName();
             logger.debug("Initializing " + className + "Itf");
             try {
                 td.addInterface(Class.forName(className + "Itf"));
             } catch (Exception e) {
-            	ErrorManager.fatal("Error adding interface " + className + "Itf");
+                ErrorManager.fatal("Error adding interface " + className + "Itf");
             }
         }
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
     }
 
     public void stopIT(boolean terminate) {
-        synchronized(this){
-        	if (tracing){
-                    Tracer.masterEventStart(Tracer.Event.STOP.getId());
-        	}
+        synchronized (this) {
+            if (tracing) {
+                Tracer.masterEventStart(Tracer.Event.STOP.getId());
+            }
 
-        	// Stop monitor components
-        	logger.debug("Stop IT reached");
-        	if (GraphGenerator.isEnabled()) {
-        		logger.debug("Stopping Graph generation...");
-    			// Graph commited by noMoreTasks, nothing to do
+            // Stop monitor components
+            logger.debug("Stop IT reached");
+            if (GraphGenerator.isEnabled()) {
+                logger.debug("Stopping Graph generation...");
+                // Graph commited by noMoreTasks, nothing to do
             }
             if (RuntimeMonitor.isEnabled()) {
-            	logger.debug("Stopping Monitor...");
-        		runtimeMonitor.shutdown();
+                logger.debug("Stopping Monitor...");
+                runtimeMonitor.shutdown();
             }
-        	
+
             // Stop runtime components
-        	logger.debug("Stopping AP...");
-        	if (ap != null){
-        		ap.shutdown();
-        	} else {
-        		logger.debug("AP was not initialized...");
-        	}
-        	
-        	logger.debug("Stopping TD...");
-        	if (td != null) {
-        		td.shutdown();
-        	} else {
-        		logger.debug("TD was not initialized...");
-        	}
-        	
-        	logger.debug("Stopping Comm...");
-        	Comm.appHost.deleteIntermediate();
-        	Comm.stop();
-        	logger.debug("Runtime stopped");
-        	
-        	// Stop Storage interface
-        	String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-    		if (( storageConf != null ) && ( storageConf.compareTo("") != 0 ) && ( storageConf.compareTo("null") != 0 )) {
-             	try {
-                    logger.debug("Stopping Storage...");
-              		StorageItf.finish();
-               	} catch (StorageException e) {
-                    logger.error("Error releasing storage library: " + e.getMessage());       	
-              	}	
-            }  
-        	
-        	// Stop tracing system
-        	if (tracing) {
-                    Tracer.masterEventFinish();
-                    Tracer.fini();
-        	}
+            logger.debug("Stopping AP...");
+            if (ap != null) {
+                ap.shutdown();
+            } else {
+                logger.debug("AP was not initialized...");
+            }
+
+            logger.debug("Stopping TD...");
+            if (td != null) {
+                td.shutdown();
+            } else {
+                logger.debug("TD was not initialized...");
+            }
+
+            logger.debug("Stopping Comm...");
+            Comm.stop();
+            logger.debug("Runtime stopped");
+            
         }
         logger.info("Execution Finished");
     }
 
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
-    		Object... parameters) {
+            Object... parameters) {
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.TASK.getId());
         }
 
@@ -486,8 +453,8 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         Parameter[] pars = processParameters(parameterCount, parameters);
         int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
 
-        if (tracing){
-           Tracer.masterEventFinish();
+        if (tracing) {
+            Tracer.masterEventFinish();
         }
 
         return task;
@@ -496,7 +463,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters) {
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.TASK.getId());
         }
 
@@ -508,7 +475,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         Parameter[] pars = processParameters(parameterCount, parameters);
         int task = ap.newTask(appId, namespace, service, port, operation, priority, hasTarget, pars);
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
 
@@ -533,43 +500,43 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
                     try {
                         location = getDataLocation((String) parameters[i]);
                     } catch (Exception e) {
-                    	ErrorManager.fatal(ERROR_FILE_NAME, e);
+                        ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
                     pars[npar] = new FileParameter(direction, location);
                     break;
-                    
+
                 case SCO_T:
-                case PSCO_T:                	
-                	Object internal = oReg.getInternalObject(parameters[i]);
-                	if (internal != null) {
-                		ParamType internalType = LoaderUtils.checkSCOType(internal);
-                		if ((type != internalType) && (internalType == ParamType.PSCO_T)) {
+                case PSCO_T:
+                    Object internal = oReg.getInternalObject(parameters[i]);
+                    if (internal != null) {
+                        ParamType internalType = LoaderUtils.checkSCOType(internal);
+                        if ((type != internalType) && (internalType == ParamType.PSCO_T)) {
                             if (logger.isDebugEnabled()) {
                                 logger.debug("  Parameter " + (npar + 1) + " change type from " + type.name() + " to " + internalType.name());
-                            }                			
-                			parameters[i] = LoaderUtils.checkSCOPersistent(internal);
-                			parameters[i+1] = internalType;
-                			type = internalType;
-                		}
-                	} else {
-                		// Python and C++
+                            }
+                            parameters[i] = LoaderUtils.checkSCOPersistent(internal);
+                            parameters[i + 1] = internalType;
+                            type = internalType;
+                        }
+                    } else {
+                        // Python and C++
                         String lang = System.getProperty(ITConstants.IT_LANG);
                         if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
-                        	if (type == ParamType.PSCO_T) {
-                        		if (!(parameters[i] instanceof StubItf)) {
-                        			// There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
-                        			PSCOId pscoId = new PSCOId(parameters[i], (String)parameters[i]);
-                        			logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
-                        			parameters[i] = pscoId;
-                        		}
-                        	}
+                            if (type == ParamType.PSCO_T) {
+                                if (!(parameters[i] instanceof StubItf)) {
+                                    // There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
+                                    PSCOId pscoId = new PSCOId(parameters[i], (String) parameters[i]);
+                                    logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
+                                    parameters[i] = pscoId;
+                                }
+                            }
                         }
-                	}
+                    }
                     pars[npar] = new SCOParameter(type,
-                    		direction,
+                            direction,
                             parameters[i],
                             oReg.newObjectParameter(parameters[i])); // hashCode
-                	break;    
+                    break;
 
                 case OBJECT_T:
                     pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
@@ -594,7 +561,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     }
 
     public void noMoreTasks(Long appId, boolean terminate) {
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.NO_MORE_TASKS.getId());
         }
 
@@ -604,13 +571,13 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         logger.info("Getting Result Files " + appId);
         ap.getResultFiles(appId);
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
     }
 
     public String openFile(String fileName, OpenMode m) {
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.OPEN_FILE.getId());
         }
 
@@ -622,7 +589,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         try {
             loc = getDataLocation(fileName);
         } catch (Exception e) {
-        	ErrorManager.fatal(ERROR_FILE_NAME, e);
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
         AccessMode am = null;
         switch (m) {
@@ -645,8 +612,8 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (targetLocation == null) {
             URI u = loc.getURIInHost(Comm.appHost);
             if (u != null) {
-            	logger.debug("File URI: " + u.toString());
-            	path = u.getPath();
+                logger.debug("File URI: " + u.toString());
+                path = u.getPath();
             } else {
                 path = fileName;
             }
@@ -654,16 +621,16 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             /* Return the path that the application must use to access the (renamed) file
              * The file won't recover its origin)al name until stopIT is called
              */
-        	URI u = targetLocation.getURIInHost(Comm.appHost);
+            URI u = targetLocation.getURIInHost(Comm.appHost);
             if (u != null) {
-            	logger.debug("File URI: " + u.toString());
-            	path = u.getPath();
-            } else{
-            	path = targetLocation.getPath();
+                logger.debug("File URI: " + u.toString());
+                path = u.getPath();
+            } else {
+                path = targetLocation.getPath();
             }
             logger.debug("File target Location: " + path);
         }
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
 
@@ -672,7 +639,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
 
     // LoaderAPI interface implementation
     public String getFile(String fileName, String destDir) {
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.GET_FILE.getId());
         }
         if (!destDir.endsWith(File.separator)) {
@@ -683,7 +650,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         try {
             sourceLocation = DataLocation.getLocation(Comm.appHost, fileName);
         } catch (Exception e) {
-        	ErrorManager.fatal(ERROR_FILE_NAME, e);
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
         FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
         DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
@@ -700,7 +667,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             path = targetLocation.getPath();
         }
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
         return path;
@@ -711,7 +678,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
          * the ObjectRegistry would have discarded it and this method
          * would not have been called.
          */
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.GET_OBJECT.getId());
         }
 
@@ -722,7 +689,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (validValue) {
             // Main code is still performing the same modification. No need to
             // register it as a new version.
-        	if (tracing){
+            if (tracing) {
                 Tracer.masterEventFinish();
             }
             return null;
@@ -732,7 +699,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (logger.isDebugEnabled()) {
             logger.debug("Object obtained " + oUpdated);
         }
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
         return oUpdated;
@@ -770,17 +737,17 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
              * since total loader targets sequential applications that use local files.
              */
             /*String name, path, host;
-            java.net.URI u = new java.net.URI(fullName);
-            host = u.getHost();
-            String fullPath = u.getPath();
-            int pathEnd = fullPath.lastIndexOf(File.separator);
-            path = fullPath.substring(0, pathEnd + 1);
-            name = fullPath.substring(pathEnd + 1);*/
+             java.net.URI u = new java.net.URI(fullName);
+             host = u.getHost();
+             String fullPath = u.getPath();
+             int pathEnd = fullPath.lastIndexOf(File.separator);
+             path = fullPath.substring(0, pathEnd + 1);
+             name = fullPath.substring(pathEnd + 1);*/
             throw new UnsupportedOperationException("Referencing files from remote hosts by URI is not supported yet.");
             // TODO To change body of generated methods, choose Tools | Templates.
         } else if (fullName.startsWith(SHARED_URI)) {
             java.net.URI u = new java.net.URI(fullName);
-            logger.debug("Shared URI host: "+ u.getHost() + " path:" + u.getPath() );
+            logger.debug("Shared URI host: " + u.getHost() + " path:" + u.getPath());
             String sharedDisk = u.getHost();
             String fullPath = u.getPath();
             loc = DataLocation.getSharedLocation(sharedDisk, fullPath);
@@ -795,7 +762,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     }
 
     public boolean deleteFile(String fileName) {
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventStart(Tracer.Event.DELETE.getId());
         }
 
@@ -804,11 +771,11 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         try {
             loc = getDataLocation(fileName);
         } catch (Exception e) {
-        	ErrorManager.fatal(ERROR_FILE_NAME, e);
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
         ap.markForDeletion(loc);
 
-        if (tracing){
+        if (tracing) {
             Tracer.masterEventFinish();
         }
 

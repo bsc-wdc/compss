@@ -2,6 +2,7 @@ package integratedtoolkit.ws.master;
 
 import integratedtoolkit.api.ITExecution;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.data.LogicalData;
@@ -16,7 +17,6 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
-
 public class ServiceInstance extends COMPSsWorker {
 
     private WSConfiguration config;
@@ -25,6 +25,10 @@ public class ServiceInstance extends COMPSsWorker {
     public ServiceInstance(String name, WSConfiguration config) {
         super(name, config);
         this.config = config;
+    }
+
+    public void start() throws Exception {
+        //Do nothing
     }
 
     public String getWsdl() {
@@ -85,7 +89,9 @@ public class ServiceInstance extends COMPSsWorker {
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
         //Delegate on the master to obtain the data value
         DataLocation tgtLoc = DataLocation.getLocation(Comm.appHost, target.getPath());
-        Comm.appHost.getNode().obtainData(ld, source, tgtLoc, tgtData, reason, listener);
+        COMPSsNode node = null;
+        node = Comm.appHost.getNode();
+        node.obtainData(ld, source, tgtLoc, tgtData, reason, listener);
     }
 
     @Override
@@ -125,11 +131,11 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public void deleteTemporary() {
     }
-    
+
     @Override
-    public void generatePackage(){
+    public void generatePackage() {
     }
-    
+
     @Override
     public void generateWorkersDebugInfo() {
     }

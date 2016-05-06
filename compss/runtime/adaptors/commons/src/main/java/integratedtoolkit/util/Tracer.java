@@ -22,40 +22,38 @@ import integratedtoolkit.types.data.operation.TracingCopyTransferable;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
-
 public abstract class Tracer {
 
+    private static final String taskDesc = "Task";
+    private static final String apiDesc = "Runtime";
+    private static final String taskIdDesc = "Task IDs";
+    private static final String dataTransfersDesc = "Data Transfers";
+    private static final String storageDesc = "Storage API";
 
-    private static final String taskDesc 			= "Task";
-    private static final String apiDesc 			= "Runtime";
-    private static final String taskIdDesc 			= "Task IDs";
-    private static final String dataTransfersDesc 	= "Data Transfers";
-    private static final String storageDesc 		= "Storage API";
-
-    protected static final String TRACE_PATH 			= File.separator + "scripts" + File.separator + "system";
-    protected static final String TRACE_SCRIPT 			= "trace.sh";
-    protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
-    protected static final String traceErrRelativePath 	= File.separator + "trace" + File.separator + "tracer.err";
+    protected static final String TRACE_PATH = File.separator + "scripts" + File.separator + "system";
+    protected static final String TRACE_SCRIPT = "trace.sh";
+    protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
+    protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
 
     protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-    protected static final int TASKS_FUNC_TYPE 	= 8_000_000;
-    protected static final int RUNTIME_EVENTS	= 8_000_001;
-    protected static final int TASKS_ID_TYPE 	= 8_000_002;
-    protected static final int TASK_TRANSFERS 	= 8_000_003;
-    protected static final int DATA_TRANSFERS 	= 8_000_004;
-    protected static final int STORAGE_TYPE 	= 8_000_005;
-    
+    protected static final int TASKS_FUNC_TYPE = 8_000_000;
+    protected static final int RUNTIME_EVENTS = 8_000_001;
+    protected static final int TASKS_ID_TYPE = 8_000_002;
+    protected static final int TASK_TRANSFERS = 8_000_003;
+    protected static final int DATA_TRANSFERS = 8_000_004;
+    protected static final int STORAGE_TYPE = 8_000_005;
+
     public static final int EVENT_END = 0;
 
-    public static final int BASIC_MODE    = 1;
+    public static final int BASIC_MODE = 1;
 
     protected static int tracing_level;
-    
-    
+
     public enum Event {
+
         STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"),
         START(2, RUNTIME_EVENTS, "Start"),
         STOP(3, RUNTIME_EVENTS, "Stop"),
@@ -66,7 +64,6 @@ public abstract class Tracer {
         GET_OBJECT(8, RUNTIME_EVENTS, "Waiting for get object"),
         DELETE(9, RUNTIME_EVENTS, "Delete File"),
         TASK_RUNNING(10, RUNTIME_EVENTS, "Task Running"),
-
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
         ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
@@ -88,7 +85,6 @@ public abstract class Tracer {
         GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
         TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
         DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
-        
         // Storage Events
         STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"),
         STORAGE_NEWREPLICA(38, STORAGE_TYPE, "newReplica"),
@@ -96,9 +92,7 @@ public abstract class Tracer {
         STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"),
         STORAGE_EXECUTETASK(41, STORAGE_TYPE, "executeTask"),
         STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"),
-
         RECEIVED_NEW_TASK(43, RUNTIME_EVENTS, "Received new task"),
-
         // Task Dispatcher Events
         ACTION_UPDATE(44, RUNTIME_EVENTS, "Task Dispatcher: Action update"),
         CE_REGISTRATION(45, RUNTIME_EVENTS, "Task Dispatcher: CE registration"),
@@ -119,24 +113,24 @@ public abstract class Tracer {
             this.signature = signature;
         }
 
-        public int getId(){
+        public int getId() {
             return this.id;
         }
 
-        public int getType(){
+        public int getType() {
             return this.type;
         }
 
-        public String getSignature(){
+        public String getSignature() {
             return this.signature;
         }
     }
-    
+
     private static String traceDirPath;
     private static Map<String, TraceHost> hostToSlots;
     private static AtomicInteger hostId;
 
-    public static void init(int level) { 
+    public static void init(int level) {
         if (debug) {
             logger.debug("Initializing tracing");
         }
@@ -155,26 +149,26 @@ public abstract class Tracer {
         tracing_level = level;
     }
 
-    public static boolean basicModeEnabled(){
+    public static boolean basicModeEnabled() {
         return tracing_level == Tracer.BASIC_MODE;
     }
 
-    public static void enablePThreads(){
-        synchronized(Tracer.class){
+    public static void enablePThreads() {
+        synchronized (Tracer.class) {
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS);
         }
     }
-    public static void disablePThreads(){
-        synchronized(Tracer.class){
-            Wrapper.SetOptions (
-                Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
-                ~Wrapper.EXTRAE_PTHREAD_OPTION);
+
+    public static void disablePThreads() {
+        synchronized (Tracer.class) {
+            Wrapper.SetOptions(
+                    Wrapper.EXTRAE_ENABLE_ALL_OPTIONS
+                    & ~Wrapper.EXTRAE_PTHREAD_OPTION);
         }
     }
-        
 
     public static int registerHost(String name, int slots) {
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Registering host " + name + " in the tracing system");
         }
         int id;
@@ -193,41 +187,41 @@ public abstract class Tracer {
 
     public static int getNextSlot(String host) {
         int slot = hostToSlots.get(host).getNextSlot();
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Getting slot " + slot + " of host " + host);
         }
         return slot;
     }
 
     public static void freeSlot(String host, int slot) {
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Freeing slot " + slot + " of host " + host);
         }
         hostToSlots.get(host).freeSlot(slot);
     }
 
-    public static int getTaskTransfersType(){
+    public static int getTaskTransfersType() {
         return TASK_TRANSFERS;
     }
 
-    public static int getTaskEventsType(){
+    public static int getTaskEventsType() {
         return TASKS_FUNC_TYPE;
     }
 
-    public static int getTaskSchedulingType(){
+    public static int getTaskSchedulingType() {
         return TASKS_ID_TYPE;
     }
-    
-    public static Event getAPRequestEvent(String eventType){
+
+    public static Event getAPRequestEvent(String eventType) {
         return Event.valueOf(eventType);
     }
 
-    public static Event getTDRequestEvent(String eventType){
+    public static Event getTDRequestEvent(String eventType) {
         return Event.valueOf(eventType);
     }
-    
-    public static void emitEvent(long eventID, int eventType){
-        synchronized(Tracer.class){
+
+    public static void emitEvent(long eventID, int eventType) {
+        synchronized (Tracer.class) {
             Wrapper.Event(eventType, eventID);
         }
 
@@ -236,66 +230,66 @@ public abstract class Tracer {
         }
     }
 
-    public static void emitEventAndCounters(int taskId, int eventType){
-        synchronized(Tracer.class){
+    public static void emitEventAndCounters(int taskId, int eventType) {
+        synchronized (Tracer.class) {
             Wrapper.Eventandcounters(eventType, taskId);
         }
 
-        if (debug){
+        if (debug) {
             logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
         }
 
     }
-    
+
     public static void masterEventStart(int taskId) {
         emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
     }
 
-    public static void masterEventFinish(){
+    public static void masterEventFinish() {
         emitEvent(0, Tracer.RUNTIME_EVENTS);
     }
 
     public static void fini() {
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: finalizing");
         }
 
-        synchronized(Tracer.class){
+        synchronized (Tracer.class) {
             defineEvents();
-            
-            Wrapper.SetOptions (
-                Wrapper.EXTRAE_ENABLE_ALL_OPTIONS &
-                ~Wrapper.EXTRAE_PTHREAD_OPTION);
+
+            Wrapper.SetOptions(
+                    Wrapper.EXTRAE_ENABLE_ALL_OPTIONS
+                    & ~Wrapper.EXTRAE_PTHREAD_OPTION);
 
             Wrapper.Fini();
 
             Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
         }
-        
+
         generateMasterPackage();
         transferMasterPackage();
         generateTrace();
         cleanMasterPackage();
     }
 
-    public static int getSizeByEventType(int type){
+    public static int getSizeByEventType(int type) {
         int size = 0;
-        for (Event task : Event.values()){
-            if (task.getType() == type){
+        for (Event task : Event.values()) {
+            if (task.getType() == type) {
                 ++size;
             }
         }
         return size;
     }
 
-    private static void defineEvents(){
+    private static void defineEvents() {
         if (debug) {
             logger.debug("SignatureToId size: " + CoreManager.SIGNATURE_TO_ID.size());
         }
 
         Map<String, Integer> signatureToId = CoreManager.SIGNATURE_TO_ID;
 
-        int size = getSizeByEventType(RUNTIME_EVENTS) + 1; 
+        int size = getSizeByEventType(RUNTIME_EVENTS) + 1;
         long[] values = new long[size];
         //int offset = Event.values().length;  // We offset the values of the defined API events (plus the 0 which is the end task always).
 
@@ -304,17 +298,16 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         int i = 1;
-        for (Event task : Event.values()){
-            if (task.getType() == RUNTIME_EVENTS){
+        for (Event task : Event.values()) {
+            if (task.getType() == RUNTIME_EVENTS) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (debug) {
-                    logger.debug("Tracing[API]: Api Event " + i + "=> value: "+values[i]+ ", Desc: "+ descriptionValues[i]);
+                    logger.debug("Tracing[API]: Api Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
                 }
                 ++i;
             }
         }
-
 
         Wrapper.defineEventType(RUNTIME_EVENTS, apiDesc, values, descriptionValues);
 
@@ -333,8 +326,8 @@ public abstract class Tracer {
             String methodName = signature.substring(0, signature.indexOf('('));
             descriptionValues[i] = methodName;
             if (debug) {
-                logger.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + 
-                        "] => value: "+ values[i] + ", Desc: "+ descriptionValues[i]);
+                logger.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId
+                        + "] => value: " + values[i] + ", Desc: " + descriptionValues[i]);
             }
             i++;
         }
@@ -349,19 +342,19 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         i = 1;
-        for (Event task : Event.values()){
-            if (task.getType() == TASK_TRANSFERS){
+        for (Event task : Event.values()) {
+            if (task.getType() == TASK_TRANSFERS) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (debug) {
-                    logger.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: "+values[i]+ ", Desc: "+ descriptionValues[i]);
+                    logger.debug("Tracing[TASK_TRANSFERS]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
                 }
                 ++i;
             }
         }
 
         Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
-        
+
         // Definition of STORAGE_TYPE events
         size = getSizeByEventType(STORAGE_TYPE) + 1;
         values = new long[size];
@@ -370,19 +363,19 @@ public abstract class Tracer {
         values[0] = 0;
         descriptionValues[0] = "End";
         i = 1;
-        for (Event task : Event.values()){
-            if (task.getType() == STORAGE_TYPE){
+        for (Event task : Event.values()) {
+            if (task.getType() == STORAGE_TYPE) {
                 values[i] = task.getId();
                 descriptionValues[i] = task.getSignature();
                 if (debug) {
-                    logger.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: "+values[i]+ ", Desc: "+ descriptionValues[i]);
+                    logger.debug("Tracing[STORAGE_TYPE]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
                 }
                 ++i;
             }
         }
 
         Wrapper.defineEventType(STORAGE_TYPE, storageDesc, values, descriptionValues);
-        
+
         // Definition of Scheduling and Transfer time events
         size = 0;
         values = new long[size];
@@ -392,8 +385,8 @@ public abstract class Tracer {
         Wrapper.defineEventType(TASKS_ID_TYPE, taskIdDesc, values, descriptionValues);
     }
 
-    public static void generateMasterPackage(){
-        if (debug){
+    public static void generateMasterPackage() {
+        if (debug) {
             logger.debug("Tracing: generating master package");
         }
         String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
@@ -407,10 +400,10 @@ public abstract class Tracer {
             return;
         }
         if (debug) {
-        	StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-        	StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
-        	outputGobbler.start();
-        	errorGobbler.start();
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+            outputGobbler.start();
+            errorGobbler.start();
         }
 
         try {
@@ -424,7 +417,7 @@ public abstract class Tracer {
     }
 
     public static void transferMasterPackage() {
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Transferring master package");
         }
         Semaphore sem = new Semaphore(0);
@@ -450,13 +443,13 @@ public abstract class Tracer {
     }
 
     public static void generateTrace() {
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Generating trace");
         }
         String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
         ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace",
-                                               System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size()+1));
+                System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size() + 1));
         Process p = null;
         pb.environment().remove("LD_PRELOAD");
         try {
@@ -466,10 +459,10 @@ public abstract class Tracer {
             return;
         }
         if (debug) {
-        	StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-        	StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
-        	outputGobbler.start();
-        	errorGobbler.start();
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+            outputGobbler.start();
+            errorGobbler.start();
         }
 
         try {
@@ -482,11 +475,11 @@ public abstract class Tracer {
         }
     }
 
-    public static void cleanMasterPackage(){
+    public static void cleanMasterPackage() {
         String filename = "master_compss_trace.tar.gz";
         DataLocation source = DataLocation.getLocation(Comm.appHost, filename);
 
-        if (debug){
+        if (debug) {
             logger.debug("Tracing: Removing tracing master package: " + source.getPath());
         }
 
@@ -494,7 +487,7 @@ public abstract class Tracer {
         try {
             f = new File(source.getPath());
             f.delete();
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("Unable to remove tracing temporary files of master node.");
         }
     }

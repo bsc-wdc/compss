@@ -10,14 +10,13 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
 
-
 public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescription> {
 
     //Task running in the resource
-    private final LinkedList<AllocatableAction<P,T>> running;
+    private final LinkedList<AllocatableAction<P, T>> running;
 
     //Task without enough resources to be executed right now
-    private final LinkedList<AllocatableAction<P,T>> blocked;
+    private final LinkedList<AllocatableAction<P, T>> blocked;
 
     //Profile information of the task executions
     private Profile[][] profiles;
@@ -34,8 +33,8 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
                 profiles[coreId][implId] = generateProfileForAllocatable();
             }
         }
-        running = new LinkedList<AllocatableAction<P,T>>();
-        blocked = new LinkedList<AllocatableAction<P,T>>();
+        running = new LinkedList<AllocatableAction<P, T>>();
+        blocked = new LinkedList<AllocatableAction<P, T>>();
         myWorker = w;
     }
 
@@ -118,15 +117,15 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * --------- RUNNING ACTIONS MANAGEMENT -----------
      * ------------------------------------------------
      * ----------------------------------------------*/
-    public final void hostAction(AllocatableAction<P,T> action) {
+    public final void hostAction(AllocatableAction<P, T> action) {
         running.add(action);
     }
 
-    public final LinkedList<AllocatableAction<P,T>> getHostedActions() {
+    public final LinkedList<AllocatableAction<P, T>> getHostedActions() {
         return running;
     }
 
-    public final void unhostAction(AllocatableAction<P,T> action) {
+    public final void unhostAction(AllocatableAction<P, T> action) {
         running.remove(action);
     }
 
@@ -135,15 +134,15 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * --------- BLOCKED ACTIONS MANAGEMENT -----------
      * ------------------------------------------------
      * ----------------------------------------------*/
-    public final void waitOnResource(AllocatableAction<P,T> action) {
+    public final void waitOnResource(AllocatableAction<P, T> action) {
         blocked.add(action);
     }
 
-    public final boolean hasBlockedTasks() {
+    public final boolean hasBlockedActions() {
         return blocked.size() > 0;
     }
 
-    public final AllocatableAction<P,T> getFirstBlocked() {
+    public final AllocatableAction<P, T> getFirstBlocked() {
         return blocked.getFirst();
     }
 
@@ -156,27 +155,27 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * ------ RESOURCE - IMPLEMENTATION SCORE ---------
      * ------------------------------------------------
      * ----------------------------------------------*/
-    public Score getResourceScore(AllocatableAction<P,T> action, TaskParams params, Score actionScore) {
+    public Score getResourceScore(AllocatableAction<P, T> action, TaskParams params, Score actionScore) {
         long resourceScore = Score.getLocalityScore(params, myWorker);
         return new Score(actionScore, resourceScore, 0);
 
     }
 
-    public Score getImplementationScore(AllocatableAction<P,T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction<P, T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
         long implScore = this.getProfile(impl).getAverageExecutionTime();
         return new Score(resourceScore, implScore);
     }
 
-    public void initialSchedule(AllocatableAction<P,T> action, Implementation<T> bestImpl) {
+    public void initialSchedule(AllocatableAction<P, T> action, Implementation<T> bestImpl) {
         //Assign no resource dependencies. The worker will automatically block 
         //the tasks when there are not enough resources available.
     }
 
-    public LinkedList<AllocatableAction<P,T>> unscheduleAction(AllocatableAction<P,T> action) {
-        return new LinkedList<AllocatableAction<P,T>>();
+    public LinkedList<AllocatableAction<P, T>> unscheduleAction(AllocatableAction<P, T> action) {
+        return new LinkedList<AllocatableAction<P, T>>();
     }
 
-    public final void cancelAction(AllocatableAction<P,T> action) {
+    public final void cancelAction(AllocatableAction<P, T> action) {
         blocked.remove(action);
         unscheduleAction(action);
     }

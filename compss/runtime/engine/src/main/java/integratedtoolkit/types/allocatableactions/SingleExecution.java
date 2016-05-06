@@ -39,10 +39,9 @@ import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
-
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
-    private static final int TRANSFER_CHANCES 	= 2;
+    private static final int TRANSFER_CHANCES = 2;
     private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
 
@@ -97,7 +96,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     protected void releaseResources() {
-    	Worker w = selectedResource.getResource();
+        Worker w = selectedResource.getResource();
         w.endTask(resourceConsumption);
     }
 
@@ -439,5 +438,4 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     public Integer getCoreId() {
         return task.getTaskParams().getId();
     }
-
 }

@@ -15,7 +15,7 @@ public interface CommAdaptor {
     
     public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
 
-    public COMPSsWorker initWorker(String workerName, Configuration config) throws Exception;
+    public COMPSsWorker initWorker(String workerName, Configuration config);
 
     public void stop();
 

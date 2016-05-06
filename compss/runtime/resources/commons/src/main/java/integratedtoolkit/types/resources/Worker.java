@@ -8,7 +8,6 @@ import integratedtoolkit.util.CoreManager;
 
 import java.util.LinkedList;
 
-
 public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     protected final T description;
@@ -28,7 +27,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private int usedTaskCount = 0;
     private final int maxTaskCount;
 
-    
     public Worker(String name, T description, COMPSsNode worker, int limitOfTasks) {
         super(worker);
         int coreCount = CoreManager.getCoreCount();
@@ -37,7 +35,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
-        for (int coreId = 0; coreId < coreCount; ++coreId) {
+        for (int coreId = 0; coreId < coreCount; coreId++) {
             executableImpls[coreId] = new LinkedList<Implementation<T>>();
             implSimultaneousTasks[coreId] = new int[CoreManager.getCoreImplementations(coreId).length];
         }
@@ -46,7 +44,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.maxTaskCount = limitOfTasks;
     }
 
-    public Worker(String name, T description, Configuration config) throws Exception {
+    public Worker(String name, T description, Configuration config) {
         super(name, config);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
@@ -54,7 +52,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.executableCores = new LinkedList<Integer>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
-        for (int coreId = 0; coreId < coreCount; ++coreId) {
+        for (int coreId = 0; coreId < coreCount; coreId++) {
             executableImpls[coreId] = new LinkedList<Implementation<T>>();
             implSimultaneousTasks[coreId] = new int[CoreManager.getCoreImplementations(coreId).length];
         }
@@ -70,9 +68,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.executableCores = w.executableCores;
         this.implSimultaneousTasks = w.implSimultaneousTasks;
         this.executableImpls = w.executableImpls;
-        
+
         this.description = w.description;
-        
+
         this.maxTaskCount = w.maxTaskCount;
         this.usedTaskCount = w.usedTaskCount;
     }
@@ -84,17 +82,17 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public int getMaxTaskCount() {
         return this.maxTaskCount;
     }
-    
+
     public int getUsedTaskCount() {
         return this.usedTaskCount;
     }
-    
+
     private void decreaseUsedTaskCount() {
-    	--this.usedTaskCount;
+        this.usedTaskCount--;
     }
-    
+
     private void increaseUsedTaskCount() {
-    	++this.usedTaskCount;
+        this.usedTaskCount++;
     }
 
     /*-------------------------------------------------------------------------
@@ -136,7 +134,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 executableImpls[coreId] = new LinkedList<Implementation<T>>();
                 for (Implementation<T> impl : impls) {
                     if (canRun(impl)) {
-                    	int simultaneousCapacity = simultaneousCapacity(impl);
+                        int simultaneousCapacity = simultaneousCapacity(impl);
                         idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
                         implSimultaneousTasks[coreId][impl.getImplementationId()] = simultaneousCapacity;
                         if (implSimultaneousTasks[coreId][impl.getImplementationId()] > 0) {
@@ -300,16 +298,16 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public T runTask(T consumption) {
-    	T reserved = reserveResource(consumption);
-    	
-    	if (reserved != null) {
-    		// Consumption can be hosted
-    		this.increaseUsedTaskCount();
-    	} else {
-    		// Consumption cannot be hosted
-    	}
-    	
-    	return reserved;
+        T reserved = reserveResource(consumption);
+
+        if (reserved != null) {
+            // Consumption can be hosted
+            this.increaseUsedTaskCount();
+        } else {
+            // Consumption cannot be hosted
+        }
+
+        return reserved;
     }
 
     public abstract String getMonitoringData(String prefix);

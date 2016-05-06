@@ -12,6 +12,7 @@ import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.allocatableactions.StartWorkerAction;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -110,7 +111,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             }
         }
         LinkedList<AllocatableAction<P,T>> resourceFree = resource.unscheduleAction(action);
-        workerUpdate((ResourceScheduler<P,T>) action.getAssignedResource());
+        workerLoadUpdate((ResourceScheduler<P,T>) action.getAssignedResource());
         HashSet<AllocatableAction<P,T>> freeTasks = new HashSet<AllocatableAction<P,T>>();
         freeTasks.addAll(dataFreeActions);
         freeTasks.addAll(resourceFree);
@@ -188,7 +189,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             for (AllocatableAction<P,T> failed : action.failed()) {
                 resourceFree.addAll(resource.unscheduleAction(failed));
             }
-            workerUpdate(action.getAssignedResource());
+            workerLoadUpdate(action.getAssignedResource());
         }
         for (AllocatableAction<P,T> a : resourceFree) {
             try {
@@ -221,6 +222,13 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             ui = generateSchedulerForResource(worker);
             synchronized (workers) {
                 workers.put(worker, ui);
+            }
+            StartWorkerAction action = new StartWorkerAction(generateSchedulingInformation(), ui, this);
+            try {
+                action.schedule(null);
+                action.tryToLaunch();
+            } catch (Exception e) {
+                //Can not be blocked nor unassigned
             }
             workerDetected(ui);
         }
@@ -272,7 +280,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             for (AllocatableAction<P,T> a : stillBlocked) {
                 blockedActions.addAction(a);
             }
-            this.workerUpdate(ui);
+            this.workerLoadUpdate(ui);
         }
 
     }
@@ -381,7 +389,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      *
      */
     protected void scheduleAction(AllocatableAction<P,T> action, Score actionScore) throws BlockedActionException {
-        System.out.println("Scheduling action " + action);
         try {
             action.schedule(actionScore);
         } catch (UnassignedActionException ure) {
@@ -425,12 +432,12 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
 
     /**
-     * Notifies to the scheduler that there have been changes in the features of
-     * a resource or on the load assigned to it.
+     * Notifies to the scheduler that there have been changes in the load of
+     * a resource.
      *
      * @param resources updated resource
      */
-    public void workerUpdate(ResourceScheduler<P,T> resources) {
+    public void workerLoadUpdate(ResourceScheduler<P,T> resources) {
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
 

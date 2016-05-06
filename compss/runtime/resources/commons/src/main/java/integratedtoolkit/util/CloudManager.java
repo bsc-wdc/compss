@@ -13,15 +13,12 @@ import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
-
 
 /**
  * The CloudManager class is an utility to manage all the cloud interactions and
@@ -46,21 +43,20 @@ public class CloudManager {
 
     private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<ResourceCreationRequest>();
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
-    
+
     private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
     private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
-    
-    
+
     /**
      * Initializes the internal data structures
      *
      */
     public static void initialize() {
         runtimeLogger.info("Initializing Cloud Manager");
-    	useCloud = false;
+        useCloud = false;
         providers = new HashMap<String, CloudProvider>();
         VM2Provider = new HashMap<String, CloudProvider>();
-        loadConnectors();
+        loadConnectorJars();
     }
 
     /**
@@ -72,71 +68,52 @@ public class CloudManager {
         CloudManager.useCloud = useCloud;
     }
 
-	public static int getInitialVMs() {
-		return initialVMs;
-	}
+    public static int getInitialVMs() {
+        return initialVMs;
+    }
 
-	public static void setInitialVMs(int initialVMs) {
-		if (initialVMs > 0) {
-			CloudManager.initialVMs = initialVMs;
-		}
-	}
+    public static void setInitialVMs(int initialVMs) {
+        if (initialVMs > 0) {
+            CloudManager.initialVMs = initialVMs;
+        }
+    }
 
-	public static int getMinVMs() {
-		return minVMs;
-	}
+    public static int getMinVMs() {
+        return minVMs;
+    }
 
-	public static void setMinVMs(int minVMs) {
-		if (minVMs > 0) {
-			CloudManager.minVMs = minVMs;
-		}
-	}
+    public static void setMinVMs(int minVMs) {
+        if (minVMs > 0) {
+            CloudManager.minVMs = minVMs;
+        }
+    }
 
-	public static int getMaxVMs() {
-		return maxVMs;
-	}
+    public static int getMaxVMs() {
+        return maxVMs;
+    }
 
-	public static void setMaxVMs(int maxVMs) {
-		CloudManager.maxVMs = maxVMs;
-	}
+    public static void setMaxVMs(int maxVMs) {
+        CloudManager.maxVMs = maxVMs;
+    }
 
-	private static void loadConnectors(){
-		runtimeLogger.info("Loading connectors");
-		try {
-			URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-			Class<?> sysclass = URLClassLoader.class;
-			String itHome = System.getenv("IT_HOME");
-			if (itHome != null && !itHome.isEmpty()) {
-				Method method = sysclass.getDeclaredMethod("addURL", new Class[] { URL.class });
-				method.setAccessible(true);
-				File directory = new File(itHome + File.separator + "connectors");
-				if (directory.exists()){
-					File[] jarList = directory.listFiles();
-						for (File jar : jarList) {
-							try {
-								runtimeLogger.debug("Loading "+jar.getAbsolutePath());
-								
-								method.invoke(sysloader, new Object[] { (new File(jar.getAbsolutePath())).toURI().toURL()});
-							} catch (Exception e) {
-								resourcesLogger.error("ERROR_MSG = [COULD NOT LOAD CONNECTOR JAR " + jar.getAbsolutePath(), e);
-								resourcesLogger.error("]");
-								runtimeLogger.error("COULD NOT LOAD CONNECTOR JAR " + jar.getAbsolutePath(),e);
-							}
-						}
-				} else{
-					resourcesLogger.warn("WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
-					runtimeLogger.warn("WARN: Connectors folder not defined, no default connectors loaded");
-				}
-			} else{
-				resourcesLogger.warn("WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
-				runtimeLogger.warn("WARN: IT_HOME not defined, no default connectors loaded");
-			}
-		} catch (Exception e) {
-			resourcesLogger.error("ERROR_MSG = [CAN NOT LOAD ANY CONNECTOR ", e);
-			resourcesLogger.error("]");
-			runtimeLogger.error("ERROR: Cannot load any connector", e);
-		}
-	}
+    private static void loadConnectorJars() {
+
+        runtimeLogger.info("Loading connectors...");
+        String itHome = System.getenv("IT_HOME");
+
+        if (itHome == null || itHome.isEmpty()) {
+            resourcesLogger.warn("WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
+            runtimeLogger.warn("WARN: IT_HOME not defined, no default connectors loaded");
+            return;
+        }
+
+        try {
+            Classpath.loadPath(itHome + File.separator + "connectors", runtimeLogger);
+        } catch (FileNotFoundException ex) {
+            resourcesLogger.warn("WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
+            runtimeLogger.warn("WARN: Connectors folder not defined, no default connectors loaded");
+        }
+    }
 
     /**
      * Check if Cloud is used to dynamically adapt the resource pool
@@ -227,7 +204,7 @@ public class CloudManager {
     public static LinkedList<ResourceCreationRequest> getPendingRequests() {
         return pendingRequests;
     }
-    
+
     /**
      * Queries the amount of tasks that will be able to run simulataneously once
      * all the VMs have been created
@@ -347,7 +324,7 @@ public class CloudManager {
         CloudProvider cp = providers.get(provider);
         String vmName = r.getName();
         VM2Provider.put(vmName, cp);
-        cp.createdVM(vmName, (CloudMethodResourceDescription)r.getDescription());
+        cp.createdVM(vmName, (CloudMethodResourceDescription) r.getDescription());
     }
 
     public static void refusedRequest(ResourceCreationRequest rcr) {
@@ -451,7 +428,7 @@ public class CloudManager {
     }
 
     public static void destroyResources(CloudMethodWorker res, CloudMethodResourceDescription reduction) {
-    	runtimeLogger.debug("Destroying resources for reduction");
+        runtimeLogger.debug("Destroying resources for reduction");
         CloudProvider cp = VM2Provider.get(res.getName());
         cp.turnOff(res, reduction);
     }
@@ -462,13 +439,13 @@ public class CloudManager {
      * @throws ConnectorException
      */
     public static void terminateALL() throws ConnectorException {
-    	runtimeLogger.debug("Terminate ALL resources");
-        if(providers!=null){
-        	for (java.util.Map.Entry<String, CloudProvider> vm : providers.entrySet()) {
-        		CloudProvider cp = vm.getValue();
-        		cp.terminateAll();
-        	}
-        	VM2Provider.clear();
+        runtimeLogger.debug("Terminate ALL resources");
+        if (providers != null) {
+            for (java.util.Map.Entry<String, CloudProvider> vm : providers.entrySet()) {
+                CloudProvider cp = vm.getValue();
+                cp.terminateAll();
+            }
+            VM2Provider.clear();
         }
     }
 
@@ -522,7 +499,7 @@ public class CloudManager {
         }
         return total;
     }
-    
+
     public static long getTimeSlot() throws Exception {
         long total = Long.MAX_VALUE;
         for (CloudProvider cp : providers.values()) {
@@ -574,11 +551,11 @@ public class CloudManager {
 
     /*private static class Ender extends Thread {
 
-        public void run() {
-            for (CloudProvider cp : providers.values()) {
-                logger.debug("Terminating all at ender");
-            	cp.terminateAll();
-            }
-        }
-    }*/
+     public void run() {
+     for (CloudProvider cp : providers.values()) {
+     logger.debug("Terminating all at ender");
+     cp.terminateAll();
+     }
+     }
+     }*/
 }

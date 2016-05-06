@@ -7,6 +7,7 @@ import integratedtoolkit.util.ThreadPool;
 import integratedtoolkit.api.ITExecution.*;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
@@ -104,14 +105,17 @@ public class WSJob<T extends COMPSsNode> extends Job<T> {
 
         buffer.append("[[Job id: ").append(getJobId()).append("]");
         buffer.append(", ").append(taskParams.toString());
-        buffer.append(", [Target URL: ").append(getResourceNode().getName()).append("]]");
+        String name = "";
+        COMPSsNode node = getResourceNode();
+        name = node.getName();
+        buffer.append(", [Target URL: ").append(name).append("]]");
 
         return buffer.toString();
     }
 
     @Override
     public String getHostName() {
-        return this.getResourceNode().getName();
+        return getResourceNode().getName();
     }
 
     static class WSCaller extends RequestDispatcher<WSJob<?>> {
@@ -200,7 +204,7 @@ public class WSJob<T extends COMPSsNode> extends Job<T> {
             try {
                 client = dcf.createClient(si.getWsdl(), serviceQName, portQName);
             } catch (Exception e) {
-            	logger.error("Exception", e);
+                logger.error("Exception", e);
             }
 
             HTTPConduit http = (HTTPConduit) client.getConduit();

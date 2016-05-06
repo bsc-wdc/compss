@@ -47,7 +47,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     private static final String ANY_PROT = "any://";
     private static final String JOB_STATUS = "job.status";
     private static final String RES_ATTR = "machine.node";
-    
+
     // private static final String JOB_DIR_CREATION_ERR = "Error creating job output/error directory";
     private static final String CALLBACK_PROCESSING_ERR = "Error processing callback for job";
     private static final String TERM_ERR = "Error terminating";
@@ -58,7 +58,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     // GAT broker adaptor information
     private boolean usingGlobus;
     private boolean userNeeded;
-    
+
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
     // Worker classpath
@@ -67,13 +67,12 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             ? System.getProperty(ITConstants.IT_WORKER_CP)
             : "\"\"";
 
-    private static final String WORKER_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system" 
-    													+ File.separator + "adaptors" + File.separator + "gat" + File.separator;
+    private static final String WORKER_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system"
+            + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String WORKER_SCRIPT_NAME = "worker.sh";
 
     public static LinkedList<GATJob> runningJobs = new LinkedList<GATJob>();
 
-    
     public GATJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context, boolean userNeeded, boolean usingGlobus) {
         super(taskId, taskParams, impl, res, listener);
         this.context = context;
@@ -151,7 +150,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         if (newJobState == JobState.STOPPED) {
             if (tracing) {
                 Integer slot = (Integer) sd.getAttributes().get("slot");
-                Tracer.freeSlot(getResourceNode().getHost(), slot);
+                String host = getResourceNode().getHost();
+                Tracer.freeSlot(host, slot);
             }
 
             /* We must check whether the chosen adaptor is globus
@@ -190,7 +190,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else if (newJobState == JobState.SUBMISSION_ERROR) {
             if (tracing) {
                 Integer slot = (Integer) sd.getAttributes().get("slot");
-                Tracer.freeSlot(getResourceNode().getHost(), slot);
+                String host = getResourceNode().getHost();
+                Tracer.freeSlot(host, slot);
             }
 
             try {
@@ -336,21 +337,20 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         sd.addAttribute("jobId", jobId);
         // JEA Changed to allow execution in MN
         sd.addAttribute(SoftwareDescription.WALLTIME_MAX, method.getRequirements().getWallClockLimit());
-        if (method.getRequirements().getHostQueues().size() > 0){
-        	sd.addAttribute(SoftwareDescription.JOB_QUEUE, method.getRequirements().getHostQueues().get(0));
+        if (method.getRequirements().getHostQueues().size() > 0) {
+            sd.addAttribute(SoftwareDescription.JOB_QUEUE, method.getRequirements().getHostQueues().get(0));
         }
         sd.addAttribute("coreCount", method.getRequirements().getTotalComputingUnits());
         sd.addAttribute(SoftwareDescription.MEMORY_MAX, method.getRequirements().getMemorySize());
         //sd.addAttribute(SoftwareDescription.SANDBOX_ROOT, "/tmp/");
-        
+
         sd.addAttribute(SoftwareDescription.SANDBOX_ROOT, getResourceNode().getWorkingDir());
         sd.addAttribute(SoftwareDescription.SANDBOX_USEROOT, "true");
         sd.addAttribute(SoftwareDescription.SANDBOX_DELETE, "false");
-        
+
         /*sd.addAttribute(SoftwareDescription.SANDBOX_PRESTAGE_STDIN, "false");
          sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDOUT, "false");
          sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDERR, "false");*/
-
         if (debug) { // Set standard output file for job
             File outFile = GAT.createFile(context, "any:///" + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
@@ -364,21 +364,21 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(RES_ATTR, ANY_PROT + targetUser + targetHost);
-        attributes.put("Jobname", "compss_remote_job_"+jobId);
+        attributes.put("Jobname", "compss_remote_job_" + jobId);
         ResourceDescription rd = new HardwareResourceDescription(attributes);
 
         if (debug) {
-	        logger.debug("Ready to submit job " + jobId + ":");
-	        logger.debug("  * Host: " + targetHost);
-	        logger.debug("  * Executable: " + sd.getExecutable());
-	
-	        StringBuilder sb = new StringBuilder("  - Arguments:");
-	        for (String arg : sd.getArguments()) {
-	            sb.append(" ").append(arg);
-	        }
-	        logger.debug(sb.toString());
+            logger.debug("Ready to submit job " + jobId + ":");
+            logger.debug("  * Host: " + targetHost);
+            logger.debug("  * Executable: " + sd.getExecutable());
+
+            StringBuilder sb = new StringBuilder("  - Arguments:");
+            for (String arg : sd.getArguments()) {
+                sb.append(" ").append(arg);
+            }
+            logger.debug(sb.toString());
         }
-        
+
         JobDescription jd = new JobDescription(sd, rd);
         //jd.setProcessCount(method.getRequirements().getProcessorCoreCount());
         return jd;
@@ -388,8 +388,11 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         StringBuilder buffer = new StringBuilder();
         buffer.append("[[Job id: ").append(getJobId()).append("]");
         buffer.append(", ").append(taskParams.toString());
-        buffer.append(", [Target host: ").append(getResourceNode().getHost()).append("]");
-        buffer.append(", [User: ").append(getResourceNode().getUser()).append("]]");
+        GATWorkerNode node = getResourceNode();
+        String host = node.getHost();
+        String user = node.getUser();
+        buffer.append(", [Target host: ").append(host).append("]");
+        buffer.append(", [User: ").append(user).append("]]");
         return buffer.toString();
     }
 

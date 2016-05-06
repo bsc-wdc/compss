@@ -129,7 +129,7 @@ public class GATAdaptor implements CommAdaptor {
 
     // GAT adaptor initializes the worker each time it sends a new job
     @Override
-    public GATWorkerNode initWorker(String name, Configuration config) throws Exception {
+    public GATWorkerNode initWorker(String name, Configuration config) {
     	GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration)config);
         return node;
     }

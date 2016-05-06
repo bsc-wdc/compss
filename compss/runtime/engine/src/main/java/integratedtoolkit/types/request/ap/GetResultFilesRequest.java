@@ -11,7 +11,6 @@ import integratedtoolkit.types.data.ResultFile;
 import integratedtoolkit.types.data.operation.ResultListener;
 import java.util.TreeSet;
 
-
 public class GetResultFilesRequest extends APRequest {
 
     private Long appId;
@@ -51,7 +50,8 @@ public class GetResultFilesRequest extends APRequest {
         TreeSet<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.appId);
         if (writtenDataIds != null) {
             for (int dataId : writtenDataIds) {
-                ResultFile rf = dip.blockDataAndGetResultFile(dataId, listener);
+                ResultFile rf;
+                rf = dip.blockDataAndGetResultFile(dataId, listener);
                 if (rf == null) {
                     continue;
                 }

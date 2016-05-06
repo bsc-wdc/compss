@@ -1,10 +1,10 @@
 package integratedtoolkit.types.data.location;
 
+import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.resources.Resource;
 
 import java.io.File;
 import java.util.HashMap;
-
 
 public class URI implements Comparable<URI> {
 
@@ -33,7 +33,7 @@ public class URI implements Comparable<URI> {
         internal.put(adaptor, uri);
     }
 
-    public Object getInternalURI(String adaptor) {
+    public Object getInternalURI(String adaptor) throws UnstartedNodeException {
         Object o = internal.get(adaptor);
         if (o == null) {
             host.setInternalURI(this);

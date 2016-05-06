@@ -7,20 +7,21 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.AllocatableAction.ActionOrchestrator;
+import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.request.td.*;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.CEIParser;
+import integratedtoolkit.util.Classpath;
+import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.Tracer;
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
@@ -56,45 +57,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
-        try {
-            URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-            Class<?> sysclass = URLClassLoader.class;
-            String itHome = System.getenv("IT_HOME");
-            Method method = sysclass.getDeclaredMethod("addURL", new Class[]{URL.class});
-            method.setAccessible(true);
-            File directory = new File(itHome + File.separator + "scheduler");
-            File[] jarList = directory.listFiles();
-            for (File jar : jarList) {
-                try {
-                    method.invoke(sysloader, new Object[]{(new File(jar.getAbsolutePath())).toURI().toURL()});
-                } catch (Exception e) {
-                    logger.error("COULD NOT LOAD SCHEDULER JAR " + jar.getAbsolutePath(), e);
-                }
-
-            }
-        } catch (Exception e) {
-            //Could not load any scheduler.
-            //DO nothing
-            e.printStackTrace();
-        }
+        loadSchedulerJars();
 
         CEIParser.parse();
 
         ResourceManager.load(this);
 
-        try {
-            String schedulerPath = System.getProperty(ITConstants.IT_SCHEDULER);
-            schedulerPath = "integratedtoolkit.scheduler.readyscheduler.ReadyScheduler";
-            if (schedulerPath == null || schedulerPath.compareTo("default") == 0) {
-                scheduler = new TaskScheduler();
-            } else {
-                Class<?> conClass = Class.forName(schedulerPath);
-                Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
-                scheduler = (TaskScheduler<?,?>) ctor.newInstance();
-            }
-        } catch (Exception e) {
-            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
-        }
+        scheduler = constructScheduler();
 
         keepGoing = true;
 
@@ -109,6 +78,9 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             Tracer.disablePThreads();
         }
 
+        for (Worker w : ResourceManager.getAllWorkers()) {
+            scheduler.updatedWorker(w);
+        }
         logger.info("Initialization finished");
     }
 
@@ -255,5 +227,38 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             // Nothing to do
         }
     }
-    
+    private static void loadSchedulerJars() {
+
+        logger.info("Loading schedulers...");
+        String itHome = System.getenv("IT_HOME");
+
+        if (itHome == null || itHome.isEmpty()) {
+            logger.warn("WARN: IT_HOME not defined, no schedulers loaded.");
+            return;
+        }
+
+        try {
+            Classpath.loadPath(itHome + File.separator + "scheduler", logger);
+        } catch (FileNotFoundException ex) {
+            logger.warn("WARN_MSG = [Schedulers folder not defined, no schedulers loaded.]");
+        }
+    }
+
+    private TaskScheduler constructScheduler() {
+        TaskScheduler scheduler = null;
+        try {
+            String schedulerPath = System.getProperty(ITConstants.IT_SCHEDULER);
+            schedulerPath = "integratedtoolkit.scheduler.readyscheduler.ReadyScheduler";
+            if (schedulerPath == null || schedulerPath.compareTo("default") == 0) {
+                scheduler = new TaskScheduler();
+            } else {
+                Class<?> conClass = Class.forName(schedulerPath);
+                Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
+                scheduler = (TaskScheduler) ctor.newInstance();
+            }
+        } catch (Exception e) {
+            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
+        }
+        return scheduler;
+    }
 }

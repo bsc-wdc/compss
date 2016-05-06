@@ -623,10 +623,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return contained;
     }
     
-    public boolean dynamicContains(MethodResourceDescription rc2) {
+    public boolean containsDynamic(MethodResourceDescription rc2) {
         boolean contained = checkProcessors(rc2);
         contained = contained && checkMemory(rc2);
-        
         return contained;
     }
 

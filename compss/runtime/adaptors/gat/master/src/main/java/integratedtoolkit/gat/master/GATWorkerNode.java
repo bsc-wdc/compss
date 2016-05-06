@@ -23,12 +23,10 @@ import java.net.URISyntaxException;
 
 import org.gridlab.gat.GATContext;
 
-
 public class GATWorkerNode extends COMPSsWorker {
 
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
-
 
     @Override
     public String getName() {
@@ -39,16 +37,20 @@ public class GATWorkerNode extends COMPSsWorker {
         super(name, config);
         this.config = config;
 
+    }
+
+    @Override
+    public void start() throws Exception {
         if (tracing) {
             logger.debug("Starting GAT tracer " + this.getName());
             tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
         }
     }
-    
-	public void addAdaptorPreference(String property, String value) {
-		this.config.addContextPreference(property, value);
-	}
+
+    public void addAdaptorPreference(String property, String value) {
+        this.config.addContextPreference(property, value);
+    }
 
     public String getUser() {
         return this.config.getUser();
@@ -67,21 +69,21 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     public String getAppDir() {
-    	String appDir = this.config.getAppDir();
-    	appDir = (appDir == null || appDir.isEmpty()) ? "null" : appDir;
-    	
-    	return appDir;
+        String appDir = this.config.getAppDir();
+        appDir = (appDir == null || appDir.isEmpty()) ? "null" : appDir;
+
+        return appDir;
     }
 
     public String getLibPath() {
-    	String libPath = this.config.getLibraryPath();
-    	libPath = (libPath == null || libPath.isEmpty()) ? "null" : libPath;
-    	
-    	return libPath;
+        String libPath = this.config.getLibraryPath();
+        libPath = (libPath == null || libPath.isEmpty()) ? "null" : libPath;
+
+        return libPath;
     }
-    
+
     public int getTotalComputingUnits() {
-    	return this.config.getTotalComputingUnits();
+        return this.config.getTotalComputingUnits();
     }
 
     private void waitForTracingReady() {
@@ -95,7 +97,7 @@ public class GATWorkerNode extends COMPSsWorker {
     public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus());
     }
-    
+
     @Override
     public void setInternalURI(URI uri) {
         String scheme = uri.getScheme();
@@ -113,11 +115,11 @@ public class GATWorkerNode extends COMPSsWorker {
         }
     }
 
-@Override
+    @Override
     public void stop(ShutdownListener sl) {
         try {
             delete(new File(this.config.getWorkingDir()));
-        } catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             logger.warn("Could not remove Node working dir\n" + e);
         }
         sl.notifyEnd();
@@ -125,11 +127,11 @@ public class GATWorkerNode extends COMPSsWorker {
 
     private void delete(File f) throws FileNotFoundException {
         if (f.isDirectory()) {
-            for (File c : f.listFiles()){
+            for (File c : f.listFiles()) {
                 delete(c);
             }
         }
-        if (!f.delete()){
+        if (!f.delete()) {
             throw new FileNotFoundException("Failed to delete file: " + f);
         }
     }
@@ -199,16 +201,16 @@ public class GATWorkerNode extends COMPSsWorker {
         logger.info("Worker debug files not supported on GAT Adaptor");
     }
 
-	public GATContext getContext() {
-		return this.config.getContext();
-	}
-	
-	public boolean isUsingGlobus(){
-		return this.config.isUsingGlobus();
-	}
-	
-	public boolean isUserNeeded(){
-		return this.config.isUserNeeded();
-	}
+    public GATContext getContext() {
+        return this.config.getContext();
+    }
+
+    public boolean isUsingGlobus() {
+        return this.config.isUsingGlobus();
+    }
+
+    public boolean isUserNeeded() {
+        return this.config.isUserNeeded();
+    }
 
 }

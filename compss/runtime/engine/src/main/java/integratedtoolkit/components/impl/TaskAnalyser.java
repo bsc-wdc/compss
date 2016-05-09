@@ -34,7 +34,6 @@ import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.util.ErrorManager;
 
-
 public class TaskAnalyser {
 
     // Constants definition
@@ -57,7 +56,7 @@ public class TaskAnalyser {
     // Map: app id -> set of written data ids (for result files)
     private HashMap<Long, TreeSet<Integer>> appIdToWrittenFiles;
     // Map: app id -> set of written data ids (for result SCOs)
-    private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;  
+    private HashMap<Long, TreeSet<Integer>> appIdToSCOWrittenIds;
     // Tasks being waited on: taskId -> list of semaphores where to notify end of task
     private Hashtable<Task, List<Semaphore>> waitedTasks;
 
@@ -66,7 +65,7 @@ public class TaskAnalyser {
     private static final boolean debug = logger.isDebugEnabled();
     // Graph drawing
     private static final boolean drawGraph = GraphGenerator.isEnabled();
-    
+
     private static int synchronizationId;
 
     public TaskAnalyser() {
@@ -84,9 +83,9 @@ public class TaskAnalyser {
     public void setCoWorkers(DataInfoProvider DIP) {
         this.DIP = DIP;
     }
-    
+
     public void setGM(GraphGenerator GM) {
-    	this.GM = GM;
+        this.GM = GM;
     }
 
     public void processTask(Task currentTask) {
@@ -160,12 +159,12 @@ public class TaskAnalyser {
                     FileParameter fp = (FileParameter) p;
                     daId = DIP.registerFileAccess(am, fp.getLocation(), methodId);
                     break;
-                    
+
                 case SCO_T:
                 case PSCO_T:
-            		SCOParameter sco = (SCOParameter) p;
+                    SCOParameter sco = (SCOParameter) p;
                     daId = DIP.registerObjectAccess(am, sco.getValue(), sco.getCode(), methodId);
-            		break;  
+                    break;
 
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
@@ -219,7 +218,7 @@ public class TaskAnalyser {
 
     }
 
-    private boolean checkDependencyForRead(Task currentTask, DependencyParameter dp) {
+    private void checkDependencyForRead(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
         Task lastWriter = writers.get(dataId);
         if (lastWriter != null && lastWriter != currentTask) { // avoid self-dependencies
@@ -237,7 +236,7 @@ public class TaskAnalyser {
                         }
                     }
                     if (b) {
-                    	this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
+                        this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
                     }
                 } catch (Exception e) {
                     logger.error("Error drawing dependency in graph", e);
@@ -245,9 +244,8 @@ public class TaskAnalyser {
             }
             currentTask.addDataDependency(lastWriter);
         } else if (drawGraph && lastWriter != null) {
-        	this.GM.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
+            this.GM.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
         }
-        return true;
     }
 
     public void registerOutputValues(Task currentTask, DependencyParameter dp) {
@@ -263,7 +261,7 @@ public class TaskAnalyser {
             }
             idsWritten.add(dataId);
         }
-        if (dp.getType() == ParamType.PSCO_T) { 
+        if (dp.getType() == ParamType.PSCO_T) {
             TreeSet<Integer> idsWritten = appIdToSCOWrittenIds.get(appId);
             if (idsWritten == null) {
                 idsWritten = new TreeSet<Integer>();
@@ -302,18 +300,14 @@ public class TaskAnalyser {
             }
         }
 
-        LinkedList<DataAccessId> readedData = new LinkedList<DataAccessId>();
         for (Parameter param : task.getTaskParams().getParameters()) {
             ParamType type = param.getType();
-
             if (type == ParamType.FILE_T || type == ParamType.OBJECT_T || type == ParamType.SCO_T || type == ParamType.PSCO_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
-                readedData.add(dAccId);
+                DIP.dataHasBeenAccessed(dAccId);
             }
         }
-
-        DIP.dataHasBeenRead(readedData, task.getTaskParams().getId());
 
         // Add the task to the set of finished tasks
         //finishedTasks.add(task);
@@ -380,11 +374,11 @@ public class TaskAnalyser {
             }
             synchronizationId++;
             try {
-            	this.GM.addSynchroToGraph(synchronizationId);
-            	this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
+                this.GM.addSynchroToGraph(synchronizationId);
+                this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
 
                 if (synchronizationId > 0) {
-                	this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
+                    this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
                 }
             } catch (Exception e) {
                 logger.error("Error adding task to graph file", e);

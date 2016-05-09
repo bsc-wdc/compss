@@ -1,195 +1,125 @@
 package integratedtoolkit.types.data;
 
-import integratedtoolkit.comm.Comm;
-import integratedtoolkit.types.data.AccessParams.AccessMode;
-import integratedtoolkit.types.data.DataAccessId.RAccessId;
-import integratedtoolkit.types.data.DataAccessId.RWAccessId;
-import integratedtoolkit.types.data.DataAccessId.WAccessId;
 import java.util.LinkedList;
 import java.util.TreeMap;
-import org.apache.log4j.Logger;
-
 
 // Information about a datum and its versions
 public abstract class DataInfo {
 
     private static final int FIRST_FILE_ID = 1;
     private static final int FIRST_VERSION_ID = 1;
+
+    protected static int nextDataId = FIRST_FILE_ID;
     // Data identifier
     protected int dataId;
+
+    // Current version
+    protected DataVersion currentVersion;
+    // Data and version identifier management
+    protected int currentVersionId;
+
     // Versions of the datum
     // Map: version identifier -> version
-    protected TreeMap<Integer, Version> versions;
-    // Current version
-    protected Version currentVersion;
-    // Data and version identifier management
-    protected static int nextDataId;
-    protected int currentVersionId;
-    private int readers;
-    protected boolean toDelete;
+    protected TreeMap<Integer, DataVersion> versions;
+    private boolean toDelete;
 
-    public static void init() {
-        nextDataId = FIRST_FILE_ID;
-    }
+    protected int deletionBlocks;
+    protected final LinkedList<DataVersion> pendingDeletions;
 
     public DataInfo() {
         this.dataId = nextDataId++;
-        this.versions = new TreeMap<Integer, Version>();
+        this.versions = new TreeMap<Integer, DataVersion>();
         this.currentVersionId = FIRST_VERSION_ID;
-        this.currentVersion = new Version(dataId, 1);
+        this.currentVersion = new DataVersion(dataId, 1);
         this.versions.put(currentVersionId, currentVersion);
-        readers = 0;
+        this.deletionBlocks = 0;
+        this.pendingDeletions = new LinkedList<DataVersion>();
     }
 
     public int getDataId() {
         return dataId;
     }
 
-    public int getLastVersionId() {
+    public int getCurrentVersionId() {
         return currentVersionId;
     }
 
-    public DataInstanceId getLastDataInstanceId() {
-        return currentVersion.dataInstanceId;
+    public DataInstanceId getCurrentDataInstanceId() {
+        return currentVersion.getDataInstanceId();
     }
 
-    public LinkedList<DataInstanceId> getAllDataInstances() {
-        LinkedList<DataInstanceId> renamings = new LinkedList<DataInstanceId>();
-        for (Version version : this.versions.values()) {
-            renamings.add(version.dataInstanceId);
+    public void willBeRead() {
+        currentVersion.willBeRead();
+    }
+
+    public boolean isToBeRead() {
+        return currentVersion.hasPendingLectures();
+    }
+
+    public boolean versionHasBeenRead(int versionId) {
+        DataVersion readVersion = versions.get(versionId);
+        if (readVersion.hasBeenRead()) {
+            versions.remove(versionId);
+            return (this.toDelete && versions.size() == 0);
         }
-        return renamings;
+        return false;
     }
 
-    public int getNumberOfVersions() {
-        return versions.size();
-    }
-
-    public int getReaders() {
-        return readers;
-    }
-
-    public Integer getReadersForVersion(int versionId) {
-        return versions.get(versionId).getReaders();
-    }
-
-    /*public Map<Integer, Integer> getMethodReadersForVersion(int versionId) {
-     return versions.get(versionId).getMethodReaders();
-     }*/
-    public void addVersion() {
+    public void willBeWritten() {
         currentVersionId++;
-        Version newVersion = new Version(dataId, currentVersionId);
+        DataVersion newVersion = new DataVersion(dataId, currentVersionId);
         versions.put(currentVersionId, newVersion);
         currentVersion = newVersion;
     }
 
-    public int willBeRead(int methodId) {
-        int i = currentVersion.willBeRead(methodId);
-        readers++;
-        return i;
+    public boolean versionHasBeenWritten(int versionId) {
+        DataVersion writtenVersion = versions.get(versionId);
+        if (writtenVersion.hasBeenWritten()) {
+            versions.remove(versionId);
+            return (this.toDelete && versions.size() == 0);
+        }
+        return false;
     }
 
-    public Integer versionHasBeenRead(int versionId, int methodId) {
-        int i = versions.get(versionId).hasBeenRead(methodId);
-        readers--;
-        return i;
+    public void blockDeletions() {
+        deletionBlocks++;
     }
 
-    public void removeVersion(int versionId) {
-        versions.remove(versionId);
-    }
-
-    public DataAccessId manageAccess(AccessMode mode, int readerId, boolean debug, Logger logger) {
-        // Version management
-        DataAccessId daId = null;
-        switch (mode) {
-            case R:
-                willBeRead(readerId);
-                daId = new RAccessId(getLastDataInstanceId());
-                if (debug) {
-                	StringBuilder sb = new StringBuilder("");
-                	sb.append("Access:").append("\n");
-                    sb.append("  * Type: R").append("\n");
-                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RAccessId) daId).getRVersionId()).append("\n");
-                    logger.debug(sb.toString());
+    public boolean unblockDeletions() {
+        deletionBlocks--;
+        if (deletionBlocks == 0) {
+            for (DataVersion version : pendingDeletions) {
+                if (version.delete()) {
+                    versions.remove(version.getDataInstanceId().getVersionId());
                 }
-                break;
+            }
+            if (versions.size() == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-            case W:
-                addVersion();
-                daId = new WAccessId(getLastDataInstanceId());
-                if (debug) {
-                	StringBuilder sb = new StringBuilder("");
-                	sb.append("Access:").append("\n");
-                    sb.append("  * Type: W").append("\n");
-                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((WAccessId) daId).getWVersionId()).append("\n");
-                    logger.debug(sb.toString());
+    public boolean delete() {
+        this.toDelete = true;
+        if (deletionBlocks > 0) {
+            for (DataVersion version : versions.values()) {
+                pendingDeletions.add(version);
+            }
+        } else {
+            LinkedList<Integer> removedVersions = new LinkedList();
+            for (DataVersion version : versions.values()) {
+                if (version.delete()) {
+                    removedVersions.remove(version.getDataInstanceId().getVersionId());
                 }
-                break;
-
-            case RW:
-                int versionReaders = willBeRead(readerId);
-                DataInstanceId readInstance = getLastDataInstanceId();
-                addVersion();
-                DataInstanceId writtenInstance = getLastDataInstanceId();
-                boolean preserveSourceData = (versionReaders > 1);
-                daId = new RWAccessId(readInstance, writtenInstance, preserveSourceData);
-                if (debug) {
-                	StringBuilder sb = new StringBuilder("");
-                	sb.append("Access:").append("\n");
-                	sb.append("  * Type: RW").append("\n");
-                    sb.append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getRVersionId()).append("\n");
-                    sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getWVersionId()).append("\n");
-                    logger.debug(sb.toString());
-                }
-                break;
+            }
+            for (int versionId : removedVersions) {
+                versions.remove(versionId);
+            }
+            if (versions.size() == 0) {
+                return true;
+            }
         }
-        return daId;
-    }
-
-    public boolean isToDelete() {
-        return toDelete;
-    }
-
-    public void setToDelete(boolean deleted) {
-        this.toDelete = deleted;
-    }
-
-    protected class Version {
-
-        //private HashMap<Integer, Integer> readMethod;
-        private int readers;
-        private DataInstanceId dataInstanceId;
-
-        public Version(int dataId, int versionId) {
-            //this.readMethod = new HashMap<Integer, Integer>();
-            this.readers = 0;
-            this.dataInstanceId = new DataInstanceId(dataId, versionId);
-            Comm.registerData(dataInstanceId.getRenaming());
-        }
-
-        public int willBeRead(int methodId) {
-            /*Integer actual = readMethod.get(methodId);
-             if (actual == null) {
-             actual = 0;
-             }
-             readMethod.put(methodId, actual + 1);*/
-            readers++;
-            return readers;
-        }
-
-        public int hasBeenRead(int methodId) {
-            //readMethod.put(methodId, readMethod.get(methodId) - 1);
-            readers--;
-            return readers;
-        }
-
-        public int getReaders() {
-            return readers;
-        }
-
-        /*public Map<Integer, Integer> getMethodReaders() {
-         return readMethod;
-         }*/
+        return false;
     }
 }

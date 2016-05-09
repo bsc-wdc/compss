@@ -24,7 +24,6 @@ import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
-import integratedtoolkit.nio.commands.CommandNewTask;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;

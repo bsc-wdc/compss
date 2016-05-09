@@ -2,24 +2,33 @@ package integratedtoolkit.types.data;
 
 import java.io.Serializable;
 
-
 public abstract class DataAccessId implements Serializable {
-	
-	/**
-	 * Serializable objects Version UID are 1L in all Runtime
-	 */
-	private static final long serialVersionUID = 1L;
+
+    /**
+     * Serializable objects Version UID are 1L in all Runtime
+     */
+    private static final long serialVersionUID = 1L;
+
+    public static enum Direction {
+
+        R,
+        RW,
+        W
+    }
 
     public abstract int getDataId();
 
+    public abstract Direction getDirection();
+
     // Read access
     public static class RAccessId extends DataAccessId {
-    	/**
-    	 * Serializable objects Version UID are 1L in all Runtime
-    	 */
-    	private static final long serialVersionUID = 1L;
-    	
-		// File version read
+
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
+
+        // File version read
         private DataInstanceId readDataInstance;
         // Source data preservation flag
         private boolean preserveSourceData = true;
@@ -35,6 +44,10 @@ public abstract class DataAccessId implements Serializable {
             this.readDataInstance = rdi;
         }
 
+        public Direction getDirection() {
+            return Direction.R;
+        }
+
         public int getDataId() {
             return readDataInstance.getDataId();
         }
@@ -46,24 +59,25 @@ public abstract class DataAccessId implements Serializable {
         public DataInstanceId getReadDataInstance() {
             return readDataInstance;
         }
-        
+
         public boolean isPreserveSourceData() {
-        	return preserveSourceData;
+            return preserveSourceData;
         }
 
         public String toString() {
             return "Read data: " + readDataInstance
-            		+ (preserveSourceData ? ", Preserved" : ", Erased");
+                    + (preserveSourceData ? ", Preserved" : ", Erased");
         }
 
     }
 
     // Write access
     public static class WAccessId extends DataAccessId {
-    	/**
-    	 * Serializable objects Version UID are 1L in all Runtime
-    	 */
-    	private static final long serialVersionUID = 1L;
+
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
 
         // File version written
         private DataInstanceId writtenDataInstance;
@@ -77,6 +91,10 @@ public abstract class DataAccessId implements Serializable {
 
         public WAccessId(DataInstanceId wdi) {
             this.writtenDataInstance = wdi;
+        }
+
+        public Direction getDirection() {
+            return Direction.W;
         }
 
         public int getDataId() {
@@ -99,10 +117,11 @@ public abstract class DataAccessId implements Serializable {
 
     // Read-Write access
     public static class RWAccessId extends DataAccessId {
-    	/**
-    	 * Serializable objects Version UID are 1L in all Runtime
-    	 */
-    	private static final long serialVersionUID = 1L;
+
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
 
         // File version read
         private DataInstanceId readDataInstance;
@@ -118,6 +137,10 @@ public abstract class DataAccessId implements Serializable {
             this.readDataInstance = rdi;
             this.writtenDataInstance = wdi;
             this.preserveSourceData = preserveSourceData;
+        }
+
+        public Direction getDirection() {
+            return Direction.RW;
         }
 
         public int getDataId() {
@@ -139,17 +162,17 @@ public abstract class DataAccessId implements Serializable {
         public DataInstanceId getWrittenDataInstance() {
             return writtenDataInstance;
         }
-        
+
         public boolean isPreserveSourceData() {
-        	return preserveSourceData;
+            return preserveSourceData;
         }
 
         public String toString() {
-            return "Read data: " + readDataInstance 
-            		+ ", Written data: " + writtenDataInstance 
-            		+ (preserveSourceData ? ", Preserved" : ", Erased");
+            return "Read data: " + readDataInstance
+                    + ", Written data: " + writtenDataInstance
+                    + (preserveSourceData ? ", Preserved" : ", Erased");
         }
-        
+
     }
 
 }

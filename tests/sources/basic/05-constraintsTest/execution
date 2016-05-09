@@ -44,7 +44,7 @@
     mkdir -p ${log_folder}
     output_log="${log_folder}/constraintsTest_${test_name}.outputlog"
     error_log="${log_folder}/constraintsTest_${test_name}.errorlog"
-    expectedTime=12000s
+    expectedTime=60s
   
     timeout --signal=2 $expectedTime ${COMPSs_exec} \
       --project=${base_app_dir}/project_${test_name}.xml \

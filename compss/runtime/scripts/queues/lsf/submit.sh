@@ -70,17 +70,19 @@
   network=$9
   master_port=${10}
   master_working_dir=${11}
-  worker_working_dir=${12}
-  tasks_in_master=${13}
-  library_path=${14}
-  cp=${15}
-  log_level=${16}
-  tracing=${17}
-  comm=${18}
-  storageName=${19}
-  storageConf=${20}
-  taskExecution=${21}
-  shift 21
+  jvm_master_opts=${12}
+  worker_working_dir=${13}
+  jvm_workers_opts=${14}
+  tasks_in_master=${15}
+  library_path=${16}
+  cp=${17}
+  log_level=${18}
+  tracing=${19}
+  comm=${20}
+  storageName=${21}
+  storageConf=${22}
+  taskExecution=${23}
+  shift 23
 
   #Display arguments
   echo "Queue:           ${queue}"
@@ -96,6 +98,8 @@
   echo "Master Port:     ${master_port}"
   echo "Master WD:       ${master_working_dir}"
   echo "Worker WD:       ${worker_working_dir}"
+  echo "Master JVM Opts  ${jvm_master_opts}"
+  echo "Workers JVM Opts ${jvm_workers_opts}"
   echo "Library Path:    ${library_path}"
   echo "Classpath:       ${cp}"  
   echo "COMM:            ${comm}"
@@ -162,16 +166,11 @@ EOT
 EOT
   fi
 
-  if [ "${node_memory}" == "medium" ]; then
+  if [ "${node_memory}" != "disabled" ]; then
     /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT
-#BSUB -M 33000
-EOT
-  elif [ "${node_memory}" == "high" ]; then
-    /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT
-#BSUB -M 66000
+#BSUB -M ${node_memory}
 EOT
   fi
-
 
   /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT
 #BSUB -cwd ${master_working_dir} 
@@ -181,7 +180,7 @@ EOT
 #BSUB -R "span[ptile=1]" 
 #BSUB -W $wc_limit 
 
-${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $*
+${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} "${jvm_master_opts}" "${jvm_workers_opts}" ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
 EOT
 
   # Check if the creation of the script failed

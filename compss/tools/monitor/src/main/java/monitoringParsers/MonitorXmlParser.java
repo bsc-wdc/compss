@@ -178,27 +178,36 @@ public class MonitorXmlParser {
     }
 
     private static String[] parseResourceNode(Node resource) throws Exception {
-        String[] data = new String[9];
+    	logger.debug("Parse ResourceNode");
+        String[] data = new String[8];
         data[0] = resource.getAttributes().getNamedItem("id").getTextContent();
         NodeList nl = resource.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
-            if (n.getNodeName().equals("CPU")) {
+            logger.debug("Parsing item: " + n.getNodeName());
+            if (n.getNodeName().equals("TotalComputingUnits")) {
                 data[1] = n.getTextContent();
-            } else if (n.getNodeName().equals("Core")) {
-                data[2] = n.getTextContent();
+                if (data[1] != null && Integer.valueOf(data[1]) < 0) {
+                	data[1] = "-";
+                }
             } else if (n.getNodeName().equals("Memory")) {
-                data[3] = n.getTextContent();
+                data[2] = n.getTextContent();
+                if (data[2] != null && Float.valueOf(data[2]) < (float)0.0) {
+                	data[2] = null;
+                }
             } else if (n.getNodeName().equals("Disk")) {
-                data[4] = n.getTextContent();
+                data[3] = n.getTextContent();
+                if (data[3] != null && Float.valueOf(data[3]) < (float)0.0) {
+                	data[3] = null;
+                }
             } else if (n.getNodeName().equals("Provider")) {
-                data[5] = n.getTextContent();
+                data[4] = n.getTextContent();
             } else if (n.getNodeName().equals("Image")) {
-                data[6] = n.getTextContent();
+                data[5] = n.getTextContent();
             } else if (n.getNodeName().equals("Status")) {
-                data[7] = n.getTextContent();
+                data[6] = n.getTextContent();
             } else if (n.getNodeName().equals("Actions")) {
-                data[8] = parseActions(n);
+                data[7] = parseActions(n);
             }
         }
         return data;

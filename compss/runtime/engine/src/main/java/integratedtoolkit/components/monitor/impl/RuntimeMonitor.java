@@ -8,14 +8,13 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 
-public class RuntimeMonitor  implements Runnable {
+
+public class RuntimeMonitor implements Runnable {
 
     private static final boolean monitorEnabled = System.getProperty(ITConstants.IT_MONITOR) != null
             && !System.getProperty(ITConstants.IT_MONITOR).equals("0") ? true : false;
@@ -23,7 +22,6 @@ public class RuntimeMonitor  implements Runnable {
     private static final String monitorDirPath;
     
     private static final Logger logger = Logger.getLogger(Loggers.ALL_COMP);
-    private static final String ERROR_MONITOR_DIR = "ERROR: Cannot create monitor directory";
     private static final String ERROR_GENERATING_DATA = "Error generating monitoring data";
 
     /**
@@ -62,14 +60,8 @@ public class RuntimeMonitor  implements Runnable {
     
     
     static {
-        if (monitorEnabled) {
-            monitorDirPath = Comm.appHost.getAppLogDirPath() + "monitor" + File.separator;
-            if (!new File(monitorDirPath).mkdir()) {
-            	ErrorManager.error(ERROR_MONITOR_DIR);
-            }
-        } else {
-        	monitorDirPath = null;
-        }
+    	// Get the monitorDirPath from the graph because it is always initialized before the RuntimeMonitor
+        monitorDirPath = GraphGenerator.getMonitorDirPath();
     }
 
     /**

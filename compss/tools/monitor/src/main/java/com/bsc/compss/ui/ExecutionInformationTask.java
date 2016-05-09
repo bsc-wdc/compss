@@ -77,10 +77,38 @@ public class ExecutionInformationTask {
     }
 
     public void addJob(String jobId, boolean resubmited) {
-        if (resubmited) {
+    	Job job = null;
+    	
+        if (!resubmited) {
+        	// Create a normal job
+        	job = new Job(jobId);
+        } else {
+        	// Retrieve information about normal job
+        	String host = "";
+        	String executable = "";
+        	String args = "";
+        	// Reverse search because job is probabilistically at the end
+        	int i = jobs.size() - 1;
+        	boolean found = false;
+        	while (i >= 0 && !found) {
+        		Job jNormal = jobs.get(i);
+        		if (jNormal.getId().equals(jobId)) {
+        			host = jNormal.getHost();
+        			executable = jNormal.getExecutable();
+        			args = jNormal.getArguments();
+        			found = true;
+        		}
+        		i = i - 1;
+        	}
+        	// Create a resubmitted job
             jobId = jobId + "R";
+            job = new Job(jobId, resubmited, host, executable, args);
         }
-        jobs.add(new Job(jobId, resubmited));
+        
+        // Add job
+        if (!jobs.contains(job)) {	// Protection added for UI update
+        	jobs.add(job);
+        }
     }
 
     public void setJobStatus(String status) {
@@ -100,42 +128,48 @@ public class ExecutionInformationTask {
 
     public class Job {
 
-        private String id;
-        private boolean resubmited;
+        private final String id;
+        private final boolean resubmited;
         private String host;
         private String status;
         private String executable;
         private String arguments;
         private String color;
 
-        public Job() {
-            id = new String("");
-            resubmited = false;
-            host = new String("");
-            status = new String(Constants.STATUS_CREATION);
-            color = new String(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
-            executable = new String("");
-            arguments = new String("");
+        public Job(String id) {
+        	this.id = id;
+        	this.resubmited = false;
+        	this.host = new String("");
+        	this.status = new String(Constants.STATUS_CREATION);
+        	this.color = new String(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+        	this.executable = new String("");
+        	this.arguments = new String("");
         }
 
-        public Job(String id, boolean resubmited) {
+        public Job(String id, boolean resubmited, String host, String executable, String args) {
             this.id = id;
             this.resubmited = resubmited;
-            this.host = new String("");
-            status = new String(Constants.STATUS_CREATION);
-            color = new String(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
-            executable = new String("");
-            arguments = new String("");
+            this.host = host;
+            this.status = new String(Constants.STATUS_CREATION);
+            this.color = new String(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+            this.executable = executable;
+            this.arguments = args;
         }
 
         public String getId() {
             return this.id;
         }
-
-        public void setId(String id) {
-            this.id = id;
+        
+        @Override
+        public boolean equals(Object obj) {
+           if (!(obj instanceof Job)) {
+                return false;
+           }
+           
+           Job job2 = (Job) obj;
+           return this.getId().equals(job2.getId());
         }
-
+        
         public String getHost() {
             return this.host;
         }

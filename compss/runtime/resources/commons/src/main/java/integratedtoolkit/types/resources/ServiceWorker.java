@@ -71,12 +71,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     @Override
     public String getMonitoringData(String prefix) {
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<CPU>").append("</CPU>").append("\n");
-        sb.append(prefix).append("<Core>").append("</Core>").append("\n");
-        sb.append(prefix).append("<Memory>").append("</Memory>").append("\n");
-        sb.append(prefix).append("<Disk>").append("</Disk>").append("\n");
-        sb.append(prefix).append("<Provider>").append("</Provider>").append("\n");
-        sb.append(prefix).append("<Image>").append("</Image>").append("\n");
+        sb.append(prefix).append("<TotalComputingUnits>").append(this.getMaxTaskCount()).append("</TotalComputingUnits>").append("\n");
         return sb.toString();
     }
 

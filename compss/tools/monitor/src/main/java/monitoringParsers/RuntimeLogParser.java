@@ -16,13 +16,17 @@ public class RuntimeLogParser {
     private static Vector<ExecutionInformationTask> tasksCurrent = new Vector<ExecutionInformationTask>();
     private static Vector<ExecutionInformationTask> tasksFailed = new Vector<ExecutionInformationTask>();
     private static Vector<ExecutionInformationTask> tasksWithFailedJobs = new Vector<ExecutionInformationTask>();
-    private static String runtimeLogPath = "";
-    private static int lastParsedLine = -1;
+    
     private static Vector<Integer> jobsToTasks = new Vector<Integer>();
     private static Vector<String> resubmitedJobs = new Vector<String>();
+    
+    private static String runtimeLogPath = "";
+    private static int lastParsedLine = -1;
+  
 
     private static final Logger logger = Logger.getLogger("compssMonitor.monitoringParser");
-
+    
+    
     public static Vector<ExecutionInformationTask> getTasks() {
         return tasks;
     }
@@ -40,16 +44,17 @@ public class RuntimeLogParser {
     }
 
     public static void parse() {
-        logger.debug("Parsing it.log file...");
+        logger.debug("Parsing runtime.log file...");
         if (!Properties.BASE_PATH.equals("")) {
-            //Check if applicaction has changed
+            // Check if application has changed
             String newPath = Properties.BASE_PATH + File.separator + Constants.RUNTIME_LOG;
             if (!runtimeLogPath.equals(newPath)) {
                 //Load new application
                 clear();
                 runtimeLogPath = newPath;
             }
-            //Parse
+            
+            // Parse
             try {
                 FileReader fr = new FileReader(runtimeLogPath);
                 BufferedReader br = new BufferedReader(fr);
@@ -58,7 +63,7 @@ public class RuntimeLogParser {
                 String lastNewJobId = new String("");		//Last new job ID entry
                 while (line != null) {						//TODO add transfer files status
                     if (i > lastParsedLine) {
-                        //Check line information and add to structures
+                        // Check line information and add to structures
                         if (line.contains("@processTask") && (line.contains("New method task") || line.contains("New service task"))) {
                             logger.debug("* New task");
                             String[] str = line.split(" ");
@@ -84,7 +89,18 @@ public class RuntimeLogParser {
                                 tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_DONE);
                             } else {
                                 tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_FAILED);
-                                tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
+                                if (!tasksFailed.contains(tasks.get(Integer.valueOf(taskId)))) {
+                                	tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
+                                }
+                            }
+                            tasksCurrent.remove(tasks.get(Integer.valueOf(taskId)));
+                        } else if ((line.contains("@errorOnAction")) && (line.contains("Blocked Action"))) {
+                        	logger.debug("* Blocked Action");
+                        	// Task is Blocked (we mark it as failed)
+                        	String taskId = line.substring(line.lastIndexOf("Task ") + 5, line.lastIndexOf(", CE name"));
+                        	tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_FAILED);
+                        	if (!tasksFailed.contains(tasks.get(Integer.valueOf(taskId)))) {
+                            	tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
                             }
                             tasksCurrent.remove(tasks.get(Integer.valueOf(taskId)));
                         } else if ((line.contains("@submitJob")) && (line.contains("New Job"))) {
@@ -114,6 +130,7 @@ public class RuntimeLogParser {
                             jobsToTasks.set(Integer.valueOf(lastNewJobId), Integer.valueOf(taskId));
                             tasks.get(Integer.valueOf(taskId)).addJob(lastNewJobId, false);
                             // Set job as running
+                            tasks.get(Integer.valueOf(taskId)).setTaskStatus(Constants.STATUS_TASK_RUNNING);
                             tasks.get(Integer.valueOf(taskId)).setJobStatus(Constants.STATUS_TASK_RUNNING);
                             if (!tasksCurrent.contains(tasks.get(Integer.valueOf(taskId)))) {
                                 tasksCurrent.add(tasks.get(Integer.valueOf(taskId)));
@@ -137,8 +154,12 @@ public class RuntimeLogParser {
                             String taskId = info[info.length - 12];
                             tasks.get(Integer.valueOf(taskId)).addJob(jobId, true);
                             tasks.get(Integer.valueOf(taskId)).setJobStatus(Constants.STATUS_TASK_RUNNING);
+                            if (!tasksWithFailedJobs.contains(tasks.get(Integer.valueOf(taskId)))) {
+                                tasksWithFailedJobs.add(tasks.get(Integer.valueOf(taskId)));
+                            }
                             resubmitedJobs.add(jobId);
                         } else if ((line.contains("@completedJob")) && (line.contains("with state OK"))) {
+                        	logger.debug("* Job completed");
                             String[] info = line.split(" ");
                             String jobId = info[info.length - 4];
                             tasks.get(jobsToTasks.get(Integer.valueOf(jobId))).setJobStatus(Constants.STATUS_TASK_DONE);

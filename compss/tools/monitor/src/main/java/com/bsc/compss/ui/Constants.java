@@ -72,7 +72,7 @@ public class Constants {
 	//ZUL execution information labels
 	public static final String EIL_ALL = "all";												//According to monitor.zul (ei tab)
 	public static final String EIL_CURRENT_TASKS = "current_tasks";
-	public static final String EIL_FAILED_TASKS = "failed_taks";
+	public static final String EIL_FAILED_TASKS = "failed_tasks";
 	public static final String EIL_TASKS_WITH_FAILED_JOBS = "tasks_with_failed_jobs";
 	
 	//Core colors

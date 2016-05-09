@@ -19,6 +19,8 @@ DEFAULT_DEPENDENCY_JOB=None
 DEFAULT_RESERVATION=disabled
 DEFAULT_NODE_MEMORY=disabled
 DEFAULT_TASK_EXECUTION=compss
+DEFAULT_JVM_MASTER=""
+DEFAULT_JVM_WORKER="-Xms24800m -Xmx24800m -Xmn1600m"
 
 # Next default values need to be consistent with runcompss
 DEFAULT_LIBRARY_PATH=.
@@ -36,7 +38,7 @@ ERROR_WORKER_WD="Invalid Worker Working Dir option"
 ERROR_NETWORK="Invalid network option"
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
-ERROR_NODE_MEMORY="Incorrect node memory parameter. Only disabled, medium and high available"
+ERROR_NODE_MEMORY="Incorrect node memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
 
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
@@ -58,11 +60,12 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
                                             Default: ${DEFAULT_NUM_NODES}
     --num_switches=<int>                    Maximum number of different switches. Select 0 for no restrictions.
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
-					    					Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
-					    					Default: ${DEFAULT_NUM_SWITCHES} 
+    					    Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
+    					    Default: ${DEFAULT_NUM_SWITCHES} 
+
     --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
                                             Default: ${DEFAULT_TASKS_PER_NODE}
-    --node_memory=<name>                    Maximum node memory: disabled | medium | high
+    --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
                                             Default: ${DEFAULT_NODE_MEMORY}
     --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
                                             Default: ${DEFAULT_NETWORK}
@@ -72,21 +75,22 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
-    --reservation=<name>		    		Reservation to use when submitting the job. 
+    --reservation=<name>		    Reservation to use when submitting the job. 
                                             Default: ${DEFAULT_RESERVATION}
     --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
-					    					Default: ${DEFAULT_DEPENDENCY_JOB}
+					    Default: ${DEFAULT_DEPENDENCY_JOB}
 
     --master_working_dir=<path>             Working directory of the application
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
     --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
-    --tasks_in_master=<int>		    		Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
-					    					Default: ${DEFAULT_TASKS_IN_MASTER}
-	--task_execution=<compss|storage>		Task execution under COMPSs or Storage.
+    --tasks_in_master=<int>                 Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
+					    Default: ${DEFAULT_TASKS_IN_MASTER}
+
+    --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
-    --storage_conf=<path>					Path to the storage configuration file
-    --storage_name=<dataclay|hecuba>		Name of the storage platform dataClay or Hecuba.
+    --storage_conf=<path>		    Path to the storage configuration file
+    --storage_name=<dataclay|hecuba>	    Name of the storage platform dataClay or Hecuba.
     	
 
   Runcompss delegated parameters:
@@ -212,6 +216,12 @@ get_args() {
             #Keep it for runcompss (to add them to master)
             args_pass="$args_pass --$OPTARG"
             ;;
+          jvm_master_opts=*)
+            jvm_master_opts=$(echo $OPTARG | sed -e 's/jvm_master_opts=//g')
+            ;;
+          jvm_workers_opts=*)
+            jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
+            ;;
 	  storage_conf=*)
 	    storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
 	    ;;
@@ -278,7 +288,7 @@ check_args() {
 
   if [ -z "${node_memory}" ]; then
     node_memory=${DEFAULT_NODE_MEMORY}
-  elif [ "${node_memory}" != "default" ] && [ "${node_memory}" != "medium" ] && [ "${node_memory}" != "high" ]; then
+  elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then 
     display_error "${ERROR_NODE_MEMORY}"
   fi
 
@@ -351,7 +361,15 @@ check_args() {
   if [ -z "${comm}" ]; then
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
-  
+
+  if [ -z "${jvm_master_opts}" ]; then
+    jvm_master_opts=${DEFAULT_JVM_MASTER}
+  fi
+
+  if [ -z "${jvm_master_opts}" ]; then
+    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
+  fi
+ 
   if [ -z "${taskExecution}" ]; then
     taskExecution=${DEFAULT_TASK_EXECUTION}
   fi
@@ -376,8 +394,8 @@ check_args() {
 # MAIN EXECUTION
 #---------------------------------------------------
   scriptDir=$(dirname $0)
-  get_args $*
+  get_args $@
   check_args
 
 
-  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} ${worker_working_dir} ${tasks_in_master} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}
+  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${tasks_in_master} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}

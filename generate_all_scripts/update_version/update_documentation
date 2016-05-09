@@ -25,8 +25,7 @@ usage() {
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
   trunk_dir=${script_dir}/../../
-  #documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
-  documentation_dir=../../../../../documents/COMPSs_Manuals/
+  documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
 
   #---------------------------------------------------------------------
   # Copy latest files
@@ -62,7 +61,7 @@ usage() {
   # Commit modifications
   echo "- Commit modifications"
   cd ${documentation_dir}
-#  svn commit -m "Adding documentation new tag ${version}"
+  svn commit -m "Adding documentation new tag ${version}"
   cd ${script_dir}
 
   #---------------------------------------------------------------------
@@ -81,7 +80,7 @@ usage() {
   # Commit modifications
   echo "- Commit trunk modifications"
   cd ${trunk_dir}/doc/
-#  svn commit -m "Adding documentation synchronized for new tag ${version}"
+  svn commit -m "Adding documentation synchronized for new tag ${version}"
   cd ${script_dir}
 
   #---------------------------------------------------------------------

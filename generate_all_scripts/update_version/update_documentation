@@ -25,13 +25,25 @@ usage() {
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
   trunk_dir=${script_dir}/../../
-  documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
-
+  #documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
+  documentation_dir=../../../../../documents/COMPSs_Manuals/
 
   #---------------------------------------------------------------------
   # Copy latest files
   echo "- Copy latest files"
   svn cp ${documentation_dir}/latest ${documentation_dir}/${version}
+
+  #---------------------------------------------------------------------
+  # Update internal files version
+  echo "- Update files version"
+  docs=$(ls ${documentation_dir}/${version}/)
+  for doc in ${docs}; do
+    cd ${documentation_dir}/${version}/${doc}
+    latexFile=$(ls *.tex | grep -v configuration.tex)
+    echo $latexFile
+    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
+    cd ${script_dir}
+  done
 
   #---------------------------------------------------------------------
   # Generate PDF files
@@ -50,7 +62,7 @@ usage() {
   # Commit modifications
   echo "- Commit modifications"
   cd ${documentation_dir}
-  svn commit -m "Adding documentation new tag ${version}"
+#  svn commit -m "Adding documentation new tag ${version}"
   cd ${script_dir}
 
   #---------------------------------------------------------------------
@@ -69,7 +81,7 @@ usage() {
   # Commit modifications
   echo "- Commit trunk modifications"
   cd ${trunk_dir}/doc/
-  svn commit -m "Adding documentation synchronized for new tag ${version}"
+#  svn commit -m "Adding documentation synchronized for new tag ${version}"
   cd ${script_dir}
 
   #---------------------------------------------------------------------

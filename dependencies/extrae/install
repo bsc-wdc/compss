@@ -49,7 +49,6 @@
               --disable-nanos \
               --disable-smpss \
               --prefix=${targetDir} \
-              --enable-parallel-merge \
               --libdir=${targetDir}/lib
   if [ $? -ne 0 ]; then
     exit 1

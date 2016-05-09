@@ -36,8 +36,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43002</MinPort>
-                    <MaxPort>43003</MaxPort>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
@@ -94,8 +94,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43003</MinPort>
-                    <MaxPort>43004</MaxPort>
+                    <MinPort>43002</MinPort>
+                    <MaxPort>43003</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
@@ -158,8 +158,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43004</MinPort>
-                    <MaxPort>43005</MaxPort>
+                    <MinPort>43003</MinPort>
+                    <MaxPort>43004</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
@@ -213,8 +213,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43005</MinPort>
-                    <MaxPort>43006</MaxPort>
+                    <MinPort>43004</MinPort>
+                    <MaxPort>43005</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
@@ -266,8 +266,8 @@
                     <Interactive/>
                 </SubmissionSystem>
                 <Ports>
-                    <MinPort>43006</MinPort>
-                    <MaxPort>43007</MaxPort>
+                    <MinPort>43005</MinPort>
+                    <MaxPort>43006</MaxPort>
                 </Ports>
             </Adaptor>
             <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">

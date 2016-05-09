@@ -68,7 +68,7 @@
     done
     sec=$(/bin/date +%s)
     # Check if parallel merge is available
-    configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
+    configuration=$(grep "enable-parallel-merge" ${extraeDir}/etc/configured.sh)
     if [ -z "${configuration}" ]; then
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     else

@@ -7,7 +7,6 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.location.DataLocation;
 
-
 public class DeleteFileRequest extends APRequest {
 
     private final DataLocation loc;
@@ -28,14 +27,9 @@ public class DeleteFileRequest extends APRequest {
             java.io.File f = new java.io.File(loc.getPath());
             f.delete();
         } else { // file is involved in some task execution
-            if (!fileInfo.isToDelete()) {
-                // There are no more readers, therefore it can 
-                //be deleted (once it has been created)
-                ta.deleteFile(fileInfo);
-            } else {
-                // Nothing has to be done yet. It is already marked as a
-                //file to delete but it has to be read by some tasks
-            }
+            // File Won't be read by any future task or from the main code. 
+            // Remove it from the dependency analysis and the files to be transferred back
+            ta.deleteFile(fileInfo);
         }
     }
 

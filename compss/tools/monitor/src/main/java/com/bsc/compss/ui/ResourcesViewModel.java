@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.w3c.dom.Node;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
@@ -33,15 +34,29 @@ public class ResourcesViewModel {
     	//Import new resources
     	for (String[] dr : newResourcesData) {
     		/* Each dr has the following structure (from parser)
-    		 *   Position:   0   1    2    3      4     5       6     7      8
-    		 *   Value:    Name CPU Core Memory Disk Provider Image Status Tasks
+    		 *   Position:   0   1    2    3      4     5       6     7      
+    		 *   Value:    Name CU Memory Disk Provider Image Status Actions
     		 */
     		
-    		//Check memSize
-    		if (dr[3] != null){
+    		// Check memSize
+    		if (dr[2] != null){
+				if (dr[2].startsWith("0.")) {
+					Float memsize = Float.parseFloat(dr[2]);
+					dr[2] = String.valueOf(memsize*1024) + " MB";
+				} else if (!dr[2].isEmpty()) {
+					dr[2] = dr[2] + " GB";
+				} else {
+					dr[2] = "-";
+				}
+			} else {
+				dr[2] = "-";
+			}
+    		
+    		// Check Disk Size
+			if (dr[3] != null){
 				if (dr[3].startsWith("0.")) {
-					Float memsize= Float.parseFloat(dr[3]);
-					dr[3] = String.valueOf(memsize*1024) + " MB";
+					Float disksize= Float.parseFloat(dr[3]);
+					dr[3] = String.valueOf(disksize*1024) + " MB";
 				} else if (!dr[3].isEmpty()) {
 					dr[3] = dr[3] + " GB";
 				} else {
@@ -50,20 +65,27 @@ public class ResourcesViewModel {
 			} else {
 				dr[3] = "-";
 			}
-    		
-    		//Check dataSize
-			if (dr[4] != null){
-				if (dr[4].startsWith("0.")) {
-					Float disksize= Float.parseFloat(dr[4]);
-					dr[4] = String.valueOf(disksize*1024) + " MB";
-				} else if (!dr[4].isEmpty()) {
-					dr[4] = dr[4] + " GB";
-				} else {
-					dr[4] = "-";
-				}
-			} else {
-				dr[4] = "-";
+			
+			// Check Provider
+			if (dr[4] == null) {
+				dr[4] = "";
 			}
+			
+			// Check Image
+			if (dr[5] == null) {
+				dr[5] = "";
+			}
+			
+			// Check status
+			if (dr[6] == null) {
+				dr[6] = "";
+			}
+			
+			// Check actions
+			if (dr[7] == null) {
+				dr[7] = "";
+			}
+			
     		Resource r = new Resource(dr);
     		resources.add(r);
     	}

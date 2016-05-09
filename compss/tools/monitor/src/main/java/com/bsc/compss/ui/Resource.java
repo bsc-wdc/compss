@@ -7,42 +7,39 @@ public class Resource {
 	private String color;
 	
     private String name;
-    private String cpuCount;
-    private String coreCount;
+    private String computingUnits;
     private String memorySize;
-    private String dataSize;
+    private String diskSize;
     private String provider;
     private String image;
     private String status;
-    private String runningTasks;
+    private String runningActions;
     
     
     public Resource() {   	
     	this.setName("");				//Any
-    	this.setCpuCount("0");			//Int
-    	this.setCoreCount("0");			//Int
+    	this.setComputingUnits("0");	//Int
     	this.setMemorySize("0.0");		//Float MB/GB
-    	this.setDataSize("0.0");		//Float MB/GB
+    	this.setDiskSize("0.0");		//Float MB/GB
     	this.setProvider("");			//Any
     	this.setImage("");				//Any
     	this.setStatus("");				//CONST_VALUES
-    	this.setRunningTasks("");		//Any
+    	this.setRunningActions("");		//Any
     }
     
     public Resource(String[] data) {
 		/* Each data has the following structure (from parser)
-		 *   Position:   0   1    2    3      4     5       6     7      8
-		 *   Value:    Name CPU Core Memory Disk Provider Image Status Tasks
+		 *   Position:   0   1    2    3      4     5       6     7    
+		 *   Value:    Name CU Memory Disk Provider Image Status Actions
 		 */
     	this.setName(data[0]);
-    	this.setCpuCount(data[1]);
-    	this.setCoreCount(data[2]);
-    	this.setMemorySize(data[3]);
-    	this.setDataSize(data[4]);
-    	this.setProvider(data[5]);
-    	this.setImage(data[6]);
-    	this.setStatus(data[7]);
-    	this.setRunningTasks(data[8]);
+    	this.setComputingUnits(data[1]);
+    	this.setMemorySize(data[2]);
+    	this.setDiskSize(data[3]);
+    	this.setProvider(data[4]);
+    	this.setImage(data[5]);
+    	this.setStatus(data[6]);
+    	this.setRunningActions(data[7]);
     }
 
 	public String getStatus() {
@@ -74,20 +71,12 @@ public class Resource {
 		this.name = name;
 	}
 
-	public String getCpuCount() {
-		return cpuCount;
+	public String getComputingUnits() {
+		return computingUnits;
 	}
 
-	public void setCpuCount(String cpuCount) {
-		this.cpuCount = cpuCount;
-	}
-	
-	public String getCoreCount() {
-		return coreCount;
-	}
-
-	public void setCoreCount(String coreCount) {
-		this.coreCount = coreCount;
+	public void setComputingUnits(String computingUnits) {
+		this.computingUnits = computingUnits;
 	}
 
 	public String getMemorySize() {
@@ -98,12 +87,12 @@ public class Resource {
 		this.memorySize = memorySize;
 	}
 
-	public String getDataSize() {
-		return dataSize;
+	public String getDiskSize() {
+		return diskSize;
 	}
 
-	public void setDataSize(String dataSize) {
-		this.dataSize = dataSize;
+	public void setDiskSize(String diskSize) {
+		this.diskSize = diskSize;
 	}
 	
 	public String getProvider() {
@@ -122,12 +111,12 @@ public class Resource {
 		this.image = image;
 	}
 
-	public String getRunningTasks() {
-		return runningTasks;
+	public String getRunningActions() {
+		return runningActions;
 	}
 
-	public void setRunningTasks(String runningTasks) {
-		this.runningTasks = runningTasks;
+	public void setRunningActions(String runningActions) {
+		this.runningActions = runningActions;
 	}
 
 	public String getColor() {

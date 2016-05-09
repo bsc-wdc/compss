@@ -78,6 +78,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public String getMonitoringData(String prefix) {
+        // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
         sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>").append("\n");
         sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");

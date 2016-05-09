@@ -7,14 +7,12 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.AllocatableAction.ActionOrchestrator;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.request.td.*;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.CEIParser;
 import integratedtoolkit.util.Classpath;
-import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.Tracer;
@@ -27,6 +25,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
+
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
 
     public interface TaskProducer {
@@ -37,7 +36,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     // Subcomponents
     protected TaskScheduler<?,?> scheduler;
 
-    protected LinkedBlockingDeque<TDRequest> requestQueue;
+    protected LinkedBlockingDeque<TDRequest<?,?>> requestQueue;
     // Scheduler thread
     protected Thread dispatcher;
     protected boolean keepGoing;
@@ -46,14 +45,14 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private static final String CREAT_INIT_VM_ERR = "Error creating initial VMs";
+    private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
 
     // Tracing
     protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
     public TaskDispatcher() {
-        requestQueue = new LinkedBlockingDeque<TDRequest>();
+        requestQueue = new LinkedBlockingDeque<TDRequest<?,?>>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
@@ -117,11 +116,11 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    private void addRequest(TDRequest request) {
+    private void addRequest(TDRequest<?,?> request) {
         requestQueue.offer(request);
     }
 
-    private void addPrioritaryRequest(TDRequest request) {
+    private void addPrioritaryRequest(TDRequest<?,?> request) {
         requestQueue.offerFirst(request);
     }
 
@@ -228,7 +227,6 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
     private static void loadSchedulerJars() {
-
         logger.info("Loading schedulers...");
         String itHome = System.getenv("IT_HOME");
 
@@ -240,24 +238,19 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         try {
             Classpath.loadPath(itHome + File.separator + "scheduler", logger);
         } catch (FileNotFoundException ex) {
-            logger.warn("WARN_MSG = [Schedulers folder not defined, no schedulers loaded.]");
+            logger.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
         }
     }
 
-    private TaskScheduler constructScheduler() {
-        TaskScheduler scheduler = null;
+    private TaskScheduler<?,?> constructScheduler() {
+        TaskScheduler<?,?> scheduler = null;
         try {
-            String schedulerPath = System.getProperty(ITConstants.IT_SCHEDULER);
-            schedulerPath = "integratedtoolkit.scheduler.readyscheduler.ReadyScheduler";
-            if (schedulerPath == null || schedulerPath.compareTo("default") == 0) {
-                scheduler = new TaskScheduler();
-            } else {
-                Class<?> conClass = Class.forName(schedulerPath);
-                Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
-                scheduler = (TaskScheduler) ctor.newInstance();
-            }
+            String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
+            Class<?> schedClass = Class.forName(schedFQN);
+            Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
+            scheduler = (TaskScheduler<?,?>) schedCnstr.newInstance();
         } catch (Exception e) {
-            ErrorManager.fatal(CREAT_INIT_VM_ERR, e);
+            ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }
         return scheduler;
     }

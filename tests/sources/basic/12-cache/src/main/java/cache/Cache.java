@@ -15,9 +15,6 @@ public class Cache {
 			System.exit(-1);
 		}
 		
-		//check_IN_objectCache();
-		//check_IN_objectCache();
-		
 		// Check the send parameters behaviour
 		check_sendParams();	
 		

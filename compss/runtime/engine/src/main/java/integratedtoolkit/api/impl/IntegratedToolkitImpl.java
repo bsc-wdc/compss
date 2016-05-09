@@ -41,8 +41,8 @@ import integratedtoolkit.util.Tracer;
 public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, LoaderAPI {
 
     //According to runcompss script default value
-    //private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
     private static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
+    private static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
     private static final String DEFAULT_TRACING = "0";
 
     // Exception constants definition
@@ -223,6 +223,9 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
             System.setProperty(ITConstants.COMM_ADAPTOR, DEFAULT_ADAPTOR);
         }
+        if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
+            System.setProperty(ITConstants.IT_SCHEDULER, DEFAULT_SCHEDULER);
+        }
         if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
             System.setProperty(ITConstants.IT_TRACING, DEFAULT_TRACING);
         }
@@ -375,7 +378,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
 
                 // Python and C++
                 String lang = System.getProperty(ITConstants.IT_LANG);
-                if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
+                if (! lang.toUpperCase().equals(ITConstants.Lang.JAVA.toString()) ) {
                     this.setObjectRegistry(new ObjectRegistry(this));
                 }
 

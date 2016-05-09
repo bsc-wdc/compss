@@ -4,27 +4,37 @@
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
 DEFAULT_LANGUAGE=java
+
 DEFAULT_LOG_LEVEL=off
 DEFAULT_LOG_LEVEL_ARGUMENT=debug
 LOG_LEVEL_DEBUG=debug
 LOG_LEVEL_INFO=info
 LOG_LEVEL_OFF=off
+
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_GRAPH=false
 DEFAULT_GRAPH_ARGUMENT=true
+
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARGUMENT=true # 0: activated, 1: basic, 2:advanced
+
 DEFAULT_MONITORING_INTERVAL=0
 DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
+
 DEFAULT_TASK_COUNT=50
 DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_LIBRARY_PATH=$(pwd)
+DEFAULT_STORAGE_CONF="None"
+DEFAULT_PyOBJECT_SERIALIZE=false
+
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
-DEFAULT_STORAGE_CONF="None"
 DEFAULT_MASTER_PORT=43000
-DEFAULT_PyOBJECT_SERIALIZE=false
+DEFAULT_SCHEDULER=integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
+DEFAULT_JVM_MASTER=""
+DEFAULT_JVM_WORKERS="-Xms1024m -Xmx1024m -Xmn400m"
+
 DEFAULT_DEBUGGER=false
 DEFAULT_DEBUGGER_ARGUMENT=true
 DEFAULT_DEBUGGER_PORT=9999
@@ -53,8 +63,8 @@ show_opts() {
     --monitoring=<int>, --monitoring, -m    Period between monitoring samples (milliseconds)
                                             When no value is provided it is set to ${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
                                             Default: ${DEFAULT_MONITORING_INTERVAL}
-    --external-debugger=<int>,
-    --external-debugger		            Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
+    --external_debugger=<int>,
+    --external_debugger		            Enables external debugger connection on the specified port (or ${DEFAULT_DEBUGGER_PORT} if empty)
                                             Default: ${DEFAULT_DEBUGGER}
 
   Runtime configuration options:
@@ -75,6 +85,9 @@ show_opts() {
     --comm=<path>                           Class that implements the adaptor for communications
                                             Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+    --scheduler=<path>			    Class that implements the Scheduler for COMPSs
+                                            Supported schedulers: integratedtoolkit.components.impl.TaskScheduler | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
+                                            Default: ${DEFAULT_SCHEDULER}
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory
     --classpath=<path>                      Path for the application classes / modules
@@ -86,20 +99,16 @@ show_opts() {
     --master_port=<int>                     Port to run the COMPSs master communications.
                                             Only for NIO adaptor
                                             Default: ${DEFAULT_MASTER_PORT}
+    --jvm_master_opts="<string>"            Extra options for the COMPSs Master JVM (Notice the quotes)
+                                            Default: ${DEFAULT_JVM_MASTER}
+    --jvm_workers_opts="<string>"	    Extra options for the COMPSs Workers JVMs (Notice the quotes)
+                                            Default: ${DEFAULT_JVM_WORKERS}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
                                             Default: None
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
-
-  Master JVM Options:
-    --Xms<HEAP_SIZE>			    Master JVM initial memory
-					    Default: System JVM default value
-    --Xmx<HEAP_SIZE>			    Master JVM maximum memory
-					    Default: System JVM default value
-    --Xmn<HEAP_NEWSIZE>			    Master JVM increasing memory size
-					    Default: System JVM default value
 
 
 * Application name:
@@ -307,6 +316,10 @@ get_args() {
 	    # Communication adaptor main class
 	    comm=$(echo $OPTARG | sed -e 's/comm=//g')
 	    ;;
+          scheduler=*)
+            # Scheduler main class
+            scheduler=$(echo $OPTARG | sed -e 's/scheduler=//g')
+            ;;
 	  classpath=*)
 	    # Additional classpath
 	    cp=$(echo $OPTARG | sed -e 's/classpath=//g')
@@ -315,24 +328,20 @@ get_args() {
 	    # Additional library path
 	    library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
 	    ;;
-          Xms*)
+          jvm_master_opts=*)
             # Master JVM option
-            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
+            jvm_master_opts=$(echo $OPTARG | sed -e 's/jvm_master_opts=//g')
             ;;
-          Xmx*)
-            # Master JVM option
-            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
+          jvm_workers_opts=*)
+            # Workers JVMs option
+            jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
             ;;
-          Xmn*)
-            # Master JVM option
-            jvm_mem_opts=${jvm_mem_opts}" -${OPTARG}"
-            ;;
-          external-debugger=*)
+          external_debugger=*)
             # Enable external debugger on specific port
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=$(echo $OPTARG | sed -e 's/external-debugger=//g')
             ;;
-          external-debugger*)
+          external_debugger*)
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=${DEFAULT_DEBUGGER_PORT}
@@ -470,6 +479,10 @@ check_args() {
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
 
+  if [ -z "$scheduler" ]; then
+    scheduler=${DEFAULT_SCHEDULER}
+  fi
+
   if [ -z "$cp" ]; then
     cp=${DEFAULT_CLASSPATH}
     for jar in $(ls ${DEFAULT_CLASSPATH} | grep *.jar); do
@@ -504,6 +517,14 @@ check_args() {
 
   if [ -z "$uuid" ]; then
     uuid=$(cat /proc/sys/kernel/random/uuid)
+  fi
+
+  # JVM
+  if [ -z "${jvm_master_opts}" ]; then
+    jvm_master_opts=${DEFAULT_JVM_MASTER}
+  fi
+  if [ -z "${jvm_workers_opts}" ]; then
+    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
   fi
 
   # Debugger
@@ -558,7 +579,7 @@ exec_java() {
   # Define command  
   local JAVACMD=$JAVA" \
     -XX:-UseSplitVerifier \
-    ${jvm_mem_opts} \
+    ${jvm_master_opts} \
     ${jvm_debugger_opts} \
     -XX:+HeapDumpOnOutOfMemoryError \
     -XX:+PerfDisableSharedMem \
@@ -585,7 +606,9 @@ exec_java() {
     -Dit.tracing=${tracing} \
     -Dit.script.dir=${IT_HOME}/scripts/system \
     -Dit.worker.cp=${cp}:${CLASSPATH} \
+    -Dit.worker.jvm_opts="${jvm_workers_opts}" \
     -Dit.comm=${comm} \
+    -Dit.scheduler=${scheduler} \
     -Dit.masterPort=${master_port} \
     -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors \
     -Dit.gat.broker.adaptor=sshtrilead \
@@ -634,7 +657,7 @@ exec_c() {
   export JVM_OPTIONS_FILE=${jvm_options_file}
   /bin/cat >> ${jvm_options_file} << EOT
 -XX:-UseSplitVerifier
-${jvm_mem_opts}
+${jvm_master_opts}
 ${jvm_debugger_opts}
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:+PerfDisableSharedMem
@@ -663,7 +686,9 @@ ${jvm_debugger_opts}
 -Dit.script.dir=${IT_HOME}/scripts/system
 -Dit.core.count=${task_count}
 -Dit.worker.cp=${cp}:${CLASSPATH}
+-Dit.worker.jvm_opts="${jvm_workers_opts}"
 -Dit.comm=${comm}
+-Dit.scheduler=${scheduler}
 -Dit.masterPort=${master_port}
 -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
 -Dit.gat.broker.adaptor=sshtrilead
@@ -719,7 +744,7 @@ exec_python() {
   export JVM_OPTIONS_FILE=${jvm_options_file}
   /bin/cat >> ${jvm_options_file} << EOT
 -XX:-UseSplitVerifier
-${jvm_mem_opts}
+${jvm_master_opts}
 ${jvm_debugger_opts}
 -XX:+HeapDumpOnOutOfMemoryError
 -XX:+PerfDisableSharedMem
@@ -748,7 +773,9 @@ ${jvm_debugger_opts}
 -Dit.script.dir=${IT_HOME}/scripts/system
 -Dit.core.count=${task_count}
 -Dit.worker.cp=${cp}:${CLASSPATH}
+-Dit.worker.jvm_opts="${jvm_workers_opts}"
 -Dit.comm=${comm}
+-Dit.scheduler=${scheduler}
 -Dit.masterPort=${master_port}
 -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
 -Dit.gat.broker.adaptor=sshtrilead
@@ -774,6 +801,6 @@ EOT
 # MAIN EXECUTION
 #---------------------------------------------------
   check_env
-  get_args $*
+  get_args $@
   check_args
   execute_runtime

@@ -6,19 +6,21 @@
   tasks_per_node=$3
   tasks_in_master=$4
   worker_WD_type=$5
-  network=$6
-  master_port=$7
-  library_path=$8
-  cp=$9
-  log_level=${10}
-  tracing=${11}
-  comm=${12}
-  storageName=${13}
-  storageConf=${14}
-  taskExecution=${15}
+  jvm_master_opts=$6
+  jvm_workers_opts=$7
+  network=$8
+  master_port=$9
+  library_path=${10}
+  cp=${11}
+  log_level=${12}
+  tracing=${13}
+  comm=${14}
+  storageName=${15}
+  storageConf=${16}
+  taskExecution=${17}
 
   #Leave COMPSs parameters in $*
-  shift 15
+  shift 17
 
   #Set script variables
   export IT_HOME=${IT_HOME}
@@ -267,10 +269,10 @@ EOT
     fi
     # Start workers' processes
     hostid=1
-    jvmFlags="-Xms24800m -Xmx24800m -Xmn1600m"
+    jvm_workers_opts_size=$(echo "${jvm_workers_opts}" | wc -w)
     for node in ${USED_WORKERS}; do
       sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
-      WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvmFlags} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
+      WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -278,7 +280,7 @@ EOT
   fi
 
   # Launch master
-  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} $*"
+  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" $*"
   echo "CMD Master: $MCMD"
   $MCMD&
 

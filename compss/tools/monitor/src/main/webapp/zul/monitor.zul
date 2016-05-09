@@ -28,13 +28,12 @@
 	                            <listhead>
 	                                <listheader hflex="min" label="Status" sort="auto(status)" align="center"/>
 	                                <listheader hflex="1" label="Resource Name" sort="auto(name)" align="center"/>
-	                                <listheader hflex="min" label="CPU Count" align="center"/>
-	                                <listheader hflex="min" label="Core count" align="center"/>
+	                                <listheader hflex="min" label="Computing Units" align="center"/>
 	                                <listheader hflex="min" label="Memory Size" align="center"/>
 	                                <listheader hflex="min" label="Disk Size" align="center"/>
 	                                <listheader hflex="min" label="Provider" align="center"/>
 	                                <listheader hflex="min" label="Image" align="center"/>
-	                                <listheader hflex="1" label="Running Tasks" align="center"/>
+	                                <listheader hflex="1" label="Running Actions" align="center"/>
 	                            </listhead>
 	                            
 	                            <template name="resource">
@@ -43,13 +42,12 @@
 	                    					<image style="width: 25px" src="@load(each.color)" />
 	                                    </listcell>                                   
 	                                    <listcell label="@load(each.name)" />
-	                                    <listcell label="@load(each.cpuCount)" />
-	                                    <listcell label="@load(each.coreCount)" />
+	                                    <listcell label="@load(each.computingUnits)" />
 	                                    <listcell label="@load(each.memorySize)" />
-	                                    <listcell label="@load(each.dataSize)" />
+	                                    <listcell label="@load(each.diskSize)" />
 	                                    <listcell label="@load(each.provider)" />
 	                                    <listcell label="@load(each.image)" />
-	                                    <listcell label="@load(each.runningTasks)" />
+	                                    <listcell label="@load(each.runningActions)" />
 	                                </listitem>
 	                            </template>
 	                        </listbox>

@@ -136,9 +136,7 @@ public class WorkerStarter {
         String[] command = getStopCommand(pid);
         executeCommand(user, node.getName(), command);
         
-        // Execute clean command
-        command = getCleanCommand(wD);
-        executeCommand(user, node.getName(), command);
+
     }
 
     // Arguments needed for persistent_worker.sh
@@ -217,18 +215,6 @@ public class WorkerStarter {
         return cmd;
     }
 
-    private static String[] getCleanCommand(String wDir) {
-    	// The working dir is an application sandbox within the base working directory
-    	// We can erase it all
-        wDir = wDir.substring(0, wDir.indexOf(DEPLOYMENT_ID) + DEPLOYMENT_ID.length());
-        wDir = wDir.endsWith(File.separator) ? wDir : wDir + File.separator;
-        String[] cmd = new String[3];
-        cmd[0] = "rm";
-        cmd[1] = "-rf";
-        cmd[2] = wDir;
-
-        return cmd;
-    }
 
     protected static ProcessOut executeCommand(String user, String resource, String[] command) {        
         ProcessOut processOut = new ProcessOut();

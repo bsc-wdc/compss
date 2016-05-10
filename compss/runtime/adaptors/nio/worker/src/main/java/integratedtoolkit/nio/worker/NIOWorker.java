@@ -1,8 +1,6 @@
 package integratedtoolkit.nio.worker;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
@@ -583,9 +581,17 @@ public class NIOWorker extends NIOAgent {
 				try {
 					StorageItf.finish();
 				} catch (StorageException e) {
-					logger.error("Error releasing storage library: " + e.getMessage());
+					wLogger.error("Error releasing storage library: " + e.getMessage());
 				}
-			} 	
+			}
+
+			// Remove working Dir
+            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream("/home/kurtz/log.txt"), "utf-8"))) {
+                writer.write("Remove:\nwDir: " + workingDir + " - lcs\ndeploymentID: " + deploymentId + " - lcs");
+            }
+
+
 		} catch (Exception e) {
 			wLogger.error("Exception", e);
 		}

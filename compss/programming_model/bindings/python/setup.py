@@ -4,11 +4,11 @@ from distutils import log
 
 compssmodule = Extension('compss',
         include_dirs = [
-                '../bindings-common/src',
-		'../bindings-common/include'
+            '../bindings-common/src',
+		    '../bindings-common/include'
 		],
         library_dirs = [
-		'../bindings-common/lib'
+		    '../bindings-common/lib'
 		],
         libraries = ['bindings_common'],
         extra_compile_args = ['-fPIC'],
@@ -23,7 +23,7 @@ setup (name='pycompss',
 	url='http://compss.bsc.es',
 	license='Apache 2.0',
         package_dir={'pycompss':'src/pycompss'},
-	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.util', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
+	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.worker.dummy', 'pycompss.util', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
 	package_data={'' : ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'bin/worker_python.sh']},
 	ext_modules=[compssmodule])
 

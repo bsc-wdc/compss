@@ -33,26 +33,27 @@
   errors=false
   single_emit=1
   double_emit=$((single_emit*2))
+  tracefile=advancedTracing.Tracing_compss_trace_*.prv
   
   total_executed_tasks=$(($executions_per_task*$number_tasks))
   finish_events=$total_executed_tasks
-  # event_static=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:1$" | wc -l)
-  # event_startit=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:2$" | wc -l)
-  # event_stopit=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:3$" | wc -l)
-  # events_execute_task=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:4$" | wc -l)
-  # event_nomoretasks=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:5$" | wc -l)
-  # events_open_file=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:6$" | wc -l)
-  # events_get_file=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:7$" | wc -l)
-  # events_get_object=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:8$" | wc -l)
-  # events_delete_file=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:9$" | wc -l)
-  # events_task_running=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:10$" | wc -l)
-  # events_transfers=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep "8000000:11$" | wc -l)
+  # event_static=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:1$" | wc -l)
+  # event_startit=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:2$" | wc -l)
+  # event_stopit=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:3$" | wc -l)
+  # events_execute_task=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:4$" | wc -l)
+  # event_nomoretasks=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:5$" | wc -l)
+  # events_open_file=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:6$" | wc -l)
+  # events_get_file=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:7$" | wc -l)
+  # events_get_object=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:8$" | wc -l)
+  # events_delete_file=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:9$" | wc -l)
+  # events_task_running=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:10$" | wc -l)
+  # events_transfers=$(cat ${target_log_folder}/trace/${tracefile} | grep "8000000:11$" | wc -l)
 
-  events_type1=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:1" | wc -l)
-  events_type2=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:2" | wc -l)
-  events_type3=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:3" | wc -l)
-  events_type4=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:4" | wc -l)
-  events_close=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:0" | wc -l)
+  events_type1=$(cat ${target_log_folder}/trace/${tracefile} | grep ":8000000:1" | wc -l)
+  events_type2=$(cat ${target_log_folder}/trace/${tracefile} | grep ":8000000:2" | wc -l)
+  events_type3=$(cat ${target_log_folder}/trace/${tracefile} | grep ":8000000:3" | wc -l)
+  events_type4=$(cat ${target_log_folder}/trace/${tracefile} | grep ":8000000:4" | wc -l)
+  events_close=$(cat ${target_log_folder}/trace/${tracefile} | grep ":8000000:0" | wc -l)
 
   # if [ "$event_startit" != "$single_emit" ] || 
   #    [ "$event_stopit" != "$single_emit" ] || 
@@ -84,14 +85,14 @@
      errors=true
   fi
   
-  start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  end_events_8000000=$(grep -c ':8000000:0' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  start_events_8000001=$(grep -c ':8000001:[1-9][0-9]*' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  end_events_8000001=$(grep -c ':8000001:0' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  end_events_8000002=$(grep -c ':8000002:0' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
-  end_events_8000003=$(grep -c ':8000003:0' ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv)
+  start_events_8000000=$(grep -c ':8000000:[1-9][0-9]*' ${target_log_folder}/trace/${tracefile})
+  end_events_8000000=$(grep -c ':8000000:0' ${target_log_folder}/trace/${tracefile})
+  start_events_8000001=$(grep -c ':8000001:[1-9][0-9]*' ${target_log_folder}/trace/${tracefile})
+  end_events_8000001=$(grep -c ':8000001:0' ${target_log_folder}/trace/${tracefile})
+  start_events_8000002=$(grep -c ':8000002:[1-9][0-9]*' ${target_log_folder}/trace/${tracefile})
+  end_events_8000002=$(grep -c ':8000002:0' ${target_log_folder}/trace/${tracefile})
+  start_events_8000003=$(grep -c ':8000003:[1-9][0-9]*' ${target_log_folder}/trace/${tracefile})
+  end_events_8000003=$(grep -c ':8000003:0' ${target_log_folder}/trace/${tracefile})
 
   if [ "$start_events_8000000" != "$end_events_8000000" ] ; then
     echo "[ERROR] Number of start and end emits is not equal for 8000000 type of events" | tee -a $output_file

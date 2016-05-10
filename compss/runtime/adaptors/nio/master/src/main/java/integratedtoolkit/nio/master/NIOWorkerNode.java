@@ -41,8 +41,6 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
 
-    private static final int MAX_RETRIES = 5;
-
     private NIONode node;
     private final NIOConfiguration config;
     private final NIOAdaptor commManager;
@@ -135,7 +133,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-        logger.info("Shutting down " + this.getName());
+        logger.debug("Shutting down " + this.getName());
         if (node == null) {
             sl.notifyFailure(new Exception());
             logger.error("Shutdown has failed");
@@ -151,11 +149,11 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
-        if (target.getHosts().contains(Comm.appHost)) {//Si es pel master
-            //Ordenar la petició directament
+        if (target.getHosts().contains(Comm.appHost)) { // Master
+            // Order petition directly
             if (tgtData != null) {
                 URI u;
-                if ((u = ld.alreadyAvailable(Comm.appHost)) != null) {//Already present at the master
+                if ((u = ld.alreadyAvailable(Comm.appHost)) != null) { // Already present at the master
                     reason.setDataTarget(u.getPath());
                     listener.notifyEnd(null);
                     return;
@@ -242,7 +240,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void deleteTemporary() {
-        //TODO NIOWorkerNode hauria d'eliminar " + workingDir + " a " + getName());
+        //TODO NIOWorkerNode should delete " + workingDir + " a " + getName());
     }
 
     @Override
@@ -274,6 +272,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         c.receive();
         c.finishConnection();
+        
+        commManager.waitUntilWorkersDebugInfoGenerated();
         logger.debug("Worker debug files generated");
     }
 

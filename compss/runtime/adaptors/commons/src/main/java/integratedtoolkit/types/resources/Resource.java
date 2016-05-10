@@ -200,14 +200,22 @@ public abstract class Resource implements Comparable<Resource> {
             logger.error("Error waiting for files in resource " + getName() + " to get saved");
         }
 
+        if (debug) {
+            logger.debug("Unique files saved for " + this.getName());
+        }
+        
         if (this.getType() != Type.SERVICE) {
             if (tracing) {
                 node.generatePackage();
                 getTracingPackageToMaster();
+                if (debug) {
+                    logger.debug("Tracing package obtained for " + this.getName());
+                }
             }
             if (debug) {
                 node.generateWorkersDebugInfo();
                 getWorkersDebugInfo();
+                logger.debug("Workers Debug files obtained for " + this.getName());
             }
         }
 

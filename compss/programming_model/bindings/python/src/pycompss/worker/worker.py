@@ -13,18 +13,26 @@ import os
 import sys
 import traceback
 import logging
-import string
 
 from pycompss.util.logs import init_logging_worker
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 
-from cPickle import load, loads, UnpicklingError
-from StringIO import StringIO
+from cPickle import loads, UnpicklingError
 
 if sys.version_info >= (2, 7):
     import importlib
 
-#from storage.api import getByID
+try:
+    # Import storage libraries if possible
+    from storage.api import getByID
+    from storage.api import TaskContext
+    #from storage.api import start_task, end_task
+except ImportError:
+    # If not present, import dummy functions
+    from dummy.storage import getByID
+    from dummy.storage import TaskContext
+    #from dummy.storage import start_task
+    #from dummy.storage import end_task
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -35,7 +43,7 @@ def compss_worker():
     Worker main method (invocated from __main__).
     """
     logger = logging.getLogger('pycompss.worker.worker')
-    
+
     logger.debug("Starting Worker")
 
     args = sys.argv[1:]
@@ -50,7 +58,6 @@ def compss_worker():
     pos = 0
     values = []
     types = []
-   
 
     # Get all parameter values
     for i in range(0, num_params):
@@ -60,9 +67,9 @@ def compss_worker():
         if ptype == Type.FILE:
             values.append(args[pos + 1])
         elif (ptype == Type.PERSISTENT):
-	        po = getByID(args[pos+1])
-	        values.append(po)
-	        pos = pos + 1 # Skip info about direction (R, W)
+            po = getByID(args[pos+1])
+            values.append(po)
+            pos = pos + 1  # Skip info about direction (R, W)
         elif ptype == Type.STRING:
             num_substrings = int(args[pos + 1])
             aux = ''
@@ -77,7 +84,6 @@ def compss_worker():
             real_value = aux
             try:
                 # try to recover the real object
-                # aux = string.replace(aux, '**', '\'')   # fixed with double quotation marks at binding.py
                 aux = loads(aux)
             except (UnpicklingError, ValueError, EOFError):
                 # was not an object
@@ -133,8 +139,18 @@ def compss_worker():
         else:
             module = __import__(path, globals(), locals(), [path], -1)
             logger.debug("Version < 2.7")
-                
+        
+        with TaskContext(logger, values):
+            getattr(module, method_name)(*values, compss_types=types)
+        '''
+        # Old school
+        # Storage Prolog
+        start_task(values)
+        # Task execution
         getattr(module, method_name)(*values, compss_types=types)
+        # Storage Epilog
+        end_task(values)
+        '''
     # ==========================================================================
     except AttributeError:
         # Appears with functions that have not been well defined.
@@ -169,18 +185,35 @@ def compss_worker():
             obj = deserialize_from_file(file_name)
             logger.debug("Processing callee, a hidden object of %s in file %s"
                          % (file_name, type(obj)))
-            
             values.insert(0, obj)
             types.pop()
             types.insert(0, Type.OBJECT)
 
+            with TaskContext(logger, values):
+                getattr(klass, method_name)(*values, compss_types=types)
+            ''' Old school
+            # Storage Prolog
+            start_task(values)
+            # Task execution
             getattr(klass, method_name)(*values, compss_types=types)
-
+            #  Storage Epilog
+            end_task(values)
+            '''
             serialize_to_file(obj, file_name, force=True)
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)    # class must be first type
+            
+            with TaskContext(logger, values):
+                getattr(klass, method_name)(*values, compss_types=types)
+            ''' Old school
+            # Storage Prolog
+            start_task(values)
+            # Task execution
             getattr(klass, method_name)(*values, compss_types=types)
+            #  Storage Epilog
+            end_task(values)
+            '''
     # ==========================================================================
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -190,16 +223,25 @@ def compss_worker():
         exit(1)
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     # Load log level configuration file
     log_level = sys.argv[1]
     if log_level == 'true':
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json.debug')
+    elif log_level == "debug":
+        init_logging_worker(os.path.realpath(__file__) +
+                            '/../../log/logging.json.debug')
+    elif log_level == "info":
+        init_logging_worker(os.path.realpath(__file__) +
+                            '/../../log/logging.json.off')
+    elif log_level == "off":
+        init_logging_worker(os.path.realpath(__file__) +
+                            '/../../log/logging.json.off')
     else:
         # Default
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json')
-                
+
     # Init worker
     compss_worker()

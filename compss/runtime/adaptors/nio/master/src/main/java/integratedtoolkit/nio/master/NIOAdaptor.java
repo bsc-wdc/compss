@@ -407,12 +407,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public String getObjectAsFile(String name) {
         LogicalData ld = Comm.getData(name);
 
-        // Get a Master location
-        for (URI loc : ld.getURIs()) {
-            if (loc.getHost().getName().equals(Comm.appHost.getName())) {
-                return loc.getPath();
-            }
-        }
+    	// Get a Master location
+		for (URI loc : ld.getURIs()) {
+			if (loc.getHost().getName().equals(Comm.appHost.getName())) {
+				return loc.getPath();
+			}
+		}
 
         // No location found in master
         return null;

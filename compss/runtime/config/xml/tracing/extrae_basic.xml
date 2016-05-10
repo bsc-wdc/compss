@@ -4,7 +4,7 @@
  home="/opt/COMPSs/Dependencies/extrae/"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="Id: xml-parse.c 3682 2015-11-26 14:32:27Z harald $"
+ xml-parser-id="Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $"
 >
 
   <user-functions enabled="no" list="" exclude-automatic-functions="no">

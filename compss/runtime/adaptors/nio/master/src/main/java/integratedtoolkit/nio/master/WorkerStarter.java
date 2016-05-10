@@ -123,7 +123,7 @@ public class WorkerStarter {
         if (!workerIsReady) {
             throw new Exception("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
-            return n; // should be unreachable statment 
+            return n; // should be unreachable statement
         }
     }
 

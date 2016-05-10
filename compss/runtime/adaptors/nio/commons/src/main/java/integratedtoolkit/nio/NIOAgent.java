@@ -201,6 +201,7 @@ public abstract class NIOAgent {
     public abstract String getWorkingDir();
 
     public void receivedShutdown(Connection requester, LinkedList<Data> filesToSend) {
+    	logger.debug("Command for shutdown received. Preparing for shutdown...");
         closingConnection = requester;
         finish = true;
 

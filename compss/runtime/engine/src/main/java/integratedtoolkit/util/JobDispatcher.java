@@ -67,6 +67,7 @@ public class JobDispatcher {
                     job.getListener().jobFailed(job, Job.JobListener.JobEndStatus.SUBMISSION_FAILED);
                 }
             }
+            logger.debug("JobDispatcher finished");
         }
     }
 }

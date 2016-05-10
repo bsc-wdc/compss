@@ -174,6 +174,8 @@ def compss_worker():
         else:
             module_name = path
 
+        module = __import__(module_name, fromlist=[class_name])
+        
         klass = getattr(module, class_name)
 
         logger.debug("Method in class %s of module %s"

@@ -1,4 +1,4 @@
- """
+"""
 @author: fconejer
 
 Storage dummy connector

@@ -14,119 +14,53 @@
   #Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
-  #----------------------------------------------------------------------------------
-  #Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
   
+  declare -a tests=("testNonExistingInFile" "testReschedulingFail" "testAllBlocked")
   #----------------------------------------------------------------------------------
-  #Run application ErrorManagerTestNonExistingInFile
-  echo
-  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestNonExistingInFile"
-  output_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.outputlog"
-  error_log="${target_log_folder}/errorManagement_ErrorManagerTestNonExistingInFile.errorlog"
-  expectedTime=80s
-  
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --classpath=${base_app_dir}/ErrorManagerTest.jar \
-     testNonExistingInFile.Main 2>&1 | tee ${output_log} | tee ${error_log}
-  
-  #Check timeout
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testNonExistingInFile.Main_01/* ${target_log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testNonExistingInFile.Main_01/* ${target_log_folder}
-  fi
- 
-  #----------------------------------------------------------------------------------
-  # Sleep between applications
-  sleep 1s
+  #Run tests
+  i=0
+  while [ $i -lt ${#tests[@]} ]; do
 
-  #----------------------------------------------------------------------------------
-  #Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
- 
-  #----------------------------------------------------------------------------------
-  #Run application ErrorManagerTestReschedulingFail
-  echo
-  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestReschedulingFail"
-  output_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.outputlog"
-  error_log="${target_log_folder}/errorManagement_ErrorManagerTestReschedulingFail.errorlog"
-  expectedTime=80s
-     
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --classpath=${base_app_dir}/ErrorManagerTest.jar \
-     testReschedulingFail.Main 2>&1 | tee ${output_log} | tee ${error_log}
-  
-  #Check timeout
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testReschedulingFail.Main_01/* ${target_log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testReschedulingFail.Main_01/* ${target_log_folder}
-  fi
-
-  #----------------------------------------------------------------------------------
-  # Sleep between applications
-  sleep 1s
-
-  #----------------------------------------------------------------------------------
-  #Create all working dir folders
-  mkdir -p /tmp/COMPSsWorker01/
-  mkdir -p /tmp/COMPSsWorker02/
-
-  #----------------------------------------------------------------------------------
-  #Run application ErrorManagerTestAllBlocked
-  echo
-  echo "*** RUNNING JAVA APPLICATION ErrorManagerTestAllBlocked"
-  output_log="${target_log_folder}/errorManagement_ErrorManagerTestAllBlocked.outputlog"
-  error_log="${target_log_folder}/errorManagement_ErrorManagerTestAllBlocked.errorlog"
-  expectedTime=90s
-     
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
-     --debug \
-     --lang=java \
-     --comm=$comm \
-     --classpath=${base_app_dir}/ErrorManagerTest.jar \
-     testAllBlocked.Main 2>&1 | tee ${output_log} | tee ${error_log}
-  
-  
-  #Check timeout
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testAllBlocked.Main_01/* ${target_log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testAllBlocked.Main_01/* ${target_log_folder}
-  fi
+  	  test=${tests[$i]} ; i=$(($i+1))
+	  
+	  echo "*** RUNNING JAVA APPLICATION ErrorManager_$test"
+	  mkdir -p ${target_log_folder}/$test
+	  
+          #----------------------------------------------------------------------------------
+	  #Create all working dir folders
+	  mkdir -p /tmp/COMPSsWorker01/
+	  mkdir -p /tmp/COMPSsWorker02/
+	  
+	  output_log="${target_log_folder}/$test/errorManagement_${test}.outputlog"
+	  error_log="${target_log_folder}/$test/errorManagement_${test}.errorlog"
+	  expectedTime=80s
+	  
+	  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+	     --project=${base_app_dir}/project.xml \
+	     --resources=${base_app_dir}/resources.xml \
+	     --debug \
+	     --lang=java \
+	     --comm=$comm \
+	     --classpath=${base_app_dir}/ErrorManagerTest.jar \
+	     ${test}.Main 2>&1 | tee ${output_log} | tee ${error_log}
+	  
+	  #Check timeout
+	  if [[ "$?" = "124" ]]; then
+	     #Copy LOG files
+	     cp -rf ${COMPSs_log_folder}/${test}.Main_01/* ${target_log_folder}/$test
+	     
+	     #Report time out
+	     echo "[WARNING] Java Application timed out" >> ${output_log}
+	     exitValue=124
+	  else
+	     #Copy LOG files
+	     cp -rf ${COMPSs_log_folder}/${test}.Main_01/* ${target_log_folder}/$test
+	  fi
+	 
+	  #----------------------------------------------------------------------------------
+	  # Sleep between applications
+	  sleep 1s
+  done
 
   #----------------------------------------------------------------------------------
   # Check result

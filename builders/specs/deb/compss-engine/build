@@ -81,9 +81,9 @@
   #Schedulers
   schedulers=$(find ${trunk_rel_path}/compss/runtime/scheduler/ -name "*.jar")
   for scheduler in $schedulers; do
-    cp $scheduler COMPSs/Runtime/scheduler/
+    cp $scheduler ${COMPSs_target}/Runtime/scheduler/
   done
-  rm -r COMPSs/Runtime/scheduler/compss-scheduler-commons.jar
+  rm -r ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
 
   #Engine
   cp ${trunk_rel_path}/compss/runtime/compss-engine.jar ${COMPSs_target}/Runtime/

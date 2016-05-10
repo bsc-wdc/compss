@@ -167,13 +167,13 @@ def compss_worker():
         from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
+        # module_name = path.replace('.' + class_name, '')  # BUG - does not support same filename as a package
+        module_name = '.'.join(path.split('.')[0:-1])       # SOLUTION - all path but the class_name means the module_name
         if '.' in path:
-            module_name = '.'.join(path.split('.')[0:-1])
+            module_name = '.'.join(path.split('.')[0:-1])   # SOLUTION - all path but the class_name means the module_name
         else:
             module_name = path
-        
-        module = __import__(module_name, fromlist=[class_name])
-        
+
         klass = getattr(module, class_name)
 
         logger.debug("Method in class %s of module %s"

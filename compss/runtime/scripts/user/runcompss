@@ -33,7 +33,7 @@ DEFAULT_MASTER_PORT=43000
 DEFAULT_SCHEDULER=integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
 DEFAULT_JVM_MASTER=""
-DEFAULT_JVM_WORKERS="-Xms1024m -Xmx1024m -Xmn400m"
+DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
 
 DEFAULT_DEBUGGER=false
 DEFAULT_DEBUGGER_ARGUMENT=true
@@ -99,9 +99,9 @@ show_opts() {
     --master_port=<int>                     Port to run the COMPSs master communications.
                                             Only for NIO adaptor
                                             Default: ${DEFAULT_MASTER_PORT}
-    --jvm_master_opts="<string>"            Extra options for the COMPSs Master JVM (Notice the quotes)
+    --jvm_master_opts="<string>"            Extra options for the COMPSs Master JVM. Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_MASTER}
-    --jvm_workers_opts="<string>"	    Extra options for the COMPSs Workers JVMs (Notice the quotes)
+    --jvm_workers_opts="<string>"	    Extra options for the COMPSs Workers JVMs. Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKERS}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
@@ -555,14 +555,20 @@ execute_runtime() {
   # Create tmp dir for initial loggers configuration
   mkdir /tmp/$uuid
 
-  # Init COMPSs
+  # Create JVM Options file
   appName=$(basename "$fullAppPath")
+  generate_jvm_opts_file
+
+  # Init COMPSs
   echo -e "\n----------------- Executing $appName --------------------------\n"
   if [ $lang = java ]; then
+    add_jvm_opts_java
     exec_java
   elif [ $lang = c ]; then
+    add_jvm_opts_c
     exec_c
   elif [ $lang = python ]; then
+    add_jvm_opts_python
     exec_python
   fi
   echo
@@ -572,47 +578,85 @@ execute_runtime() {
   rm -rf /tmp/$uuid
 }
 
+generate_jvm_opts_file() {
+  jvm_options_file=$(mktemp)
+  if [ $? -ne 0 ]; then
+    display_error "${TMP_FILE_JVM_ERROR}"
+  fi
+
+  /bin/cat >> ${jvm_options_file} << EOT
+-XX:-UseSplitVerifier
+${jvm_master_opts}
+${jvm_debugger_opts}
+-XX:+PerfDisableSharedMem
+-XX:-UsePerfData
+-XX:+UseG1GC
+-XX:+UseThreadPriorities
+-XX:ThreadPriorityPolicy=42
+
+-Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
+
+-Dit.to.file=false
+-Dit.project.file=${projFile}
+-Dit.resources.file=${resFile}
+-Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
+-Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
+
+-Dit.lang=${lang}
+
+-Dit.task.execution=$taskExecution
+-Dit.storage.conf=$storageConf
+-Dit.script.dir=${IT_HOME}/scripts/system
+-Dit.core.count=${task_count}
+
+-Dit.appName=${appName}
+-Dit.uuid=${uuid}
+-Dit.baseLogDir=${base_log_dir}
+-Dit.appLogDir=/tmp/${uuid}/
+
+-Dit.graph=${graph}
+-Dit.monitor=${monitoring}
+-Dit.tracing=${tracing}
+
+-Dit.comm=${comm}
+-Dit.masterPort=${master_port}
+-Dit.scheduler=${scheduler}
+-Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
+-Dit.gat.broker.adaptor=sshtrilead
+-Dit.gat.file.adaptor=sshtrilead
+
+-Dit.worker.cp=${cp}:${CLASSPATH}
+-Dit.worker.jvm_opts=${jvm_workers_opts}
+EOT
+}
+
+add_jvm_opts_java() {
+  /bin/cat >> ${jvm_options_file} << EOT
+-classpath ${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+EOT
+}
+
+add_jvm_opts_c() {
+  /bin/cat >> ${jvm_options_file} << EOT
+-Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Dit.constraints.file=$fullAppPath.idl
+EOT
+}
+
+add_jvm_opts_python() {
+  /bin/cat >> ${jvm_options_file} << EOT
+-Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Dit.pythonpath=${pythonpath}
+EOT
+}
+
 exec_java() {
   # Export needed variables
   export LD_LIBRARY_PATH=$library_path:$LD_LIBRARY_PATH
 
-  # Define command  
-  local JAVACMD=$JAVA" \
-    -XX:-UseSplitVerifier \
-    ${jvm_master_opts} \
-    ${jvm_debugger_opts} \
-    -XX:+HeapDumpOnOutOfMemoryError \
-    -XX:+PerfDisableSharedMem \
-    -XX:-UsePerfData \
-    -XX:+UseG1GC \
-    -XX:+UseThreadPriorities \
-    -XX:ThreadPriorityPolicy=42 \
-    -classpath ${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH} \
-    -Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file} \
-    -Dit.to.file=false \
-    -Dit.lang=${lang} \
-    -Dit.task.execution=$taskExecution \
-    -Dit.storage.conf=$storageConf \
-    -Dit.project.file=${projFile} \
-    -Dit.resources.file=${resFile} \
-    -Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd \
-    -Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd \
-    -Dit.appName=${appName} \
-    -Dit.baseLogDir=${base_log_dir} \
-    -Dit.uuid=${uuid} \
-    -Dit.appLogDir=/tmp/${uuid}/ \
-    -Dit.graph=${graph} \
-    -Dit.monitor=${monitoring} \
-    -Dit.tracing=${tracing} \
-    -Dit.script.dir=${IT_HOME}/scripts/system \
-    -Dit.worker.cp=${cp}:${CLASSPATH} \
-    -Dit.worker.jvm_opts="${jvm_workers_opts}" \
-    -Dit.comm=${comm} \
-    -Dit.scheduler=${scheduler} \
-    -Dit.masterPort=${master_port} \
-    -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors \
-    -Dit.gat.broker.adaptor=sshtrilead \
-    -Dit.gat.file.adaptor=sshtrilead"
+  # Define command
+  local java_opts=$(cat ${jvm_options_file} | tr '\n' ' ')
+  local JAVACMD=$JAVA" ${java_opts}"
 
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
@@ -649,54 +693,10 @@ exec_c() {
 
   export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib:${IT_HOME}/../Bindings/c/lib
 
-  # Define command
-  local jvm_options_file=$(mktemp)
-  if [ $? -ne 0 ]; then
-    display_error "${TMP_FILE_JVM_ERROR}"
-  fi
   export JVM_OPTIONS_FILE=${jvm_options_file}
-  /bin/cat >> ${jvm_options_file} << EOT
--XX:-UseSplitVerifier
-${jvm_master_opts}
-${jvm_debugger_opts}
--XX:+HeapDumpOnOutOfMemoryError
--XX:+PerfDisableSharedMem
--XX:-UsePerfData
--XX:+UseG1GC
--XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
--Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
--Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
--Dit.to.file=false
--Dit.lang=${lang}
--Dit.task.execution=compss
--Dit.storage.conf=$storageConf
--Dit.project.file=${projFile}
--Dit.resources.file=${resFile}
--Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
--Dit.appName=${appName}
--Dit.constraints.file=$fullAppPath.idl
--Dit.baseLogDir=${base_log_dir}
--Dit.uuid=${uuid}
--Dit.appLogDir=/tmp/${uuid}/
--Dit.graph=${graph}
--Dit.monitor=${monitoring}
--Dit.tracing=${tracing}
--Dit.script.dir=${IT_HOME}/scripts/system
--Dit.core.count=${task_count}
--Dit.worker.cp=${cp}:${CLASSPATH}
--Dit.worker.jvm_opts="${jvm_workers_opts}"
--Dit.comm=${comm}
--Dit.scheduler=${scheduler}
--Dit.masterPort=${master_port}
--Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
--Dit.gat.broker.adaptor=sshtrilead
--Dit.gat.file.adaptor=sshtrilead
-EOT
 
   # Launch application
-  echo -e "\nJVM_OPTION_FILE: $jvm_options_file \n"
+  echo -e "\nJVM_OPTIONS_FILE: $JVM_OPTIONS_FILE \n"
   echo -e "\nIT_HOME: $IT_HOME \n"
   echo -e "\nArgs: $application_args \n"
 
@@ -736,56 +736,12 @@ exec_python() {
 
   export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib
 
-  # Define command
-  local jvm_options_file=`mktemp`
-  if [ $? -ne 0 ]; then
-    display_error "${TMP_FILE_JVM_ERROR}"
-  fi
   export JVM_OPTIONS_FILE=${jvm_options_file}
-  /bin/cat >> ${jvm_options_file} << EOT
--XX:-UseSplitVerifier
-${jvm_master_opts}
-${jvm_debugger_opts}
--XX:+HeapDumpOnOutOfMemoryError
--XX:+PerfDisableSharedMem
--XX:-UsePerfData
--XX:+UseG1GC
--XX:+UseThreadPriorities
--XX:ThreadPriorityPolicy=42
--Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
--Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
--Dit.to.file=false
--Dit.lang=${lang}
--Dit.task.execution=compss
--Dit.storage.conf=$storageConf
--Dit.project.file=${projFile}
--Dit.resources.file=${resFile}
--Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
--Dit.appName=${appName}
--Dit.baseLogDir=${base_log_dir}
--Dit.uuid=${uuid}
--Dit.appLogDir=/tmp/${uuid}/
--Dit.pythonpath=${pythonpath}
--Dit.graph=${graph}
--Dit.monitor=${monitoring}
--Dit.tracing=${tracing}
--Dit.script.dir=${IT_HOME}/scripts/system
--Dit.core.count=${task_count}
--Dit.worker.cp=${cp}:${CLASSPATH}
--Dit.worker.jvm_opts="${jvm_workers_opts}"
--Dit.comm=${comm}
--Dit.scheduler=${scheduler}
--Dit.masterPort=${master_port}
--Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors
--Dit.gat.broker.adaptor=sshtrilead
--Dit.gat.file.adaptor=sshtrilead
-EOT
 
+  # Launch application
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
   fi
-  # Launch application
   python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $fullAppPath $application_args
   endCode=$?
   if [ $tracing -gt 0 ]; then

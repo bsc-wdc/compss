@@ -53,13 +53,17 @@
     
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
-      echo "- libPath:    $libPath"
-      echo "- AppDir:     $appDir"
-      echo "- Classpath:  $cp"
-      echo "- WorkingDir: $workingDir"
       echo "- HostName:   $hostName"
       echo "- WorkerPort: ${worker_port}"
+      echo "- WorkingDir: $workingDir"
+      echo "- NumThreads: $numThreads"
+      echo "- JVM Opts:   $jvmFlags"
+
       echo "- AppUUID:    ${appUuid}"
+      echo "- AppDir:     $appDir"
+      echo "- libPath:    $libPath"
+      echo "- Classpath:  $cp"
+      echo "- Tracing:    $tracing"
     fi
   }
   

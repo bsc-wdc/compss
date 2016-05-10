@@ -9,8 +9,8 @@
   source ${scriptDir}/setup.sh
 
   # Load parameters --------------------------------------------------
-  load_parameters $*
-  # Shift the 4 paramters consumed only by .sh
+  load_parameters $@
+  # Shift the parameters consumed only by the script
   shift ${paramsToShift}
 
   # Normal start -----------------------------------------------------

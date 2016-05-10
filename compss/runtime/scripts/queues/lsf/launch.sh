@@ -269,7 +269,7 @@ EOT
     fi
     # Start workers' processes
     hostid=1
-    jvm_workers_opts_size=$(echo "${jvm_workers_opts}" | wc -w)
+    jvm_workers_opts_size=$(echo "${jvm_workers_opts}" | tr "," " " | wc -w)
     for node in ${USED_WORKERS}; do
       sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
       WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"

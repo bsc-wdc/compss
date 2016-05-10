@@ -24,7 +24,7 @@ from StringIO import StringIO
 if sys.version_info >= (2, 7):
     import importlib
 
-from storage.api import getByID
+#from storage.api import getByID
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True

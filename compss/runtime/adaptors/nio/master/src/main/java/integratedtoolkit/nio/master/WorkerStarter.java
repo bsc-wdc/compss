@@ -147,7 +147,7 @@ public class WorkerStarter {
         String libPath = node.getLibPath();
         String appDir = node.getAppDir();
         String workerJVMflags = (System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) != null) ? System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) : "";
-        String[] jvmFlags = workerJVMflags.split(" ");
+        String[] jvmFlags = workerJVMflags.split(",");
         String workingDir = node.getWorkingDir();
         String cp = (System.getProperty(ITConstants.IT_WORKER_CP) != null && System.getProperty(ITConstants.IT_WORKER_CP).compareTo("") != 0) ? System.getProperty(ITConstants.IT_WORKER_CP) : "\"\"";
         String installDir = node.getInstallDir();

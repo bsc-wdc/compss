@@ -43,7 +43,7 @@ public class GATTracer extends Tracer {
         SoftwareDescription sd = new SoftwareDescription();
         String uriString = "any://" + user + worker.getHost();
         sd.addAttribute("uri", uriString);
-        sd.setExecutable(worker.getInstallDir() + File.separator + Tracer.TRACE_SCRIPT);
+        sd.setExecutable(worker.getInstallDir() + File.separator + "scripts" + File.separator + "system" + File.separator + Tracer.TRACE_SCRIPT);
         sd.setArguments(new String[]{"init", worker.getWorkingDir(), String.valueOf(hostId), String.valueOf(numTasks)});
 
         if (debug) {

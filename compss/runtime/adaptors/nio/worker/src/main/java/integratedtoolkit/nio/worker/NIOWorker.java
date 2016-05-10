@@ -586,10 +586,9 @@ public class NIOWorker extends NIOAgent {
 			}
 
 			// Remove working Dir
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream("/home/kurtz/log.txt"), "utf-8"))) {
-                writer.write("Remove:\nwDir: " + workingDir + " - lcs\ndeploymentID: " + deploymentId + " - lcs");
-            }
+            String wDir = workingDir.substring(0, workingDir.indexOf(deploymentId) + deploymentId.length());
+            removeFolder(wDir);
+
 
 
 		} catch (Exception e) {
@@ -597,6 +596,24 @@ public class NIOWorker extends NIOAgent {
 		}
 		wLogger.debug("Finish shutdown method on worker");
 	}
+
+    private void removeFolder(String sandBox) throws IOException {
+        logger.debug("callin' removeFolder(string) upon "+ sandBox + " xlcs");
+
+        File wdirFile = new File(sandBox);
+        remove(wdirFile);
+    }
+
+    private void remove(File f) throws IOException {
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                for (File child : f.listFiles()) {
+                    remove(child);
+                }
+            }
+            Files.delete(f.toPath());
+        }
+    }
 
 	public Object getObject(String s) throws SerializedObjectException {
 		String realName = s.substring(s.lastIndexOf('/') + 1);

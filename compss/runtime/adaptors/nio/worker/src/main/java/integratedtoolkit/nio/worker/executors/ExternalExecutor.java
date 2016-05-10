@@ -76,8 +76,6 @@ public abstract class ExternalExecutor extends Executor {
 
     @Override
     void removeSandBox(String sandBox) throws IOException {
-        logger.debug("callin' removeSandBox(string) upon "+ sandBox + " xlcs");
-
         File wdirFile = new File(sandBox);
         removeSandBox(wdirFile);
     }

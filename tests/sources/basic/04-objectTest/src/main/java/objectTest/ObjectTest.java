@@ -12,14 +12,16 @@ public class ObjectTest {
 		testArrays();
 	}
 	
-	private static void testUserObjects() {
+	private static void testUserObjects() throws InterruptedException {
 		C c = ObjectTestImpl.createCObject(7, "OPTIMIS");		
 		
 		A a = c.getAField();
 		B b = c.getBField();
 		
 		ObjectTestImpl.printObjects(a, b);
-		ObjectTestImpl.updateObjects(a, b, 10, "-CLOUD");		
+		Thread.sleep(500);
+		ObjectTestImpl.updateObjects(a, b, 10, "-CLOUD");
+		Thread.sleep(500);
 		ObjectTestImpl.updateObjects(a, b, 3, "-PROJECT");
 
 		// Synchronize by method call (target object of the method call)
@@ -31,9 +33,11 @@ public class ObjectTest {
 		b.stringField = "OVERWRITE";
 		
 		ObjectTestImpl.printObjects(a, b);
+		Thread.sleep(1000);
+
 	}
 	
-	private static void testImmutableObjects() {
+	private static void testImmutableObjects() throws InterruptedException {
 		Integer i = ObjectTestImpl.createInteger(5);
 		String s = ObjectTestImpl.createString("SDO");
 		
@@ -41,6 +45,7 @@ public class ObjectTest {
 		System.out.println("String value: " + s);
 		
 		ObjectTestImpl.printContent(i, s);
+		Thread.sleep(1000);
 	}
 	
 	private static void testTargetObjects() {

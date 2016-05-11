@@ -48,8 +48,9 @@
   if [ "$j2_A_value" != "$j2_A_expected" ] || [ "$j2_B_value" != "$j2_B_expected" ] || [ "$j4_params_value" != "$j4_params_expected" ] || [ "$j5_A_value" != "$j5_A_expected" ] || [ "$j5_B_value" != "$j5_B_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
      echo "ERROR ON TEST USER OBJECTS" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] User objects passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] User objects passed" | tee -a ${output_file}
 
   #-------------------------------------------------------------------------------------------------------
   j8_types_expected="java.lang.Integer java.lang.String"
@@ -64,8 +65,9 @@
   if [ "$j8_types_value" != "$j8_types_expected" ] || [ "$j8_params_value" != "$j8_params_expected" ] || [ "$log_A_value" != "$log_A_expected" ] || [ "$log_B_value" != "$log_B_expected" ]; then
      echo "ERROR ON IMMUTABLE OBJECTS" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] Immutable objects passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] Immutable objects passed" | tee -a ${output_file}
 
   #-------------------------------------------------------------------------------------------------------
   log_before_int_expected="32"
@@ -80,8 +82,9 @@
   if [ "$log_before_int_value" != "$log_before_int_expected" ] || [ "$log_before_string_value" != "$log_before_string_expected" ] || [ "$log_after_int_value" != "$log_after_int_expected" ] || [ "$log_after_string_value" != "$log_after_string_expected" ]; then
      echo "ERROR ON TARGET OBJECTS" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] Target objects passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] Target objects passed" | tee -a ${output_file}
 
   #-------------------------------------------------------------------------------------------------------
   log_square_4_expected="16"
@@ -92,8 +95,9 @@
   if [ "$log_square_4_value" != "$log_square_4_expected" ] || [ "$log_square_5_value" != "$log_square_5_expected" ]; then
      echo "ERROR ON PRIMITIVE RETURN" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] Primitive return objects passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] Primitive return objects passed" | tee -a ${output_file}
 
   #-------------------------------------------------------------------------------------------------------
   log_constructor_c_expected="In C constructor, creating C with A 6 and B CONSTRUCTOR TEST"
@@ -104,9 +108,10 @@
   if [ "$log_constructor_c_value" != "$log_constructor_c_expected" ] || [ "$log_constructor_app_value" != "$log_constructor_app_expected" ]; then
      echo "ERROR ON CONSTRUCTOR" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] Constructor passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] Constructor passed" | tee -a ${output_file} 
- 
+
   #-------------------------------------------------------------------------------------------------------
   log_first_array_before=$(cat ${target_log_folder}/jobs/job17_NEW.out | grep "First array: 9 18 27")
   log_second_array_before=$(cat ${target_log_folder}/jobs/job17_NEW.out | grep "Second array: 11 22")
@@ -118,9 +123,10 @@
   if [ -z "$log_first_array_before" ] || [ -z "$log_second_array_before" ]  || [ -z "$log_element1" ] || [ -z "$log_element10" ] || [ -z "$log_first_array_after" ] || [ -z "$log_second_array_after" ]; then
      echo "ERROR ON ARRAYS" | tee -a ${output_file}
      exitValue=1
+  else
+    echo "[RESULT_CHECK] Arrays passed" | tee -a ${output_file}
   fi
-  echo "[RESULT_CHECK] Arrays passed" | tee -a ${output_file}
-   
+
   #-------------------------------------------------------------------------------------------------------
   #Report result status
   exit $exitValue

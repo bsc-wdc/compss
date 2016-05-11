@@ -671,7 +671,6 @@ exec_java() {
   if [ $endCode -ne 0 ]; then
     error_msg "${RUNTIME_ERROR}"
   fi
-
 }
 
 exec_c() {

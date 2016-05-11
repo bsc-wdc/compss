@@ -164,6 +164,9 @@ error_msg() {
   echo $error_msg
   echo 
 
+  # Delete JVM options file
+  rm -f ${jvm_options_file}
+
   # Delete tmp dir for initial loggers
   rm -rf /tmp/$uuid
   
@@ -573,6 +576,9 @@ execute_runtime() {
   fi
   echo
   echo ------------------------------------------------------------
+
+  # Delete JVM options file
+  rm -f ${jvm_options_file}
 
   # Delete tmp dir for initial loggers
   rm -rf /tmp/$uuid

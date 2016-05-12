@@ -21,7 +21,7 @@ def getByID(obj):
 
 class TaskContext( object ):
     
-    def init(self, logger, values, **kwargs):
+    def __init__(self, logger, values, **kwargs):
         self.logger = logger
         self.values = values
     

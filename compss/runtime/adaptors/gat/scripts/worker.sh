@@ -21,7 +21,7 @@
         /bin/mkdir -p $workingDir
   fi
   export IT_WORKING_DIR=$workingDir
-  sandbox=`/bin/mktemp -d -p $workingDir`
+  sandbox=$(/bin/mktemp -d -p $workingDir)
   cd $workingDir
 
   echo "** Start worker.sh"
@@ -72,7 +72,7 @@
   cd $sandbox
   # Run the task with the language-dependent script
   echo "** Starting language dependant script"
-  $scriptDir/worker_$lang.sh $*
+  $scriptDir/worker_$lang.sh $@
   endCode=$?
   echo "** EndStatus = $endCode"
   cd $workingDir

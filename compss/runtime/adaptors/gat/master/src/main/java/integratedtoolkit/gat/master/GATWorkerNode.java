@@ -52,6 +52,7 @@ public class GATWorkerNode extends COMPSsWorker {
         this.config.addContextPreference(property, value);
     }
 
+    @Override
     public String getUser() {
         return this.config.getUser();
     }
@@ -81,6 +82,16 @@ public class GATWorkerNode extends COMPSsWorker {
 
         return libPath;
     }
+    
+	@Override
+	public String getClasspath() {
+		return this.config.getClasspath();
+	}
+
+	@Override
+	public String getPythonpath() {
+		return this.config.getPythonpath();
+	}
 
     public int getTotalComputingUnits() {
         return this.config.getTotalComputingUnits();

@@ -1,8 +1,22 @@
-#!/bin/sh
+#!/bin/bash
 
+  # Get worker common functions
   scriptDir=$(dirname $0)
-  bindingsDir=${scriptDir}/../../../../../Bindings
-  app_dir=$1
-  export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindigsDir}/bindings-common/lib:$LD_LIBRARY_PATH
+  source ${scriptDir}/worker_commons.sh
 
+  # Pre-execution
+  get_parameters $@
+  set_env
+
+  # Execution
+  shift $shiftSizeForApp # Shift parameters up to executed method
   exec ${app_dir}/worker/worker_c $@
+
+  # Exit
+  if [ $? -eq 0 ]; then
+        exit 0
+  else
+        echo 1>&2 "Task execution failed"
+        exit 7
+  fi
+

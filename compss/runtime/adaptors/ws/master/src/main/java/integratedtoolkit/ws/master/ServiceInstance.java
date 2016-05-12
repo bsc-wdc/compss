@@ -139,5 +139,17 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public void generateWorkersDebugInfo() {
     }
+
+	@Override
+	public String getClasspath() {
+		// No classpath for services
+		return "";
+	}
+
+	@Override
+	public String getPythonpath() {
+		// No pythonpath for services
+		return "";
+	}
     
 }

@@ -1,17 +1,22 @@
-#!/bin/sh
+#!/bin/bash
 
-  app_dir=$1
-  py_path=$2
-  bindingsDir=$(dirname $0)/../../../../../Bindings
+  # Get worker common functions
+  scriptDir=$(dirname $0)
+  source ${scriptDir}/worker_commons.sh
 
-  export PYCOMPSS_HOME=${bindingsDir}/python
-  export PYTHONPATH=$app_dir:$py_path:$PYCOMPSS_HOME:$PYTHONPATH
-  shift 2
+  # Pre-execution
+  get_parameters $@
+  set_env
 
-  python $PYCOMPSS_HOME/pycompss/worker/worker.py $*
+  # Execution
+  shift $shiftSizeForApp # appdir, cp, pythonpath
+  python $PYCOMPSS_HOME/pycompss/worker/worker.py $@
+
+  # Exit
   if [ $? -eq 0 ]; then
-	exit 0
+        exit 0
   else
-	echo 1>&2 "Task execution failed"
-	exit 7
+        echo 1>&2 "Task execution failed"
+        exit 7
   fi
+

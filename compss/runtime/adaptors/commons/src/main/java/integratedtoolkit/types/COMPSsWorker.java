@@ -10,6 +10,10 @@ public abstract class COMPSsWorker extends COMPSsNode {
     }
 
     public abstract String getUser();
+    
+    public abstract String getClasspath();
+    
+    public abstract String getPythonpath();
 
     public abstract void updateTaskCount(int processorCoreCount);
 

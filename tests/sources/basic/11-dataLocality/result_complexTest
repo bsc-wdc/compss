@@ -40,16 +40,19 @@
   
   #Compute result
   echo "[LOG] Computing test result"
-  resultTest=$(grep -v -x -f $got $expected)
+  # We check that all the got are executed as expected and viceversa
+  resultAllGotIsExpected=$(grep -v -x -f $got $expected | wc -l)
+  resultAllExpectedIsGot=$(grep -v -x -f $expected $got | wc -l)
 
   #----------------------------------------------------------------------------------
   # Report result status
-  if [ -z "$resultTest" ]; then
+  # Notice that the 3 first tasks can be scheduled anywhere (there are 4 free workers)
+  if [ $resultAllGotIsExpected -gt 3 ] || [ $resultAllExpectedIsGot -gt 3 ]; then
      echo "ERROR: Task schedule do not respect score values." | tee -a ${output_file}
      echo "Check logs/java_dataLocality.complexTest_expected.out and logs/java_dataLocality.complexTest_got.out" | tee -a ${output_file}
-     echo "$resultTest" | tee -a ${output_file}
      exit 1
   fi
+  echo "[LOG] Success"
   
   exit 0
  

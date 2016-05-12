@@ -291,7 +291,7 @@ public class ResourceLoader {
             config.setAppDir(app.getAppDir());
             config.setLibraryPath(app.getLibraryPath());
             config.setClasspath(app.getClasspath());
-            config.setPythonpath(app.getClasspath());
+            config.setPythonpath(app.getPythonpath());
         }
 
         /* Pass all the information to the ResourceManager to insert it into the Runtime ***/

@@ -1,6 +1,6 @@
 import unittest
-from modules.testFunctions import testFunctions
-#from modules.testLaunch import testLaunch
+from test.modules.testFunctions import testFunctions
+#from test.modules.testLaunch import testLaunch
 
 
 def main():

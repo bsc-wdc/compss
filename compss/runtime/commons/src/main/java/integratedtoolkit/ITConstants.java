@@ -34,6 +34,7 @@ public class ITConstants {
 
     public static final String IT_LANG 				= "it.lang";
     public static final String IT_WORKER_CP 		= "it.worker.cp";
+    public static final String IT_WORKER_PP			= "it.worker.pythonpath";
     public static final String IT_WORKER_JVM_OPTS   = "it.worker.jvm_opts"; 
     public static final String IT_CORE_COUNT 		= "it.core.count";
     public static final String IT_SCRIPT_DIR 		= "it.script.dir";

@@ -1,7 +1,7 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from modules.auxFunctions import formula2
+from test.modules.auxFunctions import formula2
 
 
 class testParameter(unittest.TestCase):

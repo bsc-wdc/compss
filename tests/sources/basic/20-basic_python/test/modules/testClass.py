@@ -1,7 +1,7 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from modules.MyClass import MyClass
+from test.modules.MyClass import MyClass
 
 
 def par_func():

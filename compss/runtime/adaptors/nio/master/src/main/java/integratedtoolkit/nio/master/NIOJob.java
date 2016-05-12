@@ -23,9 +23,12 @@ import integratedtoolkit.types.resources.Resource;
 public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
 
     private static final String workerClasspath = (System.getProperty(ITConstants.IT_WORKER_CP) != null
-            && System.getProperty(ITConstants.IT_WORKER_CP).compareTo("") != 0)
+            && !System.getProperty(ITConstants.IT_WORKER_CP).equals(""))
             ? System.getProperty(ITConstants.IT_WORKER_CP) : "\"\"";
-
+            
+    private static final String workerPythonpath = (System.getProperty(ITConstants.IT_WORKER_PP) != null
+            && !System.getProperty(ITConstants.IT_WORKER_PP).equals(""))
+            ? System.getProperty(ITConstants.IT_WORKER_PP) : "\"\"";
             
     public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
@@ -71,11 +74,22 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         // Merge command classpath and worker defined classpath
         String resourceClasspath = getResourceNode().getClasspath();
         String finalClasspath = workerClasspath;
-        if (resourceClasspath != "") {
-        	if (finalClasspath != "") {
+        if (!resourceClasspath.equals("")) {
+        	if (!finalClasspath.equals("")) {
         		finalClasspath += ":" + resourceClasspath;
         	} else {
         		finalClasspath = resourceClasspath;
+        	}
+        }
+        
+        // Merge pythonpath and worker defined pythonpath
+        String resourcePythonpath = getResourceNode().getPythonpath();
+        String finalPythonpath = workerPythonpath;
+        if (!resourcePythonpath.equals("")) {
+        	if (!finalPythonpath.equals("")) {
+        		finalPythonpath += ":" + resourcePythonpath;
+        	} else {
+        		finalPythonpath = resourcePythonpath;
         	}
         }
 
@@ -85,7 +99,7 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         						getResourceNode().getLibPath(), 
         						getResourceNode().getAppDir(), 
         						finalClasspath,
-        						getResourceNode().getPythonpath(),
+        						finalPythonpath,
         						debug, 
         						className, 
         						methodName, 

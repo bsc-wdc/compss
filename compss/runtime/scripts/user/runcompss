@@ -23,6 +23,7 @@ DEFAULT_MONITORING_INTERVAL_ARGUMENT=2000
 
 DEFAULT_TASK_COUNT=50
 DEFAULT_CLASSPATH=$(pwd)
+DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_LIBRARY_PATH=$(pwd)
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
@@ -106,7 +107,7 @@ show_opts() {
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
-                                            Default: None
+                                            Default: ${DEFAULT_PYTHONPATH}
     --PyObject_serialize=<bool>             Only for Python Binding. Enable the object serialization to string when possible (true/false).
                                             Default: $DEFAULT_PyOBJECT_SERIALIZE
 
@@ -544,8 +545,13 @@ check_args() {
   # Options ONLY for PYTHON
   if [ "$lang" = "python" ]; then
     if [ -z "$pythonpath" ]; then
-      PYTHONPATH=$PYTHONPATH":$pythonpath"
+      pythonpath=${DEFAULT_PYTHONPATH}
+    else
+      # Adds execution dir by default to pythonpath
+      pythonpath=$pythonpath":${DEFAULT_PYTHONPATH}"
     fi
+    # Adds all given Pythonpaths to the global variable
+    PYTHONPATH=$PYTHONPATH":$pythonpath"
     export PYTHONPATH
 
     if [ -z "$PyObject_serialize" ]; then
@@ -652,7 +658,7 @@ EOT
 add_jvm_opts_python() {
   /bin/cat >> ${jvm_options_file} << EOT
 -Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
--Dit.pythonpath=${pythonpath}
+-Dit.worker.pythonpath=${PYTHONPATH}
 EOT
 }
 

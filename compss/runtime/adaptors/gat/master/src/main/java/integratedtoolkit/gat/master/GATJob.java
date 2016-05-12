@@ -61,11 +61,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
-    // Worker classpath
-    private static final String workerClasspath
-            = (System.getProperty(ITConstants.IT_WORKER_CP) != null && System.getProperty(ITConstants.IT_WORKER_CP).compareTo("") != 0)
-            ? System.getProperty(ITConstants.IT_WORKER_CP)
-            : "\"\"";
 
     private static final String WORKER_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
@@ -254,9 +249,10 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             sd.addAttribute("slot", slot);
         }
 
-        // Language-dependent arguments: app_dir classpath debug method_class method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
+        // Language-dependent arguments: app_dir classpath pythonpath debug method_class method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
         lArgs.add(getResourceNode().getAppDir());
-        lArgs.add(workerClasspath);
+        lArgs.add(getClasspath());
+        lArgs.add(getPythonpath());
         lArgs.add(String.valueOf(debug));
         lArgs.add(method.getDeclaringClass());
         lArgs.add(methodName);
@@ -301,10 +297,10 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         try {
             sd.setArguments(arguments);
         } catch (NullPointerException e) {
-            StringBuilder sb = new StringBuilder("Argument null a parametre del job " + this.jobId + "(" + methodName + "@" + method.getDeclaringClass() + ")\n");
+            StringBuilder sb = new StringBuilder("Null argument parameter of job " + this.jobId + "(" + methodName + "@" + method.getDeclaringClass() + ")\n");
             int i = 0;
             for (Parameter param : taskParams.getParameters()) {
-                sb.append("Parametre ").append(i).append("\n");
+                sb.append("Parameter ").append(i).append("\n");
                 ParamType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
                 if (type == ParamType.FILE_T || type == ParamType.OBJECT_T) {
@@ -318,7 +314,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                             sb.append("\t Direction: " + "W").append("\n"); // for the worker to know it must write the object to disk
                         }
                     }
-
                 } else if (type == ParamType.STRING_T) {
                     BasicTypeParameter btParS = (BasicTypeParameter) param;
                     // Check spaces
@@ -332,6 +327,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 }
                 i++;
             }
+            logger.error(sb.toString());
             listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
         }
         sd.addAttribute("jobId", jobId);

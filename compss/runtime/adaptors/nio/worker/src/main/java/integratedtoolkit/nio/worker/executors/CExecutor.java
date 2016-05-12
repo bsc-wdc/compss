@@ -19,8 +19,6 @@ public class CExecutor extends ExternalExecutor {
     public ArrayList<String> getLaunchCommand(NIOTask nt) {
         ArrayList<String> lArgs = new ArrayList<String>();
         lArgs.add(nt.getAppDir() + "/worker/worker_c");
-        lArgs.add(nt.getAppDir());
-        lArgs.add(nt.getClassPath());
         return lArgs;
     }
 

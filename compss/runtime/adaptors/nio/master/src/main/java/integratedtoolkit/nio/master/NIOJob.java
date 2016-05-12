@@ -1,7 +1,5 @@
 package integratedtoolkit.nio.master;
 
-import integratedtoolkit.ITConstants;
-
 import java.util.LinkedList;
 
 import integratedtoolkit.api.ITExecution.ParamType;
@@ -17,19 +15,13 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
+import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.Resource;
 
-public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
 
-    private static final String workerClasspath = (System.getProperty(ITConstants.IT_WORKER_CP) != null
-            && !System.getProperty(ITConstants.IT_WORKER_CP).equals(""))
-            ? System.getProperty(ITConstants.IT_WORKER_CP) : "\"\"";
-            
-    private static final String workerPythonpath = (System.getProperty(ITConstants.IT_WORKER_PP) != null
-            && !System.getProperty(ITConstants.IT_WORKER_PP).equals(""))
-            ? System.getProperty(ITConstants.IT_WORKER_PP) : "\"\"";
-            
+public class NIOJob extends Job<NIOWorkerNode> {
+     
     public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
     }
@@ -70,36 +62,14 @@ public class NIOJob extends integratedtoolkit.types.job.Job<NIOWorkerNode> {
         if (taskParams.hasReturnValue()) {
             numParams--;
         }
-        
-        // Merge command classpath and worker defined classpath
-        String resourceClasspath = getResourceNode().getClasspath();
-        String finalClasspath = workerClasspath;
-        if (!resourceClasspath.equals("")) {
-        	if (!finalClasspath.equals("")) {
-        		finalClasspath += ":" + resourceClasspath;
-        	} else {
-        		finalClasspath = resourceClasspath;
-        	}
-        }
-        
-        // Merge pythonpath and worker defined pythonpath
-        String resourcePythonpath = getResourceNode().getPythonpath();
-        String finalPythonpath = workerPythonpath;
-        if (!resourcePythonpath.equals("")) {
-        	if (!finalPythonpath.equals("")) {
-        		finalPythonpath += ":" + resourcePythonpath;
-        	} else {
-        		finalPythonpath = resourcePythonpath;
-        	}
-        }
 
         // Create NIOTask
         NIOTask nt = new NIOTask(lang, 
         						getResourceNode().getInstallDir(), 
         						getResourceNode().getLibPath(), 
         						getResourceNode().getAppDir(), 
-        						finalClasspath,
-        						finalPythonpath,
+        						getClasspath(),
+        						getPythonpath(),
         						debug, 
         						className, 
         						methodName, 

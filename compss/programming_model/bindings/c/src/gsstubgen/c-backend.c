@@ -108,7 +108,7 @@ void generate_prolog()
 	fprintf(workerFile, "char *opName;\n");
 	fprintf(workerFile, "\n");
 	fprintf(workerFile, "int arg_offset;\n");
-	fprintf(workerFile, "arg_offset = 5;\n");
+	fprintf(workerFile, "arg_offset = 3;\n");
 	fprintf(workerFile, "\n");
 	fprintf(workerFile, "\n");
 	fprintf(workerFile, "opName = strdup(argv[arg_offset]);\n");

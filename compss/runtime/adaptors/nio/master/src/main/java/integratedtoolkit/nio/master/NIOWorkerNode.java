@@ -73,6 +73,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
     }
 
+    @Override
     public String getUser() {
         return config.getUser();
     }
@@ -101,10 +102,12 @@ public class NIOWorkerNode extends COMPSsWorker {
         return config.getLibraryPath();
     }
 
+    @Override
     public String getClasspath() {
     	return config.getClasspath();
     }
     
+    @Override
     public String getPythonpath() {
     	return config.getPythonpath();
     }

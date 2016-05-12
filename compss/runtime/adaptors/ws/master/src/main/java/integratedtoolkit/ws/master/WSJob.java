@@ -12,7 +12,7 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.COMPSsNode;
+import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.ServiceImplementation;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
@@ -33,7 +33,7 @@ import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.apache.log4j.Logger;
 
 
-public class WSJob<T extends COMPSsNode> extends Job<T> {
+public class WSJob<T extends COMPSsWorker> extends Job<T> {
 
     protected static final Logger logger = Logger.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();

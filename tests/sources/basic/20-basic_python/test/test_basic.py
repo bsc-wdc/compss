@@ -1,9 +1,9 @@
 import unittest
-from modules.testDecorator import testDecorator
-from modules.testFunction import testFunction
-from modules.testWaitOn import testWaitOn
-from modules.testParameter import testParameter
-from modules.testClass import testClass
+from test.modules.testDecorator import testDecorator
+from test.modules.testFunction import testFunction
+from test.modules.testWaitOn import testWaitOn
+from test.modules.testParameter import testParameter
+from test.modules.testClass import testClass
 
 
 def main():

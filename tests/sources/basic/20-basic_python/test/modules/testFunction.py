@@ -1,8 +1,8 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from modules.MyClass import MyClass
-from modules.auxFunctions import formula1
+from test.modules.MyClass import MyClass
+from test.modules.auxFunctions import formula1
 
 @task(returns=int)
 def function_without_params():

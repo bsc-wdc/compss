@@ -376,20 +376,22 @@ install() {
   cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/
  
   # TOOLS DEPLOYMENT
-  echo "- Deploying COMPSs Tools"
-  cd ${tmpDir}
-  TOMCAT_VER="7.0.65"
-  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
-  wget $TOMCAT_URL
-  tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
-  cd ${scriptDir}
-  mv ${tmpDir}/apache-tomcat-$TOMCAT_VER ${targetDir}/Tools/monitor/apache-tomcat/
-  rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
-  rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
-  cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
-  cp ${tmpDir}/compss/tools/monitor/target/classes/log4j.properties ${targetDir}/Tools/monitor/
+  if [ "$monitor" == "true" ]; then
+    echo "- Deploying COMPSs Tools"
+    cd ${tmpDir}
+    TOMCAT_VER="7.0.65"
+    TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+    wget $TOMCAT_URL
+    tar xzf apache-tomcat-$TOMCAT_VER.tar.gz
+    cd ${scriptDir}
+    mv ${tmpDir}/apache-tomcat-$TOMCAT_VER ${targetDir}/Tools/monitor/apache-tomcat/
+    rm -rf ${targetDir}/Tools/monitor/apache-tomcat/webapps/*
+    rm -f ${targetDir}/Tools/monitor/apache-tomcat/conf/server.xml
+    cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
+    cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
+    cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
+    cp ${tmpDir}/compss/tools/monitor/target/classes/log4j.properties ${targetDir}/Tools/monitor/
+  fi
 
   #BINDINGS DEPLOYMENT
   if [ "${bindings}" == "true" ]; then

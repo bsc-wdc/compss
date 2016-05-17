@@ -2,26 +2,25 @@ package integratedtoolkit.gat.master;
 
 import integratedtoolkit.api.ITExecution;
 import integratedtoolkit.gat.master.configuration.GATConfiguration;
-import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
+import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
+import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.util.SSHManager;
+import org.gridlab.gat.GATContext;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-
-import org.gridlab.gat.GATContext;
 
 public class GATWorkerNode extends COMPSsWorker {
 
@@ -128,10 +127,14 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
+
         try {
-            delete(new File(this.config.getWorkingDir()));
+            File workingDirRoot = new File(this.config.getWorkingDir());
+            for (File c : workingDirRoot.listFiles()){
+                delete(c);
+            }
         } catch (FileNotFoundException e) {
-            logger.warn("Could not remove Node working dir\n" + e);
+            logger.warn("Could not remove clean node working dir\n" + e);
         }
         sl.notifyEnd();
     }

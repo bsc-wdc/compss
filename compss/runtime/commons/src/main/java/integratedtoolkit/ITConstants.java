@@ -1,5 +1,7 @@
 package integratedtoolkit;
 
+import java.util.UUID;
+
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 
 
@@ -87,6 +89,17 @@ public class ITConstants {
         PYTHON
     }
 
+    //According to runcompss script default value
+    //private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
+    public static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
+    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
+    public static final String DEFAULT_TRACING = "0";
+    public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
+    public static final String DEFAULT_RES_SCHEMA = System.getenv("IT_HOME") + "/xml/resources/resource_schema.xsd";
+    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv("IT_HOME") + "/xml/projects/project_schema.xsd";
+    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
+    public static final long DEFAULT_MONITOR_INTERVAL = 0;
+    
     private ITConstants() {
         throw new NonInstantiableException("ITConstants");
     }

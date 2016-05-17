@@ -23,6 +23,9 @@ public abstract class Copy extends DataOperation {
         this.tgtData = tgtData;
         this.tgtLoc = prefTgt;
         this.reason = reason;
+        if (debug){
+        	logger.debug("Created copy "+ this.getName() + " (id: "+this.getId()+")");
+        }
     }
 
     public LogicalData getSourceData() {
@@ -50,7 +53,10 @@ public abstract class Copy extends DataOperation {
     }
 
     public void setFinalTarget(String targetAbsolutePath) {
-        reason.setDataTarget(targetAbsolutePath);
+    	if (debug){
+    		logger.debug(" Setting copy final target to : "+ targetAbsolutePath );
+    	}
+    	reason.setDataTarget(targetAbsolutePath);
     }
 
     public String getFinalTarget() {

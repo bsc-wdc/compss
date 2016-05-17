@@ -260,11 +260,13 @@ public class CEIParser {
                     for (int i = 2; i < splits.length; i++) {
                         String paramDirection = splits[i++];
                         String paramType = splits[i++];
-                        String type = "OBJECT_T";
+                        String type = "FILE_T";
+                        /* OLD version C-binding 
+						String type = "OBJECT_T";*/	
                         if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
                             type = "FILE_T";
                         } else if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
-                            type = "FILE_T";
+                            type = "FILE_T";       	
                         } else if (paramType.toUpperCase().compareTo("FILE") == 0) {
                             type = "FILE_T";
                         } else if (paramType.compareTo("boolean") == 0) {

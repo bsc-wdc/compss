@@ -170,10 +170,10 @@ public abstract class Resource implements Comparable<Resource> {
     public String getCompleteRemotePath(ParamType type, String name) {
         return node.getCompletePath(type, name);
     }
-
-    public void stop(boolean saveUniqueData, ShutdownListener sl) {
-        if (debug) {
-            logger.debug("Stopping resource " + this.getName());
+    
+    public void retrieveData(boolean saveUniqueData){
+    	if (debug) {
+            logger.debug("retriving data resource " + this.getName());
         }
         Semaphore sem = new Semaphore(0);
         SafeCopyListener listener = new SafeCopyListener(sem);
@@ -218,6 +218,9 @@ public abstract class Resource implements Comparable<Resource> {
                 logger.debug("Workers Debug files obtained for " + this.getName());
             }
         }
+    }
+    
+    public void stop(ShutdownListener sl) {
 
         this.deleteIntermediate();
 

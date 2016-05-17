@@ -70,10 +70,11 @@ public class DeletionThread extends Thread {
         if (vm != null) {
             CloudMethodWorker worker = vm.getWorker();
             if (worker.shouldBeStopped()) {
+            	worker.retrieveData(true);
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
                 runtimeLogger.info("Stopping worker " + worker.getName() + "...");
-                worker.stop(true, sl);
+                worker.stop(sl);
 
                 sl.enable();
                 try {

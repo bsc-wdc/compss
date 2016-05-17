@@ -40,11 +40,6 @@ import integratedtoolkit.util.Tracer;
 
 public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, LoaderAPI {
 
-    //According to runcompss script default value
-    private static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
-    private static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
-    private static final String DEFAULT_TRACING = "0";
-
     // Exception constants definition
     protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
     protected static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
@@ -174,7 +169,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
                     if (manager.getCommAdaptor() != null) {
                         System.setProperty(ITConstants.COMM_ADAPTOR, manager.getCommAdaptor());
                     } else {
-                        System.setProperty(ITConstants.COMM_ADAPTOR, DEFAULT_ADAPTOR);
+                        System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
                     }
                 }
                 if (System.getProperty(ITConstants.GAT_DEBUG) == null) {
@@ -209,25 +204,25 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     private static void setDefaultProperties() {
         System.err.println(WARN_FILE_EMPTY_DEFAULT);
         if (System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null || System.getProperty(ITConstants.IT_DEPLOYMENT_ID).equals("")) {
-            System.setProperty(ITConstants.IT_DEPLOYMENT_ID, UUID.randomUUID().toString());
+            System.setProperty(ITConstants.IT_DEPLOYMENT_ID, ITConstants.DEFAULT_DEPLOYMENT_ID);
         }
         if (System.getProperty(ITConstants.IT_RES_SCHEMA) == null || System.getProperty(ITConstants.IT_RES_SCHEMA).equals("")) {
-            System.setProperty(ITConstants.IT_RES_SCHEMA, System.getenv("IT_HOME") + "/xml/resources/resources_schema.xsd");
+            System.setProperty(ITConstants.IT_RES_SCHEMA, ITConstants.DEFAULT_RES_SCHEMA);
         }
         if (System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null || System.getProperty(ITConstants.IT_PROJ_SCHEMA).equals("")) {
-            System.setProperty(ITConstants.IT_PROJ_SCHEMA, System.getenv("IT_HOME") + "/xml/projects/project_schema.xsd");
+            System.setProperty(ITConstants.IT_PROJ_SCHEMA, ITConstants.DEFAULT_PROJECT_SCHEMA);
         }
         if (System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(ITConstants.GAT_ADAPTOR_PATH).equals("")) {
-            System.setProperty(ITConstants.GAT_ADAPTOR_PATH, System.getenv("GAT_LOCATION") + "/lib/adaptors");
+            System.setProperty(ITConstants.GAT_ADAPTOR_PATH, ITConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         }
         if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
-            System.setProperty(ITConstants.COMM_ADAPTOR, DEFAULT_ADAPTOR);
+            System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
         }
         if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
-            System.setProperty(ITConstants.IT_SCHEDULER, DEFAULT_SCHEDULER);
+            System.setProperty(ITConstants.IT_SCHEDULER, ITConstants.DEFAULT_SCHEDULER);
         }
         if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
-            System.setProperty(ITConstants.IT_TRACING, DEFAULT_TRACING);
+            System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
         }
     }
 

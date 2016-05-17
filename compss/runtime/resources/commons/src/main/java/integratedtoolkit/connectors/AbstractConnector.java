@@ -138,12 +138,12 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
         for (VM vm : IPToVM.values()) {
 
+        	logger.info("Retrieving data from VM " + vm.getName());
+            vm.getWorker().retrieveData(false);
             logger.info("Destroying VM " + vm.getName());
-
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
-            vm.getWorker().stop(false, sl);
-
+            vm.getWorker().stop(sl);
             sl.enable();
             try {
                 sem.acquire();

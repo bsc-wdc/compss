@@ -13,7 +13,7 @@ public class SharedLocation extends DataLocation {
     private final String path;
 
     SharedLocation(String sharedDisk, String path) {
-        this.diskName = sharedDisk;
+    	this.diskName = sharedDisk;
         this.path = path;
     }
 

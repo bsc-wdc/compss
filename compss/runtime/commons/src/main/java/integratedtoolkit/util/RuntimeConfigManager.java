@@ -1,9 +1,11 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
+
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 
@@ -30,7 +32,7 @@ public class RuntimeConfigManager {
     }
     
     public String getDeploymentId(){
-        return config.getString(ITConstants.IT_DEPLOYMENT_ID);
+        return config.getString(ITConstants.IT_DEPLOYMENT_ID, ITConstants.DEFAULT_DEPLOYMENT_ID);
     }
         
     public void setDeploymentId(String uuid) {
@@ -162,7 +164,7 @@ public class RuntimeConfigManager {
     }
 
     public long getMonitorInterval() {
-        return config.getLong(ITConstants.IT_MONITOR);
+        return config.getLong(ITConstants.IT_MONITOR, ITConstants.DEFAULT_MONITOR_INTERVAL);
     }
 
     public String getLang() {
@@ -219,6 +221,14 @@ public class RuntimeConfigManager {
 
     public boolean isToFile() {
         return config.getBoolean(ITConstants.IT_TO_FILE, false);
+    }
+    
+    public String getProperty(String propertyName){
+    	Object prop = config.getProperty(propertyName);
+    	if (prop != null){
+    		return prop.toString();
+    	}else
+    		return null;
     }
 
 }

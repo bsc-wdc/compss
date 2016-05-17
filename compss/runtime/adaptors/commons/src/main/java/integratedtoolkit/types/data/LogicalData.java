@@ -434,7 +434,9 @@ public class LogicalData {
 	private synchronized void addLocation_private(DataLocation loc) {
 		isBeingSaved = false;
 		locations.add(loc);
-		
+		if (logger.isDebugEnabled()){
+			logger.debug("Adding location for data "+ this.getName() + " (location: "+ loc.getLocationKey()+")");
+		}	
 		switch (loc.getType()) {
 			case PRIVATE:
 				for (Resource host : loc.getHosts()) {

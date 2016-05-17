@@ -210,9 +210,9 @@ public class CreationThread extends Thread {
         try {
             worker.announceCreation();
         } catch (Exception e) {
-            Semaphore sem = new Semaphore(0);
+        	Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
-            worker.stop(false, sl);
+            worker.stop(sl);
             runtimeLogger.error("Error announcing the machine " + granted.getName() + ". Shutting down", e);
             sl.enable();
             try {
@@ -233,10 +233,9 @@ public class CreationThread extends Thread {
             } catch (Exception e) {
                 resourceLogger.error("ERROR_MSG = [\n\tError announcing VM destruction\n\tVM_NAME = " + granted.getName() + "\n]", e);
             }
-
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
-            worker.stop(false, sl);
+            worker.stop(sl);
 
             sl.enable();
             try {

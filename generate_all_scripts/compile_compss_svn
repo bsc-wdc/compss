@@ -13,7 +13,7 @@
   echo "*** Compile COMPSs SVN ***"
   echo "**************************"
   echo -e "\e[0m"
-  cd ${script_dir}/../compss/
+  cd ${script_dir}/../
   mvn -U clean install
   if [ $? -ne 0 ]; then
     exit 1

@@ -94,7 +94,7 @@ public class NIOTracer extends Tracer {
             Wrapper.Fini();
         }
         // Generate package
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_PATH + File.separator + TRACE_SCRIPT, "package", workingDir, nodeName);
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName);
         pb.environment().remove("LD_PRELOAD");
         Process p = null;
         try {

@@ -30,8 +30,7 @@ public abstract class Tracer {
     private static final String dataTransfersDesc = "Data Transfers";
     private static final String storageDesc = "Storage API";
 
-    protected static final String TRACE_PATH = File.separator + "scripts" + File.separator + "system";
-    protected static final String TRACE_SCRIPT = "trace.sh";
+    protected static final String TRACE_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system" + File.separator + "trace.sh";
     protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
     protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
 
@@ -389,10 +388,11 @@ public abstract class Tracer {
         if (debug) {
             logger.debug("Tracing: generating master package");
         }
-        String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "package", ".", "master");
+
+        String script = System.getenv(ITConstants.IT_HOME) + TRACE_SCRIPT_PATH;
+        ProcessBuilder pb = new ProcessBuilder(script, "package", ".", "master");
         pb.environment().remove("LD_PRELOAD");
-        Process p = null;
+        Process p;
         try {
             p = pb.start();
         } catch (IOException e) {
@@ -446,9 +446,9 @@ public abstract class Tracer {
         if (debug) {
             logger.debug("Tracing: Generating trace");
         }
-        String scriptDir = System.getProperty(ITConstants.IT_SCRIPT_DIR);
+        String script = System.getenv(ITConstants.IT_HOME) + TRACE_SCRIPT_PATH;
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + File.separator + TRACE_SCRIPT, "gentrace",
+        ProcessBuilder pb = new ProcessBuilder(script, "gentrace",
                 System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size() + 1));
         Process p = null;
         pb.environment().remove("LD_PRELOAD");

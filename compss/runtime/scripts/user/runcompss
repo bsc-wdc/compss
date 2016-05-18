@@ -618,7 +618,6 @@ ${jvm_debugger_opts}
 
 -Dit.task.execution=$taskExecution
 -Dit.storage.conf=$storageConf
--Dit.script.dir=${IT_HOME}/scripts/system
 -Dit.core.count=${task_count}
 
 -Dit.appName=${appName}

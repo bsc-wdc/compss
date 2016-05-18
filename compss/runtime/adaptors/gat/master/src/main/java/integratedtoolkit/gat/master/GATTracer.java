@@ -43,7 +43,7 @@ public class GATTracer extends Tracer {
         SoftwareDescription sd = new SoftwareDescription();
         String uriString = "any://" + user + worker.getHost();
         sd.addAttribute("uri", uriString);
-        sd.setExecutable(worker.getInstallDir() + File.separator + "scripts" + File.separator + "system" + File.separator + Tracer.TRACE_SCRIPT);
+        sd.setExecutable(worker.getInstallDir() + Tracer.TRACE_SCRIPT_PATH);
         sd.setArguments(new String[]{"init", worker.getWorkingDir(), String.valueOf(hostId), String.valueOf(numTasks)});
 
         if (debug) {
@@ -126,7 +126,7 @@ public class GATTracer extends Tracer {
         }
 
         try {
-            traceScripts.add( new URI("any://" + user + host + File.separator + installDir + File.separator + TRACE_PATH + File.separator + TRACE_SCRIPT) );
+            traceScripts.add( new URI("any://" + user + host + File.separator + installDir + TRACE_SCRIPT_PATH) );
         } catch (URISyntaxException e) {
             logger.error("Error deleting tracing host", e);
         }

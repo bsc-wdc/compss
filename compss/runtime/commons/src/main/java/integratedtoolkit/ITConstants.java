@@ -7,6 +7,9 @@ import integratedtoolkit.types.exceptions.NonInstantiableException;
 
 public class ITConstants {
 
+    // Environment Properties
+    public static final String IT_HOME = "IT_HOME";
+
     // Component names
     public static final String IT = "integratedtoolkit.IntegratedToolkit";
     public static final String TA = "Task Analyser";
@@ -39,7 +42,6 @@ public class ITConstants {
     public static final String IT_WORKER_PP			= "it.worker.pythonpath";
     public static final String IT_WORKER_JVM_OPTS   = "it.worker.jvm_opts"; 
     public static final String IT_CORE_COUNT 		= "it.core.count";
-    public static final String IT_SCRIPT_DIR 		= "it.script.dir";
 
     public static final String COMM_ADAPTOR 		= "it.comm";
     
@@ -95,8 +97,8 @@ public class ITConstants {
     public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
     public static final String DEFAULT_TRACING = "0";
     public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
-    public static final String DEFAULT_RES_SCHEMA = System.getenv("IT_HOME") + "/xml/resources/resource_schema.xsd";
-    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv("IT_HOME") + "/xml/projects/project_schema.xsd";
+    public static final String DEFAULT_RES_SCHEMA = System.getenv(IT_HOME) + "/xml/resources/resource_schema.xsd";
+    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(IT_HOME) + "/xml/projects/project_schema.xsd";
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
     public static final long DEFAULT_MONITOR_INTERVAL = 0;
     

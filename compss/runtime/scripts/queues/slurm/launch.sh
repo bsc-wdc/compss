@@ -166,7 +166,6 @@ then
         -Dit.monitor=$MONITORING \
         -Dit.tracing=$TRACING \
         -Dit.worker.cp=$CP \
-	-Dit.script.dir=$IT_HOME/scripts/system \
 	-Dit.log.root=${PWD}/${SLURM_JOB_ID}"
 
         time $JAVACMD integratedtoolkit.loader.ITAppLoader total $APP_NAME $*
@@ -211,7 +210,6 @@ then
 -Dit.tracing=$TRACING
 -Dit.core.count=$TASK_COUNT
 -Dit.worker.cp=$CP
--Dit.script.dir=$IT_HOME/scripts/system
 -Dit.log.root=${PWD}/${SLURM_JOB_ID}
 EOT
 

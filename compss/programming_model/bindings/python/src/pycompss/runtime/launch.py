@@ -132,7 +132,6 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         jvm_options_file.write('-Dit.tracing=true\n')
     else:
         jvm_options_file.write('-Dit.tracing=false\n')
-    jvm_options_file.write('-Dit.script.dir=' + it_home + '/scripts/system\n')
     jvm_options_file.write('-Dit.core.count=50\n')
     jvm_options_file.write('-Dit.worker.cp=' + pythonpath + ':' + e_classpath + ':' + cp + ':' + classpath + '\n')
     if comm == 'GAT':
@@ -213,7 +212,6 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     jvm_options_file.write('-Dit.graph=false\n')
 #     jvm_options_file.write('-Dit.monitor=60000\n')
 #     jvm_options_file.write('-Dit.tracing=false\n')
-#     jvm_options_file.write('-Dit.script.dir=' + it_home + '/scripts/system\n')
 #     jvm_options_file.write('-Dit.core.count=50\n')
 #     jvm_options_file.write('-Dit.worker.cp=' + pythonpath + ':' + classpath + ':' + cp +'\n')
 #     jvm_options_file.write('-Dit.comm=integratedtoolkit.gat.master.GATAdaptor\n') # integratedtoolkit.nio.master.NIOAdaptor
@@ -287,7 +285,6 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     jvm_options_file.write('-Dit.graph=false\n')
 #     jvm_options_file.write('-Dit.monitor=60000\n')
 #     jvm_options_file.write('-Dit.tracing=false\n')
-#     jvm_options_file.write('-Dit.script.dir=' + it_home + '/scripts/system\n')
 #     jvm_options_file.write('-Dit.core.count=50\n')
 #     jvm_options_file.write('-Dit.worker.cp=' + pythonpath + ':' + classpath + ':' + cp +'\n')
 #     jvm_options_file.write('-Dit.comm=integratedtoolkit.gat.master.GATAdaptor\n') # integratedtoolkit.nio.master.NIOAdaptor
@@ -368,7 +365,6 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     jvm_options_file.write('-Dit.graph=false\n')
     jvm_options_file.write('-Dit.monitor=60000\n')
     jvm_options_file.write('-Dit.tracing=false\n')
-    jvm_options_file.write('-Dit.script.dir=' + it_home + '/scripts/system\n')
     jvm_options_file.write('-Dit.core.count=50\n')
     jvm_options_file.write('-Dit.project.file=' + it_home + '/../infrastructure/project.xml\n')
     jvm_options_file.write('-Dit.resources.file=' + it_home + '/../infrastructure/resources.xml\n')

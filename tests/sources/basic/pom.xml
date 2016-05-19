@@ -54,6 +54,7 @@
 		<!-- Module 21 is 21-advance_python -->
 		<!-- Module 22 is 22-kmeans_python -->
 		<module>23-concurrent</module>
+		<module>24-noTask</module>
 	        <!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

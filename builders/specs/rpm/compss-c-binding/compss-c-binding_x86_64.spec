@@ -2,8 +2,8 @@
 %define version 	1.4.rc05
 %define release		1
 
-Requires: compss-bindings-common, libxml2, libtool, automake, make, boost-devel, tcsh, gcc-c++
-Summary: The BSC COMP Superscalar C Binding
+Requires: compss-bindings-common, libxml2-devel, libtool, automake, make, boost-devel, tcsh, gcc-c++
+Summary: The BSC COMP Superscalar C-Binding
 Name: %{name}
 Version: %{version}
 Release: %{release}
@@ -15,10 +15,10 @@ Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
 URL: http://compss.bsc.es
 Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Prefix: /opt
-BuildArch: x86_64
+BuildArch: noarch
 
 %description
-The BSC COMP Superscalar C Binding.
+The BSC COMP Superscalar C-Binding.
 
 %prep
 %setup -q
@@ -28,37 +28,6 @@ The BSC COMP Superscalar C Binding.
 echo "* Building COMP Superscalar C-Binding..."
 echo " "
 
-echo "   - Create deployment folders"
-mkdir -p COMPSs/Bindings/c
-targetFullPath=$(pwd)/COMPSs/Bindings/c
-
-echo "   - Configure, compile and install"
-cd bindings-common/
-./install_common
-# Compile non-location dependant c-binding
-cd ../c/
-./install ${targetFullPath}
-cd ..
-
-# Copy location dependant c-binding
-cp c/install COMPSs/Bindings/c
-mkdir -p COMPSs/Bindings/c/src/
-cp -r c/src/gsbuilder COMPSs/Bindings/c/src
-
-# Copy user scripts
-cp c/buildapp COMPSs/Bindings/
-
-# Doc
-echo "   - Copy deployment files"
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
-
-echo "   - Erase sources"
-ls . | grep -v COMPSs | xargs rm -r
-
 echo "COMP Superscalar C-Binding built"
 echo " "
 
@@ -66,21 +35,37 @@ echo " "
 %install
 echo "* Installing COMPSs C-Binding..."
 
+# Find JAVA_HOME
+openjdk=$(rpm -qa | grep jdk-1.7.0)
+libjvm=$(rpm -ql $openjdk | grep libjvm.so | head -n 1)
+export JAVA_LIB_DIR=$(dirname $libjvm)
+if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then
+  export JAVA_HOME="${libjvm/\/jre\/lib\/amd64\/server\/libjvm.so/}"
+elif test "${libjvm#*/jre/lib/i386/client/libjvm.so}" != "$libjvm"; then
+  export JAVA_HOME="${libjvm/\/jre\/lib\/i386\/client\/libjvm.so/}"
+elif [ -z $JAVA_HOME ]; then
+  echo "Please define \$JAVA_HOME"
+  exit 1
+fi
+echo "Using JAVA_HOME=$JAVA_HOME"
+
+# Install
 echo " - Creating COMPSs C-Binding structure..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
-cp -r COMPSs/Bindings/c $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
-cd COMPSs/Bindings/c/
-./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c/ false
-cd -
-echo " - COMPSs C-Binding structure created"
-echo " "
+
+echo "   - Configure, compile and install"
+cd bindings-common/
+./install_common
+cd ../c/
+./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c true
+cd ..
 
 echo "   - Add binaries to path"
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user
-cp COMPSs/Bindings/c/bin/* $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
-cp COMPSs/Bindings/buildapp $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user/
-echo " - COMPSs Runtime C-Binding binaries added"
+cp c/bin/* $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
+cp c/buildapp $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user/
+echo "   - Binaries added"
 echo " "
 
 echo " - Setting COMPSs C-Binding permissions..."

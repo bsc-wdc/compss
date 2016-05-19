@@ -11,7 +11,7 @@ from pycompss.api.parameter import *
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 
-from tempfile import mkdtemp
+#from tempfile import mkdtemp
 from shutil import rmtree
 
 import types
@@ -52,7 +52,8 @@ python_to_compss = {types.IntType: Type.INT,          # int
                     types.DictType: Type.OBJECT
                     }
 
-temp_dir = mkdtemp(prefix='pycompss', dir=os.getcwd())
+#temp_dir = mkdtemp(prefix='pycompss', dir=os.getcwd())
+temp_dir = ''
 temp_obj_prefix = "/compss-serialized-obj_"
 
 objid_to_filename = {}

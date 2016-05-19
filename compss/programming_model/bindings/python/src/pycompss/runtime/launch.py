@@ -10,6 +10,7 @@ PyCOMPSs Binding - Launch
 import os
 import sys
 import logging
+from tempfile import mkdtemp
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_logPath
 from pycompss.util.logs import init_logging
@@ -47,6 +48,7 @@ if __name__ == "__main__":
     app_path = sys.argv[0]
 
     logPath = get_logPath()
+    binding.temp_dir = mkdtemp(prefix='pycompss', dir=logPath + '/tmpFiles/')
 
     # 1.3 logging
     if log_level == "debug":

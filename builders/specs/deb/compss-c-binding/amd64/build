@@ -3,15 +3,5 @@
   trunk_rel_path=../../../../
   COMPSs_target=$(pwd)/tmp/opt/COMPSs
 
-  # Find JAVA_HOME 
-  if [ -z "$JAVA_HOME" ]; then
-    echo "Please define \$JAVA_HOME"
-    exit 1
-  fi
-
-  mkdir -p ${COMPSs_target}/Bindings/c
-  cd ${trunk_rel_path}/compss/programming_model/bindings/c
-  ./install ${COMPSs_target}/Bindings/c true
-  cd -
-  cp ${trunk_rel_path}/compss/programming_model/bindings/c/buildapp ${COMPSs_target}/Bindings/c/
+  cp -r ${trunk_rel_path}/compss/programming_model/bindings/c ${COMPSs_target}/Bindings/
 

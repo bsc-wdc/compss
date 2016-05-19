@@ -15,7 +15,7 @@ Vendor: Barcelona Supercomputing Center - Centro Nacional de Supercomputacion
 URL: http://compss.bsc.es
 Packager: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Prefix: /opt
-BuildArch: noarch
+BuildArch: x86_64
 
 %description
 The BSC COMP Superscalar C-Binding.

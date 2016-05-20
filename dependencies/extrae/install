@@ -2,6 +2,12 @@
 
   # Retrieve script variables
   targetDir=$1
+  if [ "$#" -gt 1 ]; then
+    tryEnableMPIMerge=$2
+  else
+    tryEnableMPIMerge=false
+  fi
+
   scriptDir=$(pwd)/$(dirname $0)
 
   # Setup Extrae for PAPI (or not) 
@@ -19,7 +25,7 @@
 
   # Setup MPI for parallel merge (or not)
   mpiPath=$(which mpirun 2> /dev/null)
-  if [ -z ${mpiPath} ]; then
+  if ! $tryEnableMPIMerge || [ -z ${mpiPath} ]; then
     # No MPI available
     mpiArg="--without-mpi"
   else

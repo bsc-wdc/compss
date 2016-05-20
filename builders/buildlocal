@@ -311,7 +311,7 @@ install() {
   cp -r ${tmpDir}/files/storage ${targetDir}/Dependencies/
   if [ "$tracing" == "true" ]; then
     cd ${tmpDir}/dependencies/extrae
-    ./install ${targetDir}/Dependencies/extrae
+    ./install ${targetDir}/Dependencies/extrae false
     if [ $? -ne 0 ]; then
       echo "ERROR: Failed to install extrae dependency"
       exit 1

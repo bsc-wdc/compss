@@ -100,7 +100,7 @@
   # Install extrae
   echo "- Install extrae"
   cd ${scriptDir}/Dependencies/extrae
-  ./install ${targetDir}/Dependencies/extrae
+  ./install ${targetDir}/Dependencies/extrae true
   cd -
   echo "   Success"
 

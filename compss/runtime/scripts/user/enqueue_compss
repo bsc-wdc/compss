@@ -20,7 +20,7 @@ DEFAULT_RESERVATION=disabled
 DEFAULT_NODE_MEMORY=disabled
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_JVM_MASTER=""
-DEFAULT_JVM_WORKER="-Xms24800m,-Xmx24800m,-Xmn1600m"
+DEFAULT_JVM_WORKERS="-Xms24800m,-Xmx24800m,-Xmn1600m"
 
 # Next default values need to be consistent with runcompss
 DEFAULT_LIBRARY_PATH=.
@@ -366,7 +366,7 @@ check_args() {
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
 
-  if [ -z "${jvm_master_opts}" ]; then
+  if [ -z "${jvm_workers_opts}" ]; then
     jvm_workers_opts=${DEFAULT_JVM_WORKERS}
   fi
  

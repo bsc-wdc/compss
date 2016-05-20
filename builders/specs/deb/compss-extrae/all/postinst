@@ -23,7 +23,7 @@
     # Configure
     echo "   - Configure, compile and install"
     cd /opt/COMPSs/Dependencies/extrae_install
-    ./install /opt/COMPSs/Dependencies/extrae
+    ./install /opt/COMPSs/Dependencies/extrae false
     cd /opt/COMPSs/Dependencies/extrae 
     rm -rf /opt/COMPSs/Dependencies/extrae_install
     echo " - COMPSs Extrae structure created"

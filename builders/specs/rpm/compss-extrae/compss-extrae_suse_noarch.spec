@@ -3,7 +3,7 @@
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-fortran
-Suggests: papi, papi-devel, openmpi
+Suggests: papi, papi-devel
 Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}
@@ -56,7 +56,7 @@ mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
 
 echo "   - Configure, compile and install"
 cd extrae
-./install $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
+./install $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae false
 cd ..
 
 echo " - COMPSs Extrae structure created"

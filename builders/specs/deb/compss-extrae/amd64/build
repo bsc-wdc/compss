@@ -9,6 +9,6 @@
   fi
 
   cd ${trunk_rel_path}/dependencies/extrae
-  ./install ${COMPSs_target}/Dependencies/extrae
+  ./install ${COMPSs_target}/Dependencies/extrae false
   cd -
 

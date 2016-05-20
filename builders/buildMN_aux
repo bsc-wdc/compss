@@ -76,7 +76,7 @@
   cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
   cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/
   cd ${tmpDir}/dependencies/extrae
-  ./install ${targetDir}/Dependencies/extrae
+  ./install ${targetDir}/Dependencies/extrae true
   if [ $? -ne 0 ]; then
     echo "ERROR: Failed to install extrae dependency"
     exit 1

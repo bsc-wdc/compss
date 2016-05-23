@@ -58,8 +58,6 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static final int MAX_SEND_WORKER = 5;
     public static final int MAX_RECEIVE_WORKER = 5;
 
-    private static final int MAX_RETRIES = 5;
-
     /*
      *  The master port can be:
      *  1. Given by the IT_MASTER_PORT property

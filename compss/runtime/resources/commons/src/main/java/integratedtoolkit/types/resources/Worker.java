@@ -8,6 +8,7 @@ import integratedtoolkit.util.CoreManager;
 
 import java.util.LinkedList;
 
+
 public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     protected final T description;
@@ -298,16 +299,21 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public T runTask(T consumption) {
-        T reserved = reserveResource(consumption);
-
-        if (reserved != null) {
-            // Consumption can be hosted
-            this.increaseUsedTaskCount();
-        } else {
-            // Consumption cannot be hosted
-        }
-
-        return reserved;
+    	if (this.usedTaskCount < this.maxTaskCount) {
+    		// There are free task-slots
+    		T reserved = reserveResource(consumption); 
+    		if (reserved != null) {
+                // Consumption can be hosted
+                this.increaseUsedTaskCount();
+                return reserved;
+            } else {
+                // Consumption cannot be hosted
+            	return null;
+            }
+    	}
+    	
+    	// Consumption cannot be hosted
+    	return null;
     }
 
     public abstract String getMonitoringData(String prefix);

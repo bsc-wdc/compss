@@ -32,7 +32,6 @@ public class WorkerStarter {
     								+ File.separator + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
     
-    private static final int NUM_THREADS = 16;
     private static final long MAX_WAIT_FOR_INIT = 20000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
     
@@ -130,13 +129,10 @@ public class WorkerStarter {
     // Ender function called from the JVM Ender Hook
     public static void ender(NIOWorkerNode node, int pid) {
         String user = node.getUser();
-        String wD = node.getWorkingDir();
         
         // Execute stop command
         String[] command = getStopCommand(pid);
         executeCommand(user, node.getName(), command);
-        
-
     }
 
     // Arguments needed for persistent_worker.sh
@@ -179,7 +175,16 @@ public class WorkerStarter {
         cmd[nextPosition++] = workerDebug;
         
         // Internal parameters
-        cmd[nextPosition++] = (node.getLimitOfTasks() >= 0) ? String.valueOf(node.getLimitOfTasks()) : String.valueOf(NUM_THREADS);
+        int workerThreadSlots;
+        int limitOfTasks = node.getLimitOfTasks();
+        int cus = node.getTotalComputingUnits();
+        if (limitOfTasks < 0) {
+        	workerThreadSlots = cus;
+        } else {
+        	workerThreadSlots = Math.min(limitOfTasks, cus);
+        }
+        cmd[nextPosition++] = String.valueOf(workerThreadSlots);
+        
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_SEND_WORKER);
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_RECEIVE_WORKER);
         cmd[nextPosition++] = node.getName();
@@ -194,7 +199,8 @@ public class WorkerStarter {
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(tracing_level);
         if (tracing) {
-            Integer hostId = NIOTracer.registerHost(node.getName(), NUM_THREADS);
+        	// NumSlots per host is ignored --> -1
+            Integer hostId = NIOTracer.registerHost(node.getName(), -1);
             cmd[nextPosition++] = String.valueOf(hostId.toString());
         } else {
         	cmd[nextPosition++] ="NoTracinghostID";

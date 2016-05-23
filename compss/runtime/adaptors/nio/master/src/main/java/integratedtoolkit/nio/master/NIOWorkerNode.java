@@ -115,6 +115,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     public int getLimitOfTasks() {
         return config.getLimitOfTasks();
     }
+    
+    public int getTotalComputingUnits() {
+    	return config.getTotalComputingUnits();
+    }
 
     public NIOConfiguration getConfiguration() {
         return this.config;

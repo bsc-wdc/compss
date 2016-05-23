@@ -4,7 +4,6 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.util.Tracer;
 import integratedtoolkit.util.StreamGobbler;
 import es.bsc.cepbatools.extrae.Wrapper;
-import java.io.File;
 import java.io.IOException;
 import static java.lang.Math.abs;
 

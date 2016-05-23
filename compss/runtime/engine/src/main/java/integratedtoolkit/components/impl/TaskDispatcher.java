@@ -56,27 +56,30 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
+        // Load scheduler jars
         loadSchedulerJars();
 
+        // Parse interface
         CEIParser.parse();
 
+        // Load resources
         ResourceManager.load(this);
 
+        // Initialize structures
         scheduler = constructScheduler();
-
         keepGoing = true;
-
+        
         if (Tracer.basicModeEnabled()) {
             Tracer.enablePThreads();
         }
         dispatcher.start();
-
-        AllocatableAction.orchestrator = this;
-
         if (Tracer.basicModeEnabled()) {
             Tracer.disablePThreads();
         }
+        
+        AllocatableAction.orchestrator = this;
 
+        // Insert workers
         for (Worker w : ResourceManager.getAllWorkers()) {
             scheduler.updatedWorker(w);
         }

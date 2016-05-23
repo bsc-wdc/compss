@@ -50,13 +50,13 @@ public class RuntimeConfigManager {
     public String getAppName() {
         return config.getString(ITConstants.IT_APP_NAME);
     }
-
-    public void setCOMPSsBaseLogDir(String dir) {
-        config.setProperty(ITConstants.IT_BASE_LOG_DIR, dir);
-    }
     
     public String getCOMPSsBaseLogDir() {
         return config.getString(ITConstants.IT_BASE_LOG_DIR);
+    }
+    
+    public String getSpecificLogDir() {
+    	return config.getString(ITConstants.IT_SPECIFIC_LOG_DIR);
     }
 
     public void setAppName(String name) {

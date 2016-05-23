@@ -95,6 +95,9 @@ show_opts() {
                                             Default: Working Directory
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
+    --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (the folder MUST exist and no sandbox is created)
+					    Warning: Overwrites --base_log_dir option
+                                            Default: Disabled
     --uuid=<int>                            Preset an application UUID
                                             Default: Automatic random generation
     --master_port=<int>                     Port to run the COMPSs master communications.
@@ -353,6 +356,10 @@ get_args() {
           base_log_dir=*)
             # Set a custom base log dir
             base_log_dir=$(echo $OPTARG | sed -e 's/base_log_dir=//g')
+            ;;
+          specific_log_dir=*)
+            # Set a custom specific log dir
+            specific_log_dir=$(echo $OPTARG | sed -e 's/specific_log_dir=//g')
             ;;
 	  uuid=*)
             # Preset an Application UUID
@@ -623,6 +630,7 @@ ${jvm_debugger_opts}
 -Dit.appName=${appName}
 -Dit.uuid=${uuid}
 -Dit.baseLogDir=${base_log_dir}
+-Dit.specificLogDir=${specific_log_dir}
 -Dit.appLogDir=/tmp/${uuid}/
 
 -Dit.graph=${graph}

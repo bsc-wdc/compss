@@ -6,21 +6,22 @@
   tasks_per_node=$3
   tasks_in_master=$4
   worker_WD_type=$5
-  jvm_master_opts=$6
-  jvm_workers_opts=$7
-  network=$8
-  master_port=$9
-  library_path=${10}
-  cp=${11}
-  log_level=${12}
-  tracing=${13}
-  comm=${14}
-  storageName=${15}
-  storageConf=${16}
-  taskExecution=${17}
+  specific_log_dir=$6
+  jvm_master_opts=$7
+  jvm_workers_opts=$8
+  network=$9
+  master_port=${10}
+  library_path=${11}
+  cp=${12}
+  log_level=${13}
+  tracing=${14}
+  comm=${15}
+  storageName=${16}
+  storageConf=${17}
+  taskExecution=${18}
 
   #Leave COMPSs parameters in $*
-  shift 17
+  shift 18
 
   #Set script variables
   export IT_HOME=${IT_HOME}
@@ -281,7 +282,7 @@ EOT
   fi
 
   # Launch master
-  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" --jvm_workers_opts="${jvm_workers_opts}" $*"
+  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" --jvm_workers_opts="${jvm_workers_opts}" --specific_log_dir=${specific_log_dir} $*"
   echo "CMD Master: $MCMD"
   $MCMD&
 

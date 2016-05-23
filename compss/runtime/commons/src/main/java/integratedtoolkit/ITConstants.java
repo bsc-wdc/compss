@@ -24,6 +24,7 @@ public class ITConstants {
     public static final String IT_MASTER_PORT 		= "it.masterPort";
     public static final String IT_DEPLOYMENT_ID 	= "it.uuid";
     public static final String IT_BASE_LOG_DIR 		= "it.baseLogDir";
+    public static final String IT_SPECIFIC_LOG_DIR  = "it.specificLogDir";
     public static final String IT_APP_LOG_DIR 		= "it.appLogDir";
     public static final String IT_PROJ_FILE 		= "it.project.file";
     public static final String IT_PROJ_SCHEMA 		= "it.project.schema";

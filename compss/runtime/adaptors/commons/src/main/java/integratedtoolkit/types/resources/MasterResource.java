@@ -35,15 +35,23 @@ public class MasterResource extends Resource {
         //Gets user execution directory
         userExecutionDirPath = System.getProperty("user.dir");
 
-        //Creates base Runtime structure directories
-        if (System.getProperty(ITConstants.IT_BASE_LOG_DIR) != null) {
-        	if (!System.getProperty(ITConstants.IT_BASE_LOG_DIR).equals("")) {
-        		COMPSsLogBaseDirPath = System.getProperty(ITConstants.IT_BASE_LOG_DIR) + File.separator + ".COMPSs" + File.separator;
+        /* Creates base Runtime structure directories ***************************/
+        boolean mustCreateExecutionSandbox = true;
+        // Checks if specific log base dir has been given
+        String specificOpt = System.getProperty(ITConstants.IT_SPECIFIC_LOG_DIR);
+        if (specificOpt != null && !specificOpt.isEmpty()) {
+        	COMPSsLogBaseDirPath = specificOpt;
+        	mustCreateExecutionSandbox = false; // This is the only case where the sandbox is provided
+        } else {
+        	// Checks if base log dir has been given
+        	String baseOpt = System.getProperty(ITConstants.IT_BASE_LOG_DIR);
+        	if (baseOpt != null && !baseOpt.isEmpty()) {
+        		baseOpt = baseOpt.endsWith(File.separator) ? baseOpt : baseOpt + File.separator;
+        		COMPSsLogBaseDirPath = baseOpt + ".COMPSs" + File.separator;
         	} else {
+        		// No option given - load default (user home)
         		COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
         	}
-        } else {
-        	COMPSsLogBaseDirPath = System.getProperty("user.home") + File.separator + ".COMPSs" + File.separator;
         }
         
         if (!new File(COMPSsLogBaseDirPath).exists()) {
@@ -52,89 +60,94 @@ public class MasterResource extends Resource {
             }
         }
 
-        //Load working directory. Different for regular applications and services
-        String appName = System.getProperty(ITConstants.IT_APP_NAME);
-        if (System.getProperty(ITConstants.IT_SERVICE_NAME) != null) {
-            /* SERVICE
-             * - Gets appName
-             * - Overloads the service folder for different executions
-             * - MAX_OVERLOAD raises warning
-             * - Changes working directory to serviceName !!!!
-             */
-            String serviceName = System.getProperty(ITConstants.IT_SERVICE_NAME);
-            int overloadCode = 1;
-            appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
-            String oldest = appLogDirPath;
-            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-            	// Check oldest file (for overload if needed)
-            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
-            		oldest = appLogDirPath;
-            	}
-            	// Next step
-                overloadCode = overloadCode + 1;
-                if (overloadCode < 10) {
-                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
-                } else {
-                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode) + File.separator;
-                }
-            }
-            if (overloadCode > MAX_OVERLOAD) {
-            	// Select the last modified folder
-            	appLogDirPath = oldest;
-            	
-            	// Overload
-                System.err.println(WARN_FOLDER_OVERLOAD);
-                System.err.println("Overwriting entry: " + appLogDirPath);
-                
-                // Clean previous results to avoid collisions
-                if (!deleteDirectory(new File(appLogDirPath))) {
-                	ErrorManager.error(ERROR_APP_OVERLOAD);
-                }
-            }
-            if (!new File(appLogDirPath).mkdir()) {
-            	ErrorManager.error(ERROR_APP_LOG_DIR);
-            }
-            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+        // Load working directory. Different for regular applications and services
+        if (mustCreateExecutionSandbox) {
+	        String appName = System.getProperty(ITConstants.IT_APP_NAME);
+	        if (System.getProperty(ITConstants.IT_SERVICE_NAME) != null) {
+	            /* SERVICE
+	             * - Gets appName
+	             * - Overloads the service folder for different executions
+	             * - MAX_OVERLOAD raises warning
+	             * - Changes working directory to serviceName !!!!
+	             */
+	            String serviceName = System.getProperty(ITConstants.IT_SERVICE_NAME);
+	            int overloadCode = 1;
+	            appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+	            String oldest = appLogDirPath;
+	            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+	            	// Check oldest file (for overload if needed)
+	            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
+	            		oldest = appLogDirPath;
+	            	}
+	            	// Next step
+	                overloadCode = overloadCode + 1;
+	                if (overloadCode < 10) {
+	                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_0" + String.valueOf(overloadCode) + File.separator;
+	                } else {
+	                    appLogDirPath = COMPSsLogBaseDirPath + serviceName + "_" + String.valueOf(overloadCode) + File.separator;
+	                }
+	            }
+	            if (overloadCode > MAX_OVERLOAD) {
+	            	// Select the last modified folder
+	            	appLogDirPath = oldest;
+	            	
+	            	// Overload
+	                System.err.println(WARN_FOLDER_OVERLOAD);
+	                System.err.println("Overwriting entry: " + appLogDirPath);
+	                
+	                // Clean previous results to avoid collisions
+	                if (!deleteDirectory(new File(appLogDirPath))) {
+	                	ErrorManager.error(ERROR_APP_OVERLOAD);
+	                }
+	            }
+	            if (!new File(appLogDirPath).mkdir()) {
+	            	ErrorManager.error(ERROR_APP_LOG_DIR);
+	            }
+	            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+	        } else {
+	            /* REGULAR APPLICATION
+	             * - Gets appName
+	             * - Overloads the app folder for different executions
+	             * - MAX_OVERLOAD raises warning
+	             * - Changes working directory to appName !!!!
+	             */
+	            int overloadCode = 1;
+	            appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+	            String oldest = appLogDirPath;
+	            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
+	            	// Check oldest file (for overload if needed)
+	            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
+	            		oldest = appLogDirPath;
+	            	}
+	            	// Next step
+	                overloadCode = overloadCode + 1;
+	                if (overloadCode < 10) {
+	                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
+	                } else {
+	                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
+	                }
+	            }
+	            if (overloadCode > MAX_OVERLOAD) {
+	            	// Select the last modified folder
+	            	appLogDirPath = oldest;
+	            	
+	            	// Overload
+	                System.err.println(WARN_FOLDER_OVERLOAD);
+	                System.err.println("Overwriting entry: " + appLogDirPath);
+	                
+	                // Clean previous results to avoid collisions
+	                if (!deleteDirectory(new File(appLogDirPath))) {
+	                	ErrorManager.error(ERROR_APP_OVERLOAD);
+	                }
+	            }
+	            if (!new File(appLogDirPath).mkdir()) {
+	            	ErrorManager.error(ERROR_APP_LOG_DIR);
+	            }
+	            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+	        }
         } else {
-            /* REGULAR APPLICATION
-             * - Gets appName
-             * - Overloads the app folder for different executions
-             * - MAX_OVERLOAD raises warning
-             * - Changes working directory to appName !!!!
-             */
-            int overloadCode = 1;
-            appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-            String oldest = appLogDirPath;
-            while ((new File(appLogDirPath).exists()) && (overloadCode <= MAX_OVERLOAD)) {
-            	// Check oldest file (for overload if needed)
-            	if (new File(oldest).lastModified() > new File(appLogDirPath).lastModified()) {
-            		oldest = appLogDirPath;
-            	}
-            	// Next step
-                overloadCode = overloadCode + 1;
-                if (overloadCode < 10) {
-                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_0" + String.valueOf(overloadCode) + File.separator;
-                } else {
-                    appLogDirPath = COMPSsLogBaseDirPath + appName + "_" + String.valueOf(overloadCode) + File.separator;
-                }
-            }
-            if (overloadCode > MAX_OVERLOAD) {
-            	// Select the last modified folder
-            	appLogDirPath = oldest;
-            	
-            	// Overload
-                System.err.println(WARN_FOLDER_OVERLOAD);
-                System.err.println("Overwriting entry: " + appLogDirPath);
-                
-                // Clean previous results to avoid collisions
-                if (!deleteDirectory(new File(appLogDirPath))) {
-                	ErrorManager.error(ERROR_APP_OVERLOAD);
-                }
-            }
-            if (!new File(appLogDirPath).mkdir()) {
-            	ErrorManager.error(ERROR_APP_LOG_DIR);
-            }
-            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+        	// The option specific_log_dir has been given. NO sandbox created
+        	appLogDirPath = COMPSsLogBaseDirPath;
         }
 
         /* Create a tmp directory where to store:

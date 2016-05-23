@@ -128,6 +128,9 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
                 if (manager.getCOMPSsBaseLogDir() != null && System.getProperty(ITConstants.IT_BASE_LOG_DIR) == null) {
                     System.setProperty(ITConstants.IT_BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
                 }
+                if (manager.getSpecificLogDir() != null && System.getProperty(ITConstants.IT_SPECIFIC_LOG_DIR) == null) {
+                    System.setProperty(ITConstants.IT_SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
+                }
                 if (manager.getLog4jConfiguration() != null && System.getProperty(ITConstants.LOG4J) == null) {
                     System.setProperty(ITConstants.LOG4J, manager.getLog4jConfiguration());
                 }

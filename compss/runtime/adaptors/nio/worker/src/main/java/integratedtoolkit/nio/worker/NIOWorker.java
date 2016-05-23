@@ -598,8 +598,6 @@ public class NIOWorker extends NIOAgent {
 	}
 
     private void removeFolder(String sandBox) throws IOException {
-        logger.debug("callin' removeFolder(string) upon "+ sandBox + " xlcs");
-
         File wdirFile = new File(sandBox);
         remove(wdirFile);
     }

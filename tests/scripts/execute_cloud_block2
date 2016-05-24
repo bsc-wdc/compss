@@ -19,16 +19,16 @@
   #--------------------------------------------------------------------------------
   if [ "$distr" == "ubuntu" ] || [ "$distr" == "debian" ]; then
     sudo sh -c "echo 'export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/' >> /etc/profile"
-    sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+    sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/' >> /etc/profile"
     sudo update-java-alternatives -s java-1.7.0-openjdk-amd64
   else
     if [ "$distr" == "suse" ]; then
       sudo sh -c "echo 'export JAVA_HOME=/usr/lib64/jvm/java-openjdk/' >> /etc/profile"
-      sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+      sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/' >> /etc/profile"
     else
       if [ "$distr" == "centos" ]; then
         sudo sh -c "echo 'export JAVA_HOME=/usr/lib/jvm/java-openjdk/' >> /etc/profile"
-        sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+        sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/' >> /etc/profile"
       fi
     fi
   fi

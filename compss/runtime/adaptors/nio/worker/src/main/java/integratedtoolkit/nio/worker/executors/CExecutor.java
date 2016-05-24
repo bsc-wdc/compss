@@ -10,10 +10,8 @@ import java.util.Map;
 
 public class CExecutor extends ExternalExecutor {
 	
-	private static final String C_LIB_RELATIVE_PATH = File.separator + ".." + File.separator + "Bindings" 
-														+ File.separator + "c" + File.separator + "lib";
-	private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + ".." + File.separator + "Bindings" 
-			+ File.separator + "commons" + File.separator + "lib";
+	private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
+	private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "commons" + File.separator + "lib";
 	
 
     public ArrayList<String> getLaunchCommand(NIOTask nt) {

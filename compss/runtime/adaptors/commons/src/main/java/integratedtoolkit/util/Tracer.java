@@ -24,26 +24,26 @@ import java.util.concurrent.Semaphore;
 
 public abstract class Tracer {
 
-    private static final String taskDesc = "Task";
-    private static final String apiDesc = "Runtime";
-    private static final String taskIdDesc = "Task IDs";
-    private static final String dataTransfersDesc = "Data Transfers";
-    private static final String storageDesc = "Storage API";
+    private static final String taskDesc 			= "Task";
+    private static final String apiDesc 			= "Runtime";
+    private static final String taskIdDesc 			= "Task IDs";
+    private static final String dataTransfersDesc 	= "Data Transfers";
+    private static final String storageDesc 		= "Storage API";
 
-    protected static final String TRACE_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system" + File.separator + "trace.sh";
-    protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
-    protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
+    protected static final String TRACE_SCRIPT_PATH 	= File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator + "trace.sh";
+    protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
+    protected static final String traceErrRelativePath 	= File.separator + "trace" + File.separator + "tracer.err";
 
     protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-    protected static final int TASKS_FUNC_TYPE = 8_000_000;
-    protected static final int RUNTIME_EVENTS = 8_000_001;
-    protected static final int TASKS_ID_TYPE = 8_000_002;
-    protected static final int TASK_TRANSFERS = 8_000_003;
-    protected static final int DATA_TRANSFERS = 8_000_004;
-    protected static final int STORAGE_TYPE = 8_000_005;
+    protected static final int TASKS_FUNC_TYPE 	= 8_000_000;
+    protected static final int RUNTIME_EVENTS 	= 8_000_001;
+    protected static final int TASKS_ID_TYPE 	= 8_000_002;
+    protected static final int TASK_TRANSFERS 	= 8_000_003;
+    protected static final int DATA_TRANSFERS 	= 8_000_004;
+    protected static final int STORAGE_TYPE 	= 8_000_005;
 
     public static final int EVENT_END = 0;
 
@@ -52,7 +52,6 @@ public abstract class Tracer {
     protected static int tracing_level;
 
     public enum Event {
-
         STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"),
         START(2, RUNTIME_EVENTS, "Start"),
         STOP(3, RUNTIME_EVENTS, "Stop"),

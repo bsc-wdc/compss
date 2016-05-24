@@ -247,7 +247,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void deleteTemporary() {
-        //TODO NIOWorkerNode should delete " + workingDir + " a " + getName());
+        // This is only used to clean the master
+    	// Nothing to do
     }
 
     @Override
@@ -258,7 +259,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         Connection c = NIOAgent.tm.startConnection(node);
-        CommandGeneratePackage cmd = new CommandGeneratePackage(this.getHost(), this.getInstallDir(), this.getWorkingDir(), this.getName());
+        CommandGeneratePackage cmd = new CommandGeneratePackage();
         c.sendCommand(cmd);
         c.receive();
         c.finishConnection();
@@ -274,7 +275,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             logger.error("Worker debug files generation has failed.");
         }
         Connection c = NIOAgent.tm.startConnection(node);
-        CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles(this.getHost(), this.getInstallDir(), this.getWorkingDir(), this.getName());
+        CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
         c.sendCommand(cmd);
 
         c.receive();

@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class PythonExecutor extends ExternalExecutor {
 	
-	private static final String PYCOMPSS_RELATIVE_PATH = File.separator + ".." + File.separator + "Bindings" + File.separator + "python";
+	private static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 	private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator + "worker.py";
 
 	@Override

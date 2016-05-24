@@ -12,39 +12,18 @@ import es.bsc.comm.Connection;
 
 public class CommandGeneratePackage extends Command implements Externalizable {
 
-	private String host;
-	private String installDir;
-	private String workingDir;
-	private String name;
-
 	public CommandGeneratePackage() {
 		super();
 	}
-	
-	public CommandGeneratePackage(String host, String installDir, String workingDir, String name) {
-		super();
-		this.host=host;
-		this.installDir=installDir;
-		this.workingDir=workingDir;
-		this.name=name;
-	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException,
-			ClassNotFoundException {
-		host = (String)in.readObject();
-		installDir = (String)in.readObject();
-		workingDir = (String)in.readObject();
-		name = (String)in.readObject();
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(host);
-		out.writeObject(installDir);
-		out.writeObject(workingDir);
-		out.writeObject(name);
-		
+
 	}
 
 	@Override
@@ -54,7 +33,7 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 
 	@Override
 	public void handle(Connection c) {
-		agent.generatePackage(c, host, installDir, workingDir, name);
+		agent.generatePackage(c);
 	}
 	
     @Override

@@ -1,7 +1,7 @@
-export IT_HOME=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/Runtime/
-export PATH=$PATH:${IT_HOME}/scripts/user
-export CLASSPATH=$CLASSPATH:${IT_HOME}/compss-engine.jar
-export PATH=$PATH:${IT_HOME}/../Bindings/c/bin
-export PYTHONPATH=$PYTHONPATH:${IT_HOME}/../Bindings/python/
+export IT_HOME=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+export PATH=$PATH:${IT_HOME}/Runtime/scripts/user
+export CLASSPATH=$CLASSPATH:${IT_HOME}/Runtime/compss-engine.jar
+export PATH=$PATH:${IT_HOME}/Bindings/c/bin
+export PYTHONPATH=$PYTHONPATH:${IT_HOME}/Bindings/python/
 
 echo "IT_HOME=${IT_HOME}"

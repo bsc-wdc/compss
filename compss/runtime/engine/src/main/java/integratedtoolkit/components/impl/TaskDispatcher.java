@@ -32,11 +32,14 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
         public void notifyTaskEnd(Task task);
     }
+    
+    // Schedulers jars path
+    private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
     // Subcomponents
     protected TaskScheduler<?,?> scheduler;
-
     protected LinkedBlockingDeque<TDRequest<?,?>> requestQueue;
+    
     // Scheduler thread
     protected Thread dispatcher;
     protected boolean keepGoing;
@@ -51,6 +54,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
+            
     public TaskDispatcher() {
         requestQueue = new LinkedBlockingDeque<TDRequest<?,?>>();
         dispatcher = new Thread(this);
@@ -239,7 +243,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
 
         try {
-            Classpath.loadPath(itHome + File.separator + "scheduler", logger);
+            Classpath.loadPath(itHome + SCHEDULERS_REL_PATH, logger);
         } catch (FileNotFoundException ex) {
             logger.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
         }

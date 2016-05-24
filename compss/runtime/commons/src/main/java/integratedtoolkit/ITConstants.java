@@ -99,9 +99,11 @@ public class ITConstants {
     public static final String DEFAULT_SCHEDULER 			= "integratedtoolkit.components.impl.TaskScheduler";
     public static final String DEFAULT_TRACING 				= "0";
     public static final String DEFAULT_DEPLOYMENT_ID 		= UUID.randomUUID().toString();
-    public static final String DEFAULT_RES_SCHEMA 			= System.getenv(IT_HOME) + File.separator + "xml" + File.separator 
+    public static final String DEFAULT_RES_SCHEMA 			= System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator + 
+    															"configuration" + File.separator + "xml" + File.separator 
     															+ "resources" + File.separator + "resource_schema.xsd";
-    public static final String DEFAULT_PROJECT_SCHEMA 		= System.getenv(IT_HOME) + File.separator + "xml" + File.separator 
+    public static final String DEFAULT_PROJECT_SCHEMA 		= System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator + 
+																"configuration" + File.separator + "xml" + File.separator 
 																+ "projects" + File.separator + "project_schema.xsd";
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
     public static final long DEFAULT_MONITOR_INTERVAL 		= 0;

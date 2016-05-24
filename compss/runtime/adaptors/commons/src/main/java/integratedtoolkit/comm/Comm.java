@@ -36,6 +36,8 @@ import java.util.TreeMap;
 public class Comm {
 
     private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
+    private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
+    
     // Tracing
     protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
@@ -274,7 +276,7 @@ public class Comm {
         }
 
         try {
-            Classpath.loadPath(itHome + File.separator + "adaptors", logger);
+            Classpath.loadPath(itHome + ADAPTORS_REL_PATH, logger);
         } catch (FileNotFoundException ex) {
             logger.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }

@@ -37,6 +37,5 @@
 		<module>resources</module>
 		<module>scheduler</module>
 		<module>engine</module>
-		<!--module>scheduler</module-->
 	</modules>
 </project>

@@ -128,7 +128,7 @@
 
   #Create submit script
   script_dir=$(dirname $0)
-  IT_HOME=${script_dir}/../../..
+  IT_HOME=${script_dir}/../../../..
 
   if [ "${queue}" != "default" ]; then
     /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT

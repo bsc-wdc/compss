@@ -16,7 +16,7 @@ isWs=$5
 isMainClass=$6
 
 libDir=$runtimeInstDir/Runtime/
-export IT_HOME=$runtimeInstDir/Runtime/
+export IT_HOME=$runtimeInstDir
 
 echo -e "\n----------------- Instrumenting $fullAppName (isWs=$isWs, isMain=$isMainClass) --------------------------\n"
 

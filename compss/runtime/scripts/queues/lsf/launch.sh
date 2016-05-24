@@ -25,7 +25,7 @@
 
   #Set script variables
   export IT_HOME=${IT_HOME}
-  export GAT_LOCATION=${IT_HOME}/../Dependencies/JAVA_GAT
+  export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
   worker_install_dir=${IT_HOME}
   if [ "${worker_WD_type}" == "gpfs" ]; then
      worker_working_dir=$(mktemp -d -p /gpfs/${HOME})
@@ -274,7 +274,7 @@ EOT
     jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
     for node in ${USED_WORKERS}; do
       sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
-      WCMD="blaunch $node ${IT_HOME}/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts_str} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
+      WCMD="blaunch $node ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts_str} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -282,7 +282,7 @@ EOT
   fi
 
   # Launch master
-  MCMD="blaunch $MASTER_NODE ${IT_HOME}/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" --jvm_workers_opts="${jvm_workers_opts}" --specific_log_dir=${specific_log_dir} $*"
+  MCMD="blaunch $MASTER_NODE ${IT_HOME}/Runtime/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" --jvm_workers_opts="${jvm_workers_opts}" --specific_log_dir=${specific_log_dir} $*"
   echo "CMD Master: $MCMD"
   $MCMD&
 

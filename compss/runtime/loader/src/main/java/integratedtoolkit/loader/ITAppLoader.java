@@ -4,6 +4,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.util.ErrorManager;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 
@@ -13,6 +14,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 public class ITAppLoader {
 
+	private static final String ENGINE_JAR = "compss-engine.jar";
+	private static final String ENGINE_JAR_WITH_REL_PATH = File.separator + "Runtime" + File.separator + ENGINE_JAR;
+	
     protected static final String ERROR_COMPSs_BASE_DIR = "ERROR: Cannot create .COMPSs base directory";
     private static final Logger logger = Logger.getLogger(Loggers.LOADER);
 	
@@ -39,7 +43,7 @@ public class ITAppLoader {
 	
 	        // Add the jars that the custom class loader needs
 	        String itHome = System.getenv("IT_HOME");
-	        myLoader.addFile(itHome + "/compss-engine.jar");
+	        myLoader.addFile(itHome + ENGINE_JAR_WITH_REL_PATH);
 	
 	        /* The custom class loader must load the class that will modify the application and
 	         * invoke the modify method on an instance of this class

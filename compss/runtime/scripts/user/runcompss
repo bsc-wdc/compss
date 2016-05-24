@@ -183,26 +183,26 @@ check_env() {
   #  export XML_DIR=$(dirname $0)
   #fi
 
-  export IT_HOME=$(dirname $0)/../..
+  export IT_HOME=$(dirname $0)/../../..
 
   if [ -z "$DEFAULT_PROJECT" ]; then
-    DEFAULT_PROJECT=${IT_HOME}/configuration/xml/projects/default_project.xml
+    DEFAULT_PROJECT=${IT_HOME}/Runtime/configuration/xml/projects/default_project.xml
   fi
 
   if [ -z "$DEFAULT_RESOURCES" ]; then
-    DEFAULT_RESOURCES=${IT_HOME}/configuration/xml/resources/default_resources.xml
+    DEFAULT_RESOURCES=${IT_HOME}/Runtime/configuration/xml/resources/default_resources.xml
   fi
 
   if [ -z "${GAT_LOCATION}" ]; then
-    GAT_LOCATION=${IT_HOME}/../Dependencies/JAVA_GAT
+    GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
   fi
 
   if [ -z "${EXTRAE_HOME}" ]; then
-    EXTRAE_HOME=${IT_HOME}/../Dependencies/extrae
+    EXTRAE_HOME=${IT_HOME}/Dependencies/extrae
   fi
 
   if [ -z "${EXTRAE_LIB}" ]; then
-    EXTRAE_LIB=${IT_HOME}/../Dependencies/extrae/lib
+    EXTRAE_LIB=${IT_HOME}/Dependencies/extrae/lib
   fi
 
   if [[ -z "$JAVA_HOME" ]]; then
@@ -467,7 +467,7 @@ check_args() {
   if [ $tracing -gt 0 ]; then
     export EXTRAE_HOME=${EXTRAE_HOME}
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
-    export EXTRAE_CONFIG_FILE=${IT_HOME}/configuration/xml/tracing/${extraeFile}
+    export EXTRAE_CONFIG_FILE=${IT_HOME}/Runtime/configuration/xml/tracing/${extraeFile}
   fi
 
   if [ -z "$monitoring" ]; then
@@ -613,13 +613,13 @@ ${jvm_debugger_opts}
 -XX:+UseThreadPriorities
 -XX:ThreadPriorityPolicy=42
 
--Dlog4j.configuration=${IT_HOME}/configuration/log/${itlog4j_file}
+-Dlog4j.configuration=${IT_HOME}/Runtime/configuration/log/${itlog4j_file}
 
 -Dit.to.file=false
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
--Dit.project.schema=${IT_HOME}/configuration/xml/projects/project_schema.xsd
--Dit.resources.schema=${IT_HOME}/configuration/xml/resources/resources_schema.xsd
+-Dit.project.schema=${IT_HOME}/Runtime/configuration/xml/projects/project_schema.xsd
+-Dit.resources.schema=${IT_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd
 
 -Dit.lang=${lang}
 
@@ -651,20 +651,20 @@ EOT
 
 add_jvm_opts_java() {
   /bin/cat >> ${jvm_options_file} << EOT
--classpath ${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-classpath ${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 EOT
 }
 
 add_jvm_opts_c() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 -Dit.constraints.file=$fullAppPath.idl
 EOT
 }
 
 add_jvm_opts_python() {
   /bin/cat >> ${jvm_options_file} << EOT
--Djava.class.path=${cp}:${IT_HOME}/compss-engine.jar:${CLASSPATH}
+-Djava.class.path=${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 -Dit.worker.pythonpath=${PYTHONPATH}
 EOT
 }
@@ -694,8 +694,8 @@ exec_java() {
 
 exec_c() {
   # Export needed variables
-  if [ -d ${IT_HOME}/../Bindings/c ]; then
-    local CPP_COMPSS_HOME=${IT_HOME}/../Bindings/c
+  if [ -d ${IT_HOME}/Bindings/c ]; then
+    local CPP_COMPSS_HOME=${IT_HOME}/Bindings/c
     export CPP_PATH=${CPP_COMPSS_HOME}:$cp
   else
     export CPP_PATH=$cp
@@ -709,7 +709,7 @@ exec_c() {
     display_error "${JAVA_JRE_ERROR}"
   fi
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib:${IT_HOME}/../Bindings/c/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/Bindings/bindings-common/lib:${IT_HOME}/Bindings/c/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
@@ -733,12 +733,12 @@ exec_c() {
 
 exec_python() {
   # Python Storage API
-  storageApi=${IT_HOME}/../Dependencies/
+  storageApi=${IT_HOME}/Dependencies/
   cp=$cp:$storageApi    
 
   # Export needed variables 
-  if [ -d $IT_HOME/../Bindings/python ]; then
-    PYCOMPSS_HOME=${IT_HOME}/../Bindings/python
+  if [ -d $IT_HOME/Bindings/python ]; then
+    PYCOMPSS_HOME=${IT_HOME}/Bindings/python
     export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
   else
     export PYTHONPATH=$cp:$PYTHONPATH
@@ -752,7 +752,7 @@ exec_python() {
     display_error "${JAVA_JRE_ERROR}"
   fi
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/../Bindings/bindings-common/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/Bindings/bindings-common/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 

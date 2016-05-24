@@ -26,6 +26,8 @@ import org.apache.log4j.Logger;
  */
 public class CloudManager {
 
+	private static final String CONNECTORS_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
+	
     private static boolean useCloud;
     private static int initialVMs = 0;
     private static int minVMs = 0;
@@ -108,7 +110,7 @@ public class CloudManager {
         }
 
         try {
-            Classpath.loadPath(itHome + File.separator + "connectors", runtimeLogger);
+            Classpath.loadPath(itHome + CONNECTORS_PATH, runtimeLogger);
         } catch (FileNotFoundException ex) {
             resourcesLogger.warn("WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
             runtimeLogger.warn("WARN: Connectors folder not defined, no default connectors loaded");

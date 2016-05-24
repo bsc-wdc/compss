@@ -27,6 +27,7 @@ public class CommandWorkerDebugFilesDone extends Command implements Externalizab
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		
 	}
 
 	@Override

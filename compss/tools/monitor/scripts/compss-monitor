@@ -33,7 +33,7 @@ configure() {
        exit 1
     fi
   else
-    export TOMCAT_HOME=${IT_HOME}/../Tools/monitor/apache-tomcat
+    export TOMCAT_HOME=${IT_HOME}/Tools/monitor/apache-tomcat
   fi
   local configuration_path="${TOMCAT_HOME}/conf/${configuration_file}"
   echo "   Success"
@@ -155,7 +155,7 @@ case "$1" in
     ;;
   *)
     echo "Usage: $SCRIPTNAME { start | stop | restart | reset | clean }"
-    echo "    If IT_HOME is defined, configuration parameters are taken from \$\{IT_HOME\}/../Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
+    echo "    If IT_HOME is defined, configuration parameters are taken from \$\{IT_HOME\}/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
     echo "    Otherwise, configuration parameters are taken from /opt/COMPSs/Tools/monitor/apache-tomcat/conf/compss-monitor.conf file"
     exit 1
     ;;

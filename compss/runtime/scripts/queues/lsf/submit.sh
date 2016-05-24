@@ -4,7 +4,6 @@
   # SCRIPT FOR SUBMISSION OF APPLICATIONS TO LSF WITH COMPSs #
   ############################################################
 
-
   ###############################
   # CONSTANTS
   ###############################
@@ -156,7 +155,7 @@ EOT
 EOT
   else 
     /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT
-#BSUB -J COMPSs-${LSB_JOBID}
+#BSUB -J COMPSs
 EOT
   fi
 
@@ -174,16 +173,16 @@ EOT
 
   /bin/cat >> $TMP_SUBMIT_SCRIPT << EOT
 #BSUB -cwd ${master_working_dir} 
-#BSUB -oo $HOME/.COMPSs/${LSB_JOBID}/compss-${LSB_JOBID}.out
-#BSUB -eo $HOME/.COMPSs/${LSB_JOBID}/compss-${LSB_JOBID}.err
+#BSUB -oo compss-%J.out
+#BSUB -eo compss-%J.err
 #BSUB -n ${num_nodes}
 #BSUB -R "span[ptile=1]" 
 #BSUB -W $wc_limit 
 
-specific_log_dir=$HOME/.COMPSs/${LSB_JOBID}/
-mkdir -p ${specific_log_dir}
+specific_log_dir=$HOME/.COMPSs/\${LSB_JOBID}/
+mkdir -p \${specific_log_dir}
 
-${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} ${specific_log_dir} "${jvm_master_opts}" "${jvm_workers_opts}" ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
+${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} "\${specific_log_dir}" "${jvm_master_opts}" "${jvm_workers_opts}" ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
 EOT
 
   # Check if the creation of the script failed

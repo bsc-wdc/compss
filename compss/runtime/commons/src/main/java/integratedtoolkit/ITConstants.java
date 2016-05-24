@@ -1,5 +1,6 @@
 package integratedtoolkit;
 
+import java.io.File;
 import java.util.UUID;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
@@ -79,8 +80,8 @@ public class ITConstants {
     public static final String PASSWORD 			= "Password";
     
     // Storage properties
-	public static final String IT_STORAGE_CONF = "it.storage.conf";
-	public static final String IT_TASK_EXECUTION = "it.task.execution";
+	public static final String IT_STORAGE_CONF 		= "it.storage.conf";
+	public static final String IT_TASK_EXECUTION 	= "it.task.execution";
 	
 	// Execution Type
     public static final String COMPSs = "compss";
@@ -93,15 +94,17 @@ public class ITConstants {
     }
 
     //According to runcompss script default value
-    //private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
-    public static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
-    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
-    public static final String DEFAULT_TRACING = "0";
-    public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
-    public static final String DEFAULT_RES_SCHEMA = System.getenv(IT_HOME) + "/xml/resources/resource_schema.xsd";
-    public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(IT_HOME) + "/xml/projects/project_schema.xsd";
+    //private static final String DEFAULT_ADAPTOR 			= "integratedtoolkit.gat.master.GATAdaptor";
+    public static final String DEFAULT_ADAPTOR 				= "integratedtoolkit.nio.master.NIOAdaptor";
+    public static final String DEFAULT_SCHEDULER 			= "integratedtoolkit.components.impl.TaskScheduler";
+    public static final String DEFAULT_TRACING 				= "0";
+    public static final String DEFAULT_DEPLOYMENT_ID 		= UUID.randomUUID().toString();
+    public static final String DEFAULT_RES_SCHEMA 			= System.getenv(IT_HOME) + File.separator + "xml" + File.separator 
+    															+ "resources" + File.separator + "resource_schema.xsd";
+    public static final String DEFAULT_PROJECT_SCHEMA 		= System.getenv(IT_HOME) + File.separator + "xml" + File.separator 
+																+ "projects" + File.separator + "project_schema.xsd";
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
-    public static final long DEFAULT_MONITOR_INTERVAL = 0;
+    public static final long DEFAULT_MONITOR_INTERVAL 		= 0;
     
     private ITConstants() {
         throw new NonInstantiableException("ITConstants");

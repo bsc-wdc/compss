@@ -42,7 +42,7 @@
   elif [ "${network}" == "data" ]; then
     network="-data"
   fi
-  sec=`/bin/date +%s`
+  sec=$(/bin/date +%s)
   RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
   PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
 
@@ -294,8 +294,8 @@ EOT
   # Cleanup
   echo "Cleanup TMP files"
   for node in ${WORKER_LIST}; do
-	ssh $node${network} "/bin/rm -rf ${worker_working_dir}"
+	ssh $node${network} "rm -rf ${worker_working_dir}"
   done
-  /bin/rm -rf ${PROJECT_FILE}
-  /bin/rm -rf ${RESOURCES_FILE}
+  rm -rf ${PROJECT_FILE}
+  rm -rf ${RESOURCES_FILE}
 

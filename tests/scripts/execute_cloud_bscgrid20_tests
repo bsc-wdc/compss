@@ -20,7 +20,7 @@
   #--------------------------------------------------------------------------------
   echo "**Setting JAVA_HOME and IT_HOME"
   sudo sh -c "echo 'export JAVA_HOME=/usr/lib/jvm/default-java' >> /etc/profile"
-  sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/Runtime' >> /etc/profile"
+  sudo sh -c "echo 'export IT_HOME=/opt/COMPSs/' >> /etc/profile"
   source /etc/profile 
 
   #--------------------------------------------------------------------------------

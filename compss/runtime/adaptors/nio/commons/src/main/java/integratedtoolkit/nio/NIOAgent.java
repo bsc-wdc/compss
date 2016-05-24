@@ -424,7 +424,7 @@ public abstract class NIOAgent {
         return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
     }
 
-    public void generatePackage(Connection c, String host, String installDir, String workingDir, String name) {
+    public void generatePackage(Connection c) {
         NIOTracer.generatePackage();
         c.sendCommand(new CommandGenerateDone());
         c.finishConnection();

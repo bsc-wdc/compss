@@ -3,7 +3,7 @@
     <MasterNode/>
     
     <ComputeNode Name="COMPSsWorker01">
-        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <InstallDir>/opt/COMPSs/</InstallDir>
         <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
         <Application>
         	<AppDir>/home/user/tests/app01/</AppDir>
@@ -12,7 +12,7 @@
     </ComputeNode>
     
     <ComputeNode Name="COMPSsWorker02">
-        <InstallDir>/opt/COMPSs/Runtime/</InstallDir>
+        <InstallDir>/opt/COMPSs/</InstallDir>
         <WorkingDir>/tmp/COMPSsWorker02/</WorkingDir>
         <LimitOfTasks>4</LimitOfTasks>
         <Application>

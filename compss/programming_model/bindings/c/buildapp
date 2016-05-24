@@ -38,7 +38,7 @@ if [ -z $GS_HOME ]; then
 	if [ -z $IT_HOME ]; then
 		export GS_HOME=/opt/COMPSs/Bindings/c
 	else
-		export GS_HOME=$IT_HOME/../Bindings/c
+		export GS_HOME=$IT_HOME/Bindings/c
 	fi
 fi
 export GSSTUBGEN=$GS_HOME/bin/gsstubgen

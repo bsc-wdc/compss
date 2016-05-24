@@ -28,7 +28,7 @@ public class WorkerStarter {
     
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
        
-    private static final String STARTER_SCRIPT_PATH = "scripts" + File.separator + "system" 
+    private static final String STARTER_SCRIPT_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system" 
     								+ File.separator + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
     
@@ -199,8 +199,8 @@ public class WorkerStarter {
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(tracing_level);
         if (tracing) {
-        	// NumSlots per host is ignored --> -1
-            Integer hostId = NIOTracer.registerHost(node.getName(), -1);
+        	// NumSlots per host is ignored --> 0
+            Integer hostId = NIOTracer.registerHost(node.getName(), 0);
             cmd[nextPosition++] = String.valueOf(hostId.toString());
         } else {
         	cmd[nextPosition++] ="NoTracinghostID";

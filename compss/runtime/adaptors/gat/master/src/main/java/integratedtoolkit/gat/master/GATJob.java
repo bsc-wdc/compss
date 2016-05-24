@@ -62,7 +62,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
 
-    private static final String WORKER_SCRIPT_PATH = File.separator + "scripts" + File.separator + "system"
+    private static final String WORKER_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String WORKER_SCRIPT_NAME = "worker.sh";
 

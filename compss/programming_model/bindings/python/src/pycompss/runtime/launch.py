@@ -53,17 +53,17 @@ if __name__ == "__main__":
     # 1.3 logging
     if log_level == "debug":
         init_logging(os.getenv('IT_HOME') +
-                     '/../Bindings/python/log/logging.json.debug', logPath)
+                     '/Bindings/python/log/logging.json.debug', logPath)
     elif log_level == "info":
         init_logging(os.getenv('IT_HOME') +
-                     '/../Bindings/python/log/logging.json.off', logPath)
+                     '/Bindings/python/log/logging.json.off', logPath)
     elif log_level == "off":
         init_logging(os.getenv('IT_HOME') +
-                     '/../Bindings/python/log/logging.json.off', logPath)
+                     '/Bindings/python/log/logging.json.off', logPath)
     else:
         # Default
         init_logging(os.getenv('IT_HOME') +
-                     '/../Bindings/python/log/logging.json', logPath)
+                     '/Bindings/python/log/logging.json', logPath)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     try:
@@ -90,8 +90,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                                 debug=False,
                                 graph=False,
                                 trace=False,
-                                project_xml=os.environ['IT_HOME'] + '/configuration/xml/projects/default_project.xml',
-                                resources_xml=os.environ['IT_HOME'] + '/configuration/xml/resources/default_resources.xml',
+                                project_xml=os.environ['IT_HOME'] + '/Runtime/configuration/xml/projects/default_project.xml',
+                                resources_xml=os.environ['IT_HOME'] + '/Runtime/configuration/xml/resources/default_resources.xml',
                                 comm='NIO',
                                 obj_conv=False,
                                 mmap_files=False):
@@ -111,17 +111,17 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, 'w')
 
-    jvm_options_file.write('-Djava.class.path=' + it_home + '/compss-engine.jar:' + e_classpath + ':' + cp + ':' + classpath + '\n')
+    jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + e_classpath + ':' + cp + ':' + classpath + '\n')
     if debug:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/configuration/log/it-log4j.debug\n')   # DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j.debug\n')   # DEBUG
     else:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/configuration/log/it-log4j\n')       # NO DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j\n')       # NO DEBUG
     jvm_options_file.write('-Dit.to.file=false\n')
     jvm_options_file.write('-Dit.lang=python\n')
     jvm_options_file.write('-Dit.project.file=' + project_xml + '\n')
     jvm_options_file.write('-Dit.resources.file=' + resources_xml + '\n')
-    jvm_options_file.write('-Dit.project.schema=' + it_home + '/configuration/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/configuration/xml/resources/resources_schema.xsd\n')
+    jvm_options_file.write('-Dit.project.schema=' + it_home + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+    jvm_options_file.write('-Dit.resources.schema=' + it_home + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
     # jvm_options_file.write('-Dit.appName=' + app.__name__ + '\n')
     jvm_options_file.write('-Dit.appName=' + file_name + '\n')
     jvm_options_file.write('-Dit.appLogDir=/tmp/\n')
@@ -140,7 +140,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
         jvm_options_file.write('-Dit.comm=integratedtoolkit.gat.master.GATAdaptor\n')
     else:
         jvm_options_file.write('-Dit.comm=integratedtoolkit.nio.master.NIOAdaptor\n')
-    jvm_options_file.write('-Dgat.adaptor.path=' + it_home + '/../Dependencies/JAVA_GAT/lib/adaptors\n')
+    jvm_options_file.write('-Dgat.adaptor.path=' + it_home + '/Dependencies/JAVA_GAT/lib/adaptors\n')
     jvm_options_file.write('-Dit.gat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dit.gat.file.adaptor=sshtrilead\n')
 
@@ -156,10 +156,10 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     logPath = get_logPath()
     if debug:
         # DEBUG
-        init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json.debug', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', logPath)
     else:
         # NO DEBUG
-        init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', logPath)
+        init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)
     logger = logging.getLogger("pycompss.runtime.launch")
 
     logger.debug("--- START ---")
@@ -199,15 +199,15 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     fd, temp_path = mkstemp()
 #     jvm_options_file = open(temp_path, 'w')
 #
-#     jvm_options_file.write('-Djava.class.path=' + it_home + '/compss-engine.jar:' + classpath + ':' + cp + '\n')
-#     jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/configuration/log/it-log4j.debug\n')   # DEBUG
-#     #jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/configuration/log/it-log4j\n')          # NO DEBUG
+#     jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + classpath + ':' + cp + '\n')
+#     jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j.debug\n')   # DEBUG
+#     #jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j\n')          # NO DEBUG
 #     jvm_options_file.write('-Dit.to.file=false\n')
 #     jvm_options_file.write('-Dit.lang=python\n')
-#     jvm_options_file.write('-Dit.project.file=' + it_home + '/configuration/xml/projects/project.xml\n')
-#     jvm_options_file.write('-Dit.resources.file=' + it_home + '/configuration/xml/resources/resources.xml\n')
-#     jvm_options_file.write('-Dit.project.schema=' + it_home + '/configuration/xml/projects/project_schema.xsd\n')
-#     jvm_options_file.write('-Dit.resources.schema=' + it_home + '/configuration/xml/resources/resource_schema.xsd\n')
+#     jvm_options_file.write('-Dit.project.file=' + it_home + '/Runtime/configuration/xml/projects/project.xml\n')
+#     jvm_options_file.write('-Dit.resources.file=' + it_home + '/Runtime/configuration/xml/resources/resources.xml\n')
+#     jvm_options_file.write('-Dit.project.schema=' + it_home + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+#     jvm_options_file.write('-Dit.resources.schema=' + it_home + '/Runtime/configuration/xml/resources/resource_schema.xsd\n')
 #     #jvm_options_file.write('-Dit.appName=' + app.__name__ + '\n')
 #     jvm_options_file.write('-Dit.appName=' + file_name + '\n')
 #     jvm_options_file.write('-Dit.appLogDir=/tmp/\n')
@@ -217,7 +217,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     jvm_options_file.write('-Dit.core.count=50\n')
 #     jvm_options_file.write('-Dit.worker.cp=' + pythonpath + ':' + classpath + ':' + cp +'\n')
 #     jvm_options_file.write('-Dit.comm=integratedtoolkit.gat.master.GATAdaptor\n') # integratedtoolkit.nio.master.NIOAdaptor
-#     jvm_options_file.write('-Dgat.adaptor.path=' + it_home + '/../Dependencies/JAVA_GAT/lib/adaptors\n')
+#     jvm_options_file.write('-Dgat.adaptor.path=' + it_home + '/Dependencies/JAVA_GAT/lib/adaptors\n')
 #     jvm_options_file.write('-Dit.gat.broker.adaptor=sshtrilead\n')
 #     jvm_options_file.write('-Dit.gat.file.adaptor=sshtrilead\n')
 #
@@ -231,8 +231,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     # Configure logging
 #     app_path = app
 #     logPath = get_logPath()
-#     init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json.debug', logPath)   # 1.3 DEBUG
-#     #init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json', logPath)        # 1.3 NO DEBUG
+#     init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json.debug', logPath)   # 1.3 DEBUG
+#     #init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)        # 1.3 NO DEBUG
 #     logger = logging.getLogger("pycompss.runtime.launch")
 #
 #     logger.debug("--- START ---")

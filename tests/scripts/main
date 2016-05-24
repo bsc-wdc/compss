@@ -66,7 +66,7 @@
      else 
         target_base_dir="/home/$user/tests_all_local"
      fi
-     IT_HOME="/opt/COMPSs/Runtime"
+     IT_HOME="/opt/COMPSs/"
      comm=integratedtoolkit.nio.master.NIOAdaptor
 
      #Set environment variables from configuration file
@@ -90,7 +90,7 @@
      #Set the rest of environment variables 
      source_base_dir="$(pwd)/$(dirname $0)/../sources"
      COMPSs_log_folder="$HOME/.COMPSs"
-     COMPSs_exec="$IT_HOME/scripts/user/runcompss"
+     COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
 
      #Export base variables
      export IT_HOME=$IT_HOME
@@ -199,7 +199,7 @@
      user=$(whoami)
      bscgrid20_user=user
      target_base_dir="/home/$user/tests_cloud"
-     IT_HOME="/opt/COMPSs/Runtime"
+     IT_HOME="/opt/COMPSs/"
      connector_server="https://bscgrid20.bsc.es:11443/"
      connector_class="integratedtoolkit.connectors.rocci.ROCCI"
      comm=integratedtoolkit.nio.master.NIOAdaptor
@@ -223,8 +223,8 @@
      fi
 
      #Set the rest of environment variables
-     COMPSs_location="${IT_HOME}/.."
-     COMPSs_exec="${IT_HOME}/scripts/user/runcompss"
+     COMPSs_location="${IT_HOME}"
+     COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
      log_folder="${target_base_dir}/logs"
      source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
      cloud_owner="jenkins-test"
@@ -264,7 +264,7 @@
      user=$(whoami)
      target_base_dir="/home/$user/tests_cloud_vpn"
      logs_location="/home/$user"
-     IT_HOME="/opt/COMPSs/Runtime"
+     IT_HOME="/opt/COMPSs/"
      connector_server="https://bscgrid20.bsc.es:11443/"
      connector_class="integratedtoolkit.connectors.rocci.ROCCI"
      comm=integratedtoolkit.nio.master.NIOAdaptor
@@ -288,8 +288,8 @@
      fi
 
      #Set the rest of environment variables
-     COMPSs_location="${IT_HOME}/.."
-     COMPSs_exec="${IT_HOME}/scripts/user/runcompss"
+     COMPSs_location="${IT_HOME}"
+     COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
      source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
      log_folder="${target_base_dir}/logs"
      template_id=107
@@ -342,7 +342,7 @@
      #Set Default environment variables
      user=$(whoami)
      target_base_dir="/home/$user/tests_devel"
-     IT_HOME="/opt/COMPSs/Runtime"
+     IT_HOME="/opt/COMPSs/"
      java_apps="true" 
      comm=integratedtoolkit.nio.master.NIOAdaptor
 
@@ -368,7 +368,7 @@
      source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
      logs_location="$HOME"
      COMPSs_log_folder="$HOME/.COMPSs"
-     COMPSs_exec="$IT_HOME/scripts/user/runcompss"
+     COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
 
      #Export base variables
      export IT_HOME=$IT_HOME

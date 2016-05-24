@@ -3,7 +3,7 @@
   runtimelog=$1
 
   submitList=$(cat $runtimelog | grep "New Job" | rev | cut -c 2-4 | rev)
-  hostList=$(cat $runtimelog  | grep "Target host" | tr ":" "\t" | awk {' print $11 '})
+  hostList=$(cat $runtimelog  | grep "JobManager" | grep "Target host" | tr ":" "\t" | awk {' print $11 '})
 
   position=1
   while  read -r line; do

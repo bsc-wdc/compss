@@ -4,6 +4,7 @@ import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
@@ -13,14 +14,14 @@ public class CloudMethodWorker extends MethodWorker {
     private final LinkedList<PendingReduction> pendingReductions;
     private final CloudMethodResourceDescription toRemove;
 
-    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks) {
-        super(description.getName(), description, worker, limitOfTasks);
+    public CloudMethodWorker(CloudMethodResourceDescription description, COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+        super(description.getName(), description, worker, limitOfTasks, sharedDisks);
         this.toRemove = new CloudMethodResourceDescription();
         this.pendingReductions = new LinkedList<PendingReduction>();
     }
 
-    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config) {
-        super(name, description, config);
+    public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config, HashMap<String, String> sharedDisks) {
+        super(name, description, config, sharedDisks);
 
         if (this.description != null) {
             // Add name

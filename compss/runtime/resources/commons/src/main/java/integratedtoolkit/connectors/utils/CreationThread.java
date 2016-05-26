@@ -60,7 +60,8 @@ public class CreationThread extends Thread {
             try {
                 granted = createResourceOnProvider(requested);
             } catch (Exception e) {
-                notifyFailure();
+            	runtimeLogger.error("Error creating resource.", e);
+            	notifyFailure();
                 return;
             }
             if (debug) {
@@ -93,8 +94,15 @@ public class CreationThread extends Thread {
                 }
             } else {
             	int limitOfTasks = granted.getDescription().getTotalComputingUnits();
-                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks);
-
+                r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks, rcr.getRequested().getImage().getSharedDisks());
+                try {
+                	r.start();
+                } catch (Exception e) {
+                    runtimeLogger.error("Error reusing resource.", e);
+                    powerOff(granted);
+                    notifyFailure();
+                    return;
+                }
                 if (debug) {
                     runtimeLogger.debug(" Worker for new resource " + granted.getName() + " set.");
                 }
@@ -199,8 +207,8 @@ public class CreationThread extends Thread {
             } else {
                 mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
             }
-            worker = new CloudMethodWorker(granted.getName(), granted, mc);
-            worker.start(cid.getSharedDisks());
+            worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
+            worker.start();
         } catch (Exception e) {
             runtimeLogger.error("Error starting the worker application in machine " + granted.getName(), e);
             resourceLogger.error("ERROR_MSG = [\n\tError starting the worker application in machine\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]");
@@ -247,11 +255,12 @@ public class CreationThread extends Thread {
             throw new Exception("Useless VM");
         }
 
-        for (java.util.Map.Entry<String, String> disk : cid.getSharedDisks().entrySet()) {
+        /* Added in the worker creation
+         * for (java.util.Map.Entry<String, String> disk : cid.getSharedDisks().entrySet()) {
             String diskName = disk.getKey();
             String mounpoint = disk.getValue();
             worker.addSharedDisk(diskName, mounpoint);
-        }
+        }*/
 
         return worker;
     }

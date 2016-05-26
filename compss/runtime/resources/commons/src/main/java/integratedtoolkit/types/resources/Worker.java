@@ -6,6 +6,7 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.CoreManager;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 
@@ -28,8 +29,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private int usedTaskCount = 0;
     private final int maxTaskCount;
 
-    public Worker(String name, T description, COMPSsNode worker, int limitOfTasks) {
-        super(worker);
+    public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+        super(worker, sharedDisks);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
@@ -45,8 +46,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.maxTaskCount = limitOfTasks;
     }
 
-    public Worker(String name, T description, Configuration config) {
-        super(name, config);
+    public Worker(String name, T description, Configuration config, HashMap<String, String> sharedDisks) {
+        super(name, config, sharedDisks);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];

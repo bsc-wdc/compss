@@ -233,11 +233,13 @@ public class ResourceManager {
      * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
-        for (java.util.Map.Entry<String, String> disk : sharedDisks.entrySet()) {
-            String diskName = disk.getKey();
-            String mountPoint = disk.getValue();
-            Comm.appHost.addSharedDisk(diskName, mountPoint);
-        }
+    	Comm.appHost.updateSharedDisk(sharedDisks);
+       	try {
+			Comm.appHost.start();
+		} catch (Exception e) {
+			ErrorManager.error("Error updating master configuration",e);
+			
+		}
     }
 
     /**
@@ -260,7 +262,7 @@ public class ResourceManager {
             taskCount = Math.max(limitOfTasks, computingUnits);
         }
         mc.setLimitOfTasks(taskCount);
-        MethodWorker newResource = new MethodWorker(name, rd, mc);
+        MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
         addStaticResource(newResource);
     }
 

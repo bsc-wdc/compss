@@ -1,5 +1,7 @@
 package integratedtoolkit.types.resources;
 
+import java.util.HashMap;
+
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
@@ -9,7 +11,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
 
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
-        super(wsdl, description, conf);
+        super(wsdl, description, conf, null);
         this.wsdl = wsdl;
     }
 

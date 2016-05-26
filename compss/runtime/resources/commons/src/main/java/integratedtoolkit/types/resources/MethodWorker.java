@@ -1,5 +1,7 @@
 package integratedtoolkit.types.resources;
 
+import java.util.HashMap;
+
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
@@ -11,14 +13,14 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
-    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks) {
-        super(name, description, worker, limitOfTasks);
+    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+        super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf) {
-        super(name, description, conf);
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf,HashMap<String, String> sharedDisks) {
+        super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
     }

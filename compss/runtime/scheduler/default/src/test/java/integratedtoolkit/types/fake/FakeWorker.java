@@ -1,5 +1,7 @@
 package integratedtoolkit.types.fake;
 
+import java.util.HashMap;
+
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
@@ -10,7 +12,7 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     private final FakeResourceDescription available;
 
     public FakeWorker(String name, FakeResourceDescription description, int limitOfTasks) {
-        super(name, description, new FakeNode(name), limitOfTasks);
+        super(name, description, new FakeNode(name), limitOfTasks, null);
         available = (FakeResourceDescription) description.copy();
     }
 

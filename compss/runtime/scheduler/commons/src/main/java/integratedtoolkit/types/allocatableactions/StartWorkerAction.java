@@ -53,7 +53,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
             public void run() {
                 Thread.currentThread().setName(selectedResource.getResource().getName() + " starter");
                 try {
-                    selectedResource.getResource().start(new HashMap<String, String>());
+                    selectedResource.getResource().start();
                     notifyCompleted();
                 } catch (Exception e) {
                     logger.error("Error starting resource", e);

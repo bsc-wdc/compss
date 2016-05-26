@@ -129,6 +129,9 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
+            if (debug) {
+            	jobLogger.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
+            }
             param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName));
             return;
         }
@@ -279,7 +282,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         sb.append("\n");
         sb.append("Check files '").append(Comm.appHost.getJobsDirPath()).append("job[");
         Iterator<Integer> j = jobs.iterator();
-        while (true) {
+        while (j.hasNext()) {
             sb.append(j.next());
             if (!j.hasNext()) {
                 break;

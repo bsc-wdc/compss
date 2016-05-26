@@ -398,6 +398,7 @@ public abstract class Tracer {
             logger.error("Error generating master package", e);
             return;
         }
+        
         if (debug) {
             StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
             StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
@@ -457,12 +458,11 @@ public abstract class Tracer {
             logger.error("Error generating trace", e);
             return;
         }
-        if (debug) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
-            outputGobbler.start();
-            errorGobbler.start();
-        }
+        
+        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
+        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+        outputGobbler.start();
+        errorGobbler.start();
 
         try {
             int exitCode = p.waitFor();

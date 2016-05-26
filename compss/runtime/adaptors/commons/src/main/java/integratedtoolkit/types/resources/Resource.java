@@ -50,18 +50,21 @@ public abstract class Resource implements Comparable<Resource> {
 
     private final String name;
     private final COMPSsNode node;
+    protected HashMap<String, String> sharedDisks;
 
     private LinkedList<String> obsoletes = new LinkedList<String>();
 
-    public Resource(String name, Configuration conf) {
+    public Resource(String name, Configuration conf, HashMap<String, String> sharedDisks) {
         this.name = name;
         this.node = Comm.initWorker(name, conf);
+        this.sharedDisks = sharedDisks;
         SharedDiskManager.addMachine(this);
     }
 
-    public Resource(COMPSsNode node) {
+    public Resource(COMPSsNode node, HashMap<String, String> sharedDisks) {
         this.name = node.getName();
         this.node = node;
+        this.sharedDisks = sharedDisks;
         SharedDiskManager.addMachine(this);
     }
 
@@ -70,15 +73,13 @@ public abstract class Resource implements Comparable<Resource> {
         node = clone.node;
     }
 
-    public void start(HashMap<String, String> disks) throws Exception {
+    public void start() throws Exception {
         this.node.start();
-        for (java.util.Map.Entry<String, String> disk : disks.entrySet()) {
-            addSharedDisk(disk.getKey(), disk.getValue());
-        }
-    }
-
-    public void addSharedDisk(String diskName, String diskMountpoint) {
-        SharedDiskManager.addSharedToMachine(diskName, diskMountpoint, this);
+        if (sharedDisks != null){
+        	for (java.util.Map.Entry<String, String> disk : sharedDisks.entrySet()) {
+        		SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), this);
+        	}
+    	}
     }
 
     public final void addObsolete(String obsoleteFile) {
@@ -100,7 +101,7 @@ public abstract class Resource implements Comparable<Resource> {
             return obs;
         }
     }
-
+    
     public String getName() {
         return name;
     }

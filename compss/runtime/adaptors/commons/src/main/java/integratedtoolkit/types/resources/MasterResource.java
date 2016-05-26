@@ -6,7 +6,9 @@ import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.types.COMPSsMaster;
 import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.util.ErrorManager;
+
 import java.io.File;
+import java.util.HashMap;
 
 
 public class MasterResource extends Resource {
@@ -32,7 +34,7 @@ public class MasterResource extends Resource {
 
     
     public MasterResource() {
-        super(new COMPSsMaster());
+        super(new COMPSsMaster(), null);
 
         //Gets user execution directory
         userExecutionDirPath = System.getProperty("user.dir");
@@ -252,5 +254,10 @@ public class MasterResource extends Resource {
             return 1;
         }
     }
+
+	public void updateSharedDisk(HashMap<String, String> sharedDisks) {
+		super.sharedDisks = sharedDisks;
+		
+	}
 
 }

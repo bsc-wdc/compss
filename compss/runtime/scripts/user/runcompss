@@ -535,7 +535,7 @@ check_args() {
     jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
   # Change jvm master opts separation character "," by " "
-  jvm_master_opts=$(echo $jvm_master_opts | tr "," " ")
+  jvm_master_opts=$(echo $jvm_master_opts | tr "," "\n")
 
   if [ -z "${jvm_workers_opts}" ]; then
     jvm_workers_opts=${DEFAULT_JVM_WORKERS}

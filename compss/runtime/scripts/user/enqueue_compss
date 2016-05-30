@@ -101,6 +101,15 @@ EOT
   exit $exitValue
 }
 
+# Displays version
+display_version() {
+  local exitValue=$1
+
+  runcompss --version
+
+  exit $exitValue
+}
+
 # Displays parsing arguments errors
 display_error() {
   local error_msg=$1
@@ -142,6 +151,10 @@ get_args() {
 	    # Display help
 	    usage 0
 	    ;;
+          version)
+            # Display compss version
+            display_version 0
+            ;;
 	  exec_time=*)
 	    exec_time=$(echo $OPTARG | sed -e 's/exec_time=//g')
 	    ;;

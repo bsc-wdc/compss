@@ -49,8 +49,9 @@
 
 		<!-- Storage -->
 		<dependency>
-			<groupId>es.bsc.storage</groupId>
-			<artifactId>storageInterface</artifactId>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-storage</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Engine dependencies -->

@@ -1,5 +1,34 @@
 #!/bin/bash
 
+  #---------------------------------------------------------------------------------------
+  # HELPER FUNCTIONS
+  #---------------------------------------------------------------------------------------
+  load_tracing_env() {
+    local module_tmp=$(mktemp)
+    module list 2> ${module_tmp}
+
+    # Look for openmpi / impi / none
+    impi=$(cat ${module_tmp} | grep -i "impi")
+    openmpi=$(cat ${module_tmp} | grep -i "openmpi")
+    
+    if [ -z "$impi" ]; then
+      # Load Extrae IMPI
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-impi/
+    elif [ -z "$openmpi" ]; then
+      # Load Extrae OpenMPI
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-openmpi/
+    else 
+      # Load sequential extrae
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae/
+    fi
+
+    # Clean tmp file
+    rm -f ${module_tmp}º
+  }
+
+  #---------------------------------------------------------------------------------------
+  # MAIN
+  #---------------------------------------------------------------------------------------
   #Get script parameters
   IT_HOME=$1
   LSB_DJOB_HOSTFILE=$2
@@ -252,8 +281,10 @@ EOT
        w_tracing=0
     elif [ $tracing == "basic" ] || [ $tracing == "true" ]; then
        w_tracing=1
+       load_tracing_env
     elif [ $tracing == "advanced" ]; then
        w_tracing=2
+       load_tracing_env
     fi
 
     # Adapt debug flag to worker script

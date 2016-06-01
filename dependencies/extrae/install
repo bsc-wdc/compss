@@ -29,8 +29,13 @@
     # No MPI available
     mpiArg="--without-mpi"
   else
-    # MPI available
-    mpiBaseDir=${mpiPath%/bin**}
+    # MPI available detect openmpi or impi
+    if [ -z "$I_MPI_ROOT" ]; then
+        mpiBaseDir=${mpiPath%/bin**}
+    else
+        mpiBaseDir=${I_MPI_ROOT}
+    fi
+
     mpiArg="--with-mpi=${mpiBaseDir} --enable-parallel-merge"
   fi
 

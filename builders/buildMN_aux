@@ -36,7 +36,7 @@
 
   # Load needed modules on MN
   echo "- Load modules on MN account"
-  module load PYTHON/2.7.3 BOOST/1.52.0 java/1.7.0u55 PAPI/5.4.1 openmpi/1.8.1
+  module load PYTHON/2.7.3 BOOST/1.52.0 java/1.7.0u55 PAPI/5.4.1 
   if [ $? -ne 0 ]; then
     echo "ERROR: Cannot load required modules"
     exit 1
@@ -76,9 +76,25 @@
   cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
   cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/
   cd ${tmpDir}/dependencies/extrae
-  ./install ${targetDir}/Dependencies/extrae true
+  # Sequential installation
+  ./install ${targetDir}/Dependencies/extrae false
   if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to install extrae dependency"
+    echo "ERROR: Failed to install extrae sequential dependency"
+    exit 1
+  fi
+  # OpenMPI
+  module load openmpi/1.8.1
+  ./install ${targetDir}/Dependencies/extrae-openmpi true
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install extrae openmpi dependency"
+    exit 1
+  fi
+  # IMPI
+  module unload openmpi
+  module load impi
+  ./install ${targetDir}/Dependencies/extrae-impi true
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to install extrae impi dependency"
     exit 1
   fi
   cd ${scriptDir}

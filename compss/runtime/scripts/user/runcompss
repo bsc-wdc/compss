@@ -202,7 +202,7 @@ check_env() {
   fi
 
   if [ -z "${EXTRAE_LIB}" ]; then
-    EXTRAE_LIB=${IT_HOME}/Dependencies/extrae/lib
+    EXTRAE_LIB=${EXTRAE_HOME}/lib
   fi
 
   if [[ -z "$JAVA_HOME" ]]; then
@@ -673,7 +673,7 @@ exec_java() {
   local JAVACMD=$JAVA" ${java_opts}"
 
   if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
 
   # Launch application
@@ -714,7 +714,7 @@ exec_c() {
   echo -e "\nArgs: $application_args \n"
 
   if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
   $fullAppPath $application_args
   endCode=$?
@@ -753,7 +753,7 @@ exec_python() {
 
   # Launch application
   if [ $tracing -gt 0 ]; then
-    export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+    export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
   python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $fullAppPath $application_args
   endCode=$?

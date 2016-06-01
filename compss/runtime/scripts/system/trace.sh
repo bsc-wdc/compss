@@ -4,7 +4,7 @@
   # Define script variables and exports
   #-------------------------------------
   scriptDir=$(dirname $0)
-  extraeDir=$scriptDir/../../../Dependencies/extrae
+  extraeDir=$EXTRAE_HOME
  
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
   #-------------------------------------

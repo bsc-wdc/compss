@@ -11,10 +11,10 @@
     impi=$(cat ${module_tmp} | grep -i "impi")
     openmpi=$(cat ${module_tmp} | grep -i "openmpi")
     
-    if [ -z "$impi" ]; then
+    if [ ! -z "$impi" ]; then
       # Load Extrae IMPI
       export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-impi/
-    elif [ -z "$openmpi" ]; then
+    elif [ ! -z "$openmpi" ]; then
       # Load Extrae OpenMPI
       export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-openmpi/
     else 

@@ -21,6 +21,7 @@ public abstract class TDRequest<P extends Profile, T extends WorkerResourceDescr
         CE_REGISTRATION,
         EXECUTE_TASKS,
         GET_CURRENT_SCHEDULE,
+        PRINT_CURRENT_GRAPH,
         MONITORING_DATA,
         TD_SHUTDOWN,
         UPDATE_CEI_LOCAL,

@@ -33,8 +33,9 @@ public class CoresViewModel {
     	//Import new resources
     	for (String[] dc : newCoreData) {
     		//Check color
-    		int i = Integer.parseInt(dc[0]) % Constants.CORE_COLOR_MAX;
-    		String color = File.separator + "images" + File.separator + "colors" + File.separator + i + ".png";
+    		int taskId = Integer.parseInt(dc[0]) + 1;	// +1 To shift according to COLORS and tracing
+    		int colorId = taskId % Constants.CORE_COLOR_MAX;
+    		String color = File.separator + "images" + File.separator + "colors" + File.separator + colorId + ".png";
 			
 			//                color, name,  params, avgExecTime, executedCount)
     		Core c = new Core (color, dc[1], dc[2], dc[3], dc[4]);

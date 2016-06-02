@@ -81,6 +81,10 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         }
 
     }
+    
+    public Task getTask() {
+    	return this.task;
+    }
 
     @Override
     protected boolean areEnoughResources() {

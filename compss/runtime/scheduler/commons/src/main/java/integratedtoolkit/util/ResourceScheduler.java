@@ -124,6 +124,10 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     public final LinkedList<AllocatableAction<P, T>> getHostedActions() {
         return running;
     }
+    
+    public final LinkedList<AllocatableAction<P, T>> getBlockedActions() {
+    	return blocked;
+    }
 
     public final void unhostAction(AllocatableAction<P, T> action) {
         running.remove(action);

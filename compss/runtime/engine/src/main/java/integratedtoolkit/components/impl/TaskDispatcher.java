@@ -16,9 +16,10 @@ import integratedtoolkit.util.Classpath;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.Tracer;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-
 import java.lang.reflect.Constructor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
@@ -180,6 +181,18 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         } catch (InterruptedException e) {
         }
         return (String) request.getResponse();
+    }
+    
+    public void printCurrentGraph(BufferedWriter graph) {
+    	Semaphore sem = new Semaphore(0);
+    	PrintCurrentGraphRequest request = new PrintCurrentGraphRequest(sem, graph);
+    	addRequest(request);
+    	
+    	// Synchronize until request has been processed
+    	try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
     }
 
     @Override

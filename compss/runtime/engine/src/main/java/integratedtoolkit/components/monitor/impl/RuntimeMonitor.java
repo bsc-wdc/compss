@@ -83,7 +83,7 @@ public class RuntimeMonitor implements Runnable {
         // Configure and start internal monitor thread
         this.keepRunning = true;
         this.sleepTime = sleepTime;
-        installDir = System.getenv().get("IT_HOME");
+        installDir = System.getenv().get(ITConstants.IT_HOME);
         monitor = new Thread(this);
         monitor.setName("Monitor Thread");
         monitor.start();
@@ -97,8 +97,13 @@ public class RuntimeMonitor implements Runnable {
         running = true;
         while (keepRunning) {
             try {
+            	// Print XML state for Monitor
                 getXMLTaskState();
-                this.GM.printCurrentGraphState();
+                
+                // Print current task graph
+                printCurrentGraph();
+                
+                // Print load and resources information on log
                 ResourceManager.printLoadInfo();
                 ResourceManager.printResourcesState();
                 Thread.sleep(sleepTime);
@@ -119,8 +124,11 @@ public class RuntimeMonitor implements Runnable {
             while (running) {
                 Thread.sleep(sleepTime);
             }
+            // Print XML state for Monitor
             getXMLTaskState();
-            this.GM.printCurrentGraphState();
+            
+            // Print current task graph
+            printCurrentGraph();
         } catch (Exception e) {
         	logger.error(ERROR_GENERATING_DATA, e);
         }
@@ -145,6 +153,15 @@ public class RuntimeMonitor implements Runnable {
         fw.write(sb.toString());
         fw.close();
         fw = null;
+    }
+    
+    /**
+     * Prints the current graph to the specified GM file
+     */
+    private void printCurrentGraph() {
+    	BufferedWriter graph = this.GM.getAndOpenCurrentGraph();
+        this.TD.printCurrentGraph(graph);
+        this.GM.closeCurrentGraph();
     }
     
     public static String getMonitorDirPath() {

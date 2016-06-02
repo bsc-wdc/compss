@@ -297,6 +297,21 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
         return runningActions.toString();
     }
+    
+    public LinkedList<AllocatableAction<P,T>> getBlockedActions() {
+    	// Parameter null to get all blocked actions
+        return this.blockedActions.getActions(null);
+    }
+    
+    public LinkedList<AllocatableAction<P,T>> getHostedActions(Worker<T> worker) {
+    	ResourceScheduler<P,T> ui = workers.get(worker);
+        return ui.getHostedActions();
+    }
+    
+    public LinkedList<AllocatableAction<P,T>> getBlockedActionsOnResource(Worker<T> worker) {
+    	ResourceScheduler<P,T> ui = workers.get(worker);
+        return ui.getBlockedActions();
+    }
 
     public String getCoresMonitoringData(String prefix) {
         StringBuilder coresInfo = new StringBuilder();

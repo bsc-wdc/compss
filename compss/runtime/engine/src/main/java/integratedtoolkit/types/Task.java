@@ -122,8 +122,8 @@ public class Task implements Comparable<Task> {
         } else { //Service
             shape = "diamond";
         }
-        // Future Shapes "triangle" "square" "pentagon"
-        
+        //TODO: Future Shapes "triangle" "square" "pentagon"
+       
         return getId()
                 + "[shape=" + shape + ", "
                 + "style=filled fillcolor=\"" + color.getFillColor() + "\" fontcolor=\"" + color.getFontColor() + "\"];";

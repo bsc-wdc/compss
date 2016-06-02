@@ -2,8 +2,7 @@ package integratedtoolkit.types;
 
 public class Profile {
 
-    protected long executions;
-
+    private long executions;
     private long startTime;
     private long minTime;
     private long averageTime;
@@ -21,17 +20,18 @@ public class Profile {
     }
 
     public void end() {
+    	++executions;
         averageTime = System.currentTimeMillis() - startTime;
         minTime = averageTime;
         maxTime = averageTime;
     }
 
-    public long getStartTime() {
-        return startTime;
-    }
-
     public long getExecutionCount() {
         return executions;
+    }
+    
+    public long getStartTime() {
+        return startTime;
     }
 
     public long getMinExecutionTime() {

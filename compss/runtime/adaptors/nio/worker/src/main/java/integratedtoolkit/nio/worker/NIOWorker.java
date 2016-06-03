@@ -598,6 +598,7 @@ public class NIOWorker extends NIOAgent {
 	}
 
     private void removeFolder(String sandBox) throws IOException {
+
         File wdirFile = new File(sandBox);
         remove(wdirFile);
     }

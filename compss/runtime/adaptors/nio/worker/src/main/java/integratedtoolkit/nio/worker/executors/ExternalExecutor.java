@@ -97,6 +97,8 @@ public abstract class ExternalExecutor extends Executor {
     public abstract ArrayList<String> getLaunchCommand(NIOTask nt);
 
     private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
+        lArgs.add(Boolean.toString(tracing));
+        lArgs.add(Integer.toString(nt.getTaskId()));
         lArgs.add(Boolean.toString(nt.isWorkerDebug()));
         lArgs.add(nt.getClassName());
         lArgs.add(nt.getMethodName());

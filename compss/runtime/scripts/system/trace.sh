@@ -44,6 +44,10 @@
     node=$1
     #echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
+    tasksTraces=$(find . -name "*.prv")
+    if [ ! -z "$tasksTraces" ]; then
+	files+=" $tasksTraces"
+    fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
     fi    
@@ -61,6 +65,7 @@
         #echo "trace:: $tmpDir -xvzf $file"
         cat $tmpDir/TRACE.mpits >> TRACE.mpits
         cp -r $tmpDir/set-* .
+	find $tmpDir -name "*.prv" -exec cp {} ./trace \;
         if [ -f $tmpDir/TRACE.sym ]; then
             cp $tmpDir/TRACE.sym .
         fi

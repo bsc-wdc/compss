@@ -19,6 +19,8 @@ from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 
 from cPickle import loads, UnpicklingError
 
+EXTRAE_EVENTS = 96669
+
 if sys.version_info >= (2, 7):
     import importlib
 
@@ -141,7 +143,11 @@ def compss_worker():
             logger.debug("Version < 2.7")
         
         with TaskContext(logger, values):
+            if tracing:
+                pyextrae.eventandcounters(EXTRAE_EVENTS, 2)
             getattr(module, method_name)(*values, compss_types=types)
+            if tracing:
+                pyextrae.eventandcounters(EXTRAE_EVENTS, 0)
         '''
         # Old school
         # Storage Prolog
@@ -175,7 +181,7 @@ def compss_worker():
             module_name = path
 
         module = __import__(module_name, fromlist=[class_name])
-        
+
         klass = getattr(module, class_name)
 
         logger.debug("Method in class %s of module %s"
@@ -205,7 +211,7 @@ def compss_worker():
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)    # class must be first type
-            
+
             with TaskContext(logger, values):
                 getattr(klass, method_name)(*values, compss_types=types)
             ''' Old school
@@ -226,18 +232,24 @@ def compss_worker():
 
 
 if __name__ == "__main__":
+
+    # Emit sync event if tracing is enabled
+    tracing = sys.argv[1] == 'True'
+    taskId = int(sys.argv[2])
+
+    if tracing:
+        import pyextrae
+        pyextrae.eventandcounters(EXTRAE_EVENTS, 1)
+
+    # Shift tracing args
+    sys.argv = sys.argv[2:]
+
     # Load log level configuration file
     log_level = sys.argv[1]
-    if log_level == 'true':
+    if log_level == 'true' or log_level == "debug":
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json.debug')
-    elif log_level == "debug":
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.debug')
-    elif log_level == "info":
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.off')
-    elif log_level == "off":
+    elif log_level == "info" or log_level == "off":
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json.off')
     else:
@@ -247,3 +259,5 @@ if __name__ == "__main__":
 
     # Init worker
     compss_worker()
+    if tracing:
+        pyextrae.eventandcounters(EXTRAE_EVENTS, 0)

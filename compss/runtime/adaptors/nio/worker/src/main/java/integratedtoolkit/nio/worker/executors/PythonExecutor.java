@@ -20,6 +20,7 @@ public class PythonExecutor extends ExternalExecutor {
 		/*lArgs.add("/bin/bash");
 		lArgs.add("-e");
 		lArgs.add("-c");*/
+		lArgs.add("export EXTRAE_CONFIG_FILE=INSERT_PATH_HERE/extrae_task.xml;");
 		lArgs.add("python");
 		lArgs.add("-u");
 		lArgs.add(pycompssHome + WORKER_PY_RELATIVE_PATH);

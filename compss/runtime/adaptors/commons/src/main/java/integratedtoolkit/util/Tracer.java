@@ -29,6 +29,7 @@ public abstract class Tracer {
     private static final String taskIdDesc 			= "Task IDs";
     private static final String dataTransfersDesc 	= "Data Transfers";
     private static final String storageDesc 		= "Storage API";
+    private static final String insideTaskDesc 		= "Events inside tasks";
 
     protected static final String TRACE_SCRIPT_PATH 	= File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system" + File.separator + "trace.sh";
     protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
@@ -38,12 +39,13 @@ public abstract class Tracer {
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-    protected static final int TASKS_FUNC_TYPE 	= 8_000_000;
-    protected static final int RUNTIME_EVENTS 	= 8_000_001;
-    protected static final int TASKS_ID_TYPE 	= 8_000_002;
-    protected static final int TASK_TRANSFERS 	= 8_000_003;
-    protected static final int DATA_TRANSFERS 	= 8_000_004;
-    protected static final int STORAGE_TYPE 	= 8_000_005;
+    private static final int TASKS_FUNC_TYPE 	= 8_000_000;
+    private static final int RUNTIME_EVENTS 	= 8_000_001;
+    private static final int TASKS_ID_TYPE 	= 8_000_002;
+    private static final int TASK_TRANSFERS 	= 8_000_003;
+    private static final int DATA_TRANSFERS 	= 8_000_004;
+    private static final int STORAGE_TYPE 	= 8_000_005;
+    private static final int INSIDE_TASKS_TYPE	= 8_000_010;
 
     public static final int EVENT_END = 0;
 
@@ -200,6 +202,11 @@ public abstract class Tracer {
 
     public static int getTaskTransfersType() {
         return TASK_TRANSFERS;
+    }
+
+
+    public static int getDataTransfersType() {
+        return DATA_TRANSFERS;
     }
 
     public static int getTaskEventsType() {
@@ -381,6 +388,14 @@ public abstract class Tracer {
         descriptionValues = new String[size];
 
         Wrapper.defineEventType(TASKS_ID_TYPE, taskIdDesc, values, descriptionValues);
+
+        // Definition of Events inside task
+        size = 0;
+        values = new long[size];
+
+        descriptionValues = new String[size];
+
+        Wrapper.defineEventType(INSIDE_TASKS_TYPE, insideTaskDesc, values, descriptionValues);
     }
 
     public static void generateMasterPackage() {

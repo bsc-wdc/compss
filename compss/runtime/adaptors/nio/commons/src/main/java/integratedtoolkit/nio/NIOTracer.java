@@ -56,7 +56,7 @@ public class NIOTracer extends Tracer {
         int transferID = (data.equals(TRANSFER_END)) ? 0 : abs(data.hashCode());
         
         if (dataTransfer){
-            emitEvent(transferID, DATA_TRANSFERS);
+            emitEvent(transferID, getDataTransfersType());
         }
 
         if (debug) {

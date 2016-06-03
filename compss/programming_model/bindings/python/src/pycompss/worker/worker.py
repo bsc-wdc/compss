@@ -19,7 +19,8 @@ from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 
 from cPickle import loads, UnpicklingError
 
-EXTRAE_EVENTS = 96669
+SYNC_EVENTS = 96669
+TASK_EVENTS = 8000010
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -144,10 +145,12 @@ def compss_worker():
         
         with TaskContext(logger, values):
             if tracing:
-                pyextrae.eventandcounters(EXTRAE_EVENTS, 2)
+                pyextrae.eventandcounters(TASK_EVENTS, 0)
+                pyextrae.eventandcounters(TASK_EVENTS, 2)
             getattr(module, method_name)(*values, compss_types=types)
             if tracing:
-                pyextrae.eventandcounters(EXTRAE_EVENTS, 0)
+                pyextrae.eventandcounters(TASK_EVENTS, 0)
+                pyextrae.eventandcounters(TASK_EVENTS, 3)
         '''
         # Old school
         # Storage Prolog
@@ -234,12 +237,13 @@ def compss_worker():
 if __name__ == "__main__":
 
     # Emit sync event if tracing is enabled
-    tracing = sys.argv[1] == 'True'
+    tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])
 
     if tracing:
         import pyextrae
-        pyextrae.eventandcounters(EXTRAE_EVENTS, 1)
+        pyextrae.eventandcounters(SYNC_EVENTS, taskId)
+        pyextrae.eventandcounters(TASK_EVENTS, 1)
 
     # Shift tracing args
     sys.argv = sys.argv[2:]
@@ -260,4 +264,5 @@ if __name__ == "__main__":
     # Init worker
     compss_worker()
     if tracing:
-        pyextrae.eventandcounters(EXTRAE_EVENTS, 0)
+        pyextrae.eventandcounters(TASK_EVENTS, 0)
+        pyextrae.eventandcounters(SYNC_EVENTS, 0)

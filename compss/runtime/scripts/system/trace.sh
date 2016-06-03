@@ -4,8 +4,9 @@
   # Define script variables and exports
   #-------------------------------------
   scriptDir=$(dirname $0)
+
   extraeDir=$EXTRAE_HOME
- 
+
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
   #-------------------------------------
   # Get common parameters
@@ -65,7 +66,11 @@
         #echo "trace:: $tmpDir -xvzf $file"
         cat $tmpDir/TRACE.mpits >> TRACE.mpits
         cp -r $tmpDir/set-* .
-	find $tmpDir -name "*.prv" -exec cp {} ./trace \;
+        files=$(find $tmpDir -name "*.prv")
+        if [ ! -z "$files" ]; then
+            nodeDir=$(mktemp -d --tmpdir="$(pwd)/trace")
+            find $tmpDir -name "*.prv" -exec cp {} $nodeDir \;
+        fi
         if [ -f $tmpDir/TRACE.sym ]; then
             cp $tmpDir/TRACE.sym .
         fi
@@ -78,6 +83,10 @@
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     else
         mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+    fi
+    endCode=$?
+    if [ $endCode -eq 0 ]; then
+        ${scriptDir}/trace-merger.sh ${appName}_compss_trace_${sec}.prv ${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym

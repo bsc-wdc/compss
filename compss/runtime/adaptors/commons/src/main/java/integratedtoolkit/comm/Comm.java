@@ -246,17 +246,17 @@ public class Comm {
             String pscoId = ((PSCOId) (p.getValue())).getId();
             try {
                 if (tracing) {
-                    Tracer.masterEventStart(Tracer.Event.STORAGE_GETLOCATIONS.getId());
+                    Tracer.emitEvent(Tracer.Event.STORAGE_GETLOCATIONS.getId(), Tracer.Event.STORAGE_GETLOCATIONS.getType());
                 }
                 backends = StorageItf.getLocations(pscoId);
                 if (tracing) {
-                    Tracer.masterEventFinish();
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETLOCATIONS.getType());
                 }
             } catch (StorageException e) {
                 backends = new LinkedList<String>();
                 ErrorManager.warn(e.getMessage());
                 if (tracing) {
-                    Tracer.masterEventFinish();
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETLOCATIONS.getType());
                 }
             }
             ((PSCOId) p.getValue()).setBackends(backends);

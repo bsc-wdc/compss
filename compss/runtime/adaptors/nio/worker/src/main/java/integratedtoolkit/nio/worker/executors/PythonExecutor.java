@@ -23,7 +23,9 @@ public class PythonExecutor extends ExternalExecutor {
 		/*lArgs.add("/bin/bash");
 		lArgs.add("-e");
 		lArgs.add("-c");*/
-		lArgs.add("export EXTRAE_CONFIG_FILE=" + nt.getInstallDir() + WORKER_TRACING_CONFIG_FILE_RELATIVE_PATH + File.separator + "extrae_task.xml;");
+		if (tracing){
+			lArgs.add("export EXTRAE_CONFIG_FILE=" + nt.getInstallDir() + WORKER_TRACING_CONFIG_FILE_RELATIVE_PATH + File.separator + "extrae_task.xml;");
+		}
 		lArgs.add("python");
 		lArgs.add("-u");
 		lArgs.add(pycompssHome + WORKER_PY_RELATIVE_PATH);

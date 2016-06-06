@@ -62,6 +62,7 @@ def compss_worker():
     values = []
     types = []
 
+    pyextrae.event(TASK_EVENTS, 2)
     # Get all parameter values
     for i in range(0, num_params):
         ptype = int(args[pos])
@@ -118,7 +119,7 @@ def compss_worker():
             exit(1)
 
         pos += 2
-
+    pyextrae.event(TASK_EVENTS, 0)
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
         types_str = ''
@@ -146,11 +147,11 @@ def compss_worker():
         with TaskContext(logger, values):
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, 2)
+                pyextrae.eventandcounters(TASK_EVENTS, 3)
             getattr(module, method_name)(*values, compss_types=types)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, 3)
+                pyextrae.eventandcounters(TASK_EVENTS, 4)
         '''
         # Old school
         # Storage Prolog

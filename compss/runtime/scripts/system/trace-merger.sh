@@ -67,6 +67,7 @@ $(grep $WORKER_SYNC_TYPE $taskPrv)"
     for event in ${events}; do
         extract_task_info "$event"
         new_event="${resource_id}${new_task_info}"
+	echo $new_event >> $mainTraceFile
     done
 done
 cd $baseDir

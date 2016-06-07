@@ -12,7 +12,6 @@
   ERROR_SUBMIT_SCRIPT="Cannot create the submit script"
   ERROR_SUBMIT="Cannot submit the job"
   ERROR_TASKS_PER_NODE="Incorrect number of tasks per node. MINIMUM 1."
-  ERROR_TASKS_MASTER_NIO="Using master as worker is not supported with NIO Adaptor"
 
   ###############################
   # FUNCTIONS
@@ -114,9 +113,6 @@
   fi
   if [ ${tasks_per_node} -lt 1 ]; then
      display_error "${ERROR_TASKS_PER_NODE}" 1
-  fi
-  if [ ${tasks_in_master} -ne 0 ] && [ "${comm/NIO}" != "${comm}" ]; then
-     display_error "${ERROR_TASKS_MASTER_NIO}" 1
   fi
 
   #Create TMP DIR for submit script

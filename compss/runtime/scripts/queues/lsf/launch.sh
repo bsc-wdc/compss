@@ -33,24 +33,27 @@
   IT_HOME=$1
   LSB_DJOB_HOSTFILE=$2
   tasks_per_node=$3
-  tasks_in_master=$4
-  worker_WD_type=$5
-  specific_log_dir=$6
-  jvm_master_opts=$7
-  jvm_workers_opts=$8
-  network=$9
-  master_port=${10}
-  library_path=${11}
-  cp=${12}
-  log_level=${13}
-  tracing=${14}
-  comm=${15}
-  storageName=${16}
-  storageConf=${17}
-  taskExecution=${18}
+  worker_in_master_tasks=$4
+  worker_in_master_memory=$5
+  worker_WD_type=$6
+  specific_log_dir=$7
+  jvm_master_opts=$8
+  jvm_workers_opts=$9
+  jvm_worker_in_master_opts=${10}
+  network=${11}
+  node_memory=${12}
+  master_port=${13}
+  library_path=${14}
+  cp=${15}
+  log_level=${16}
+  tracing=${17}
+  comm=${18}
+  storageName=${19}
+  storageConf=${20}
+  taskExecution=${21}
 
   #Leave COMPSs parameters in $*
-  shift 18
+  shift 21
 
   #Set script variables
   export IT_HOME=${IT_HOME}
@@ -71,6 +74,14 @@
   elif [ "${network}" == "data" ]; then
     network="-data"
   fi
+  if [ "${node_memory}" == "disabled" ]; then
+    # Default value
+    node_memory=28
+  else
+    # Change from MB to GB
+    node_memory=$(( node_memory / 1024 - 4))
+  fi
+
   sec=$(/bin/date +%s)
   RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
   PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
@@ -107,33 +118,31 @@ EOT
   echo "Master will run in ${MASTER_NODE}"
 
   if [ "${storageName}" != "dataclay" ]; then
-	  WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
-	  # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
+    WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
+    # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
   else 
-	  # Skip node assigned to COMPSs master and node assigned to DataClay Logic Module
-	  i=0
-	  space=" "
-	  for node in ${ASSIGNED_LIST}
-	  do
-		if [ $i -gt 1 ]
-		then
-		      WORKER_LIST=${WORKER_LIST}$node$space
-		fi
-		let i=i+1
-	  done
-	  WORKER_LIST=${WORKER_LIST%?}
+    # Skip node assigned to COMPSs master and node assigned to DataClay Logic Module
+    i=0
+    space=" "
+    for node in ${ASSIGNED_LIST}; do
+      if [ $i -gt 1 ]; then
+        WORKER_LIST=${WORKER_LIST}$node$space
+      fi
+      let i=i+1
+    done
+    WORKER_LIST=${WORKER_LIST%?}
   fi
 
   echo "List of workers:"
   echo "${WORKER_LIST}"
  
   # Add worker slots on master if needed
-  if [ ${tasks_in_master} -ne 0 ]; then
+  if [ ${worker_in_master_tasks} -ne 0 ]; then
 	ssh ${MASTER_NODE}${network} "/bin/mkdir -p ${worker_working_dir}"
 	/bin/cat >> ${RESOURCES_FILE} << EOT
     <ComputeNode Name="${MASTER_NODE}${network}">
         <Processor Name="MainProcessor">
-            <ComputingUnits>${tasks_in_master}</ComputingUnits>
+            <ComputingUnits>${worker_in_master_tasks}</ComputingUnits>
 	    <Architecture>Intel</Architecture>
 	    <Speed>2.6</Speed>
         </Processor>
@@ -143,7 +152,7 @@ EOT
             <Version>3.0.101-0.35-default</Version>
 	</OperatingSystem>
         <Memory>
-            <Size>28</Size>
+            <Size>${worker_in_master_memory}</Size>
         </Memory>
         <Software>
             <Application>JAVA</Application>
@@ -205,7 +214,7 @@ EOT
             <Version>3.0.101-0.35-default</Version>
         </OperatingSystem>
         <Memory>
-            <Size>28</Size>
+            <Size>${node_memory}</Size>
         </Memory>
         <Software>
             <Application>JAVA</Application>
@@ -293,17 +302,23 @@ EOT
     else
       debug="false"
     fi
-    # Get workers list
-    if [ ${tasks_in_master} -ne 0 ]; then
-      USED_WORKERS=${ASSIGNED_LIST}
-    else
-      USED_WORKERS=${WORKER_LIST}
-    fi
+
     # Start workers' processes
     hostid=1
+    if [ ${worker_in_master_tasks} -ne 0 ]; then
+      # Worker in master node
+      jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
+      jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
+      sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${MASTER_NODE}${network}
+      WCMD="blaunch ${MASTER_NODE} ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_worker_in_master_opts_size} ${jvm_worker_in_master_opts_str} ${debug} ${worker_in_master_tasks} 5 5 ${MASTER_NODE}${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
+      echo "CMD Worker $hostid launcher: $WCMD"
+      $WCMD&
+      hostid=$((hostid+1))
+    fi
+
     jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
     jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
-    for node in ${USED_WORKERS}; do
+    for node in ${WORKER_LIST}; do
       sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
       WCMD="blaunch $node ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts_str} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
       echo "CMD Worker $hostid launcher: $WCMD"
@@ -325,7 +340,7 @@ EOT
   # Cleanup
   echo "Cleanup TMP files"
   for node in ${WORKER_LIST}; do
-	ssh $node${network} "rm -rf ${worker_working_dir}"
+    ssh $node${network} "rm -rf ${worker_working_dir}"
   done
   rm -rf ${PROJECT_FILE}
   rm -rf ${RESOURCES_FILE}

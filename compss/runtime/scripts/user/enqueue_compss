@@ -11,7 +11,8 @@ MIN_NODES_REQ_SWITCH=4
 DEFAULT_QUEUE_SYSTEM=lsf
 DEFAULT_QUEUE=default
 DEFAULT_TASKS_PER_NODE=16
-DEFAULT_TASKS_IN_MASTER=0
+DEFAULT_WORKER_IN_MASTER_TASKS=0
+DEFAULT_WORKER_IN_MASTER_MEMORY=disabled
 DEFAULT_MASTER_WORKING_DIR=.
 DEFAULT_WORKER_WORKING_DIR=scratch
 DEFAULT_NETWORK=ethernet
@@ -19,8 +20,11 @@ DEFAULT_DEPENDENCY_JOB=None
 DEFAULT_RESERVATION=disabled
 DEFAULT_NODE_MEMORY=disabled
 DEFAULT_TASK_EXECUTION=compss
+DEFAULT_STORAGE_CONF=null
+DEFAULT_STORAGE_NAME=null
 DEFAULT_JVM_MASTER=""
 DEFAULT_JVM_WORKERS="-Xms24800m,-Xmx24800m,-Xmn1600m"
+DEFAULT_JVM_WORKER_IN_MASTER=""
 
 # Next default values need to be consistent with runcompss
 DEFAULT_LIBRARY_PATH=.
@@ -38,8 +42,12 @@ ERROR_WORKER_WD="Invalid Worker Working Dir option"
 ERROR_NETWORK="Invalid network option"
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
-ERROR_NODE_MEMORY="Incorrect node memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
-
+ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
+ERROR_WORKER_IN_MASTER_TASKS="Parameter worker_in_master_tasks is bigger than the maximum number of tasks_per_node"
+ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
+ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH="Parameter worker_in_master_memory exceeds the node_memory limit"
+ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_tasks is not 0"
+ 
 #---------------------------------------------------
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
@@ -84,9 +92,13 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
                                             Default: ${DEFAULT_MASTER_WORKING_DIR}
     --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
-    --tasks_in_master=<int>                 Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
-					    Default: ${DEFAULT_TASKS_IN_MASTER}
-
+    --worker_in_master_tasks=<int>          Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
+					    Default: ${DEFAULT_WORKER_IN_MASTER_TASKS}
+    --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
+                                            Mandatory if worker_in_master_tasks is specified.
+                                            Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
+    --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. Each option separed by "," and without blank spaces (Notice the quotes)
+                                            Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
     --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
                                             Default: ${DEFAULT_TASK_EXECUTION}
     --storage_conf=<path>		    Path to the storage configuration file
@@ -188,8 +200,11 @@ get_args() {
 	  worker_working_dir=*)
 	    worker_working_dir=$(echo $OPTARG | sed -e 's/worker_working_dir=//g')
 	    ;; 
-          tasks_in_master=*)
-            tasks_in_master=$(echo $OPTARG | sed -e 's/tasks_in_master=//g')
+          worker_in_master_tasks=*)
+            worker_in_master_tasks=$(echo $OPTARG | sed -e 's/worker_in_master_tasks=//g')
+            ;;
+          worker_in_master_memory=*)
+            worker_in_master_memory=$(echo $OPTARG | sed -e 's/worker_in_master_memory=//g')
             ;;
           network=*)
             network=$(echo $OPTARG | sed -e 's/network=//g')
@@ -234,6 +249,9 @@ get_args() {
             ;;
           jvm_workers_opts=*)
             jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
+            ;;
+          jvm_worker_in_master_opts=*)
+            jvm_worker_in_master_opts=$(echo $OPTARG | sed -e 's/jvm_worker_in_master_opts=//g')
             ;;
 	  storage_conf=*)
 	    storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
@@ -280,6 +298,9 @@ get_args() {
 }
 
 check_args() {
+  ###############################################################
+  # Queue system checks
+  ###############################################################
   if [ -z "${queue_system}" ]; then
     queue_system=${DEFAULT_QUEUE_SYSTEM}
   fi
@@ -292,6 +313,17 @@ check_args() {
     exec_time=${DEFAULT_EXEC_TIME}
   fi
   
+  if [ -z "${reservation}" ]; then
+    reservation=${DEFAULT_RESERVATION}
+  fi
+
+  if [ -z "${dependencyJob}" ]; then
+    dependencyJob=${DEFAULT_DEPENDENCY_JOB}
+  fi
+
+  ###############################################################
+  # Infrastructure checks
+  ###############################################################
   if [ -z "${num_nodes}" ]; then
     num_nodes=${DEFAULT_NUM_NODES}
   fi
@@ -307,20 +339,56 @@ check_args() {
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
 
-  if [ -z "${node_memory}" ]; then
-    node_memory=${DEFAULT_NODE_MEMORY}
-  elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then 
-    display_error "${ERROR_NODE_MEMORY}"
+  if [ -z "${network}" ]; then
+    network=${DEFAULT_NETWORK}
+  elif [ "${network}" == "default" ]; then
+    network=${DEFAULT_NETWORK}
+  elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
+    display_error "${ERROR_NETWORK}"
   fi
 
-  if [ -z "${reservation}" ]; then
-    reservation=${DEFAULT_RESERVATION}
-  fi
-
+  ###############################################################
+  # Node checks
+  ###############################################################
   if [ -z "${tasks_per_node}" ]; then
     tasks_per_node=${DEFAULT_TASKS_PER_NODE}
   fi
   
+  if [ -z "${worker_in_master_tasks}" ]; then
+    worker_in_master_tasks=${DEFAULT_WORKER_IN_MASTER_TASKS}
+  fi
+  if [ ${worker_in_master_tasks} -gt ${tasks_per_node} ]; then
+    display_error "${ERROR_WORKER_IN_MASTER_TASKS}"
+  fi
+
+  if [ -z "${node_memory}" ]; then
+    node_memory=${DEFAULT_NODE_MEMORY}
+  elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then
+    display_error "${ERROR_NODE_MEMORY}"
+  fi
+
+  if [ -z "${worker_in_master_memory}" ]; then
+    worker_in_master_memory=${DEFAULT_WORKER_IN_MASTER_MEMORY}
+  elif [ "${worker_in_master_memory}" != "disabled" ] && ! [[ "${worker_in_master_memory}" =~ ^[0-9]+$ ]]; then
+    display_error "${ERROR_WORKER_IN_MASTER_MEMORY}"
+  fi
+  if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] && [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ] && [ ${worker_in_master_memory} -lt ${node_memory} ]; then
+    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH}"
+  fi
+
+  if [ ${worker_in_master_tasks} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
+    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED}"
+  fi
+
+  if [ -z "${master_port}" ]; then
+    rand_num=$RANDOM
+    offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
+    master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
+  fi
+
+  ###############################################################
+  # Working Directory Checks
+  ###############################################################
   if [ -z "${master_working_dir}" ]; then
     master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
   fi
@@ -331,22 +399,47 @@ check_args() {
     display_error "${ERROR_WORKER_WD}"
   fi
 
-  if [ -z "${tasks_in_master}" ]; then
-    tasks_in_master=${DEFAULT_TASKS_IN_MASTER}
+  ###############################################################
+  # JVM Checks
+  ###############################################################
+  if [ -z "${jvm_master_opts}" ]; then
+    jvm_master_opts=${DEFAULT_JVM_MASTER}
   fi
 
-  if [ -z "${network}" ]; then
-    network=${DEFAULT_NETWORK}
-  elif [ "${network}" == "default" ]; then
-    network=${DEFAULT_NETWORK}
-  elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
-    display_error "${ERROR_NETWORK}"
+  if [ -z "${jvm_workers_opts}" ]; then
+    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
   fi
 
-  if [ -z "${dependencyJob}" ]; then
-    dependencyJob=${DEFAULT_DEPENDENCY_JOB}
+  ###############################################################
+  # Runtime and Tools Checks
+  ###############################################################
+  if [ -z "${log_level}" ]; then
+    log_level=${DEFAULT_DEBUG}
   fi
 
+  if [ -z "${comm}" ]; then
+    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
+  fi
+
+  if [ -z "${tracing}" ]; then
+    tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${taskExecution}" ]; then
+    taskExecution=${DEFAULT_TASK_EXECUTION}
+  fi
+
+  if [ -z "${storageConf}" ]; then
+    storageConf=${DEFAULT_STORAGE_CONF}
+  fi
+
+  if [ -z "${storageName}" ]; then
+    storageName=${DEFAULT_STORAGE_NAME}
+  fi
+
+  ###############################################################
+  # Application Checks
+  ###############################################################
   if [ -z "${library_path}" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
@@ -369,46 +462,6 @@ check_args() {
     done
     cp="$(echo "$fcp" | cut -c2-)"
   fi
-
-
-  if [ -z "${log_level}" ]; then
-    log_level=${DEFAULT_DEBUG}
-  fi
-
-  if [ -z "${tracing}" ]; then
-    tracing=${DEFAULT_TRACING}
-  fi
-
-  if [ -z "${comm}" ]; then
-    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
-  fi
-
-  if [ -z "${jvm_master_opts}" ]; then
-    jvm_master_opts=${DEFAULT_JVM_MASTER}
-  fi
-
-  if [ -z "${jvm_workers_opts}" ]; then
-    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
-  fi
- 
-  if [ -z "${taskExecution}" ]; then
-    taskExecution=${DEFAULT_TASK_EXECUTION}
-  fi
-
-  if [ -z "${storageConf}" ]; then
-    storageConf=null
-  fi
-
-  if [ -z "${storageName}" ]; then
-    storageName=null
-  fi
-  
-  if [ -z "${master_port}" ]; then
-    rand_num=$RANDOM
-    offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
-    master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
-  fi
-
 }
 
 #---------------------------------------------------
@@ -418,5 +471,4 @@ check_args() {
   get_args $@
   check_args
 
-
-  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${tasks_in_master} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}
+  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${worker_in_master_tasks} ${worker_in_master_memory} "${jvm_worker_in_master_opts}" ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}

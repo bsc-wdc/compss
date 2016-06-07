@@ -71,40 +71,44 @@
   jvm_master_opts=${12}
   worker_working_dir=${13}
   jvm_workers_opts=${14}
-  tasks_in_master=${15}
-  library_path=${16}
-  cp=${17}
-  log_level=${18}
-  tracing=${19}
-  comm=${20}
-  storageName=${21}
-  storageConf=${22}
-  taskExecution=${23}
-  shift 23
+  worker_in_master_tasks=${15}
+  worker_in_master_memory=${16}
+  jvm_worker_in_master_opts=${17}
+  library_path=${18}
+  cp=${19}
+  log_level=${20}
+  tracing=${21}
+  comm=${22}
+  storageName=${23}
+  storageConf=${24}
+  taskExecution=${25}
+  shift 25
 
   #Display arguments
-  echo "Queue:           ${queue}"
-  echo "Reservation	 ${reservation}"
-  echo "Num Nodes:       ${num_nodes}"
-  echo "Num Switches:    ${num_switches}"
-  echo "Job dependency:  ${dependencyJob}"
-  echo "Exec-Time:       ${wc_limit}"
-  echo "Network:         ${network}"
-  echo "Node memory:	 ${node_memory}"
-  echo "Tasks per Node:  ${tasks_per_node}"
-  echo "Tasks in Master: ${tasks_in_master}"
-  echo "Master Port:     ${master_port}"
-  echo "Master WD:       ${master_working_dir}"
-  echo "Worker WD:       ${worker_working_dir}"
-  echo "Master JVM Opts  ${jvm_master_opts}"
-  echo "Workers JVM Opts ${jvm_workers_opts}"
-  echo "Library Path:    ${library_path}"
-  echo "Classpath:       ${cp}"  
-  echo "COMM:            ${comm}"
-  echo "Storage name:	 ${storageName}"
-  echo "Storage conf:	 ${storageConf}"
-  echo "Task execution:	 ${taskExecution}"
-  echo "To COMPSs:       $*"
+  echo "Queue:                     ${queue}"
+  echo "Reservation:	           ${reservation}"
+  echo "Num Nodes:                 ${num_nodes}"
+  echo "Num Switches:              ${num_switches}"
+  echo "Job dependency:            ${dependencyJob}"
+  echo "Exec-Time:                 ${wc_limit}"
+  echo "Network:                   ${network}"
+  echo "Node memory:	           ${node_memory}"
+  echo "Tasks per Node:            ${tasks_per_node}"
+  echo "Worker in Master Tasks:    ${worker_in_master_tasks}"
+  echo "Worker in Master Memory:   ${worker_in_master_memory}"
+  echo "Master Port:               ${master_port}"
+  echo "Master WD:                 ${master_working_dir}"
+  echo "Worker WD:                 ${worker_working_dir}"
+  echo "Master JVM Opts:           ${jvm_master_opts}"
+  echo "Workers JVM Opts:          ${jvm_workers_opts}"
+  echo "Worker in Master JVM Opts: ${jvm_worker_in_master_opts}"
+  echo "Library Path:              ${library_path}"
+  echo "Classpath:                 ${cp}"  
+  echo "COMM:                      ${comm}"
+  echo "Storage name:	           ${storageName}"
+  echo "Storage conf:	           ${storageConf}"
+  echo "Task execution:	           ${taskExecution}"
+  echo "To COMPSs:                 $*"
   echo " "
   
   #Check arguments
@@ -178,7 +182,7 @@ EOT
 specific_log_dir=$HOME/.COMPSs/\${LSB_JOBID}/
 mkdir -p \${specific_log_dir}
 
-${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${tasks_in_master} ${worker_working_dir} "\${specific_log_dir}" "${jvm_master_opts}" "${jvm_workers_opts}" ${network} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
+${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${worker_in_master_tasks} ${worker_in_master_memory} ${worker_working_dir} "\${specific_log_dir}" "${jvm_master_opts}" "${jvm_workers_opts}" "${jvm_worker_in_master_opts}" ${network} ${node_memory} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
 EOT
 
   # Check if the creation of the script failed
@@ -200,8 +204,8 @@ EOT
   fi
 
   # Cleanup
-  submit_err=$(/bin/cat ${TMP_SUBMIT_SCRIPT}.err)
-  /bin/rm -rf ${TMP_SUBMIT_SCRIPT}.*
+  submit_err=$(cat ${TMP_SUBMIT_SCRIPT}.err)
+  rm -rf ${TMP_SUBMIT_SCRIPT}.*
 
   # Check if submission failed
   if [ $result -ne 0 ]; then

@@ -62,6 +62,7 @@ def compss_worker():
     values = []
     types = []
     if tracing:
+        pyextrae.event(TASK_EVENTS, 0)
         pyextrae.event(TASK_EVENTS, 2)
     # Get all parameter values
     for i in range(0, num_params):

@@ -12,6 +12,7 @@
   find . -name "*.c" -exec $scriptDir/replace_header.sh {} java_c \;
   find . -name "*.cc" -exec $scriptDir/replace_header.sh {} java_c \;
   find . -name "*.h" -exec $scriptDir/replace_header.sh {} java_c \;
+  find . -name "Makefile*" -exec $scriptDir/replace_header.sh {} python \;
 
   # Add python headers
   find . -name "*.py" -exec $scriptDir/replace_header.sh {} python \;

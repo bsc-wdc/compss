@@ -196,10 +196,12 @@ public abstract class ExternalExecutor extends Executor {
         if (tracing) {
             NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
             NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
+            NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
         }
 
         try {
             logger.debug("Starting process ...");
+
             execProc = pb.start();
             try {
                 execProc.getOutputStream().close();
@@ -225,6 +227,7 @@ public abstract class ExternalExecutor extends Executor {
             int exitValue = execProc.waitFor();
 
             if (tracing){
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
             	NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
             }

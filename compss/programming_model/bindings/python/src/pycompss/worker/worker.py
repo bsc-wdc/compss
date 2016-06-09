@@ -20,7 +20,18 @@ from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 from cPickle import loads, UnpicklingError
 
 SYNC_EVENTS = 96669
+
+# Should be equal to Tracer.java definitions
 TASK_EVENTS = 8000010
+
+PROCESS_CREATION = 1
+WORKER_INITIALIZATION = 2
+PARAMETER_PROCESSING = 3
+LOGGING = 4
+TASK_EXECUTION = 5
+WORKER_END = 6
+PROCESS_DESTRUCTION = 7
+
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -63,7 +74,7 @@ def compss_worker():
     types = []
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
-        pyextrae.event(TASK_EVENTS, 2)
+        pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
     # Get all parameter values
     for i in range(0, num_params):
         ptype = int(args[pos])
@@ -122,6 +133,7 @@ def compss_worker():
         pos += 2
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
+        pyextrae.event(TASK_EVENTS, LOGGING)
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
         types_str = ''
@@ -149,11 +161,11 @@ def compss_worker():
         with TaskContext(logger, values):
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, 3)
+                pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
             getattr(module, method_name)(*values, compss_types=types)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, 4)
+                pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
         '''
         # Old school
         # Storage Prolog
@@ -203,8 +215,15 @@ def compss_worker():
             types.pop()
             types.insert(0, Type.OBJECT)
 
+
             with TaskContext(logger, values):
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             ''' Old school
             # Storage Prolog
             start_task(values)
@@ -219,7 +238,13 @@ def compss_worker():
             types.insert(0, None)    # class must be first type
 
             with TaskContext(logger, values):
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             ''' Old school
             # Storage Prolog
             start_task(values)
@@ -246,7 +271,8 @@ if __name__ == "__main__":
     if tracing:
         import pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
-        pyextrae.eventandcounters(TASK_EVENTS, 1)
+        pyextrae.eventandcounters(TASK_EVENTS, 0)
+        pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
 
     # Shift tracing args
     sys.argv = sys.argv[2:]
@@ -268,4 +294,5 @@ if __name__ == "__main__":
     compss_worker()
     if tracing:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
+        pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
         pyextrae.eventandcounters(SYNC_EVENTS, 0)

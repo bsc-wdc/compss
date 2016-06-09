@@ -6,7 +6,7 @@
   scriptDir=$(dirname $0)
 
   extraeDir=$EXTRAE_HOME
-
+  MIN_MPITS_PARALLEL_MERGE=1000
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
   #-------------------------------------
   # Get common parameters
@@ -58,8 +58,18 @@
   elif [ $action == "gentrace" ]; then
     appName=$1
     numberOfResources=$2
+    # Check machinge max open files
+    openFilesLimit=$(ulimit -Sn)
+    if [ "$openFilesLimit" -eq "$openFilesLimit" ] 2>/dev/null; then
+      # ulimit reported a valid number of open filesz
+      maxMpitNumber=$(($openFilesLimit-20))
+    else
+      maxMpitNumber=$MIN_MPITS_PARALLEL_MERGE
+    fi
+
     traceFiles=$(find trace/*_compss_trace.tar.gz)
     #echo "trace::gentrace"
+    taskTracesAvailable=false
     for file in ${traceFiles[*]}; do
         tmpDir=$(mktemp -d)
         tar -C $tmpDir -xzf $file
@@ -68,6 +78,7 @@
         cp -r $tmpDir/set-* .
         files=$(find $tmpDir -name "*.prv")
         if [ ! -z "$files" ]; then
+            taskTracesAvailable=true
             nodeDir=$(mktemp -d --tmpdir="$(pwd)/trace")
             find $tmpDir -name "*.prv" -exec cp {} $nodeDir \;
         fi
@@ -79,14 +90,14 @@
     sec=$(/bin/date +%s)
     # Check if parallel merge is available
     configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
-    if [ -z "${configuration}" ]; then
+    if [ -z "${configuration}" ] || [ "$(wc -l < TRACE.mpits)" -lt ${maxMpitNumber} ] ; then
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     else
         mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
-    if [ $endCode -eq 0 ]; then
-        ${scriptDir}/trace-merger.sh ${appName}_compss_trace_${sec}.prv ${appName}_compss_trace_${sec}.prv
+    if [ $endCode -eq 0 ] && [ $taskTracesAvailable = true ]; then
+        ${scriptDir}/trace-merger.sh ${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym

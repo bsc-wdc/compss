@@ -28,6 +28,7 @@ public abstract class Tracer {
     private static final String apiDesc 			= "Runtime";
     private static final String taskIdDesc 			= "Task IDs";
     private static final String dataTransfersDesc 	= "Data Transfers";
+    private static final String tasksTransfersDesc 	= "Task Transfers Request";
     private static final String storageDesc 		= "Storage API";
     private static final String insideTaskDesc 		= "Events inside tasks";
 
@@ -101,7 +102,15 @@ public abstract class Tracer {
         MONITORING_DATA(48, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"),
         TD_SHUTDOWN(49, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"),
         UPDATE_CEI_LOCAL(50, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
-        WORKER_UPDATE_REQUEST(51, RUNTIME_EVENTS, "Task Dispatcher: Worker update request");
+        WORKER_UPDATE_REQUEST(51, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
+        // Task Events
+        PROCESS_CREATION(1, INSIDE_TASKS_TYPE, "Subprocess creation"),
+        WORKER_INITIALIZATION(2, INSIDE_TASKS_TYPE, "Worker initialization"),
+        PARAMETER_PROCESSING(3, INSIDE_TASKS_TYPE, "Parameter processing"),
+        LOGGING(4, INSIDE_TASKS_TYPE, "Logging"),
+        TASK_EXECUTION(5, INSIDE_TASKS_TYPE, "User Method Execution"),
+        WORKER_END(6, INSIDE_TASKS_TYPE, "Worker End"),
+        PROCESS_DESTRUCTION(7, INSIDE_TASKS_TYPE, "Subprocess destruction");
 
         private final int id;
         private final int type;
@@ -204,7 +213,6 @@ public abstract class Tracer {
         return TASK_TRANSFERS;
     }
 
-
     public static int getDataTransfersType() {
         return DATA_TRANSFERS;
     }
@@ -215,6 +223,10 @@ public abstract class Tracer {
 
     public static int getTaskSchedulingType() {
         return TASKS_ID_TYPE;
+    }
+
+    public static int getInsideTasksEventsType() {
+        return INSIDE_TASKS_TYPE;
     }
 
     public static Event getAPRequestEvent(String eventType) {
@@ -358,7 +370,7 @@ public abstract class Tracer {
             }
         }
 
-        Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
+        Wrapper.defineEventType(TASK_TRANSFERS, tasksTransfersDesc, values, descriptionValues);
 
         // Definition of STORAGE_TYPE events
         size = getSizeByEventType(STORAGE_TYPE) + 1;
@@ -381,6 +393,27 @@ public abstract class Tracer {
 
         Wrapper.defineEventType(STORAGE_TYPE, storageDesc, values, descriptionValues);
 
+        // Definition of Events inside task
+        size = getSizeByEventType(INSIDE_TASKS_TYPE) + 1;
+        values = new long[size];
+        descriptionValues = new String[size];
+
+        values[0] = 0;
+        descriptionValues[0] = "End";
+        i = 1;
+        for (Event task : Event.values()) {
+            if (task.getType() == INSIDE_TASKS_TYPE) {
+                values[i] = task.getId();
+                descriptionValues[i] = task.getSignature();
+                if (debug) {
+                    logger.debug("Tracing[INSIDE_TASKS_EVENTS]: Event " + i + "=> value: " + values[i] + ", Desc: " + descriptionValues[i]);
+                }
+                ++i;
+            }
+        }
+
+        Wrapper.defineEventType(INSIDE_TASKS_TYPE, insideTaskDesc, values, descriptionValues);
+
         // Definition of Scheduling and Transfer time events
         size = 0;
         values = new long[size];
@@ -389,13 +422,14 @@ public abstract class Tracer {
 
         Wrapper.defineEventType(TASKS_ID_TYPE, taskIdDesc, values, descriptionValues);
 
-        // Definition of Events inside task
+
+        // Definition of Data transfers
         size = 0;
         values = new long[size];
 
         descriptionValues = new String[size];
 
-        Wrapper.defineEventType(INSIDE_TASKS_TYPE, insideTaskDesc, values, descriptionValues);
+        Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
     }
 
     public static void generateMasterPackage() {

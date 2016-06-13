@@ -47,7 +47,7 @@
     remove-files="no"
     overwrite="no"
   >
-    ../task.prv
+    ../{{NAME}}.prv
   </merge>
 
 </trace>

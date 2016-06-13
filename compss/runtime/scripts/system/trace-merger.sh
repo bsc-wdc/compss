@@ -53,7 +53,6 @@ getTaskOffsetAndId(){
 }
 
 extract_task_info(){
-    taskPrv=$1
 
     task_header=$(echo `expr "$event" : '\([0-9]\+:[0-9]\+:[0-9]\+:[0-9]\+:[0-9]\+:\)'`)
     task_old_info=${event#$task_header}
@@ -68,15 +67,14 @@ extract_task_info(){
 
 cd $traceDir
 
-taskFiles=$(find tmp.*/*.prv)
+taskFiles=$(find tasks/*.prv)
 for taskPrv in ${taskFiles[*]}; do
     getTaskOffsetAndId $taskPrv
-    extract_task_info $taskPrv
     events=$(sed -n ${indices}p $taskPrv)
     for event in ${events}; do
         extract_task_info "$event"
         new_event="${resource_id}${new_task_info}"
-	echo $new_event >> $mainTraceFile
+        echo $new_event >> $mainTraceFile
     done
 done
 cd $baseDir

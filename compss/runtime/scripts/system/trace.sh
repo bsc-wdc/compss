@@ -79,7 +79,8 @@
         files=$(find $tmpDir -name "*.prv")
         if [ ! -z "$files" ]; then
             taskTracesAvailable=true
-            nodeDir=$(mktemp -d --tmpdir="$(pwd)/trace")
+            nodeDir="$(pwd)/trace/tasks/"
+            mkdir -p $nodeDir
             find $tmpDir -name "*.prv" -exec cp {} $nodeDir \;
         fi
         if [ -f $tmpDir/TRACE.sym ]; then

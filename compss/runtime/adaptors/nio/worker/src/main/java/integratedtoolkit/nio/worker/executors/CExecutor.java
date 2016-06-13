@@ -14,7 +14,7 @@ public class CExecutor extends ExternalExecutor {
 	private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "commons" + File.separator + "lib";
 	
 
-    public ArrayList<String> getLaunchCommand(NIOTask nt) {
+    public ArrayList<String> getLaunchCommand(NIOTask nt, String sandBox) {
         ArrayList<String> lArgs = new ArrayList<String>();
         lArgs.add(nt.getAppDir() + "/worker/worker_c");
         return lArgs;

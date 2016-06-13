@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+  #Obtain parameters
+  output_file=$1 
+  target_log_folder=$2
+
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check that task-bindings events are present and the # is correct
+
+   events_type1=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:1" | wc -l)
+  events_type2=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:2" | wc -l)
+  events_type3=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:3" | wc -l)
+  events_type4=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:4" | wc -l)
+  events_close=$(cat ${target_log_folder}/trace/tracing.Tracing_compss_trace_*.prv | grep ":8000000:0" | wc -l)
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  exit 0
+

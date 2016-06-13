@@ -181,7 +181,7 @@ if [ -z $NUM_WORKER_CONTAINERS ]; then
 fi
 
 if [ -z $SWARM_MANAGER_IP ]; then
-    echo2 "[  ERROR  ]: Indicate the swarm manager machine name before runcompss args (To know it run 'docker-machine ls'). ('--swarm-manager-name=master' for example)"
+    echo2 "[  ERROR  ]: Indicate the swarm manager ip before runcompss args. ('--swarm-manager=10.40.0.123:4000' for example)"
     ALL_GOOD=0
 fi
 
@@ -202,7 +202,7 @@ fi
 
 if [ "$ALL_GOOD" = "0" ]
 then
-    #echo2 "[  ERROR  ]: Please, introduce the parameters --worker-containers, --swarm-manager-name, --username and --context-dir, BEFORE runcompss parameters. Maybe you forgot one of them, there is a typo, or you haven't introduced them as the first 4 parameters."
+    #echo2 "[  ERROR  ]: Please, introduce the parameters --worker-containers, --swarm-manager, --username and --context-dir, BEFORE runcompss parameters. Maybe you forgot one of them, there is a typo, or you haven't introduced them as the first 4 parameters."
     echo
     echo2 "Run 'runcompss-docker --help' if you need help."
     exit -1

@@ -74,6 +74,16 @@
     errors=true
   fi
 
+  if [ "${sync_evts_init}" != "${sync_evts_end}" ] ; then
+    echo "[ERROR] Number of start and end synchronization events are not equal" | tee -a $output_file
+    errors=true
+  fi
+
+  if [ "${sync_evts_init}" != "${number_of_tasks}" ] || [ "${sync_evts_end}" != "${number_of_tasks}" ]; then
+    echo "[ERROR] Number of start and end synchronization events are not the same as the number of tasks (${number_of_tasks}): [${sync_evts_init}/${sync_evts_end}]" | tee -a $output_file
+    errors=true
+  fi
+
   # Check that ErrorManager has not generated any ERROR or FATAL message.
   if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -c -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}

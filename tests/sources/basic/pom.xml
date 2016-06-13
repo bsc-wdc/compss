@@ -55,6 +55,7 @@
 		<!-- Module 22 is 22-kmeans_python -->
 		<module>23-concurrent</module>
 		<module>24-noTask</module>
-	        <!-- Add new modules below. Respect numbering -->
+		<!-- Module 25 is 25-pythonTaskTracing -->
+	    <!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

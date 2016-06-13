@@ -39,7 +39,7 @@ public abstract class ExternalExecutor extends Executor {
     @Override
     void executeTask(String sandBox, NIOTask nt, NIOWorker nw) throws Exception {
         Map<String, String> env = getEnvironment(nt);
-        ArrayList<String> args = getLaunchCommand(nt);
+        ArrayList<String> args = getLaunchCommand(nt, sandBox);
         addArguments(args, nt, nw);
         String strArgs = getArgumentsAsString(args);
         addEnvironment(env, nt, nw);
@@ -94,7 +94,7 @@ public abstract class ExternalExecutor extends Executor {
 
     public abstract Map<String, String> getEnvironment(NIOTask nt);
 
-    public abstract ArrayList<String> getLaunchCommand(NIOTask nt);
+    public abstract ArrayList<String> getLaunchCommand(NIOTask nt, String sandBox);
 
     private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
         lArgs.add(Boolean.toString(tracing));

@@ -17,14 +17,18 @@ public class PythonExecutor extends ExternalExecutor {
             File.separator + "xml" + File.separator + "tracing";
 
 	@Override
-	public ArrayList<String> getLaunchCommand(NIOTask nt) {
+	public ArrayList<String> getLaunchCommand(NIOTask nt, String sandBox) {
 		ArrayList<String> lArgs = new ArrayList<String>();
 		String pycompssHome = nt.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
 		/*lArgs.add("/bin/bash");
 		lArgs.add("-e");
 		lArgs.add("-c");*/
 		if (tracing){
-			lArgs.add("export EXTRAE_CONFIG_FILE=" + nt.getInstallDir() + WORKER_TRACING_CONFIG_FILE_RELATIVE_PATH + File.separator + "extrae_task.xml;");
+			int taskId = nt.getTaskId();
+			String baseConfigFile = nt.getInstallDir() + WORKER_TRACING_CONFIG_FILE_RELATIVE_PATH + File.separator + "extrae_task.xml";
+			String taskConfigFile = sandBox + File.separator + "task" + taskId + ".xml";
+			lArgs.add("echo $(sed s/{{NAME}}/task" + taskId + "/g <<< $(cat " + baseConfigFile +")) > " + taskConfigFile + ";");
+			lArgs.add("export EXTRAE_CONFIG_FILE=" + taskConfigFile + ";");
 		}
 		lArgs.add("python");
 		lArgs.add("-u");

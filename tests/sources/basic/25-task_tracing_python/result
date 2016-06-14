@@ -1,8 +1,9 @@
-#!/bin/bash -e
+#!/bin/bash
 
   #Obtain parameters
   output_file=$1 
   target_log_folder=$2
+  comm=$3
   number_of_tasks=32
   errors=false
 
@@ -24,71 +25,77 @@
   #----------------------------------------------------------------------------------
   # Check that task-bindings events are present and the # is correct
 
-  evts_type1=$(grep -c ":${TASK_EVENTS}:${PROCESS_CREATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type2=$(grep -c ":${TASK_EVENTS}:${WORKER_INITIALIZATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type3=$(grep -c ":${TASK_EVENTS}:${PARAMETER_PROCESSING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type4=$(grep -c ":${TASK_EVENTS}:${LOGGING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type5=$(grep -c ":${TASK_EVENTS}:${TASK_EXECUTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type6=$(grep -c ":${TASK_EVENTS}:${WORKER_END}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  evts_type7=$(grep -c ":${TASK_EVENTS}:${PROCESS_DESTRUCTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+  # GAT does not support task tracing
+  if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
 
-  sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-  sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type1=$(grep -c ":${TASK_EVENTS}:${PROCESS_CREATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type2=$(grep -c ":${TASK_EVENTS}:${WORKER_INITIALIZATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type3=$(grep -c ":${TASK_EVENTS}:${PARAMETER_PROCESSING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type4=$(grep -c ":${TASK_EVENTS}:${LOGGING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type5=$(grep -c ":${TASK_EVENTS}:${TASK_EXECUTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type6=$(grep -c ":${TASK_EVENTS}:${WORKER_END}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type7=$(grep -c ":${TASK_EVENTS}:${PROCESS_DESTRUCTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
-  end_evts=$(grep -c ":${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+
+      end_evts=$(grep -c ":${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
 
-  if [ "${evts_type1}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 1 process creation events. [${evts_type1}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type2}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 2 worker init events. [${evts_type2}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type3}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 3 parameter processing events. [${evts_type3}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type4}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 4 logging events. [${evts_type4}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type5}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 5 task execution events. [${evts_type5}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type6}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 6 worker end events. [${evts_type6}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
-  if [ "${evts_type7}" != "${number_of_tasks}" ]; then
-     echo "[ERROR] Incorrect number of type 7 process destruction events. [${evts_type7}/${number_of_tasks}]" | tee -a $output_file
-     errors=true
-  fi
+      if [ "${evts_type1}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 1 process creation events. [${evts_type1}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type2}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 2 worker init events. [${evts_type2}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type3}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 3 parameter processing events. [${evts_type3}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type4}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 4 logging events. [${evts_type4}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type5}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 5 task execution events. [${evts_type5}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type6}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 6 worker end events. [${evts_type6}/${number_of_tasks}]"
+         errors=true
+      fi
+      if [ "${evts_type7}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 7 process destruction events. [${evts_type7}/${number_of_tasks}]"
+         errors=true
+      fi
 
-  start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}))
+      start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}))
 
-  if [ "$start_evts" != "$end_evts" ] ; then
-    echo "[ERROR] Number of start and end emits are not equal" | tee -a $output_file
-    errors=true
-  fi
+      if [ "$start_evts" != "$end_evts" ] ; then
+        echo "[ERROR] Number of start and end emits are not equal"
+        errors=true
+      fi
 
-  if [ "${sync_evts_init}" != "${sync_evts_end}" ] ; then
-    echo "[ERROR] Number of start and end synchronization events are not equal" | tee -a $output_file
-    errors=true
-  fi
+      if [ "${sync_evts_init}" != "${sync_evts_end}" ] ; then
+        echo "[ERROR] Number of start and end synchronization events are not equal"
+        errors=true
+      fi
 
-  if [ "${sync_evts_init}" != "${number_of_tasks}" ] || [ "${sync_evts_end}" != "${number_of_tasks}" ]; then
-    echo "[ERROR] Number of start and end synchronization events are not the same as the number of tasks (${number_of_tasks}): [${sync_evts_init}/${sync_evts_end}]" | tee -a $output_file
-    errors=true
+      if [ "${sync_evts_init}" != "${number_of_tasks}" ] || [ "${sync_evts_end}" != "${number_of_tasks}" ]; then
+        echo "[ERROR] Number of start and end synchronization events are not the same as the number of tasks (${number_of_tasks}): [${sync_evts_init}/${sync_evts_end}]"
+        errors=true
+      fi
+
   fi
 
   # Check that ErrorManager has not generated any ERROR or FATAL message.
   if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -c -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
-    exit 1
+    errors=true
   fi
+
 
   # Exit value
   if [ $errors == true ] ; then

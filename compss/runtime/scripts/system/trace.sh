@@ -5,7 +5,12 @@
   #-------------------------------------
   scriptDir=$(dirname $0)
 
-  extraeDir=$EXTRAE_HOME
+  if [ -z "$EXTRAE_HOME" ]; then
+    extraeDir="${scriptDir}/../../../Dependencies/extrae/"
+  else
+    extraeDir=$EXTRAE_HOME
+  fi
+
   MIN_MPITS_PARALLEL_MERGE=1000
   export LD_LIBRARY_PATH=$extraeDir/lib:$LD_LIBRARY_PATH
   #-------------------------------------
@@ -89,7 +94,7 @@
         rm -rf $tmpDir $file
     done
     sec=$(/bin/date +%s)
-    # Check if parallel merge is available
+    # Check if parallel merge is available / should be used
     configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
     if [ -z "${configuration}" ] || [ "$(wc -l < TRACE.mpits)" -lt ${maxMpitNumber} ] ; then
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv

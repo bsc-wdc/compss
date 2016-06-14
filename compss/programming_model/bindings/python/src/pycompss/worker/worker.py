@@ -18,6 +18,7 @@ from pycompss.util.logs import init_logging_worker
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 
 from cPickle import loads, UnpicklingError
+from exceptions import ValueError
 
 SYNC_EVENTS = 96669
 
@@ -266,16 +267,19 @@ if __name__ == "__main__":
 
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
-    taskId = int(sys.argv[2])
+
+    # Shift tracing arg
+    sys.argv = sys.argv[1:]
 
     if tracing:
+        taskId = int(sys.argv[1])
         import pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
+        # Shift taskId arg
+        sys.argv = sys.argv[1:]
 
-    # Shift tracing args
-    sys.argv = sys.argv[2:]
 
     # Load log level configuration file
     log_level = sys.argv[1]

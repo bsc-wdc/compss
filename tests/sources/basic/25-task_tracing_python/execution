@@ -49,7 +49,7 @@
      cp -rf ${COMPSs_log_folder}/task_tracing_kmeans.py_01/* ${target_log_folder}
   
      #Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder}
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${comm}
      exitValue=$?
   fi
   

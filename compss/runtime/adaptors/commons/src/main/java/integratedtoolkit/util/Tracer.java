@@ -241,6 +241,7 @@ public abstract class Tracer {
         return Event.valueOf(eventType);
     }
 
+
     public static void emitEvent(long eventID, int eventType) {
         synchronized (Tracer.class) {
             Wrapper.Event(eventType, eventID);

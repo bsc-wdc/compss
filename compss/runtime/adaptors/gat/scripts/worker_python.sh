@@ -11,8 +11,9 @@
   # Execution
   shift $shiftSizeForApp # appdir, cp, pythonpath
   taskTracing=false # Only available with NIO
+  taskId=0 # Not used with GAT
 
-  python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing "$@"
+  python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId "$@"
 
   # Exit
   if [ $? -eq 0 ]; then

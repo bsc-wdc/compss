@@ -57,11 +57,11 @@
   #-------------------------------------
   export EXTRAE_BUFFER_SIZE=100
   if [ $tracing == "true" ]; then
-    	eventType=$1
-	taskId=$2
-	slot=$3
-	shift 3
-	$scriptDir/../../trace.sh start $workingDir $eventType $taskId $slot
+    eventType=$1
+    taskId=$2
+    slot=$3
+    shift 3
+    $scriptDir/../../trace.sh start $workingDir $eventType $taskId $slot
   fi
 
   #-------------------------------------

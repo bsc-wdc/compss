@@ -107,8 +107,7 @@ public class GATTracer extends Tracer {
         return false;
     }
 
-    @Override
-    public static synchronized void emitEvent(long eventID, int eventType){
+    public static void emitEvent(long eventID, int eventType){
         logger.error("Emit event method based on Extrae JAVA API is not available for GAT tracing on workers. (Use Tracer class when instrumenting master.");
     }
     

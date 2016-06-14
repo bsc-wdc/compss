@@ -119,7 +119,9 @@
           if [ $tracing -gt 1 ]; then
               extraeFile="extrae_advanced.xml"
           fi
-          export EXTRAE_HOME=${scriptDir}/../../../../../Dependencies/extrae/
+          if [ -z "$EXTRAE_HOME" ]; then
+            export EXTRAE_HOME=${scriptDir}/../../../../../Dependencies/extrae/
+          fi
           export EXTRAE_LIB=${EXTRAE_HOME}/lib
           export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
           export EXTRAE_CONFIG_FILE=${scriptDir}/../../../../configuration/xml/tracing/${extraeFile}

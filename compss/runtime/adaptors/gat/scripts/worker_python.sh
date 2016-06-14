@@ -10,7 +10,9 @@
 
   # Execution
   shift $shiftSizeForApp # appdir, cp, pythonpath
-  python $PYCOMPSS_HOME/pycompss/worker/worker.py $@
+  taskTracing=false # Only available with NIO
+
+  python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing "$@"
 
   # Exit
   if [ $? -eq 0 ]; then

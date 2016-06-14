@@ -267,18 +267,15 @@ if __name__ == "__main__":
 
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
+    taskId = int(sys.argv[2])
 
-    # Shift tracing arg
-    sys.argv = sys.argv[1:]
+    sys.argv = sys.argv[2:]
 
     if tracing:
-        taskId = int(sys.argv[1])
         import pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
-        # Shift taskId arg
-        sys.argv = sys.argv[1:]
 
 
     # Load log level configuration file

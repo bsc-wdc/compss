@@ -78,11 +78,11 @@ public class NIOTracer extends Tracer {
     }
     
     public static void generatePackage() {
-        masterEventStart(Event.STOP.getId());
+        emitEvent(Event.STOP.getId(), Event.STOP.getType());
         if (debug){
             logger.debug("Generating package of "+ nodeName + ", with " + scriptDir);
         }
-        masterEventFinish();
+        emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         
         synchronized(Tracer.class){
             Wrapper.SetOptions (

@@ -74,7 +74,7 @@ public class Comm {
 
         if (tracing) {
             Tracer.init(tracing_level);
-            Tracer.masterEventStart(Tracer.Event.STATIC_IT.getId());
+            Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
         }
     }
 
@@ -123,7 +123,7 @@ public class Comm {
 
         // Stop tracing system
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.fini();
         }
     }

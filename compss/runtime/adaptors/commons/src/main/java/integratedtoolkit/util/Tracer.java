@@ -209,6 +209,10 @@ public abstract class Tracer {
         hostToSlots.get(host).freeSlot(slot);
     }
 
+    public static int getRuntimeEventsType() {
+        return RUNTIME_EVENTS;
+    }
+
     public static int getTaskTransfersType() {
         return TASK_TRANSFERS;
     }
@@ -256,14 +260,6 @@ public abstract class Tracer {
             logger.debug("Emitting synchronized event with HW counters [type, taskId] = [" + eventType + " , " + taskId + "]");
         }
 
-    }
-
-    public static void masterEventStart(int taskId) {
-        emitEvent(Long.valueOf(taskId), Tracer.RUNTIME_EVENTS);
-    }
-
-    public static void masterEventFinish() {
-        emitEvent(0, Tracer.RUNTIME_EVENTS);
     }
 
     public static void fini() {

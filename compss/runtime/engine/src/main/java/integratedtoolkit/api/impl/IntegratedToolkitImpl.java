@@ -340,8 +340,8 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     // Integrated Toolkit user interface implementation
     public synchronized void startIT() {
         if (tracing) {
-            Tracer.masterEventFinish();
-            Tracer.masterEventStart(Tracer.Event.START.getId());
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
         }
 
         // Console Log
@@ -395,14 +395,14 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         }
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
     }
 
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (tracing) {
-                Tracer.masterEventStart(Tracer.Event.STOP.getId());
+                Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
 
             // Stop monitor components
@@ -443,7 +443,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             Object... parameters) {
 
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.TASK.getId());
+            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
         if (logger.isDebugEnabled()) {
@@ -455,7 +455,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
         return task;
@@ -465,7 +465,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             int parameterCount, Object... parameters) {
 
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.TASK.getId());
+            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
         if (logger.isDebugEnabled()) {
@@ -477,7 +477,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         int task = ap.newTask(appId, namespace, service, port, operation, priority, hasTarget, pars);
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
         return task;
@@ -563,7 +563,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
 
     public void noMoreTasks(Long appId, boolean terminate) {
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.NO_MORE_TASKS.getId());
+            Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
         }
 
         logger.info("No more tasks for app " + appId);
@@ -573,13 +573,13 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         ap.getResultFiles(appId);
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
     }
 
     public String openFile(String fileName, OpenMode m) {
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.OPEN_FILE.getId());
+            Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
 
         if (logger.isDebugEnabled()) {
@@ -632,7 +632,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             logger.debug("File target Location: " + path);
         }
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
         return path;
@@ -641,7 +641,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     // LoaderAPI interface implementation
     public String getFile(String fileName, String destDir) {
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.GET_FILE.getId());
+            Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
         }
         if (!destDir.endsWith(File.separator)) {
             destDir += File.separator;
@@ -669,7 +669,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         }
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
         return path;
     }
@@ -680,7 +680,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
          * would not have been called.
          */
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.GET_OBJECT.getId());
+            Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
         }
 
         if (logger.isDebugEnabled()) {
@@ -691,7 +691,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             // Main code is still performing the same modification. No need to
             // register it as a new version.
             if (tracing) {
-                Tracer.masterEventFinish();
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             }
             return null;
         }
@@ -701,7 +701,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             logger.debug("Object obtained " + oUpdated);
         }
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
         return oUpdated;
 
@@ -764,7 +764,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
 
     public boolean deleteFile(String fileName) {
         if (tracing) {
-            Tracer.masterEventStart(Tracer.Event.DELETE.getId());
+            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
 
         // Parse the file name and translate the access mode
@@ -777,7 +777,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         ap.markForDeletion(loc);
 
         if (tracing) {
-            Tracer.masterEventFinish();
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
         return true;

@@ -175,13 +175,13 @@ public class ObjectRegistry {
         		
     	        
         		//if (tracing){
-    	        //    Tracer.masterEventStart(Tracer.Event.STORAGE_GETBYID.getId());
+    	        //    Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.getRuntimeEventsType());
     	        //}
     			
         		Object oStorage = StorageItf.getByID(lastPSCOId);
     			
     	        //if (tracing){
-    	        //    Tracer.masterEventFinish();
+    	        //    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
     	        //}
         		
         		internal = oStorage;        		        		        		        		        

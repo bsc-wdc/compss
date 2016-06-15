@@ -15,8 +15,8 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.ResourceScheduler;
-import java.util.HashMap;
 import java.util.LinkedList;
+
 
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction<Profile, T> {
 

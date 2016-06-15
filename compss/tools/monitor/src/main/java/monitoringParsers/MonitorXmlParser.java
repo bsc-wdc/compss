@@ -223,7 +223,7 @@ public class MonitorXmlParser {
                 String actionInfo = n.getTextContent();
                 String taskId = actionInfo.split(" ")[3];
                 taskId = taskId.substring(0, taskId.length() - 1);
-                taskIds.append(taskId);
+                taskIds.append(taskId).append(" ");
             }
         }
         return taskIds.toString();

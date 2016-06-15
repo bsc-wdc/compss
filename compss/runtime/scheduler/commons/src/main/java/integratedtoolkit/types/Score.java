@@ -1,7 +1,7 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.api.ITExecution;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
@@ -12,6 +12,7 @@ import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.util.ResourceManager;
+
 import java.util.HashSet;
 import java.util.List;
 
@@ -67,15 +68,15 @@ public class Score {
 
             // Obtain the scores for the host: number of task parameters that are located in the host
             for (Parameter p : parameters) {
-                if (p instanceof DependencyParameter && p.getDirection() != ITExecution.ParamDirection.OUT) {
+                if (p instanceof DependencyParameter && p.getDirection() != DataDirection.OUT) {
 
-                    ParamType type = p.getType();
+                    DataType type = p.getType();
 
-                    if (type == ParamType.SCO_T) {
+                    if (type == DataType.SCO_T) {
                         SCOParameter scop = (SCOParameter) p;
                         PSCOId pscoId = Comm.getPSCOId(scop.getCode());
                         if (pscoId != null) {
-                            scop.setType(ParamType.PSCO_T);
+                            scop.setType(DataType.PSCO_T);
                             scop.setValue(pscoId);
                         }
                     }
@@ -95,7 +96,7 @@ public class Score {
                             break;
                     }
                     if (dId != null) {
-                        if (type == ParamType.PSCO_T) {
+                        if (type == DataType.PSCO_T) {
                             List<String> backends = Comm.getPSCOLocations((SCOParameter) p);
                             for (String backendID : backends) {
                                 Resource host = ResourceManager.getWorker(backendID);

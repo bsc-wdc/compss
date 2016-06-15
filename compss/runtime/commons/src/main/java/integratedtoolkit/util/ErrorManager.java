@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import integratedtoolkit.api.IntegratedToolkit;
+import integratedtoolkit.api.COMPSsRuntime;
 
 //Manages warnings, errors and fatal errors. 
 //Stops the IT and does a System.exit(1) in errors and fatal errors cases.
@@ -25,15 +25,14 @@ public final class ErrorManager {
     private static final Integer REQUEST_FATAL = 2;
 
     private static Logger logger = null;
-    private static IntegratedToolkit it = null;
+    private static COMPSsRuntime it = null;
     private static Integer errorRequest = -1;
 
     private static boolean stopping = false;
 
-    //It handles ERROR and FATAL messages asinchronously
+    //It handles ERROR and FATAL messages asynchronously
     private static Runnable errorRunnable = new Runnable() {
         public void run() {
-
             if (errorRequest == REQUEST_ERROR
                     || errorRequest == REQUEST_FATAL) {
 
@@ -46,7 +45,7 @@ public final class ErrorManager {
         }
     };
 
-    public static void init(IntegratedToolkit it) {
+    public static void init(COMPSsRuntime it) {
         ErrorManager.it = it;
         logger = Logger.getLogger(Loggers.ERROR_MANAGER);
     }

@@ -2,7 +2,7 @@ package integratedtoolkit.nio.master;
 
 import java.util.LinkedList;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.commands.Data;
@@ -89,7 +89,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     private LinkedList<NIOParam> addParams() {
         LinkedList<NIOParam> params = new LinkedList<NIOParam>();
         for (Parameter param : taskParams.getParameters()) {
-            ParamType type = param.getType();
+            DataType type = param.getType();
             NIOParam np;
             switch (type) {
                 case FILE_T:

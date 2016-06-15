@@ -2,7 +2,7 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
@@ -33,9 +33,11 @@ import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.util.ErrorManager;
+
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
+
 
 public class NIOWorkerNode extends COMPSsWorker {
 
@@ -232,7 +234,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(ITExecution.ParamType type, String name) {
+    public String getCompletePath(DataType type, String name) {
         switch (type) {
             case FILE_T:
                 return config.getSandboxWorkingDir() + name;

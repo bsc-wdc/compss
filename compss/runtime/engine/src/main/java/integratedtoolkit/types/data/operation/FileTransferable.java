@@ -1,6 +1,6 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.Transferable;
 
 
@@ -30,8 +30,8 @@ public class FileTransferable implements Transferable {
     }
 
     @Override
-    public ParamType getType() {
-        return ParamType.FILE_T;
+    public DataType getType() {
+        return DataType.FILE_T;
     }
 
 }

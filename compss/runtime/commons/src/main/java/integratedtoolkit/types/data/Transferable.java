@@ -1,6 +1,6 @@
 package integratedtoolkit.types.data;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 
 public interface Transferable {
@@ -13,5 +13,5 @@ public interface Transferable {
 
     void setDataTarget(String target);
     
-    ParamType getType();
+    DataType getType();
 }

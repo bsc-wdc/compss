@@ -13,8 +13,8 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.Modifier;
 import javassist.NotFoundException;
-
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.loader.LoaderConstants;
 import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.util.ErrorManager;
@@ -26,10 +26,12 @@ public class ITAppModifier {
     private static final boolean writeToFile = System.getProperty(ITConstants.IT_TO_FILE) != null
             && System.getProperty(ITConstants.IT_TO_FILE).equals("true")
             ? true : false;
+    
     // Flag to indicate in class is WS
     private static final boolean isWSClass = System.getProperty(ITConstants.IT_IS_WS) != null
             && System.getProperty(ITConstants.IT_IS_WS).equals("true")
             ? true : false;
+    
     /* Flag to instrument main method.
      * if IT_IS_MAINCLASS mainclass not defined (Default case) isMain gets true;*/
     private static final boolean isMainClass = System.getProperty(ITConstants.IT_IS_MAINCLASS) != null
@@ -40,75 +42,64 @@ public class ITAppModifier {
     private static final boolean debug = logger.isDebugEnabled();
 
     
-    public Class<?> modify(String appName)
-            throws NotFoundException, CannotCompileException, ClassNotFoundException {
+    public Class<?> modify(String appName) throws NotFoundException, CannotCompileException, ClassNotFoundException {
 
-        Class<?> annotItf = Class.forName(appName + "Itf");
+        Class<?> annotItf = Class.forName(appName + LoaderConstants.ITF_SUFFIX);
         // Methods declared in the annotated interface
         Method[] remoteMethods = annotItf.getMethods();
 
-        // Use the application editor to include the IT API calls on the application code
-        cp.importPackage("integratedtoolkit");
-        cp.importPackage("integratedtoolkit.api");
-        cp.importPackage("integratedtoolkit.api.impl");
-        cp.importPackage("integratedtoolkit.loader");
-        cp.importPackage("integratedtoolkit.loader.total");
+        /*
+         * Use the application editor to include the COMPSs API calls on the application code
+         */
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_ROOT);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_API_IMPL);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER);
+        cp.importPackage(LoaderConstants.PACKAGE_COMPSS_LOADER_TOTAL);
 
         CtClass appClass = cp.get(appName);
-        CtClass itApiClass = cp.get("integratedtoolkit.api.IntegratedToolkit");
-        CtClass itExecClass = cp.get("integratedtoolkit.api.ITExecution");
-        CtClass itSRClass = cp.get("integratedtoolkit.loader.total.StreamRegistry");
-        CtClass itORClass = cp.get("integratedtoolkit.loader.total.ObjectRegistry");
-        CtClass appIdClass = cp.get("java.lang.Long");
+        CtClass itApiClass = cp.get(LoaderConstants.CLASS_COMPSSRUNTIME_API);
+        CtClass itSRClass = cp.get(LoaderConstants.CLASS_STREAM_REGISTRY);
+        CtClass itORClass = cp.get(LoaderConstants.CLASS_OBJECT_REGISTRY);
+        CtClass appIdClass = cp.get(LoaderConstants.CLASS_APP_ID);
 
-        String varName = LoaderUtils.randomName(5, "it");
-        String itApiVar = varName + "Api";
-        String itExeVar = varName + "Exe";
-        String itSRVar = varName + "SR";
-        String itORVar = varName + "OR";
-        String itAppIdVar = varName + "AppId";
+        String varName = LoaderUtils.randomName(5, LoaderConstants.STR_COMPSS_PREFIX);
+        String itApiVar = varName + LoaderConstants.STR_COMPSS_API;
+        String itSRVar = varName + LoaderConstants.STR_COMPSS_STREAM_REGISTRY;
+        String itORVar = varName + LoaderConstants.STR_COMPSS_OBJECT_REGISTRY;
+        String itAppIdVar = varName + LoaderConstants.STR_COMPSS_APP_ID;
         CtField itApiField = new CtField(itApiClass, itApiVar, appClass);
-        CtField itExeField = new CtField(itExecClass, itExeVar, appClass);
         CtField itSRField = new CtField(itSRClass, itSRVar, appClass);
         CtField itORField = new CtField(itORClass, itORVar, appClass);
         CtField appIdField = new CtField(appIdClass, itAppIdVar, appClass);
         itApiField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
-        itExeField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         itSRField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         itORField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appIdField.setModifiers(Modifier.PRIVATE | Modifier.STATIC);
         appClass.addField(itApiField);
-        appClass.addField(itExeField);
         appClass.addField(itSRField);
         appClass.addField(itORField);
         appClass.addField(appIdField);
-        /*CtMethod runner = CtNewMethod.make(
-         "public static Object runMethodOnObjectIT(Object o, Class methodClass, String methodName, Object[] values, Class[] types) {" +
-         "java.lang.reflect.Method method = null;" +
-         "try { method = methodClass.getMethod(methodName, types); }" +
-         "catch (SecurityException e) { System.err.println(\"Security exception\"); e.printStackTrace(); System.exit(1); }" +
-         "catch (NoSuchMethodException e) { System.err.println(\"Requested method \" + methodName + \" of \" + methodClass + \" not found\"); System.exit(1); }" +
-         "Object retValue = null;" +
-         "try { retValue = method.invoke(o, values); }" +
-         "catch (Exception e) { System.err.println(\"Error invoking requested method\"); e.printStackTrace(); System.exit(1); }" +
-         "return retValue; }",
-         appClass);
-         appClass.addMethod(runner);*/
 
-        /* Create a static constructor to initialize the runtime
+        /* 
+         * Create a static constructor to initialize the runtime
          * Create a shutdown hook to stop the runtime before the JVM ends
          */
-        manageStartAndStop(appClass, itApiVar, itExeVar, itSRVar, itORVar);
+        manageStartAndStop(appClass, itApiVar, itSRVar, itORVar);
 
-        // Create IT App Editor
+        /*
+         *  Create IT App Editor
+         */
         CtMethod[] instrCandidates = appClass.getDeclaredMethods(); // Candidates to be instrumented if they are not remote
-        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itExeVar, itSRVar, itORVar, itAppIdVar, appClass);
+        ITAppEditor itAppEditor = new ITAppEditor(remoteMethods, instrCandidates, itApiVar, itSRVar, itORVar, itAppIdVar, appClass);
         //itAppEditor.setAppId(itAppIdVar);
         //itAppEditor.setAppClass(appClass);
 
-        // Create Code Converter
+        /*
+         *  Create Code Converter
+         */
         CodeConverter converter = new CodeConverter();
-        CtClass arrayWatcher = cp.get("integratedtoolkit.loader.total.ArrayAccessWatcher");
+        CtClass arrayWatcher = cp.get(LoaderConstants.CLASS_ARRAY_ACCESS_WATCHER);
         CodeConverter.DefaultArrayAccessReplacementMethodNames names = new CodeConverter.DefaultArrayAccessReplacementMethodNames();
         converter.replaceArrayAccess(arrayWatcher, (CodeConverter.ArrayAccessReplacementMethodNames) names);
 
@@ -118,7 +109,7 @@ public class ITAppModifier {
          * - Methods that are not in the remote list
          */
         if (debug) {
-        	logger.debug("Flags: ToFile: "+ writeToFile+ " isWS: "+isWSClass+ " isMainClass: "+ isMainClass);
+        	logger.debug("Flags: ToFile: "+ writeToFile + " isWS: " + isWSClass + " isMainClass: "+ isMainClass);
         }
         for (CtMethod m : instrCandidates) {
             if (LoaderUtils.checkRemote(m, remoteMethods) == null) {
@@ -145,7 +136,7 @@ public class ITAppModifier {
                     
                     if (isWSClass) { //
                     	logger.debug("Inserting calls noMoreTasks at the end of main");
-                    	toInsertAfter.insert(0, itExeVar + ".noMoreTasks(" + itAppIdVar + ", true);");
+                    	toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ", true);");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
                     } else { // Main program
@@ -154,7 +145,7 @@ public class ITAppModifier {
                         toInsertBefore.append(appName).append('.').append(itAppIdVar).append(" = new Long(Thread.currentThread().getId());");
                         //toInsertAfter.append("System.exit(0);");
                         toInsertAfter.insert(0, itApiVar + ".stopIT(true);");
-                        toInsertAfter.insert(0, itExeVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ", true);");
+                        toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + appName + '.' + itAppIdVar + ", true);");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString(), true); // executed no matter what
                     }
@@ -172,7 +163,7 @@ public class ITAppModifier {
                 } else if (isOrchestration){
                     if (isWSClass) { //
                     	logger.debug("Inserting calls noMoreTasks and stopIT at the end of orchestration");
-                    	toInsertAfter.insert(0, itExeVar + ".noMoreTasks(" + itAppIdVar + ", true);");
+                    	toInsertAfter.insert(0, itApiVar + ".noMoreTasks(" + itAppIdVar + ", true);");
                         m.insertBefore(toInsertBefore.toString());
                         m.insertAfter(toInsertAfter.toString()); // executed only if Orchestration finishes properly
                     } else {
@@ -225,28 +216,28 @@ public class ITAppModifier {
         }
     }
 
-    private void manageStartAndStop(CtClass appClass, String itApiVar, String itExeVar, String itSRVar, String itORVar)
+    private void manageStartAndStop(CtClass appClass, String itApiVar, String itSRVar, String itORVar)
             throws CannotCompileException, NotFoundException {
+    	
     	if (debug) {
     		logger.debug("Previous class initializer is " + appClass.getClassInitializer());
     	}
 
         CtConstructor initializer = appClass.makeClassInitializer();
 
-        /* - Creation of the Integrated Toolkit
+        /* - Creation of the COMPSsRuntimeImpl
          * - Creation of the stream registry to keep track of streams (with error handling)
-         * - Setting of the ITExecution interface variable
-         * - Start of the Integrated Toolkit
+         * - Setting of the COMPSsRuntime interface variable
+         * - Start of the COMPSsRuntimeImpl
          */
         StringBuilder toInsertBefore = new StringBuilder();
         if (isMainClass || isWSClass){
         	toInsertBefore.append("System.setProperty(ITConstants.IT_APP_NAME, \"" + appClass.getName() + "\");");
         }
-        toInsertBefore.append(itApiVar + " = new IntegratedToolkitImpl();")
-                .append(itExeVar + " = (ITExecution)" + itApiVar + ";")
-                .append(itSRVar + " = new StreamRegistry((LoaderAPI) " + itApiVar + " );")
-                .append(itORVar + " = new ObjectRegistry((LoaderAPI) " + itApiVar + " );")
-                //.append("ArrayAccessWatcher.setObjectRegistry(" + itORVar + ");")
+        toInsertBefore.append(itApiVar + " = new " + LoaderConstants.CLASS_COMPSS_API_IMPL + "();")
+                .append(itApiVar + " = (" + LoaderConstants.CLASS_COMPSSRUNTIME_API + ")" + itApiVar + ";")
+                .append(itSRVar + " = new " + LoaderConstants.CLASS_STREAM_REGISTRY + "((" + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
+                .append(itORVar + " = new " + LoaderConstants.CLASS_OBJECT_REGISTRY+ "((" + LoaderConstants.CLASS_LOADERAPI + ") " + itApiVar + " );")
                 .append(itApiVar + ".startIT();");
 
         initializer.insertBefore(toInsertBefore.toString());

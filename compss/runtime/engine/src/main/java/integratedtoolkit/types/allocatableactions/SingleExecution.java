@@ -1,7 +1,7 @@
 package integratedtoolkit.types.allocatableactions;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
+
 
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
@@ -119,7 +120,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
             jobLogger.debug("    * " + p);
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
-                if (taskParams.getType() != TaskParams.Type.SERVICE || dp.getDirection() != ITExecution.ParamDirection.INOUT) {
+                if (taskParams.getType() != TaskParams.Type.SERVICE || dp.getDirection() != DataDirection.INOUT) {
                     transferJobData(dp, listener);
                 }
             }

@@ -28,25 +28,28 @@ public class AddOrchestration {
 		}
 		String className = args[0];
 		String classPackage = getPackage(className);
-		//pool creation
+		
+		// Pool creation
 		ClassPool pool = ClassPool.getDefault();
-		if (classPackage!=null && classPackage.trim().length()>0)
+		if (classPackage != null && classPackage.trim().length() > 0) {
 			 pool.importPackage(classPackage);
-		//extracting the class
+		}
+		
+		// Extracting the class
 		CtClass cc = pool.getCtClass(className);
 		ClassFile ccFile = cc.getClassFile();
 		ConstPool constpool = ccFile.getConstPool();
-		for (int i=1; i<args.length;i++){
+		for (int i = 1; i < args.length; i++){
 			String methodLabel = args[i];
 			String methodName = getMethodName(methodLabel);
 			CtClass[] params = getParamClasses(methodLabel, pool); 
 			CtMethod methodDescriptor = cc.getDeclaredMethod(methodName, params);
 			AnnotationsAttribute attr = (AnnotationsAttribute) methodDescriptor.getMethodInfo().getAttribute(AnnotationsAttribute.visibleTag);
-			if (attr == null){
-				// create the annotation
+			if (attr == null) {
+				// Create the annotation
 				attr = new AnnotationsAttribute(constpool, AnnotationsAttribute.visibleTag);
 			}
-			Annotation annot = new Annotation("integratedtoolkit.types.annotations.Orchestration", constpool);
+			Annotation annot = new Annotation(LoaderConstants.CLASS_ANNOTATIONS_ORCHESTRATION, constpool);
 			attr.addAnnotation(annot);
 			methodDescriptor.getMethodInfo().addAttribute(attr);
 		}
@@ -73,17 +76,18 @@ public class AddOrchestration {
 	private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, Exception {
 		List<CtClass> classes = new LinkedList<CtClass>();
 		List<String> params = getParametersTypeFromLabel(label);
-		if (params!= null && params.size()>0){
+		if (params != null && params.size() > 0) {
 			for (String className:params){
 				String pack = getPackage(className);
-				if (pack!=null){
+				if (pack != null) {
 					pool.importPackage(pack);
 				}
 				classes.add(pool.getCtClass(className));
 			}
 			return classes.toArray(new CtClass[classes.size()]);
-		}else
+		} else {
 			return new CtClass[0];
+		}
 	}
 	
 	public static List<String> getParametersTypeFromLabel(String label) throws Exception{
@@ -92,13 +96,13 @@ public class AddOrchestration {
 		if (begin > 0 && end > 0 && end > begin){
 			String parsString = label.substring(begin + 1, end);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Parameters: "+ parsString );
+				logger.debug("Parameters: " + parsString );
 			}
 			List<String> parameters = new LinkedList<String>();
-			if(parsString!=null && parsString.trim().length()>0){
+			if (parsString != null && parsString.trim().length() > 0) {
 				String[] parametersArray = parsString.split(", ");
-				if (parametersArray!=null && parametersArray.length>0){
-					for (String parameter:parametersArray){
+				if (parametersArray != null && parametersArray.length > 0) {
+					for (String parameter:parametersArray) {
 							parameters.add(parameter);
 						
 					}
@@ -106,16 +110,16 @@ public class AddOrchestration {
 			}
 			return parameters ;
 		} else {
-			throw(new Exception("Error incorrect label "+ label));
+			throw new Exception("Error incorrect label " + label);
 		}
 	}
 
 	private static String getMethodName(String label) throws Exception {
 			int i = label.indexOf("(");
 			if (i > 0) {
-				return label.substring(0,i);
+				return label.substring(0, i);
 			} else {
-				throw(new Exception("Error method name from label "+ label));
+				throw new Exception("Error method name from label " + label);
 			}
 	}
 
@@ -128,9 +132,8 @@ public class AddOrchestration {
 				return null;
 			}
 		} else {
-			throw(new Exception("ClassName is null"));
+			throw new Exception("ClassName is null");
 		}
 	}
 			
 }
-	

@@ -10,7 +10,6 @@ import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.util.ResourceManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -51,6 +50,7 @@ public class TestCompatible {
     /* **************************************
      * RESOURCE MANAGER TEST IMPLEMENTATION 
      * ************************************** */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static void resourceManagerTest() {
     	coreCount = CoreManager.getCoreCount();
     	
@@ -59,8 +59,8 @@ public class TestCompatible {
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
             
-            Action a = new Action(coreId);
-            HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
+			Action a = new Action(coreId);
+			HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
             
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {

@@ -1,9 +1,8 @@
 package integratedtoolkit.types.resources;
 
-import java.util.HashMap;
-
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
+
 
 public class ServiceWorker extends Worker<ServiceResourceDescription> {
 

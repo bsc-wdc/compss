@@ -1,7 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution.ParamDirection;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 import java.io.Serializable;
 
@@ -13,23 +13,23 @@ public abstract class Parameter implements Serializable {
 	private static final long serialVersionUID = 1L;
 
     // Parameter fields
-    private ParamType type;
-    private final ParamDirection direction;
+    private DataType type;
+    private final DataDirection direction;
 
-    public Parameter(ParamType type, ParamDirection direction) {
+    public Parameter(DataType type, DataDirection direction) {
         this.type = type;
         this.direction = direction;
     }
 
-    public ParamType getType() {
+    public DataType getType() {
         return type;
     }
 
-    public void setType(ParamType type) {
+    public void setType(DataType type) {
         this.type = type;
     }
 
-    public ParamDirection getDirection() {
+    public DataDirection getDirection() {
         return direction;
     }
 

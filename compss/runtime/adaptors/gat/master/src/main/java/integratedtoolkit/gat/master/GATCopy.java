@@ -1,6 +1,6 @@
 package integratedtoolkit.gat.master;
 
-import static integratedtoolkit.api.ITExecution.ParamType.FILE_T;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.URI;
@@ -15,6 +15,7 @@ import java.util.LinkedList;
 
 import org.gridlab.gat.GATInvocationException;
 import org.gridlab.gat.io.FileInterface;
+
 
 public class GATCopy extends ImmediateCopy {
 
@@ -32,7 +33,7 @@ public class GATCopy extends ImmediateCopy {
                 break;
             } else {
                 Resource host = uri.getHost();
-                this.tgtLoc = DataLocation.getLocation(host, host.getCompleteRemotePath(FILE_T, path));
+                this.tgtLoc = DataLocation.getLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
             }
         }
     }

@@ -32,11 +32,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-annotations</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-commons</artifactId>
+			<artifactId>compss-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>

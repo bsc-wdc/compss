@@ -1,6 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.parameter.DependencyParameter;
 
@@ -14,9 +15,8 @@ public class FileParameter extends DependencyParameter {
     // File parameter fields
     private DataLocation location;
 
-    public FileParameter(ITExecution.ParamDirection direction, DataLocation location) {
-
-        super(ITExecution.ParamType.FILE_T, direction);
+    public FileParameter(DataDirection direction, DataLocation location) {
+        super(DataType.FILE_T, direction);
         this.location = location;
     }
 

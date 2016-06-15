@@ -1,9 +1,11 @@
 package integratedtoolkit.types;
 
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.parameter.Parameter;
-import java.io.Serializable;
-import integratedtoolkit.api.ITExecution.*;
 import integratedtoolkit.util.CoreManager;
+
+import java.io.Serializable;
 
 
 public class TaskParams implements Serializable {
@@ -34,8 +36,8 @@ public class TaskParams implements Serializable {
             this.hasReturn = false;
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
-            ParamType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == ParamDirection.OUT && (type == ParamType.OBJECT_T || type == ParamType.SCO_T || type == ParamType.PSCO_T));
+            DataType type = lastParam.getType();
+            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(methodClass, methodName, hasTarget, hasReturn, parameters);
         type = Type.METHOD;
@@ -50,8 +52,8 @@ public class TaskParams implements Serializable {
             this.hasReturn = false;
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
-            ParamType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == ParamDirection.OUT && (type == ParamType.OBJECT_T || type == ParamType.SCO_T || type == ParamType.PSCO_T));
+            DataType type = lastParam.getType();
+            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(namespace, service, port, operation, hasTarget, hasReturn, parameters);
         this.type = Type.SERVICE;

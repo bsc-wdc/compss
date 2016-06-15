@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
-	<groupId>es.bsc.compss.tests</groupId>
 	<artifactId>compss-tests-basic</artifactId>
 	<packaging>pom</packaging>
-    <parent>
-    	<groupId>es.bsc.compss.tests</groupId>
+	<parent>
+		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-<version>1.4.rc05</version>
-        <relativePath>..</relativePath>
-    </parent>
-	
+		<version>1.4.rc05</version>
+		<relativePath>..</relativePath>
+	</parent>
+
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests - Basic</name>
 	<description>COMPSs Framework Tests - Basic Local </description>
@@ -55,7 +55,8 @@
 		<!-- Module 22 is 22-kmeans_python -->
 		<module>23-concurrent</module>
 		<module>24-noTask</module>
-		<!-- Module 25 is 25-pythonTaskTracing -->
-	    <!-- Add new modules below. Respect numbering -->
+		<!-- Module 25 is 25-task_tracing_python -->
+		<module>26-java_api_calls</module>
+		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

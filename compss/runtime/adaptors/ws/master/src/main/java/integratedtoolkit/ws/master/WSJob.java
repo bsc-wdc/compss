@@ -4,7 +4,7 @@ import integratedtoolkit.types.job.Job;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
-import integratedtoolkit.api.ITExecution.*;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
@@ -137,7 +137,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
                     ServiceImplementation service = (ServiceImplementation) job.impl;
                     Parameter[] parameters = taskParams.getParameters();
                     for (int i = 0; i < taskParams.getParameters().length; i++) {
-                        if (parameters[i].getDirection() == ParamDirection.IN) {
+                        if (parameters[i].getDirection() == DataDirection.IN) {
                             switch (parameters[i].getType()) {
                                 case OBJECT_T:
                                 case SCO_T:

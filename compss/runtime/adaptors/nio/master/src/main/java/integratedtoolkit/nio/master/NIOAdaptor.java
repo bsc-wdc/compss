@@ -11,7 +11,7 @@ import java.util.Random;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
@@ -49,6 +49,7 @@ import integratedtoolkit.util.ErrorManager;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
+
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
@@ -458,7 +459,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         u.setInternalURI(ID, new NIOURI(masterNode, u.getPath()));
     }
 
-    public void requestData(Copy c, ParamType paramType, Data d, String path) {
+    public void requestData(Copy c, DataType paramType, Data d, String path) {
         DataRequest dr = new MasterDataRequest(c, paramType, d, path);
         addTransferRequest(dr);
         requestTransfers();

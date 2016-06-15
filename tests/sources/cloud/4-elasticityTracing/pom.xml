@@ -13,7 +13,7 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>elasticityMultiProvider</name>
+	<name>elasticityTracing</name>
 	<description>Simple application for testing Elasticity</description>
 	<url>http://compss.bsc.es/projects/bar/wiki/simple</url>
 	<inceptionYear>2014</inceptionYear>
@@ -32,12 +32,12 @@
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-annotations</artifactId>
+			<artifactId>compss-api</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-engine</artifactId>
-		</dependency>
+                <dependency>
+                        <groupId>es.bsc.compss</groupId>
+                        <artifactId>compss-resources-commons</artifactId>
+                </dependency>
 	</dependencies>
 
 	<!-- BUILD SETTINGS -->

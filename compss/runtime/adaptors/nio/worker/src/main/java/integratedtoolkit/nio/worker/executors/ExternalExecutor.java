@@ -1,6 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -105,7 +105,7 @@ public abstract class ExternalExecutor extends Executor {
         lArgs.add(Boolean.toString(nt.isHasTarget()));
         lArgs.add(Integer.toString(nt.getNumParams()));
         for (NIOParam np : nt.getParams()) {
-            ITExecution.ParamType type = np.getType();
+            DataType type = np.getType();
             lArgs.add(Integer.toString(type.ordinal()));
             switch (type) {
             case FILE_T:

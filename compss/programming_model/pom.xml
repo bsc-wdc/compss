@@ -30,6 +30,6 @@
 
 	<!-- SUB-MODULES -->
 	<modules>
-		<module>annotations</module>
+		<module>api</module>
 	</modules>
 </project>

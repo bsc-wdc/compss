@@ -7,7 +7,7 @@ import es.bsc.comm.TransferManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.commands.CommandDataDemand;
 import integratedtoolkit.nio.commands.CommandTracingID;
@@ -19,11 +19,14 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 
 import java.io.File;
+
 import static java.lang.Math.abs;
+
 import java.nio.file.Files;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+
 
 public abstract class NIOAgent {
 
@@ -220,10 +223,10 @@ public abstract class NIOAgent {
     public abstract static class DataRequest {
 
         private final Data source;
-        private final ITExecution.ParamType type;
+        private final DataType type;
         private final String getTarget;
 
-        public DataRequest(ITExecution.ParamType type, Data source, String target) {
+        public DataRequest(DataType type, Data source, String target) {
             this.source = source;
             this.getTarget = target;
             this.type = type;
@@ -237,7 +240,7 @@ public abstract class NIOAgent {
             return getTarget;
         }
 
-        public ITExecution.ParamType getType() {
+        public DataType getType() {
             return type;
         }
 
@@ -245,7 +248,7 @@ public abstract class NIOAgent {
 
             final DataOperation fOp;
 
-            public MasterDataRequest(DataOperation fOp, ITExecution.ParamType type, Data source, String target) {
+            public MasterDataRequest(DataOperation fOp, DataType type, Data source, String target) {
                 super(type, source, target);
                 this.fOp = fOp;
             }
@@ -301,7 +304,7 @@ public abstract class NIOAgent {
                 if (tracing) {
                     c.receive();
                 }
-                if (dr.type == ITExecution.ParamType.FILE_T) {
+                if (dr.type == DataType.FILE_T) {
                     c.receiveDataFile(dr.getTarget);
                 } else {
                     c.receiveDataObject();

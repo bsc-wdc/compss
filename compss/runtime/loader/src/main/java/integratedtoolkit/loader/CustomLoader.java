@@ -42,7 +42,7 @@ public class CustomLoader extends URLClassLoader {
 		Class<?> c = findLoadedClass(name);
 		
 		if (c == null) {
-			if (name.startsWith("integratedtoolkit.loader") 
+			if (name.startsWith(LoaderConstants.CUSTOM_LOADER_PREFIX) 
 				|| name.startsWith("javassist")) {
 				/* Avoid delegation:
 				 * This custom loader must load the ITModifier and ITApplicationEditor

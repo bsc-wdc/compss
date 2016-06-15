@@ -1,5 +1,6 @@
 package integratedtoolkit.gat.worker;
 
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 
@@ -13,21 +14,9 @@ import java.lang.reflect.Method;
  */
 public class GATWorker {
 
-    
     protected static final int NUM_HEADER_PARS = 5;
     
-    // Parameter type constants
-    protected static final int FILE_PAR 	= 0;
-    protected static final int BOOL_PAR 	= 1;
-    protected static final int CHAR_PAR 	= 2;
-    protected static final int STRING_PAR 	= 3;
-    protected static final int BYTE_PAR 	= 4;
-    protected static final int SHORT_PAR 	= 5;
-    protected static final int INT_PAR 		= 6;
-    protected static final int LONG_PAR 	= 7;
-    protected static final int FLOAT_PAR 	= 8;
-    protected static final int DOUBLE_PAR 	= 9;
-    protected static final int OBJECT_PAR 	= 10;
+    private static final String WARN_UNSUPPORTED_TYPE = "WARNING: Unsupported data type";
     
     /**
      * Executes a method taking into account the parameters. First it parses the
@@ -73,15 +62,20 @@ public class GATWorker {
         // Parse the parameter types and values
         int pos = NUM_HEADER_PARS;
         Object target = null;
-        for (int i = 0; i < numParams; i++) {
+        DataType[] dataTypes = DataType.values();
+        for (int i = 0; i < numParams; i++) {        	
             // We need to use wrapper classes for basic types, reflection will unwrap automatically
-        	int argType = Integer.parseInt(args[pos]);
+        	int argType_index = Integer.parseInt(args[pos]);
+        	if (argType_index >= dataTypes.length) {
+        		ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType_index);
+        	}
+        	DataType argType = DataType.values()[argType_index];
             switch (argType) {
-                case FILE_PAR:
+                case FILE_T:
                     types[i] = String.class;
                     values[i] = args[pos + 1];
                     break;
-                case OBJECT_PAR:
+                case OBJECT_T:
                     String renaming = renamings[i] = (String) args[pos + 1];
                     mustWrite[i] = ((String) args[pos + 2]).equals("W");
                     Object o = null;
@@ -90,8 +84,7 @@ public class GATWorker {
                     } catch (Exception e) {
                     	ErrorManager.error("Error deserializing object parameter " + i + " with renaming " + renaming + ", method " + methodName + ", class " + className);
                     }
-                    if (hasTarget && i == numParams - 1) // last parameter is the target object
-                    {
+                    if (hasTarget && i == numParams - 1) {// last parameter is the target object
                         if (o == null) {
                         	ErrorManager.error("Target object with renaming " + renaming + ", method " + methodName + ", class " + className + " is null!");
                         }
@@ -105,15 +98,15 @@ public class GATWorker {
                     }
                     pos++;
                     break;
-                case BOOL_PAR:
+                case BOOLEAN_T:
                     types[i] = boolean.class;
                     values[i] = new Boolean(args[pos + 1]);
                     break;
-                case CHAR_PAR:
+                case CHAR_T:
                     types[i] = char.class;
                     values[i] = new Character(args[pos + 1].charAt(0));
                     break;
-                case STRING_PAR:
+                case STRING_T:
                     types[i] = String.class;
                     int numSubStrings = Integer.parseInt(args[pos + 1]);
                     String aux = "";
@@ -126,32 +119,35 @@ public class GATWorker {
                     values[i] = aux;
                     pos += numSubStrings;
                     break;
-                case BYTE_PAR:
+                case BYTE_T:
                     types[i] = byte.class;
                     values[i] = new Byte(args[pos + 1]);
                     break;
-                case SHORT_PAR:
+                case SHORT_T:
                     types[i] = short.class;
                     values[i] = new Short(args[pos + 1]);
                     break;
-                case INT_PAR:
+                case INT_T:
                     types[i] = int.class;
                     values[i] = new Integer(args[pos + 1]);
                     break;
-                case LONG_PAR:
+                case LONG_T:
                     types[i] = long.class;
                     values[i] = new Long(args[pos + 1]);
                     break;
-                case FLOAT_PAR:
+                case FLOAT_T:
                     types[i] = float.class;
                     values[i] = new Float(args[pos + 1]);
                     break;
-                case DOUBLE_PAR:
+                case DOUBLE_T:
                     types[i] = double.class;
                     values[i] = new Double(args[pos + 1]);
                     break;
+			default:
+				ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType);
+				break;
             }
-            isFile[i] = (argType == FILE_PAR);
+            isFile[i] = argType.equals(DataType.FILE_T);
             pos += 2;
         }
 

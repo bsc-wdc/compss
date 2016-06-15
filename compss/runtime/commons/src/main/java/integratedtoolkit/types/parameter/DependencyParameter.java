@@ -1,6 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution.*;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.Transferable;
 
@@ -15,7 +16,7 @@ public class DependencyParameter extends Parameter implements Transferable {
     private Object dataSource;
     private String dataTarget;
 
-    public DependencyParameter(ParamType type, ParamDirection direction) {
+    public DependencyParameter(DataType type, DataDirection direction) {
         super(type, direction);
     }
 

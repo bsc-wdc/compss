@@ -7,7 +7,7 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.DataAccessId;
-import integratedtoolkit.util.ErrorManager;
+
 
 /**
  * The TransferObjectRequest is a request for an object contained in a remote

@@ -1,8 +1,8 @@
 package integratedtoolkit.scheduler.defaultscheduler;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamDirection;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
@@ -145,10 +145,10 @@ public class ScoresTest {
         DataInstanceId d2v2 = new DataInstanceId(2, 2);
         Comm.registerData(d2v2.getRenaming());
 
-        DependencyParameter dpD1V1 = new DependencyParameter(ParamType.FILE_T, ParamDirection.IN);
+        DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, DataDirection.IN);
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
-        DependencyParameter dpD2V2 = new DependencyParameter(ParamType.FILE_T, ParamDirection.IN);
+        DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, DataDirection.IN);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
         TaskParams params = new TaskParams("",

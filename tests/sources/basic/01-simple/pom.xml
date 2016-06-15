@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
@@ -8,10 +8,10 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-basic</artifactId>
-<version>1.4.rc05</version>
+		<version>1.4.rc05</version>
 		<relativePath>..</relativePath>
 	</parent>
-	
+
 	<!-- PROJECT INFORMATION -->
 	<name>Simple</name>
 	<description>Simple application</description>
@@ -27,15 +27,15 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-annotations</artifactId>
+			<artifactId>compss-api</artifactId>
 		</dependency>
-	</dependencies>	
-	
+	</dependencies>
+
 	<!-- BUILD SETTINGS -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -46,7 +46,7 @@
 				<configuration>
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>
-     			</configuration>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -56,11 +56,11 @@
 					<execution>
 						<id>copy</id>
 						<phase>validate</phase>
-						 <goals> 
-		               		<goal>copy-dependencies</goal> 
-		          		</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
@@ -69,7 +69,8 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>

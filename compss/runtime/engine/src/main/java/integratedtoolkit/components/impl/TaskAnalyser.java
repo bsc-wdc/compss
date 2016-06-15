@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.TaskParams;
@@ -31,8 +31,10 @@ import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
+import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.util.ErrorManager;
+
 
 public class TaskAnalyser {
 
@@ -253,7 +255,7 @@ public class TaskAnalyser {
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
         writers.put(dataId, currentTask); // update global last writer
-        if (dp.getType() == ParamType.FILE_T) { // Objects are not checked, their version will be only get if the main access them
+        if (dp.getType() == DataType.FILE_T) { // Objects are not checked, their version will be only get if the main access them
             TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
             if (idsWritten == null) {
                 idsWritten = new TreeSet<Integer>();
@@ -261,7 +263,7 @@ public class TaskAnalyser {
             }
             idsWritten.add(dataId);
         }
-        if (dp.getType() == ParamType.PSCO_T) {
+        if (dp.getType() == DataType.PSCO_T) {
             TreeSet<Integer> idsWritten = appIdToSCOWrittenIds.get(appId);
             if (idsWritten == null) {
                 idsWritten = new TreeSet<Integer>();
@@ -301,8 +303,8 @@ public class TaskAnalyser {
         }
 
         for (Parameter param : task.getTaskParams().getParameters()) {
-            ParamType type = param.getType();
-            if (type == ParamType.FILE_T || type == ParamType.OBJECT_T || type == ParamType.SCO_T || type == ParamType.PSCO_T) {
+            DataType type = param.getType();
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 DIP.dataHasBeenAccessed(dAccId);
@@ -393,6 +395,23 @@ public class TaskAnalyser {
                 waitedTasks.put(lastWriter, list);
             }
             list.add(sem);
+        }
+    }
+    
+    public void waitForAllTasks(WaitForAllTasksRequest request) {
+        Long appId = request.getAppId();
+        Integer count = appIdToTaskCount.get(appId);
+        
+        // We can draw the graph on a barrier while we wait for tasks
+        if (drawGraph) {
+            this.GM.commitGraph();
+        }
+        
+        // Release the sem only if all app tasks have finished
+        if (count == null || count == 0) {
+            request.getSemaphore().release();
+        } else {
+            appIdToSemaphore.put(appId, request.getSemaphore());
         }
     }
 

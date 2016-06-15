@@ -1,6 +1,6 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.Transferable;
 
 
@@ -30,8 +30,8 @@ public class WorkersDebugInfoCopyTransferable  implements Transferable {
     }
 
     @Override
-    public ITExecution.ParamType getType() {
-        return ITExecution.ParamType.FILE_T;
+    public DataType getType() {
+        return DataType.FILE_T;
     }
 
 }

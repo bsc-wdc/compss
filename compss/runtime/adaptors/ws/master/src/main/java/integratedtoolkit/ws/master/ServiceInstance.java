@@ -1,6 +1,6 @@
 package integratedtoolkit.ws.master;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.data.location.DataLocation;
@@ -16,6 +16,7 @@ import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.ws.master.configuration.WSConfiguration;
+
 
 public class ServiceInstance extends COMPSsWorker {
 
@@ -115,7 +116,7 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(ITExecution.ParamType type, String name) {
+    public String getCompletePath(DataType type, String name) {
         switch (type) {
             case FILE_T:
                 return Comm.appHost.getTempDirPath() + name;

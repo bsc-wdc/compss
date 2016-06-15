@@ -41,6 +41,7 @@ import integratedtoolkit.types.request.ap.TasksStateRequest;
 import integratedtoolkit.types.request.ap.TransferObjectRequest;
 import integratedtoolkit.types.request.ap.TransferOpenFileRequest;
 import integratedtoolkit.types.request.ap.UnblockResultFilesRequest;
+import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.util.Serializer;
@@ -277,6 +278,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
             // Nothing to do
         }
         return request.getResponse();
+    }
+    
+    // App
+    public void waitForAllTasks(Long appId) {
+    	Semaphore sem = new Semaphore(0);
+        requestQueue.offer(new WaitForAllTasksRequest(appId, sem));
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        logger.info("Barrier: End of waited all tasks");
     }
 
     // App

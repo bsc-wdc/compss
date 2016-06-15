@@ -1,6 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution.*;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 
 public class BasicTypeParameter extends Parameter {
@@ -23,7 +24,7 @@ public class BasicTypeParameter extends Parameter {
 	
     private Object value;
 
-    public BasicTypeParameter(ParamType type, ParamDirection direction, Object value) {
+    public BasicTypeParameter(DataType type, DataDirection direction, Object value) {
         super(type, direction);
         this.value = value;
     }

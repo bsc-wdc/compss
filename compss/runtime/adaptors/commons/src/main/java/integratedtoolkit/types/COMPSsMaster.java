@@ -1,6 +1,6 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.types.data.location.DataLocation;
@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.concurrent.Semaphore;
+
 
 public class COMPSsMaster extends COMPSsNode {
 
@@ -305,7 +306,7 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public String getCompletePath(ITExecution.ParamType type, String name) {
+    public String getCompletePath(DataType type, String name) {
         switch (type) {
             case FILE_T:
                 return Comm.appHost.getTempDirPath() + name;

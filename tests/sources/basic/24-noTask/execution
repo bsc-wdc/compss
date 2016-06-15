@@ -21,7 +21,7 @@
   #----------------------------------------------------------------------------------
   #Run application 1 - Simple
   echo
-  echo "*** RUNNING JAVA APPLICATION SIMPLE"
+  echo "*** RUNNING JAVA APPLICATION NO_TASK"
   output_log="${target_log_folder}/noTask.outputlog"
   error_log="${target_log_folder}/noTask.errorlog"
   expectedTime=20s

@@ -1,7 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution.ParamDirection;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 
 public class SCOParameter extends DependencyParameter {
@@ -13,7 +13,7 @@ public class SCOParameter extends DependencyParameter {
 	private int code;
 	private Object value;
 
-	public SCOParameter(ParamType type, ParamDirection direction, Object value, int code) {
+	public SCOParameter(DataType type, DataDirection direction, Object value, int code) {
 		 super(type, direction);
 		 this.setValue(value);
 		 this.setCode(code);

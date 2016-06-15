@@ -12,7 +12,6 @@ public class ITConstants {
     public static final String IT_HOME = "IT_HOME";
 
     // Component names
-    public static final String IT = "integratedtoolkit.IntegratedToolkit";
     public static final String TA = "Task Analyser";
     public static final String TS = "Task Scheduler";
     public static final String JM = "Job Manager";

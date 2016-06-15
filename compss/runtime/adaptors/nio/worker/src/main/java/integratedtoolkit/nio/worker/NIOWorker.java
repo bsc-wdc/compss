@@ -1,11 +1,11 @@
 package integratedtoolkit.nio.worker;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
-
-import integratedtoolkit.util.*;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -20,13 +20,13 @@ import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOURI;
 import integratedtoolkit.nio.commands.CommandDataReceived;
 import integratedtoolkit.nio.commands.Data;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOMessageHandler;
 import integratedtoolkit.nio.commands.CommandShutdownACK;
@@ -34,6 +34,10 @@ import integratedtoolkit.nio.commands.CommandTaskDone;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.NIOTracer;
+import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.util.RequestQueue;
+import integratedtoolkit.util.Serializer;
+import integratedtoolkit.util.ThreadPool;
 
 
 public class NIOWorker extends NIOAgent {
@@ -758,7 +762,7 @@ public class NIOWorker extends NIOAgent {
 
 		private final TransferringTask task;
 
-		public WorkerDataRequest(TransferringTask task, ParamType type, Data source, String target) {
+		public WorkerDataRequest(TransferringTask task, DataType type, Data source, String target) {
 			super(type, source, target);
 			this.task = task;
 		}

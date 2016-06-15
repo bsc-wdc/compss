@@ -3,11 +3,6 @@ package integratedtoolkit.loader.total;
 
 public class ArrayAccessWatcher {
 
-	/*private static ObjectRegistry or;
-	
-	public static void setObjectRegistry(ObjectRegistry registry) {
-		or = registry;
-	}*/
 	
 	/*
 	 * For now, there is no need to do anything inside this methods but to return or modify the array position
@@ -15,7 +10,6 @@ public class ArrayAccessWatcher {
 	 * TODO: Do not depend on the black-box, but deal directly with the object registry and distinguish between
 	 * read and write access 
 	 */
-	
 	public static void arrayWriteObject(Object array, int index, Object value) throws Throwable {
 		//System.out.println("OBJECT ARRAY WRITE, index " + index + ", value " + value);
         ((Object[]) array)[index] = value;

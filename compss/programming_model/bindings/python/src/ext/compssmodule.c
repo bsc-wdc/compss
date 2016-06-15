@@ -77,15 +77,15 @@ process_task(PyObject *self, PyObject *args)
     	c_types[j] = (int)PyInt_AsLong(type);
     	c_directions[j] = (int)PyInt_AsLong(direction);
     	switch ((enum datatype) c_types[j]) {
-    		case file_dt:
-    			val_size += sizeof(char*);
-    			break;
-		case persistent_dt:
-			val_size += sizeof(char *);
-			break;
+	    case file_dt:
+    		val_size += sizeof(char*);
+    		break;
+	    case persistent_dt:
+		val_size += sizeof(char *);
+		break;
     	    case string_dt:
     	    	val_size += sizeof(char*);
-    			break;
+    		break;
     	    case int_dt:
     	    	val_size += sizeof(int);
     	        break;
@@ -95,11 +95,11 @@ process_task(PyObject *self, PyObject *args)
     	    case double_dt:
     	    	val_size += sizeof(double);
     	        break;
-    		case boolean_dt:
-    			val_size += sizeof(int);
-    			break;
-     		default:
-     			break;
+    	    case boolean_dt:
+    		val_size += sizeof(int);
+    		break;
+     	    default:
+     		break;
         }
     }
 
@@ -114,13 +114,13 @@ process_task(PyObject *self, PyObject *args)
     	val = PyTuple_GetItem(values, j); // this does not increment reference (we don't own it) so no need for decref
     	params[pj] = (void *)c_values;
     	switch ((enum datatype) c_types[j]) {
-    		case file_dt:
+            case file_dt:
     			s = PyString_AsString(val);
     			*(char**)c_values = s;
     			//printf ("####C#### \t Arg %d (FILE): %s, add %ld\n", j, *(char**)c_values, c_values);
     			c_values += sizeof(char*);
     			break;
-		case persistent_dt:
+	    case persistent_dt:
                         s = PyString_AsString(val);
                         *(char**)c_values = s;
                         //printf ("####C#### \t Arg %d (PERSISTENT): %s, add %ld\n", j, *(char**)c_values, c_values);

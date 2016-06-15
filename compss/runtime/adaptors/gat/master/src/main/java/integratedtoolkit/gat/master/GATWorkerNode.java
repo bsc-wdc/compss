@@ -1,6 +1,6 @@
 package integratedtoolkit.gat.master;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.gat.master.configuration.GATConfiguration;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
@@ -16,11 +16,13 @@ import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.util.SSHManager;
+
 import org.gridlab.gat.GATContext;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+
 
 public class GATWorkerNode extends COMPSsWorker {
 
@@ -187,7 +189,7 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(ITExecution.ParamType type, String name) {
+    public String getCompletePath(DataType type, String name) {
         switch (type) {
             case FILE_T:
                 return this.config.getWorkingDir() + name;

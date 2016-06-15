@@ -107,7 +107,7 @@ public abstract class DataInfo {
                 pendingDeletions.add(version);
             }
         } else {
-            LinkedList<Integer> removedVersions = new LinkedList();
+            LinkedList<Integer> removedVersions = new LinkedList<Integer>();
             for (DataVersion version : versions.values()) {
                 if (version.delete()) {
                     removedVersions.remove(version.getDataInstanceId().getVersionId());

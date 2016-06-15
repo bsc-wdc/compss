@@ -30,15 +30,19 @@ class Direction:
 
 # Numbers match both C and Java enums
 class Type:
-    FILE = 0
-    BOOLEAN = 1
-    STRING = 3
-    INT = 6
-    LONG = 7
-    FLOAT = 9    # C double
+    BOOLEAN = 0
+    CHAR = 1
+    BYTE = 2
+    SHORT = 3
+    INT = 4
+    LONG = 5
+    FLOAT = 6		# C double
+    DOUBLE = 7
+    STRING = 8
+    FILE = 9
     OBJECT = 10
-    PERSISTENT = 11
-    # COMPLEX = 8
+    PERSISTENT = 11	# PSCO
+    SCO = 12
 
 
 class Parameter:

@@ -23,8 +23,7 @@ import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.*;
-
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.parameter.Parameter;
@@ -39,6 +38,7 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
 import java.util.LinkedList;
+
 
 public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> implements MetricListener {
 
@@ -263,13 +263,13 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         }
         lArgs.add(Integer.toString(numParams));
         for (Parameter param : taskParams.getParameters()) {
-            ParamType type = param.getType();
+            DataType type = param.getType();
             lArgs.add(Integer.toString(type.ordinal()));
-            if (type == ParamType.FILE_T || type == ParamType.OBJECT_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 lArgs.add(dPar.getDataTarget());
-                if (type == ParamType.OBJECT_T) {
+                if (type == DataType.OBJECT_T) {
                     if (dAccId instanceof RAccessId) {
                         lArgs.add("R");
                     } else {
@@ -277,7 +277,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                     }
                 }
 
-            } else if (type == ParamType.STRING_T) {
+            } else if (type == DataType.STRING_T) {
                 BasicTypeParameter btParS = (BasicTypeParameter) param;
                 // Check spaces
                 String value = btParS.getValue().toString();
@@ -301,20 +301,20 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             int i = 0;
             for (Parameter param : taskParams.getParameters()) {
                 sb.append("Parameter ").append(i).append("\n");
-                ParamType type = param.getType();
+                DataType type = param.getType();
                 sb.append("\t Type: ").append(param.getType()).append("\n");
-                if (type == ParamType.FILE_T || type == ParamType.OBJECT_T) {
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     sb.append("\t Target: ").append(dPar.getDataTarget()).append("\n");
-                    if (type == ParamType.OBJECT_T) {
+                    if (type == DataType.OBJECT_T) {
                         if (dAccId instanceof RAccessId) {
                             sb.append("\t Direction: " + "R").append("\n");
                         } else {
                             sb.append("\t Direction: " + "W").append("\n"); // for the worker to know it must write the object to disk
                         }
                     }
-                } else if (type == ParamType.STRING_T) {
+                } else if (type == DataType.STRING_T) {
                     BasicTypeParameter btParS = (BasicTypeParameter) param;
                     // Check spaces
                     String value = btParS.getValue().toString();

@@ -1,7 +1,6 @@
 package integratedtoolkit.util;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +28,7 @@ import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
 
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
+
 
 public class ResourceLoader {
 

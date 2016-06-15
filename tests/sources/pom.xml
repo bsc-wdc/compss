@@ -39,12 +39,7 @@
                 <dependencies>
                         <dependency>
                                 <groupId>es.bsc.compss</groupId>
-				<artifactId>compss-annotations</artifactId>
-                                <version>${compss.version}</version>
-                        </dependency>
-                        <dependency>
-                                <groupId>es.bsc.compss</groupId>
-				<artifactId>compss-commons</artifactId>
+				<artifactId>compss-api</artifactId>
                                 <version>${compss.version}</version>
                         </dependency>
                         <dependency>
@@ -55,11 +50,6 @@
 			 <dependency>
                                 <groupId>es.bsc.compss</groupId>
 				<artifactId>compss-scheduler-commons</artifactId>
-                                <version>${compss.version}</version>
-                        </dependency>
-			<dependency>
-                                <groupId>es.bsc.compss</groupId>
-				<artifactId>compss-engine</artifactId>
                                 <version>${compss.version}</version>
                         </dependency>
                         <dependency>

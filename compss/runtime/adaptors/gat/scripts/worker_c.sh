@@ -10,7 +10,11 @@
 
   # Execution
   shift $shiftSizeForApp # Shift parameters up to executed method
-  exec ${app_dir}/worker/worker_c $@
+  taskTracing=false # Only available with NIO
+  taskId=0 # Not used with GAT
+
+  echo "EXEC CMD: ${app_dir}/worker/worker_c $taskTracing $taskId $@"
+  exec ${app_dir}/worker/worker_c $taskTracing $taskId $@
 
   # Exit
   if [ $? -eq 0 ]; then

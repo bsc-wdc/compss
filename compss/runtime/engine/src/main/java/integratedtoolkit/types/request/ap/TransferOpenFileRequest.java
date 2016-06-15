@@ -14,7 +14,7 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.operation.FileTransferable;
 import integratedtoolkit.types.data.operation.OneOpWithSemListener;
-import integratedtoolkit.util.ErrorManager;
+
 
 /**
  * The TransferRawFileRequest class represents a request to transfer a file
@@ -112,6 +112,7 @@ public class TransferOpenFileRequest extends APRequest {
             targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
             logger.debug(targetFile + " to be opened as " + targetLocation);
             Comm.registerLocation(targetName, targetLocation);
+            setLocation(targetLocation);
             sem.release();
         } else {
             if (faId instanceof DataAccessId.RWAccessId) {
@@ -119,16 +120,17 @@ public class TransferOpenFileRequest extends APRequest {
                 String srcName = waId.getReadDataInstance().getRenaming();
                 String targetName = waId.getWrittenDataInstance().getRenaming();
                 targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                setLocation(targetLocation);
                 Comm.appHost.getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
             } else {
                 RAccessId waId = (RAccessId) faId;
                 String srcName = waId.getReadDataInstance().getRenaming();
                 String targetName = waId.getReadDataInstance().getRenaming();
                 targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                setLocation(targetLocation);
                 Comm.appHost.getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
             }
         }
-        setLocation(targetLocation);
     }
 
     @Override

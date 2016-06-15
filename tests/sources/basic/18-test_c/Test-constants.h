@@ -18,7 +18,7 @@
 #define TEST_VALUE_DOUBLE2 2000.002f
 #define TEST_VALUE_BOOLEAN 1
 #define TEST_VALUE_BOOLEAN2 0
-#define TEST_VALUE_NLINES 19
+#define TEST_VALUE_NLINES 9
 
 int assert_master (int condition) {
   if ( !condition ){

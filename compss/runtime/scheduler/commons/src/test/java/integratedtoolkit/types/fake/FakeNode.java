@@ -1,6 +1,6 @@
 package integratedtoolkit.types.fake;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
@@ -12,6 +12,7 @@ import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+
 
 public class FakeNode extends COMPSsNode {
 
@@ -47,7 +48,7 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public String getCompletePath(ITExecution.ParamType pt, String string) {
+    public String getCompletePath(DataType pt, String string) {
         return "";
     }
 

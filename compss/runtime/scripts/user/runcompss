@@ -709,9 +709,10 @@ exec_c() {
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
   # Launch application
-  echo -e "\nJVM_OPTIONS_FILE: $JVM_OPTIONS_FILE \n"
-  echo -e "\nIT_HOME: $IT_HOME \n"
-  echo -e "\nArgs: $application_args \n"
+  echo "JVM_OPTIONS_FILE: $JVM_OPTIONS_FILE"
+  echo "IT_HOME: $IT_HOME"
+  echo "Args: $application_args"
+  echo " "
 
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so

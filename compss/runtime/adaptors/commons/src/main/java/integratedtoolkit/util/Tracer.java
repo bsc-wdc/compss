@@ -42,10 +42,10 @@ public abstract class Tracer {
 
     private static final int TASKS_FUNC_TYPE 	= 8_000_000;
     private static final int RUNTIME_EVENTS 	= 8_000_001;
-    private static final int TASKS_ID_TYPE 	= 8_000_002;
+    private static final int TASKS_ID_TYPE 		= 8_000_002;
     private static final int TASK_TRANSFERS 	= 8_000_003;
     private static final int DATA_TRANSFERS 	= 8_000_004;
-    private static final int STORAGE_TYPE 	= 8_000_005;
+    private static final int STORAGE_TYPE 		= 8_000_005;
     private static final int INSIDE_TASKS_TYPE	= 8_000_010;
 
     public static final int EVENT_END = 0;
@@ -60,11 +60,12 @@ public abstract class Tracer {
         STOP(3, RUNTIME_EVENTS, "Stop"),
         TASK(4, RUNTIME_EVENTS, "Execute Task"),
         NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"),
-        OPEN_FILE(6, RUNTIME_EVENTS, "Waiting for open file"),
-        GET_FILE(7, RUNTIME_EVENTS, "Waiting for get file"),
-        GET_OBJECT(8, RUNTIME_EVENTS, "Waiting for get object"),
-        DELETE(9, RUNTIME_EVENTS, "Delete File"),
-        TASK_RUNNING(10, RUNTIME_EVENTS, "Task Running"),
+        WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"),
+        OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"),
+        GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"),
+        GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"),
+        DELETE(19, RUNTIME_EVENTS, "Delete File"),
+        TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
         ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),

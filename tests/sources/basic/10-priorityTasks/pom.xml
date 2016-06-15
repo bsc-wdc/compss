@@ -31,7 +31,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>es.bsc.compss</groupId>
-			<artifactId>compss-annotations</artifactId>
+			<artifactId>compss-api</artifactId>
 		</dependency>
 	</dependencies>
 	

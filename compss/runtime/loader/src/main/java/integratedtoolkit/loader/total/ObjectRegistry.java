@@ -13,8 +13,6 @@ import storage.StorageItf;
 import storage.StubItf;
 
 
-
-
 public class ObjectRegistry {
 
     // Api object used to invoke calls on the Integrated Toolkit

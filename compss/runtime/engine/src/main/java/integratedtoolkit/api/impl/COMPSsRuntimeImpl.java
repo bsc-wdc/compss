@@ -5,8 +5,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution;
-import integratedtoolkit.api.IntegratedToolkit;
+import integratedtoolkit.api.COMPSsRuntime;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.components.impl.AccessProcessor;
@@ -38,7 +37,7 @@ import org.apache.log4j.PropertyConfigurator;
 import storage.StubItf;
 
 
-public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, LoaderAPI {
+public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Exception constants definition
     protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
@@ -230,20 +229,20 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
     }
 
     private static InputStream findPropertiesConfigFile() {
-        InputStream stream = IntegratedToolkitImpl.class.getResourceAsStream(ITConstants.IT_CONFIG);
+        InputStream stream = COMPSsRuntimeImpl.class.getResourceAsStream(ITConstants.IT_CONFIG);
         if (stream != null) {
             return stream;
         } else {
-            stream = IntegratedToolkitImpl.class.getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+            stream = COMPSsRuntimeImpl.class.getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
             if (stream != null) {
                 return stream;
             } else {
                 //System.err.println("IT properties file not defined. Looking at classLoader ...");
-                stream = IntegratedToolkitImpl.class.getClassLoader().getResourceAsStream(ITConstants.IT_CONFIG);
+                stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(ITConstants.IT_CONFIG);
                 if (stream != null) {
                     return stream;
                 } else {
-                    stream = IntegratedToolkitImpl.class.getClassLoader().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+                    stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
                     if (stream != null) {
                         return stream;
                     } else {
@@ -257,11 +256,11 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
                                 return stream;
                             } else {
                                 //System.err.println("IT properties file not found. Looking at parent ClassLoader");
-                                stream = IntegratedToolkitImpl.class.getClassLoader().getParent().getResourceAsStream(ITConstants.IT_CONFIG);
+                                stream = COMPSsRuntimeImpl.class.getClassLoader().getParent().getResourceAsStream(ITConstants.IT_CONFIG);
                                 if (stream != null) {
                                     return stream;
                                 } else {
-                                    stream = IntegratedToolkitImpl.class.getClassLoader().getParent().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+                                    stream = COMPSsRuntimeImpl.class.getClassLoader().getParent().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
                                     if (stream != null) {
                                         return stream;
                                     } else {
@@ -276,9 +275,12 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             }
         }
     }
-
-    public IntegratedToolkitImpl() {
-        // Load COMPSs version and buildnumber
+    
+    /* ****************************************************
+     * CONSTRUCTOR
+     * ****************************************************/
+    public COMPSsRuntimeImpl() {
+        // Load COMPSs version and buildNumber
         try {
             Properties props = new Properties();
             props.load(this.getClass().getResourceAsStream("/version.properties"));
@@ -307,39 +309,16 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         ErrorManager.init(this);
     }
 
-    public String getApplicationDirectory() {
-        return Comm.appHost.getAppLogDirPath();
-    }
-
-    public void emitEvent(int type, long id) {
-        Tracer.emitEvent(id, type);
-    }
-
-    public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
-            int parameterCount, Object... parameters) {
-
-        logger.debug("\nRegister CE parameters:");
-        logger.debug("\tMethodClass: " + methodClass);
-        logger.debug("\tMethodName: " + methodName);
-        logger.debug("\tHasTarget: " + hasTarget);
-        logger.debug("\tHasReturn: " + hasReturn);
-        logger.debug("\tConstraints: " + constraints);
-        logger.debug("\tParameters:");
-        for (Object o : parameters) {
-            logger.debug("\t: " + o.toString());
-        }
-
-        MethodResourceDescription mrd = new MethodResourceDescription(constraints);
-        Parameter[] params = processParameters(parameterCount, parameters);
-
-        String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, params);
-
-        td.registerCEI(signature, methodClass, mrd);
-    }
-
-    // Integrated Toolkit user interface implementation
+    
+    /* ****************************************************
+     * COMPSsRuntime INTERFACE IMPLEMENTATION
+     * ****************************************************/
+    /**
+     * Starts the COMPSs Runtime
+     * 
+     */
     public synchronized void startIT() {
-        if (tracing) {
+    	if (tracing) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
         }
@@ -397,13 +376,19 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         if (tracing) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
+
     }
 
+    /**
+     * Stops the COMPSsRuntime
+     * 
+     */
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (tracing) {
                 Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
+
 
             // Stop monitor components
             logger.debug("Stop IT reached");
@@ -439,6 +424,44 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         logger.info("Execution Finished");
     }
 
+    /**
+     * Returns the Application Directory
+     * 
+     */
+    public String getApplicationDirectory() {
+        return Comm.appHost.getAppLogDirPath();
+    }
+	
+    
+    /**
+     * Registers a new CoreElement in the COMPSs Runtime
+     */
+    public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
+            int parameterCount, Object... parameters) {
+
+        logger.debug("\nRegister CE parameters:");
+        logger.debug("\tMethodClass: " + methodClass);
+        logger.debug("\tMethodName: " + methodName);
+        logger.debug("\tHasTarget: " + hasTarget);
+        logger.debug("\tHasReturn: " + hasReturn);
+        logger.debug("\tConstraints: " + constraints);
+        logger.debug("\tParameters:");
+        for (Object o : parameters) {
+            logger.debug("\t: " + o.toString());
+        }
+
+        MethodResourceDescription mrd = new MethodResourceDescription(constraints);
+        Parameter[] params = processParameters(parameterCount, parameters);
+
+        String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, params);
+
+        td.registerCEI(signature, methodClass, mrd);
+    }
+
+    /**
+     * Execute task
+     * 
+     */
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
@@ -461,11 +484,15 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         return task;
     }
 
+    /**
+     * Execute task
+     * 
+     */
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters) {
 
         if (tracing) {
-            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+        	Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
         if (logger.isDebugEnabled()) {
@@ -483,84 +510,10 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         return task;
     }
 
-    // IT_Execution interface implementation
-    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
-        Parameter[] pars = new Parameter[parameterCount];
-        // Parameter parsing needed, object is not serializable
-        int i = 0;
-        for (int npar = 0; npar < parameterCount; npar++) {
-            ParamType type = (ParamType) parameters[i + 1];
-            ParamDirection direction = (ParamDirection) parameters[i + 2];
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
-            }
-            switch (type) {
-                case FILE_T:
-                    DataLocation location = null;
-                    try {
-                        location = getDataLocation((String) parameters[i]);
-                    } catch (Exception e) {
-                        ErrorManager.fatal(ERROR_FILE_NAME, e);
-                    }
-                    pars[npar] = new FileParameter(direction, location);
-                    break;
-
-                case SCO_T:
-                case PSCO_T:
-                    Object internal = oReg.getInternalObject(parameters[i]);
-                    if (internal != null) {
-                        ParamType internalType = LoaderUtils.checkSCOType(internal);
-                        if ((type != internalType) && (internalType == ParamType.PSCO_T)) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("  Parameter " + (npar + 1) + " change type from " + type.name() + " to " + internalType.name());
-                            }
-                            parameters[i] = LoaderUtils.checkSCOPersistent(internal);
-                            parameters[i + 1] = internalType;
-                            type = internalType;
-                        }
-                    } else {
-                        // Python and C++
-                        String lang = System.getProperty(ITConstants.IT_LANG);
-                        if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
-                            if (type == ParamType.PSCO_T) {
-                                if (!(parameters[i] instanceof StubItf)) {
-                                    // There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
-                                    PSCOId pscoId = new PSCOId(parameters[i], (String) parameters[i]);
-                                    logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
-                                    parameters[i] = pscoId;
-                                }
-                            }
-                        }
-                    }
-                    pars[npar] = new SCOParameter(type,
-                            direction,
-                            parameters[i],
-                            oReg.newObjectParameter(parameters[i])); // hashCode
-                    break;
-
-                case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
-                    break;
-
-                default:
-                    /* Basic types (including String).
-                     * The only possible direction is IN, warn otherwise
-                     */
-                    if (direction != ParamDirection.IN) {
-                        logger.warn(WARN_WRONG_DIRECTION
-                                + "Parameter " + npar
-                                + " has a basic type, therefore it must have INPUT direction");
-                    }
-                    pars[npar] = new BasicTypeParameter(type, ParamDirection.IN, parameters[i]);
-                    break;
-            }
-            i += 3;
-        }
-
-        return pars;
-    }
-
+    /**
+     * Notifies the Runtime that there are no more tasks created by the current appId
+     * 
+     */
     public void noMoreTasks(Long appId, boolean terminate) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
@@ -569,6 +522,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         logger.info("No more tasks for app " + appId);
         // Wait until all tasks have finished
         ap.noMoreTasks(appId);
+        // Retrieve result files
         logger.info("Getting Result Files " + appId);
         ap.getResultFiles(appId);
 
@@ -576,14 +530,191 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
     }
+    
+    /**
+     * Freezes the task generation until all previous tasks have been executed
+     * 
+     */
+    public void waitForAllTasks(Long appId) {
+    	if (tracing) {
+            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+        }
+    	
+    	// Wait until all tasks have finished
+    	logger.info("Barrier for app " + appId);
+    	ap.waitForAllTasks(appId); 	
+    	
+    	if (tracing) {
+            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+        }
+    }
+    
+    /**
+     * Deletes the specified version of a file
+     * 
+     */
+    public boolean deleteFile(String fileName) {
+        if (tracing) {
+            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
+        }
 
-    public String openFile(String fileName, OpenMode m) {
+        // Parse the file name and translate the access mode
+        DataLocation loc = null;
+        try {
+            loc = getDataLocation(fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        }
+        ap.markForDeletion(loc);
+
+        if (tracing) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        return true;
+    }
+    
+    /**
+     * Emit a tracing event (for bindings)
+     * 
+     */
+    public void emitEvent(int type, long id) {
+        Tracer.emitEvent(id, type);
+    }
+
+    
+    /* ****************************************************
+     * LoaderAPI INTERFACE IMPLEMENTATION
+     * ****************************************************/
+    /**
+     * Returns a copy of the last file version
+     * 
+     */
+    public String getFile(String fileName, String destDir) {
+        if (tracing) {
+            Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
+        }
+
+        if (!destDir.endsWith(File.separator)) {
+            destDir += File.separator;
+        }
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = DataLocation.getLocation(Comm.appHost, fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        }
+        FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
+        DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
+        String path;
+        if (targetLocation == null) {
+            URI u = sourceLocation.getURIInHost(Comm.appHost);
+            if (u != null) {
+                path = u.getPath();
+            } else {
+                path = fileName;
+            }
+        } else {
+            // Return the name of the file (a renaming) on which the stream will be opened
+            path = targetLocation.getPath();
+        }
+
+        if (tracing) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        return path;
+    }
+
+    /**
+     * Returns a copy of the last object version
+     * 
+     */
+    public Object getObject(Object o, int hashCode, String destDir) {
+        /* We know that the object has been accessed before by a task, otherwise
+         * the ObjectRegistry would have discarded it and this method
+         * would not have been called.
+         */
+        if (tracing) {
+            Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Getting object with hash code " + hashCode);
+        }
+        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        if (validValue) {
+            // Main code is still performing the same modification. No need to
+            // register it as a new version.
+            if (tracing) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            }
+
+            return null;
+        }
+
+        Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Object obtained " + oUpdated);
+        }
+
+        if (tracing) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        return oUpdated;
+
+    }
+
+    /**
+     * Serializes a given object
+     */
+    public void serializeObject(Object o, int hashCode, String destDir) {
+        /*System.out.println("IT: Serializing object");
+         String rename = TP.getLastRenaming(hashCode);
+
+         try {
+         DataLocation loc = DataLocation.getLocation(Comm.appHost, destDir + rename);
+         Serializer.serialize(o, destDir + rename);
+         Comm.registerLocation(rename, loc);
+         } catch (Exception e) {
+         logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e);
+         System.exit(1);
+         }*/
+    	//throw new NotImplementedException();
+    }
+
+    /**
+     * Sets the Object Registry
+     */
+    public void setObjectRegistry(ObjectRegistry oReg) {
+        COMPSsRuntimeImpl.oReg = oReg;
+    }
+
+    /**
+     * Returns the tmp dir configured by the Runtime
+     * 
+     */
+    public String getTempDir() {
+        return Comm.appHost.getTempDirPath();
+    }
+    
+    
+    /* ****************************************************
+     * COMMON IN BOTH APIs
+     * ****************************************************/ 
+    /**
+     * Returns the renaming of the file version opened
+     * 
+     */
+    public String openFile(String fileName, DataDirection mode) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Opening file " + fileName + " in mode " + m);
+            logger.debug("Opening file " + fileName + " in mode " + mode);
         }
 
         DataLocation loc = null;
@@ -593,14 +724,14 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
         AccessMode am = null;
-        switch (m) {
-            case READ:
+        switch (mode) {
+            case IN:
                 am = AccessMode.R;
                 break;
-            case WRITE:
+            case OUT:
                 am = AccessMode.W;
                 break;
-            case APPEND:
+            case INOUT:
                 am = AccessMode.RW;
                 break;
         }
@@ -631,6 +762,7 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
             }
             logger.debug("File target Location: " + path);
         }
+
         if (tracing) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
@@ -638,99 +770,89 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         return path;
     }
 
-    // LoaderAPI interface implementation
-    public String getFile(String fileName, String destDir) {
-        if (tracing) {
-            Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
-        }
-        if (!destDir.endsWith(File.separator)) {
-            destDir += File.separator;
-        }
-        // Parse the file name
-        DataLocation sourceLocation = null;
-        try {
-            sourceLocation = DataLocation.getLocation(Comm.appHost, fileName);
-        } catch (Exception e) {
-            ErrorManager.fatal(ERROR_FILE_NAME, e);
-        }
-        FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
-        DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
-        String path;
-        if (targetLocation == null) {
-            URI u = sourceLocation.getURIInHost(Comm.appHost);
-            if (u != null) {
-                path = u.getPath();
-            } else {
-                path = fileName;
+    
+    /* ****************************************************
+     * PRIVATE HELPER METHODS
+     * ****************************************************/    
+    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
+        Parameter[] pars = new Parameter[parameterCount];
+        // Parameter parsing needed, object is not serializable
+        int i = 0;
+        for (int npar = 0; npar < parameterCount; npar++) {
+            DataType type = (DataType) parameters[i + 1];
+            DataDirection direction = (DataDirection) parameters[i + 2];
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
             }
-        } else {
-            // Return the name of the file (a renaming) on which the stream will be opened
-            path = targetLocation.getPath();
-        }
+            switch (type) {
+                case FILE_T:
+                    DataLocation location = null;
+                    try {
+                        location = getDataLocation((String) parameters[i]);
+                    } catch (Exception e) {
+                        ErrorManager.fatal(ERROR_FILE_NAME, e);
+                    }
+                    pars[npar] = new FileParameter(direction, location);
+                    break;
 
-        if (tracing) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-        return path;
-    }
+                case SCO_T:
+                case PSCO_T:
+                    Object internal = oReg.getInternalObject(parameters[i]);
+                    if (internal != null) {
+                        DataType internalType = LoaderUtils.checkSCOType(internal);
+                        if ((type != internalType) && (internalType == DataType.PSCO_T)) {
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("  Parameter " + (npar + 1) + " change type from " + type.name() + " to " + internalType.name());
+                            }
+                            parameters[i] = LoaderUtils.checkSCOPersistent(internal);
+                            parameters[i + 1] = internalType;
+                            type = internalType;
+                        }
+                    } else {
+                        // Python and C++
+                        String lang = System.getProperty(ITConstants.IT_LANG);
+                        if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
+                            if (type == DataType.PSCO_T) {
+                                if (!(parameters[i] instanceof StubItf)) {
+                                    // There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
+                                    PSCOId pscoId = new PSCOId(parameters[i], (String) parameters[i]);
+                                    logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
+                                    parameters[i] = pscoId;
+                                }
+                            }
+                        }
+                    }
+                    pars[npar] = new SCOParameter(type,
+                            direction,
+                            parameters[i],
+                            oReg.newObjectParameter(parameters[i])); // hashCode
+                    break;
 
-    public Object getObject(Object o, int hashCode, String destDir) {
-        /* We know that the object has been accessed before by a task, otherwise
-         * the ObjectRegistry would have discarded it and this method
-         * would not have been called.
-         */
-        if (tracing) {
-            Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
-        }
+                case OBJECT_T:
+                    pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
+                    break;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Getting object with hash code " + hashCode);
-        }
-        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
-        if (validValue) {
-            // Main code is still performing the same modification. No need to
-            // register it as a new version.
-            if (tracing) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                default:
+                    /* Basic types (including String).
+                     * The only possible direction is IN, warn otherwise
+                     */
+                    if (direction != DataDirection.IN) {
+                        logger.warn(WARN_WRONG_DIRECTION
+                                + "Parameter " + npar
+                                + " has a basic type, therefore it must have INPUT direction");
+                    }
+                    pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
+                    break;
             }
-            return null;
+            i += 3;
         }
 
-        Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Object obtained " + oUpdated);
-        }
-        if (tracing) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-        return oUpdated;
-
-    }
-
-    public void serializeObject(Object o, int hashCode, String destDir) {
-        /*System.out.println("IT: Serializing object");
-         String rename = TP.getLastRenaming(hashCode);
-
-         try {
-         DataLocation loc = DataLocation.getLocation(Comm.appHost, destDir + rename);
-         Serializer.serialize(o, destDir + rename);
-         Comm.registerLocation(rename, loc);
-         } catch (Exception e) {
-         logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e);
-         System.exit(1);
-         }*/
-    }
-
-    public void setObjectRegistry(ObjectRegistry oReg) {
-        IntegratedToolkitImpl.oReg = oReg;
-    }
-
-    public String getTempDir() {
-        return Comm.appHost.getTempDirPath();
+        return pars;
     }
 
     // Private method for file name parsing. TODO: Logical file names?
-    protected DataLocation getDataLocation(String fullName) throws Exception {
+    private DataLocation getDataLocation(String fullName) throws Exception {
         DataLocation loc;
         if (fullName.startsWith(FILE_URI)) {
             /* URI syntax with host name and absolute path, e.g. "file://bscgrid01.bsc.es/home/etejedor/file.txt"
@@ -762,24 +884,4 @@ public class IntegratedToolkitImpl implements IntegratedToolkit, ITExecution, Lo
         return loc;
     }
 
-    public boolean deleteFile(String fileName) {
-        if (tracing) {
-            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
-        }
-
-        // Parse the file name and translate the access mode
-        DataLocation loc = null;
-        try {
-            loc = getDataLocation(fileName);
-        } catch (Exception e) {
-            ErrorManager.fatal(ERROR_FILE_NAME, e);
-        }
-        ap.markForDeletion(loc);
-
-        if (tracing) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-
-        return true;
-    }
 }

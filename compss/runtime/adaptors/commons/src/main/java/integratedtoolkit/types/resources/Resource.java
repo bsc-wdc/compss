@@ -1,7 +1,7 @@
 package integratedtoolkit.types.resources;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
+
 
 public abstract class Resource implements Comparable<Resource> {
 
@@ -168,7 +169,7 @@ public abstract class Resource implements Comparable<Resource> {
         node.obtainData(srcData, null, target, tgtData, reason, listener);
     }
 
-    public String getCompleteRemotePath(ParamType type, String name) {
+    public String getCompleteRemotePath(DataType type, String name) {
         return node.getCompletePath(type, name);
     }
     
@@ -233,7 +234,7 @@ public abstract class Resource implements Comparable<Resource> {
         COMPSsNode masterNode = Comm.appHost.getNode();
         Semaphore sem = new Semaphore(0);
         String fileName = getName() + "_compss_trace.tar.gz";
-        String fileOriginPath = node.getCompletePath(ParamType.FILE_T, fileName);
+        String fileOriginPath = node.getCompletePath(DataType.FILE_T, fileName);
 
         if (debug) {
             logger.debug("Copying tracing package from : " + fileOriginPath + ",to : " + Comm.appHost.getAppLogDirPath() + "trace" + File.separator + fileName);
@@ -278,7 +279,7 @@ public abstract class Resource implements Comparable<Resource> {
         // Get Worker output
         wdil.addOperation();
         String outFileName = "worker_" + getName() + ".out";
-        String outFileOrigin = node.getCompletePath(ParamType.FILE_T, "log" + File.separator + "static_" + outFileName);
+        String outFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
         String outFileTarget = Comm.appHost.getWorkersDirPath() + File.separator + outFileName;
         DataLocation outSource = DataLocation.getLocation(this, outFileOrigin);
         DataLocation outTarget = DataLocation.getLocation(Comm.appHost, outFileTarget);
@@ -289,7 +290,7 @@ public abstract class Resource implements Comparable<Resource> {
         // Get Worker error
         wdil.addOperation();
         String errFileName = "worker_" + getName() + ".err";
-        String errFileOrigin = node.getCompletePath(ParamType.FILE_T, "log" + File.separator + "static_" + errFileName);
+        String errFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
         String errFileTarget = Comm.appHost.getWorkersDirPath() + File.separator + errFileName;
         DataLocation errSource = DataLocation.getLocation(this, errFileOrigin);
         DataLocation errTarget = DataLocation.getLocation(Comm.appHost, errFileTarget);

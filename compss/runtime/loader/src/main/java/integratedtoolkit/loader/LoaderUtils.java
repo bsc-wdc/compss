@@ -1,6 +1,6 @@
 package integratedtoolkit.loader;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.annotations.Service;
 import integratedtoolkit.types.parameter.PSCOId;
@@ -19,9 +19,10 @@ import org.apache.log4j.Logger;
 
 import storage.StubItf;
 
+
 public class LoaderUtils {
 
-	private static Logger logger = Logger.getLogger(Loggers.LOADER_UTILS);
+	private static final Logger logger = Logger.getLogger(Loggers.LOADER_UTILS);
 	
 	// Storage: Check whether Persistent Self-Contained Object or not
 	public static Object checkSCOPersistent(Object o) {   	
@@ -30,8 +31,7 @@ public class LoaderUtils {
     		StubItf sco = (StubItf) o;
     		// Check whether persisted
     		String id = null;
-    		try 
-    		{
+    		try {
     			id = sco.getID();
     		} catch (Exception e) {                 			
     			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
@@ -45,9 +45,9 @@ public class LoaderUtils {
 	}
 	
 	// Storage: Check object type
-	public static ParamType checkSCOType(Object o) {
+	public static DataType checkSCOType(Object o) {
     	if (o instanceof PSCOId) {
-    		return ParamType.PSCO_T;
+    		return DataType.PSCO_T;
     	}
     	
     	if (o instanceof StubItf) {
@@ -55,25 +55,23 @@ public class LoaderUtils {
     		StubItf sco = (StubItf) o;
     		// Check whether persisted
     		String id = null;
-    		try 
-    		{
+    		try {
     			id = sco.getID();
     		} catch (Exception e) {                 			
     			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
     		}
 
     		if (id == null) {
-    			return ParamType.SCO_T;
+    			return DataType.SCO_T;
     		} else {
-    			return ParamType.PSCO_T;
+    			return DataType.PSCO_T;
     		}    		
     	}   		
-   		return ParamType.OBJECT_T;
+   		return DataType.OBJECT_T;
 	}	
 
     // Return the called method if it is in the remote list
-    public static Method checkRemote(CtMethod method, Method[] remoteMethods)
-            throws NotFoundException {
+    public static Method checkRemote(CtMethod method, Method[] remoteMethods) throws NotFoundException {
         for (Method remote : remoteMethods) {
             if (remote.isAnnotationPresent(integratedtoolkit.types.annotations.Method.class)) {
                 if (isSelectedMethod(method, remote)) {
@@ -94,6 +92,7 @@ public class LoaderUtils {
     }
 
     private static boolean isSelectedMethod(CtMethod method, Method remote) throws NotFoundException {
+    	
         integratedtoolkit.types.annotations.Method methodAnnot = remote.getAnnotation(integratedtoolkit.types.annotations.Method.class);
 
         // Check if methods have the same name
@@ -178,9 +177,9 @@ public class LoaderUtils {
     }
 
     private static String combineServiceMetadata(Service annot) {
-        String namespace = annot.namespace(),
-                service = annot.name()/*.toLowerCase()*/,
-                port = annot.port()/*.toLowerCase()*/;
+        String namespace = annot.namespace();
+        String service = annot.name()/*.toLowerCase()*/;
+        String port = annot.port()/*.toLowerCase()*/;
 
         int startIndex = namespace.indexOf("//www.");
         if (startIndex < 0) {
@@ -209,21 +208,7 @@ public class LoaderUtils {
             String fullName = mc.getClassName();
             if (fullName.startsWith("java.io.")) {
                 String className = fullName.substring(8);
-                if (className.equals("FileInputStream")//58,700
-                        || className.equals("FileOutputStream")//57,700
-                        || className.equals("InputStreamReader")//61,200
-                        || className.equals("BufferedReader")//36,400
-                        || className.equals("FileWriter")//33,900
-                        || className.equals("PrintWriter")//35,200
-                        || className.equals("FileReader")//16,800
-                        || className.equals("OutputStreamWriter")//15,700
-                        || className.equals("BufferedInputStream")//15,100
-                        || className.equals("BufferedOutputStream")//10,500
-                        || className.equals("BufferedWriter")//11,800
-                        || className.equals("PrintStream")//6,000
-                        || className.equals("RandomAccessFile")//5,000
-                        || className.equals("DataInputStream")//7,000
-                        || className.equals("DataOutputStream")) {//7,000
+                if (LoaderConstants.SUPPORTED_STREAM_TYPES.contains(className)) {
                     return true;
                 }
             }
@@ -337,16 +322,7 @@ public class LoaderUtils {
             for (Class<?> type : types) {
             	errMsg += "Type is " + type;
             }
-        	ErrorManager.error(errMsg);
-        	/*
-        	logger.error("Requested method " + methodName + " of " + methodClass + " not found");
-        	logger.error("Types length is " + types.length);
-            for (Class<?> type : types) {
-            	logger.error("Type is " + type);
-            }
-            */
-            //System.exit(1);
-            
+        	ErrorManager.error(errMsg);            
         }
 
         // Invoke the requested method

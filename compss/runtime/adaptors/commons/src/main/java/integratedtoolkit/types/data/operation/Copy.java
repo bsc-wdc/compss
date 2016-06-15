@@ -1,6 +1,6 @@
 package integratedtoolkit.types.data.operation;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.LogicalData;
@@ -63,7 +63,7 @@ public abstract class Copy extends DataOperation {
         return reason.getDataTarget();
     }
 
-    public ParamType getType() {
+    public DataType getType() {
         return reason.getType();
     }
 

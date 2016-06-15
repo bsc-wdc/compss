@@ -18,9 +18,6 @@ int main(int argc, char **argv)
 	printf("*                                                                    *\n");
 	printf("*     This test will test primitive types and c++ objects.           *\n");
 	printf("*                                                                    *\n");
-	printf("*                                                                    *\n");
-	printf("*     Support: carlos.diaz@bsc.es                                    *\n");
-	printf("*                                                                    *\n");
 	printf("*     IMPORTANT: input parameters are tested in the worker           *\n");
 	printf("*                so look in the job .err files.                      *\n");
 	printf("*                                                                    *\n");
@@ -33,12 +30,12 @@ int main(int argc, char **argv)
 	compss_on();
 
 	fp = fopen(filename, "w");
-	
+	fprintf(fp, "[TEST_FILE] TestFile content. Initialized from master \n");
 	fprintf(fp, "\n");
-	fprintf(fp, "[   TEST] Test of C types within COMPSs.\n");
-	fprintf(fp, "\n");
-
 	fclose(fp);
+
+	// Log init test
+        printf("[   TEST] Test of C types within COMPSs.\n");
 
 	// Char (char_dt, wchar_dt)
 	char c = TEST_VALUE_CHAR;
@@ -87,16 +84,17 @@ int main(int argc, char **argv)
 	printf("[   TEST] Opening filename: %s.\n", filename);
 	ifstream output (filename);
 	int nlines = 0;
-	if (output.is_open())
-	{
-	    while ( getline (output, line) )
-	    {
+	if (output.is_open()) {
+	    while ( getline (output, line) ) {
 	      cout << line << endl;
 	      nlines++;
 	    }
 	    output.close();
  	}
-	else cout << "[  TEST] Unable to open output file.";
+	else {
+		cout << "[  TEST] Unable to open output file." << endl;
+	}
+        cout << "Lines " << nlines << " of " << TEST_VALUE_NLINES << endl;
 	assert_master(nlines == TEST_VALUE_NLINES);
 
 	// Out parameters

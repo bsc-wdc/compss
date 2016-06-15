@@ -1,8 +1,3 @@
-
-
-
-
-
 #ifndef GS_COMPSS_H
 #define GS_COMPSS_H
 
@@ -16,3 +11,4 @@ extern "C" void GS_RegisterCE(long appId, char *class_name, char *method_name, i
 extern "C" void GS_EmitEvent(int type, long id);
 
 #endif /* GS_COMPSS_H */
+

@@ -1,8 +1,7 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -265,7 +264,7 @@ public class JavaExecutor extends Executor {
                     break;
             }
             
-            isFile[i] = (np.getType().equals(ITExecution.ParamType.FILE_T));
+            isFile[i] = (np.getType().equals(DataType.FILE_T));
         }
 
         
@@ -384,7 +383,7 @@ public class JavaExecutor extends Executor {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
         }
         
-		if (hasTarget && (npTarget.getType() == ParamType.SCO_T) && (targetPscoId == null)) {
+		if (hasTarget && (npTarget.getType() == DataType.SCO_T) && (targetPscoId == null)) {
 			String renaming = renamings[numParams - 1] = npTarget.getValue().toString();
 			String name = renaming;			
 			writeFinalValue[numParams - 1] = npTarget.isWriteFinalValue();

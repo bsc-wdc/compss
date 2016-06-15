@@ -1,6 +1,7 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.ITExecution;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.parameter.DependencyParameter;
 
 
@@ -13,10 +14,8 @@ public class ObjectParameter extends DependencyParameter {
     private int hashCode;
     private Object value;
 
-    public ObjectParameter(ITExecution.ParamDirection direction,
-            Object value,
-            int hashCode) {
-        super(ITExecution.ParamType.OBJECT_T, direction);
+    public ObjectParameter(DataDirection direction, Object value, int hashCode) {
+        super(DataType.OBJECT_T, direction);
         this.value = value;
         this.hashCode = hashCode;
     }
@@ -36,4 +35,5 @@ public class ObjectParameter extends DependencyParameter {
     public String toString() {
         return "OBJECT: hash code " + hashCode;
     }
+    
 }

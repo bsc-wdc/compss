@@ -3,12 +3,12 @@
 #define GS_TEMPLATES_H
 
 // Uncomment the following define to get debug information.
-//#define DEBUG_BINDING
+#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
-	#define debug_printf(args...) printf(args)
+#define debug_printf(args...) printf(args)
 #else
-	#define debug_printf(args...) {}
+#define debug_printf(args...) {}
 #endif
 
 #include <stdio.h>
@@ -31,9 +31,9 @@ using namespace std;
 using namespace boost;
 
 struct Entry {
-	 datatype type;
-	 char *classname;
-	 char *filename;
+  datatype type;
+  char *classname;
+  char *filename;
 };
 extern map<void *, Entry> objectMap;
 
@@ -50,66 +50,65 @@ template <> inline void compss_wait_on<char *>(char * &obj);
 
 template <class T>
 void compss_wait_on(T &obj) {
-	 Entry entry = objectMap[&obj];
-	 char *runtime_filename;
-
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
-
-	 GS_Get_File(entry.filename, 0, &runtime_filename);
-
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-
-	 ifstream ifs(runtime_filename);
-	 archive::text_iarchive ia(ifs);
-   	 ia >> obj;
-   	 ifs.close();
-
-   	 // No longer needed, the current version of the object is in memory now
-   	 remove(entry.filename);
-   	 remove(runtime_filename);
-   	 objectMap.erase(&obj);
+  Entry entry = objectMap[&obj];
+  char *runtime_filename;
+  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
+  
+  GS_Get_File(entry.filename, in_dir, &runtime_filename);
+  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  
+  ifstream ifs(runtime_filename);
+  archive::text_iarchive ia(ifs);
+  ia >> obj;
+  ifs.close();
+  
+  // No longer needed, the current version of the object is in memory now
+  remove(entry.filename);
+  remove(runtime_filename);
+  objectMap.erase(&obj);
 }
 
 template <>
 void compss_wait_on<char *>(char * &obj) {
-     string in_string;
-
-	 Entry entry = objectMap[&obj];
-	 char *runtime_filename;
-
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
-
-	 GS_Get_File(entry.filename, 0, &runtime_filename);
-
-	 debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-
-	 if ((datatype)entry.type != file_dt) {
-		 debug_printf("[   BINDING]  -  @compss_wait_on  -  Object deserialization from %s\n", runtime_filename);
-
-		 ifstream ifs(runtime_filename);
-		 archive::text_iarchive ia(ifs);
-		 ia >> in_string;
-		 ifs.close();
-
-		 obj = strdup(in_string.c_str());
-
-		 // No longer needed, the current version of the object is in memory now
-		 remove(entry.filename);
-		 //remove(runtime_filename);
-
-	 }	else {
-		 // Update file contents
-		 debug_printf("[   BINDING]  -  @compss_wait_on  -  File renaming: %s to %s\n", runtime_filename, entry.filename);
-		 remove(entry.filename);
-		 //rename(runtime_filename, entry.filename);
-		 symlink(runtime_filename, entry.filename);
-	 }
-	 // No longer needed, synchronization done
-	 objectMap.erase(&obj);
+  string in_string;
+  
+  Entry entry = objectMap[&obj];
+  char *runtime_filename;
+  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
+  
+  GS_Get_File(entry.filename, in_dir, &runtime_filename);
+  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  
+  if ((datatype)entry.type != file_dt) {
+    debug_printf("[   BINDING]  -  @compss_wait_on  -  Object deserialization from %s\n", runtime_filename);
+    
+    ifstream ifs(runtime_filename);
+    archive::text_iarchive ia(ifs);
+    ia >> in_string;
+    ifs.close();
+    
+    obj = strdup(in_string.c_str());
+    
+    // No longer needed, the current version of the object is in memory now
+    remove(entry.filename);
+    //remove(runtime_filename);
+  } else {
+    // Update file contents
+    debug_printf("[   BINDING]  -  @compss_wait_on  -  File renaming: %s to %s\n", runtime_filename, entry.filename);
+    remove(entry.filename);
+    //rename(runtime_filename, entry.filename);
+    symlink(runtime_filename, entry.filename);
+  }
+  // No longer needed, synchronization done
+  objectMap.erase(&obj);
 }
 
 #else

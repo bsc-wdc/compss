@@ -1,6 +1,6 @@
 package integratedtoolkit.nio;
 
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.commands.Data;
 
 import java.io.Externalizable;
@@ -11,7 +11,7 @@ import java.io.ObjectOutput;
 
 public class NIOParam implements Externalizable {
 
-    private ParamType type;
+    private DataType type;
     private boolean preserveSourceData;
     private boolean writeFinalValue;
 
@@ -22,7 +22,7 @@ public class NIOParam implements Externalizable {
 
     }
 
-    public NIOParam(ParamType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
+    public NIOParam(DataType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
         this.type = type;
         this.value = value;
         this.preserveSourceData = preserveSourceData;
@@ -30,7 +30,7 @@ public class NIOParam implements Externalizable {
         this.data = data;
     }
 
-    public ParamType getType() {
+    public DataType getType() {
         return type;
     }
 
@@ -55,7 +55,7 @@ public class NIOParam implements Externalizable {
     }
 
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        type = (ParamType) in.readObject();
+        type = (DataType) in.readObject();
         preserveSourceData = in.readBoolean();
         writeFinalValue = in.readBoolean();
         

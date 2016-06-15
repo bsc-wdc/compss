@@ -1,7 +1,28 @@
 package integratedtoolkit.loader.total;
 
-import java.io.*;
-import java.nio.charset.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +33,7 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
-import integratedtoolkit.api.IntegratedToolkit.OpenMode;
+import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.util.ErrorManager;
@@ -20,12 +41,6 @@ import integratedtoolkit.util.ErrorManager;
 
 public class StreamRegistry {
 
-	private static enum StreamDirection {
-		IN,
-		OUT,
-		INOUT;
-	}
-	
 	// Api object used to invoke calls on the Integrated Toolkit
 	private LoaderAPI itApi;
 	
@@ -56,7 +71,7 @@ public class StreamRegistry {
 	
 	// FileInputStream
 	public FileInputStream newFileInputStream(File file) throws FileNotFoundException {
-		StreamDirection direction = StreamDirection.IN;
+		DataDirection direction = DataDirection.IN;
 		StreamList list = obtainList(file, direction);
 		
 		/* Create the stream on the renaming of the obtained list for the file, then add it to the list
@@ -92,7 +107,7 @@ public class StreamRegistry {
 	// FileOutputStream
 	
 	public FileOutputStream newFileOutputStream(File file, boolean append) throws FileNotFoundException {
-		StreamDirection direction = append ? StreamDirection.INOUT : StreamDirection.OUT;
+		DataDirection direction = (append ? DataDirection.INOUT : DataDirection.OUT);
 		StreamList list = obtainList(file, direction);
 		
 		FileOutputStream fos = new FileOutputStream(list.getRenaming(), append);
@@ -123,8 +138,9 @@ public class StreamRegistry {
 	public FileOutputStream newFileOutputStream(FileDescriptor fd) {
 		StreamList list = obtainList(fd);
 		FileOutputStream fos = new FileOutputStream(fd);
-		if (list != null) // Should always be not null
+		if (list != null) { // Should always be not null
 			list.addStream(fos);
+		}
 		
 		return fos;
 	}
@@ -143,11 +159,12 @@ public class StreamRegistry {
 	
 	// RandomAccessFile
 	public RandomAccessFile newRandomAccessFile(File file, String mode) throws FileNotFoundException {
-		StreamDirection direction;
-		if (mode.length() == 1) // mode == "r"
-			direction = StreamDirection.IN;
-		else 					// mode == "rw?"
-			direction = StreamDirection.INOUT;
+		DataDirection direction;
+		if (mode.length() == 1) { // mode == "r"
+			direction = DataDirection.IN;
+		} else {				  // mode == "rw?"
+			direction = DataDirection.INOUT;
+		}
 		
 		StreamList list = obtainList(file, direction);
 		
@@ -155,8 +172,7 @@ public class StreamRegistry {
 		list.addStream(raf);
 		try {
 			list.addFD(raf.getFD());
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			// We must go up as a FileNotFoundException, since it is the one that the application deals with
 			throw new FileNotFoundException("Loader - Error creating RandomAccessFile for file " + file + lineSep + e.getMessage());
 		}
@@ -171,7 +187,7 @@ public class StreamRegistry {
 	
 	// FileReader
 	public FileReader newFileReader(File file) throws FileNotFoundException {
-		StreamDirection direction = StreamDirection.IN;
+		DataDirection direction = DataDirection.IN;
 		StreamList list = obtainList(file, direction);
 		
 		FileReader fr = new FileReader(list.getRenaming());
@@ -187,8 +203,9 @@ public class StreamRegistry {
 	public FileReader newFileReader(FileDescriptor fd) {
 		StreamList list = obtainList(fd);
 		FileReader fr = new FileReader(fd);
-		if (list != null) // Should always be not null
+		if (list != null) { // Should always be not null
 			list.addStream(fr);
+		}
 		
 		return fr;
 	}
@@ -256,7 +273,7 @@ public class StreamRegistry {
 	
 	// FileWriter
 	public FileWriter newFileWriter(File file, boolean append) throws IOException {
-		StreamDirection direction = append ? StreamDirection.INOUT : StreamDirection.OUT;
+		DataDirection direction = append ? DataDirection.INOUT : DataDirection.OUT;
 		StreamList list = obtainList(file, direction);
 		
 		FileWriter fw = new FileWriter(list.getRenaming(), append);
@@ -280,8 +297,9 @@ public class StreamRegistry {
 	public FileWriter newFileWriter(FileDescriptor fd) {
 		StreamList list = obtainList(fd);
 		FileWriter fw = new FileWriter(fd);
-		if (list != null) // Should always be not null
+		if (list != null) { // Should always be not null
 			list.addStream(fw);
+		}
 		
 		return fw;
 	}
@@ -349,7 +367,7 @@ public class StreamRegistry {
 	
 	// PrintStream
 	public PrintStream newPrintStream(File file) throws FileNotFoundException {
-		StreamDirection direction = StreamDirection.OUT;
+		DataDirection direction = DataDirection.OUT;
 		StreamList list = obtainList(file, direction);
 		
 		PrintStream ps = new PrintStream(list.getRenaming());
@@ -360,7 +378,7 @@ public class StreamRegistry {
 	
 	public PrintStream newPrintStream(File file, String csn)
 	  throws FileNotFoundException, UnsupportedEncodingException {
-		StreamDirection direction = StreamDirection.OUT;
+		DataDirection direction = DataDirection.OUT;
 		StreamList list = obtainList(file, direction);
 		
 		PrintStream ps = new PrintStream(list.getRenaming(), csn);
@@ -403,7 +421,7 @@ public class StreamRegistry {
 	
 	// PrintWriter
 	public PrintWriter newPrintWriter(File file) throws FileNotFoundException {
-		StreamDirection direction = StreamDirection.OUT;
+		DataDirection direction = DataDirection.OUT;
 		StreamList list = obtainList(file, direction);
 		
 		PrintWriter pw = new PrintWriter(list.getRenaming());
@@ -414,7 +432,7 @@ public class StreamRegistry {
 	
 	public PrintWriter newPrintWriter(File file, String csn)
 	  throws FileNotFoundException, UnsupportedEncodingException {
-		StreamDirection direction = StreamDirection.OUT;
+		DataDirection direction = DataDirection.OUT;
 		StreamList list = obtainList(file, direction);
 		
 		PrintWriter pw = new PrintWriter(list.getRenaming(), csn);
@@ -462,13 +480,12 @@ public class StreamRegistry {
 	
 	
 	// Returns the list of streams to which the newly created stream belongs (creating it if necessary)
-	private StreamList obtainList(File file, StreamDirection direction) {
+	private StreamList obtainList(File file, DataDirection direction) {
 		String path = null;
 		try {
 			// Get the absolute and canonical path of the file
 			path = file.getCanonicalPath();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			// The Integrated Toolkit must finish
 			ErrorManager.fatal("Cannot create stream for file " + file.getAbsolutePath()
 			 					+ " with direction " + direction, e);
@@ -498,11 +515,11 @@ public class StreamRegistry {
 					break;
 				case OUT:
 					// Must ask the IT to open the file in W mode
-					renaming = itApi.openFile(path, OpenMode.WRITE);
+					renaming = itApi.openFile(path, DataDirection.OUT);
 					break;
 				case INOUT:
 					// Must ask the IT to open the file in RW mode
-					renaming = itApi.openFile(path, OpenMode.APPEND);
+					renaming = itApi.openFile(path, DataDirection.INOUT);
 					break;
 			}
 			
@@ -512,8 +529,9 @@ public class StreamRegistry {
 		}
 		
 		// Set the written attribute of the list if the new stream writes the file
-		if (direction != StreamDirection.IN)
+		if (direction != DataDirection.IN) {
 			list.setWritten(true);
+		}
 		
 		if (debug) {
 			logger.debug("New stream for file " + path
@@ -600,7 +618,7 @@ public class StreamRegistry {
 					if (list.isFirstStreamInput() && list.getWritten()) {
 						String filePath = e.getKey();
 						String oldRen = list.getRenaming();
-						String newRen = itApi.openFile(filePath, OpenMode.WRITE);
+						String newRen = itApi.openFile(filePath, DataDirection.OUT);
 						File f = new File(oldRen);
 						f.renameTo(new File(newRen));
 						
@@ -636,9 +654,9 @@ public class StreamRegistry {
 		private List<Object> list;
 		private List<FileDescriptor> fds;
 		
-		public StreamList(String renaming, StreamDirection direction) {
+		public StreamList(String renaming, DataDirection direction) {
 			this.fileRenaming = renaming;
-			this.firstIsInputStream = direction == StreamDirection.IN;
+			this.firstIsInputStream = direction == DataDirection.IN;
 			this.written = false;
 			this.list = new LinkedList<Object>();
 			this.fds = new LinkedList<FileDescriptor>();

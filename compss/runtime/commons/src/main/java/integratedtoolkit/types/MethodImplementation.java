@@ -1,7 +1,7 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
@@ -51,14 +51,14 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
                 numPars--;
             }
             if (numPars > 0) {
-            	ParamType type = parameters[0].getType();
-            	if (type == ParamType.SCO_T) type = ParamType.OBJECT_T;
-            	if (type == ParamType.PSCO_T) type = ParamType.OBJECT_T;            	
+            	DataType type = parameters[0].getType();
+            	if (type == DataType.SCO_T) type = DataType.OBJECT_T;
+            	if (type == DataType.PSCO_T) type = DataType.OBJECT_T;            	
                 buffer.append(type);
                 for (int i = 1; i < numPars; i++) {
                 	type = parameters[i].getType();
-                	if (type == ParamType.SCO_T) type = ParamType.OBJECT_T;
-                	if (type == ParamType.PSCO_T) type = ParamType.OBJECT_T;
+                	if (type == DataType.SCO_T) type = DataType.OBJECT_T;
+                	if (type == DataType.PSCO_T) type = DataType.OBJECT_T;
                     buffer.append(",").append(type);
                 }
             }

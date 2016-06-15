@@ -1,7 +1,7 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.ITExecution.ParamType;
+import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
@@ -15,6 +15,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 
 import org.apache.log4j.Logger;
+
 
 public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
@@ -48,7 +49,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void stop(ShutdownListener sl);
 
-    public abstract String getCompletePath(ParamType type, String name);
+    public abstract String getCompletePath(DataType type, String name);
 
     public abstract void deleteTemporary();
 

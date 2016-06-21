@@ -60,11 +60,25 @@ fi
 
 # Building Master and Worker
 cd -
-$GS_HOME/bin/gsbuild build all $@
-if [ $? -ne 0 ]; then 
+export CC="gcc"
+export CXX="g++"
+$GS_HOME/bin/gsbuild build master $@
+if [ $? -ne 0 ]; then
   echo " "
   echo "Building binding failed, please check errors above!"
   exit 1
+fi
+if [ $WITH_OMPSS == 1 ]; then
+        export CC="mcc"
+        export CFLAGS="--ompss"
+        export CXX="mcxx"
+        export CXXFLAGS="--ompss"
+fi
+$GS_HOME/bin/gsbuild build worker $@
+if [ $? -ne 0 ]; then
+    echo " "
+    echo "Building binding failed, please check errors above!"
+    exit 1
 fi
 
 # End

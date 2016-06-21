@@ -37,6 +37,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public static final String HOST_QUEUES			= "HostQueues";
     public static final String WALL_CLOCK_LIMIT 	= "WallClockLimit";
     
+    
     /* Resource Description properties ***********************************/
     // Processor
     protected List<Processor> processors 			= new LinkedList<Processor>();
@@ -174,6 +175,8 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         // Prices don't come from constraints
     }
     
+    
+    
     public MethodResourceDescription(String description){
     	super();
         
@@ -185,72 +188,93 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         for(String c : constraints){
             String key = c.split(":")[0].trim();
             String val = c.split(":")[1].trim();
-            if (val != null && !val.isEmpty()) {
-	            switch (key) {
-		            case PROC_NAME:
-		            	proc.setName(val);
-		                break;
-		            case PROC_SPEED:
-		                proc.setSpeed( Float.valueOf(val) );
-		                break;
-		            case PROC_ARCH:
-		                proc.setArchitecture(val);
-		                break;
-		            case PROC_PROP_NAME:
-		                proc.setPropName(val);
-		                break;
-		            case PROC_PROP_VALUE:
-		                proc.setPropValue(val);
-		                break;
-		            case COMPUTING_UNITS:
-		                proc.setComputingUnits( Integer.valueOf(val) );
-		                break;
-		            case MEM_SIZE:
-		                this.memorySize = Float.valueOf(val);
-		                break;
-		            case MEM_TYPE:
-		                this.memoryType = val;
-		                break;
-		            case STORAGE_SIZE:
-		            	this.storageSize = Float.valueOf(val);
-		                break;
-		            case STORAGE_TYPE:
-		                this.storageType = val;
-		                break;
-		            case OS_TYPE:
-		                this.operatingSystemType = val;
-		                break;
-		            case OS_DISTRIBUTION:
-		                this.operatingSystemDistribution = val;
-		                break;
-		            case OS_VERSION:
-		                this.operatingSystemVersion = val;
-		                break;
-		            case APP_SOFTWARE:
-		            	if (val.compareTo(UNASSIGNED_STR) != 0) {
-		                    for (String app : val.split(",")){
-		                        this.appSoftware.add(app.trim().toUpperCase());
-		                    } 
-		                }
-		                break;
-		            case HOST_QUEUES:
-		            	if (val.compareTo(UNASSIGNED_STR) != 0) {
-		                    for (String app : val.split(",")){
-		                        this.hostQueues.add(app.trim().toUpperCase());
-		                    } 
-		                }
-		                break;
-		            case WALL_CLOCK_LIMIT:
-		                this.wallClockLimit = Integer.valueOf(val);
-		                break;
-	            }
-            }
+            addConstraints(key, val, proc);
+        }
+        // Add the information retrieved from the processor constraints
+        this.addProcessor(proc);	// Increases the totalCUs
+    }
+    
+    public MethodResourceDescription(String[] constraints){
+    	super();
+        
+        // Warning: When comming from constrains, only 1 PROCESSOR is available with at least 1 CU
+        Processor proc = new Processor();
+        proc.setComputingUnits(ONE_INT);
+        for(String c : constraints){
+            String key = c.split("=")[0].trim();
+            String val = c.split("=")[1].trim();
+            addConstraints(key, val, proc);
         }
         // Add the information retrieved from the processor constraints
         this.addProcessor(proc);	// Increases the totalCUs
     }
 
-    public MethodResourceDescription(MethodResourceDescription clone) {
+    private void addConstraints(String key, String val, Processor proc) {
+    	if (val != null && !val.isEmpty()) {
+            switch (key) {
+	            case PROC_NAME:
+	            	proc.setName(val);
+	                break;
+	            case PROC_SPEED:
+	                proc.setSpeed( Float.valueOf(val) );
+	                break;
+	            case PROC_ARCH:
+	                proc.setArchitecture(val);
+	                break;
+	            case PROC_PROP_NAME:
+	                proc.setPropName(val);
+	                break;
+	            case PROC_PROP_VALUE:
+	                proc.setPropValue(val);
+	                break;
+	            case COMPUTING_UNITS:
+	                proc.setComputingUnits( Integer.valueOf(val) );
+	                break;
+	            case MEM_SIZE:
+	                this.memorySize = Float.valueOf(val);
+	                break;
+	            case MEM_TYPE:
+	                this.memoryType = val;
+	                break;
+	            case STORAGE_SIZE:
+	            	this.storageSize = Float.valueOf(val);
+	                break;
+	            case STORAGE_TYPE:
+	                this.storageType = val;
+	                break;
+	            case OS_TYPE:
+	                this.operatingSystemType = val;
+	                break;
+	            case OS_DISTRIBUTION:
+	                this.operatingSystemDistribution = val;
+	                break;
+	            case OS_VERSION:
+	                this.operatingSystemVersion = val;
+	                break;
+	            case APP_SOFTWARE:
+	            	if (val.compareTo(UNASSIGNED_STR) != 0) {
+	                    for (String app : val.split(",")){
+	                        this.appSoftware.add(app.trim().toUpperCase());
+	                    } 
+	                }
+	                break;
+	            case HOST_QUEUES:
+	            	if (val.compareTo(UNASSIGNED_STR) != 0) {
+	                    for (String app : val.split(",")){
+	                        this.hostQueues.add(app.trim().toUpperCase());
+	                    } 
+	                }
+	                break;
+	            case WALL_CLOCK_LIMIT:
+	                this.wallClockLimit = Integer.valueOf(val);
+	                break;
+	            	
+            }
+        }
+		
+	}
+
+	public MethodResourceDescription(MethodResourceDescription clone) {
         super(clone);
 
         this.totalComputingUnits = 0;

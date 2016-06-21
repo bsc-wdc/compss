@@ -34,6 +34,7 @@
   pre_launch
 
   if [ "$debug" == "true" ]; then
+      export NX_ARGS="--summary"
       echo "Calling NIOWorker"
       echo "Cmd: $cmd $*"
   fi

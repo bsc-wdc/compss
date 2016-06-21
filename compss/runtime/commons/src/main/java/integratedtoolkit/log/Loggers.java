@@ -41,6 +41,7 @@ public final class Loggers {
     public static final String CONNECTORS_IMPL = IT + ".ConnectorsImpl";
     
     public static final String ERROR_MANAGER = ALL_COMP + ".ErrorManager";
+    public static final String TRACING = ALL_COMP + ".Tracing";
 
     // Worker
     public static final String WORKER = IT + ".Worker";

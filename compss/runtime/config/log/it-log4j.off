@@ -43,6 +43,9 @@ log4j.additivity.integratedtoolkit.Components.TaskDispatcher=false
 log4j.logger.integratedtoolkit.Components.ResourceManager=, COMPSs_FILE
 log4j.additivity.integratedtoolkit.Components.ResourceManager=false
 
+log4j.logger.integratedtoolkit.Components.Tracing=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.Tracing=false
+
 ### Task Processing subcomponents: Default = INHERITED
 log4j.logger.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=, COMPSs_FILE
 log4j.additivity.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=false

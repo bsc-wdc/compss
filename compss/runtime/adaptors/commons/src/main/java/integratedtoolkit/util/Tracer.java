@@ -36,7 +36,7 @@ public abstract class Tracer {
     protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
     protected static final String traceErrRelativePath 	= File.separator + "trace" + File.separator + "tracer.err";
 
-    protected static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
+    protected static final Logger logger = Logger.getLogger(Loggers.TRACING);
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
@@ -47,6 +47,7 @@ public abstract class Tracer {
     private static final int DATA_TRANSFERS 	= 8_000_004;
     private static final int STORAGE_TYPE 		= 8_000_005;
     private static final int INSIDE_TASKS_TYPE	= 8_000_010;
+    private static final int SYNC_TYPE	= 8_000_666;
 
     public static final int EVENT_END = 0;
 
@@ -214,6 +215,10 @@ public abstract class Tracer {
         return RUNTIME_EVENTS;
     }
 
+    public static int getSyncType() {
+        return SYNC_TYPE;
+    }
+
     public static int getTaskTransfersType() {
         return TASK_TRANSFERS;
     }
@@ -287,7 +292,7 @@ public abstract class Tracer {
         cleanMasterPackage();
     }
 
-    public static int getSizeByEventType(int type) {
+    private static int getSizeByEventType(int type) {
         int size = 0;
         for (Event task : Event.values()) {
             if (task.getType() == type) {
@@ -430,7 +435,7 @@ public abstract class Tracer {
         Wrapper.defineEventType(DATA_TRANSFERS, dataTransfersDesc, values, descriptionValues);
     }
 
-    public static void generateMasterPackage() {
+    private static void generateMasterPackage() {
         if (debug) {
             logger.debug("Tracing: generating master package");
         }
@@ -463,7 +468,7 @@ public abstract class Tracer {
         }
     }
 
-    public static void transferMasterPackage() {
+    private static void transferMasterPackage() {
         if (debug) {
             logger.debug("Tracing: Transferring master package");
         }
@@ -489,7 +494,7 @@ public abstract class Tracer {
         }
     }
 
-    public static void generateTrace() {
+    private static void generateTrace() {
         if (debug) {
             logger.debug("Tracing: Generating trace");
         }
@@ -497,7 +502,7 @@ public abstract class Tracer {
         String appName = System.getProperty(ITConstants.IT_APP_NAME);
         ProcessBuilder pb = new ProcessBuilder(script, "gentrace",
                 System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size() + 1));
-        Process p = null;
+        Process p;
         pb.environment().remove("LD_PRELOAD");
         try {
             p = pb.start();
@@ -511,17 +516,29 @@ public abstract class Tracer {
         outputGobbler.start();
         errorGobbler.start();
 
+        int exitCode = 0;
         try {
-            int exitCode = p.waitFor();
+            exitCode = p.waitFor();
             if (exitCode != 0) {
                 logger.error("Error generating trace, exit code " + exitCode);
             }
         } catch (InterruptedException e) {
             logger.error("Error generating trace (interruptedException) : " + e.getMessage());
         }
+
+        String lang = System.getProperty(ITConstants.IT_LANG);
+        logger.debug("Lang, lcs: " + lang);
+        if (exitCode == 0 && lang.equals("python")) {
+            try {
+                new TraceMerger(System.getProperty(ITConstants.IT_APP_LOG_DIR), appName).merge();
+            } catch (IOException e) {
+                logger.error("Error while trying to merge files");
+                e.printStackTrace();
+            }
+        }
     }
 
-    public static void cleanMasterPackage() {
+    private static void cleanMasterPackage() {
         String filename = "master_compss_trace.tar.gz";
         DataLocation source = DataLocation.getLocation(Comm.appHost, filename);
 
@@ -529,10 +546,13 @@ public abstract class Tracer {
             logger.debug("Tracing: Removing tracing master package: " + source.getPath());
         }
 
-        File f = null;
+        File f;
         try {
             f = new File(source.getPath());
-            f.delete();
+            boolean deleted = f.delete();
+            if (! deleted){
+                logger.error("Unable to remove tracing temporary files of master node.");
+            }
         } catch (Exception e) {
             logger.error("Unable to remove tracing temporary files of master node.");
         }
@@ -544,13 +564,13 @@ public abstract class Tracer {
         private int numFreeSlots;
         private int nextSlot;
 
-        public TraceHost(int nslots) {
+        private TraceHost(int nslots) {
             this.slots = new boolean[nslots];
             this.numFreeSlots = nslots;
             this.nextSlot = 0;
         }
 
-        public int getNextSlot() {
+        private int getNextSlot() {
             if (numFreeSlots-- > 0) {
                 while (slots[nextSlot]) {
                     nextSlot = (nextSlot + 1) % slots.length;
@@ -562,7 +582,7 @@ public abstract class Tracer {
             }
         }
 
-        public void freeSlot(int slot) {
+        private void freeSlot(int slot) {
             slots[slot] = false;
             nextSlot = slot;
             numFreeSlots++;

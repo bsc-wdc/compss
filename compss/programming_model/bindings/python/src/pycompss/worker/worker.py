@@ -20,7 +20,7 @@ from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 from cPickle import loads, UnpicklingError
 from exceptions import ValueError
 
-SYNC_EVENTS = 96669
+SYNC_EVENTS = 8000666
 
 # Should be equal to Tracer.java definitions
 TASK_EVENTS = 8000010
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     if tracing:
         import pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
-        pyextrae.eventandcounters(TASK_EVENTS, 0)
+        # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
 
 
@@ -295,5 +295,5 @@ if __name__ == "__main__":
     compss_worker()
     if tracing:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-        pyextrae.eventandcounters(SYNC_EVENTS, 0)
+        # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
+        pyextrae.eventandcounters(SYNC_EVENTS, taskId)

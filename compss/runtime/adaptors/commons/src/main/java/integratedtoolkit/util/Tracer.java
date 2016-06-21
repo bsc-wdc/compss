@@ -447,7 +447,7 @@ public abstract class Tracer {
         try {
             p = pb.start();
         } catch (IOException e) {
-            logger.error("Error generating master package", e);
+            ErrorManager.warn("Error generating master package", e);
             return;
         }
         
@@ -461,10 +461,10 @@ public abstract class Tracer {
         try {
             int exitCode = p.waitFor();
             if (exitCode != 0) {
-                logger.error("Error generating master package, exit code " + exitCode);
+                ErrorManager.warn("Error generating master package, exit code " + exitCode);
             }
         } catch (InterruptedException e) {
-            logger.error("Error generating master package (interruptedException) : " + e.getMessage());
+            ErrorManager.warn("Error generating master package (interruptedException) : " + e.getMessage());
         }
     }
 
@@ -490,7 +490,7 @@ public abstract class Tracer {
         try {
             sem.acquire();
         } catch (InterruptedException ex) {
-            logger.error("Error waiting for tracing files in master to get saved");
+            ErrorManager.warn("Error waiting for tracing files in master to get saved");
         }
     }
 
@@ -507,7 +507,7 @@ public abstract class Tracer {
         try {
             p = pb.start();
         } catch (IOException e) {
-            logger.error("Error generating trace", e);
+            ErrorManager.warn("Error generating trace", e);
             return;
         }
         
@@ -520,20 +520,18 @@ public abstract class Tracer {
         try {
             exitCode = p.waitFor();
             if (exitCode != 0) {
-                logger.error("Error generating trace, exit code " + exitCode);
+                ErrorManager.warn("Error generating trace, exit code " + exitCode);
             }
         } catch (InterruptedException e) {
-            logger.error("Error generating trace (interruptedException) : " + e.getMessage());
+            ErrorManager.warn("Error generating trace (interruptedException) : " + e.getMessage());
         }
 
         String lang = System.getProperty(ITConstants.IT_LANG);
-        logger.debug("Lang, lcs: " + lang);
         if (exitCode == 0 && lang.equals("python")) {
             try {
                 new TraceMerger(System.getProperty(ITConstants.IT_APP_LOG_DIR), appName).merge();
             } catch (IOException e) {
-                logger.error("Error while trying to merge files");
-                e.printStackTrace();
+                ErrorManager.warn("Error while trying to merge files", e);
             }
         }
     }
@@ -551,10 +549,10 @@ public abstract class Tracer {
             f = new File(source.getPath());
             boolean deleted = f.delete();
             if (! deleted){
-                logger.error("Unable to remove tracing temporary files of master node.");
+                ErrorManager.warn("Unable to remove tracing temporary files of master node.");
             }
         } catch (Exception e) {
-            logger.error("Unable to remove tracing temporary files of master node.");
+            ErrorManager.warn("Unable to remove tracing temporary files of master node.", e);
         }
     }
 

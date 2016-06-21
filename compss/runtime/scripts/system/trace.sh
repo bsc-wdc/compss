@@ -99,9 +99,9 @@
     # Check if parallel merge is available / should be used
     configuration=$(${extraeDir}/etc/configured.sh | grep "enable-parallel-merge")
     if [ -z "${configuration}" ] || [ "$(wc -l < TRACE.mpits)" -lt ${maxMpitNumber} ] ; then
-        ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+        ${extraeDir}/bin/mpi2prv -f TRACE.mpits -no-syn -o ./trace/${appName}_compss_trace_${sec}.prv
     else
-        mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
+        mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -no-syn -o ./trace/${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym

@@ -58,8 +58,6 @@ worker=$1
 #!@BASH@
 set -e
 
-export CC="@CC@"
-export CXX="@CXX@"
 
 @ACLOCAL@
 @AUTOMAKE@ -a -c

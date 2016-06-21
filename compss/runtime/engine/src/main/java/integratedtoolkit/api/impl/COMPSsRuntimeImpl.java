@@ -41,6 +41,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Exception constants definition
     protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
+    protected static final String WARN_LOG4J_FILE_NOT_READ = "WARNING: Log4j Properties file could not be read.\nNo logging in files will be available";
     protected static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
     protected static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
     protected static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
@@ -108,7 +109,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          * Configures log4j for the JVM where the application and the IT API belong
          */
         logger = Logger.getLogger(Loggers.API);
-        PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
+        String log4j = System.getProperty(ITConstants.LOG4J);
+        if (log4j!= null){
+        	PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
+        }else{
+        	System.err.println(WARN_LOG4J_FILE_NOT_READ);
+        }
     }
 
     //Code Added to support configuration files

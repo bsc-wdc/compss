@@ -16,6 +16,7 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -30,7 +31,15 @@ public class CEIParser {
     private static final boolean debug = logger.isDebugEnabled();
 
     private static final String CONSTR_LOAD_ERR = "Error loading constraints";
-
+    
+    private static final String CONSTRAINT_IDL = "@Constraints";
+    
+    private static enum CodeRegion {
+        COMMENT,
+        TASK,
+        CONSTRAINT,
+        FUNCTION,
+    }
     
     static {
         String l = System.getProperty(ITConstants.IT_LANG);
@@ -234,92 +243,182 @@ public class CEIParser {
     }
 
     // C constructor
-    private static LinkedList<Integer> loadC(String constraintsFile) {
-        LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
-        HashMap<Integer, MethodImplementation> readMethods = new HashMap<Integer, MethodImplementation>();
-        MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(constraintsFile));
+    public static LinkedList<Integer> loadC(String constraintsFile) {
+    	LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
+    	HashMap<Integer, MethodImplementation> readMethods = new HashMap<Integer, MethodImplementation>();
 
-            String line;
-            int coreCount = 0;
-            while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (line.startsWith("//")) {
-                    continue;
-                }
-                StringBuilder buffer = new StringBuilder();
-                if (line.matches(".*[(].*[)].*;")) {
-                    line = line.replaceAll("[(|)|,|;]", " ");
-                    String[] splits = line.split("\\s+");
-                    //String returnType = splits[0];
-                    String methodName = splits[1];
-                    //String methodName = String.valueOf(n);                    
-                    //Computes the method's signature                    
-                    buffer.append(methodName).append("(");
-                    for (int i = 2; i < splits.length; i++) {
-                        String paramDirection = splits[i++];
-                        String paramType = splits[i++];
-                        String type = "FILE_T";
-                        /* OLD version C-binding 
-						String type = "OBJECT_T";*/	
-                        if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
-                            type = "FILE_T";
-                        } else if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
-                            type = "FILE_T";       	
-                        } else if (paramType.toUpperCase().compareTo("FILE") == 0) {
-                            type = "FILE_T";
-                        } else if (paramType.compareTo("boolean") == 0) {
-                            type = "BOOLEAN_T";
-                        } else if (paramType.compareTo("char") == 0) {
-                            type = "CHAR_T";
-                        } else if (paramType.compareTo("int") == 0) {
-                            type = "INT_T";
-                        } else if (paramType.compareTo("float") == 0) {
-                            type = "FLOAT_T";
-                        } else if (paramType.compareTo("double") == 0) {
-                            type = "DOUBLE_T";
-                        } else if (paramType.compareTo("byte") == 0) {
-                            type = "BYTE_T";
-                        } else if (paramType.compareTo("short") == 0) {
-                            type = "SHORT_T";
-                        } else if (paramType.compareTo("long") == 0) {
-                            type = "LONG_T";
-                        } else if (paramType.compareTo("string") == 0) {
-                            type = "STRING_T";
-                        }
-                        buffer.append(type).append(",");
-                        //String paramName = splits[i];
-                    }
-                    buffer.deleteCharAt(buffer.lastIndexOf(","));
-                    buffer.append(")");
-                    String declaringClass = "NULL";
-                    buffer.append(declaringClass);
+    	int coreCount = parseIDLMethods( updatedMethods, readMethods, constraintsFile);
 
-                    String signature = buffer.toString();
-                    //Adds a new Signature-Id if not exists in the TreeMap
-                    Integer methodId = CoreManager.getCoreId(new String[]{signature});
-                    updatedMethods.add(methodId);
-                    MethodImplementation m = new MethodImplementation(declaringClass, methodId, 0, new MethodResourceDescription(defaultCtr));
-                    readMethods.put(methodId, m);
-                    coreCount++;
-                }
-            }
-            CoreManager.resizeStructures(coreCount);
-            for (int i = 0; i < coreCount; i++) {
-                Implementation<?>[] implementations = new Implementation[1];
-                implementations[0] = readMethods.get(i);
-                CoreManager.registerImplementations(i, implementations);
-            }
-            CoreManager.setCoreCount(coreCount);
-            br.close();
-        } catch (Exception e) {
-            logger.fatal(CONSTR_LOAD_ERR, e);
-        }
-        return updatedMethods;
+    	CoreManager.resizeStructures(coreCount);
+    	for (int i = 0; i < coreCount; i++) {
+    		Implementation<?>[] implementations = new Implementation[1];
+    		implementations[0] = readMethods.get(i);
+    		CoreManager.registerImplementations(i, implementations);
+    	}
+    	CoreManager.setCoreCount(coreCount);
+    	return updatedMethods;
     }
 
-    // Python constructor
+    public static int parseIDLMethods(LinkedList<Integer> updatedMethods,
+    		HashMap<Integer, MethodImplementation> readMethods, String constraintsFile) {
+    	MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
+
+    	logger.debug("Loading file "+ constraintsFile);
+    	BufferedReader br = null;
+    	String line;
+    	int coreCount = 0;
+    	try{
+    		br = new BufferedReader(new FileReader(constraintsFile));
+    		boolean isReadingCodeRegion = false;
+    		StringBuilder structureString = null;
+    		CodeRegion type = null;
+    		MethodResourceDescription currConstraints = new MethodResourceDescription(defaultCtr);
+    		while ((line = br.readLine()) != null) {
+    			line = line.trim();
+    			if (isReadingCodeRegion && type != null){
+    				if (line.startsWith("//")){
+    					// Line is a comment inside the core region ignoring it
+    					continue;
+    				}else if (type.equals(CodeRegion.COMMENT)){
+    					if (line.endsWith("*/")){
+    						isReadingCodeRegion = false;
+    					}else{
+    						continue;
+    					}
+    					
+    				}else {
+    					if (line.matches(".*[)];")){
+    						isReadingCodeRegion = false;
+    						structureString.append(line);
+    						if (type.equals(CodeRegion.CONSTRAINT)){
+    							System.out.println("Loading constraint: "+ structureString.toString());
+    							currConstraints = loadCConstraints(structureString.toString());
+    						}else if (type.equals(CodeRegion.FUNCTION)){
+    							System.out.println("Loading function: "+ structureString.toString()+" constraint:"+currConstraints);
+    							parseCFunction(structureString.toString(), updatedMethods,readMethods, currConstraints);
+    							currConstraints = new MethodResourceDescription(defaultCtr);
+    							coreCount++;
+    						}
+    					}else{
+    						structureString.append(line);
+    					}
+    				}
+    				
+    			}else{
+    				if (line.startsWith("//") || line.startsWith("#") || (line.startsWith("/*")&& line.endsWith("*/"))) {
+    					// Line is a comment of pre-processor pragma ignoring it
+    					continue;
+    				}else if (line.startsWith("/*")){
+    					//Line starts comment region
+    					isReadingCodeRegion = true;
+    					type = CodeRegion.COMMENT;
+    				}else if (line.matches(CONSTRAINT_IDL+"[(].*[)];")) {
+    					//Line contains
+    					System.out.println("Loading constraint: "+ line);
+    					currConstraints = loadCConstraints(line);
+    					continue;
+    				}else if (line.matches(CONSTRAINT_IDL+"[(].*")){
+    					//Line starts a constraints region
+    					isReadingCodeRegion = true;
+    					structureString = new StringBuilder(line);
+    					type = CodeRegion.CONSTRAINT;
+    				}else if (line.matches(".*[(].*[)];")) {
+    					//Line contains a function
+    					System.out.println("Loading function: "+ line+ " constraint:"+currConstraints);
+    					parseCFunction(line, updatedMethods,readMethods, currConstraints);
+    					coreCount++;
+    					currConstraints = new MethodResourceDescription(defaultCtr);
+    				}else if (line.matches(".*[(].*")){
+    					//Line starts a function region
+    					isReadingCodeRegion = true;
+    					structureString = new StringBuilder(line);
+    					type = CodeRegion.FUNCTION;
+    				}
+    			}
+    		}
+    	}catch (Exception e) {
+    		logger.fatal(CONSTR_LOAD_ERR, e);
+    	} finally{
+    		if (br!=null)
+    			try {
+    				br.close();
+    			} catch (IOException e) {
+    				//Nothing to do;
+    			}
+    	}
+
+    	return coreCount;
+
+	}
+    
+    private static void parseCFunction(String line, LinkedList<Integer> updatedMethods, HashMap<Integer, MethodImplementation> readMethods, MethodResourceDescription currConstraints){
+    	StringBuilder buffer = new StringBuilder();
+		line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
+		String[] splits = line.split("\\s+");
+		//String returnType = splits[0];
+		String methodName = splits[1];
+		//String methodName = String.valueOf(n);                    
+		//Computes the method's signature                    
+		buffer.append(methodName).append("(");
+		for (int i = 2; i < splits.length; i++) {
+			String paramDirection = splits[i++];
+			String paramType = splits[i++];
+			String type = "FILE_T";
+			/* OLD version C-binding 
+			String type = "OBJECT_T";*/	
+			if (paramDirection.toUpperCase().compareTo("INOUT") == 0) {
+				type = "FILE_T";
+			} else if (paramDirection.toUpperCase().compareTo("OUT") == 0) {
+				type = "FILE_T";       	
+			} else if (paramType.toUpperCase().compareTo("FILE") == 0) {
+				type = "FILE_T";
+			} else if (paramType.compareTo("boolean") == 0) {
+				type = "BOOLEAN_T";
+			} else if (paramType.compareTo("char") == 0) {
+				type = "CHAR_T";
+			} else if (paramType.compareTo("int") == 0) {
+				type = "INT_T";
+			} else if (paramType.compareTo("float") == 0) {
+				type = "FLOAT_T";
+			} else if (paramType.compareTo("double") == 0) {
+				type = "DOUBLE_T";
+			} else if (paramType.compareTo("byte") == 0) {
+				type = "BYTE_T";
+			} else if (paramType.compareTo("short") == 0) {
+				type = "SHORT_T";
+			} else if (paramType.compareTo("long") == 0) {
+				type = "LONG_T";
+			} else if (paramType.compareTo("string") == 0) {
+				type = "STRING_T";
+			}
+			buffer.append(type).append(",");
+			//String paramName = splits[i];
+		}
+		buffer.deleteCharAt(buffer.lastIndexOf(","));
+		buffer.append(")");
+		String declaringClass = "NULL";
+		buffer.append(declaringClass);
+
+		String signature = buffer.toString();
+		//Adds a new Signature-Id if not exists in the TreeMap
+		Integer methodId = CoreManager.getCoreId(new String[]{signature});
+		updatedMethods.add(methodId);
+		MethodImplementation m = new MethodImplementation(declaringClass, methodId, 0, currConstraints);
+		readMethods.put(methodId, m);
+    }
+
+	public static MethodResourceDescription loadCConstraints(String line) {
+		line = line.substring(CONSTRAINT_IDL.length()+1);
+		line = line.replaceAll("[() ;\n\t]", "");
+		String[] constraints = line.split(",");
+		
+        System.out.println("Constraints: " + line);
+        MethodResourceDescription mrd =new MethodResourceDescription(constraints);
+        System.out.println(" MRD: "+mrd);
+		return mrd;
+	}
+
+	// Python constructor
     private static LinkedList<Integer> loadPython() {
     	// Get python CoreCount
         String countProp = System.getProperty(ITConstants.IT_CORE_COUNT);

@@ -52,7 +52,7 @@ string		return TOK_STRING;
 wstring		return TOK_WSTRING;
 
 \#[^\n]*\n	line++; /* Ignore preprocessor directives */
-
+\@[^\n]*\n	line++; /* Ignore constraints directives */
 \/\/[^\n]*\n	line++; /* C++ style comments */
 
 "/*"		{	/* C style comments */

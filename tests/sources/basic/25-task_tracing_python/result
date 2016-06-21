@@ -1,7 +1,7 @@
 #!/bin/bash
 
   #Obtain parameters
-  output_file=$1 
+  output_file=$1
   target_log_folder=$2
   comm=$3
   number_of_tasks=32
@@ -11,7 +11,7 @@
   runtime_log="${target_log_folder}/runtime.log"
 
   # Should be equal to Tracer.java definitions
-  SYNC_EVENTS=96669
+  SYNC_EVENTS=8000666
   TASK_EVENTS=8000010
 
   PROCESS_CREATION=1
@@ -42,10 +42,10 @@
       end_evts=$(grep -c ":${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
 
-      if [ "${evts_type1}" != "${number_of_tasks}" ]; then
-         echo "[ERROR] Incorrect number of type 1 process creation events. [${evts_type1}/${number_of_tasks}]"
-         errors=true
-      fi
+      # if [ "${evts_type1}" != "${number_of_tasks}" ]; then
+      #    echo "[ERROR] Incorrect number of type 1 process creation events. [${evts_type1}/${number_of_tasks}]"
+      #    errors=true
+      # fi
       if [ "${evts_type2}" != "${number_of_tasks}" ]; then
          echo "[ERROR] Incorrect number of type 2 worker init events. [${evts_type2}/${number_of_tasks}]"
          errors=true
@@ -66,10 +66,10 @@
          echo "[ERROR] Incorrect number of type 6 worker end events. [${evts_type6}/${number_of_tasks}]"
          errors=true
       fi
-      if [ "${evts_type7}" != "${number_of_tasks}" ]; then
-         echo "[ERROR] Incorrect number of type 7 process destruction events. [${evts_type7}/${number_of_tasks}]"
-         errors=true
-      fi
+      # if [ "${evts_type7}" != "${number_of_tasks}" ]; then
+      #    echo "[ERROR] Incorrect number of type 7 process destruction events. [${evts_type7}/${number_of_tasks}]"
+      #    errors=true
+      # fi
 
       start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}))
 
@@ -78,12 +78,8 @@
         errors=true
       fi
 
-      if [ "${sync_evts_init}" != "${sync_evts_end}" ] ; then
-        echo "[ERROR] Number of start and end synchronization events are not equal"
-        errors=true
-      fi
 
-      if [ "${sync_evts_init}" != "${number_of_tasks}" ] || [ "${sync_evts_end}" != "${number_of_tasks}" ]; then
+      if [ "${sync_evts_init}" != "$((4*${number_of_tasks}))" ]; then
         echo "[ERROR] Number of start and end synchronization events are not the same as the number of tasks (${number_of_tasks}): [${sync_evts_init}/${sync_evts_end}]"
         errors=true
       fi

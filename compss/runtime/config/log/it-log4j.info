@@ -60,6 +60,9 @@ log4j.additivity.integratedtoolkit.Components.TaskDispatcher.JobManager=false
 log4j.logger.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=, COMPSs_FILE
 log4j.additivity.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=false
 
+log4j.logger.integratedtoolkit.Components.Tracing=, COMPSs_FILE
+log4j.additivity.integratedtoolkit.Components.Tracing=false
+
 # Connectors: Default = INFO
 log4j.logger.integratedtoolkit.Connectors=INFO, RESOURCES_FILE
 log4j.additivity.integratedtoolkit.Connectors=false

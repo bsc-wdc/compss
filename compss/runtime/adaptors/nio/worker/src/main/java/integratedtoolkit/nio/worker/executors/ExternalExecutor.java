@@ -196,7 +196,8 @@ public abstract class ExternalExecutor extends Executor {
         if (tracing) {
             NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
             NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
-            NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
+            NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+//            NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
         }
 
         try {
@@ -227,9 +228,10 @@ public abstract class ExternalExecutor extends Executor {
             int exitValue = execProc.waitFor();
 
             if (tracing){
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
-            	NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
+                NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+//                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
+                NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
             }
             logger.debug("Task finished. Waiting for gobblers to end...");
             outputGobbler.join();

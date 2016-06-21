@@ -50,9 +50,11 @@
     node=$1
     #echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
-    tasksTraces=$(find . -name "*.prv")
-    if [ ! -z "$tasksTraces" ]; then
-	files+=" $tasksTraces"
+    if [ "$node" != "master" ]; then
+        tasksTraces=$(find . -name "task[1-9]*.prv")
+        if [ ! -z "$tasksTraces" ]; then
+            files+=" $tasksTraces"
+        fi
     fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
@@ -100,10 +102,6 @@
         ${extraeDir}/bin/mpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
     else
         mpirun -np $numberOfResources ${extraeDir}/bin/mpimpi2prv -f TRACE.mpits -o ./trace/${appName}_compss_trace_${sec}.prv
-    fi
-    endCode=$?
-    if [ $endCode -eq 0 ] && [ $taskTracesAvailable = true ]; then
-        ${scriptDir}/trace-merger.sh ${appName}_compss_trace_${sec}.prv
     fi
     endCode=$?
     rm -rf set-0/ TRACE.mpits TRACE.sym

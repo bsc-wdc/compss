@@ -3,6 +3,7 @@
   rm -rf config.h.in~
   rm -rf ltmain.sh
   rm -rf m4
+  mkdir -p m4
   rm -rf config.h
   rm -rf config.h.in
   rm -rf aclocal.m4

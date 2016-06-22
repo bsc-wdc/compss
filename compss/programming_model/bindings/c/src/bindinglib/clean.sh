@@ -34,4 +34,4 @@
   rm -rf libcbindings.la
   rm -rf .libs
   rm -rf m4
-
+  mkdir -p m4

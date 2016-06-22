@@ -7,9 +7,8 @@
   rm -rf src/.libs
   rm -rf src/Makefile
   rm -rf src/Makefile.in
-  rm -rf lib
-  rm -rf include
-  #rm -rf m4
+  rm -rf m4
+  mkdir -p m4
   rm -rf aclocal.m4
   rm -rf autom4te.cache
   rm -rf configure

@@ -1,7 +1,21 @@
 #!/bin/bash
 
-  #Define script variables
+  #######################################
+  # HELPER FUNCTIONS
+  #######################################
+  clean_env() {
+    ./clean.sh
+  }
+
+  #######################################
+  # MAIN
+  #######################################
+
+  # Define script variables
   scriptDir=$(pwd)
+
+  # Trap to ensure clean environment
+  trap clean_env EXIT
 
   # Check JAVA_HOME
   if [ -z "${JAVA_HOME}" ]; then
@@ -12,25 +26,20 @@
 
   # Install and deploy on scriptDir (for C binding)
   echo "Install on scriptDir = $scriptDir for Bindings compilation"
-  make clean
   autoreconf --force --install
   ./configure --prefix=${scriptDir} --libdir=${scriptDir}/lib
-  make
-  make install
+  make clean install
   if [ $? -ne 0 ]; then
     exit 1
   fi
-
 
   # Install and deploy on target
   if [ $# -eq 1 ]; then
     echo "Install on target folder"
     targetDir=$1
-    make clean
     autoreconf --force --install
     ./configure --prefix=${targetDir} --libdir=${targetDir}/lib
-    make
-    make install
+    make clean install
     if [ $? -ne 0 ]; then
       exit 1
     fi

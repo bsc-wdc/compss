@@ -19,6 +19,7 @@
   randomID=$RANDOM
   tmpFile=/tmp/compss-workers-${randomID}.tmp
   HALF_MIN=30s
+  SLEEP_BETWEEN_WORKER_CREATION=5
 
   ##########################################################
   # Prompt warning message
@@ -53,6 +54,7 @@
     cmd="nova boot --flavor baremetal --image $image --key-name COMPSsMaster${randomID} --nic net-id=$netId --hint reservation=$reservationId COMPSsWorker$i"
     echo "$cmd"
     $cmd
+    sleep $SLEEP_BETWEEN_WORKER_CREATION
   done
 
   ##########################################################

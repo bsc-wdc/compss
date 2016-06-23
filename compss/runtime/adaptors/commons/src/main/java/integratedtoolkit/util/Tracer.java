@@ -106,13 +106,13 @@ public abstract class Tracer {
         UPDATE_CEI_LOCAL(50, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
         WORKER_UPDATE_REQUEST(51, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
         // Task Events
-        PROCESS_CREATION(1, INSIDE_TASKS_TYPE, "Subprocess creation"),
-        WORKER_INITIALIZATION(2, INSIDE_TASKS_TYPE, "Worker initialization"),
-        PARAMETER_PROCESSING(3, INSIDE_TASKS_TYPE, "Parameter processing"),
-        LOGGING(4, INSIDE_TASKS_TYPE, "Logging"),
-        TASK_EXECUTION(5, INSIDE_TASKS_TYPE, "User Method Execution"),
-        WORKER_END(6, INSIDE_TASKS_TYPE, "Worker End"),
-        PROCESS_DESTRUCTION(7, INSIDE_TASKS_TYPE, "Subprocess destruction");
+        PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),
+        WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"),
+        PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"),
+        LOGGING(104, INSIDE_TASKS_TYPE, "Logging"),
+        TASK_EXECUTION(105, INSIDE_TASKS_TYPE, "User Method Execution"),
+        WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"),
+        PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction");
 
         private final int id;
         private final int type;

@@ -296,7 +296,7 @@ public abstract class NIOAgent {
 
             try {
                 c = tm.startConnection(nn);
-                logger.debug("Connection.finishConnection() " + c.hashCode() + " will be used to acquire data " + dr.getTarget + " stored in " + nn + " with name " + dr.source.getName());
+                logger.debug("Connection " + c.hashCode() + " will be used to acquire data " + dr.getTarget + " stored in " + nn + " with name " + dr.source.getName());
                 Data remoteData = new Data(source.getName(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
                 ongoingTransfers.put(c, dr.source.getName());

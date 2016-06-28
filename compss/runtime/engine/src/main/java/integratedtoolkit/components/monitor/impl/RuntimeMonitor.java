@@ -97,18 +97,18 @@ public class RuntimeMonitor implements Runnable {
         running = true;
         while (keepRunning) {
             try {
-            	// Print XML state for Monitor
+                // Print XML state for Monitor
                 getXMLTaskState();
-                
+
                 // Print current task graph
                 printCurrentGraph();
-                
+
                 // Print load and resources information on log
                 ResourceManager.printLoadInfo();
                 ResourceManager.printResourcesState();
                 Thread.sleep(sleepTime);
             } catch (Exception e) {
-            	logger.error(ERROR_GENERATING_DATA, e);
+                logger.error(ERROR_GENERATING_DATA, e);
             }
         }
         running = false;
@@ -126,13 +126,12 @@ public class RuntimeMonitor implements Runnable {
             }
             // Print XML state for Monitor
             getXMLTaskState();
-            
+
             // Print current task graph
             printCurrentGraph();
         } catch (Exception e) {
-        	logger.error(ERROR_GENERATING_DATA, e);
+            logger.error(ERROR_GENERATING_DATA, e);
         }
-        
         //Clears the execution files
         new File(monitorDirPath + "monitor.xml").delete();
     }

@@ -101,10 +101,11 @@ public abstract class Tracer {
         CE_REGISTRATION(45, RUNTIME_EVENTS, "Task Dispatcher: CE registration"),
         EXECUTE_TASKS(46, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"),
         GET_CURRENT_SCHEDULE(47, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"),
-        MONITORING_DATA(48, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"),
-        TD_SHUTDOWN(49, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"),
-        UPDATE_CEI_LOCAL(50, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
-        WORKER_UPDATE_REQUEST(51, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
+        PRINT_CURRENT_GRAPH(48, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"),
+        MONITORING_DATA(49, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"),
+        TD_SHUTDOWN(50, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"),
+        UPDATE_CEI_LOCAL(51, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
+        WORKER_UPDATE_REQUEST(52, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
         // Task Events
         PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),
         WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"),
@@ -244,7 +245,13 @@ public abstract class Tracer {
     }
 
     public static Event getTDRequestEvent(String eventType) {
-        return Event.valueOf(eventType);
+        Event event = null;
+        try{
+            event =  Event.valueOf(eventType);
+        } catch (Exception e){
+            logger.error("Task Dispatcher event " + eventType + " is not present in Tracer's list ");
+        }
+        return event;
     }
 
 

@@ -112,10 +112,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
         LinkedList<AllocatableAction<P,T>> resourceFree = resource.unscheduleAction(action);
         workerLoadUpdate((ResourceScheduler<P,T>) action.getAssignedResource());
-        HashSet<AllocatableAction<P,T>> freeTasks = new HashSet<AllocatableAction<P,T>>();
-        freeTasks.addAll(dataFreeActions);
-        freeTasks.addAll(resourceFree);
-        for (AllocatableAction<P,T> a : freeTasks) {
+        for (AllocatableAction<P,T> a : resourceFree) {
             try {
                 try {
                     a.tryToLaunch();

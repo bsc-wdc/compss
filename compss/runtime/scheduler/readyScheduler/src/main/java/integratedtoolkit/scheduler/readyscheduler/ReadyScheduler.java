@@ -44,6 +44,16 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
         try {
             Score actionScore = action.schedulingScore(this);
             action.schedule(actionScore);
+	    try {
+                action.tryToLaunch();
+	    } catch (InvalidSchedulingException ise) {
+                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), actionScore);
+                try {
+                    action.tryToLaunch();
+                } catch (InvalidSchedulingException ise2) {
+                    //Impossible exception. 
+                }
+            }
         } catch (UnassignedActionException ex) {
             unassignedReadyActions.addAction(action);
         }

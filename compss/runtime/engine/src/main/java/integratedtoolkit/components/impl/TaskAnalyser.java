@@ -77,6 +77,7 @@ public class TaskAnalyser {
         appIdToTotalTaskCount = new HashMap<Long, Integer>();
         appIdToSemaphore = new HashMap<Long, Semaphore>();
         appIdToWrittenFiles = new HashMap<Long, TreeSet<Integer>>();
+        appIdToSCOWrittenIds = new HashMap<Long, TreeSet<Integer>>();
         waitedTasks = new Hashtable<Task, List<Semaphore>>();
         synchronizationId = 0;
         logger.info("Initialization finished");

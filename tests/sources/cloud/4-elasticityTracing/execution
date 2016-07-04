@@ -23,11 +23,11 @@
   #----------------------------------------------------------------------------------
   #Create project and resources XML
   cp -f ${base_app_dir}/project_tracing_base.xml ${base_app_dir}/project_tracing.xml
-  sed -i 's/<Image name=\"uuid_XX_compss_testing_XX\">/<Image name=\"uuid_'$os_type'_compss_testing_'$master_template_id'\">/g' ${base_app_dir}/project_tracing.xml
+  sed -i 's/<Image Name=\"uuid_XX_compss_testing_XX\">/<Image Name=\"uuid_'$os_type'_compss_testing_'$master_template_id'\">/g' ${base_app_dir}/project_tracing.xml
   sed -i '/<Value>jenkins-test.pem<\/Value>/c<Value>'${remote_certs_dir}'\/jenkins-test.pem<\/Value>' ${base_app_dir}/project_tracing.xml
   sed -i '/<Source>'$appName'.tar.gz<\/Source>/c<Source>'${remote_apps_dir}'\/'$appName'.tar.gz<\/Source>' ${base_app_dir}/project_tracing.xml
   cp -f ${base_app_dir}/resources_tracing_base.xml ${base_app_dir}/resources_tracing.xml
-  sed -i 's/<Image name=\"uuid_XX_compss_testing_XX\">/<Image name=\"uuid_'$os_type'_compss_testing_'$master_template_id'\">/g' ${base_app_dir}/resources_tracing.xml
+  sed -i 's/<Image Name=\"uuid_XX_compss_testing_XX\">/<Image Name=\"uuid_'$os_type'_compss_testing_'$master_template_id'\">/g' ${base_app_dir}/resources_tracing.xml
   
   #Create package
   mkdir ${base_app_dir}/tmp

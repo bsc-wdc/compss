@@ -1,80 +1,99 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourceList>
-    <CloudProvider name="BSC">
-        <Server>https://bscgrid20.bsc.es:11443/</Server>
-        <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
-        <ImageList>
-            <Image name="uuid_XX_compss_testing_XX">
+<ResourcesList>
+    <CloudProvider Name="BSC">
+        <Endpoint>
+            <Server>https://bscgrid20.bsc.es:11443/</Server>
+            <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+        </Endpoint>
+
+        <Images>
+            <Image Name="uuid_XX_compss_testing_XX">
+                <CreationTime>60</CreationTime>
                 <Adaptors>
-                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
-                        <MinPort>43100</MinPort>
-                        <MaxPort>43110</MaxPort>
+                    <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <SubmissionSystem>
+                            <Interactive />
+                        </SubmissionSystem>
+                        <Ports>
+                            <MinPort>43100</MinPort>
+                            <MaxPort>43110</MaxPort>
+                        </Ports>
+                    </Adaptor>
+                    <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                        <SubmissionSystem>
+                            <Batch>
+                                <Queue>sequential</Queue>
+                            </Batch>
+                            <Interactive />
+                        </SubmissionSystem>
+                        <BrokerAdaptor>sshtrilead</BrokerAdaptor>
                     </Adaptor>
                 </Adaptors>
             </Image>
-        </ImageList>
-        <CreationTime>120</CreationTime> <!-- In seconds -->
+        </Images>
+
         <InstanceTypes>
-            <Resource Name="small">
-                <Capabilities>
-                    <Processor>
-                        <Architecture>x86_64</Architecture>
-                        <CoreCount>1</CoreCount>
-                    </Processor>
-                    <StorageElement>
-                        <Size>10.0</Size>
-                    </StorageElement>
-                    <Memory>
-                        <PhysicalSize>2.0</PhysicalSize>
-                    </Memory>
-                </Capabilities>
-                <Price>0.085</Price>
-            </Resource>
-            <Resource Name="medium">
-                <Capabilities>
-                    <Processor>
-                        <Architecture>x86_64</Architecture>
-                        <CoreCount>2</CoreCount>
-                    </Processor>
-                    <StorageElement>
-                        <Size>10.0</Size>
-                    </StorageElement>
-                    <Memory>
-                        <PhysicalSize>3.0</PhysicalSize>
-                    </Memory>
-                </Capabilities>
-                <Price>0.212</Price>
-            </Resource>
-            <Resource Name="large">
-                <Capabilities>
-                    <Processor>
-                        <Architecture>x86_64</Architecture>
-                        <CoreCount>4</CoreCount>
-                    </Processor>
-                    <StorageElement>
-                        <Size>10.0</Size>
-                    </StorageElement>
-                    <Memory>
-                        <PhysicalSize>4</PhysicalSize>
-                    </Memory>
-                </Capabilities>
-                <Price>0.34</Price>
-            </Resource>
-            <Resource Name="extra_large">
-                <Capabilities>
-                    <Processor>
-                        <Architecture>x86_64</Architecture>
-                        <CoreCount>4</CoreCount>
-                    </Processor>
-                    <StorageElement>
-                        <Size>10.0</Size>
-                    </StorageElement>
-                    <Memory>
-                        <PhysicalSize>8</PhysicalSize>
-                    </Memory>
-                </Capabilities>
-                <Price>0.68</Price>
-            </Resource>
+            <InstanceType Name="small">
+                <Processor Name="Processor1">
+                    <ComputingUnits>1</ComputingUnits>
+                </Processor>
+                <Memory>
+                    <Size>2.0</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+                <Price>
+                    <TimeUnit>1</TimeUnit>
+                    <PricePerUnit>0.085</PricePerUnit>
+                </Price>
+            </InstanceType>
+            <InstanceType Name="medium">
+                <Processor Name="Processor1">
+                    <ComputingUnits>2</ComputingUnits>
+                </Processor>
+                <Memory>
+                    <Size>3.0</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+                <Price>
+                    <TimeUnit>1</TimeUnit>
+                    <PricePerUnit>0.212</PricePerUnit>
+                </Price>
+            </InstanceType>
+            <InstanceType Name="large">
+                <Processor Name="Processor1">
+                    <ComputingUnits>4</ComputingUnits>
+                </Processor>
+                <Memory>
+                    <Size>4</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+                <Price>
+                    <TimeUnit>1</TimeUnit>
+                    <PricePerUnit>0.34</PricePerUnit>
+                </Price>
+            </InstanceType>
+            <InstanceType Name="extra_large">
+                <Processor Name="Processor1">
+                    <ComputingUnits>4</ComputingUnits>
+                </Processor>
+                <Memory>
+                    <Size>8</Size>
+                </Memory>
+                <Storage>
+                    <Size>10.0</Size>
+                </Storage>
+                <Price>
+                    <TimeUnit>1</TimeUnit>
+                    <PricePerUnit>0.68</PricePerUnit>
+                </Price>
+            </InstanceType>
         </InstanceTypes>
     </CloudProvider>
-</ResourceList>
+
+</ResourcesList>

@@ -57,6 +57,8 @@
 		<module>24-noTask</module>
 		<!-- Module 25 is 25-task_tracing_python -->
 		<module>26-java_api_calls</module>
+		<!-- Module 27 is 27-simple_python -->
+		<!-- Module 28 is 28-simple_c -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

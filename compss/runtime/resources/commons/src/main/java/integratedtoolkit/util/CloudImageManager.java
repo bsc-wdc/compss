@@ -1,5 +1,6 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
@@ -9,6 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 
 /**
@@ -21,11 +24,16 @@ public class CloudImageManager {
      * Relation between the name of an image and its features
      */
     private HashMap<String, CloudImageDescription> images;
+    
+    // Logger
+    private static final Logger logger = Logger.getLogger(Loggers.CM_COMP);
 
+    
     /**
      * Constructs a new CloudImageManager
      */
     public CloudImageManager() {
+    	logger.info("Initializing CloudImageManager");
         images = new HashMap<String, CloudImageDescription>();
     }
 
@@ -35,6 +43,7 @@ public class CloudImageManager {
      * @param cid Description of the image
      */
     public void add(CloudImageDescription cid) {
+    	logger.debug("Add new Image description");
         images.put(cid.getImageName(), cid);
     }
 
@@ -47,8 +56,11 @@ public class CloudImageManager {
      * resource description
      */
     public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
+    	//logger.debug("REQUESTED: " + requested.toString());
         LinkedList<CloudImageDescription> compatiblesList = new LinkedList<CloudImageDescription>();
         for (CloudImageDescription cid : images.values()) {
+        	//logger.debug("CID:     " + cid.toString());
+        	
         	// OS CHECK
             String imageOSType = cid.getOperatingSystemType();
             String reqOSType = requested.getOperatingSystemType();
@@ -57,7 +69,7 @@ public class CloudImageManager {
             		&& !imageOSType.equals(reqOSType)) {
             	continue;
             }
-            
+
             String imageOSDistr = cid.getOperatingSystemDistribution();
             String reqOSDistr = requested.getOperatingSystemDistribution();
             if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
@@ -65,7 +77,7 @@ public class CloudImageManager {
             		&& !imageOSDistr.equals(reqOSDistr)) {
             	continue;
             }
-            
+
             String imageOSVersion = cid.getOperatingSystemVersion();
             String reqOSVersion = requested.getOperatingSystemVersion();
             if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
@@ -82,7 +94,8 @@ public class CloudImageManager {
             // CHECK QUEUES
             List<String> req_queues = requested.getHostQueues();
             List<String> image_queues = cid.getQueues();
-            if (Collections.disjoint(req_queues, image_queues)) {
+            // Disjoint = true if the two specified collections have no elements in common.
+            if (!req_queues.isEmpty() && Collections.disjoint(req_queues, image_queues)) {
             	continue;
             }
 

@@ -279,7 +279,7 @@ public class ResourceManager {
         addStaticResource(newResource);
     }
 
-    private static void addStaticResource(Worker worker) {
+    private static void addStaticResource(Worker<?> worker) {
         synchronized (pool) {
             worker.updatedFeatures();
             pool.addStaticResource(worker);
@@ -298,7 +298,7 @@ public class ResourceManager {
                 + " available in the pool. Name = " + worker.getName());
     }
 
-    public static void removeWorker(Worker r) {
+    public static void removeWorker(Worker<?> r) {
         pool.delete(r);
         int[] maxTaskCount = r.getSimultaneousTasks();
         for (int coreId = 0; coreId < maxTaskCount.length; ++coreId) {

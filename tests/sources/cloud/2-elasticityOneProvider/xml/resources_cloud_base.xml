@@ -7,7 +7,7 @@
 		</Endpoint>
 
 		<Images>
-			<Image name="uuid_XX_compss_testing_XX">
+			<Image Name="uuid_XX_compss_testing_XX">
 				<CreationTime>60</CreationTime>
 				<Adaptors>
 					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">

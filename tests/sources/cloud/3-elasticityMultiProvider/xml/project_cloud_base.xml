@@ -51,7 +51,7 @@
 			</Properties>
 			
 			<Images>
-				<Image name="uuid_XX_compss_testing_XX">
+				<Image Name="uuid_XX_compss_testing_XX">
 					<InstallDir>remote_COMPSs</InstallDir>
 					<WorkingDir>/home/user/IT/</WorkingDir>
 					<User>user</User>
@@ -111,7 +111,7 @@
 			</Properties>
 			
 			<Images>
-				<Image name="uuid_XX_compss_testing_XX">
+				<Image Name="uuid_XX_compss_testing_XX">
 					<InstallDir>remote_COMPSs</InstallDir>
 					<WorkingDir>/home/user/IT/</WorkingDir>
 					<User>user</User>

@@ -32,7 +32,10 @@ public class CloudProvider {
     private Cost cost;
 
     //Loggers
-    private static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+    private static final Logger logger = Logger.getLogger(Loggers.CM_COMP);
+    private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
+    private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
+    private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
 
 
     public CloudProvider(String connectorPath, Integer limitOfVMs,
@@ -157,6 +160,7 @@ public class CloudProvider {
         // Select all the compatible types
         LinkedList<CloudMethodResourceDescription> instances = typeManager.getCompatibleTypes(constraints);
         if (instances.isEmpty()) {
+        	logger.warn(WARN_NO_COMPATIBLE_TYPE);
             return null;
         }
 
@@ -172,11 +176,14 @@ public class CloudProvider {
         	// Select all the compatible images
             LinkedList<CloudImageDescription> images = imgManager.getCompatibleImages(constraints);
             if (images.isEmpty()) {
+            	logger.warn(WARN_NO_COMPATIBLE_IMAGE);
                 return null;
             }
             result.setProviderName(images.get(0).getProviderName());
             result.setImage(images.get(0));
             result.setValue(cost.getMachineCostPerHour(result));
+        } else {
+        	logger.warn(WARN_NO_VALID_INSTANCE);
         }
         
         return result;
@@ -192,7 +199,7 @@ public class CloudProvider {
             float distance = slots - amount;
             logger.debug("Can host: slots = " + slots + " amount = " + amount 
             		+ " distance = " + distance + " bestDistance = " + bestDistance);
-            if (distance > 0) {
+            if (distance > 0.0) {
                 continue;
             }
 
@@ -203,17 +210,17 @@ public class CloudProvider {
                 if (result.getValue() != null 
                         && rd.getValue() != null
                         && result.getValue() > rd.getValue()) {
+                	// Evaluate optimal candidate
                     result = rd;
                     bestDistance = distance;
                 }
             }
         }
+        
         if (result == null) {
             return null;
         }
-
         return new CloudMethodResourceDescription(result);
-
     }
 
     private CloudMethodResourceDescription selectContainedInstance(LinkedList<CloudMethodResourceDescription> instances, MethodResourceDescription constraints, int amount) {
@@ -225,9 +232,10 @@ public class CloudProvider {
             float distance = slots - amount;
             logger.debug("Can host: slots = " + slots + " amount = " + amount 
             		+ " distance = " + distance + " bestDistance = " + bestDistance);
-            if (distance < 0) {
+            if (distance < 0.0) {
                 continue;
             }
+            
             if (distance < bestDistance) {
                 result = rd;
                 bestDistance = distance;
@@ -242,6 +250,7 @@ public class CloudProvider {
             }
 
         }
+        
         if (result == null) {
             return null;
         }

@@ -33,15 +33,17 @@ public class ResourceOptimizer extends Thread {
     private static boolean cleanUp;
     private static boolean redo;
 
-    //Loggers
+    // Loggers
     private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
-    private static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+    private static final Logger logger = Logger.getLogger(Loggers.RM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    //Sleep times
-    private static final int SLEEP_TIME = 20000;
+    // Sleep times
+    private static final int SLEEP_TIME = 20_000;
     private static final int EVERYTHING_BLOCKED_MAX_RETRIES = 3;
 
+    // Error messages
+    private static final String ERROR_OPT_RES = "Error optimizing resources.";
     private static final String PERSISTENT_BLOCK_ERR
             = "Persistent block detected.\n"
             + "No task could be scheduled or sent to any of the available resources.\n"
@@ -90,7 +92,7 @@ public class ResourceOptimizer extends Thread {
 
                     int runningTasks = workload.getRunningTaskCount();
                     int blockedTasks = workload.getNoResourceCount();
-                    boolean potentialBlock = blockedTasks > 0;
+                    boolean potentialBlock = (blockedTasks > 0);
 
                     //resourcesLogger.info(workload.toString());
                     if (ResourceManager.useCloud()) {
@@ -116,7 +118,7 @@ public class ResourceOptimizer extends Thread {
                 }
 
             } catch (Exception e) {
-                logger.error("Error optimizing resources.", e);
+                logger.error(ERROR_OPT_RES, e);
             }
         }
     }
@@ -136,18 +138,19 @@ public class ResourceOptimizer extends Thread {
         if (potentialBlock) { //All tasks are blocked, and there are no resources available...
             ++everythingBlockedRetryCount;
             if (everythingBlockedRetryCount > 0) { //First time not taken into account
-
                 if (everythingBlockedRetryCount < EVERYTHING_BLOCKED_MAX_RETRIES) {
                     //Retries limit not reached. Warn the user...
                     int retriesLeft = EVERYTHING_BLOCKED_MAX_RETRIES - everythingBlockedRetryCount;
                     ErrorManager.warn(
-                            "No task could be scheduled to any of the available resources.\n"
-                            + "This could end up blocking COMPSs. Will check it again in " + (SLEEP_TIME / 1000) + " seconds.\n"
-                            + "Possible causes: \n"
-                            + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
-                            + "    -There isn't any computing resource that fits the defined tasks constraints.\n"
-                            + "If this happens " + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown.");
-                } else { //Retry limit reached. Error and shutdown.
+                        "No task could be scheduled to any of the available resources.\n"
+                        + "This could end up blocking COMPSs. Will check it again in " + (SLEEP_TIME / 1_000) + " seconds.\n"
+                        + "Possible causes: \n"
+                        + "    -Network problems: non-reachable nodes, sshd service not started, etc.\n"
+                        + "    -There isn't any computing resource that fits the defined tasks constraints.\n"
+                        + "If this happens " + retriesLeft + " more time" + (retriesLeft > 1 ? "s" : "") + ", the runtime will shutdown."
+                    );
+                } else { 
+                	//Retry limit reached. Error and shutdown.
                     ErrorManager.error(PERSISTENT_BLOCK_ERR);
                 }
             }
@@ -285,53 +288,6 @@ public class ResourceOptimizer extends Thread {
         return createdCount;
     }
 
-    private static class ConstraintsCore {
-
-        CloudMethodResourceDescription desc;
-        LinkedList<ConstraintsCore>[] cores;
-
-        public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
-            this.desc = desc;
-            this.cores = new LinkedList[CoreManager.getCoreCount()];
-            this.cores[core] = coreList;
-        }
-
-        public void join(ConstraintsCore c2) {
-            desc.increase(c2.desc);
-            c2.desc = desc;
-            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-                if (cores[coreId] != null) {
-                    if (c2.cores[coreId] != null) {
-                        //Remove one instance of the list to avoid replication
-                        cores[coreId].remove(c2);
-                    } else {
-                        c2.cores[coreId] = cores[coreId];
-                    }
-                } else {
-                    cores[coreId] = c2.cores[coreId];
-                }
-            }
-        }
-
-        public void confirmed() {
-            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-                if (cores[coreId] != null) {
-                    cores[coreId].clear();
-                }
-            }
-        }
-
-        public String toString() {
-            LinkedList<Integer> cores = new LinkedList<Integer>();
-            for (int i = 0; i < CoreManager.getCoreCount(); i++) {
-                if (this.cores[i] != null) {
-                    cores.add(i);
-                }
-            }
-            return desc.toString() + " compleix pels cores " + cores;
-        }
-    }
-
     //Removes from the list all the Constraints fullfilled by existing resources
     private static LinkedList<ConstraintsCore>[] getUnfulfilledConstraints() {
         int coreCount = CoreManager.getCoreCount();
@@ -369,16 +325,16 @@ public class ResourceOptimizer extends Thread {
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             if (constraints[coreId] != null) {
                 for (ConstraintsCore cc : constraints[coreId]) {
-                        List<String> runnableArchitectures = cc.desc.getArchitectures();
-                        for (String arch : runnableArchitectures) {
-                                // Insert element into HashMap
-                                LinkedList<ConstraintsCore> archConstr = archs.get(arch);
-                                if (archConstr == null) {
+                    List<String> runnableArchitectures = cc.desc.getArchitectures();
+                    for (String arch : runnableArchitectures) {
+                        // Insert element into HashMap
+                        LinkedList<ConstraintsCore> archConstr = archs.get(arch);
+                        if (archConstr == null) {
                             archConstr = new LinkedList<ConstraintsCore>();
                             archs.put(arch, archConstr);
                         }
                         archConstr.add(cc);
-                        }
+                    }
                 }
             }
         }
@@ -404,8 +360,8 @@ public class ResourceOptimizer extends Thread {
                         continue;
                     }
                     if (OS.compareTo(ctrs[j].desc.getOperatingSystemType()) == 0
-                            || OS.compareTo("[unassigned]") == 0
-                            || ctrs[j].desc.getOperatingSystemType().compareTo("[unassigned]") == 0) {
+                            || OS.compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0
+                            || ctrs[j].desc.getOperatingSystemType().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                         mergedTo[j] = i;
                         ctrs[i].join(ctrs[j]);
                         arch.remove(ctrs[j]);
@@ -421,7 +377,7 @@ public class ResourceOptimizer extends Thread {
          * ATTENTION: Since this method is only evaluated from constraints, there is only
          *                        1 PROCESSOR and 1 ARCHITECTURE
          */
-        LinkedList<ConstraintsCore> unassignedList = arch2Ctrs.get("[unassigned]");
+        LinkedList<ConstraintsCore> unassignedList = arch2Ctrs.get(CloudMethodResourceDescription.UNASSIGNED_STR);
         if (unassignedList == null) {
             return;
         }
@@ -430,7 +386,7 @@ public class ResourceOptimizer extends Thread {
         }
         if (arch2Ctrs.size() == 2) {
             for (Map.Entry<String, LinkedList<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
-                if (ctrs.getKey().compareTo("[unassigned]") == 0) {
+                if (ctrs.getKey().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                     continue;
                 } else {
                     ctrs.getValue().addAll(unassignedList);
@@ -441,7 +397,7 @@ public class ResourceOptimizer extends Thread {
 
         LinkedList<ConstraintsCore> assignedList = new LinkedList<ConstraintsCore>();
         for (Map.Entry<String, LinkedList<ConstraintsCore>> ctrs : arch2Ctrs.entrySet()) {
-            if (ctrs.getKey().compareTo("[unassigned]") == 0) {
+            if (ctrs.getKey().compareTo(CloudMethodResourceDescription.UNASSIGNED_STR) == 0) {
                 continue;
             } else {
                 assignedList.addAll(ctrs.getValue());
@@ -460,10 +416,10 @@ public class ResourceOptimizer extends Thread {
                 if (bestDifference < 0) {
                     if (difference < 0) {
                         if (difference > bestDifference) {
-                                List<String> avail_archs = option.getArchitectures();
-                                if (avail_archs != null && !avail_archs.isEmpty()) {
-                                        bestArch = avail_archs.get(0);
-                                }
+                            List<String> avail_archs = option.getArchitectures();
+                            if (avail_archs != null && !avail_archs.isEmpty()) {
+                                bestArch = avail_archs.get(0);
+                            }
                             bestDifference = difference;
                         }
                     }
@@ -471,7 +427,7 @@ public class ResourceOptimizer extends Thread {
                     if (difference < bestDifference) {
                         List<String> avail_archs = option.getArchitectures();
                         if (avail_archs != null && !avail_archs.isEmpty()) {
-                                bestArch = avail_archs.get(0);
+                            bestArch = avail_archs.get(0);
                         }
                         bestDifference = difference;
                     }
@@ -692,9 +648,9 @@ public class ResourceOptimizer extends Thread {
                 return;
             }
 
-            //For accomplishing the minimum amount of vms
+            // For accomplishing the minimum amount of vms
             if (minNumberOfVMs != null && minNumberOfVMs > currentCloudVMCount) {
-                logger.debug("Current VM (" + currentCloudVMCount + ") count smaller than minimum VMs (" + minNumberOfVMs + "). Mandatory Increse");
+                logger.debug("Current VM (" + currentCloudVMCount + ") count smaller than minimum VMs (" + minNumberOfVMs + "). Mandatory Increase");
                 float[] creationRecommendations = orderCreations(coreCount, creationTime, readyMinCoreTime, readyMeanCoreTime, readyMaxCoreTime, totalSlots, realSlots);
                 mandatoryIncrease(creationRecommendations, new LinkedList<Integer>());
                 return;
@@ -727,24 +683,23 @@ public class ResourceOptimizer extends Thread {
         }
     }
 
-    private void mandatoryIncrease(float[] creationRecommendations, LinkedList<Integer> requiredVMs) {
-        ValueResourceDescription v;
+    private void mandatoryIncrease(float[] creationRecommendations, LinkedList<Integer> requiredVMs) {        
         PriorityQueue<ValueResourceDescription> pq = new PriorityQueue<ValueResourceDescription>();
+        
         boolean[] required = new boolean[creationRecommendations.length];
         for (int coreId : requiredVMs) {
             required[coreId] = true;
         }
+        
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
             Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation<?> impl : impls) {
                 if (impl.getType() == Implementation.Type.SERVICE) {
                     continue;
                 }
-                MethodResourceDescription contraints = ((MethodImplementation) impl).getRequirements();
-                v = new ValueResourceDescription();
-                v.constraints = contraints;
-                v.value = creationRecommendations[coreId];
-                v.prioritary = required[coreId];
+                
+                MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
+                ValueResourceDescription v = new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                 pq.add(v);
             }
         }
@@ -752,7 +707,6 @@ public class ResourceOptimizer extends Thread {
     }
 
     private boolean optionalIncrease(float[] creationRecommendations) {
-        ValueResourceDescription v;
         PriorityQueue<ValueResourceDescription> pq = new PriorityQueue<ValueResourceDescription>();
 
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
@@ -762,17 +716,15 @@ public class ResourceOptimizer extends Thread {
                     if (impl.getType() == Implementation.Type.SERVICE) {
                         continue;
                     }
-                    MethodResourceDescription contraints = ((MethodImplementation) impl).getRequirements();
-                    v = new ValueResourceDescription();
-                    v.constraints = contraints;
-                    v.value = creationRecommendations[coreId];
-                    v.prioritary = false;
+                    MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();
+                    ValueResourceDescription v = new ValueResourceDescription(constraints, creationRecommendations[coreId], false);
                     pq.add(v);
                 }
             }
         }
+        
         ResourceCreationRequest rcr = requestOneCreation(pq, false);
-        return rcr != null;
+        return (rcr != null);
     }
 
     private boolean optionalReduction(float[] destroyRecommendations) {
@@ -969,7 +921,7 @@ public class ResourceOptimizer extends Thread {
     private float[] recommendCreations(int coreCount, long creationTime, long[] aggregatedMinCoreTime, long[] aggregatedMeanCoreTime, long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
         float[] creations = new float[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            long realTime = realSlots[coreId] * creationTime;
+            //long realTime = realSlots[coreId] * creationTime;
             long totalTime = totalSlots[coreId] * creationTime;
             //OLD version: did a mean of total (include pending creations) and real
             //long embraceableLoad = (realTime + totalTime) / 2;
@@ -1040,21 +992,77 @@ public class ResourceOptimizer extends Thread {
         }
         return destructions;
     }
+    
+    private static class ConstraintsCore {
+
+        private CloudMethodResourceDescription desc;
+        private LinkedList<ConstraintsCore>[] cores;
+        
+        public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
+            this.desc = desc;
+            this.cores = new LinkedList[CoreManager.getCoreCount()];
+            this.cores[core] = coreList;
+        }
+
+        public void join(ConstraintsCore c2) {
+            desc.increase(c2.desc);
+            c2.desc = desc;
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                if (cores[coreId] != null) {
+                    if (c2.cores[coreId] != null) {
+                        //Remove one instance of the list to avoid replication
+                        cores[coreId].remove(c2);
+                    } else {
+                        c2.cores[coreId] = cores[coreId];
+                    }
+                } else {
+                    cores[coreId] = c2.cores[coreId];
+                }
+            }
+        }
+
+        public void confirmed() {
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                if (cores[coreId] != null) {
+                    cores[coreId].clear();
+                }
+            }
+        }
+
+        @Override
+        public String toString() {
+            LinkedList<Integer> cores = new LinkedList<Integer>();
+            for (int i = 0; i < CoreManager.getCoreCount(); i++) {
+                if (this.cores[i] != null) {
+                    cores.add(i);
+                }
+            }
+            return desc.toString() + " compleix pels cores " + cores;
+        }
+    }
 
     private static class ValueResourceDescription implements Comparable<ValueResourceDescription> {
 
-        boolean prioritary = false;
-        float value;
-        MethodResourceDescription constraints;
+    	private final MethodResourceDescription constraints;
+    	private final float value;
+        private final boolean prioritary;
+        
+        public ValueResourceDescription(MethodResourceDescription constraints, float value, boolean prioritary) {
+        	this.constraints = constraints;
+        	this.value = value;
+        	this.prioritary = prioritary;
+        }
 
         @Override
         public int compareTo(ValueResourceDescription o) {
             if (this.prioritary && !o.prioritary) {
                 return 1;
             }
+            
             if (!this.prioritary && o.prioritary) {
                 return -1;
             }
+            
             float dif = value - o.value;
             if (dif > 0) {
                 return 1;

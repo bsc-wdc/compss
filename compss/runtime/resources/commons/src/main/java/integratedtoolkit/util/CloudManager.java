@@ -1,5 +1,6 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.connectors.ConnectorException;
@@ -28,6 +29,14 @@ public class CloudManager {
 
 	private static final String CONNECTORS_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
 	
+	private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
+	private static final String WARN_NO_IT_HOME_RESOURCES = "WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
+	private static final String WARN_NO_CONNECTORS_FOLDER = "WARN: Connectors folder not defined, no default connectors loaded";
+	private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES = "WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
+	private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
+	private static final String WARN_CANNOT_TURN_ON = "WARN: Connector cannot turn on resource";
+	private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
+	
     private static boolean useCloud;
     private static int initialVMs = 0;
     private static int minVMs = 0;
@@ -47,7 +56,7 @@ public class CloudManager {
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
 
     private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
-    private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger runtimeLogger = Logger.getLogger(Loggers.CM_COMP);
 
     /**
      * Initializes the internal data structures
@@ -99,21 +108,20 @@ public class CloudManager {
     }
 
     private static void loadConnectorJars() {
-
         runtimeLogger.info("Loading connectors...");
-        String itHome = System.getenv("IT_HOME");
+        String itHome = System.getenv(ITConstants.IT_HOME);
 
         if (itHome == null || itHome.isEmpty()) {
-            resourcesLogger.warn("WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
-            runtimeLogger.warn("WARN: IT_HOME not defined, no default connectors loaded");
+            resourcesLogger.warn(WARN_NO_IT_HOME_RESOURCES);
+            runtimeLogger.warn(WARN_NO_IT_HOME);
             return;
         }
 
         try {
             Classpath.loadPath(itHome + CONNECTORS_PATH, runtimeLogger);
         } catch (FileNotFoundException ex) {
-            resourcesLogger.warn("WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]");
-            runtimeLogger.warn("WARN: Connectors folder not defined, no default connectors loaded");
+            resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
+            runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
         }
     }
 
@@ -139,6 +147,7 @@ public class CloudManager {
      */
     public static void newCloudProvider(String name, Integer limitOfVMs, String connectorPath, HashMap<String, String> connectorProperties)
             throws Exception {
+    	
         CloudProvider cp = new CloudProvider(connectorPath, limitOfVMs, connectorProperties, name);
         providers.put(name, cp);
     }
@@ -152,6 +161,7 @@ public class CloudManager {
      */
     public static void addImageToProvider(String providerName, CloudImageDescription cid)
             throws Exception {
+    	
         CloudProvider cp = providers.get(providerName);
         if (cp == null) {
             throw new Exception("Inexistent Cloud Provider " + providerName);
@@ -254,11 +264,10 @@ public class CloudManager {
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
-        int coreCount = CoreManager.getCoreCount();
+    	// Search best resource
         CloudProvider bestProvider = null;
         CloudMethodResourceDescription bestConstraints = null;
         Float bestValue = Float.MAX_VALUE;
-
         for (CloudProvider cp : providers.values()) {
             CloudMethodResourceDescription rc = cp.getBestIncrease(amount, requirements, contained);
             if (rc != null && rc.getValue() < bestValue) {
@@ -268,9 +277,12 @@ public class CloudManager {
             }
         }
         if (bestConstraints == null) {
+        	runtimeLogger.warn(WARN_NO_RESOURCE_MATCHES);
             return null;
         }
 
+        // Code only executed if a resource fits the constraints
+        int coreCount = CoreManager.getCoreCount();
         int[][] simultaneousCounts = bestProvider.getSimultaneousImpls(bestConstraints.getType());
         if (simultaneousCounts == null) {
             simultaneousCounts = new int[coreCount][];
@@ -305,9 +317,11 @@ public class CloudManager {
                 }
                 return rcr;
             } else {
+            	runtimeLogger.warn(WARN_CANNOT_TURN_ON);
                 return null;
             }
         } catch (Exception e) {
+        	runtimeLogger.warn(WARN_EXCEPTION_TURN_ON, e);
             return null;
         }
     }

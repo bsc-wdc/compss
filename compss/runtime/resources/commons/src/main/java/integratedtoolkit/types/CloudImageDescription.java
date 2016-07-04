@@ -53,7 +53,11 @@ public class CloudImageDescription {
 	}
 
 	public void setOperatingSystemType(String operatingSystemType) {
-		this.operatingSystemType = operatingSystemType;
+		if (operatingSystemType != null && !operatingSystemType.isEmpty()) {
+			this.operatingSystemType = operatingSystemType;
+		} else {
+			// Leave default UNASSIGNED VALUE
+		}
 	}
 
 	public String getOperatingSystemDistribution() {
@@ -61,7 +65,11 @@ public class CloudImageDescription {
 	}
 
 	public void setOperatingSystemDistribution(String operatingSystemDistribution) {
-		this.operatingSystemDistribution = operatingSystemDistribution;
+		if (operatingSystemDistribution != null && !operatingSystemDistribution.isEmpty()) {
+			this.operatingSystemDistribution = operatingSystemDistribution;
+		} else {
+			// Leave default UNASSIGNED VALUE
+		}
 	}
 
 	public String getOperatingSystemVersion() {
@@ -69,7 +77,11 @@ public class CloudImageDescription {
 	}
 
 	public void setOperatingSystemVersion(String operatingSystemVersion) {
-		this.operatingSystemVersion = operatingSystemVersion;
+		if (operatingSystemVersion != null && !operatingSystemVersion.isEmpty()) {
+			this.operatingSystemVersion = operatingSystemVersion;
+		} else {
+			// Leave default UNASSIGNED VALUE
+		}
 	}
 
 	public List<String> getAppSoftware() {
@@ -77,7 +89,9 @@ public class CloudImageDescription {
 	}
 
 	public void setAppSoftware(List<String> appSoftware) {
-		this.appSoftware = appSoftware;
+		if (appSoftware != null) {
+			this.appSoftware = appSoftware;
+		}
 	}
 	
 	public void addApplication(String app) {
@@ -105,7 +119,9 @@ public class CloudImageDescription {
 	}
 
 	public void setPackages(List<ApplicationPackage> packages) {
-		this.packages = packages;
+		if (packages != null) {
+			this.packages = packages;
+		}
 	}
 	
 	public void addPackage(String source, String target) {
@@ -118,7 +134,9 @@ public class CloudImageDescription {
 	}
 
 	public void setSharedDisks(HashMap<String, String> sharedDisks) {
-		this.sharedDisks = sharedDisks;
+		if (sharedDisks != null && !sharedDisks.isEmpty()) {
+			this.sharedDisks = sharedDisks;
+		}
 	}
 
 	public int getCreationTime() {
@@ -150,7 +168,9 @@ public class CloudImageDescription {
 	}
 
 	public void setQueues(List<String> queues) {
-		this.queues = queues;
+		if (queues != null) {
+			this.queues = queues;
+		}
 	}
 	
 	public void addQueue(String queue) {
@@ -200,7 +220,7 @@ public class CloudImageDescription {
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("]").append("\n");
-        sb.append(prefix).append("\t").append("PACKAGES = ").append("\n");
+        sb.append(prefix).append("\t").append("PACKAGES = [").append("\n");
         for (ApplicationPackage pack : this.packages) {
             sb.append(prefix).append("\t").append("\t").append("PACKAGE = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("SOURCE = ").append(pack.getSource()).append("\n");
@@ -208,7 +228,7 @@ public class CloudImageDescription {
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
         }
         sb.append(prefix).append("\t").append("]").append("\n");
-        sb.append(prefix).append("\t").append("SOFTWARE = ").append("\n");
+        sb.append(prefix).append("\t").append("SOFTWARE = [").append("\n");
         for (String app : this.appSoftware) {
             sb.append(prefix).append("\t").append("\t").append("APPLICATION = [").append("\n");
             sb.append(prefix).append("\t").append("\t").append("\t").append("NAME = ").append(app).append("\n");
@@ -219,5 +239,10 @@ public class CloudImageDescription {
         sb.append(prefix).append("]").append("\n");
         return sb.toString();
     }
+	
+	@Override
+	public String toString() {
+		return toString("");
+	}
 	
 }

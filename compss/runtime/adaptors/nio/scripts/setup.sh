@@ -46,24 +46,39 @@
     hostName=$5
     worker_port=$6
     appUuid=$8
-    workingDir=$9
-    installDir=${10}
-    tracing=${11}
-    hostId=${12}
+    lang=$9
+    workingDir=${10}
+    installDir=${11}
+    appDirNW=${12}
+    libPathNW=${13}
+    cpNW=${14}
+    pythonpath=${15}
+    tracing=${16}
+    hostId=${17}
     
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
       echo "- HostName:   $hostName"
       echo "- WorkerPort: ${worker_port}"
       echo "- WorkingDir: $workingDir"
+      echo "- InstallDir: $installDir"
       echo "- NumThreads: $numThreads"
       echo "- JVM Opts:   $jvmFlags"
 
       echo "- AppUUID:    ${appUuid}"
-      echo "- AppDir:     $appDir"
-      echo "- libPath:    $libPath"
-      echo "- Classpath:  $cp"
+      echo "- Lang:       ${lang}"
+      echo "- AppDir:     $appDirNW"
+      echo "- libPath:    $libPathNW"
+      echo "- Classpath:  $cpNW"
+      echo "- Pythonpath: $pythonpath"
       echo "- Tracing:    $tracing"
+    fi
+
+    # Calculate Log4j file
+    if [ "${debug}" == "true" ]; then
+      itlog4j_file=COMPSsWorker-log4j.debug
+    else
+      itlog4j_file=COMPSsWorker-log4j.off
     fi
   }
   
@@ -106,6 +121,7 @@
       -XX:+UseG1GC \
       -XX:+UseThreadPriorities \
       -XX:ThreadPriorityPolicy=42 \
+      -Dlog4j.configuration=${installDir}/Runtime/configuration/log/${itlog4j_file}
       -classpath $cp:$CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }
@@ -135,3 +151,6 @@
     fi
   }
 
+  clean_env() {
+    rm -rf ${workingDir}
+  }

@@ -1,0 +1,61 @@
+#########################################
+###### COMPSs Logger Configuration ######
+#########################################
+
+###### Change default logging level for root: Default = OFF
+log4j.rootLogger=OFF, ACON
+
+
+###### Change default logging for each Runtime Component
+######     log4j.logger.loggerName = Level, Appender
+
+# Integrated Toolkit: Default = OFF
+log4j.logger.integratedtoolkit=INFO, ACON
+log4j.additivity.integratedtoolkit=false
+
+# Worker: Default = OFF
+log4j.logger.integratedtoolkit.Worker=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker=false
+
+# Worker Components: Default = INHERITEDOFF
+log4j.logger.integratedtoolkit.Worker.ExecManager=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker.ExecManager=false
+
+log4j.logger.integratedtoolkit.Worker.ExecManager=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker.ExecManager=false
+
+log4j.logger.integratedtoolkit.Worker.ThreadPool=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker.ThreadPool=false
+
+log4j.logger.integratedtoolkit.Worker.Executor=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker.Executor=false
+
+log4j.logger.integratedtoolkit.Worker.DataManager=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Worker.DataManager=false
+
+# Communication: Default = OFF
+log4j.logger.integratedtoolkit.Communication=DEBUG, ACON
+log4j.additivity.integratedtoolkit.Communication=false
+
+
+###### Disable all logging for the entire hierarchy
+#log4j.threshold=off 
+
+
+######  Appenders and Layouts
+# ACON: ConsoleAppender, PatternLayout
+log4j.appender.ACON=org.apache.log4j.ConsoleAppender
+log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
+log4j.appender.ACON.layout.ConversionPattern=[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n
+
+
+## Syntax
+# - %c : name of logger
+# - %C : name of the class
+# - %L : line number
+# - %m : associated message
+# - %M : method name
+# - %n : platform dependant separator
+# - %r : milliseconds since start of application
+# - %d : date
+

@@ -52,6 +52,8 @@ public abstract class Tracer {
     public static final int EVENT_END = 0;
 
     public static final int BASIC_MODE = 1;
+    
+    public static final String LD_PRELOAD = "LD_PRELOAD";
 
     protected static int tracing_level;
 
@@ -449,7 +451,7 @@ public abstract class Tracer {
 
         String script = System.getenv(ITConstants.IT_HOME) + TRACE_SCRIPT_PATH;
         ProcessBuilder pb = new ProcessBuilder(script, "package", ".", "master");
-        pb.environment().remove("LD_PRELOAD");
+        pb.environment().remove(LD_PRELOAD);
         Process p;
         try {
             p = pb.start();
@@ -510,7 +512,7 @@ public abstract class Tracer {
         ProcessBuilder pb = new ProcessBuilder(script, "gentrace",
                 System.getProperty(ITConstants.IT_APP_LOG_DIR), appName, String.valueOf(hostToSlots.size() + 1));
         Process p;
-        pb.environment().remove("LD_PRELOAD");
+        pb.environment().remove(LD_PRELOAD);
         try {
             p = pb.start();
         } catch (IOException e) {

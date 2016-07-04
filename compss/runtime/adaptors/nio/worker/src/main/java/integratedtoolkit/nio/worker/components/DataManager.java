@@ -1,12 +1,25 @@
-package integratedtoolkit.nio.worker;
+package integratedtoolkit.nio.worker.components;
 
 import java.util.HashMap;
 
 
-public class ObjectCache {
+public class DataManager {
+	
+	private final HashMap<String, Object> objectCache;
+	
 
-    private final HashMap<String, Object> objectCache = new HashMap<String, Object>();
-
+	public DataManager() {
+		objectCache = new HashMap<String, Object>();
+	}
+	
+	public void init() throws Exception {
+		
+	}
+	
+	public void stop() {
+		
+	}
+	
     public synchronized void store(String name, Object value) {
         try {
             objectCache.put(name, value);

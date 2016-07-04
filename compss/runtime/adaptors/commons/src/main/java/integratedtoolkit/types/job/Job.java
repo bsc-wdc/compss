@@ -20,6 +20,7 @@ public abstract class Job<T extends COMPSsWorker> {
     // Tracing
     protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+            
     // Environment variables for job execution
     private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null
             && !System.getProperty(ITConstants.IT_WORKER_CP).equals(""))
@@ -72,7 +73,10 @@ public abstract class Job<T extends COMPSsWorker> {
         this.worker = res;
         this.listener = listener;
         
-        /* Setup job environment variables **********************/
+        /* Setup job environment variables *****************************************/
+        /* This variables are only used by GAT since NIO loads them from the worker 
+         * rather than specific variables per job
+         */
         // Merge command classpath and worker defined classpath
         classpathFromFile = getResourceNode().getClasspath();
         

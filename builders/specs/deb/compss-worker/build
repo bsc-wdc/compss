@@ -25,6 +25,7 @@
   mkdir -p ${COMPSs_target}
   mkdir -p ${COMPSs_target}/Runtime/scripts
   mkdir -p ${COMPSs_target}/Runtime/adaptors
+  mkdir -p ${COMPSs_target}/Runtime/configuration/log
 
   echo " "
   echo "* Copy deployment files"
@@ -34,6 +35,9 @@
   cp ${trunk_rel_path}/NOTICE ${COMPSs_target}
   cp ../README ${COMPSs_target}
   cp ${trunk_rel_path}/RELEASE_NOTES ${COMPSs_target}
+  #Loggers
+  cp ${trunk_rel_path}/compss/runtime/config/log/COMPSsWorker-log4j.off ${COMPSs_target}/Runtime/configuration/log/
+  cp ${trunk_rel_path}/compss/runtime/config/log/COMPSsWorker-log4j.debug ${COMPSs_target}/Runtime/configuration/log/
   #Scripts
   cp -r ${trunk_rel_path}/compss/runtime/scripts/* ${COMPSs_target}/Runtime/scripts/
   #Adaptors

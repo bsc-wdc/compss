@@ -147,7 +147,6 @@ public class ThreadPrintStream extends PrintStream {
     }
 
     public PrintStream format(Locale l, String format, Object... args) {
-
         return getStream().format(l, format, args);
     }
 

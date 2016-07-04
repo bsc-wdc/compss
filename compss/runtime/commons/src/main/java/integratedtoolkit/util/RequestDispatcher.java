@@ -19,6 +19,7 @@ public abstract class RequestDispatcher<T> implements Runnable {
      */
     protected RequestQueue<T> queue;
 
+    
     /**
      * Constructs a new RequestDispatcher without a pool of threads but already
      * assigns its RequestQueue

@@ -7,58 +7,108 @@ import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
-import integratedtoolkit.nio.worker.ThreadPrintStream;
+import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.types.parameter.PSCOId;
-import integratedtoolkit.util.StreamGobbler;
+import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.Tracer;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 import storage.StorageException;
 import storage.StorageItf;
 
 
 public abstract class ExternalExecutor extends Executor {
+	
+	private static final String ERROR_PIPE_CLOSE 	= "Error on closing pipe ";
+	private static final String ERROR_PIPE_QUIT 	= "Error sending quit to pipe ";
+
+	// Piper script properties
+	public static final int MAX_RETRIES = 3;
+	public static final String TOKEN_SEP 			= " ";
+	public static final String TOKEN_NEW_LINE 		= "\n";
+	public static final String END_TASK_TAG 		= "endTask";
+	public static final String QUIT_TAG 			= "quit";
+	private static final String EXECUTE_TASK_TAG 	= "task";
+	
+	private final String writePipe;				// Pipe for sending executions
+	private TaskResultReader taskResultReader;	// Process result reader (initialized by PoolManager, started/stopped by us)
+	
+	
+	public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader	resultReader) {
+		super(nw, pool, queue);
+		
+		this.writePipe = writePipe;
+		this.taskResultReader = resultReader;
+		
+		// Start task Reader
+		this.taskResultReader.start();
+	}
+
+    @Override
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception {
+        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir());
+        addArguments(args, nt, nw);
+        String externalCommand = getArgumentsAsString(args);
+        
+        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP
+        		+ outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
+				+ externalCommand;
+
+        executeExternal(nt.getJobId(), command, nt);
+    }
     
     @Override
-    String createSandBox(String baseWorkingDir) throws Exception {
-        File wdirFile = new File(baseWorkingDir + "sand_" + UUID.randomUUID().hashCode());
-        if (wdirFile.mkdir()) {
-            return wdirFile.getAbsolutePath();
-        } else {
-            throw new Exception("Sandbox not created");
-        }
-    }
+    public void finish() {
+    	logger.info("Finishing ExternalExecutor");
+    	
+    	// Send quit tag to pipe
+    	logger.debug("Send quit tag to pipe " + writePipe);
+		boolean done = false;
+		int retries = 0;
+		while (!done && retries < MAX_RETRIES) {
+			FileOutputStream output = null;
+			try {
+				output = new FileOutputStream(writePipe, true);
+				String quitCMD = QUIT_TAG + TOKEN_NEW_LINE;
+				output.write(quitCMD.getBytes());
+				output.flush();
+			} catch (Exception e) {
+				logger.warn("Error on writing on pipe " + writePipe + ". Retrying " + retries + "/" + MAX_RETRIES);
+				++retries;
+			} finally {
+				if (output != null) {
+					try {
+						output.close();
+					} catch (Exception e) {
+						ErrorManager.error(ERROR_PIPE_CLOSE + writePipe, e);
+					}
+				}
+			}
+			done = true;
+		}
+		if (!done) {
+			ErrorManager.error(ERROR_PIPE_QUIT + writePipe);
+		}
 
-    @Override
-    void executeTask(String sandBox, NIOTask nt, NIOWorker nw) throws Exception {
-        Map<String, String> env = getEnvironment(nt);
-        ArrayList<String> args = getLaunchCommand(nt, sandBox);
-        addArguments(args, nt, nw);
-        String strArgs = getArgumentsAsString(args);
-        addEnvironment(env, nt, nw);
-        ArrayList<String> command = new ArrayList<String>();
-        command.add("/bin/bash");
-        command.add("-e");
-        command.add("-c");
-        command.add(strArgs);
-        if (logger.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder("EXECUTOR COMMAND: ");
-            for (String c : command) {
-                sb.append(c).append(" ");
-            }
-            logger.debug(sb.toString());
-        }
-
-        executeExternal(nt.getJobId(), command, env, sandBox, nt, nw);
-        
+		// ------------------------------------------------------
+		// Ask TaskResultReader to stop and wait for it to finish
+		logger.debug("Waiting for TaskResultReader");
+		Semaphore sem = new Semaphore(0);
+		taskResultReader.shutdown(sem);
+		try {
+			sem.acquire();
+		} catch (InterruptedException e) {
+			// No need to handle such exceptions
+		}
+		
+		logger.info("End Finishing ExternalExecutor");
     }
+    
+    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox);
 
     private String getArgumentsAsString(ArrayList<String> args) {
         StringBuilder sb = new StringBuilder();
@@ -73,28 +123,6 @@ public abstract class ExternalExecutor extends Executor {
         }
         return sb.toString();
     }
-
-    @Override
-    void removeSandBox(String sandBox) throws IOException {
-        File wdirFile = new File(sandBox);
-        removeSandBox(wdirFile);
-    }
-
-    private void removeSandBox(File f) throws IOException {
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                for (File child : f.listFiles()) {
-                    removeSandBox(child);
-                }
-            }
-            Files.delete(f.toPath());
-
-        }
-    }
-
-    public abstract Map<String, String> getEnvironment(NIOTask nt);
-
-    public abstract ArrayList<String> getLaunchCommand(NIOTask nt, String sandBox);
 
     private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
         lArgs.add(Boolean.toString(tracing));
@@ -176,94 +204,93 @@ public abstract class ExternalExecutor extends Executor {
         }
     }
 
-    private void addEnvironment(Map<String, String> env, NIOTask nt, NIOWorker nw) {
-        env.put("IT_WORKING_DIR", nw.getWorkingDir());
-        env.put("IT_APP_DIR", nt.getAppDir());
-    }
-
-    private void executeExternal(int jobId, ArrayList<String> command, Map<String, String> env, String sandbox, NIOTask nt, NIOWorker nw) throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.directory(new File(sandbox));
-        pb.environment().putAll(env);
-        pb.environment().remove("LD_PRELOAD");
-        //pb.redirectOutput(new File("/dev/null"));
-        Process execProc = null;
-        
-        // emit start task trace
-        int taskType = nt.getTaskType() +1;  // +1 Because Task iD can't be 0 (0 signals end task)
+    private void executeExternal(int jobId, String command, NIOTask nt) throws JobExecutionException {        
+        // Emit start task trace
+    	int taskType = nt.getTaskType() + 1;  // +1 Because Task ID can't be 0 (0 signals end task)
         int taskId = nt.getTaskId();
-
         if (tracing) {
-            NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
-            NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
-            NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-//            NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
+            emitStartTask(taskId, taskType);
         }
+        
+        logger.debug("Starting job process ...");
+        // Send executeTask tag to pipe
+		boolean done = false;
+		int retries = 0;
+		while (!done && retries < MAX_RETRIES) {
+			FileOutputStream output = null;
+			try {
+				// Send to pipe : task tID command(jobOut jobErr externalCMD) \n
+				String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP 
+						+ jobId + TOKEN_SEP
+						+ command + TOKEN_NEW_LINE;
+				
 
-        try {
-            logger.debug("Starting process ...");
+		        if (logger.isDebugEnabled()) {
+		        	logger.debug("EXECUTOR COMMAND: " + taskCMD);
+		        }
+				
+				output = new FileOutputStream(writePipe, true);
+				output.write(taskCMD.getBytes());
+				output.flush();
+			} catch (Exception e) {
+				logger.debug("Error on pipe write. Retry");
+				++retries;
+			} finally {
+				if (output != null) {
+					try {
+						output.close();
+					} catch (Exception e) {
+						if (tracing) {
+							emitEndTask(taskId);
+						}
+						throw new JobExecutionException("Job " + jobId + " has failed. Cannot close pipe");
+					}
+				}
+			}
+			done = true;
+		}
+		if (!done) {
+			if (tracing) {
+				emitEndTask(taskId);
+			}
+			throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
+		}
+        
+		// Retrieving job result
+		Semaphore sem = new Semaphore(0);
+		taskResultReader.askForTaskEnd(jobId, sem);
+		try {
+			sem.acquire();
+		} catch (InterruptedException e) {
+			// No need to handle such exception
+		}
+		int exitValue = taskResultReader.getExitValue(jobId);
 
-            execProc = pb.start();
-            try {
-                execProc.getOutputStream().close();
-            } catch (IOException e) {
-                // Stream closed
-            }
-            /*BufferedReader reader = new BufferedReader(new InputStreamReader(execProc.getInputStream()));
-             String line;
-             while ((line = reader.readLine()) != null) {
-             System.out.println(line);
-             }
-             reader = new BufferedReader(new InputStreamReader(execProc.getErrorStream()));
-             while ((line = reader.readLine()) != null) {
-             System.err.println(line);
-             }*/
-            logger.debug("Starting stdout/stderr gobblers ...");
-            PrintStream out = ((ThreadPrintStream) System.out).getStream();
-            PrintStream err = ((ThreadPrintStream) System.err).getStream();
-            StreamGobbler outputGobbler = new StreamGobbler(execProc.getInputStream(), out);
-            StreamGobbler errorGobbler = new StreamGobbler(execProc.getErrorStream(), err);
-            outputGobbler.start();
-            errorGobbler.start();
-            int exitValue = execProc.waitFor();
-
-            if (tracing){
-                NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-//                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
-                NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
-            }
-            logger.debug("Task finished. Waiting for gobblers to end...");
-            outputGobbler.join();
-            errorGobbler.join();
-            if (exitValue != 0) {
-                throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
-            } else {
-                logger.debug("Job" + jobId + " has finished with exit value 0");
-            }
-        } catch (IOException e) {
-            System.err.println("Exception starting process  " + jobId);
-            throw e;
-        } catch (InterruptedException e) {
-            System.err.println("Process interrupted " + jobId);
-            throw e;
-        } finally {
-            if (execProc != null) {
-                if (execProc.getInputStream() != null) {
-                    try {
-                        execProc.getInputStream().close();
-                    } catch (IOException e) {
-
-                    }
-                }
-                if (execProc.getErrorStream() != null) {
-                    try {
-                        execProc.getErrorStream().close();
-                    } catch (IOException e) {
-
-                    }
-                }
-            }
+		// Emit end task trace
+		if (tracing) {
+			emitEndTask(taskId);
+		}
+        
+        logger.debug("Task finished");
+        if (exitValue != 0) {
+            throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
+        } else {
+            logger.debug("Job " + jobId + " has finished with exit value 0");
         }
     }
+    
+    private void emitStartTask(int taskId, int taskType) {
+    	NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
+        NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
+        NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+        //NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
+    }
+    
+    private void emitEndTask(int taskId) {
+    	NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+        //NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
+        NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
+        NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
+    }
+    
 }

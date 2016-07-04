@@ -481,9 +481,9 @@ check_args() {
   fi
 
   if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
-    itlog4j_file="it-log4j"
+    itlog4j_file="COMPSsMaster-log4j"
   else
-    itlog4j_file="it-log4j.${log_level}"
+    itlog4j_file="COMPSsMaster-log4j.${log_level}"
   fi
 
   if [ -z "$comm" ]; then
@@ -592,12 +592,9 @@ execute_runtime() {
   fi
   echo
   echo ------------------------------------------------------------
-
-  # Delete JVM options file
-  rm -f ${jvm_options_file}
-
-  # Delete tmp dir for initial loggers
-  rm -rf /tmp/$uuid
+  
+  # Delete remaining tmp files
+  clean_env
 }
 
 generate_jvm_opts_file() {
@@ -766,11 +763,23 @@ exec_python() {
   fi
 }
 
+clean_env() {
+  # Delete JVM options file
+  rm -f ${jvm_options_file}
+
+  # Delete tmp dir for initial loggers
+  rm -rf /tmp/$uuid
+}
 
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
+  # Trap to ensure clean end
+  trap clean_env EXIT
+
+  # Normal main execution
   check_env
   get_args $@
   check_args
   execute_runtime
+

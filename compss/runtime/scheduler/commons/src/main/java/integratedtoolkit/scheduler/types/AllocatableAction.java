@@ -33,7 +33,6 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     }
 
     private enum State {
-
         RUNNABLE,
         RUNNING,
         FINISHED,

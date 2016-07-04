@@ -13,6 +13,9 @@
   # Shift the parameters consumed only by the script
   shift ${paramsToShift}
 
+  # Trap to clean environment
+  trap clean_env EXIT
+
   # Normal start -----------------------------------------------------
   # Setup
   setup_environment

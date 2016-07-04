@@ -65,11 +65,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
         // Create NIOTask
         NIOTask nt = new NIOTask(lang, 
-        						getResourceNode().getInstallDir(), 
-        						getResourceNode().getLibPath(), 
-        						getResourceNode().getAppDir(), 
-        						getClasspath(),
-        						getPythonpath(),
         						debug, 
         						className, 
         						methodName, 

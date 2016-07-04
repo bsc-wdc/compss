@@ -12,11 +12,6 @@ import java.util.LinkedList;
 public class NIOTask implements Externalizable {
 
     private String lang;
-    private String installDir;
-    private String libPath;
-    private String appDir;
-    private String classPath;
-    private String pythonPath;
     private boolean workerDebug;
 
     private String className;
@@ -35,16 +30,10 @@ public class NIOTask implements Externalizable {
     	
     }
     
-    public NIOTask(String lang, String installDir, String libPath, String appDir, String classPath, String pythonPath, 
-    		boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params, 
+    public NIOTask(String lang, boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params, 
     		int numParams, int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
     	
         this.lang = lang;
-        this.installDir = installDir;
-        this.libPath = libPath;
-        this.appDir = appDir;
-        this.classPath = classPath;
-        this.pythonPath = pythonPath;
         this.workerDebug = workerDebug;
 
         this.className = className;
@@ -61,26 +50,6 @@ public class NIOTask implements Externalizable {
 
     public String getLang() {
 		return lang;
-	}
-
-	public String getInstallDir() {
-		return installDir;
-	}
-
-	public String getLibPath() {
-		return libPath;
-	}
-
-	public String getAppDir() {
-		return appDir;
-	}
-
-	public String getClassPath() {
-		return classPath;
-	}
-
-	public String getPythonPath() {
-		return pythonPath;
 	}
 
 	public boolean isWorkerDebug() {
@@ -130,11 +99,6 @@ public class NIOTask implements Externalizable {
 	@SuppressWarnings("unchecked")
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         lang = (String) in.readObject();
-        installDir = (String) in.readObject();
-        libPath = (String) in.readObject();
-        appDir = (String) in.readObject();
-        classPath = (String) in.readObject();
-        pythonPath = (String) in.readObject();
         workerDebug = in.readBoolean();
         className = (String) in.readObject();
         methodName = (String) in.readObject();
@@ -150,11 +114,6 @@ public class NIOTask implements Externalizable {
 
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(lang);
-        out.writeObject(installDir);
-        out.writeObject(libPath);
-        out.writeObject(appDir);
-        out.writeObject(classPath);
-        out.writeObject(pythonPath);
         out.writeBoolean(workerDebug);
         out.writeObject(className);
         out.writeObject(methodName);

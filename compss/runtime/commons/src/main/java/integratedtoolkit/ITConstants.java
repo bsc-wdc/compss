@@ -10,6 +10,7 @@ public class ITConstants {
 
     // Environment Properties
     public static final String IT_HOME = "IT_HOME";
+    public static final String LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
 
     // Component names
     public static final String TA = "Task Analyser";

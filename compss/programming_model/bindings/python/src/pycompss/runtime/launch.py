@@ -113,9 +113,9 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 
     jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + e_classpath + ':' + cp + ':' + classpath + '\n')
     if debug:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j.debug\n')   # DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')   # DEBUG
     else:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/it-log4j\n')       # NO DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/COMPSsMaster-log4j\n')       # NO DEBUG
     jvm_options_file.write('-Dit.to.file=false\n')
     jvm_options_file.write('-Dit.lang=python\n')
     jvm_options_file.write('-Dit.project.file=' + project_xml + '\n')

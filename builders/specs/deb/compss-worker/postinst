@@ -8,6 +8,7 @@
     echo " - Setting COMPSs Worker permissions..."
     chmod 755 -R /opt/COMPSs/Runtime/scripts/
     chmod 755 -R /opt/COMPSs/Runtime/adaptors/
+    chmod 777 -R /opt/COMPSs/Runtime/configuration/log/
     echo " - COMPSs Worker permissions set"
     echo " "
 

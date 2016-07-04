@@ -277,6 +277,7 @@ public class Validator {
 	 * @param c
 	 * @throws InvalidElementException
 	 */
+	@SuppressWarnings("unchecked")
 	public void validateCloud(CloudType c) throws InvalidElementException {
 		if (c != null) {
 			List<JAXBElement<?>> innerElements = c.getCloudProviderOrInitialVMsOrMinimumVMs();

@@ -7,10 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.PropertyConfigurator;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -33,11 +31,11 @@ import integratedtoolkit.nio.commands.CommandShutdownACK;
 import integratedtoolkit.nio.commands.CommandTaskDone;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
+import integratedtoolkit.nio.worker.components.DataManager;
+import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
-import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.Serializer;
-import integratedtoolkit.util.ThreadPool;
 
 
 public class NIOWorker extends NIOAgent {
@@ -47,34 +45,40 @@ public class NIOWorker extends NIOAgent {
 	
 	private static final int MAX_RETRIES = 5;
 	
-	protected static final Logger wLogger = Logger.getLogger(Loggers.WORKER);
-	protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
+	private static final Logger wLogger = Logger.getLogger(Loggers.WORKER);
+	private static final String EXECUTION_MANAGER_ERR 	= "Error starting ExecutionManager";
+	private static final String DATA_MANAGER_ERROR 		= "Error starting DataManager";
 	
 	// Application dependent attributes
 	private final String deploymentId;
+	private final String lang;
 	private final String host;
+	
 	private final String workingDir;
+	private final String installDir;
+	
+	private final String appDir;
+	private final String libraryPath;
+	private final String classpath;
+	private final String pythonpath;
 	
 	// Storage attributes
 	private static String executionType;
 	
-	// Internal configuration attributes
-	private static final String POOL_NAME = "NIO_JOBS";
-	private final int jobThreads;
-	private ThreadPool pool;
-	
-	private RequestQueue<NIOTask> jobQueue;
+	// Internal components
+	private final ExecutionManager executionManager;
+	private final DataManager dataManager;
 
+	// Processes to capture out/err of each job
 	private static ThreadPrintStream out;
 	private static ThreadPrintStream err;
-
-	private ObjectCache objectCache;
-
+	public static final String SUFFIX_OUT = ".out";
+	public static final String SUFFIX_ERR = ".err";
 
 	static {
 		try {
-			out = new ThreadPrintStream(".out", System.out);
-			err = new ThreadPrintStream(".err", System.err);
+			out = new ThreadPrintStream(SUFFIX_OUT, System.out);
+			err = new ThreadPrintStream(SUFFIX_ERR, System.err);
 			System.setErr(err);
 			System.setOut(out);
 		} catch (Exception e) {
@@ -83,44 +87,50 @@ public class NIOWorker extends NIOAgent {
 	}
 
 	
-	public NIOWorker(int jobThreads, int snd, int rcv, int masterPort, 
-			String appUuid, String hostName, String workingDir) {
+	public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, 
+			String appUuid, String lang, String hostName, String workingDir, String installDir,
+			String appDir, String libPath, String classpath, String pythonpath) {
 		
 		super(snd, rcv, masterPort);
 		
 		// Log worker creation
 		wLogger.info("NIO Worker init");
 		
-		// Set attributes
-		this.jobThreads = jobThreads;
-		
+		// Set attributes	
 		this.deploymentId = appUuid;
+		this.lang = lang;
 		this.host = hostName;
 		this.workingDir = (workingDir.endsWith(File.separator) ? workingDir : workingDir + File.separator);
+		this.installDir = (installDir.endsWith(File.separator) ? installDir : installDir + File.separator);
+		this.appDir = appDir.equals("null") ? "" : appDir;
+		this.libraryPath = libPath.equals("null") ? "" : libPath;
+		this.classpath = classpath.equals("null") ? "" : classpath;
+		this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;
 
 		// Set master node to null (will be set afterwards to the right value)
 		this.masterNode = null;
 		
-		// Start object cache
-		this.objectCache = new ObjectCache();
+		// Start DataManager
+		this.dataManager = new DataManager();
+		try {
+			this.dataManager.init();
+		} catch (Exception e) {
+			ErrorManager.error(DATA_MANAGER_ERROR, e);
+		}
 		
-		// Start pool of workers
-		this.jobQueue = new RequestQueue<NIOTask>();
-		this.pool = new ThreadPool(
-				this.jobThreads,
-				POOL_NAME, 
-				new JobLauncher(jobQueue, this, NIOWorker.wLogger, isWorkerDebugEnabled)
-			 );
+		// Start Execution Manager
+		this.executionManager = new ExecutionManager(this, numJobThreads);
 		
 		if (tracing_level == NIOTracer.BASIC_MODE) {
 			NIOTracer.enablePThreads();
 		}
 		
 		try {
-			this.pool.startThreads();
+			this.executionManager.init();
 		} catch (Exception e) {
-			ErrorManager.error(THREAD_POOL_ERR, e);
+			ErrorManager.error(EXECUTION_MANAGER_ERR, e);
 		}
+		
 		if (tracing_level == NIOTracer.BASIC_MODE) {
 			NIOTracer.disablePThreads();
 		}
@@ -145,6 +155,38 @@ public class NIOWorker extends NIOAgent {
 	
 	public static String getExecutionType() {
 		return executionType;
+	}
+	
+	public static boolean isTracingEnabled() {
+		return tracing;
+	}
+	
+	public String getLang() {
+		return this.lang;
+	}
+	
+	public String getWorkingDir() {
+		return workingDir;
+	}
+	
+	public String getInstallDir() {
+		return this.installDir;
+	}
+	
+	public String getAppDir() {
+		return this.appDir;
+	}
+	
+	public String getLibPath() {
+		return this.libraryPath;
+	}
+	
+	public String getClasspath() {
+		return this.classpath;
+	}
+	
+	public String getPythonpath() {
+		return this.pythonpath;
 	}
 
 	@Override
@@ -184,13 +226,12 @@ public class NIOWorker extends NIOAgent {
 					// Try if parameter is in cache
 					wLogger.debug("   - Checking if "
 							+ (String) param.getValue() + " is in cache.");
-					catched = objectCache.checkPresence((String) param
-							.getValue());
+					catched = dataManager.checkPresence((String) param.getValue());
 					if (!catched) {
 						// Try if any of the object locations is in cache
 						wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are catched");
 						for (NIOURI loc : param.getData().getSources()) {
-							if (objectCache.checkPresence(loc.getPath())) {
+							if (dataManager.checkPresence(loc.getPath())) {
 								// Object found
 								wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") location found in cache.");
 								try {
@@ -201,8 +242,8 @@ public class NIOWorker extends NIOAgent {
 										storeInCache((String) param.getValue(), o);
 									} else {
 										wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. CACHE-MOVING");
-										Object o = objectCache.get(loc.getPath());
-										objectCache.remove(loc.getPath());
+										Object o = dataManager.get(loc.getPath());
+										dataManager.remove(loc.getPath());
 										storeInCache((String) param.getValue(), o);
 									}
 									locationsInCache = true;
@@ -272,7 +313,7 @@ public class NIOWorker extends NIOAgent {
 						DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
 						addTransferRequest(dr);
 					} else {
-						// If no transfer, decrese the parameter counter (we
+						// If no transfer, decrease the parameter counter (we
 						// already have it)
 						wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
 						--tt.params;
@@ -513,7 +554,7 @@ public class NIOWorker extends NIOAgent {
 		}
 
 		// Execute the job
-		jobQueue.enqueue(task);
+		executionManager.enqueue(task);
 
 		// Notify the master that the data has been transfered
 		// The message is sent after the task enqueue because the connection can
@@ -569,8 +610,11 @@ public class NIOWorker extends NIOAgent {
 	public void shutdown(Connection closingConnection) {
 		wLogger.debug("Entering shutdown method on worker");
 		try {
-			// Stop the job threads
-			pool.stopThreads();
+			// Stop the Execution Manager
+			executionManager.stop();
+			
+			// Stop the Data Manager
+			dataManager.stop();
 
 			// Finish the main thread
 			if (closingConnection != null) {
@@ -620,7 +664,7 @@ public class NIOWorker extends NIOAgent {
 
 	public Object getObject(String s) throws SerializedObjectException {
 		String realName = s.substring(s.lastIndexOf('/') + 1);
-		return objectCache.get(realName);
+		return dataManager.get(realName);
 	}
 
 	public String getObjectAsFile(String s) {
@@ -631,18 +675,12 @@ public class NIOWorker extends NIOAgent {
 	}
 
 	public void storeInCache(String name, Object value) {
-		objectCache.store(name, value);
+		dataManager.store(name, value);
 	}
 
 	public void removeFromCache(String name) {
-		objectCache.remove(name);
+		dataManager.remove(name);
 	}
-
-	public String getWorkingDir() {
-		return workingDir;
-	}
-
-	
 
 	public static void registerOutputs(String path) {
 		err.registerThread(path);
@@ -781,7 +819,7 @@ public class NIOWorker extends NIOAgent {
 		}
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) {		 
 		/* **************************************
 		 * Get arguments
 		 * **************************************/
@@ -796,27 +834,26 @@ public class NIOWorker extends NIOAgent {
 		int mPort = new Integer(args[6]);
 		
 		String appUuid = args[7];
-		String workingDir = args[8];
-		String installDir = args[9];
+		String lang = args[8];
+		String workingDir = args[9];
+		String installDir = args[10];
+		String appDir = args[11];
+		String libPath = args[12];
+		String classpath = args[13];
+		String pythonpath = args[14];
 		
-		String trace = args[10];
-		String host = args[11];
+		String trace = args[15];
+		String host = args[16];
 		
-		String storageConf = args[12];		
-		executionType = args[13];
+		String storageConf = args[17];		
+		executionType = args[18];
 		
 		
 		/* **************************************
-		 * Configure logger and print out
+		 * Configure logger and print args 
 		 * **************************************/
-		ConsoleAppender console = new ConsoleAppender();
-		Logger.getRootLogger().setLevel(isWorkerDebugEnabled ? Level.DEBUG : Level.OFF);
-		String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-		console.setLayout(new PatternLayout(PATTERN));
-		console.activateOptions();
-		Logger.getRootLogger().addAppender(console);
-
-		// Log args
+		PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
+		
 		if (isWorkerDebugEnabled) {
 			wLogger.debug("jobThreads: " + String.valueOf(jobThreads));
 			wLogger.debug("maxSnd: " + String.valueOf(maxSnd));
@@ -832,6 +869,10 @@ public class NIOWorker extends NIOAgent {
 			
 			wLogger.debug("Tracing: " + trace);
 			wLogger.debug("Host: " + host);
+			
+			wLogger.debug("LibraryPath: " + libPath);
+			wLogger.debug("Classpath: " + classpath);
+			wLogger.debug("Pythonpath: " + pythonpath);
 			
 			wLogger.debug("StorageConf: " + storageConf);
 			wLogger.debug("executionType: " + executionType);
@@ -874,7 +915,9 @@ public class NIOWorker extends NIOAgent {
     	/* **************************************
 		 * LAUNCH THE WORKER
 		 * **************************************/    	
-		NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, workerIP, workingDir);
+		NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, lang, workerIP, workingDir, 
+				installDir, appDir, libPath, classpath, pythonpath);
+		
 		NIOMessageHandler mh = new NIOMessageHandler(nw);
 
 		// Initialize the Transfer Manager

@@ -94,7 +94,7 @@ public class NIOTracer extends Tracer {
         }
         // Generate package
         ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName);
-        pb.environment().remove("LD_PRELOAD");
+        pb.environment().remove(LD_PRELOAD);
         Process p = null;
         try {
             p = pb.start();

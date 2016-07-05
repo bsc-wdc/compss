@@ -1,6 +1,5 @@
 package integratedtoolkit.nio.worker.util;
 
-import java.io.File;
 import java.util.Map;
 
 import integratedtoolkit.ITConstants;

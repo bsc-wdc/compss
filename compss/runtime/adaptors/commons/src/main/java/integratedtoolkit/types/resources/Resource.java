@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
@@ -77,7 +78,7 @@ public abstract class Resource implements Comparable<Resource> {
     public void start() throws Exception {
         this.node.start();
         if (sharedDisks != null){
-        	for (java.util.Map.Entry<String, String> disk : sharedDisks.entrySet()) {
+        	for (Entry<String, String> disk : sharedDisks.entrySet()) {
         		SharedDiskManager.addSharedToMachine(disk.getKey(), disk.getValue(), this);
         	}
     	}

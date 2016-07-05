@@ -198,7 +198,7 @@ public class CreationThread extends Thread {
             throw e;
         }
         CloudMethodWorker worker;
-        MethodConfiguration mc = new MethodConfiguration(cid.getConfig());
+        MethodConfiguration mc = cid.getConfig();
         try {
             int limitOfTasks = mc.getLimitOfTasks();
             int computingUnits = granted.getTotalComputingUnits();
@@ -207,6 +207,8 @@ public class CreationThread extends Thread {
             } else {
                 mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
             }
+            mc.setHost(granted.getName());
+            
             worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
             worker.start();
         } catch (Exception e) {
@@ -233,7 +235,7 @@ public class CreationThread extends Thread {
             throw e;
         }
 
-        //add the new machine to ResourceManager
+        // Add the new machine to ResourceManager
         if (operations.getTerminate()) {
             resourceLogger.info("INFO_MSG = [\n\tNew resource has been refused because integratedtoolkit has been stopped\n\tRESOURCE_NAME = " + granted.getName() + "\n]");
             try {

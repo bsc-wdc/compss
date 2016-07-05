@@ -90,7 +90,7 @@ public class ResourceOptimizer extends Thread {
                     redo = false;
                     workload = resUser.getWorkload();
 
-                    int runningTasks = workload.getRunningTaskCount();
+                    //int runningTasks = workload.getRunningTaskCount();
                     int blockedTasks = workload.getNoResourceCount();
                     boolean potentialBlock = (blockedTasks > 0);
 
@@ -288,10 +288,10 @@ public class ResourceOptimizer extends Thread {
         return createdCount;
     }
 
-    //Removes from the list all the Constraints fullfilled by existing resources
+    // Removes from the list all the Constraints fullfilled by existing resources
     private static LinkedList<ConstraintsCore>[] getUnfulfilledConstraints() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
+		LinkedList<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
         int[] maxSimTasks = ResourceManager.getTotalSlots();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             unfulfilledConstraints[coreId] = new LinkedList<ConstraintsCore>();
@@ -311,8 +311,6 @@ public class ResourceOptimizer extends Thread {
         return unfulfilledConstraints;
     }
 
-    // Classifies the constraints depending on their arquitecture and leaves it on coreResourceList
-    // Returns a list with all the Architectures Names
     /**
      * Classifies the constraints depending on their architecture and leaves it on coreResourceList
      * 

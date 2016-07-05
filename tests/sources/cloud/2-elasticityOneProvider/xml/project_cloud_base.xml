@@ -42,6 +42,8 @@
 					<Name>max-connection-errors</Name>
 					<Value>36</Value>
 				</Property>
+				
+				<!-- Abstract SSH Connector parameters -->
 				<Property>
 					<Name>vm-user</Name>
 					<Value>user</Value>

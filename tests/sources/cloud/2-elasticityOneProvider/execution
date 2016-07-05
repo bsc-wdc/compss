@@ -56,7 +56,7 @@
   numTasks=100
   minVM=1
   maxVM=3
-  creationTime=600
+  creationTime=1800
   echo "${COMPSs_exec} --project=${base_app_dir}/project_oneProvider.xml --resources=${base_app_dir}/resources_oneProvider.xml --debug --comm=$comm --lang=java --classpath=${base_app_dir}/${appName}.jar simple.Simple $counterVal $numTasks $minVM $maxVM $creationTime > >(tee ${output_log}) 2> >(tee ${error_log} >&2)"
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \

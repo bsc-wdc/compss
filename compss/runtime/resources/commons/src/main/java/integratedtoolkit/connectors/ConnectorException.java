@@ -13,6 +13,10 @@ public class ConnectorException extends Exception {
 	}
 
 	public ConnectorException(Exception e) {
-		super(e.getMessage());
+		super(e);
+	}
+	
+	public ConnectorException(String msg, Exception e) {
+		super(msg, e);
 	}
 }

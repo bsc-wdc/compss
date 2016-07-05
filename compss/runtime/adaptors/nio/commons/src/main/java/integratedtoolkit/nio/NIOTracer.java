@@ -71,10 +71,10 @@ public class NIOTracer extends Tracer {
         emitCommEvent(send, partnerID, tag, 0);
     }
 
-    public static void emitCommEvent(boolean send, int partnerID, int tag, int size){
+    public static void emitCommEvent(boolean send, int partnerID, int tag, long size){
 
         synchronized(Tracer.class){
-            Wrapper.Comm(send, tag, size, partnerID, ID);
+            Wrapper.Comm(send, tag, (int)size, partnerID, ID);
         }
 
         if (debug) {

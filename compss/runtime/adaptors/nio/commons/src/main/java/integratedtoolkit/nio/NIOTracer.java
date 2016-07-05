@@ -14,7 +14,7 @@ public class NIOTracer extends Tracer {
     private static String scriptDir = "";
     private static String workingDir = "";
     private static String nodeName = "master";  // while no worker sets the Tracer info we assume we are on master
-    private static final int ID = 121;
+    private static final int ID = 121;  // Random value
     
     public static final String TRANSFER_END = "0";
     

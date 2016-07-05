@@ -5,7 +5,6 @@ import integratedtoolkit.util.Tracer;
 import integratedtoolkit.util.StreamGobbler;
 import es.bsc.cepbatools.extrae.Wrapper;
 import java.io.IOException;
-import java.util.LinkedList;
 
 import static java.lang.Math.abs;
 

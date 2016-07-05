@@ -250,7 +250,7 @@ public class ResourcesLogParser {
     							//states.lastElement().addResource(resourceName, "WORKER");
     						} else if (line.contains("INFO_MSG = [New service available")) {
     							logger.debug("* New service available flag");
-    							String resourceName = line.substring(line.lastIndexOf("=") + 2);
+    							//String resourceName = line.substring(line.lastIndexOf("=") + 2);
 								//Add resource information
     							// TODO: Runtime doesn't register services as resources (tab Resources) so we don't register services
     							//states.lastElement().addResource(resourceName, "SERVICE");
@@ -335,10 +335,10 @@ public class ResourcesLogParser {
 									while ((line != null) && (line.contains("CORE = ["))) {
 										line = br.readLine(); //COREID
 										i = i + 1;
-										int coreId = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+										//int coreId = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
 										line = br.readLine(); //NUM_SLOTS
 										i = i + 1;
-										int numSlotsCore = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
+										//int numSlotsCore = Integer.valueOf(line.substring(line.lastIndexOf("=") + 2));
 										//Add core information to resource
 										// TODO: Display runnable cores per resource
 										//states.lastElement().addCanRunCoreSlots(coreId, numSlotsCore);

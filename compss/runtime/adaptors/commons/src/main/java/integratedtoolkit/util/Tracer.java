@@ -67,8 +67,8 @@ public abstract class Tracer {
         OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"),
         GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"),
         GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"),
-        DELETE(19, RUNTIME_EVENTS, "Delete File"),
         TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
+        DELETE(12, RUNTIME_EVENTS, "Delete File"),
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
         ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
@@ -106,7 +106,7 @@ public abstract class Tracer {
         PRINT_CURRENT_GRAPH(48, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"),
         MONITORING_DATA(49, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"),
         TD_SHUTDOWN(50, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"),
-        UPDATE_CEI_LOCAL(51, RUNTIME_EVENTS, "Task Dispatcher: Update CEIR local"),
+        UPDATE_CEI_LOCAL(51, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"),
         WORKER_UPDATE_REQUEST(52, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
         // Task Events
         PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),

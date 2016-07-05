@@ -369,7 +369,7 @@ public abstract class NIOAgent {
         if (tracing) {
             int tag = abs(dataId.hashCode());
             NIOTracer.emitDataTransferEvent(dataId);
-            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag);
+            NIOTracer.emitCommEventSize(false, connection2Partner.get(c), tag, t.getSize());
             connection2Partner.remove(c);
         }
 

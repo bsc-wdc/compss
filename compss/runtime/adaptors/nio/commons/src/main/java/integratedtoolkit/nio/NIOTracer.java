@@ -5,6 +5,8 @@ import integratedtoolkit.util.Tracer;
 import integratedtoolkit.util.StreamGobbler;
 import es.bsc.cepbatools.extrae.Wrapper;
 import java.io.IOException;
+import java.util.LinkedList;
+
 import static java.lang.Math.abs;
 
 
@@ -66,8 +68,11 @@ public class NIOTracer extends Tracer {
     
 
     public static void emitCommEvent(boolean send, int partnerID, int tag){
+        emitCommEvent(send, partnerID, tag, 0);
+    }
 
-        int size = 0;
+    public static void emitCommEvent(boolean send, int partnerID, int tag, int size){
+
         synchronized(Tracer.class){
             Wrapper.Comm(send, tag, size, partnerID, ID);
         }

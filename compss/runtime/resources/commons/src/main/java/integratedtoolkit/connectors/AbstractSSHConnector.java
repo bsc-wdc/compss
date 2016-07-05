@@ -38,21 +38,21 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 	private static final String DEFAULT_KEYPAIR_LOCATION = System.getProperty("user.home") + File.separator + ".ssh";
 
 	// Error messages
-	private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure. Please create one with the ssh-keygen tool";
-	private static final String ERROR_CONFIGURING_ACCESS = "Error configuring access for ";
-	private static final String ERROR_PREPARING_MACHINE = "Error: Failed to prepare Machine ";
-	private static final String ERROR_TRANSFER_PACKAGES = "Error: Cannot transfer packages to Machine";
-	private static final String ERROR_KNOWN_HOSTS = "Error getting id for known hosts";
-	private static final String ERROR_KEYSCAN = "Error executing key-scan command: ";
-	private static final String ERROR_ADD_MASTER_KEY = "Error adding key in master's known hosts";
-	private static final String ERROR_LOCAL_KNOWN_HOSTS = "Error setting key in local known_hosts: ";
-	private static final String ERROR_CONFIG_KEYS = "Error configuring keys for ";
-	private static final String ERROR_COMMAND_EXEC = "Failed to execute command ";
-	private static final String ERROR_EXCEPTION_EXEC_COMMAND = "Exception running command on ";
-	private static final String ERROR_SESSION_CREATION = "Error creating session to ";
-	private static final String WARN_READER_CLOSE = "Warning: Exception closing the reader";
-	private static final String WARN_INPUTSTREAM_CLOSE = "Warning: InputStream for remote command cannot be closed";
-	private static final String WARN_DEFAULT_KEYPAIR = "Neither password nor key-pair specified. Trying with default key-pair";
+	private static final String ERROR_NO_KEYPAIR 				= "Error: There is no key pair to configure. Please create one with the ssh-keygen tool";
+	private static final String ERROR_CONFIGURING_ACCESS 		= "Error configuring access for ";
+	private static final String ERROR_PREPARING_MACHINE 		= "Error: Failed to prepare Machine ";
+	private static final String ERROR_TRANSFER_PACKAGES 		= "Error: Cannot transfer packages to Machine";
+	private static final String ERROR_KNOWN_HOSTS 				= "Error getting id for known hosts";
+	private static final String ERROR_KEYSCAN 					= "Error executing key-scan command: ";
+	private static final String ERROR_ADD_MASTER_KEY 			= "Error adding key in master's known hosts";
+	private static final String ERROR_LOCAL_KNOWN_HOSTS 		= "Error setting key in local known_hosts: ";
+	private static final String ERROR_CONFIG_KEYS 				= "Error configuring keys for ";
+	private static final String ERROR_COMMAND_EXEC 				= "Error: Failed to execute command ";
+	private static final String ERROR_EXCEPTION_EXEC_COMMAND 	= "Exception running command on ";
+	private static final String ERROR_SESSION_CREATION 			= "Error creating session to ";
+	private static final String WARN_READER_CLOSE 				= "Warn: Exception closing the reader";
+	private static final String WARN_INPUTSTREAM_CLOSE 			= "Warn: InputStream for remote command cannot be closed";
+	private static final String WARN_DEFAULT_KEYPAIR 			= "Warn: Neither password nor key-pair specified. Trying with default key-pair";
 
 	// Attributes
 	private String defaultUser;

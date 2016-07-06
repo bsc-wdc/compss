@@ -105,7 +105,8 @@ def worker(queue, process_name, input_pipe, output_pipe):
 		            #sys.stdout = stdout
 			    #sys.stderr = stderr
                             # endTask jobId exitValue
-                            message = END_TASK_TAG + " " + str(job_id) + " " + str(exitvalue) + "\n"
+                            message = END_TASK_TAG + " " + str(job_id) \
+                                                       + " " + str(exitvalue) + "\n"
 			    print "[PYTHON WORKER] - Pipe ", output_pipe, " END TASK MESSAGE: ", message
                             with open(output_pipe, 'w+') as out_pipe:
 				out_pipe.write(message)
@@ -249,7 +250,9 @@ def execute_task(process_name, params):
         print "[PYTHON WORKER] End task execution."
         return 1
     # ==========================================================================
-    except ImportError:
+    except ImportError, e:
+        logger.exception("WORKER EXCEPTION ", e) 
+        logger.exception("Trying to recover!!!")
         from pycompss.util.serializer import deserialize_from_file
         from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
@@ -325,7 +328,7 @@ def shutdown_handler(processes):
 # Main method
 ######################
 
-def main():
+def compss_persistent_worker():
     print "[PYTHON WORKER] Piper wake up"
 
     # Get args  
@@ -403,4 +406,4 @@ def main():
 ############################
 
 if __name__ == '__main__':
-    main()
+    compss_persistent_worker()

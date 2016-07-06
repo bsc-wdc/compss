@@ -10,21 +10,21 @@ public abstract class Implementation <T extends WorkerResourceDescription> {
         SERVICE
     }
 
-    protected final int coreId;
-    protected final int implementationId;
+    protected final Integer coreId;
+    protected final Integer implementationId;
     protected T requirements;
 
-    public Implementation(int coreId, int implementationId, T annot) {
+    public Implementation(Integer coreId, Integer implementationId, T annot) {
         this.coreId = coreId;
         this.implementationId = implementationId;
         this.requirements = annot;
     }
 
-    public int getCoreId() {
+    public Integer getCoreId() {
         return coreId;
     }
 
-    public int getImplementationId() {
+    public Integer getImplementationId() {
         return implementationId;
     }
 

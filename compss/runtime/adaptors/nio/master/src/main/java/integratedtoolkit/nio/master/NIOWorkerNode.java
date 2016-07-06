@@ -144,7 +144,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void stop(ShutdownListener sl) {
         logger.debug("Shutting down " + this.getName());
         if (node == null) {
-            sl.notifyFailure(new Exception());
+            sl.notifyFailure(new UnstartedNodeException());
             logger.error("Shutdown has failed");
         }
         Connection c = NIOAgent.tm.startConnection(node);

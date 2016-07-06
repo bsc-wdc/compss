@@ -1,11 +1,8 @@
 package integratedtoolkit.types.fake;
 
-import java.util.HashMap;
-
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
-
 
 public class FakeWorker extends Worker<FakeResourceDescription> {
 
@@ -43,20 +40,29 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
 
     @Override
     public FakeResourceDescription reserveResource(FakeResourceDescription consumption) {
-    	synchronized(available) {
-    		if (this.hasAvailable(consumption)) {
-    			return (FakeResourceDescription)available.reduceDynamic(consumption);
-    		} else {
-    			return null;
-    		}
-    	}
+        synchronized (available) {
+            if (this.hasAvailable(consumption)) {
+                return (FakeResourceDescription) available.reduceDynamic(consumption);
+            } else {
+                return null;
+            }
+        }
     }
 
     @Override
     public void releaseResource(FakeResourceDescription consumption) {
-    	synchronized(available) {
-    		available.increaseDynamic(consumption);
-    	}
+        synchronized (available) {
+            available.increaseDynamic(consumption);
+        }
+    }
+
+    @Override
+    public void releaseAllResources() {
+        synchronized (available) {
+            super.resetUsedTaskCount();
+            available.reduceDynamic(available);
+            available.increaseDynamic(description);
+        }
     }
 
     @Override
@@ -75,5 +81,4 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     public Worker<?> getSchedulingCopy() {
         return new FakeWorker(this);
     }
-
 }

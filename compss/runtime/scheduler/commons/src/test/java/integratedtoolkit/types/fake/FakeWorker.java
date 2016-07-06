@@ -54,6 +54,11 @@ public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
     }
 
     @Override
+    public void releaseAllResources() {
+
+    }
+
+    @Override
     public Worker<T> getSchedulingCopy() {
         throw new UnsupportedOperationException("Not supported yet.");
     }

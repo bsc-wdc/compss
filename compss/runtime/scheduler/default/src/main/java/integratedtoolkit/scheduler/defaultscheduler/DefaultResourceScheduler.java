@@ -1,81 +1,233 @@
 package integratedtoolkit.scheduler.defaultscheduler;
 
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.types.Gap;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.DefaultScore;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.OptimizationElement;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingEvent;
-import integratedtoolkit.types.SchedulingEvent.StartEvent;
+import integratedtoolkit.types.LocalOptimizationState;
+import integratedtoolkit.types.OptimizationAction;
+import integratedtoolkit.types.PriorityActionSet;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskParams;
-import integratedtoolkit.types.TokensWrapper;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceScheduler;
-
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.Set;
 
-public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ResourceScheduler<P,T> {
+public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ResourceScheduler<P, T> {
 
     public static final long DATA_TRANSFER_DELAY = 200;
-    private LinkedList<Gap> gaps;
+
+    private final LinkedList<Gap> gaps;
+    private OptimizationAction opAction;
+    private Set<AllocatableAction> pendingUnschedulings = new HashSet<AllocatableAction>();
 
     public DefaultResourceScheduler(Worker<T> w) {
         super(w);
         gaps = new LinkedList<Gap>();
-        TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
-        gaps.add(new Gap(0, Long.MAX_VALUE, null, myWorker.getDescription().copy(), capacity.getFree()));
+        gaps.add(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
     }
 
-    public Score getResourceScore(AllocatableAction<P,T> action, TaskParams params, Score actionScore) {
+    /*--------------------------------------------------
+     ---------------------------------------------------
+     ------------------ Score Methods ------------------
+     ---------------------------------------------------
+     --------------------------------------------------*/
+    /**
+     *
+     * @param action
+     * @param params
+     * @param actionScore
+     * @return
+     */
+    public Score getResourceScore(AllocatableAction<P, T> action, TaskParams params, Score actionScore) {
         long resScore = Score.getLocalityScore(params, myWorker);
-        long lessTimeStamp = Long.MAX_VALUE;
-        for (Gap g : gaps) {
-            if (lessTimeStamp > g.getInitialTime()) {
-                lessTimeStamp = g.getInitialTime();
+        for (AllocatableAction pred : action.getDataPredecessors()) {
+            if (pred.isPending() && pred.getAssignedResource() == this) {
+                resScore++;
             }
         }
-        return new DefaultScore<P,T>((DefaultScore<P,T>) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
+        resScore = params.getParameters().length - resScore;
+        long lessTimeStamp = Long.MAX_VALUE;
+        Gap g = gaps.peekFirst();
+        if (g != null) {
+            lessTimeStamp = g.getInitialTime();
+            if (lessTimeStamp < 0) {
+                lessTimeStamp = 0;
+            }
+        }
+        return new DefaultScore<P, T>((DefaultScore<P, T>) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
     }
 
-    public Score getImplementationScore(AllocatableAction<P,T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
+    /**
+     *
+     * @param action
+     * @param params
+     * @param impl
+     * @param resourceScore
+     * @return
+     */
+    public Score getImplementationScore(AllocatableAction<P, T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
-        for (Gap g : gaps) {
-            rd.reduceDynamic(g.getResources());
-            if (rd.isDynamicUseless()) {
-                resourceFreeTime = g.getInitialTime();
-                break;
+        try {
+            for (Gap g : gaps) {
+                rd.reduceDynamic(g.getResources());
+                if (rd.isDynamicUseless()) {
+                    resourceFreeTime = g.getInitialTime();
+                    break;
+                }
+            }
+        } catch (ConcurrentModificationException cme) {
+            resourceFreeTime = 0;
+        }
+        if (resourceFreeTime < 0) {
+            resourceFreeTime = 0;
+        }
+        long implScore;
+        Profile p = this.getProfile(impl);
+        if (p != null) {
+            implScore = p.getAverageExecutionTime();
+        } else {
+            implScore = 0;
+        }
+        //The data transfer penalty is already included on the datadependency time of the resourceScore
+        return new DefaultScore<P, T>((DefaultScore<P, T>) resourceScore, 0, resourceFreeTime, implScore);
+    }
+
+    /*--------------------------------------------------
+     ---------------------------------------------------
+     ---------------- Scheduler Methods ----------------
+     ---------------------------------------------------
+     --------------------------------------------------*/
+    @Override
+    public void initialSchedule(AllocatableAction<P, T> action) {
+        synchronized (gaps) {
+            if (opAction != null) {
+                ((DefaultSchedulingInformation) opAction.getSchedulingInfo()).addSuccessor(action);
+                ((DefaultSchedulingInformation) action.getSchedulingInfo()).addPredecessor(opAction);
+            } else {
+                scheduleUsingGaps(action, gaps);
             }
         }
-        long implScore = this.getProfile(impl).getAverageExecutionTime();
-        //The data transfer penalty is already included on the datadependency time of the resourceScore
-        return new DefaultScore<P,T>((DefaultScore<P,T>) resourceScore, 0, resourceFreeTime, implScore);
     }
 
     @Override
-    public void initialSchedule(AllocatableAction<P,T> action, Implementation<T> impl) {
-        Iterator<Gap> gapIt = gaps.iterator();
-        ResourceDescription constraints = impl.getRequirements().copy();
-        long expectedStart = 0;
+    public LinkedList<AllocatableAction<P, T>> unscheduleAction(AllocatableAction<P, T> action) {
+        LinkedList<AllocatableAction<P, T>> freeTasks = new LinkedList<AllocatableAction<P, T>>();
+        DefaultSchedulingInformation<P, T> actionDSI = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
+        LinkedList<AllocatableAction> successors = new LinkedList<AllocatableAction>();
 
+        // Create predecessor list
+        // Lock access to predecessors
+        for (AllocatableAction<P, T> pred : actionDSI.getPredecessors()) {
+            DefaultSchedulingInformation<P, T> predDSI = (DefaultSchedulingInformation<P, T>) pred.getSchedulingInfo();
+            predDSI.lock();
+        }
+        // Lock access to the current Action
+        actionDSI.lock();
+        //Remove action from predecessors
+        for (AllocatableAction<P, T> pred : actionDSI.getPredecessors()) {
+            DefaultSchedulingInformation<P, T> predDSI = (DefaultSchedulingInformation<P, T>) pred.getSchedulingInfo();
+            predDSI.removeSuccessor(action);
+        }
+
+        //Create successor list
+        //lock access to successors
+        for (AllocatableAction<P, T> successor : actionDSI.getSuccessors()) {
+            DefaultSchedulingInformation<P, T> succDSI = (DefaultSchedulingInformation<P, T>) successor.getSchedulingInfo();
+            succDSI.lock();
+            successors.add(successor);
+        }
+
+        for (AllocatableAction<P, T> successor : actionDSI.getSuccessors()) {
+            DefaultSchedulingInformation<P, T> successorDSI = (DefaultSchedulingInformation<P, T>) successor.getSchedulingInfo();
+            //Remove predecessor
+            successorDSI.removePredecessor(action);
+            //Link with action predecessors
+            for (AllocatableAction<P, T> predecessor : actionDSI.getPredecessors()) {
+                DefaultSchedulingInformation<P, T> predDSI = (DefaultSchedulingInformation<P, T>) predecessor.getSchedulingInfo();
+                if (predDSI.isScheduled()) {
+                    successorDSI.addPredecessor(predecessor);
+                    predDSI.addSuccessor(successor);
+                }
+            }
+            //Check executability
+            if (successorDSI.isExecutable()) {
+                freeTasks.add(successor);
+            }
+        }
+
+        //Unlock access to predecessors
+        for (AllocatableAction<P, T> pred : actionDSI.getPredecessors()) {
+            DefaultSchedulingInformation<P, T> predDSI = (DefaultSchedulingInformation<P, T>) pred.getSchedulingInfo();
+            predDSI.unlock();
+        }
+
+        //Clear action predecessors and successors
+        actionDSI.unscheduled();
+
+        if (actionDSI.isOnOptimization()) {
+            synchronized (gaps) {
+                pendingUnschedulings.add(action);
+            }
+        }
+        //Unlock access to current action
+        actionDSI.unlock();
+
+        //Unlock access to successors
+        for (AllocatableAction<P, T> successor : successors) {
+            DefaultSchedulingInformation<P, T> successorDSI = (DefaultSchedulingInformation<P, T>) successor.getSchedulingInfo();
+            successorDSI.unlock();
+        }
+        return freeTasks;
+    }
+
+    @Override
+    public P generateProfileForAllocatable() {
+        return (P) new Profile();
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+        gaps.clear();
+        gaps.add(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
+    }
+
+    private void scheduleUsingGaps(AllocatableAction<P, T> action, LinkedList<Gap> gaps) {
+        Iterator<Gap> gapIt = gaps.iterator();
+        Implementation<T> impl = action.getAssignedImplementation();
+        ResourceDescription constraints = impl.getRequirements().copy();
+        LinkedList<AllocatableAction> predecessors = new LinkedList();
+        long expectedStart = 0;
+        Profile p = getProfile(impl);
+        DefaultSchedulingInformation<P, T> schedInfo = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
+
+        // Compute predecessors and update gaps
+        // Lock access to predecessors
         while (gapIt.hasNext()) {
             Gap gap = gapIt.next();
-            AllocatableAction<P,T> predecessor = (AllocatableAction<P,T>) gap.getOrigin();
+            AllocatableAction<P, T> predecessor = (AllocatableAction<P, T>) gap.getOrigin();
             if (predecessor != null) {
-                long predEnd = ((DefaultSchedulingInformation<P,T>) predecessor.getSchedulingInfo()).getExpectedEnd();
-                expectedStart = Math.max(expectedStart, predEnd);
-                addSchedulingDependency(predecessor, action);
+                DefaultSchedulingInformation<P, T> predDSI = ((DefaultSchedulingInformation<P, T>) predecessor.getSchedulingInfo());
+                predDSI.lock();
+                predecessors.add(predecessor);
             }
             ResourceDescription gapResource = gap.getResources();
-            //ResourceDescription reduction = ResourceDescription.reduceCommonDynamics(gapResource, constraints);
             ResourceDescription.reduceCommonDynamics(gapResource, constraints);
             if (gapResource.isDynamicUseless()) {
                 gapIt.remove();
@@ -85,11 +237,43 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
             }
         }
 
-        DefaultSchedulingInformation<P,T> schedInfo = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
-        Profile p = getProfile(impl);
+        // Lock acces to the current task
+        schedInfo.lock();
+        schedInfo.scheduled();
+        // Compute start time
+        for (AllocatableAction predecessor : action.getDataPredecessors()) {
+            DefaultSchedulingInformation<P, T> predDSI = ((DefaultSchedulingInformation<P, T>) predecessor.getSchedulingInfo());
+            if (predDSI.isScheduled()) {
+                long predEnd = predDSI.getExpectedEnd();
+                expectedStart = Math.max(expectedStart, predEnd);
+            }
+        }
+
+        // Add dependencies
+        // Unlock access to predecessor
+        for (AllocatableAction predecessor : predecessors) {
+            DefaultSchedulingInformation<P, T> predDSI = ((DefaultSchedulingInformation<P, T>) predecessor.getSchedulingInfo());
+            if (predDSI.isScheduled()) {
+                long predEnd = predDSI.getExpectedEnd();
+                expectedStart = Math.max(expectedStart, predEnd);
+                schedInfo.addPredecessor(predecessor);
+                predDSI.addSuccessor(action);
+            }
+            predDSI.unlock();
+        }
+
+        //Compute end time
         schedInfo.setExpectedStart(expectedStart);
-        long expectedEnd = expectedStart + p.getAverageExecutionTime();
+        long expectedEnd = expectedStart;
+        if (p != null) {
+            expectedEnd += p.getAverageExecutionTime();
+        }
         schedInfo.setExpectedEnd(expectedEnd);
+
+        //Unlock access to current task
+        schedInfo.unlock();
+
+        //Create new Gap correspondin to the resources released by the action
         Gap g = new Gap(expectedEnd, Long.MAX_VALUE, action, impl.getRequirements().copy(), 0);
         gapIt = gaps.iterator();
         int index = 0;
@@ -100,105 +284,456 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
             }
         }
         gaps.add(index, g);
-
     }
 
-    public void addSchedulingDependency(AllocatableAction<P,T> predecessor, AllocatableAction<P,T> successor) {
-        DefaultSchedulingInformation<P,T> dsiPred = (DefaultSchedulingInformation<P,T>) predecessor.getSchedulingInfo();
-        DefaultSchedulingInformation<P,T> dsiSucc = (DefaultSchedulingInformation<P,T>) successor.getSchedulingInfo();
-        if (predecessor.isPending()) {
-            dsiSucc.addPredecessor(predecessor);
-            dsiPred.addSuccessor(successor);
+    /*--------------------------------------------------
+     ---------------------------------------------------
+     -------------- Optimization Methods ---------------
+     ---------------------------------------------------
+     --------------------------------------------------*/
+    public PriorityQueue<AllocatableAction> localOptimization(
+            long updateId,
+            Comparator<AllocatableAction> selectionComparator,
+            Comparator<AllocatableAction> donorComparator
+    ) {
+        PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, donorComparator);
+
+        // Actions not depending on other actions scheduled on the same resource
+        // Sorted by data dependencies release
+        PriorityQueue<AllocatableAction> readyActions = new PriorityQueue<AllocatableAction>(1, getReadyComparator());
+
+        // Actions that can be selected to be scheduled on the node
+        // Sorted by data dependencies release
+        PriorityActionSet selectableActions = new PriorityActionSet(selectionComparator);
+        synchronized (gaps) {
+            opAction = new OptimizationAction();
         }
-    }
+        //No changes in the Gap structure
 
-    @Override
-    public LinkedList<AllocatableAction<P,T>> unscheduleAction(AllocatableAction<P,T> action) {
-        LinkedList<AllocatableAction<P,T>> freeTasks = new LinkedList<AllocatableAction<P,T>>();
-        DefaultSchedulingInformation<P,T> actionDSI = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
+        //Scan actions: Filters ready and selectable actions
+        LinkedList<AllocatableAction> runningActions = scanActions(readyActions, selectableActions);
 
-        //Remove action from predecessors
-        for (AllocatableAction<P,T> pred : actionDSI.getPredecessors()) {
-            DefaultSchedulingInformation<P,T> predDSI = (DefaultSchedulingInformation<P,T>) pred.getSchedulingInfo();
-            predDSI.removeSuccessor(action);
+        //Gets all the pending schedulings
+        LinkedList<AllocatableAction> newPendingSchedulings = new LinkedList();
+        LinkedList<AllocatableAction> pendingSchedulings;
+        synchronized (gaps) {
+            DefaultSchedulingInformation opDSI = (DefaultSchedulingInformation) opAction.getSchedulingInfo();
+            pendingSchedulings = opDSI.replaceSuccessors(newPendingSchedulings);
         }
 
-        for (AllocatableAction<P,T> successor : actionDSI.getSuccessors()) {
-            DefaultSchedulingInformation<P,T> successorDSI = (DefaultSchedulingInformation<P,T>) successor.getSchedulingInfo();
-            //Remove predecessor
-            successorDSI.removePredecessor(action);
-            //Link with action predecessors
-            for (AllocatableAction<P,T> predecessor : actionDSI.getPredecessors()) {
-                addSchedulingDependency(predecessor, successor);
-            }
-            //Check executability
-            if (successorDSI.isExecutable()) {
-                freeTasks.add(successor);
-            }
+        //Classify pending actions: Filters ready and selectable actions
+        classifyPendingActions(pendingSchedulings, readyActions, selectableActions, runningActions);
+        updateUnscheduledActions(readyActions, selectableActions);
+        //ClassifyActions
+        LinkedList<Gap> newGaps = rescheduleTasks(updateId, readyActions, selectableActions, runningActions, actions);
+        for (AllocatableAction action : actions) {
+            DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
         }
-        actionDSI.clearPredecessors();
-        actionDSI.clearSuccessors();
-
-        return freeTasks;
-    }
-
-    @Override
-    public P generateProfileForAllocatable() {
-        return (P) new Profile();
-    }
-
-    public PriorityQueue<OptimizationElement<?>>[] seekGaps(long updateId, LinkedList<Gap> gaps) {
-        PriorityQueue<OptimizationElement<?>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
-        for (int i = 0; i < actions.length; i++) {
-            actions[i] = new PriorityQueue<OptimizationElement<?>>();
-        }
-        PriorityQueue<SchedulingEvent<P,T>> pq = new PriorityQueue<SchedulingEvent<P,T>>();
-        LinkedList<Gap> resources = new LinkedList<Gap>();
-        TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
-        resources.add(new Gap(0, null, myWorker.getDescription().copy(), capacity.getFree()));
-        boolean retry = true;
-        while (retry) {
-            try {
-                for (AllocatableAction<P,T> action : getHostedActions()) {
-                    pq.offer(new StartEvent<P,T>(0, action));
+        //Schedules all the pending scheduligns and unblocks the scheduling of new actions
+        synchronized (gaps) {
+            gaps.clear();
+            gaps.addAll(newGaps);
+            DefaultSchedulingInformation opDSI = (DefaultSchedulingInformation) opAction.getSchedulingInfo();
+            LinkedList<AllocatableAction> successors = opDSI.getSuccessors();
+            for (AllocatableAction action : successors) {
+                actions.add(action);
+                DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+                actionDSI.lock();
+                actionDSI.removePredecessor(opAction);
+                if (action != null) {
+                    this.scheduleUsingGaps(action, gaps);
                 }
-                retry = false;
-            } catch (ConcurrentModificationException cme) {
-                pq.clear();
+                actionDSI.unlock();
             }
+            opDSI.clearSuccessors();
+            opAction = null;
         }
-        while (!pq.isEmpty()) {
-            SchedulingEvent<P,T> e = pq.poll();
-            LinkedList<SchedulingEvent<P,T>> result = e.process(updateId, this, resources, capacity, gaps, actions);
-            for (SchedulingEvent<P,T> r : result) {
-                pq.offer(r);
-            }
-        }
-        this.gaps = new LinkedList<Gap>();
-        for (Gap g : resources) {
-            g.setEndTime(Long.MAX_VALUE);
-            this.gaps.add(g);
-            gaps.add(g);
-        }
+
         return actions;
     }
 
-    public long getPerformanceIndicator() {
-        long maxTimeStamp = 0;
+    // Classifies actions according to their start times. Selectable actions are
+    // those that can be selected to run from t=0. Ready actions are those actions
+    // that have data dependencies with tasks scheduled in other nodes. Actions 
+    // with dependencies with actions scheduled in the same node, are not 
+    // classified in any list since we cannot know the start time.
+    public LinkedList<AllocatableAction> scanActions(
+            PriorityQueue<AllocatableAction> readyActions,
+            PriorityActionSet selectableActions) {
+        LinkedList<AllocatableAction> runningActions = new LinkedList<AllocatableAction>();
+        PriorityQueue<AllocatableAction> actions = new PriorityQueue<AllocatableAction>(1, getScanComparator());
         for (Gap g : gaps) {
-            if (maxTimeStamp < g.getInitialTime()) {
-                maxTimeStamp = g.getInitialTime();
+            AllocatableAction gapAction = g.getOrigin();
+            if (gapAction != null) {
+                DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
+                dsi.lock();
+                dsi.setOnOptimization(true);
+                actions.add(gapAction);
             }
         }
-        return maxTimeStamp;
+        AllocatableAction action;
+        while ((action = actions.poll()) != null) {
+            DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+            if (!actionDSI.isScheduled()) {
+                actionDSI.unlock();
+                //Task was already executed. Ignore
+                continue;
+            }
+
+            //Data Dependencies analysis
+            boolean hasInternal = false;
+            boolean hasExternal = false;
+            long startTime = 0;
+            try {
+                LinkedList<AllocatableAction> dPreds = action.getDataPredecessors();
+                for (AllocatableAction dPred : dPreds) {
+                    DefaultSchedulingInformation dPredDSI = (DefaultSchedulingInformation) dPred.getSchedulingInfo();
+                    if (dPred.getAssignedResource() == this) {
+                        if (dPredDSI.tryToLock()) {
+                            if (dPredDSI.isScheduled()) {
+                                hasInternal = true;
+                                dPredDSI.optimizingSuccessor(action);
+                            }
+                            dPredDSI.unlock();
+                        }
+                        //else 
+                        //The predecessor is trying to be unscheduled but it is
+                        //blocked by another successor reschedule. 
+                    } else {
+                        hasExternal = true;
+                        startTime = Math.max(startTime, dPredDSI.getExpectedEnd());
+                    }
+                }
+            } catch (ConcurrentModificationException cme) {
+                hasInternal = false;
+                hasExternal = false;
+                startTime = 0;
+            }
+
+            //Resource Dependencies analysis
+            boolean hasResourcePredecessors = false;
+            LinkedList<AllocatableAction> rPreds = actionDSI.getPredecessors();
+            for (AllocatableAction rPred : rPreds) {
+                DefaultSchedulingInformation rPredDSI = (DefaultSchedulingInformation) rPred.getSchedulingInfo();
+                if (rPredDSI.tryToLock()) {
+                    if (rPredDSI.isScheduled()) {
+                        hasResourcePredecessors = true;
+                        if (!rPredDSI.isOnOptimization()) {
+                            rPredDSI.setOnOptimization(true);
+                            actions.add(rPred);
+                        } else {
+                            rPredDSI.unlock();
+                        }
+                    } else {
+                        rPredDSI.unlock();
+                    }
+                }
+                //else the predecessor was already executed
+            }
+
+            actionDSI.setExpectedStart(startTime);
+            String classifiedAs = classifyAction(action, hasInternal, hasExternal, hasResourcePredecessors, startTime, readyActions, selectableActions, runningActions);
+
+            if (hasResourcePredecessors || hasInternal) {
+                //The action has a blocked predecessor in the resource that will block its execution
+                actionDSI.unlock();
+            }
+        }
+        return runningActions;
     }
 
-    @Override
-    public void clear() {
-        super.clear();
-        gaps.clear();
-        TokensWrapper capacity = new TokensWrapper(myWorker.getMaxTaskCount());
-        gaps.add(new Gap(0, Long.MAX_VALUE, null, myWorker.getDescription().copy(), capacity.getFree()));
+    public void classifyPendingActions(
+            LinkedList<AllocatableAction> pendingSchedulings,
+            PriorityQueue<AllocatableAction> readyActions,
+            PriorityActionSet selectableActions,
+            LinkedList<AllocatableAction> runningActions
+    ) {
+
+        for (AllocatableAction action : pendingSchedulings) {
+            //Action has an artificial resource dependency with the opAction
+            DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+            actionDSI.scheduled();
+            actionDSI.setOnOptimization(true);
+            //Data Dependencies analysis
+            boolean hasInternal = false;
+            boolean hasExternal = false;
+            long startTime = 0;
+            try {
+                LinkedList<AllocatableAction> dPreds = action.getDataPredecessors();
+                for (AllocatableAction dPred : dPreds) {
+                    DefaultSchedulingInformation dPredDSI = (DefaultSchedulingInformation) dPred.getSchedulingInfo();
+                    if (dPred.getAssignedResource() == this) {
+                        if (dPredDSI.tryToLock()) {
+                            if (dPredDSI.isScheduled()) {
+                                hasInternal = true;
+                                dPredDSI.optimizingSuccessor(action);
+                            }
+                            dPredDSI.unlock();
+                        }
+                        //else 
+                        //The predecessor is trying to be unscheduled but it is
+                        //blocked by another successor reschedule. 
+                    } else {
+                        hasExternal = true;
+                        startTime = Math.max(startTime, dPredDSI.getExpectedEnd());
+                    }
+                }
+            } catch (ConcurrentModificationException cme) {
+                hasInternal = false;
+                hasExternal = false;
+                startTime = 0;
+            }
+
+            actionDSI.setExpectedStart(startTime);
+            classifyAction(action, hasInternal, hasExternal, true, startTime, readyActions, selectableActions, runningActions);
+        }
     }
 
+    public void updateUnscheduledActions(
+            PriorityQueue<AllocatableAction> readyActions,
+            PriorityActionSet selectableActions
+    ) {
+        for (AllocatableAction action : pendingUnschedulings) {
+            DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+            LinkedList<AllocatableAction> successors = actionDSI.getOptimizingSuccessors();
+        }
+        pendingUnschedulings.clear();
+    }
+
+    public LinkedList<Gap> rescheduleTasks(
+            long updateId,
+            PriorityQueue<AllocatableAction> readyActions,
+            PriorityActionSet selectableActions,
+            LinkedList<AllocatableAction> runningActions,
+            PriorityQueue<AllocatableAction> rescheduledActions
+    ) {
+        /*
+         * 
+         * ReadyActions contains those actions that have no dependencies with
+         * other actions scheduled on the node, but they have data dependencies
+         * with tasks on other resources. They are sorted by the expected time 
+         * when these dependencies will be solved.
+         *
+         * SelectableActions contains those actions that have no data dependencies
+         * with other actions but they wait for resources to be released.
+         * 
+         * Running actions contains a list of Actions that are executing or 
+         * potentially executing at the moment.
+         * 
+         * All Actions that need to be rescheduled have the onOptimization and
+         * scheduled flags on.
+         * 
+         * Those actions that are running or could potentially be started ( no 
+         * dependencies with other actions in the resource) are already locked 
+         * to avoid their start without being on the runningActions set.
+         */
+        LocalOptimizationState state = new LocalOptimizationState(updateId, myWorker.getDescription());
+        Gap gap = state.peekFirstGap();
+        ResourceDescription gapResource = gap.getResources();
+
+        PriorityQueue<SchedulingEvent<P, T>> schedulingQueue = new PriorityQueue<SchedulingEvent<P, T>>();
+
+        //For every running action we create a start event on their real start timeStamp
+        for (AllocatableAction action : runningActions) {
+            manageRunningAction(action, updateId, state, gapResource);
+            DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+            schedulingQueue.offer(new SchedulingEvent.End<P, T>(actionDSI.getExpectedEnd(), action));
+        }
+
+        while (!selectableActions.isEmpty() && !gapResource.isDynamicUseless()) {
+            AllocatableAction top = selectableActions.peek();
+            state.setTopAction(top);
+
+            if (state.canTopRun()) {
+                selectableActions.poll();
+                //Start the current action
+                DefaultSchedulingInformation topDSI = (DefaultSchedulingInformation) top.getSchedulingInfo();
+                topDSI.lock();
+                topDSI.clearPredecessors();
+                manageRunningAction(top, updateId, state, gapResource);
+                if (tryToLaunch(top)) {
+                    schedulingQueue.offer(new SchedulingEvent.End<P, T>(topDSI.getExpectedEnd(), top));
+                }
+            } else {
+                break;
+            }
+        }
+
+        while (!schedulingQueue.isEmpty() || !readyActions.isEmpty()) {
+            // We reschedule as many tasks as possible by processing start and end SchedulingEvents
+
+            while (!schedulingQueue.isEmpty()) {
+                SchedulingEvent<P, T> e = schedulingQueue.poll();
+                /*
+                 * Start Event:
+                 *  - sets the expected start and end times
+                 *  - adds resource dependencies with the previous actions
+                 *  - if there's a gap before the dependency 
+                 *      -tries to fill it with other tasks
+                 *  - if all the resources released by the predecessor are used later
+                 *      - the action is unlocked
+                 *
+                 * End Event:
+                 * 
+                 */
+                LinkedList<SchedulingEvent<P, T>> result = e.process(state, this, readyActions, selectableActions, rescheduledActions);
+                for (SchedulingEvent<P, T> r : result) {
+                    schedulingQueue.offer(r);
+                }
+            }
+
+            if (!readyActions.isEmpty()) {
+                AllocatableAction topAction = readyActions.poll();
+                DefaultSchedulingInformation topActionDSI = (DefaultSchedulingInformation) topAction.getSchedulingInfo();
+                topActionDSI.lock();
+                schedulingQueue.offer(new SchedulingEvent.Start<P, T>(topActionDSI.getExpectedStart(), topAction));
+            }
+        }
+
+        for (Gap g : state.getGaps()) {
+            AllocatableAction gapAction = g.getOrigin();
+            if (gapAction != null) {
+                DefaultSchedulingInformation gapActionDSI = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
+                gapActionDSI.removeGap();
+                if (!gapActionDSI.hasGaps()) {
+                    gapActionDSI.unlock();
+                }
+            }
+        }
+        return state.getGaps();
+    }
+
+    private String classifyAction(
+            AllocatableAction action,
+            boolean hasInternal,
+            boolean hasExternal,
+            boolean hasResourcePredecessors,
+            long startTime,
+            PriorityQueue<AllocatableAction> readyActions,
+            PriorityActionSet selectableActions,
+            LinkedList<AllocatableAction> runningActions
+    ) {
+        String classification = " waiting for internal data";
+        if (!hasInternal) { //Not needs to wait for some blocked action to end
+            if (hasExternal) {
+                if (startTime == 0) {
+                    classification = " is selectable";
+                    selectableActions.offer(action);
+                } else {
+                    classification = " waiting for external data";
+                    readyActions.add(action);
+                }
+            } else { //has no dependencies
+                if (hasResourcePredecessors) {
+                    classification = " is selectable";
+                    selectableActions.offer(action);
+                } else {
+                    classification = " is running";
+                    runningActions.add(action);
+                }
+            }
+        }
+        return classification;
+    }
+
+    private void manageRunningAction(
+            AllocatableAction action,
+            long updateId,
+            LocalOptimizationState state,
+            ResourceDescription missingResource
+    ) {
+
+        Implementation impl = action.getAssignedImplementation();
+        DefaultSchedulingInformation actionDSI = (DefaultSchedulingInformation) action.getSchedulingInfo();
+
+        //Set start Time
+        Long startTime = action.getStartTime();
+        long start;
+        if (startTime != null) {
+            start = startTime - updateId;
+        } else {
+            start = 0;
+        }
+        actionDSI.setExpectedStart(start);
+
+        //Set End  Time
+        Profile p = getProfile(impl);
+        long endTime = start;
+        if (p != null) {
+            endTime += p.getAverageExecutionTime();
+        }
+        if (endTime < 0) {
+            endTime = 0;
+        }
+        actionDSI.setExpectedEnd(endTime);
+
+        // Remove requirements from resource description
+        ResourceDescription constraints = impl.getRequirements().copy();
+        //Remove resources from the first gap
+        ResourceDescription.reduceCommonDynamics(missingResource, constraints);
+        //If the gap has been fully used
+        if (missingResource.isDynamicUseless()) {
+            //Remove the gap
+            state.pollGap();
+        }
+    }
+
+    private boolean tryToLaunch(AllocatableAction action) {
+        try {
+            action.tryToLaunch();
+            return true;
+        } catch (InvalidSchedulingException ise) {
+            ise.printStackTrace();
+            try {
+                long actionScore = DefaultScore.getActionScore(action);
+                long dataTime = (new DefaultScore(0, 0, 0, 0)).getDataPredecessorTime(action.getDataPredecessors());
+                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0);
+                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
+                try {
+                    action.tryToLaunch();
+                } catch (InvalidSchedulingException ise2) {
+                    //Impossible exception. 
+                    ise2.printStackTrace();
+                }
+            } catch (BlockedActionException | UnassignedActionException be) {
+                //Can not happen since there was an original source
+                be.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    public static final Comparator getScanComparator() {
+        return new Comparator<AllocatableAction>() {
+            @Override
+            public int compare(AllocatableAction action1, AllocatableAction action2) {
+                DefaultSchedulingInformation action1DSI = (DefaultSchedulingInformation) action1.getSchedulingInfo();
+                DefaultSchedulingInformation action2DSI = (DefaultSchedulingInformation) action2.getSchedulingInfo();
+                int compare = Long.compare(action2DSI.getExpectedStart(), action1DSI.getExpectedStart());
+                if (compare == 0) {
+                    return Long.compare(action2.getId(), action1.getId());
+                }
+                return compare;
+            }
+        };
+    }
+
+    public static final Comparator getReadyComparator() {
+        return new Comparator<AllocatableAction>() {
+            @Override
+            public int compare(AllocatableAction action1, AllocatableAction action2) {
+                DefaultSchedulingInformation action1DSI = (DefaultSchedulingInformation) action1.getSchedulingInfo();
+                DefaultSchedulingInformation action2DSI = (DefaultSchedulingInformation) action2.getSchedulingInfo();
+                int compare = Long.compare(action1DSI.getExpectedStart(), action2DSI.getExpectedStart());
+                if (compare == 0) {
+                    return Long.compare(action1.getId(), action2.getId());
+                }
+                return compare;
+            }
+        };
+    }
+
+    public long getLastGapExpectedStart() {
+        return gaps.getLast().getInitialTime();
+    }
 }

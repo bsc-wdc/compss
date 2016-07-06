@@ -6,9 +6,13 @@ import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.Score;
+import integratedtoolkit.types.ServiceImplementation;
+import integratedtoolkit.types.resources.Resource.Type;
+import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -17,16 +21,22 @@ import integratedtoolkit.util.ResourceManager;
 import integratedtoolkit.util.ResourceScheduler;
 import java.util.LinkedList;
 
-
 public class StartWorkerAction<T extends WorkerResourceDescription> extends AllocatableAction<Profile, T> {
 
     private final ResourceScheduler<Profile, T> worker;
     private final TaskScheduler ts;
+    private final Implementation impl;
 
     public StartWorkerAction(SchedulingInformation schedulingInformation, ResourceScheduler<Profile, T> worker, TaskScheduler ts) {
         super(schedulingInformation);
         this.worker = worker;
         this.ts = ts;
+        if (worker.getResource().getType() == Type.WORKER) {
+            MethodWorker mw = (MethodWorker) worker.getResource();
+            impl = new MethodImplementation("", null, null, mw.getDescription());
+        } else {
+            impl = new ServiceImplementation(null, "", "", "", "");
+        }
     }
 
     @Override
@@ -66,7 +76,7 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     protected void doCompleted() {
-        logger.error("Worker " + worker.getName() + " is ready to execute tasks.");
+        logger.info("Worker " + worker.getName() + " is ready to execute tasks.");
     }
 
     @Override
@@ -105,7 +115,9 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
 
     @Override
     public Implementation<T>[] getImplementations() {
-        return new Implementation[0];
+        Implementation<T>[] impls = new Implementation[1];
+        impls[0] = impl;
+        return impls;
     }
 
     @Override
@@ -116,12 +128,10 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<Profile, T> r) {
         LinkedList<Implementation<T>> impls = new LinkedList<Implementation<T>>();
+        if (r == worker) {
+            impls.add(impl);
+        }
         return impls;
-    }
-
-    @Override
-    public Score schedulingScore(TaskScheduler ts) {
-        return null;
     }
 
     @Override
@@ -132,16 +142,30 @@ public class StartWorkerAction<T extends WorkerResourceDescription> extends Allo
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.selectedResource = worker;
-        worker.initialSchedule(this, null);
+        assignImplementation(impl);
+        worker.initialSchedule(this);
     }
 
     @Override
     public void schedule(ResourceScheduler<Profile, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.selectedResource = targetWorker;
-        targetWorker.initialSchedule(this, null);
+        assignImplementation(impl);
+        targetWorker.initialSchedule(this);
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<Profile, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+        this.selectedResource = targetWorker;
+        assignImplementation(impl);
+        targetWorker.initialSchedule(this);
     }
 
     public String toString() {
         return "StartWorkerAction for worker " + worker.getName();
+    }
+
+    @Override
+    public int getPriority() {
+        return Integer.MAX_VALUE;
     }
 }

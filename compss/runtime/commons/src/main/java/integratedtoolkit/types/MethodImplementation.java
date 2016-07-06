@@ -24,7 +24,7 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
 
     private String declaringClass;
 
-    public MethodImplementation(String methodClass, int coreId, int implementationId, MethodResourceDescription annot) {
+    public MethodImplementation(String methodClass, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
         super(coreId, implementationId, annot);
         this.declaringClass = methodClass;
     }

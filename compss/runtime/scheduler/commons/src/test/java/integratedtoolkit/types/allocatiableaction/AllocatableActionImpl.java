@@ -100,8 +100,8 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler<P, T> TS) {
-        return null;
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+
     }
 
     @Override
@@ -112,6 +112,16 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
     @Override
     public Integer getCoreId() {
         return null;
+    }
+
+    @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public int getPriority() {
+        return 0;
     }
 
 }

@@ -16,7 +16,7 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.fake.FakeAllocatableAction;
 import integratedtoolkit.types.fake.FakeImplementation;
-import integratedtoolkit.types.fake.FakeProfiles;
+import integratedtoolkit.types.fake.FakeProfile;
 import integratedtoolkit.types.fake.FakeResourceDescription;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.parameter.DependencyParameter;
@@ -28,7 +28,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 public class ScoresTest {
 
@@ -76,12 +75,12 @@ public class ScoresTest {
         FakeWorker fw2 = new FakeWorker("worker2", frd2, maxSlots);
         secondDRS = new DefaultResourceScheduler(fw2);
 
-        drs.profiledExecution(impl00, FakeProfiles.P5);
-        drs.profiledExecution(impl10, FakeProfiles.P5);
-        drs.profiledExecution(impl20, FakeProfiles.P3);
-        drs.profiledExecution(impl30, FakeProfiles.P5);
-        drs.profiledExecution(impl40, FakeProfiles.P2);
-        drs.profiledExecution(impl41, FakeProfiles.P3);
+        drs.profiledExecution(impl00, new FakeProfile(50));
+        drs.profiledExecution(impl10, new FakeProfile(50));
+        drs.profiledExecution(impl20, new FakeProfile(30));
+        drs.profiledExecution(impl30, new FakeProfile(50));
+        drs.profiledExecution(impl40, new FakeProfile(20));
+        drs.profiledExecution(impl41, new FakeProfile(30));
 
         CORE0 = drs.getProfile(impl00).getAverageExecutionTime();
         CORE2 = drs.getProfile(impl20).getAverageExecutionTime();
@@ -107,38 +106,38 @@ public class ScoresTest {
     @Test
     public void testActionScores() throws BlockedActionException, UnassignedActionException {
         drs.clear();
-        FakeAllocatableAction action1 = new FakeAllocatableAction(1, CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action2 = new FakeAllocatableAction(2, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(1, 1, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(2, 0, CoreManager.getCoreImplementations(0));
 
-        FakeAllocatableAction action14 = new FakeAllocatableAction(14, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action14 = new FakeAllocatableAction(14, 0, CoreManager.getCoreImplementations(0));
         action14.selectExecution(secondDRS, action14.getImplementations()[0]);
         DefaultSchedulingInformation dsi14 = (DefaultSchedulingInformation) action14.getSchedulingInfo();
         dsi14.setExpectedEnd(10_000);
 
-        FakeAllocatableAction action15 = new FakeAllocatableAction(15, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action15 = new FakeAllocatableAction(15, 0, CoreManager.getCoreImplementations(0));
         action15.selectExecution(secondDRS, action15.getImplementations()[0]);
         DefaultSchedulingInformation dsi15 = (DefaultSchedulingInformation) action15.getSchedulingInfo();
         dsi15.setExpectedEnd(12_000);
 
-        DefaultScore score1 = (DefaultScore) ds.getActionScore(action1, new TaskParams("", "", true, false, new Parameter[0]));
-        Score score2 = ds.getActionScore(action2, new TaskParams("", "", false, false, new Parameter[0]));
+        DefaultScore score1 = (DefaultScore) ds.getActionScore(action1);
+        Score score2 = ds.getActionScore(action2);
         Verifiers.verifyScore(score1, 1, 0, 0, 0, 0);
         Verifiers.verifyScore((DefaultScore) score2, 0, 0, 0, 0, 0);
         Verifiers.validateBetterScore(score1, score2, true);
 
         action1.addDataPredecessor(action14);
-        score1 = (DefaultScore) ds.getActionScore(action1, new TaskParams("", "", true, false, new Parameter[0]));
+        score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 1, 10_000, 0, 0, 10_000);
 
         action1.addDataPredecessor(action15);
-        score1 = (DefaultScore) ds.getActionScore(action1, new TaskParams("", "", true, false, new Parameter[0]));
+        score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 1, 12_000, 0, 0, 12_000);
     }
 
     @Test
     public void testResourceScores() throws BlockedActionException, UnassignedActionException {
         drs.clear();
-        FakeAllocatableAction action1 = new FakeAllocatableAction(1, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(0));
 
         DataInstanceId d1v1 = new DataInstanceId(1, 1);
         Comm.registerData(d1v1.getRenaming());
@@ -157,10 +156,10 @@ public class ScoresTest {
                 false,
                 new Parameter[]{dpD1V1, dpD2V2}
         );
-        DefaultScore actionScore = (DefaultScore) ds.getActionScore(action1, params);
+        DefaultScore actionScore = (DefaultScore) ds.getActionScore(action1);
 
         DefaultScore score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
-        Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
+        Verifiers.verifyScore(score1, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
 
         Comm.registerLocation(d1v1.getRenaming(), DataLocation.getPrivateLocation(drs.getResource(), "/home/test/a"));
         score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
@@ -168,7 +167,7 @@ public class ScoresTest {
 
         Comm.registerLocation(d2v2.getRenaming(), DataLocation.getPrivateLocation(drs.getResource(), "/home/test/b"));
         score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
-        Verifiers.verifyScore(score1, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
+        Verifiers.verifyScore(score1, 0, 0 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 0 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
 
         Comm.removeData(d1v1.getRenaming());
         Comm.removeData(d2v2.getRenaming());
@@ -179,9 +178,9 @@ public class ScoresTest {
 
         drs.clear();
         //No resources and no dependencies
-        FakeAllocatableAction action1 = new FakeAllocatableAction(1, CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(4));
         TaskParams tp1 = new TaskParams("", "", false, false, new Parameter[0]);
-        DefaultScore score1 = (DefaultScore) ds.getActionScore(action1, tp1);
+        DefaultScore score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 
         DefaultScore score1_0 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
@@ -191,16 +190,18 @@ public class ScoresTest {
         Verifiers.validateBetterScore(score1_0, score1_1, true);
 
         //Resources with load
-        FakeAllocatableAction action2 = new FakeAllocatableAction(2, CoreManager.getCoreImplementations(0));
-        drs.initialSchedule(action2, action2.getImplementations()[0]);
+        FakeAllocatableAction action2 = new FakeAllocatableAction(2, 0, CoreManager.getCoreImplementations(0));
+        action2.selectExecution(drs, action2.getImplementations()[0]);
+        drs.initialSchedule(action2);
         score1_0 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score1_0, 0, 0, CORE0, CORE4_0, CORE0);
         score1_1 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
         Verifiers.verifyScore(score1_1, 0, 0, 0, CORE4_1, 0);
         Verifiers.validateBetterScore(score1_0, score1_1, false);
 
-        FakeAllocatableAction action3 = new FakeAllocatableAction(3, CoreManager.getCoreImplementations(2));
-        drs.initialSchedule(action3, action3.getImplementations()[0]);
+        FakeAllocatableAction action3 = new FakeAllocatableAction(3, 0, CoreManager.getCoreImplementations(2));
+        action3.selectExecution(drs, action3.getImplementations()[0]);
+        drs.initialSchedule(action3);
         score1_0 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score1_0, 0, 0, CORE0, CORE4_0, CORE0);
         score1_1 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[1], score1);
@@ -208,12 +209,12 @@ public class ScoresTest {
         Verifiers.validateBetterScore(score1_0, score1_1, false);
 
         //Data Dependencies
-        FakeAllocatableAction action10 = new FakeAllocatableAction(10, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action10 = new FakeAllocatableAction(10, 0, CoreManager.getCoreImplementations(0));
         action10.selectExecution(secondDRS, action10.getImplementations()[0]);
         DefaultSchedulingInformation dsi10 = (DefaultSchedulingInformation) action10.getSchedulingInfo();
         dsi10.setExpectedEnd(10);
         action1.addDataPredecessor(action10);
-        score1 = (DefaultScore) ds.getActionScore(action1, tp1);
+        score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10, 0, 0, 10);
 
         score1_0 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
@@ -222,12 +223,12 @@ public class ScoresTest {
         Verifiers.verifyScore(score1_1, 0, 10, CORE2, CORE4_1, CORE2);
         Verifiers.validateBetterScore(score1_0, score1_1, false);
 
-        FakeAllocatableAction action11 = new FakeAllocatableAction(11, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action11 = new FakeAllocatableAction(11, 0, CoreManager.getCoreImplementations(0));
         action11.selectExecution(secondDRS, action11.getImplementations()[0]);
         DefaultSchedulingInformation dsi11 = (DefaultSchedulingInformation) action11.getSchedulingInfo();
         dsi11.setExpectedEnd(10_000);
         action1.addDataPredecessor(action11);
-        score1 = (DefaultScore) ds.getActionScore(action1, tp1);
+        score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 0, 10_000, 0, 0, 10_000);
         score1_0 = (DefaultScore) drs.getImplementationScore(action1, tp1, action1.getImplementations()[0], score1);
         Verifiers.verifyScore(score1_0, 0, 10_000, CORE0, CORE4_0, 10_000);

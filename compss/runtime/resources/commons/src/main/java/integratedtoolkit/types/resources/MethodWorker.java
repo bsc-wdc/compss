@@ -19,7 +19,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf,HashMap<String, String> sharedDisks) {
+    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, HashMap<String, String> sharedDisks) {
         super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
@@ -54,6 +54,15 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public void releaseResource(MethodResourceDescription consumption) {
         synchronized (available) {
             available.increaseDynamic(consumption);
+        }
+    }
+
+    @Override
+    public void releaseAllResources() {
+        synchronized (available) {
+            super.resetUsedTaskCount();
+            available.reduceDynamic(available);
+            available.increaseDynamic(description);
         }
     }
 

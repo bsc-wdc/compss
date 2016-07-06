@@ -26,7 +26,6 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 
-
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
 
     public interface TaskProducer {
@@ -38,8 +37,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
     // Subcomponents
-    protected TaskScheduler<?,?> scheduler;
-    protected LinkedBlockingDeque<TDRequest<?,?>> requestQueue;
+    protected TaskScheduler<?, ?> scheduler;
+    protected LinkedBlockingDeque<TDRequest<?, ?>> requestQueue;
     
     // Scheduler thread
     protected Thread dispatcher;
@@ -57,7 +56,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
             
     public TaskDispatcher() {
-        requestQueue = new LinkedBlockingDeque<TDRequest<?,?>>();
+        requestQueue = new LinkedBlockingDeque<TDRequest<?, ?>>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
@@ -96,27 +95,27 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         while (keepGoing) {
             try {
                 TDRequest request = requestQueue.take();
-                if (tracing){
+                if (tracing) {
                     Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
                 }
                 request.process(scheduler);
-                if (tracing){
+                if (tracing) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
             } catch (InterruptedException ie) {
-                if (tracing){
+                if (tracing) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 continue;
             } catch (ShutdownException se) {
                 logger.debug("Exiting dispatcher because of shutting down");
-                if (tracing){
+                if (tracing) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 break;
             } catch (Exception e) {
                 logger.error("RequestError", e);
-                if (tracing){
+                if (tracing) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 continue;
@@ -124,11 +123,11 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    private void addRequest(TDRequest<?,?> request) {
+    private void addRequest(TDRequest<?, ?> request) {
         requestQueue.offer(request);
     }
 
-    private void addPrioritaryRequest(TDRequest<?,?> request) {
+    private void addPrioritaryRequest(TDRequest<?, ?> request) {
         requestQueue.offerFirst(request);
     }
 
@@ -144,13 +143,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     // Notification thread
     @Override
-    public void actionCompletion(AllocatableAction<?,?> action) {
+    public void actionCompletion(AllocatableAction<?, ?> action) {
         addRequest(new ActionUpdate(action, ActionUpdate.Update.COMPLETED));
     }
 
     // Notification thread
     @Override
-    public void actionError(AllocatableAction<?,?> action) {
+    public void actionError(AllocatableAction<?, ?> action) {
         addRequest(new ActionUpdate(action, ActionUpdate.Update.ERROR));
     }
 
@@ -246,6 +245,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             // Nothing to do
         }
     }
+
     private static void loadSchedulerJars() {
         logger.info("Loading schedulers...");
         String itHome = System.getenv("IT_HOME");
@@ -262,13 +262,13 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    private TaskScheduler<?,?> constructScheduler() {
-        TaskScheduler<?,?> scheduler = null;
+    private TaskScheduler<?, ?> constructScheduler() {
+        TaskScheduler<?, ?> scheduler = null;
         try {
             String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
-            scheduler = (TaskScheduler<?,?>) schedCnstr.newInstance();
+            scheduler = (TaskScheduler<?, ?>) schedCnstr.newInstance();
         } catch (Exception e) {
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }

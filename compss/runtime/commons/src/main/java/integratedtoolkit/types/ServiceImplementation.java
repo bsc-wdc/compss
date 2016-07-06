@@ -8,9 +8,9 @@ public class ServiceImplementation extends Implementation<ServiceResourceDescrip
 
     private final String operation;
 
-    public ServiceImplementation(int coreId, String namespace, String service, String port, String operation) {
+    public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation) {
         super(coreId, 0, null);
-        this.requirements = new ServiceResourceDescription(service, namespace, port);
+        this.requirements = new ServiceResourceDescription(service, namespace, port,1);
         this.operation = operation;
     }
 

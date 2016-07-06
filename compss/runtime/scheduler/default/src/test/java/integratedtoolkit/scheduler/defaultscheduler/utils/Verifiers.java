@@ -4,15 +4,86 @@ import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.DefaultScore;
 import integratedtoolkit.types.Gap;
+import integratedtoolkit.types.OptimizationWorker;
+import integratedtoolkit.types.PriorityActionSet;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.fake.FakeAllocatableAction;
 import integratedtoolkit.types.fake.FakeResourceDescription;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 import static org.junit.Assert.fail;
 
 public class Verifiers {
+
+    public static void verifyPriorityActions(PriorityActionSet obtained, AllocatableAction[] expected) {
+        int idx = 0;
+        if (obtained.size() != expected.length) {
+            fail("Obtained lists doesn't match on size.");
+        }
+        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue();
+        while (obtainedCopy.size() > 0) {
+            AllocatableAction action = obtainedCopy.poll();
+            AllocatableAction expectedAction = expected[idx];
+            if (!expectedAction.equals(action)) {
+                fail(expectedAction + " expected to be the most prioritary action and " + action + " was.");
+            }
+            idx++;
+        }
+    }
+
+    public static void verifyPriorityActions(PriorityQueue<AllocatableAction> obtained, AllocatableAction[] expected) {
+        int idx = 0;
+        if (obtained.size() != expected.length) {
+            fail("Obtained lists doesn't match on size.");
+        }
+        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue();
+        while (obtainedCopy.size() > 0) {
+            AllocatableAction action = obtainedCopy.poll();
+            AllocatableAction expectedAction = expected[idx];
+            if (!expectedAction.equals(action)) {
+                fail(expectedAction + " expected to be the most prioritary action and " + action + " was.");
+            }
+            idx++;
+        }
+    }
+
+    public static void verifyReadyActions(PriorityQueue<AllocatableAction> obtained, HashMap<AllocatableAction, Long> expectedReady) {
+        if (obtained.size() != expectedReady.size()) {
+            fail("Obtained lists doesn't match on size.");
+        }
+        long lastTime = 0;
+        while (obtained.size() > 0) {
+            AllocatableAction action = obtained.poll();
+            long start = ((DefaultSchedulingInformation) action.getSchedulingInfo()).getExpectedStart();
+            if (start < lastTime) {
+                fail("Ready actions are not ordered according to the time");
+            }
+            lastTime = start;
+            long time = expectedReady.remove(action);
+            if (start != time) {
+                fail("Ready action " + action + "starts at " + start + " and was supposed to start at " + time);
+            }
+        }
+    }
+
+    public static void verifyWorkersPriority(LinkedList<OptimizationWorker> obtained, LinkedList<String> expected) {
+        int idx = 0;
+        if (obtained.size() != expected.size()) {
+            fail("Obtained lists doesn't match on size.");
+        }
+        while (obtained.size() > 0) {
+            OptimizationWorker donor = obtained.poll();
+            String donorName = donor.getName();
+            String expectedName = expected.get(idx);
+            if (!donorName.equals(expectedName)) {
+                fail("Expected worker " + expectedName + " and obtianed " + donorName);
+            }
+            idx++;
+        }
+    }
 
     public static void verifyScore(DefaultScore ds, long action, long data, long res, long impl, long start) {
         if (action != ds.getActionScore()) {
@@ -44,18 +115,20 @@ public class Verifiers {
         }
     }
 
-    public static void verifyUpdate(FakeAllocatableAction[] actions, long[][] times) {
-        for (int actionIdx = 0; actionIdx < actions.length; actionIdx++) {
-            DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) actions[actionIdx].getSchedulingInfo();
-            if (dsi.getExpectedStart() != times[actionIdx][0] || dsi.getExpectedEnd() != times[actionIdx][1]) {
+    public static void verifyUpdate(LinkedList<AllocatableAction>[] actions, long[][][] times) {
+        for (int coreId = 0; coreId < actions.length; coreId++) {
+            for (int actionIdx = 0; actionIdx < actions[coreId].size(); actionIdx++) {
+                AllocatableAction action = actions[coreId].get(actionIdx);
+                DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
+                if (dsi.getExpectedStart() != times[coreId][actionIdx][0] || dsi.getExpectedEnd() != times[coreId][actionIdx][1]) {
+                    System.out.println("Action " + action + " has not been updated properly.\n"
+                            + "Expected start at " + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
+                            + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
 
-                System.out.println("Action " + actions[actionIdx] + " has not been updated properly.\n"
-                        + "Expected start at " + times[actionIdx][0] + " and end at " + times[actionIdx][1] + "\n"
-                        + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
-
-                fail("Action " + actions[actionIdx] + " has not been updated properly.\n"
-                        + "Expected start at " + times[actionIdx][0] + " and end at " + times[actionIdx][1] + "\n"
-                        + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
+                    fail("Action " + action + " has not been updated properly.\n"
+                            + "Expected start at " + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n"
+                            + "Obtianed start at " + dsi.getExpectedStart() + " and end at " + dsi.getExpectedEnd());
+                }
             }
         }
     }

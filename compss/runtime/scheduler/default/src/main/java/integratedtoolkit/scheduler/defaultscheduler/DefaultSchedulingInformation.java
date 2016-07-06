@@ -6,29 +6,43 @@ import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class DefaultSchedulingInformation<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P,T> {
+public class DefaultSchedulingInformation<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P, T> {
 
+    //Lock to avoid multiple threads to modify the content at the same time
+    private final ReentrantLock l = new ReentrantLock();
+
+    private boolean scheduled = false;
     private long lastUpdate;
     private long expectedStart;
     private long expectedEnd;
 
+    private int openGaps = 0;
+
     //Allocatable actions that the action depends on due to resource availability
-    private final LinkedList<AllocatableAction<P,T>> resourcePredecessors;
+    private final LinkedList<AllocatableAction<P, T>> resourcePredecessors;
 
     //Allocatable actions depending on the allocatable action due to resource availability
-    private final LinkedList<AllocatableAction<P,T>> resourceSuccessors;
+    private LinkedList<AllocatableAction<P, T>> resourceSuccessors;
+
+    //Action Scheduling is being optimized locally
+    private boolean onOptimization;
+    private final LinkedList<AllocatableAction<P, T>> optimizingSuccessors;
 
     public DefaultSchedulingInformation() {
-        resourcePredecessors = new LinkedList<AllocatableAction<P,T>>();
-        resourceSuccessors = new LinkedList<AllocatableAction<P,T>>();
+        resourcePredecessors = new LinkedList<AllocatableAction<P, T>>();
+        resourceSuccessors = new LinkedList<AllocatableAction<P, T>>();
 
         lastUpdate = System.currentTimeMillis();
         expectedStart = 0;
         expectedEnd = 0;
+
+        optimizingSuccessors = new LinkedList<AllocatableAction<P, T>>();
     }
 
-    public void addPredecessor(AllocatableAction<P,T> predecessor) {
+    public void addPredecessor(AllocatableAction<P, T> predecessor) {
         resourcePredecessors.add(predecessor);
     }
 
@@ -38,14 +52,18 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
 
     @Override
     public final boolean isExecutable() {
-        return resourcePredecessors.isEmpty();
+        boolean b;
+        l.lock();
+        b = resourcePredecessors.isEmpty();
+        l.unlock();
+        return b;
     }
 
-    public LinkedList<AllocatableAction<P,T>> getPredecessors() {
+    public LinkedList<AllocatableAction<P, T>> getPredecessors() {
         return resourcePredecessors;
     }
 
-    public void removePredecessor(AllocatableAction<P,T> successor) {
+    public void removePredecessor(AllocatableAction<P, T> successor) {
         resourcePredecessors.remove(successor);
     }
 
@@ -53,20 +71,26 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
         resourcePredecessors.clear();
     }
 
-    public void addSuccessor(AllocatableAction<P,T> successor) {
+    public void addSuccessor(AllocatableAction<P, T> successor) {
         resourceSuccessors.add(successor);
     }
 
-    public LinkedList<AllocatableAction<P,T>> getSuccessors() {
+    public LinkedList<AllocatableAction<P, T>> getSuccessors() {
         return resourceSuccessors;
     }
 
-    public void removeSuccessor(AllocatableAction<P,T> successor) {
+    public void removeSuccessor(AllocatableAction<P, T> successor) {
         resourceSuccessors.remove(successor);
     }
 
     public void clearSuccessors() {
         resourceSuccessors.clear();
+    }
+
+    public LinkedList<AllocatableAction<P, T>> replaceSuccessors(LinkedList<AllocatableAction<P, T>> newSuccessors) {
+        LinkedList<AllocatableAction<P, T>> oldSuccessors = resourceSuccessors;
+        resourceSuccessors = newSuccessors;
+        return oldSuccessors;
     }
 
     public void setExpectedStart(long expectedStart) {
@@ -94,17 +118,97 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder("lastUpdate: " + lastUpdate + " expectedStart: " + expectedStart + " expectedEnd:" + expectedEnd);
+        StringBuilder sb = new StringBuilder(
+                "\tlastUpdate: " + lastUpdate + "\n"
+                + "\texpectedStart: " + expectedStart + "\n"
+                + "\texpectedEnd:" + expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
-        for (AllocatableAction<P,T> aa : getPredecessors()) {
-            sb.append(" ").append(aa.hashCode());
+        for (AllocatableAction<P, T> aa : getPredecessors()) {
+            sb.append(" ").append(aa);
         }
         sb.append("\n");
         sb.append("\t").append("schedSuccessors: ");
-        for (AllocatableAction<P,T> aa : getSuccessors()) {
-            sb.append(" ").append(aa.hashCode());
+        for (AllocatableAction<P, T> aa : getSuccessors()) {
+            sb.append(" ").append(aa);
         }
+        sb.append("\n");
+        sb.append("\tOptimization Successors").append(optimizingSuccessors);
         return sb.toString();
     }
 
+    public boolean tryToLock() {
+        try {
+            return l.tryLock(1, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ie) {
+            return false;
+        }
+    }
+
+    public void lock() {
+        l.lock();
+    }
+
+    public void unlock() {
+        l.unlock();
+    }
+
+    public void unlockCompletely() {
+        while (l.getHoldCount() > 1) {
+            l.unlock();
+        }
+    }
+
+    public void scheduled() {
+        scheduled = true;
+    }
+
+    public void unscheduled() {
+        scheduled = false;
+        resourcePredecessors.clear();
+        resourceSuccessors.clear();
+    }
+
+    boolean isScheduled() {
+        return scheduled;
+    }
+
+    public void setOnOptimization(boolean b) {
+        onOptimization = b;
+    }
+
+    public boolean isOnOptimization() {
+        return onOptimization;
+    }
+
+    public void optimizingSuccessor(AllocatableAction action) {
+        optimizingSuccessors.add(action);
+    }
+
+    public LinkedList<AllocatableAction<P, T>> getOptimizingSuccessors() {
+        return optimizingSuccessors;
+    }
+
+    public void clearOptimizingSuccessors() {
+        optimizingSuccessors.clear();
+    }
+
+    public void addGap() {
+        openGaps++;
+    }
+
+    public void removeGap() {
+        openGaps--;
+    }
+
+    public void clearGaps() {
+        openGaps = 0;
+    }
+
+    public boolean hasGaps() {
+        return openGaps > 0;
+    }
+
+    public int getLockCount() {
+        return l.getHoldCount();
+    }
 }

@@ -315,7 +315,7 @@ public class ResourceLoader {
         String serviceName = s_resources.getName();
         String namespace = s_resources.getNamespace();
         String port = s_resources.getPort();
-        ServiceResourceDescription srd = new ServiceResourceDescription(serviceName, namespace, port);
+        ServiceResourceDescription srd = new ServiceResourceDescription(serviceName, namespace, port, Integer.MAX_VALUE);
 
         ServiceConfiguration config = null;
         try {

@@ -8,7 +8,6 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     private String wsdl;
 
-
     public ServiceWorker(String wsdl, ServiceResourceDescription description, ServiceConfiguration conf) {
         super(wsdl, description, conf, null);
         this.wsdl = wsdl;
@@ -56,12 +55,17 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     @Override
     public ServiceResourceDescription reserveResource(ServiceResourceDescription consumption) {
-    	// Always can be hosted and uses the same amount of resource than asked
+        // Always can be hosted and uses the same amount of resource than asked
         return consumption;
     }
 
     @Override
     public void releaseResource(ServiceResourceDescription consumption) {
+    }
+
+    @Override
+    public void releaseAllResources() {
+        super.resetUsedTaskCount();
     }
 
     @Override

@@ -4,12 +4,10 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-
 public class FakeResourceDescription extends WorkerResourceDescription {
 
     private int coreCount = 0;
 
-    
     public FakeResourceDescription(int coreCount) {
         this.coreCount = coreCount;
     }
@@ -21,6 +19,11 @@ public class FakeResourceDescription extends WorkerResourceDescription {
     }
 
     public boolean canHost(FakeResourceDescription desc) {
+        return !(desc.coreCount > this.coreCount);
+    }
+
+    public boolean canHostDynamic(Implementation<?> impl) {
+        FakeResourceDescription desc = (FakeResourceDescription) impl.getRequirements();
         return !(desc.coreCount > this.coreCount);
     }
 
@@ -39,14 +42,15 @@ public class FakeResourceDescription extends WorkerResourceDescription {
     @Override
     public void increaseDynamic(ResourceDescription rd) {
         FakeResourceDescription desc = (FakeResourceDescription) rd;
+        int oldCount = this.coreCount;
         this.coreCount += desc.coreCount;
     }
 
     @Override
     public ResourceDescription reduceDynamic(ResourceDescription rd) {
         FakeResourceDescription desc = (FakeResourceDescription) rd;
+        int oldCount = this.coreCount;
         this.coreCount -= desc.coreCount;
-        
         return desc;
     }
 

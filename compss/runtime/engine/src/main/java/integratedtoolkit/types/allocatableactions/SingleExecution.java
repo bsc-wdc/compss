@@ -39,7 +39,6 @@ import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
 
-
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
     private static final int TRANSFER_CHANCES = 2;
@@ -57,18 +56,17 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     private int transferErrors = 0;
     private int executionErrors = 0;
     private LinkedList<Integer> jobs = new LinkedList<Integer>();
-    
+
     private WorkerResourceDescription resourceConsumption;
 
-    
-    public SingleExecution(SchedulingInformation<P,T> schedulingInformation, TaskProducer producer, Task task) {
+    public SingleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
         super(schedulingInformation);
         this.producer = producer;
         this.task = task;
         task.setExecution(this);
         //Register data dependencies events
         for (Task predecessor : task.getPredecessors()) {
-            SingleExecution<P,T> e = (SingleExecution<P,T>) predecessor.getExecution();
+            SingleExecution<P, T> e = (SingleExecution<P, T>) predecessor.getExecution();
             if (e != null && e.isPending()) {
                 this.addDataPredecessor(e);
             }
@@ -77,26 +75,26 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         //Restricted resource
         Task resourceConstraintTask = task.getEnforcingTask();
         if (resourceConstraintTask != null) {
-        	SingleExecution<P,T> e = (SingleExecution<P,T>) resourceConstraintTask.getExecution();
+            SingleExecution<P, T> e = (SingleExecution<P, T>) resourceConstraintTask.getExecution();
             this.setResourceConstraint(e);
         }
 
     }
-    
+
     public Task getTask() {
-    	return this.task;
+        return this.task;
     }
 
     @Override
     protected boolean areEnoughResources() {
-    	Worker<T> w = selectedResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         return w.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-    	Worker<T> w = selectedResource.getResource();
-    	resourceConsumption = w.runTask(selectedImpl.getRequirements());
+        Worker<T> w = selectedResource.getResource();
+        resourceConsumption = w.runTask(selectedImpl.getRequirements());
     }
 
     @Override
@@ -135,7 +133,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
             if (debug) {
-            	jobLogger.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
+                jobLogger.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
             }
             param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName));
             return;
@@ -318,12 +316,12 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
         return getCoreElementExecutors(task.getTaskParams().getId());
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
         return r.getExecutableImpls(task.getTaskParams().getId());
     }
 
@@ -340,19 +338,19 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        ResourceScheduler<P,T> bestWorker = null;
+        ResourceScheduler<P, T> bestWorker = null;
         Implementation<T> bestImpl = null;
         Score bestScore = null;
-        LinkedList<ResourceScheduler<?,?>> candidates;
+        LinkedList<ResourceScheduler<?, ?>> candidates;
         if (isSchedulingConstrained()) {
-            candidates = new LinkedList<ResourceScheduler<?,?>>();
+            candidates = new LinkedList<ResourceScheduler<?, ?>>();
             candidates.add(this.getConstrainingPredecessor().getAssignedResource());
         } else {
             candidates = getCompatibleWorkers();
         }
         int usefulResources = 0;
-        for (ResourceScheduler<?,?> w : candidates) {
-        	ResourceScheduler<P,T> worker = (ResourceScheduler<P,T>) w;
+        for (ResourceScheduler<?, ?> w : candidates) {
+            ResourceScheduler<P, T> worker = (ResourceScheduler<P, T>) w;
             if (executingResources.contains(w)) {
                 continue;
             }
@@ -387,23 +385,18 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         this.assignResource(bestWorker);
         logger.debug(debugString.toString());
         logger.info("Assigning action " + this + " to worker" + bestWorker + " with implementation " + bestImpl.getImplementationId() + "\n");
-        bestWorker.initialSchedule(this, bestImpl);
+        bestWorker.initialSchedule(this);
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler<P,T> ts) {
-        return ts.getActionScore(this, task.getTaskParams());
-    }
-
-    @Override
-    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
         return targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
     }
 
     @Override
-    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
-        ResourceScheduler<P,T> bestWorker = null;
+        ResourceScheduler<P, T> bestWorker = null;
         Implementation<T> bestImpl = null;
         Score bestScore = null;
 
@@ -435,7 +428,25 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         this.assignResource(bestWorker);
         logger.info("\t Worker" + bestWorker + " Implementation " + bestImpl.getImplementationId() + "\n");
         logger.debug(debugString.toString());
-        bestWorker.initialSchedule(this, bestImpl);
+        bestWorker.initialSchedule(this);
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+        StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
+
+        if ( //Resource is not compatible with the implementation
+                !targetWorker.getResource().canRun(impl)
+                // already ran on the resource
+                || executingResources.contains(targetWorker)) {
+            throw new UnassignedActionException();
+        }
+
+        this.assignImplementation(impl);
+        this.assignResource(targetWorker);
+        logger.info("\t Worker" + targetWorker + " Implementation " + impl.getImplementationId() + "\n");
+        logger.debug(debugString.toString());
+        targetWorker.initialSchedule(this);
     }
 
     public String toString() {
@@ -445,5 +456,10 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     @Override
     public Integer getCoreId() {
         return task.getTaskParams().getId();
+    }
+
+    @Override
+    public int getPriority() {
+        return task.getTaskParams().hasPriority() ? 1 : 0;
     }
 }

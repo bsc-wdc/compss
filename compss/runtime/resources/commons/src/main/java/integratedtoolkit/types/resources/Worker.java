@@ -9,7 +9,6 @@ import integratedtoolkit.util.CoreManager;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
 public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
 
     protected final T description;
@@ -95,6 +94,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
     private void increaseUsedTaskCount() {
         this.usedTaskCount++;
+    }
+
+    public void resetUsedTaskCount() {
+        usedTaskCount = 0;
     }
 
     /*-------------------------------------------------------------------------
@@ -300,21 +303,21 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public T runTask(T consumption) {
-    	if (this.usedTaskCount < this.maxTaskCount) {
-    		// There are free task-slots
-    		T reserved = reserveResource(consumption); 
-    		if (reserved != null) {
+        if (this.usedTaskCount < this.maxTaskCount) {
+            // There are free task-slots
+            T reserved = reserveResource(consumption);
+            if (reserved != null) {
                 // Consumption can be hosted
                 this.increaseUsedTaskCount();
                 return reserved;
             } else {
                 // Consumption cannot be hosted
-            	return null;
+                return null;
             }
-    	}
-    	
-    	// Consumption cannot be hosted
-    	return null;
+        }
+
+        // Consumption cannot be hosted
+        return null;
     }
 
     public abstract String getMonitoringData(String prefix);
@@ -329,6 +332,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public abstract T reserveResource(T consumption);
 
     public abstract void releaseResource(T consumption);
+
+    public abstract void releaseAllResources();
 
     public void announceCreation() throws Exception {
         COMPSsWorker w = (COMPSsWorker) this.getNode();

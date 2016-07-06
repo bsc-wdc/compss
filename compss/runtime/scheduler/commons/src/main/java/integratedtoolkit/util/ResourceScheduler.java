@@ -89,7 +89,9 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
 
     public final P getProfile(Implementation<T> impl) {
         if (impl != null) {
-            return (P) profiles[impl.getCoreId()][impl.getImplementationId()];
+            if (impl.getCoreId() != null) {
+                return (P) profiles[impl.getCoreId()][impl.getImplementationId()];
+            }
         }
         return null;
     }
@@ -124,9 +126,9 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     public final LinkedList<AllocatableAction<P, T>> getHostedActions() {
         return running;
     }
-    
+
     public final LinkedList<AllocatableAction<P, T>> getBlockedActions() {
-    	return blocked;
+        return blocked;
     }
 
     public final void unhostAction(AllocatableAction<P, T> action) {
@@ -170,7 +172,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         return new Score(resourceScore, implScore);
     }
 
-    public void initialSchedule(AllocatableAction<P, T> action, Implementation<T> bestImpl) {
+    public void initialSchedule(AllocatableAction<P, T> action) {
         //Assign no resource dependencies. The worker will automatically block 
         //the tasks when there are not enough resources available.
     }
@@ -195,5 +197,6 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     public void clear() {
         running.clear();
         blocked.clear();
+        myWorker.releaseAllResources();
     }
 }

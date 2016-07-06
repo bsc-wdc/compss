@@ -3,10 +3,10 @@ package integratedtoolkit.types;
 public class Profile {
 
     private long executions;
-    private long startTime;
-    private long minTime;
-    private long averageTime;
-    private long maxTime;
+    protected long startTime;
+    protected long minTime;
+    protected long averageTime;
+    protected long maxTime;
 
     public Profile() {
         this.executions = 0;
@@ -51,6 +51,10 @@ public class Profile {
         averageTime = (profile.averageTime + executions * averageTime) / (executions + 1);
         maxTime = Math.max(maxTime, profile.maxTime);
         executions += profile.executions;
+    }
+
+    public String toString() {
+        return "[Profile executions=" + executions + " minTime" + minTime + " avgTime" + averageTime + " maxTime" + maxTime + "]";
     }
 
 }

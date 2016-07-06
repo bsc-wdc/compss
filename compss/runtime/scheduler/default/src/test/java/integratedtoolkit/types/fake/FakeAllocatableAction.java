@@ -1,6 +1,5 @@
 package integratedtoolkit.types.fake;
 
-import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
@@ -16,25 +15,27 @@ import integratedtoolkit.util.ResourceScheduler;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
+public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
     private int id;
+    private int priority;
     private Implementation<T>[] impls;
 
-    public FakeAllocatableAction(int id, Implementation<T>[] impls) {
-        super(new DefaultSchedulingInformation<P,T>());
+    public FakeAllocatableAction(int id, int priority, Implementation<T>[] impls) {
+        super(new DefaultSchedulingInformation<P, T>());
         this.id = id;
+        this.priority = priority;
         this.impls = impls;
     }
 
     @Override
     public void doAction() {
-
+        profile.start();
     }
 
     @Override
     public void doCompleted() {
-
+        profile.end();
     }
 
     @Override
@@ -50,14 +51,14 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
         LinkedList<Implementation<T>> ret = new LinkedList<Implementation<T>>();
         ret.addAll(Arrays.asList(impls));
         return ret;
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
         return null;
     }
 
@@ -73,23 +74,23 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     protected boolean areEnoughResources() {
-    	Worker<T> r = selectedResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-    	Worker<T> r = selectedResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-    	Worker<T> r = selectedResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 
-    public void selectExecution(ResourceScheduler<P,T> resource, Implementation<T> impl) {
+    public void selectExecution(ResourceScheduler<P, T> resource, Implementation<T> impl) {
         selectedResource = resource;
         selectedImpl = impl;
     }
@@ -100,23 +101,27 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-
+    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+        this.assignImplementation(impls[0]);
+        this.assignResource(targetWorker);
+        targetWorker.initialSchedule(this);
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler<P,T> ts) {
-        return null;
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+        this.assignImplementation(impl);
+        this.assignResource(targetWorker);
+        targetWorker.initialSchedule(this);
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
         return null;
     }
 
     public String dependenciesDescription() {
         StringBuilder sb = new StringBuilder("Action" + id + "\n");
-        DefaultSchedulingInformation<P,T> dsi = (DefaultSchedulingInformation<P,T>) this.getSchedulingInfo();
+        DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) this.getSchedulingInfo();
         sb.append("\t depends on\n");
         sb.append("\t\tData : ").append(this.getDataPredecessors()).append("\n");
         sb.append("\t\tResource : ").append(dsi.getPredecessors()).append("\n");
@@ -136,4 +141,8 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
         }
     }
 
+    @Override
+    public int getPriority() {
+        return priority;
+    }
 }

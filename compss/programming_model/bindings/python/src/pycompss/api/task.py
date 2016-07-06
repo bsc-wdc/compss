@@ -39,7 +39,7 @@ class task(object):
         from pycompss.api.parameter import Parameter, Type, Direction
         import copy
 
-        if not inspect.stack()[-2][3] == 'compss_worker':
+        if (not inspect.stack()[-2][3] == 'compss_worker') and (not inspect.stack()[-2][3] == 'compss_persistent_worker'):
             for arg_name in self.kwargs.keys():
                 if arg_name not in ['isModifier', 'returns', 'priority']:
                     # Prevent p.value from being overwritten later by ensuring
@@ -57,6 +57,7 @@ class task(object):
         if self.kwargs['returns']:
             self.kwargs['compss_retvalue'] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
         logger.debug("Init task...")
+        
 
     def __call__(self, f):
         """
@@ -120,8 +121,8 @@ class task(object):
                     is_nested = True
                 if i_s[3] == 'launch_pycompss_application':
                     is_nested = True
-
-            if inspect.stack()[-2][3] == 'compss_worker' and not is_nested:
+            
+            if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') and (not is_nested):
                 # Called from worker code, run the method
                 from pycompss.util.serializer import serialize_objects
 

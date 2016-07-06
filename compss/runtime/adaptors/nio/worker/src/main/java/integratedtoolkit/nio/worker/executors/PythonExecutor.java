@@ -20,10 +20,6 @@ public class PythonExecutor extends ExternalExecutor {
 	private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";
 	private static final String LIB_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "lib";
 	
-	// TODO: Remove on python persistent worker
-	private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator 
-			+ "pycompss" + File.separator + "worker" + File.separator + "worker.py";
-	
 	//private static final String WORKER_TRACING_CONFIG_FILE_RELATIVE_PATH = File.separator + "Runtime" + File.separator + "configuration" +
     //        File.separator + "xml" + File.separator + "tracing";
 	
@@ -37,13 +33,7 @@ public class PythonExecutor extends ExternalExecutor {
 	@Override
 	public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
 		// The execution command in python its empty (the handler adds the pre-command and the application args)
-		ArrayList<String> lArgs = new ArrayList<String>();	
-		
-		// TODO: Remove on python persistent worker
-		lArgs.add("python");
-		lArgs.add("-u");
-        lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
-		
+		ArrayList<String> lArgs = new ArrayList<String>();		
 		return lArgs;
 	}
 

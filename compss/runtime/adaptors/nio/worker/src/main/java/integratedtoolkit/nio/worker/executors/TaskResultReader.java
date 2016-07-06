@@ -70,7 +70,7 @@ public class TaskResultReader extends Thread {
     	mustStop = true;
     	stopSem = sem;
     	
-    	// Send pipe message with "quit" to unlock InputStream
+    	// Send pipe message with "quit" to our pipe to unlock InputStream
     	// Send quit tag to pipe
     	logger.debug("Send quit tag to pipe");
 		boolean done = false;
@@ -145,8 +145,10 @@ public class TaskResultReader extends Thread {
                 	return;
                 }
                 // Process line of the form: "quit"
+                // This quit is received from our proper shutdown, not from bindings
                 if (result[0].equals(ExternalExecutor.QUIT_TAG)) {
                 	// Quit received, end
+                	logger.debug("Received quit message");
                 	return;
                 }
                 

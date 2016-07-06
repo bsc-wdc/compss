@@ -37,6 +37,7 @@ PROCESS_DESTRUCTION = 7
 # Persistent worker global variables
 tracing=False
 debug=True
+processes = []
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -99,11 +100,12 @@ def worker(queue, process_name, input_pipe, output_pipe):
                         print "[PYTHON WORKER] Received task at ", process_name
                         print "[PYTHON WORKER] - TASK CMD: ", line
                         try:
-                            #sys.stdout = open(job_out, 'w')
-                            #sys.stderr = open(job_err, 'w')
+                            sys.stdout = open(job_out, 'w')
+                            sys.stderr = open(job_err, 'w')
                             exitvalue = execute_task(process_name, line[7:])
-		            #sys.stdout = stdout
-			    #sys.stderr = stderr
+		            sys.stdout = stdout
+			    sys.stderr = stderr
+
                             # endTask jobId exitValue
                             message = END_TASK_TAG + " " + str(job_id) \
                                                        + " " + str(exitvalue) + "\n"
@@ -318,10 +320,10 @@ def execute_task(process_name, params):
     print "[PYTHON WORKER] End task execution. Status: Ok"
     return 0
 
-
-def shutdown_handler(processes):
+def shutdown_handler(signal, frame):
     for proc in processes:
-        proc.kill()
+	if proc.is_alive():
+            proc.terminate()
 
 
 ######################
@@ -369,7 +371,6 @@ def compss_persistent_worker():
                             '/../../log/logging.json.off')
     
     # Create new threads
-    processes = []
     queues = []
     for i in xrange(0, tasks_x_node):
         print "[PYTHON WORKER] Launching process ", i
@@ -382,7 +383,7 @@ def compss_persistent_worker():
         processes[i].start()
 
     # Catch SIGTERM send by bindings_piper to exit all processes
-    signal.signal(signal.SIGTERM, shutdown_handler(processes))
+    signal.signal(signal.SIGTERM, shutdown_handler)
 
     # Wait for all threads
     for i in xrange(0, tasks_x_node):

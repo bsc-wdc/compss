@@ -76,13 +76,15 @@
   jvm_worker_in_master_opts=${17}
   library_path=${18}
   cp=${19}
-  log_level=${20}
-  tracing=${21}
-  comm=${22}
-  storageName=${23}
-  storageConf=${24}
-  taskExecution=${25}
-  shift 25
+  pythonpath=${20}
+  lang=${21}
+  log_level=${22}
+  tracing=${23}
+  comm=${24}
+  storageName=${25}
+  storageConf=${26}
+  taskExecution=${27}
+  shift 27
 
   #Display arguments
   echo "Queue:                     ${queue}"
@@ -104,6 +106,8 @@
   echo "Worker in Master JVM Opts: ${jvm_worker_in_master_opts}"
   echo "Library Path:              ${library_path}"
   echo "Classpath:                 ${cp}"  
+  echo "Pythonpath:                ${pythonpath}"
+  echo "Lang:                      ${lang}"
   echo "COMM:                      ${comm}"
   echo "Storage name:	           ${storageName}"
   echo "Storage conf:	           ${storageConf}"
@@ -182,7 +186,7 @@ EOT
 specific_log_dir=$HOME/.COMPSs/\${LSB_JOBID}/
 mkdir -p \${specific_log_dir}
 
-${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${worker_in_master_tasks} ${worker_in_master_memory} ${worker_working_dir} "\${specific_log_dir}" "${jvm_master_opts}" "${jvm_workers_opts}" "${jvm_worker_in_master_opts}" ${network} ${node_memory} ${master_port} ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
+${script_dir}/launch.sh $IT_HOME \$LSB_DJOB_HOSTFILE ${tasks_per_node} ${worker_in_master_tasks} ${worker_in_master_memory} ${worker_working_dir} "\${specific_log_dir}" "${jvm_master_opts}" "${jvm_workers_opts}" "${jvm_worker_in_master_opts}" ${network} ${node_memory} ${master_port} ${library_path} ${cp} ${pythonpath} ${lang} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} $@
 EOT
 
   # Check if the creation of the script failed

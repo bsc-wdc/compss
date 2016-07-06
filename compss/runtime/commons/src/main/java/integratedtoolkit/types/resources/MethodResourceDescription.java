@@ -991,6 +991,16 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         MethodResourceDescription otherMRD = (MethodResourceDescription) other;
         MethodResourceDescription common = new MethodResourceDescription();
         
+        // D1 P1 M1
+        // D2 P2 M2
+        
+        /*
+         * P1 i P2 compatibles --> min P1 P2 compatible no inclou que hi capiga
+         * P1 i P2 compatibles --> null
+         * 
+         * Memoria igual
+         */
+        
         // Processor
         for (Processor p : otherMRD.getProcessors()) {
         	if (checkProcessor(p)) {

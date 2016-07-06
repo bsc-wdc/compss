@@ -8,6 +8,11 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
+/**
+ * Dummy connector for testing purposes
+ * Needs to be inside main package (not test) because it is tested on execution time (constraintsTest)
+ * 
+ */
 public class Test extends AbstractConnector {
 
     private static AtomicInteger nextId = new AtomicInteger(100);

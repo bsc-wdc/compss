@@ -47,7 +47,10 @@
 
     if [ -n "$bindingPID" ]; then
       # Send SIGTERM to specific binding process
-      kill -15 $bindingPID
+
+      # Ignore kill output because if it doesn't exist it means that
+      # the subprocess has correctly finished
+      kill -15 $bindingPID > /dev/null
     fi
 
     for i in "${CMDpipes[@]}"; do
@@ -97,7 +100,7 @@
   exitValue=$?
 
   # Clean environment
-  clean_env
+  # Cleaned on TRAP
 
   # Exit message
   echo "[BINDINGS PIPER] Finished with status $exitValue"

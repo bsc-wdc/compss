@@ -26,6 +26,162 @@
     rm -f ${module_tmp}
   }
 
+  insert_xml_headers() {
+    cat > ${RESOURCES_FILE} << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <SharedDisk Name="gpfs" />
+
+EOT
+
+    cat > ${PROJECT_FILE} << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+    <MasterNode>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </MasterNode>
+
+EOT
+
+  }
+
+  insert_xml_footers() {
+    cat >> ${RESOURCES_FILE} << EOT
+</ResourcesList>
+EOT
+
+    cat >> ${PROJECT_FILE} << EOT
+</Project>
+EOT
+
+  }
+
+  add_compute_node() {
+    local nodeName=$1
+    local cus=$2
+    local memory=$3
+
+    ssh ${MASTER_NODE}${network} "/bin/mkdir -p ${worker_working_dir}"
+
+    cat >> ${RESOURCES_FILE} << EOT
+    <ComputeNode Name="${nodeName}">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>${cus}</ComputingUnits>
+            <Architecture>Intel</Architecture>
+            <Speed>2.6</Speed>
+        </Processor>
+        <OperatingSystem>
+            <Type>Linux</Type>
+            <Distribution>SMP</Distribution>
+            <Version>3.0.101-0.35-default</Version>
+        </OperatingSystem>
+        <Memory>
+            <Size>${memory}</Size>
+        </Memory>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>EXTRAE</Application>
+            <Application>COMPSS</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
+
+EOT
+
+    cat >> ${PROJECT_FILE} << EOT
+    <ComputeNode Name="${nodeName}">
+        <InstallDir>${worker_install_dir}</InstallDir>
+        <WorkingDir>${worker_working_dir}</WorkingDir>
+        <Application>
+            <LibraryPath>${library_path}</LibraryPath>
+        </Application>
+    </ComputeNode>
+
+EOT
+  }
+
+  worker_cmd() {
+    # WARNING: SETS GLOBAL SCRIPT VARIABLE WCMD
+    local nodeId=$1
+    local nodeName=$2
+    local jvm_opts_size=$3
+    local jvm_opts_str=$4
+    local cus=$5
+
+    local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
+    local maxSend=5
+    local maxReceive=5
+    local worker_port=43001
+
+    WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh \
+              ${library_path} \
+              null \
+              ${cp} \
+              ${jvm_opts_size} \
+              ${jvm_opts_str} \
+              ${debug} \
+              ${cus} \
+              ${maxSend} \
+              ${maxReceive} \
+              ${nodeName} \
+              ${worker_port} \
+              ${master_port} \
+              ${uuid} \
+              ${lang} \
+              ${sandbox_worker_working_dir} \
+              ${worker_install_dir} \
+              null \
+              ${library_path} \
+              ${cp} \
+              ${pythonpath} \
+              ${w_tracing} \
+              ${nodeId} \
+              ${storageConf} \
+              ${taskExecution}"
+  }
+
+  master_cmd() {
+    # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
+    MCMD="${IT_HOME}/Runtime/scripts/user/runcompss \
+              --master_port=${master_port} \
+              --project=${PROJECT_FILE} \
+              --resources=${RESOURCES_FILE} \
+              --storage_conf=${storageConf} \
+              --task_execution=${taskExecution} \
+              --uuid=${uuid} \
+              --jvm_master_opts="${jvm_master_opts}" \
+              --jvm_workers_opts="${jvm_workers_opts}" \
+              --specific_log_dir=${specific_log_dir} \
+              $*"
+  }  
+
+
   #---------------------------------------------------------------------------------------
   # MAIN
   #---------------------------------------------------------------------------------------
@@ -45,15 +201,17 @@
   master_port=${13}
   library_path=${14}
   cp=${15}
-  log_level=${16}
-  tracing=${17}
-  comm=${18}
-  storageName=${19}
-  storageConf=${20}
-  taskExecution=${21}
+  pythonpath=${16}
+  lang=${17}
+  log_level=${18}
+  tracing=${19}
+  comm=${20}
+  storageName=${21}
+  storageConf=${22}
+  taskExecution=${23}
 
   #Leave COMPSs parameters in $*
-  shift 21
+  shift 23
 
   #Set script variables
   export IT_HOME=${IT_HOME}
@@ -82,32 +240,14 @@
     node_memory=$(( node_memory / 1024 - 4))
   fi
 
-  sec=$(/bin/date +%s)
+  sec=$(date +%s)
   RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
   PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
 
 
   #---------------------------------------------------------------------------------------
   # Begin creating the resources file and the project file
-  /bin/cat > ${RESOURCES_FILE} << EOT
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ResourcesList>
-    <SharedDisk Name="gpfs" />
-
-EOT
-
-  /bin/cat > ${PROJECT_FILE} << EOT
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Project>
-    <MasterNode>
-        <SharedDisks>
-            <AttachedDisk Name="gpfs">
-                <MountPoint>/gpfs/</MountPoint>
-            </AttachedDisk>
-        </SharedDisks>
-    </MasterNode>
-
-EOT
+  insert_xml_headers
 
   # Get node list
   ASSIGNED_LIST=$(cat ${LSB_DJOB_HOSTFILE} | /usr/bin/sed -e 's/\.[^\ ]*//g')
@@ -138,136 +278,16 @@ EOT
  
   # Add worker slots on master if needed
   if [ ${worker_in_master_tasks} -ne 0 ]; then
-	ssh ${MASTER_NODE}${network} "/bin/mkdir -p ${worker_working_dir}"
-	/bin/cat >> ${RESOURCES_FILE} << EOT
-    <ComputeNode Name="${MASTER_NODE}${network}">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>${worker_in_master_tasks}</ComputingUnits>
-	    <Architecture>Intel</Architecture>
-	    <Speed>2.6</Speed>
-        </Processor>
-        <OperatingSystem>
-	    <Type>Linux</Type>
-	    <Distribution>SMP</Distribution>
-            <Version>3.0.101-0.35-default</Version>
-	</OperatingSystem>
-        <Memory>
-            <Size>${worker_in_master_memory}</Size>
-        </Memory>
-        <Software>
-            <Application>JAVA</Application>
-            <Application>PYTHON</Application>
-            <Application>EXTRAE</Application>
-            <Application>COMPSS</Application>
-        </Software>
-        <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43002</MaxPort>
-                </Ports>
-            </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
-            </Adaptor>
-        </Adaptors>
-        <SharedDisks>
-            <AttachedDisk Name="gpfs">
-                <MountPoint>/gpfs/</MountPoint>
-            </AttachedDisk>
-        </SharedDisks>
-    </ComputeNode>
-
-EOT
-
-        /bin/cat >> ${PROJECT_FILE} << EOT
-    <ComputeNode Name="${MASTER_NODE}${network}">
-        <InstallDir>${worker_install_dir}</InstallDir>
-        <WorkingDir>${worker_working_dir}</WorkingDir>
-        <Application>
-            <LibraryPath>${library_path}</LibraryPath>
-        </Application>
-    </ComputeNode>
-
-EOT
+    add_compute_node "${MASTER_NODE}${network}" ${worker_in_master_tasks} ${worker_in_master_memory}        
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${WORKER_LIST}; do
-	ssh $node${network} "/bin/mkdir -p ${worker_working_dir}"
-	/bin/cat >> ${RESOURCES_FILE} << EOT
-    <ComputeNode Name="${node}${network}">
-        <Processor Name="MainProcessor">
-            <ComputingUnits>${tasks_per_node}</ComputingUnits>
-            <Architecture>Intel</Architecture>
-            <Speed>2.6</Speed>
-        </Processor>
-        <OperatingSystem>
-            <Type>Linux</Type>
-            <Distribution>SMP</Distribution>
-            <Version>3.0.101-0.35-default</Version>
-        </OperatingSystem>
-        <Memory>
-            <Size>${node_memory}</Size>
-        </Memory>
-        <Software>
-            <Application>JAVA</Application>
-            <Application>PYTHON</Application>
-            <Application>EXTRAE</Application>
-            <Application>COMPSS</Application>
-        </Software>
-        <Adaptors>
-            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <Ports>
-                    <MinPort>43001</MinPort>
-                    <MaxPort>43002</MaxPort>
-                </Ports>
-            </Adaptor>
-            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
-                <SubmissionSystem>
-                    <Interactive/>
-                </SubmissionSystem>
-                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
-            </Adaptor>
-        </Adaptors>
-        <SharedDisks>
-            <AttachedDisk Name="gpfs">
-                <MountPoint>/gpfs/</MountPoint>
-            </AttachedDisk>
-        </SharedDisks>
-    </ComputeNode>
-
-EOT
-
-	/bin/cat >> ${PROJECT_FILE} << EOT
-    <ComputeNode Name="${node}${network}">
-        <InstallDir>${worker_install_dir}</InstallDir>
-        <WorkingDir>${worker_working_dir}</WorkingDir>
-        <Application>
-            <LibraryPath>${library_path}</LibraryPath>
-        </Application>
-    </ComputeNode>
-
-EOT
+    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory}
   done
 
   # Finish the resources file and the project file 
-  /bin/cat >> ${RESOURCES_FILE} << EOT
-</ResourcesList>
-EOT
-
-  /bin/cat >> ${PROJECT_FILE} << EOT
-</Project>
-EOT
+  insert_xml_footers
 
   echo "Generation of resources and project file finished"
   echo "Project.xml:   ${PROJECT_FILE}"
@@ -309,8 +329,8 @@ EOT
       # Worker in master node
       jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
       jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
-      sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${MASTER_NODE}${network}
-      WCMD="blaunch ${MASTER_NODE} ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_worker_in_master_opts_size} ${jvm_worker_in_master_opts_str} ${debug} ${worker_in_master_tasks} 5 5 ${MASTER_NODE}${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
+      worker_cmd $hostid "${MASTER_NODE}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_tasks}
+      WCMD="blaunch ${MASTER_NODE} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -319,8 +339,8 @@ EOT
     jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
     jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
     for node in ${WORKER_LIST}; do
-      sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${node}${network}
-      WCMD="blaunch $node ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh ${library_path} null ${cp} ${jvm_workers_opts_size} ${jvm_workers_opts_str} ${debug} ${tasks_per_node} 5 5 $node${network} 43001 ${master_port} ${uuid} ${sandbox_worker_working_dir} ${worker_install_dir} ${w_tracing} ${hostid} ${storageConf} ${taskExecution}"
+      worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node}
+      WCMD="blaunch ${node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
       hostid=$((hostid+1))
@@ -328,7 +348,8 @@ EOT
   fi
 
   # Launch master
-  MCMD="blaunch $MASTER_NODE ${IT_HOME}/Runtime/scripts/user/runcompss --master_port=${master_port} --project=${PROJECT_FILE} --resources=${RESOURCES_FILE} --storage_conf=${storageConf} --task_execution=${taskExecution} --uuid=${uuid} --jvm_master_opts="${jvm_master_opts}" --jvm_workers_opts="${jvm_workers_opts}" --specific_log_dir=${specific_log_dir} $*"
+  master_cmd
+  MCMD="blaunch $MASTER_NODE ${MCMD}"
   echo "CMD Master: $MCMD"
   $MCMD&
 
@@ -342,6 +363,6 @@ EOT
   for node in ${WORKER_LIST}; do
     ssh $node${network} "rm -rf ${worker_working_dir}"
   done
-  rm -rf ${PROJECT_FILE}
-  rm -rf ${RESOURCES_FILE}
+  rm -f ${PROJECT_FILE}
+  rm -f ${RESOURCES_FILE}
 

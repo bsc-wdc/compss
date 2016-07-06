@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.util;
 
+import java.io.File;
 import java.util.Map;
 
 import integratedtoolkit.ITConstants;
@@ -10,11 +11,8 @@ import integratedtoolkit.nio.worker.executors.PythonExecutor;
 
 public class PythonThreadPool extends ExternalThreadPool {
 	
-	// TODO: Enable python persistent worker
-	//private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator 
-	//		+ "worker" + File.separator + "piper_worker.py";
-	
-	private static final String PYTHON_PIPER = "python_piper.sh";
+	private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator 
+			+ "worker" + File.separator + "piper_worker.py";
 	
 	public PythonThreadPool(NIOWorker nw, int size) {
 		super(nw, size);
@@ -46,13 +44,10 @@ public class PythonThreadPool extends ExternalThreadPool {
 		StringBuilder cmd = new StringBuilder();
 		
 		cmd.append(ITConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
-		
-		cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(PYTHON_PIPER).append(ExternalExecutor.TOKEN_SEP);
-		
-		// TODO: Enable python persistent worker
-		//cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
-		//cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH)
-		//		.append(WORKER_PY_RELATIVE_PATH).append(ExternalExecutor.TOKEN_SEP);
+
+		cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
+		cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH)
+				.append(WORKER_PY_RELATIVE_PATH).append(ExternalExecutor.TOKEN_SEP);
 		
 		cmd.append(NIOWorker.isWorkerDebugEnabled).append(ExternalExecutor.TOKEN_SEP);
 		cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);

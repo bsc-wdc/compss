@@ -25,7 +25,7 @@ def main_program():
     finalValue = fis.read()
     fis.close()
     print "Final counter value is " + finalValue
-    
+ 
 @task(filePath = FILE_INOUT)
 def increment(filePath):
     print "Init task user code"

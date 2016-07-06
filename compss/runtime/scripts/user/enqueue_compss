@@ -27,8 +27,10 @@ DEFAULT_JVM_WORKERS="-Xms24800m,-Xmx24800m,-Xmn1600m"
 DEFAULT_JVM_WORKER_IN_MASTER=""
 
 # Next default values need to be consistent with runcompss
-DEFAULT_LIBRARY_PATH=.
-DEFAULT_CLASSPATH=.
+DEFAULT_LANGUAGE=java
+DEFAULT_LIBRARY_PATH=$(pwd)
+DEFAULT_CLASSPATH=$(pwd)
+DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_DEBUG=off
 DEFAULT_LOG_LEVEL_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
@@ -209,6 +211,11 @@ get_args() {
           network=*)
             network=$(echo $OPTARG | sed -e 's/network=//g')
             ;;
+          lang=*)
+            lang=$(echo $OPTARG | sed -e 's/lang=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
           library_path=*)
             library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
             #Keep it for runcompss (to add them to master)
@@ -216,6 +223,11 @@ get_args() {
             ;;
           classpath=*)
             cp=$(echo $OPTARG | sed -e 's/classpath=//g')
+            #Keep it for runcompss (to add them to master)
+            args_pass="$args_pass --$OPTARG"
+            ;;
+          pythonpath=*)
+            pythonpath=$(echo $OPTARG | sed -e 's/pythonpath=//g')
             #Keep it for runcompss (to add them to master)
             args_pass="$args_pass --$OPTARG"
             ;;
@@ -440,10 +452,17 @@ check_args() {
   ###############################################################
   # Application Checks
   ###############################################################
+  # Lang
+  if [ -z "$lang" ]; then
+    lang=${DEFAULT_LANGUAGE}
+  fi
+
+  # Library path
   if [ -z "${library_path}" ]; then
     library_path=${DEFAULT_LIBRARY_PATH}
   fi
-
+  
+  # Classpath
   if [ -z "$cp" ]; then
     cp=${DEFAULT_CLASSPATH}
   else
@@ -462,7 +481,13 @@ check_args() {
     done
     cp="$(echo "$fcp" | cut -c2-)"
   fi
+
+  # Pythonpath
+  if [ -z "$pythonpath" ]; then
+    pythonpath=${DEFAULT_PYTHONPATH}
+  fi
 }
+
 
 #---------------------------------------------------
 # MAIN EXECUTION
@@ -471,4 +496,4 @@ check_args() {
   get_args $@
   check_args
 
-  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${worker_in_master_tasks} ${worker_in_master_memory} "${jvm_worker_in_master_opts}" ${library_path} ${cp} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}
+  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${worker_in_master_tasks} ${worker_in_master_memory} "${jvm_worker_in_master_opts}" ${library_path} ${cp} ${pythonpath} ${lang} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}

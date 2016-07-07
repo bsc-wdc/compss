@@ -68,6 +68,7 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 PriorityActionSet selectableActions,
                 PriorityQueue<AllocatableAction> rescheduledActions
         ) {
+            System.out.println("Processing " + this);
             LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
             DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
 
@@ -89,6 +90,8 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
 
             //Remove resources from the state and fill the gaps before its execution
             dsi.clearPredecessors();
+            dsi.clearSuccessors();
+            dsi.setOnOptimization(false);
             ResourceDescription constraints = impl.getRequirements().copy();
 
             Gap gap;
@@ -288,11 +291,10 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 PriorityActionSet selectableActions,
                 PriorityQueue<AllocatableAction> rescheduledActions
         ) {
+            System.out.println("Processing " + this);
             LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
 
             DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
-            dsi.clearSuccessors();
-            dsi.setOnOptimization(false);
             Gap g = new Gap(expectedTimeStamp, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements(), 0);
             dsi.addGap();
             state.addGap(g);
@@ -316,6 +318,14 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             while (true) {
                 //Check the previous gaps with the current Top
                 AllocatableAction currentTop = selectableActions.peek();
+                DefaultSchedulingInformation succDSI = null;
+                while (currentTop != null) {
+                    succDSI = (DefaultSchedulingInformation) currentTop.getSchedulingInfo();
+                    if (succDSI.isOnOptimization()) {
+                        break;
+                    }
+                    currentTop = selectableActions.peek();
+                }
                 //Check if there is a new peek.
                 if (state.getTopAction() != currentTop) {
                     //Check if the new top fits in all resources
@@ -328,9 +338,9 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 if (state.canTopRun()) {
                     selectableActions.poll();
                     //Start the current action
-                    DefaultSchedulingInformation succDSI = (DefaultSchedulingInformation) currentTop.getSchedulingInfo();
                     succDSI.lock();
                     SchedulingEvent se = new Start(state.getTopStartTime(), currentTop);
+                    System.out.println(currentTop + " will start at " + state.getTopStartTime());
                     enabledEvents.addAll(se.process(state, worker, readyActions, selectableActions, rescheduledActions));
                 } else {
                     break;
@@ -381,8 +391,10 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             successorDSI.setExpectedStart(startTime);
             if (missingParams == 0) {
                 if (successorDSI.getExpectedStart() <= timeLimit) {
+                    System.out.println("Adding successor " + successor + " to selectable");
                     selectableActions.offer(successor);
                 } else {
+                    System.out.println("Adding successor " + successor + " to ready");
                     readyActions.add(successor);
                 }
             }

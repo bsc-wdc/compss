@@ -82,9 +82,15 @@ def worker(queue, process_name, input_pipe, output_pipe):
     :return: Nothing
     """
 
+    # TRACING
+    # if tracing:
+    #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+
     alive = True
     stdout = sys.stdout
     stderr = sys.stderr
+
+
 
     print "[PYTHON WORKER] Starting process ", process_name
     while alive:
@@ -119,6 +125,10 @@ def worker(queue, process_name, input_pipe, output_pipe):
                         # Received quit message -> Suicide
                         print "[PYTHON WORKER] Received quit at ", process_name
                         alive = False
+
+    # TRACING
+    # if tracing:
+    #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
     print "[PYTHON WORKER] Exiting process ", process_name
 
 
@@ -142,9 +152,9 @@ def execute_task(process_name, params):
     pos = 0
     values = []
     types = []
-    if tracing:
-        pyextrae.event(TASK_EVENTS, 0)
-        pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
+    # if tracing:
+    #     pyextrae.event(TASK_EVENTS, 0)
+    #     pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
     # Get all parameter values
     for i in range(0, num_params):
         ptype = int(args[pos])
@@ -204,9 +214,9 @@ def execute_task(process_name, params):
 
         pos += 2
 
-    if tracing:
-        pyextrae.event(TASK_EVENTS, 0)
-        pyextrae.event(TASK_EVENTS, LOGGING)
+    # if tracing:
+    #     pyextrae.event(TASK_EVENTS, 0)
+    #     pyextrae.event(TASK_EVENTS, LOGGING)
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
         types_str = ''
@@ -232,13 +242,13 @@ def execute_task(process_name, params):
             logger.debug("Version < 2.7")
         
         with TaskContext(logger, values):
-            if tracing:
-                pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+            # if tracing:
+            #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+            #     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
             getattr(module, method_name)(*values, compss_types=types)
-            if tracing:
-                pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+            # if tracing:
+            #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+            #     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
     # ==========================================================================
     except AttributeError:
         # Appears with functions that have not been well defined.
@@ -285,26 +295,26 @@ def execute_task(process_name, params):
 
 
             with TaskContext(logger, values):
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                # if tracing:
+                #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+                # if tracing:
+                #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             serialize_to_file(obj, file_name, force=True)
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)    # class must be first type
 
             with TaskContext(logger, values):
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                # if tracing:
+                #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+                # if tracing:
+                #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
     # ==========================================================================
     except Exception, e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -318,6 +328,10 @@ def execute_task(process_name, params):
 
     # EVERYTHING OK
     print "[PYTHON WORKER] End task execution. Status: Ok"
+
+    # if tracing:
+    #     pyextrae.eventandcounters(TASK_EVENTS, 0)
+
     return 0
 
 def shutdown_handler(signal, frame):
@@ -352,14 +366,6 @@ def compss_persistent_worker():
     if debug:
         assert tasks_x_node == len(in_pipes)
         assert tasks_x_node == len(out_pipes)
-    
-    # TRACING
-    if tracing:
-        import pyextrae
-        pyextrae.eventandcounters(SYNC_EVENTS, taskId)
-        # pyextrae.eventandcounters(TASK_EVENTS, 0)
-        pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
-
 
     # Load log level configuration file
     if debug:
@@ -393,11 +399,7 @@ def compss_persistent_worker():
     for i in xrange(0, tasks_x_node):
         if not queues[i].empty:
             print queues[i].get()
-            
-    if tracing:
-        pyextrae.eventandcounters(TASK_EVENTS, 0)
-        # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-        pyextrae.eventandcounters(SYNC_EVENTS, taskId)
+
 
     print "[PYTHON WORKER] Finished"
 

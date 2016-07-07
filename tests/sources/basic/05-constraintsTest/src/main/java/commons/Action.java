@@ -98,13 +98,7 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
     public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
-
-	@Override
-	public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) 
-			throws BlockedActionException, UnassignedActionException {
-		
-	}
-    
+   
     @Override
     public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
 

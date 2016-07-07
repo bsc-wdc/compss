@@ -985,38 +985,45 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public ResourceDescription getDynamicCommons(ResourceDescription other) {
         MethodResourceDescription otherMRD = (MethodResourceDescription) other;
         MethodResourceDescription common = new MethodResourceDescription();
-
-        // D1 P1 M1
-        // D2 P2 M2
-        
-        /*
-         * P1 i P2 compatibles --> min P1 P2 compatible no inclou que hi capiga
-         * P1 i P2 compatibles --> null
-         * 
-         * Memoria igual
-         */
         
         // Processor
         for (Processor p : otherMRD.getProcessors()) {
-            if (checkProcessor(p)) {
-                common.addProcessor(p); // Increases totalCUs
-            }
+        	boolean isProcessorCompatible = false;
+        	int i = 0;
+        	while (i < this.processors.size() && !isProcessorCompatible) {
+        		Processor pThis = this.processors.get(i);
+        		
+            	// Only checks compatibility, not inclusion
+        		if (checkProcessorCompatibility(pThis, p)) {
+    	    		// Satisfies compatibility
+        			isProcessorCompatible = true;
+        			// Include commons
+        			common.addProcessor(getDynamicCommonsProcessor(pThis, p));
+        		}
+        		i = i + 1;
+        	}
         }
-
+        
         // Memory
-        if (checkMemory(otherMRD)) {
-            String memType = UNASSIGNED_STR;
-            if (!otherMRD.getMemoryType().equals(UNASSIGNED_STR)) {
-                memType = otherMRD.getMemoryType();
-            } else {
-                memType = this.getMemoryType();
-            }
-
-            common.setMemoryType(memType);
-            common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
+        // Only checks compatibility, not inclusion
+        if (checkCompatibility(this.memoryType, otherMRD.memoryType)) {
+        	// Copy the assignable memory type (no the requested)
+        	common.setMemoryType(this.getMemoryType());
+        	common.setMemorySize(Math.min(this.memorySize, otherMRD.getMemorySize()));
         }
-
+        
         return common;
+    }
+    
+    private Processor getDynamicCommonsProcessor(Processor pThis, Processor p) {
+    	// Copy the assignable processor (no the requested)
+    	Processor common = new Processor(pThis);
+    	
+    	// Compute the number of CUs that can be given
+    	int cus = Math.min(pThis.getComputingUnits(), p.getComputingUnits());
+    	common.setComputingUnits(cus);
+    	
+    	return common;
     }
 
     @Override

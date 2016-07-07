@@ -4,6 +4,7 @@ package integratedtoolkit.nio.worker.executors;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
+import integratedtoolkit.nio.worker.util.TaskResultReader;
 import integratedtoolkit.util.RequestQueue;
 
 import java.io.File;

@@ -177,8 +177,7 @@ EOT
               --uuid=${uuid} \
               --jvm_master_opts="${jvm_master_opts}" \
               --jvm_workers_opts="${jvm_workers_opts}" \
-              --specific_log_dir=${specific_log_dir} \
-              $*"
+              --specific_log_dir=${specific_log_dir}"
   }  
 
 
@@ -349,12 +348,12 @@ EOT
 
   # Launch master
   master_cmd
-  MCMD="blaunch $MASTER_NODE ${MCMD}"
+  MCMD="blaunch $MASTER_NODE ${MCMD} $*"
   echo "CMD Master: $MCMD"
   $MCMD&
 
   # Wait for Master and Workers to finish
-  echo "Waiting for application completition"
+  echo "Waiting for application completion"
   wait
 
   #---------------------------------------------------------------------------------------

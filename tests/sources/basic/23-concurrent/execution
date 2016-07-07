@@ -54,7 +54,7 @@
      applicationConcurrent.Concurrent 2 > >(tee ${output_log_app2}) 2> >(tee ${error_log_app2} >&2) &
   pid2=$!
 
-  # Wait for completition
+  # Wait for completion
   wait $pid1
   status1=$?
   wait $pid2

@@ -90,8 +90,6 @@ def worker(queue, process_name, input_pipe, output_pipe):
     stdout = sys.stdout
     stderr = sys.stderr
 
-
-
     print "[PYTHON WORKER] Starting process ", process_name
     while alive:
         with open(input_pipe, 'r', 0) as in_pipe:

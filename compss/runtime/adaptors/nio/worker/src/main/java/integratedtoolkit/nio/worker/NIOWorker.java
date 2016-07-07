@@ -45,9 +45,12 @@ public class NIOWorker extends NIOAgent {
 	
 	private static final int MAX_RETRIES = 5;
 	
+	// Logger
 	private static final Logger wLogger = Logger.getLogger(Loggers.WORKER);
-	private static final String EXECUTION_MANAGER_ERR 	= "Error starting ExecutionManager";
-	private static final String DATA_MANAGER_ERROR 		= "Error starting DataManager";
+	private static final boolean loggerDebug = wLogger.isDebugEnabled();
+	private static final String EXECUTION_MANAGER_ERR 		= "Error starting ExecutionManager";
+	private static final String DATA_MANAGER_ERROR 			= "Error starting DataManager";
+	private static final String ERROR_INCORRECT_NUM_PARAMS 	= "Error: Incorrect number of parameters";
 	
 	// Application dependent attributes
 	private final String deploymentId;
@@ -742,7 +745,7 @@ public class NIOWorker extends NIOAgent {
 			try {
 				Files.copy(new File(outSource).toPath(), new File(outTarget).toPath());
 			} catch (Exception e) {
-				logger.error("Exception", e);
+				wLogger.error("Exception", e);
 			}
 		} else {
 			FileOutputStream fos = null;
@@ -751,13 +754,13 @@ public class NIOWorker extends NIOAgent {
 				fos.write("Empty file".getBytes());
 				fos.close();
 			} catch (Exception e) {
-				logger.error("Exception", e);
+				wLogger.error("Exception", e);
 			} finally {
 				if (fos != null) {
 					try {
 						fos.close();
 					} catch (Exception e) {
-						logger.error("Exception", e);
+						wLogger.error("Exception", e);
 					}
 				}
 			}
@@ -770,7 +773,7 @@ public class NIOWorker extends NIOAgent {
 			try {
 				Files.copy(new File(errSource).toPath(), new File(errTarget).toPath());
 			} catch (Exception e) {
-				logger.error("Exception", e);
+				wLogger.error("Exception", e);
 			}
 		} else {
 			FileOutputStream fos = null;
@@ -779,13 +782,13 @@ public class NIOWorker extends NIOAgent {
 				fos.write("Empty file".getBytes());
 				fos.close();
 			} catch (Exception e) {
-				logger.error("Exception", e);
+				wLogger.error("Exception", e);
 			} finally {
 				if (fos != null) {
 					try {
 						fos.close();
 					} catch (Exception e) {
-						logger.error("Exception", e);
+						wLogger.error("Exception", e);
 					}
 				}
 			}
@@ -819,10 +822,27 @@ public class NIOWorker extends NIOAgent {
 		}
 	}
 	
-	public static void main(String[] args) {		 
+	public static void main(String[] args) {
+		/* **************************************
+		 * Configure logger
+		 * **************************************/
+		PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
+		
+		
 		/* **************************************
 		 * Get arguments
 		 * **************************************/
+		if (args.length != 18) {
+			if (loggerDebug) {
+				wLogger.debug("Received parameters: ");
+				for (int i = 0; i < args.length; ++i) {
+					wLogger.debug("Param " + i + ":  " + args[i]);
+				}
+			}
+			
+			ErrorManager.fatal(ERROR_INCORRECT_NUM_PARAMS);
+		}
+		
 		isWorkerDebugEnabled = Boolean.valueOf(args[0]);
 		
 		int jobThreads = new Integer(args[1]);
@@ -850,10 +870,8 @@ public class NIOWorker extends NIOAgent {
 		
 		
 		/* **************************************
-		 * Configure logger and print args 
-		 * **************************************/
-		PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
-		
+		 * Print args 
+		 * **************************************/		
 		if (isWorkerDebugEnabled) {
 			wLogger.debug("jobThreads: " + String.valueOf(jobThreads));
 			wLogger.debug("maxSnd: " + String.valueOf(maxSnd));
@@ -884,7 +902,7 @@ public class NIOWorker extends NIOAgent {
 		System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
 		try {
 			if (storageConf.compareTo("null") == 0) {
-				logger.warn("No storage configuration file passed");
+				wLogger.warn("No storage configuration file passed");
 			} else {
 				StorageItf.init(storageConf);
 			}
@@ -907,7 +925,7 @@ public class NIOWorker extends NIOAgent {
             		tracingID = Integer.parseInt(host);
             		NIOTracer.setWorkerInfo(installDir , workerIP, workingDir, tracingID);
         		} catch (Exception e) {
-            		logger.error("No valid hostID provided to the tracing system. Provided ID: " + host);
+            		wLogger.error("No valid hostID provided to the tracing system. Provided ID: " + host);
         		}
     	}
 

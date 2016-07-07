@@ -9,7 +9,6 @@ import java.util.UUID;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.ThreadPrintStream;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
-import integratedtoolkit.nio.worker.executors.TaskResultReader;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.StreamGobbler;
 import integratedtoolkit.util.Tracer;
@@ -154,7 +153,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 		// The ProcessBuilder is non-blocking but we block the thread for a short period of time to allow the
 		// bash script to create the needed environment (pipes)
 		try {
-			Thread.sleep(PIPE_CREATION_TIME);
+			Thread.sleep(PIPE_CREATION_TIME * size);
 		} catch (InterruptedException e) {
 			// No need to catch such exceptions
 		}

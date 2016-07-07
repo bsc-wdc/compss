@@ -8,6 +8,7 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
+import integratedtoolkit.nio.worker.util.TaskResultReader;
 import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;

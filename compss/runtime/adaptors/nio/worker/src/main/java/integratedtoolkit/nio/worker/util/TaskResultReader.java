@@ -1,6 +1,7 @@
-package integratedtoolkit.nio.worker.executors;
+package integratedtoolkit.nio.worker.util;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 import integratedtoolkit.util.ErrorManager;
 
 import java.io.BufferedReader;

@@ -61,8 +61,7 @@ public abstract class NIOAgent {
     public static final TransferManager tm = new TransferManager();
 
     //Logging
-    public static final Logger logger = Logger.getLogger(Loggers.COMM);
-    public static final boolean debug = logger.isDebugEnabled();
+    private static final Logger logger = Logger.getLogger(Loggers.COMM);
 
     // Tracing
     protected static boolean tracing;

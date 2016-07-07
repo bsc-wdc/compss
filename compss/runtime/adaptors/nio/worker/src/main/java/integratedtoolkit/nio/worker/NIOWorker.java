@@ -832,7 +832,7 @@ public class NIOWorker extends NIOAgent {
 		/* **************************************
 		 * Get arguments
 		 * **************************************/
-		if (args.length != 18) {
+		if (args.length != 19) {
 			if (loggerDebug) {
 				wLogger.debug("Received parameters: ");
 				for (int i = 0; i < args.length; ++i) {

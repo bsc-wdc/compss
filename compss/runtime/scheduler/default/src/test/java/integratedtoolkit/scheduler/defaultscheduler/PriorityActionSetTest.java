@@ -66,16 +66,19 @@ public class PriorityActionSetTest {
         PriorityQueue<AllocatableAction> peeks;
 
         FakeAllocatableAction action1 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(0));
+        ((DefaultSchedulingInformation) action1.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action1);
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
         FakeAllocatableAction action2 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(0));
+        ((DefaultSchedulingInformation) action2.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action2);
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
         FakeAllocatableAction action3 = new FakeAllocatableAction(3, 0, null);
+        ((DefaultSchedulingInformation) action3.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action3);
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
@@ -85,6 +88,7 @@ public class PriorityActionSetTest {
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         FakeAllocatableAction action4 = new FakeAllocatableAction(4, 0, CoreManager.getCoreImplementations(1));
+        ((DefaultSchedulingInformation) action4.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action4);
         peeks = pas.peekAll();
         expectedPeeks = new AllocatableAction[]{action1, action3, action4};
@@ -123,8 +127,9 @@ public class PriorityActionSetTest {
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
         FakeAllocatableAction action5 = new FakeAllocatableAction(5, 0, CoreManager.getCoreImplementations(1));
+        ((DefaultSchedulingInformation) action5.getSchedulingInfo()).setToReschedule(true);
         FakeAllocatableAction action6 = new FakeAllocatableAction(6, 0, CoreManager.getCoreImplementations(1));
-
+        ((DefaultSchedulingInformation) action6.getSchedulingInfo()).setToReschedule(true);
         pas.offer(action6);
         action = pas.peek();
         if (action6 != action) {

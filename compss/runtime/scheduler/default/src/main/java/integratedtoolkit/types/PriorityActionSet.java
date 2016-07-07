@@ -57,8 +57,8 @@ public class PriorityActionSet {
     }
 
     public AllocatableAction poll() {
-        AllocatableAction currentPeek = priority.poll();
-        if (currentPeek != null) {
+        AllocatableAction currentPeek;
+        while ((currentPeek = priority.poll()) != null) {
             Integer coreId = currentPeek.getCoreId();
             AllocatableAction nextPeek;
             if (coreId == null) {
@@ -71,107 +71,55 @@ public class PriorityActionSet {
             if (nextPeek != null) {
                 priority.offer(nextPeek);
             }
-        }
-        return currentPeek;
-    }
-
-    public AllocatableAction poll(long timeStamp) {
-        AllocatableAction currentPeek = priority.peek();
-        if (currentPeek != null) {
-            DefaultSchedulingInformation dsi = ((DefaultSchedulingInformation) currentPeek.getSchedulingInfo());
-            if (dsi.getExpectedStart() >= timeStamp) {
-                return null;
-            }
-            priority.poll();
-            Integer coreId = currentPeek.getCoreId();
-            AllocatableAction nextPeek;
-            if (coreId == null) {
-                noCoreActions.poll();
-                nextPeek = noCoreActions.peek();
-            } else {
-                coreActions[coreId].poll();
-                nextPeek = coreActions[coreId].peek();
-            }
-            if (nextPeek != null) {
-                priority.offer(nextPeek);
+            DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) currentPeek.getSchedulingInfo();
+            if (dsi.isToReschedule()) {
+                break;
             }
         }
         return currentPeek;
     }
 
-    public void removePeek(Integer coreId) {
+    public void removeFirst(Integer coreId) {
         if (coreId == null) {
             noCoreActions.poll();
         } else {
             coreActions[coreId].poll();
         }
-
         rebuildPriorityQueue();
     }
 
     public AllocatableAction peek() {
-        return priority.peek();
-    }
-
-    public AllocatableAction peek(long timeStamp) {
         AllocatableAction currentPeek = priority.peek();
-        if (currentPeek != null) {
-            DefaultSchedulingInformation dsi = ((DefaultSchedulingInformation) currentPeek.getSchedulingInfo());
-            if (dsi.getExpectedStart() >= timeStamp) {
-                currentPeek = null;
-            }
+        while (currentPeek != null
+                && !((DefaultSchedulingInformation) currentPeek.getSchedulingInfo()).isToReschedule()) {
+            removeFirst(currentPeek.getCoreId());
+            currentPeek = priority.peek();
         }
         return currentPeek;
     }
 
-    public PriorityQueue<AllocatableAction> peekCores(LinkedList<Integer> cores) {
-        PriorityQueue<AllocatableAction> peeks = new PriorityQueue(coreActions.length + 1, comparator);
-        for (Integer core : cores) {
-            AllocatableAction currentCore;
-            if (cores == null) {
-                currentCore = noCoreActions.peek();
-            } else {
-                currentCore = coreActions[core].peek();
-            }
-            if (currentCore != null) {
-                peeks.offer(currentCore);
-            }
-        }
-        return peeks;
-    }
-
     public PriorityQueue<AllocatableAction> peekAll() {
         PriorityQueue<AllocatableAction> peeks = new PriorityQueue(coreActions.length + 1, comparator);
+
         AllocatableAction currentCore = noCoreActions.peek();
+        if (currentCore != null
+                && !((DefaultSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+            noCoreActions.poll();
+            currentCore = noCoreActions.peek();
+        }
         if (currentCore != null) {
             peeks.offer(currentCore);
         }
 
         for (PriorityQueue<AllocatableAction> core : coreActions) {
             currentCore = core.peek();
+            if (currentCore != null
+                    && !((DefaultSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+                core.poll();
+                currentCore = core.peek();
+            }
             if (currentCore != null) {
                 peeks.offer(currentCore);
-            }
-        }
-        return peeks;
-    }
-
-    public PriorityQueue<AllocatableAction> peekAll(long timeStamp) {
-        PriorityQueue<AllocatableAction> peeks = new PriorityQueue(coreActions.length + 1, comparator);
-        AllocatableAction currentCore = noCoreActions.peek();
-        if (currentCore != null) {
-            DefaultSchedulingInformation dsi = ((DefaultSchedulingInformation) currentCore.getSchedulingInfo());
-            if (dsi.getExpectedStart() < timeStamp) {
-                peeks.offer(currentCore);
-            }
-        }
-        for (PriorityQueue<AllocatableAction> core : coreActions) {
-            currentCore = core.peek();
-            if (currentCore != null) {
-                DefaultSchedulingInformation dsi = ((DefaultSchedulingInformation) currentCore.getSchedulingInfo());
-                if (dsi.getExpectedStart() < timeStamp) {
-                    peeks.offer(currentCore);
-                }
             }
         }
         return peeks;

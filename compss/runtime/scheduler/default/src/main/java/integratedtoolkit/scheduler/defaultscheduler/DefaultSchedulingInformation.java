@@ -28,7 +28,8 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
     private LinkedList<AllocatableAction<P, T>> resourceSuccessors;
 
     //Action Scheduling is being optimized locally
-    private boolean onOptimization;
+    private boolean onOptimization = false;
+    private boolean toReschedule = false;
     private final LinkedList<AllocatableAction<P, T>> optimizingSuccessors;
 
     public DefaultSchedulingInformation() {
@@ -53,9 +54,9 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
     @Override
     public final boolean isExecutable() {
         boolean b;
-        l.lock();
+        lock();
         b = resourcePredecessors.isEmpty();
-        l.unlock();
+        unlock();
         return b;
     }
 
@@ -180,6 +181,14 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
         return onOptimization;
     }
 
+    public void setToReschedule(boolean b) {
+        this.toReschedule = b;
+    }
+
+    public boolean isToReschedule() {
+        return this.toReschedule;
+    }
+
     public void optimizingSuccessor(AllocatableAction action) {
         optimizingSuccessors.add(action);
     }
@@ -210,5 +219,9 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
 
     public int getLockCount() {
         return l.getHoldCount();
+    }
+
+    public int getGapCount() {
+        return openGaps;
     }
 }

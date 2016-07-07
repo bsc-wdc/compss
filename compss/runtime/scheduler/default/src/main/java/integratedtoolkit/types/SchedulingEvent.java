@@ -7,7 +7,6 @@ import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 
 import java.util.LinkedList;
 import java.util.PriorityQueue;
@@ -68,88 +67,42 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 PriorityActionSet selectableActions,
                 PriorityQueue<AllocatableAction> rescheduledActions
         ) {
-            System.out.println("Processing " + this);
             LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
             DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
 
             //Set the expected Start time and endTime of the action
             dsi.setExpectedStart(expectedTimeStamp);
-            Implementation<T> impl = action.getAssignedImplementation();
-            Profile p = worker.getProfile(impl);
-            long endTime = expectedTimeStamp;
-            if (p != null) {
-                endTime += p.getAverageExecutionTime();
-            }
-            if (endTime < 0) {
-                endTime = 0;
-            }
-            dsi.setExpectedEnd(endTime);
+            long expectedEndTime = getExpectedEnd(action, worker, expectedTimeStamp);
+            dsi.setExpectedEnd(expectedEndTime);
             //Add corresponding end event
-            SchedulingEvent<P, T> endEvent = new End<P, T>(endTime, action);
+            SchedulingEvent<P, T> endEvent = new End<P, T>(expectedEndTime, action);
             enabledEvents.add(endEvent);
 
             //Remove resources from the state and fill the gaps before its execution
             dsi.clearPredecessors();
             dsi.clearSuccessors();
-            dsi.setOnOptimization(false);
-            ResourceDescription constraints = impl.getRequirements().copy();
+            LinkedList<Gap> tmpGaps = state.reserveResources(action.getAssignedImplementation().getRequirements(), expectedTimeStamp);
 
-            Gap gap;
-            boolean hasNoPredecessors = true;
-            while ((gap = state.peekFirstGap()) != null) {
-                ResourceDescription gapResource = gap.getResources();
-                AllocatableAction gapAction = gap.getOrigin();
-                DefaultSchedulingInformation gapActionDSI = null;
-
-                //Remove resources from the first gap
-                ResourceDescription reduction = ResourceDescription.reduceCommonDynamics(gapResource, constraints);
-                if (gap.getInitialTime() > 0 && gap.getInitialTime() < expectedTimeStamp) {
-                    //There's an empty space before the task start that can be filled with other tasks
-                    Gap g = new Gap(gap.getInitialTime(), expectedTimeStamp, gapAction, reduction, 0);
+            for (Gap tmpGap : tmpGaps) {
+                AllocatableAction gapAction = tmpGap.getOrigin();
+                if (tmpGap.getInitialTime() == tmpGap.getEndTime()) {
                     if (gapAction != null) {
-                        gapActionDSI = ((DefaultSchedulingInformation) gapAction.getSchedulingInfo());
-                        gapActionDSI.addGap();
+                        DefaultSchedulingInformation gapActionDSI = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
+                        gapActionDSI.addSuccessor(action);
+                        dsi.addPredecessor(gapAction);
+                        state.removeTmpGap(tmpGap);
                     }
-                    PriorityQueue<Gap> outGaps = fillGap(worker, g, readyActions, selectableActions, rescheduledActions);
+                } else {
+                    PriorityQueue<Gap> outGaps = fillGap(worker, tmpGap, readyActions, selectableActions, rescheduledActions, state);
                     for (Gap outGap : outGaps) {
                         AllocatableAction pred = outGap.getOrigin();
                         if (pred != null) {
                             DefaultSchedulingInformation predDSI = (DefaultSchedulingInformation) pred.getSchedulingInfo();
                             predDSI.addSuccessor(action);
                             dsi.addPredecessor(pred);
-                            predDSI.removeGap();
-                            if (!predDSI.hasGaps()) {
-                                predDSI.unlock();
-                            }
-                            hasNoPredecessors = false;
                         }
+                        state.removeTmpGap(outGap);
                     }
-                } else {
-                    if (gapAction != null) {
-                        gapActionDSI = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
-                        gapActionDSI.addSuccessor(action);
-                        dsi.addPredecessor(gapAction);
-                        hasNoPredecessors = false;
-                    }
-                }
-
-                //If the gap has been fully used
-                if (gapResource.isDynamicUseless()) {
-                    //Remove the gap
-                    state.pollGap();
-                    if (gapActionDSI != null) {
-                        gapActionDSI.removeGap();
-                        //If there are no more gaps for the origin action  
-                        if (!gapActionDSI.hasGaps()) {
-                            //unlock it since it won't have more successors
-                            gapActionDSI.unlock();
-                        }
-                    }
-                }
-
-                if (constraints.isDynamicUseless()) {
-                    //Task has all the needed resources.
-                    break;
                 }
             }
             rescheduledActions.offer(action);
@@ -161,9 +114,9 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 Gap gap,
                 PriorityQueue<AllocatableAction> readyActions,
                 PriorityActionSet selectableActions,
-                PriorityQueue<AllocatableAction> rescheduledActions
+                PriorityQueue<AllocatableAction> rescheduledActions,
+                LocalOptimizationState state
         ) {
-
             //Find  selected action predecessors
             PriorityQueue<Gap> availableGaps = new PriorityQueue(1, new Comparator<Gap>() {
                 @Override
@@ -173,9 +126,92 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
 
             });
 
-            PriorityQueue<AllocatableAction> peeks = selectableActions.peekAll();
-            AllocatableAction gapAction = null;
+            AllocatableAction gapAction = pollActionForGap(gap, worker, selectableActions);
 
+            if (gapAction != null) {
+                //Compute method start
+                DefaultSchedulingInformation gapActionDSI = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
+                gapActionDSI.setToReschedule(false);
+                long gapActionStart = Math.max(gapActionDSI.getExpectedStart(), gap.getInitialTime());
+
+                //Fill previous gap space
+                if (gap.getInitialTime() != gapActionStart) {
+                    Gap previousGap = new Gap(gap.getInitialTime(), gapActionStart, gap.getOrigin(), gap.getResources(), 0);
+                    state.replaceTmpGap(gap, previousGap);
+                    availableGaps = fillGap(worker, previousGap, readyActions, selectableActions, rescheduledActions, state);
+                } else {
+                    availableGaps.add(gap);
+                }
+
+                gapActionDSI.lock();
+                //Update Information
+                gapActionDSI.setExpectedStart(gapActionStart);
+                long expectedEnd = getExpectedEnd(gapAction, worker, gapActionStart);
+                gapActionDSI.setExpectedEnd(expectedEnd);
+                gapActionDSI.clearPredecessors();
+
+                ResourceDescription desc = gapAction.getAssignedImplementation().getRequirements().copy();
+                while (!desc.isDynamicUseless()) {
+                    Gap peekGap = availableGaps.peek();
+                    AllocatableAction peekAction = peekGap.getOrigin();
+                    if (peekAction != null) {
+                        DefaultSchedulingInformation predActionDSI = (DefaultSchedulingInformation) peekAction.getSchedulingInfo();
+                        gapActionDSI.addPredecessor(peekAction);
+                        predActionDSI.addSuccessor(gapAction);
+                    }
+                    ResourceDescription.reduceCommonDynamics(desc, peekGap.getResources());
+                    if (peekGap.getResources().isDynamicUseless()) {
+                        availableGaps.poll();
+                        state.removeTmpGap(gap);
+                    }
+                }
+
+                LinkedList<Gap> extendedGaps = new LinkedList();
+                //Fill Concurrent 
+                for (Gap g : availableGaps) {
+                    Gap extendedGap = new Gap(g.getInitialTime(), gap.getEndTime(), g.getOrigin(), g.getResources(), g.getCapacity());
+                    state.replaceTmpGap(extendedGap, gap);
+                    extendedGaps.add(extendedGap);
+                }
+
+                availableGaps.clear();
+                for (Gap eg : extendedGaps) {
+                    availableGaps.addAll(fillGap(worker, eg, readyActions, selectableActions, rescheduledActions, state));
+                }
+
+                gapActionDSI.clearSuccessors();
+                rescheduledActions.add(gapAction);
+
+                gapActionDSI.setOnOptimization(false);
+                //Release Data Successors
+                releaseSuccessors(gapActionDSI, worker, readyActions, selectableActions, expectedEnd);
+
+                //Fill Post action gap space
+                Gap actionGap = new Gap(expectedEnd, gap.getEndTime(), gapAction, gapAction.getAssignedImplementation().getRequirements(), 0);
+                state.addTmpGap(actionGap);
+                availableGaps.addAll(fillGap(worker, actionGap, readyActions, selectableActions, rescheduledActions, state));
+            } else {
+                availableGaps.add(gap);
+            }
+            return availableGaps;
+        }
+
+        private long getExpectedEnd(AllocatableAction action, DefaultResourceScheduler worker, long expectedStart) {
+            Implementation<T> impl = action.getAssignedImplementation();
+            Profile p = worker.getProfile(impl);
+            long endTime = expectedStart;
+            if (p != null) {
+                endTime += p.getAverageExecutionTime();
+            }
+            if (endTime < 0) {
+                endTime = 0;
+            }
+            return endTime;
+        }
+
+        private AllocatableAction pollActionForGap(Gap gap, DefaultResourceScheduler worker, PriorityActionSet selectableActions) {
+            AllocatableAction gapAction = null;
+            PriorityQueue<AllocatableAction> peeks = selectableActions.peekAll();
             //Get Main action to fill the gap
             while (!peeks.isEmpty() && gapAction == null) {
                 AllocatableAction candidate = peeks.poll();
@@ -197,78 +233,12 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
 
                 //Check description
                 if (gap.getResources().canHostDynamic(impl)) {
+                    selectableActions.removeFirst(candidate.getCoreId());
                     gapAction = candidate;
                 }
             }
+            return gapAction;
 
-            if (gapAction != null) {
-                selectableActions.removePeek(gapAction.getCoreId());
-
-                //Compute method start
-                DefaultSchedulingInformation gapActionDSI = (DefaultSchedulingInformation) gapAction.getSchedulingInfo();
-
-                long gapActionStart = Math.max(gapActionDSI.getExpectedStart(), gap.getInitialTime());
-
-                //Fill previous gap space
-                if (gap.getInitialTime() != gapActionStart) {
-                    Gap previousGap = new Gap(gap.getInitialTime(), gapActionStart, gap.getOrigin(), gap.getResources(), 0);
-                    if (gap.getOrigin() != null) {
-                        DefaultSchedulingInformation gapOriginDSI = (DefaultSchedulingInformation) gap.getOrigin().getSchedulingInfo();
-                        gapOriginDSI.addGap();
-                    }
-                    availableGaps = fillGap(worker, previousGap, readyActions, selectableActions, rescheduledActions);
-                } else {
-                    availableGaps.add(gap);
-                }
-
-                gapActionDSI.lock();
-                //Update Information
-                gapActionDSI.setExpectedStart(gapActionStart);
-                Implementation<T> impl = gapAction.getAssignedImplementation();
-                Profile p = worker.getProfile(impl);
-                long expectedLength = p.getAverageExecutionTime();
-                gapActionDSI.setExpectedEnd(gapActionStart + expectedLength);
-                gapActionDSI.clearPredecessors();
-                ResourceDescription desc = impl.getRequirements().copy();
-                while (!desc.isDynamicUseless()) {
-                    Gap peekGap = availableGaps.peek();
-                    AllocatableAction peekAction = peekGap.getOrigin();
-                    if (peekAction != null) {
-                        DefaultSchedulingInformation predActionDSI = (DefaultSchedulingInformation) peekAction.getSchedulingInfo();
-                        gapActionDSI.addPredecessor(peekAction);
-                        predActionDSI.addSuccessor(gapAction);
-                    }
-                    ResourceDescription.reduceCommonDynamics(desc, peekGap.getResources());
-                    if (peekGap.getResources().isDynamicUseless()) {
-                        availableGaps.poll();
-                        if (peekAction != null) {
-                            DefaultSchedulingInformation predActionDSI = (DefaultSchedulingInformation) peekAction.getSchedulingInfo();
-                            predActionDSI.removeGap();
-                            if (!predActionDSI.hasGaps()) {
-                                predActionDSI.unlock();
-                            }
-                        }
-                    }
-                }
-
-                //Fill Concurrent 
-                for (Gap g : availableGaps) {
-                    availableGaps = fillGap(worker, g, readyActions, selectableActions, rescheduledActions);
-                }
-
-                gapActionDSI.clearSuccessors();
-                rescheduledActions.add(gapAction);
-                //Release Data Successors
-                releaseSuccessors(gapActionDSI, worker, readyActions, selectableActions, gapActionStart + expectedLength);
-
-                //Fill Post action gap space
-                Gap actionGap = new Gap(gapActionStart + expectedLength, gap.getEndTime(), gapAction, gap.getResources(), 0);
-                gapActionDSI.addGap();
-                availableGaps.addAll(fillGap(worker, actionGap, readyActions, selectableActions, rescheduledActions));
-            } else {
-                availableGaps.add(gap);
-            }
-            return availableGaps;
         }
     }
 
@@ -291,13 +261,9 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
                 PriorityActionSet selectableActions,
                 PriorityQueue<AllocatableAction> rescheduledActions
         ) {
-            System.out.println("Processing " + this);
             LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
-
             DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
-            Gap g = new Gap(expectedTimeStamp, Long.MAX_VALUE, action, action.getAssignedImplementation().getRequirements(), 0);
-            dsi.addGap();
-            state.addGap(g);
+            dsi.setOnOptimization(false);
 
             //Move from readyActions to Ready
             while (readyActions.size() > 0) {
@@ -314,37 +280,24 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             //Detect released Actions
             releaseSuccessors(dsi, worker, readyActions, selectableActions, expectedTimeStamp);
 
-            //Include new Gap on the available resources
-            while (true) {
-                //Check the previous gaps with the current Top
-                AllocatableAction currentTop = selectableActions.peek();
-                DefaultSchedulingInformation succDSI = null;
-                while (currentTop != null) {
-                    succDSI = (DefaultSchedulingInformation) currentTop.getSchedulingInfo();
-                    if (succDSI.isOnOptimization()) {
-                        break;
-                    }
-                    currentTop = selectableActions.peek();
-                }
-                //Check if there is a new peek.
-                if (state.getTopAction() != currentTop) {
-                    //Check if the new top fits in all resources
-                    state.setTopAction(currentTop);
-                } else {
-                    //Check if the gap is enough for the missing top requirements
-                    state.updatedResources(g);
-                }
+            //Get Top Action
+            AllocatableAction currentTop = selectableActions.peek();
 
-                if (state.canTopRun()) {
-                    selectableActions.poll();
-                    //Start the current action
-                    succDSI.lock();
-                    SchedulingEvent se = new Start(state.getTopStartTime(), currentTop);
-                    System.out.println(currentTop + " will start at " + state.getTopStartTime());
-                    enabledEvents.addAll(se.process(state, worker, readyActions, selectableActions, rescheduledActions));
-                } else {
-                    break;
-                }
+            if (state.getAction() != currentTop) {
+                state.replaceAction(currentTop);
+            }
+            state.releaseResources(expectedTimeStamp, action);
+
+            while (state.canActionRun()) {
+                selectableActions.removeFirst(currentTop.getCoreId());
+                DefaultSchedulingInformation topDSI = (DefaultSchedulingInformation) currentTop.getSchedulingInfo();
+                topDSI.lock();
+                topDSI.setToReschedule(false);
+                SchedulingEvent se = new Start(state.getActionStartTime(), currentTop);
+                enabledEvents.addAll(se.process(state, worker, readyActions, selectableActions, rescheduledActions));
+
+                currentTop = selectableActions.peek();
+                state.replaceAction(currentTop);
             }
             return enabledEvents;
         }
@@ -391,10 +344,8 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             successorDSI.setExpectedStart(startTime);
             if (missingParams == 0) {
                 if (successorDSI.getExpectedStart() <= timeLimit) {
-                    System.out.println("Adding successor " + successor + " to selectable");
                     selectableActions.offer(successor);
                 } else {
-                    System.out.println("Adding successor " + successor + " to ready");
                     readyActions.add(successor);
                 }
             }

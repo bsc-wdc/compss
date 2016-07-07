@@ -95,7 +95,7 @@
   $bindingExecutable $bindingArgs &
   bindingPID=$!
 
-  # Wait for binding executable completition
+  # Wait for binding executable completion
   wait $bindingPID
   exitValue=$?
 

@@ -375,8 +375,11 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             long now = System.currentTimeMillis();
             for (AllocatableAction<P, T> running : runningActions) {
                 if (running.getImplementations().length > 0) {
-                    int coreId = running.getImplementations()[0].getCoreId();
-                    response.registerRunning(coreId, now - running.getStartTime());
+                    Integer coreId = running.getImplementations()[0].getCoreId();
+                    // CoreId can be null for Actions that are not tasks
+                    if (coreId != null) {
+                    	response.registerRunning(coreId, now - running.getStartTime());
+                    }
                 }
             }
         }

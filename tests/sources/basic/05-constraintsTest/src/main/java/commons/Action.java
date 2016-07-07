@@ -2,8 +2,6 @@ package commons;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-
-import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -87,11 +85,6 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
     }
 
     @Override
-    public Score schedulingScore(TaskScheduler ts) {
-        return new Score(0, 0, 0);
-    }
-
-    @Override
     public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
         return new Score(0, 0, 0);
     }
@@ -101,6 +94,12 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
 
     }
 
+	@Override
+	public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) 
+			throws BlockedActionException, UnassignedActionException {
+		
+	}
+    
     @Override
     public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
@@ -131,4 +130,9 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
         return coreId;
     }
 
+	@Override
+	public int getPriority() {
+		return 0;
+	}
+	
 }

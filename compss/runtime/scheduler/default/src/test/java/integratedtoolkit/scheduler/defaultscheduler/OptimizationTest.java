@@ -391,7 +391,7 @@ public class OptimizationTest {
         // Sorted by data dependencies release
         PriorityActionSet selectableActions = new PriorityActionSet(ScheduleOptimizer.getSelectionComparator());
         drs.scanActions(readyActions, selectableActions);
-        drs.classifyPendingActions(pendingActions, readyActions, selectableActions, new LinkedList<AllocatableAction>());
+        drs.classifyPendingSchedulings(pendingActions, readyActions, selectableActions, new LinkedList<AllocatableAction>());
 
         HashMap<AllocatableAction, Long> expectedReady = new HashMap();
         expectedReady.put(action7, 10l);

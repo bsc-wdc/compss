@@ -31,28 +31,30 @@ public class PriorityActionSet {
     }
 
     public void offer(AllocatableAction action) {
-        Integer coreId = action.getCoreId();
-        AllocatableAction currentPeek = null;
-        if (coreId == null) {
-            currentPeek = noCoreActions.peek();
-            noCoreActions.offer(action);
-        } else {
-            if (coreId < coreActions.length) {
-                currentPeek = coreActions[coreId].peek();
+        if (((DefaultSchedulingInformation) action.getSchedulingInfo()).isToReschedule()) {
+            Integer coreId = action.getCoreId();
+            AllocatableAction currentPeek = null;
+            if (coreId == null) {
+                currentPeek = noCoreActions.peek();
+                noCoreActions.offer(action);
             } else {
-                //Resize coreActions array
-                int originalSize = this.coreActions.length;
-                PriorityQueue<AllocatableAction>[] coreActions = new PriorityQueue[coreId + 1];
-                System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
-                for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
-                    coreActions[coreIdx] = new PriorityQueue<AllocatableAction>(1, comparator);
+                if (coreId < coreActions.length) {
+                    currentPeek = coreActions[coreId].peek();
+                } else {
+                    //Resize coreActions array
+                    int originalSize = this.coreActions.length;
+                    PriorityQueue<AllocatableAction>[] coreActions = new PriorityQueue[coreId + 1];
+                    System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
+                    for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
+                        coreActions[coreIdx] = new PriorityQueue<AllocatableAction>(1, comparator);
+                    }
+                    this.coreActions = coreActions;
                 }
-                this.coreActions = coreActions;
+                coreActions[coreId].offer(action);
             }
-            coreActions[coreId].offer(action);
-        }
-        if (currentPeek != action) {
-            rebuildPriorityQueue();
+            if (currentPeek != action) {
+                rebuildPriorityQueue();
+            }
         }
     }
 

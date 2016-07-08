@@ -153,7 +153,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 		// The ProcessBuilder is non-blocking but we block the thread for a short period of time to allow the
 		// bash script to create the needed environment (pipes)
 		try {
-			Thread.sleep(PIPE_CREATION_TIME * size);
+			Thread.sleep(PIPE_CREATION_TIME*size);
 		} catch (InterruptedException e) {
 			// No need to catch such exceptions
 		}

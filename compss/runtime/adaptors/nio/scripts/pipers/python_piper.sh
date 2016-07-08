@@ -72,6 +72,17 @@
     echo "[PYTHON PIPER] Execute task $tid" >> $jobOut
     echo "[PYTHON PIPER]   - CMD: $@ 1>> $jobOut 2>> $jobErr" >> $jobOut
 
+    # Tracing pre-handler
+    echo "Tracing: $tracing" >> $jobOut
+    if [ "$tracing" == "true" ]; then
+      baseConfigFile=$(dirname $0)/../../../../../configuration/xml/tracing/extrae_task.xml
+      taskConfigFile=$(pwd)/task${tid}.xml
+      echo "baseC: ${baseConfigFile}" >> $jobOut
+      echo "taskC: ${taskConfigFile}" >> $jobOut
+      echo $(sed s/{{NAME}}/task$tid/g <<< $(cat ${baseConfigFile})) > ${taskConfigFile}
+      export EXTRAE_CONFIG_FILE=${taskConfigFile}
+    fi
+
     # Real task execution
     $@ 1>> $jobOut 2>> $jobErr
     local exitValue=$?

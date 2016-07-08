@@ -46,7 +46,7 @@
     remove-files="no"
     overwrite="no"
   >
-    ../{{NAME}}.prv
+    ./{{NAME}}.prv
   </merge>
 
 </trace>

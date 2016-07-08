@@ -4,7 +4,6 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
-import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
@@ -38,6 +37,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.log4j.Logger;
+
 
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 

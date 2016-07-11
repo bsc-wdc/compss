@@ -31,7 +31,7 @@ usage() {
   # Clean trunk
   cd ${trunk_dir}
   mvn -U clean
-  cd -
+  cd ${script_Dir}
 
   #---------------------------------------------------------------------
   # Create tag
@@ -52,6 +52,12 @@ usage() {
   cd ${tags_dir}
   svn commit -m "Adding new tag ${version}"
   cd ${script_dir}
+
+  #---------------------------------------------------------------------
+  # Clean tag
+  cd ${tags_dir}
+  rm -rf ${version}
+  svn up
 
   #---------------------------------------------------------------------
   # NOTIFY SUCCESS

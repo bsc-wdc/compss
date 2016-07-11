@@ -5,7 +5,7 @@
   #---------------------------------------------------------------------------------------------------------------------
   #Define script variables
   script_dir=$(dirname $0)
-  WS=${script_dir}/..
+  WS=${script_dir}/../../../
 
   #---------------------------------------------------------------------------------------------------------------------
   #Prepare vm to lauch tests.
@@ -15,7 +15,7 @@
   echo "**************************"
   echo -e "\e[0m"
   echo "--- Clearing previous packaging..."
-  rm -rf ${script_dir}/packages/compss.tar.gz
+  rm -rf ${script_dir}/../packages/compss.tar.gz
   echo "   Success"
 
   echo "--- Copying trunk files..."
@@ -43,7 +43,7 @@
   echo "   Success"
 
   echo "--- Clearing tmp files..."
-  cp $WS/compss.tar.gz ${script_dir}/packages/
+  cp $WS/compss.tar.gz ${script_dir}/../packages/
   rm -r $WS/tmpTrunk
   rm -r $WS/compss.tar.gz
   echo "   Success"

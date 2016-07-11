@@ -24,8 +24,8 @@ usage() {
 
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../
-  tags_dir=${trunk_dir}/../tags
+  trunk_dir=${script_dir}../../../
+  tags_dir=${trunk_dir}/../../../../tags/
 
   #---------------------------------------------------------------------
   # Create tag
@@ -35,7 +35,7 @@ usage() {
   #---------------------------------------------------------------------
   # Add headers
   echo "- Generate header files"
-  sh ${tags_dir}/${version}/header_setup/replace_all.sh
+  sh ${tags_dir}/${version}/utils/scripts/header_setup/replace_all.sh
 
   #---------------------------------------------------------------------
   # Commit modifications

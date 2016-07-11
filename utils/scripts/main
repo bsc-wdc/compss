@@ -49,7 +49,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Package COMPSs SVN Revision
-  ${script_dir}/package_compss_svn
+  ${script_dir}/pre_process/package_compss_svn
   if [ $? -ne 0 ]; then
     display_error "Error Packaging COMPSs SVN Revision"
     exit 1
@@ -57,7 +57,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   #Compile COMPSs SVN Revision
-  ${script_dir}/compile_compss_svn
+  ${script_dir}/pre_process/compile_compss_svn
   if [ $? -ne 0 ]; then
     display_error "Error Compiling COMPSs SVN Revision"
     exit 1
@@ -65,7 +65,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   #Compile and prepare tests structure
-  ${script_dir}/prepare_tests
+  ${script_dir}/tests_pre_process/prepare_tests
   if [ $? -ne 0 ]; then
     display_error "Error Preparing Tests"
     exit 1
@@ -90,10 +90,10 @@
 
      # Execute distribution process
      if [ "${distr}" != "sc" ]; then 
-       ${script_dir}/exec_distribution ${distr} ${static_id} ${static_ip} ${log_base_folder}/${distr} ${package_base_folder} > ${log_base_folder}/${distr}/full_exec.log &
+       ${script_dir}/pre_process/exec_distribution ${distr} ${static_id} ${static_ip} ${log_base_folder}/${distr} ${package_base_folder} > ${log_base_folder}/${distr}/full_exec.log &
        distributions_pid[$i]=$!
      else
-       ${script_dir}/exec_sc ${distr} ${log_base_folder}/${distr} ${package_base_folder} > ${log_base_folder}/${distr}/full_exec.log &
+       ${script_dir}/pre_process/exec_sc ${distr} ${log_base_folder}/${distr} ${package_base_folder} > ${log_base_folder}/${distr}/full_exec.log &
        distributions_pid[$i]=$!
      fi
      sleep ${TIME_BETWEEN_DISTR}

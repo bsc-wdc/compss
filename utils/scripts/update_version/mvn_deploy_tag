@@ -24,7 +24,7 @@ usage() {
 
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
-  base_dir=${script_dir}/../../../tags/${version}/
+  base_dir=${script_dir}/../../../../tags/${version}/
 
   #---------------------------------------------------------------------
   # Deploy

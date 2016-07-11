@@ -18,7 +18,7 @@ usage() {
 
   # Get base version from trunk
   script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../
+  trunk_dir=${script_dir}/../../../
   baseVersion=$(cat ${trunk_dir}/pom.xml | grep "compss.version" | tr ">" "\t" | awk {' print $2 '} | tr "<" "\t" | awk {' print $1 '})
 
   # Compute version

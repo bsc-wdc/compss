@@ -24,12 +24,15 @@ usage() {
 
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}../../../
+  trunk_dir=${script_dir}/../../../
   tags_dir=${trunk_dir}/../tags/
 
   #---------------------------------------------------------------------
   # Create tag
   echo "- Create tag"
+  echo "   ScriptDir: ${script_dir}"
+  echo "   TrunkDir:  ${trunk_dir}"
+  echo "   TagsDir:   ${tags_dir}"
   svn cp ${trunk_dir} ${tags_dir}/${version}
 
   #---------------------------------------------------------------------

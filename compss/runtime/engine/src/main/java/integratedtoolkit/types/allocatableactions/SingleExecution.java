@@ -227,7 +227,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
                         break;
                 }
 
-                if (executionType.compareTo(ITConstants.COMPSs) != 0) {
+                if (!executionType.equals(ITConstants.COMPSs)) {
                     if (p instanceof SCOParameter) {
                         SCOParameter scop = (SCOParameter) p;
                         int id = scop.getCode();

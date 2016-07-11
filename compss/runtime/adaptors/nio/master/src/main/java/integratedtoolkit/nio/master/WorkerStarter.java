@@ -213,7 +213,7 @@ public class WorkerStarter {
         
         // Configure storage
         String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-        if (( storageConf == null ) || ( storageConf.compareTo("") == 0 ) || ( storageConf.compareTo("null") == 0 )) {
+        if ( storageConf == null || storageConf.equals("") || storageConf.equals("null") ) {
         	storageConf = "null";
         	logger.warn("No storage configuration file passed");
         }

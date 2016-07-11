@@ -60,7 +60,7 @@ public class Comm {
     public static synchronized void init() {
         appHost = new MasterResource();
         try {
-            if ((STORAGE_CONF == null) || (STORAGE_CONF.compareTo("") == 0) || (STORAGE_CONF.compareTo("null") == 0)) {
+        	if ( STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null") ) {
                 logger.warn("No storage configuration file passed");
             } else {
                 StorageItf.init(STORAGE_CONF);
@@ -112,7 +112,7 @@ public class Comm {
         }
 
         // Stop Storage interface
-        if ((STORAGE_CONF != null) && (STORAGE_CONF.compareTo("") != 0) && (STORAGE_CONF.compareTo("null") != 0)) {
+        if ( STORAGE_CONF != null && !STORAGE_CONF.equals("") && !STORAGE_CONF.equals("null") ) {
             try {
                 logger.debug("Stopping Storage...");
                 StorageItf.finish();

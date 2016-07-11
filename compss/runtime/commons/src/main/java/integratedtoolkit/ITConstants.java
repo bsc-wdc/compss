@@ -82,9 +82,7 @@ public class ITConstants {
     // Storage properties
 	public static final String IT_STORAGE_CONF 		= "it.storage.conf";
 	public static final String IT_TASK_EXECUTION 	= "it.task.execution";
-	
-	// Execution Type
-    public static final String COMPSs = "compss";
+    public static final String COMPSs 				= "compss";
 
     // Languages
     public static enum Lang {

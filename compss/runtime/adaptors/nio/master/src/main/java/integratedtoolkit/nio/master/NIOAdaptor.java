@@ -270,7 +270,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
         NIOJob nj = runningJobs.remove(jobId);
 
-        if (NIOAdaptor.executionType.compareTo(ITConstants.COMPSs) != 0) {
+        if (!executionType.equals(ITConstants.COMPSs)) {
             int numParams = nj.getTaskParams().getParameters().length;
             for (int i = 0; i < numParams; i++) {
                 Parameter dp = nj.getTaskParams().getParameters()[i];

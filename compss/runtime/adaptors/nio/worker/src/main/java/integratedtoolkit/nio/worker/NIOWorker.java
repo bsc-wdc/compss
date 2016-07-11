@@ -628,7 +628,7 @@ public class NIOWorker extends NIOAgent {
 			
 			// End storage
 			String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-			if ((storageConf != null) && (storageConf.compareTo("") != 0) && (storageConf.compareTo("null") != 0)) {
+			if ( storageConf != null && !storageConf.equals("") && !storageConf.equals("null") ) {
 				try {
 					StorageItf.finish();
 				} catch (StorageException e) {
@@ -901,7 +901,7 @@ public class NIOWorker extends NIOAgent {
 		 * **************************************/
 		System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
 		try {
-			if (storageConf.compareTo("null") == 0) {
+			if ( storageConf == null || storageConf.equals("") || storageConf.equals("null") ) {
 				wLogger.warn("No storage configuration file passed");
 			} else {
 				StorageItf.init(storageConf);

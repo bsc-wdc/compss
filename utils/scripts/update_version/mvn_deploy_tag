@@ -28,9 +28,14 @@ usage() {
 
   #---------------------------------------------------------------------
   # Deploy
+  echo "- Compiling and installing"
+  cd ${base_dir}
+  mvn -U clean install
+  cd ${script_dir}
+
   echo "- Deploying mvn"
   cd ${base_dir}
-  mvn -U clean install deploy
+  mvn -U deploy
   cd ${script_dir}
 
   #---------------------------------------------------------------------

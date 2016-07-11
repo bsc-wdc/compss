@@ -26,7 +26,7 @@ usage() {
 
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
-  base_trunk_dir=${script_dir}/../../
+  base_trunk_dir=${script_dir}/../../../
 
   #---------------------------------------------------------------------
   # Modify all pom files
@@ -50,7 +50,7 @@ usage() {
   #---------------------------------------------------------------------
   # Modify generate_all_scripts
   echo "- Modifying generate_all_scripts files..."
-  cd ${base_trunk_dir}/generate_all_scripts/packages
+  cd ${base_trunk_dir}/utils/scripts/packages
   files=$(grep -R -l "$previousVersion")
   for file in $files; do
     echo "    $file"

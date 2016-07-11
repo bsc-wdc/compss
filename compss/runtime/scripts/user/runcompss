@@ -503,17 +503,17 @@ check_args() {
   else
     fcp="" 
     for currcp in ${cp//:/$'\n'}; do
-        if [ ! ${currcp:0:1} == '/' ]; then # Relative paths to absolute
-		if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
-			absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
-			file="$(basename "$currcp")"
-			fcp="${fcp}$absdir/$file:"
-		else
-			echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
-		fi
-	else        
-		fcp="${fcp}$currcp:"
+      if [ ! ${currcp:0:1} == '/' ]; then # Relative paths to absolute
+        if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
+	  absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
+	  file="$(basename "$currcp")"
+	  fcp="${fcp}$absdir/$file:"
+	else
+	  echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
 	fi
+      else        
+   	fcp="${fcp}$currcp:"
+      fi
     done
     cp="$fcp"
     echo "[  INFO] Relative Classpath resolved: $cp"

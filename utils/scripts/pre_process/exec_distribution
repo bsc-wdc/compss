@@ -36,12 +36,12 @@
     echo -e "\e[0m"
 
     # Clean VM
-    ${script_dir}/manageVM/clean_VM ${vm_user} ${vm_ip}
+    ${script_dir}/../manageVM/clean_VM ${vm_user} ${vm_ip}
     #if [ "${snapshot}" == "true" ]; then
     #  ${script_dir}/manageVM/live_snapshot ${vm_id} ${vm_type} ${log_folder}
     #  shutdownError=$?
     #fi
-    ${script_dir}/manageVM/remove_COMPSs ${vm_type} ${vm_user} ${vm_ip}
+    ${script_dir}/../manageVM/remove_COMPSs ${vm_type} ${vm_user} ${vm_ip}
   }
 
 
@@ -79,7 +79,7 @@
 
   # Define script variables
   script_dir=$(dirname $0)
-  tests_source_folder=${script_dir}/tests/test_${vm_type}
+  tests_source_folder=${script_dir}/../tests/test_${vm_type}
   shutdownError=0
 
   #---------------------------------------------------------------------------------------------------------------------
@@ -92,7 +92,7 @@
   #echo "*** Create Base VM  ***"
   #echo "***********************"
   #echo -e "\e[0m"
-  #${script_dir}/manageVM/create_VM ${vm_type} ${vm_user} > ${log_folder}/creation.log
+  #${script_dir}/../manageVM/create_VM ${vm_type} ${vm_user} > ${log_folder}/creation.log
   #if [ $? -ne 0 ]; then
   #   display_error "Cannot prepare VM"
   #   exit 1
@@ -122,7 +122,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Create packages
-  ${script_dir}/packages/main ${vm_ip} ${vm_type} ${vm_user} ${jenkins_package_folder} ${package_creation_folder}/${vm_type}
+  ${script_dir}/../packages/main ${vm_ip} ${vm_type} ${vm_user} ${jenkins_package_folder} ${package_creation_folder}/${vm_type}
   if [ $? -ne 0 ]; then
      display_error "COMPSs compile, build and package FAILED"
      shutdownVM "false"
@@ -134,7 +134,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Deploy unstable packages to repository
-  ${script_dir}/repos/main ${jenkins_job} ${vm_type} "unstable"
+  ${script_dir}/../repos/main ${jenkins_job} ${vm_type} "unstable"
   if [ $? -ne 0 ]; then
      display_error "Deploying UNSTABLE packages FAILED"
      shutdownVM "false"
@@ -146,7 +146,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Installing COMPSs from repository
-  ${script_dir}/installation/main ${vm_ip} ${vm_type} ${vm_user}
+  ${script_dir}/../installation/main ${vm_ip} ${vm_type} ${vm_user}
   if [ $? -ne 0 ]; then
      display_error "COMPSs installation FAILED"
      shutdownVM "false"
@@ -159,7 +159,7 @@
  
   #---------------------------------------------------------------------------------------------------------------------
   # Run tests
-  ${script_dir}/tests/main ${vm_type} ${vm_ip} ${vm_user} ${tests_source_folder}
+  ${script_dir}/../tests/main ${vm_type} ${vm_ip} ${vm_user} ${tests_source_folder}
   #if [ $? -ne 0 ]; then
   #   display_error "Tests FAILED"
   #   #Recover tests logs
@@ -176,7 +176,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Tests post-process
-  ${script_dir}/tests_post_process/main ${vm_ip} ${vm_user} ${log_folder} "ok"
+  ${script_dir}/../tests_post_process/main ${vm_ip} ${vm_user} ${log_folder} "ok"
   if [ $? -ne 0 ]; then
      display_error "Cannot recover tests logs"
      shutdownVM "false"
@@ -197,7 +197,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   # Deploy testing packages to repository
-  ${script_dir}/repos/main ${jenkins_job} ${vm_type} "testing"
+  ${script_dir}/../repos/main ${jenkins_job} ${vm_type} "testing"
   if [ $? -ne 0 ]; then
      display_error "Deploying TESTING packages FAILED"
      shutdownVM "false"

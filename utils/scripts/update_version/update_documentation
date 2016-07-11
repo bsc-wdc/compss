@@ -24,7 +24,7 @@ usage() {
 
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
-  trunk_dir=${script_dir}/../../
+  trunk_dir=${script_dir}/../../../
   documentation_dir=${trunk_dir}/../documents/COMPSs_Manuals/
 
   #---------------------------------------------------------------------

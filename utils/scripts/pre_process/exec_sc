@@ -56,7 +56,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   #Create packages
-  ${script_dir}/packages/build_and_package_sc.sh ${jenkins_package_folder}
+  ${script_dir}/../packages/build_and_package_sc.sh ${jenkins_package_folder}
   if [ $? -ne 0 ]; then
      display_error "COMPSs compile, build and package FAILED"
      exit 1
@@ -64,7 +64,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   #Deploy unstable packages to repository
-  ${script_dir}/repos/main ${jenkins_job} ${vm_type} "unstable"
+  ${script_dir}/../repos/main ${jenkins_job} ${vm_type} "unstable"
   if [ $? -ne 0 ]; then
      display_error "Deploying UNSTABLE packages FAILED"
      exit 1
@@ -72,7 +72,7 @@
 
   #---------------------------------------------------------------------------------------------------------------------
   #Deploy testing packages to repository
-  ${script_dir}/repos/main ${jenkins_job} ${vm_type} "testing"
+  ${script_dir}/../repos/main ${jenkins_job} ${vm_type} "testing"
   if [ $? -ne 0 ]; then
      display_error "Deploying TESTING packages FAILED"
      exit 1

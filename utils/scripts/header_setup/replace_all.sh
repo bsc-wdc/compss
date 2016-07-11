@@ -3,7 +3,7 @@
   scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Change to root compss directory
-  cd $scriptDir/../compss
+  cd $scriptDir/../../../compss/
 
   # Add java headers
   find . -name "*.java" -exec $scriptDir/replace_header.sh {} java_c \; 

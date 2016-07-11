@@ -28,6 +28,12 @@ usage() {
   tags_dir=${trunk_dir}/../tags/
 
   #---------------------------------------------------------------------
+  # Clean trunk
+  cd ${trunk_dir}
+  mvn -U clean
+  cd -
+
+  #---------------------------------------------------------------------
   # Create tag
   echo "- Create tag"
   echo "   ScriptDir: ${script_dir}"

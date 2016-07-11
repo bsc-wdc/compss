@@ -23,7 +23,11 @@ usage() {
 
   # Compute version
   month=$(date +"%m")
-  version=${baseVersion}.rc${month}
+  if [[ ${baseVersion} == *rc* ]]; then
+    version=${baseVersion::-5}.rc${month}
+  else
+    version=${baseVersion}.rc${month}
+  fi
 
   # Perform update process
   commitChanges="false"

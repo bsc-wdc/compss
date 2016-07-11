@@ -50,7 +50,7 @@
 		
 		<!-- Jaxb version-->
 		<jaxb-api.version>2.1</jaxb-api.version>
-		<jaxb-xjc.version>2.1.13</jaxb-xjc.version>
+		<jaxb-xjc.version>2.2.11</jaxb-xjc.version>
 		<cxf.version>2.7.14</cxf.version>
 		
 		<!-- Apache commons versions -->

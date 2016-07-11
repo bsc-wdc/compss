@@ -308,7 +308,7 @@ install() {
   echo "--- Copy dependencies"
   cp -r ${tmpDir}/dependencies/JAVA_GAT ${targetDir}/Dependencies/
   cp -r ${tmpDir}/files/paraver ${targetDir}/Dependencies/  
-  cp -r ${tmpDir}/files/storage ${targetDir}/Dependencies/
+  cp -r ${tmpDir}/dependencies/storage ${targetDir}/Dependencies/
   if [ "$tracing" == "true" ]; then
     cd ${tmpDir}/dependencies/extrae
     ./install ${targetDir}/Dependencies/extrae false

@@ -25,7 +25,7 @@ usage() {
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
   trunk_dir=${script_dir}../../../
-  tags_dir=${trunk_dir}/../../../../tags/
+  tags_dir=${trunk_dir}/../tags/
 
   #---------------------------------------------------------------------
   # Create tag

@@ -25,8 +25,8 @@
   script_dir=$(pwd)/$(dirname $0)
 
   #Define user variables
-  log_base_folder=${script_dir}/logs/                                  #Folder to store logs
-  package_base_folder=${script_dir}/../builders/packages/              #Folder to store packages and upload them to repository
+  log_base_folder=${script_dir}/../../logs/                            #Folder to store logs
+  package_base_folder=${script_dir}/../../builders/packages/           #Folder to store packages and upload them to repository
   declare -a distributions_name=('ubuntu' 'suse' 'centos' 'debian' 'sc')
   declare -a distributions_static_vm_id=('9082' '9083' '9198' '9080' 'None')
   declare -a distributions_static_vm_ip=('172.16.8.229' '172.16.8.231' '172.16.8.219' '172.16.8.222' 'None')

@@ -200,6 +200,7 @@ EOT
 	  # Run directly the script
 	  /bin/chmod +x ${TMP_SUBMIT_SCRIPT}
 	  ${TMP_SUBMIT_SCRIPT}
+          result=$?
   else
       echo "Running in COMPSs mode."
 	  # Submit the job to the queue

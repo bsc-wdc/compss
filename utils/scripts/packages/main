@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
   #Get parameters
   vm_ip=$1
   vm_type=$2

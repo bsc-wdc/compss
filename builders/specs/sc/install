@@ -63,7 +63,7 @@
   echo " "
 
   # Define script variables
-  scriptDir=$(dirname $0)
+  scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
   # Deploy COMPSs
   echo "- Deploy COMPSs files"

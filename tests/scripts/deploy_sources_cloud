@@ -3,7 +3,7 @@
   deploy_distribution() {
     local script_dir=$(dirname $0)
     local distr=$1
-    local deployment_folder=${script_dir}/../../generate_all_scripts/tests/test_$distr
+    local deployment_folder=${script_dir}/../../utils/scripts/tests/test_$distr
     local connector_server="https://bscgrid20.bsc.es:11443/"
     local connector_class="integratedtoolkit.connectors.rocci.ROCCI"
 

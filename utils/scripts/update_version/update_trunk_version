@@ -48,8 +48,8 @@ usage() {
   sed -i 's/'${previousVersion}'/'${newVersion}'/g' $setupFile
 
   #---------------------------------------------------------------------
-  # Modify generate_all_scripts
-  echo "- Modifying generate_all_scripts files..."
+  # Modify utils/scripts
+  echo "- Modifying utils/scripts files..."
   cd ${base_trunk_dir}/utils/scripts/packages
   files=$(grep -R -l "$previousVersion")
   for file in $files; do

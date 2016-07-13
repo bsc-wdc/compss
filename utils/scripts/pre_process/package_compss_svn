@@ -43,9 +43,8 @@
   echo "   Success"
 
   echo "--- Clearing tmp files..."
-  cp $WS/compss.tar.gz ${script_dir}/../packages/
+  mv $WS/compss.tar.gz ${script_dir}/../packages/
   rm -r $WS/tmpTrunk
-  rm -r $WS/compss.tar.gz
   echo "   Success"
 
   #Process completed

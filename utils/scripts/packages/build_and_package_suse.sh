@@ -14,7 +14,7 @@
   sudo zypper install -y maven rpm-build subversion
 
   # Runtime dependencies
-  sudo zypper install -y java-1.7.0-openjdk java-1.7.0-openjdk-devel graphviz xdg-utils
+  sudo zypper install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel graphviz xdg-utils
   # Bindings-common-dependencies
   sudo zypper install -y libtool automake make gcc-c++
   # Python-binding dependencies

@@ -15,7 +15,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -43,7 +44,7 @@ public class GraphGenerator {
     private static BufferedWriter legend;
     private static HashSet<Integer> legendTasks;
 
-    private static final Logger logger = Logger.getLogger(Loggers.ALL_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.ALL_COMP);
     private static final String ERROR_MONITOR_DIR 			= "ERROR: Cannot create monitor directory";
     private static final String ERROR_ADDING_DATA 			= "Error adding task to graph file";
     private static final String ERROR_ADDING_EDGE 			= "Error adding edge to graph file";

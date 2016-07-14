@@ -1,12 +1,15 @@
 package com.bsc.compss.ui.auth;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 
 
 public class AuthenticationService {
-	private static final Logger logger = Logger.getLogger("compssMonitor.autentication");
+	
+	private static final Logger logger = LogManager.getLogger("compssMonitor.autentication");
+	
 	
     public static UserCredential getUserCredential() {
     	Session session = Sessions.getCurrent();

@@ -17,7 +17,7 @@ public class Matmul {
 	private String [][]_C;
 
 	
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		//Get parameters
 		if (args.length != 3) {
 			System.out.println("[ERROR] Usage: matmul <Ain> <Bin> <Cout>");

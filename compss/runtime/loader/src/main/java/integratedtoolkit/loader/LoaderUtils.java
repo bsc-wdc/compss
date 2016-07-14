@@ -15,14 +15,15 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.expr.MethodCall;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import storage.StubItf;
 
 
 public class LoaderUtils {
 
-	private static final Logger logger = Logger.getLogger(Loggers.LOADER_UTILS);
+	private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
 	
 	// Storage: Check whether Persistent Self-Contained Object or not
 	public static Object checkSCOPersistent(Object o) {   	

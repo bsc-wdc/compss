@@ -26,7 +26,9 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class LogicalData {
 
@@ -47,7 +49,7 @@ public class LogicalData {
 	private static final TreeMap<Resource, HashSet<LogicalData>> hostToPrivateFiles = new TreeMap<Resource, HashSet<LogicalData>>();
 	private static final TreeMap<String, HashSet<LogicalData>> sharedDiskToSharedFiles = new TreeMap<String, HashSet<LogicalData>>();
 
-	private static final Logger logger = Logger.getLogger(Loggers.COMM);
+	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
 	/*
 	 * Constructors

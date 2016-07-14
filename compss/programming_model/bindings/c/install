@@ -52,7 +52,7 @@
       echo "** INSTALLATION FAILED **";
       echo "JAVA_HOME is not defined in the environment."
       echo "Please do: export JAVA_HOME=path_to_the_java_jdk_directory"
-      echo "Example: export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-i386"    
+      echo " "
       exit 1;
   fi
   

@@ -3,6 +3,6 @@ Version:
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: compss-bindings-common, openjdk-7-jre, automake, libtool, libboost-serialization-dev, libboost-iostreams-dev
+Depends: compss-bindings-common, automake, libtool, libboost-serialization-dev, libboost-iostreams-dev
 Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Description: The BSC COMP Superscalar C binding.

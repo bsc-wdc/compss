@@ -37,7 +37,6 @@ public class GATWorkerNode extends COMPSsWorker {
     public GATWorkerNode(String name, GATConfiguration config) {
         super(name, config);
         this.config = config;
-
     }
 
     @Override

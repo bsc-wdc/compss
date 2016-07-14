@@ -48,7 +48,8 @@ import integratedtoolkit.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
@@ -60,7 +61,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static final int MAX_RECEIVE_WORKER = 5;
 
     //Logging
-    private static final Logger logger = Logger.getLogger(Loggers.COMM);
+    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     /*
      *  The master port can be:
@@ -93,7 +94,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
-    public static boolean workerDebug = Logger.getLogger(Loggers.WORKER).isDebugEnabled();
+    public static boolean workerDebug = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
     public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
 

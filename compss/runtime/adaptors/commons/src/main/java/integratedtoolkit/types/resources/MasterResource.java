@@ -10,6 +10,9 @@ import integratedtoolkit.util.ErrorManager;
 import java.io.File;
 import java.util.HashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+
 
 public class MasterResource extends Resource {
 
@@ -110,7 +113,6 @@ public class MasterResource extends Resource {
 	            if (!new File(appLogDirPath).mkdir()) {
 	            	ErrorManager.error(ERROR_APP_LOG_DIR);
 	            }
-	            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
 	        } else {
 	            /* REGULAR APPLICATION
 	             * - Gets appName
@@ -153,13 +155,15 @@ public class MasterResource extends Resource {
 	            if (!new File(appLogDirPath).mkdir()) {
 	            	ErrorManager.error(ERROR_APP_LOG_DIR);
 	            }
-	            System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
 	        }
         } else {
         	// The option specific_log_dir has been given. NO sandbox created
         	appLogDirPath = COMPSsLogBaseDirPath;
-        	System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
         }
+        
+        // Set the environment property (for all cases) and reload logger configuration        
+        System.setProperty(ITConstants.IT_APP_LOG_DIR, appLogDirPath);
+        ((LoggerContext) LogManager.getContext(false)).reconfigure();
 
         /* Create a tmp directory where to store:
          * - Files whose first opened stream is an input one

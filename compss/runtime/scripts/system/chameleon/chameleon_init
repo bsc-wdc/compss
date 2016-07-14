@@ -22,7 +22,7 @@ EOT
   echo "127.0.1.1       COMPSsMaster" >> /etc/hosts
 
   # Export JAVA_HOME on profile.d
-  echo "export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk" > /etc/profile.d/java.sh
+  echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk" > /etc/profile.d/java.sh
 }
 
 ### BEGIN INIT INFO

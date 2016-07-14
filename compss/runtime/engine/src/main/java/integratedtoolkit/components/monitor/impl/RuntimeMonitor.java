@@ -5,7 +5,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.impl.AccessProcessor;
@@ -21,7 +22,7 @@ public class RuntimeMonitor implements Runnable {
 
     private static final String monitorDirPath;
     
-    private static final Logger logger = Logger.getLogger(Loggers.ALL_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.ALL_COMP);
     private static final String ERROR_GENERATING_DATA = "Error generating monitoring data";
 
     /**

@@ -1,8 +1,10 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.concurrent.Semaphore;
-import org.apache.log4j.Logger;
 
 
 public class ResultListener extends DataOperation.EventListener {
@@ -11,7 +13,7 @@ public class ResultListener extends DataOperation.EventListener {
     private int errors = 0;
     private boolean enabled = false;
 
-    private static final Logger logger = Logger.getLogger(Loggers.FTM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     private Semaphore sem;

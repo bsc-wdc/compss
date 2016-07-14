@@ -605,7 +605,6 @@ generate_jvm_opts_file() {
   fi
 
   /bin/cat >> ${jvm_options_file} << EOT
--XX:-UseSplitVerifier
 ${jvm_master_opts}
 ${jvm_debugger_opts}
 -XX:+PerfDisableSharedMem
@@ -613,7 +612,7 @@ ${jvm_debugger_opts}
 -XX:+UseG1GC
 -XX:+UseThreadPriorities
 -XX:ThreadPriorityPolicy=42
--Dlog4j.configuration=${IT_HOME}/Runtime/configuration/log/${itlog4j_file}
+-Dlog4j.configurationFile=${IT_HOME}/Runtime/configuration/log/${itlog4j_file}
 -Dit.to.file=false
 -Dit.project.file=${projFile}
 -Dit.resources.file=${resFile}
@@ -644,6 +643,7 @@ EOT
 
 add_jvm_opts_java() {
   /bin/cat >> ${jvm_options_file} << EOT
+-noverify
 -classpath ${cp}:${IT_HOME}/Runtime/compss-engine.jar:${CLASSPATH}
 EOT
 }

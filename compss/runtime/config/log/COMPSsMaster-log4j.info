@@ -1,119 +1,146 @@
-#########################################
-###### COMPSs Logger Configuration ######
-#########################################
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsMaster" status="WARN">
 
-###### Change default logging level for root: Default = OFF
-log4j.rootLogger=OFF, COMPSs_FILE
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
+    </Console>
+    <File name="COMPSsRuntimeLog" fileName="${sys:it.appLogDir}/runtime.log" immediateFlush="false" append="false">
+      <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
+    </File>
+    <File name="COMPSsResourcesLog" fileName="${sys:it.appLogDir}/resources.log" immediateFlush="false" append="false">
+      <PatternLayout pattern="%m%n"/>
+    </File>
+  </Appenders>
 
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="debug">
+      <AppenderRef ref="Console"/>
+    </Root>
 
-###### Change default logging for each Runtime Component
-######     log4j.logger.loggerName = Level, Appender
+    <!-- RUNTIME ROOT -->
+    <!-- Integratedtoolkit: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-# Integrated Toolkit: Default = INFO
-log4j.logger.integratedtoolkit=INFO, ACON
-log4j.additivity.integratedtoolkit=false
+    <!-- COMMUNICATION -->
+    <!-- Integratedtoolkit.Communication: DEFAULT = INFO -->
+    <Logger name="Communication" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-# Loader: Default = INHERITED
-log4j.logger.integratedtoolkit.Loader=INFO, ACON
-log4j.additivity.integratedtoolkit.Loader=false
+    <!-- RUNTIME LOADER -->
+    <!-- Integratedtoolkit.Loader: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.Loader" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <!-- Integratedtoolkit.LoaderUtils: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.LoaderUtils" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-# Loader Utils: Default = INHERITED
-log4j.logger.integratedtoolkit.LoaderUtils=INFO, COMPSs_FILE
-log4j.additivity.integratedtoolkit.LoaderUtils=false
+    <!-- RUNTIME API -->
+    <!-- Integratedtoolkit.API: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.API" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-# API: Default = INHERITED
-log4j.logger.integratedtoolkit.API=, ACON
-log4j.additivity.integratedtoolkit.API=false
+    <!-- PROJECT AND RESOURCES XML PARSERS -->
+    <!-- Integratedtoolkit.Xml: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Xml" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Xml.Resources: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Xml.Resources" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Xml.Project: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Xml.Project" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-# Resources: Default = INFO
-log4j.logger.integratedtoolkit.Resources=INFO, RESOURCES_FILE
-log4j.additivity.integratedtoolkit.Resources=false
+    <!-- RUNTIME RESOURCES -->
+    <!-- Integratedtoolkit.Resources: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Resources" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsResourcesLog"/>
+    </Logger>
 
-# All Components: Default = INFO
-log4j.logger.integratedtoolkit.Components=INFO, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components=false
+    <!-- RUNTIME MAIN SUBCOMPONENTS -->
+    <!-- Integratedtoolkit.Components: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.TaskProcessor: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskProcessor" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.TaskDispatcher: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskDispatcher" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.ResourceManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.ResourceManager" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.CloudManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.CloudManager" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.ErrorManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.ErrorManager" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.Tracing: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.Tracing" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-## Sub-Components: Default = INHERITED
-log4j.logger.integratedtoolkit.Components.TaskProcessor=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskProcessor=false
+    <!-- RUNTIME TASK PROCESSING SUBCOMPONENTS -->
+    <!-- Integratedtoolkit.Components.TaskProcessor.TaskAnalyser: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskProcessor.TaskAnalyser" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.TaskProcessor.DataInfoProvider: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskProcessor.DataInfoProvider" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Components.TaskDispatcher=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskDispatcher=false
+    <!-- RUNTIME TASK DISPATCHER SUBCOMPONENTS -->
+    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskDispatcher.TaskScheduler" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskDispatcher.JobManager" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.Components.TaskDispatcher.FileTransferManager: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Components.TaskDispatcher.FileTransferManager" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Components.ResourceManager=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.ResourceManager=false
+    <!-- CONNECTORS -->
+    <!-- Integratedtoolkit.Connectors: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsResourcesLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.ConnectorsImpl: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.ConnectorsImpl" additivity="FALSE" level="info">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Components.CloudManager=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.CloudManager=false
+    <!-- WORKER -->
+    <!-- Integratedtoolkit.Worker: DEFAULT = DEBUG -->
+    <Logger name="integratedtoolkit.Worker" additivity="FALSE" level="debug">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Components.Tracing=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.Tracing=false
-
-### Task Processing subcomponents: Default = INHERITED
-log4j.logger.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskProcessor.TaskAnalyser=false
-
-log4j.logger.integratedtoolkit.Components.TaskProcessor.DataInfoProvider=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskProcessor.DataInfoProvider=false
-
-### Task Dispatching subcomponents: Default = INHERITED
-log4j.logger.integratedtoolkit.Components.TaskDispatcher.TaskScheduler=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskDispatcher.TaskScheduler=false
-
-log4j.logger.integratedtoolkit.Components.TaskDispatcher.JobManager=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskDispatcher.JobManager=false
-
-log4j.logger.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Components.TaskDispatcher.FileTransferManager=false
-
-# Connectors: Default = INFO
-log4j.logger.integratedtoolkit.Connectors=INFO, RESOURCES_FILE
-log4j.additivity.integratedtoolkit.Connectors=false
-
-# Connectors Impl: Default = INFO
-log4j.logger.integratedtoolkit.ConnectorsImpl=INFO, COMPSs_FILE
-log4j.additivity.integratedtoolkit.ConnectorsImpl=false
-
-# Worker: Default = OFF
-log4j.logger.integratedtoolkit.Worker=INFO, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Worker=false
-
-# Communication: Default = OFF
-log4j.logger.integratedtoolkit.Communication=INFO, COMPSs_FILE
-log4j.additivity.integratedtoolkit.Communication=false
-
-
-###### Disable all logging for the entire hierarchy
-#log4j.threshold=off 
-
-
-######  Appenders and Layouts
-# ACON: ConsoleAppender, PatternLayout
-log4j.appender.ACON=org.apache.log4j.ConsoleAppender
-log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
-log4j.appender.ACON.layout.ConversionPattern=[(%r) %6c{1}]  -  %m%n
-
-# COMPSs_FILE: FileAppender, PatternLayout
-log4j.appender.COMPSs_FILE=org.apache.log4j.FileAppender
-log4j.appender.COMPSs_FILE.append=false
-log4j.appender.COMPSs_FILE.File=${it.appLogDir}/runtime.log
-log4j.appender.COMPSs_FILE.layout=org.apache.log4j.PatternLayout
-log4j.appender.COMPSs_FILE.layout.ConversionPattern=[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n
-
-# RESOURCES_FILE: FileAppender, PatternLayout
-log4j.appender.RESOURCES_FILE=org.apache.log4j.FileAppender
-log4j.appender.RESOURCES_FILE.append=false
-log4j.appender.RESOURCES_FILE.File=${it.appLogDir}/resources.log
-log4j.appender.RESOURCES_FILE.layout=org.apache.log4j.PatternLayout
-log4j.appender.RESOURCES_FILE.layout.ConversionPattern=%m%n
-
-## Syntax
-# - %c : name of logger
-# - %C : name of the class
-# - %L : line number
-# - %m : associated message
-# - %M : method name
-# - %n : platform dependant separator
-# - %r : milliseconds since start of application
-# - %d : date
+  </Loggers>
+</Configuration>
 

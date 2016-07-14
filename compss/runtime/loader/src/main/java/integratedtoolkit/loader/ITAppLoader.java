@@ -7,14 +7,13 @@ import integratedtoolkit.util.ErrorManager;
 import java.lang.reflect.Method;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class ITAppLoader {
-	
-    protected static final String ERROR_COMPSs_BASE_DIR = "ERROR: Cannot create .COMPSs base directory";
-    private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+
+    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 	
     /**
      * Factored out loading function so that subclasses
@@ -67,10 +66,8 @@ public class ITAppLoader {
         }
     }
 
-    public static void main(String[] args) throws Exception {    	
-        // Configure log4j for the JVM where the main program runs
-        PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
-
+    public static void main(String[] args) throws Exception {
+        // Check args
         if (args.length < 2) {
         	ErrorManager.fatal("Error: missing arguments for loader");
         }

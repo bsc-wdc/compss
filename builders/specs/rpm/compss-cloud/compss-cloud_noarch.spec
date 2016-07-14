@@ -2,7 +2,7 @@
 %define version 	1.4.rc05
 %define release		1
 
-Requires: compss-engine, java-1.7.0-openjdk
+Requires: compss-engine
 Summary: The BSC COMP Superscalar Runtime Cloud Resources
 Name: %{name}
 Version: %{version}

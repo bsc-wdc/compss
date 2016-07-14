@@ -20,7 +20,7 @@
   #sudo rm -r /usr/local/apache-maven-3.3.3 
 
   # Runtime dependencies
-  sudo yum remove -y java-1.7.0-openjdk java-1.7.0-openjdk-devel graphviz xdg-utils
+  sudo yum remove -y java-1.8.0-openjdk java-1.8.0-openjdk-devel graphviz xdg-utils
   # Bindings-common-dependencies
     #None
   # Python-binding dependencies

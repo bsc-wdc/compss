@@ -7,7 +7,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javassist.CannotCompileException;
 //import javassist.CtClass;
@@ -61,7 +62,7 @@ public class ITAppEditor extends ExprEditor {
 	private static final String RUN_METHOD_ON_OBJECT 	= "LoaderUtils.runMethodOnObject(";
 	
 	// Logger
-    private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
 
     

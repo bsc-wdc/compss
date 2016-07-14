@@ -3,7 +3,8 @@ package com.bsc.compss.ui;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
@@ -12,7 +13,7 @@ import org.zkoss.zul.ListModelList;
 
 public class ResourcesViewModel {
 	private List<Resource> resources;
-	private static final Logger logger = Logger.getLogger("compssMonitor.ResourcesVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.ResourcesVM");
 
     @Init
     public void init () {

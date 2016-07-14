@@ -68,7 +68,7 @@ public class ITConstants {
     public static final String IT_CONTEXT 			= "it.context";
 
     // LOG 4J
-    public static final String LOG4J 				= "log4j.configuration";
+    public static final String LOG4J 				= "log4j.configurationFile";
 
     // Deployment
     public static final String IT_JVM 				= "ITJvm";

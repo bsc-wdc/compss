@@ -14,7 +14,7 @@
    - A COMPSs Runtime version
    - Apache maven for building the software
    - Acces to bscgrid20 by password-less ssh (see "Configure passwordless ssh" section)
-   - jdk1.7
+   - jdk1.8
 
 * FOR CLOUD EXECUTION FOR DEVELOPPERS THROUGH VPN:
    - A COMPSs Runtime version
@@ -29,7 +29,7 @@
    - openssh-server configured passwordless (including root access for /etc/hosts)
    - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
    - python package (for Python binding)
-   - jdk1.7 (for Java tests)
+   - jdk1.8 (for Java tests)
 
 * FOR DEVELOPMENT EXECUTION:
    - A COMPSs Runtime version
@@ -37,5 +37,5 @@
    - openssh-server configured passwordless (including root access for /etc/hosts)
    - gcc, gcc-c++, make, automake and autoconf packages (for C binding)
    - python package (for Python binding)
-   - jdk1.7 (for Java tests)
+   - jdk1.8 (for Java tests)
 

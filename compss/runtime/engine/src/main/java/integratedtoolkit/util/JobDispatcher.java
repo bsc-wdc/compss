@@ -1,13 +1,16 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.types.job.Job;
-import org.apache.log4j.Logger;
+
 
 public class JobDispatcher {
 
     // logger 
-    private static final Logger logger = Logger.getLogger(Loggers.JM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.JM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     protected static RequestQueue<Job<?>> queue;

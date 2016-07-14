@@ -11,12 +11,14 @@ import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class WSAdaptor implements CommAdaptor {
 
     //Logging
-    public static final Logger logger = Logger.getLogger(Loggers.COMM);
+    public static final Logger logger = LogManager.getLogger(Loggers.COMM);
     public static final boolean debug = logger.isDebugEnabled();
 
     // Tracing

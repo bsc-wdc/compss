@@ -24,7 +24,9 @@ import java.lang.reflect.Constructor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
 
@@ -45,7 +47,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     protected boolean keepGoing;
 
     // Logging
-    protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";

@@ -6,7 +6,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
@@ -19,7 +20,7 @@ import com.bsc.compss.ui.auth.UserCredential;
 
 public class ApplicationsViewModel {
 	private List<Application> applications;
-	private static final Logger logger = Logger.getLogger("compssMonitor.ApplicationsVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.ApplicationsVM");
 
     @Init
     public void init () {

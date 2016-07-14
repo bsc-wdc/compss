@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
@@ -63,7 +64,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
     // Component logger
-    private static final Logger logger = Logger.getLogger(Loggers.TP_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
     private static int CHANGES = 1;
     int changes = CHANGES;
 

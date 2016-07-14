@@ -11,7 +11,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -26,7 +27,7 @@ public class CloudImageManager {
     private HashMap<String, CloudImageDescription> images;
     
     // Logger
-    private static final Logger logger = Logger.getLogger(Loggers.CM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
 
     
     /**

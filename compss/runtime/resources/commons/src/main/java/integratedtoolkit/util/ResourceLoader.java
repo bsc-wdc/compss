@@ -26,7 +26,9 @@ import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationExcep
 import integratedtoolkit.types.resources.jaxb.EndpointType;
 import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.xml.sax.SAXException;
 
 
@@ -45,7 +47,7 @@ public class ResourceLoader {
     private static ProjectFile project;
 
     // Logger
-    private static final Logger LOGGER = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
 
     public static void load(String resources_XML, String resources_XSD,
             String project_XML, String project_XSD) throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
@@ -267,7 +269,7 @@ public class ResourceLoader {
         try {
             config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project, adaptorProperties_resources);
         } catch (Exception e) {
-            ErrorManager.warn("Adaptor configuration constructor failed", e);
+            ErrorManager.warn("Adaptor " + loadedAdaptor + " configuration constructor failed", e);
             return false;
         }
 

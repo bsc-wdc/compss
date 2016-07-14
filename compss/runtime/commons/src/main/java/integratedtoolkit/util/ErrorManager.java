@@ -1,12 +1,14 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import integratedtoolkit.api.COMPSsRuntime;
+
 
 //Manages warnings, errors and fatal errors. 
 //Stops the IT and does a System.exit(1) in errors and fatal errors cases.
@@ -47,7 +49,7 @@ public final class ErrorManager {
 
     public static void init(COMPSsRuntime it) {
         ErrorManager.it = it;
-        logger = Logger.getLogger(Loggers.ERROR_MANAGER);
+        logger = LogManager.getLogger(Loggers.ERROR_MANAGER);
     }
 
     //Warning handling (just print it)

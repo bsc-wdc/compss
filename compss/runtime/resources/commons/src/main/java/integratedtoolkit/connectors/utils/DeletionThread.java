@@ -9,7 +9,9 @@ import integratedtoolkit.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class DeletionThread extends Thread {
 
@@ -19,10 +21,11 @@ public class DeletionThread extends Thread {
     private VM vm;
     private static Integer count = 0;
 
-    private static final Logger resourcesLogger = Logger.getLogger(Loggers.CONNECTORS);
-    private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.CONNECTORS);
+    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
     private static final boolean debug = resourcesLogger.isDebugEnabled();
 
+    
     public DeletionThread(Operations connector, CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         this.setName("DeletionThread " + worker.getName());
         this.operations = connector;

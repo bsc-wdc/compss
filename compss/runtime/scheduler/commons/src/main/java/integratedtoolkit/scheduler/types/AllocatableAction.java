@@ -17,12 +17,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public abstract class AllocatableAction<P extends Profile, T extends WorkerResourceDescription> {
 
     // Logger
-    protected static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
     public static interface ActionOrchestrator {

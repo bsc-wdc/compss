@@ -36,7 +36,7 @@ echo " "
 echo "* Installing COMPSs C-Binding..."
 
 # Find JAVA_HOME
-openjdk=$(rpm -qa | grep jdk-1.7.0)
+openjdk=$(rpm -qa | grep jdk-1.8.0)
 libjvm=$(rpm -ql $openjdk | grep libjvm.so | head -n 1)
 export JAVA_LIB_DIR=$(dirname $libjvm)
 if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then

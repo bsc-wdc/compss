@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
+
 
 public class Classpath {
 

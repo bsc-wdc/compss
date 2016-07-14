@@ -30,13 +30,13 @@
 	<dependencies>
 		<!-- Log4j -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
+	                <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-core</artifactId>
 		</dependency>
 		<!--  Apache Commons IO (FileUtils) -->
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-io</artifactId>
+                        <groupId>commons-io</groupId>
+                        <artifactId>commons-io</artifactId>
 		</dependency>
 	</dependencies>
 	

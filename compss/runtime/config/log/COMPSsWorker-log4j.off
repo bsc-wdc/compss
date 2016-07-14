@@ -1,61 +1,61 @@
-#########################################
-###### COMPSs Logger Configuration ######
-#########################################
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsWorker" status="WARN">
 
-###### Change default logging level for root: Default = OFF
-log4j.rootLogger=OFF, ACON
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
+    </Console>
+  </Appenders>
 
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="error">
+      <AppenderRef ref="Console"/>
+    </Root>
 
-###### Change default logging for each Runtime Component
-######     log4j.logger.loggerName = Level, Appender
+    <!-- RUNTIME ROOT -->
+    <!-- IntegratedToolkit: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit" additivity="FALSE" level="off">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
 
-# Integrated Toolkit: Default = OFF
-log4j.logger.integratedtoolkit=OFF, ACON
-log4j.additivity.integratedtoolkit=false
+    <!-- COMMUNICATION -->
+    <!-- COMMUNICATION -->
+    <!-- Integratedtoolkit.Communication: DEFAULT = OFF -->
+    <Logger name="Communication" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-# Worker: Default = OFF
-log4j.logger.integratedtoolkit.Worker=OFF, ACON
-log4j.additivity.integratedtoolkit.Worker=false
+    <!-- WORKER -->
+    <!-- IntegratedToolkit.Worker: DEFAULT = ERROR -->
+    <Logger name="integratedtoolkit.Worker" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-# Worker Components: Default = INHERITEDOFF
-log4j.logger.integratedtoolkit.Worker.ExecManager=, ACON
-log4j.additivity.integratedtoolkit.Worker.ExecManager=false
+    <!-- WORKER SUBCOMPONENTS. DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.Worker.ExecManager" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="integratedtoolkit.Worker.DataManager" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="integratedtoolkit.Worker.ThreadPool" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="integratedtoolkit.Worker.Executor" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Worker.ExecManager=, ACON
-log4j.additivity.integratedtoolkit.Worker.ExecManager=false
+    <!-- COMMUNICATION -->
+    <!-- IntegratedToolkit.Communication: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
-log4j.logger.integratedtoolkit.Worker.ThreadPool=, ACON
-log4j.additivity.integratedtoolkit.Worker.ThreadPool=false
-
-log4j.logger.integratedtoolkit.Worker.Executor=, ACON
-log4j.additivity.integratedtoolkit.Worker.Executor=false
-
-log4j.logger.integratedtoolkit.Worker.DataManager=, ACON
-log4j.additivity.integratedtoolkit.Worker.DataManager=false
-
-# Communication: Default = OFF
-log4j.logger.integratedtoolkit.Communication=OFF, ACON
-log4j.additivity.integratedtoolkit.Communication=false
-
-
-###### Disable all logging for the entire hierarchy
-#log4j.threshold=off 
-
-
-######  Appenders and Layouts
-# ACON: ConsoleAppender, PatternLayout
-log4j.appender.ACON=org.apache.log4j.ConsoleAppender
-log4j.appender.ACON.layout=org.apache.log4j.PatternLayout
-log4j.appender.ACON.layout.ConversionPattern=[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n
-
-
-## Syntax
-# - %c : name of logger
-# - %C : name of the class
-# - %L : line number
-# - %m : associated message
-# - %M : method name
-# - %n : platform dependant separator
-# - %r : milliseconds since start of application
-# - %d : date
+  </Loggers>
+</Configuration>
 

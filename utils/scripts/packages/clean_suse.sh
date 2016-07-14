@@ -15,7 +15,7 @@
   sudo zypper --non-interactive remove -y --clean-deps maven
   sudo zypper --non-interactive remove -y --clean-deps rpm-build
   #Runtime dependencies
-  sudo zypper --non-interactive remove -y --clean-deps java-1.7.0-openjdk java-1.7.0-openjdk-devel graphviz xdg-utils
+  sudo zypper --non-interactive remove -y --clean-deps java-1.8.0-openjdk java-1.8.0-openjdk-devel graphviz xdg-utils
   #Bindings-common-dependencies
   sudo zypper --non-interactive remove -y --clean-deps java-devel libtool automake make gcc-c++
   #Python-binding dependencies

@@ -1,8 +1,9 @@
 package integratedtoolkit.connectors;
 
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.log.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
@@ -10,7 +11,7 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public interface Connector {
 
-    public final Logger logger = Logger.getLogger(Loggers.CONNECTORS_IMPL);
+    public final Logger logger = LogManager.getLogger(Loggers.CONNECTORS_IMPL);
     public final boolean debug = logger.isDebugEnabled();
 
     public boolean turnON(String name, ResourceCreationRequest rR);

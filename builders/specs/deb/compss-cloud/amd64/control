@@ -3,6 +3,6 @@ Version:
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: compss-engine, openjdk-7-jre
+Depends: compss-engine
 Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Description: The BSC COMP Superscalar Runtime Cloud Resources.

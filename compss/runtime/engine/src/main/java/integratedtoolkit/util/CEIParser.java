@@ -20,14 +20,15 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class CEIParser {
 
     private static ITConstants.Lang lang = ITConstants.Lang.JAVA;
 
-    private static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     private static final String CONSTR_LOAD_ERR = "Error loading constraints";

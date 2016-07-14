@@ -8,7 +8,7 @@
   #Install needed software
   echo "--- Installing needed software..."
   # Runtime dependencies
-  sudo yum install -y java-1.7.0-openjdk java-1.7.0-openjdk-devel graphviz xdg-utils
+  sudo yum install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel graphviz xdg-utils
   # Bindings-common-dependencies
   sudo yum install -y java-devel libtool automake make gcc-c++
   # Python-binding dependencies

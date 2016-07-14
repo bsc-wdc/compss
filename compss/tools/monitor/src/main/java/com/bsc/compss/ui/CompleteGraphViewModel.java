@@ -3,7 +3,8 @@ package com.bsc.compss.ui;
 import java.io.File;
 import java.text.SimpleDateFormat;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
@@ -13,7 +14,7 @@ import org.zkoss.zul.Filedownload;
 public class CompleteGraphViewModel {
 	private String completeGraph;
 	private String completeGraphLastUpdateTime;
-	private static final Logger logger = Logger.getLogger("compssMonitor.GraphVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.GraphVM");
 
     @Init
     public void init() {

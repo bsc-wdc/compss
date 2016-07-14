@@ -13,12 +13,13 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class TaskResultReader extends Thread {
 	
-	private static final Logger logger = Logger.getLogger(Loggers.WORKER_EXECUTOR);
+	private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 	private static final String ERROR_PIPE_CLOSE 				= "Error closing readPipeFile ";
 	private static final String ERROR_PIPE_QUIT 				= "Error finishing readPipeFile ";
 	private static final String ERROR_PIPE_NOT_FOUND 			= "Pipe cannot be found";

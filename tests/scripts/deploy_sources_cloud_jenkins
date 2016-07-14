@@ -22,11 +22,6 @@
     cp ${script_dir}/execute_cloud_block2 ${deployment_folder}/execute_cloud
     cp ${script_dir}/configure_hosts_insert ${deployment_folder}/configure_hosts_insert
 
-    #Sed default scripts values depending on base distribution
-    if [ "$distr" == "centos" ]; then
-       sed -i 's/JAVA_HOME\=\/usr\/lib\/jvm\/default\-java/JAVA_HOME\=\/usr\/lib\/jvm\/java\-1\.6\.0\-openjdk\.x86\_64/g' ${deployment_folder}/execute_cloud
-    fi
-   
     #TEST CLOUD BLOCK APPS
     echo "---- Deploying Cloud Block Apps"
     cloud_owner="jenkins-test"

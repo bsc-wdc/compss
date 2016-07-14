@@ -36,7 +36,8 @@ import integratedtoolkit.util.JobDispatcher;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
@@ -48,7 +49,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
 
     //LOGGER
-    private static final Logger jobLogger = Logger.getLogger(Loggers.JM_COMP);
+    private static final Logger jobLogger = LogManager.getLogger(Loggers.JM_COMP);
 
     //Execution Info
     private final TaskProducer producer;

@@ -2,7 +2,8 @@ package integratedtoolkit.loader.total;
 
 import java.lang.reflect.Method;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -38,7 +39,7 @@ public class ITAppModifier {
             && System.getProperty(ITConstants.IT_IS_MAINCLASS).equals("false")
             ? false : true;
     
-    private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
 
     

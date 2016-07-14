@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -46,7 +46,7 @@ public class NIOWorker extends NIOAgent {
 	private static final int MAX_RETRIES = 5;
 	
 	// Logger
-	private static final Logger wLogger = Logger.getLogger(Loggers.WORKER);
+	private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
 	private static final boolean loggerDebug = wLogger.isDebugEnabled();
 	private static final String EXECUTION_MANAGER_ERR 		= "Error starting ExecutionManager";
 	private static final String DATA_MANAGER_ERROR 			= "Error starting DataManager";
@@ -147,7 +147,7 @@ public class NIOWorker extends NIOAgent {
 	@Override
 	public void setMaster(NIONode master) {
 		if (masterNode == null) {
-			masterNode = new NIONode(master.ip, masterPort);
+			masterNode = new NIONode(master.getIp(), masterPort);
 		}
 	}
 
@@ -822,13 +822,7 @@ public class NIOWorker extends NIOAgent {
 		}
 	}
 	
-	public static void main(String[] args) {
-		/* **************************************
-		 * Configure logger
-		 * **************************************/
-		PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
-		
-		
+	public static void main(String[] args) {		
 		/* **************************************
 		 * Get arguments
 		 * **************************************/

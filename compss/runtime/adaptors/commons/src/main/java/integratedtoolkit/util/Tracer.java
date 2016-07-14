@@ -2,7 +2,6 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
-
 import integratedtoolkit.types.data.LogicalData;
 
 import java.io.File;
@@ -11,16 +10,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
-
 import es.bsc.cepbatools.extrae.Wrapper;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.TracingCopyListener;
 import integratedtoolkit.types.data.operation.TracingCopyTransferable;
+
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public abstract class Tracer {
 
@@ -36,7 +38,7 @@ public abstract class Tracer {
     protected static final String traceOutRelativePath 	= File.separator + "trace" + File.separator + "tracer.out";
     protected static final String traceErrRelativePath 	= File.separator + "trace" + File.separator + "tracer.err";
 
-    protected static final Logger logger = Logger.getLogger(Loggers.TRACING);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 

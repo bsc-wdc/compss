@@ -19,7 +19,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The CloudManager class is an utility to manage all the cloud interactions and
@@ -55,8 +56,8 @@ public class CloudManager {
     private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<ResourceCreationRequest>();
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
 
-    private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
-    private static final Logger runtimeLogger = Logger.getLogger(Loggers.CM_COMP);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
+    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
 
     /**
      * Initializes the internal data structures

@@ -3,7 +3,9 @@ package com.bsc.compss.ui;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
@@ -12,7 +14,7 @@ import org.zkoss.zul.ListModelList;
 
 public class CoresViewModel {
 	private List<Core> cores;
-	private static final Logger logger = Logger.getLogger("compssMonitor.TasksVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.TasksVM");
 
     @Init
     public void init() {

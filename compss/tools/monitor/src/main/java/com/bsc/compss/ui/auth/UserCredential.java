@@ -5,7 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Application;
@@ -19,8 +20,9 @@ public class UserCredential {
     private boolean authenticated = false;
     
     private static final String RELATIVE_LOG_LOCATION = File.separator + ".COMPSs" + File.separator;
-    private static final Logger logger = Logger.getLogger("compssMonitor.autentication");
+    private static final Logger logger = LogManager.getLogger("compssMonitor.autentication");
 
+    
     public UserCredential() {
     	this.username = "";
     	this.COMPSs_BASE_LOG = "";

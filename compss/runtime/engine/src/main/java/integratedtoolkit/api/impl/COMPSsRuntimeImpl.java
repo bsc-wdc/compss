@@ -31,8 +31,8 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RuntimeConfigManager;
 import integratedtoolkit.util.Tracer;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import storage.StubItf;
 
@@ -74,7 +74,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     protected static RuntimeMonitor runtimeMonitor;
 
     // Logger
-    protected static Logger logger = null;
+    protected static final Logger logger = LogManager.getLogger(Loggers.API);
 
     // Tracing
     protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
@@ -103,18 +103,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 e.printStackTrace();
             }
         }
-
-        Comm.init();
+        
         /*
-         * Configures log4j for the JVM where the application and the IT API belong
+         * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
          */
-        logger = Logger.getLogger(Loggers.API);
-        String log4j = System.getProperty(ITConstants.LOG4J);
-        if (log4j!= null){
-        	PropertyConfigurator.configure(System.getProperty(ITConstants.LOG4J));
-        }else{
-        	System.err.println(WARN_LOG4J_FILE_NOT_READ);
-        }
+        Comm.init();
     }
 
     //Code Added to support configuration files
@@ -475,8 +468,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
+        logger.info("Creating task from method " + methodName + " in " + methodClass);
         if (logger.isDebugEnabled()) {
-            logger.debug("Creating task from method " + methodName + " in " + methodClass);
             logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
@@ -501,8 +494,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         	Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
+        logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
         if (logger.isDebugEnabled()) {
-            logger.debug("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
             logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
@@ -661,6 +654,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
+        
         if (logger.isDebugEnabled()) {
             logger.debug("Object obtained " + oUpdated);
         }

@@ -8,7 +8,9 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.request.Request;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * The TPRequest class represents any interaction with the TaskProcessor
@@ -16,7 +18,7 @@ import org.apache.log4j.Logger;
  */
 public abstract class APRequest extends Request {
 
-    protected static final Logger logger = Logger.getLogger(Loggers.TP_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
 
     /**
      * Contains the different types of request that the Access Processor can

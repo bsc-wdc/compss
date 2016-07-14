@@ -55,7 +55,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
      */
     public Score getResourceScore(AllocatableAction<P, T> action, TaskParams params, Score actionScore) {
         long resScore = Score.getLocalityScore(params, myWorker);
-        for (AllocatableAction pred : action.getDataPredecessors()) {
+        for (AllocatableAction<P,T> pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
                 resScore++;
             }

@@ -6,7 +6,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
 import integratedtoolkit.types.project.exceptions.InvalidElementException;

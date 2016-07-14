@@ -31,7 +31,8 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public abstract class Resource implements Comparable<Resource> {
@@ -47,7 +48,7 @@ public abstract class Resource implements Comparable<Resource> {
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
     // Log and debug
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     public static final boolean debug = logger.isDebugEnabled();
 
     private final String name;

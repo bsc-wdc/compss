@@ -25,7 +25,8 @@ import static java.lang.Math.abs;
 import java.nio.file.Files;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public abstract class NIOAgent {
@@ -61,7 +62,7 @@ public abstract class NIOAgent {
     public static final TransferManager tm = new TransferManager();
 
     //Logging
-    private static final Logger logger = Logger.getLogger(Loggers.COMM);
+    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     // Tracing
     protected static boolean tracing;
@@ -288,7 +289,7 @@ public abstract class NIOAgent {
                 NIOTracer.emitDataTransferEvent(source.getName());
             }
             NIONode nn = uri.getHost();
-            if (nn.ip == null) {
+            if (nn.getIp() == null) {
                 nn = masterNode;
             }
             Connection c = null;

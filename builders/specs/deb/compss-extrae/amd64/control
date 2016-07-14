@@ -3,7 +3,7 @@ Version:
 Priority: optional
 Architecture: amd64
 Essential: no
-Depends: compss-engine, openjdk-7-jre, libxml2 (>= 2.5), libxml2-dev (>= 2.5), gfortran
+Depends: compss-engine, libxml2 (>= 2.5), libxml2-dev (>= 2.5), gfortran
 Suggests: papi-tools, libpapi-dev
 Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Description: Extrae trace extraction tool.

@@ -29,7 +29,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * The ResourceManager class is an utility to manage all the resources available
@@ -60,8 +62,8 @@ public class ResourceManager {
     private static ResourceOptimizer ro;
 
     // Loggers
-    private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
-    private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
+    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
 
     /* ********************************************************************
      * INITIALIZER METHOD

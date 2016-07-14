@@ -1,6 +1,7 @@
 package com.bsc.compss.ui;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.GlobalCommand;
@@ -31,7 +32,7 @@ public class ViewModel {
 	
 	public static int runtimeLogConfirmation = -1;	// -1: do not apply, 0: accepted, 1:denied
 	
-	private static final Logger logger = Logger.getLogger("compssMonitor.VM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.VM");
 
     @Init
     public void init() {

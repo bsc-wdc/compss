@@ -31,7 +31,8 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.loader.LoaderAPI;
@@ -55,7 +56,7 @@ public class StreamRegistry {
 
 	private String tempDirPath;
 	
-	private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+	private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 	private static final boolean debug = logger.isDebugEnabled();
 	private static final String lineSep = System.getProperty("line.separator");
 	

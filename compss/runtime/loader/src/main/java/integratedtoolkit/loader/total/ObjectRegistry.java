@@ -7,7 +7,8 @@ import integratedtoolkit.types.parameter.PSCOId;
 
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import storage.StorageItf;
 import storage.StubItf;
@@ -24,7 +25,7 @@ public class ObjectRegistry {
     private TreeMap<Integer, Object> appTaskObjects;
     private TreeMap<Integer, Object> internalObjects;
 
-    private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
     
 	// Tracing

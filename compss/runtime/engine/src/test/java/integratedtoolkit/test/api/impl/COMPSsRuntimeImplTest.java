@@ -1,7 +1,10 @@
-package integratedtoolkit.api.impl;
+package integratedtoolkit.test.api.impl;
 
 import static org.junit.Assert.*;
+
+
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.util.CoreManager;
 
@@ -9,21 +12,30 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+
 public class COMPSsRuntimeImplTest {
-	COMPSsRuntimeImpl rt;
+	
+	private static final String DUMMY_ADAPTOR_CLASS = "integratedtoolkit.test.dummyAdaptor.DummyAdaptor";
+	private COMPSsRuntimeImpl rt;
+	
+	static {
+		System.setProperty(ITConstants.COMM_ADAPTOR, DUMMY_ADAPTOR_CLASS);
+	}
+	
+	
 	@Before
 	public void setUp() throws Exception {
-		rt = new COMPSsRuntimeImpl();
-		String resources = this.getClass().getResource("default_resources.xml").getPath();
+		String resources = this.getClass().getResource("resources.xml").getPath();
 		String resources_xsd = this.getClass().getResource("resources_schema.xsd").getPath();
-		String project = this.getClass().getResource("default_project.xml").getPath();
+		String project = this.getClass().getResource("project.xml").getPath();
 		String project_xsd = this.getClass().getResource("project_schema.xsd").getPath();
 		System.setProperty(ITConstants.IT_LANG, "python");
 		System.setProperty(ITConstants.IT_RES_FILE, resources);
 		System.setProperty(ITConstants.IT_RES_SCHEMA, resources_xsd);
 		System.setProperty(ITConstants.IT_PROJ_FILE, project);
 		System.setProperty(ITConstants.IT_PROJ_SCHEMA, project_xsd);
-		System.setProperty(ITConstants.COMM_ADAPTOR, "integratedtoolkit.gat.master.GATAdaptor");
+		
+		rt = new COMPSsRuntimeImpl();
 		rt.startIT();
 	}
 
@@ -31,6 +43,7 @@ public class COMPSsRuntimeImplTest {
 	public void testPythonCERegister() {
 		rt.registerCE("MethodClass", "MethodName", false, false, "ComputingUnits:2", 0, new Object[0]);
 		MethodImplementation mi = (MethodImplementation)CoreManager.getCoreImplementations(0)[0];
+		
 		assertEquals(2, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 	}
 	
@@ -38,5 +51,5 @@ public class COMPSsRuntimeImplTest {
 	public void tearDown(){
 		//rt.stopIT(true);
 	}
-
+	
 }

@@ -30,6 +30,8 @@ public final class Loggers {
     public static final String TD_COMP 	= ALL_COMP + ".TaskDispatcher";
     public static final String RM_COMP 	= ALL_COMP + ".ResourceManager";
     public static final String CM_COMP 	= ALL_COMP + ".CloudManager";
+    public static final String ERROR_MANAGER = ALL_COMP + ".ErrorManager";
+    public static final String TRACING = ALL_COMP + ".Tracing";
 
     public static final String TA_COMP 	= TP_COMP + ".TaskAnalyser";
     public static final String DIP_COMP = TP_COMP + ".DataInfoProvider";
@@ -41,9 +43,6 @@ public final class Loggers {
     public static final String CONNECTORS 		= IT + ".Connectors";
     public static final String CONNECTORS_IMPL 	= IT + ".ConnectorsImpl";
     
-    public static final String ERROR_MANAGER = ALL_COMP + ".ErrorManager";
-    public static final String TRACING = ALL_COMP + ".Tracing";
-
     // Worker
     public static final String WORKER 				= IT + ".Worker";
     public static final String WORKER_EXEC_MANAGER 	= WORKER + ".ExecManager";

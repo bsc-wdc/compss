@@ -4,7 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
@@ -17,7 +18,7 @@ public class RuntimeLogViewModel {
 	private String content;
 	private String filter;
 	
-	private static final Logger logger = Logger.getLogger("compssMonitor.ItLogVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.ItLogVM");
 	private static final String itLogNotSelected = "Application's runtime.log file not selected";
 	
     @Init

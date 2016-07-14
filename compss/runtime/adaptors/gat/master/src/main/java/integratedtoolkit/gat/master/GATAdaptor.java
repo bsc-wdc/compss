@@ -2,6 +2,9 @@ package integratedtoolkit.gat.master;
 
 import java.net.URISyntaxException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATContext;
 
@@ -20,8 +23,6 @@ import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
 
 import java.io.File;
-
-import org.apache.log4j.Logger;
 
 
 public class GATAdaptor implements CommAdaptor {
@@ -51,7 +52,7 @@ public class GATAdaptor implements CommAdaptor {
     private static GATContext transferContext;
 
     //LOGGING
-    private static final Logger logger = Logger.getLogger(Loggers.COMM);
+    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
     private static final boolean debug = logger.isDebugEnabled();
 
     public GATAdaptor() {

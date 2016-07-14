@@ -2,10 +2,10 @@ package integratedtoolkit.nio.worker.executors;
 
 import java.io.File;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.ITConstants;
-
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;
@@ -17,7 +17,7 @@ import integratedtoolkit.util.RequestQueue;
 
 public abstract class Executor implements Runnable {
 	
-    protected static final Logger logger = Logger.getLogger(Loggers.WORKER_EXECUTOR);
+    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
     protected static final boolean workerDebug = logger.isDebugEnabled();
        
     // Tracing

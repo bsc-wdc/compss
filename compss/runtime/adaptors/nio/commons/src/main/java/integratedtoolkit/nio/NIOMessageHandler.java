@@ -1,19 +1,21 @@
 package integratedtoolkit.nio;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import es.bsc.comm.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.MessageHandler;
 import es.bsc.comm.nio.NIOException;
 import es.bsc.comm.stage.Transfer;
+
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.commands.Command;
-
-import org.apache.log4j.Logger;
 
 
 public class NIOMessageHandler implements MessageHandler {
 
-    protected static final Logger LOGGER = Logger.getLogger(Loggers.COMM);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     private final NIOAgent agent;
 

@@ -54,12 +54,10 @@ public class Block {
 			}
 			br.close();
 			filereader.close();
-		}
-		catch (FileNotFoundException fnfe) {
+		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		}
-		catch (IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
@@ -89,12 +87,10 @@ public class Block {
 				fos.write( "\n".getBytes() );
 			}
 			fos.close();
-		}
-		catch ( FileNotFoundException fnfe ) {
+		} catch ( FileNotFoundException fnfe ) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		}
-		catch ( IOException ioe ) {
+		} catch ( IOException ioe ) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}

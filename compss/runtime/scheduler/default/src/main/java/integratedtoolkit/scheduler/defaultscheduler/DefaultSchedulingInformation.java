@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+
 public class DefaultSchedulingInformation<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P, T> {
 
     //Lock to avoid multiple threads to modify the content at the same time
@@ -189,7 +190,7 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
         return this.toReschedule;
     }
 
-    public void optimizingSuccessor(AllocatableAction action) {
+    public void optimizingSuccessor(AllocatableAction<P,T> action) {
         optimizingSuccessors.add(action);
     }
 

@@ -16,7 +16,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import integratedtoolkit.log.Loggers;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class CloudProvider {
@@ -32,7 +33,7 @@ public class CloudProvider {
     private Cost cost;
 
     //Loggers
-    private static final Logger logger = Logger.getLogger(Loggers.CM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
     private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
     private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";

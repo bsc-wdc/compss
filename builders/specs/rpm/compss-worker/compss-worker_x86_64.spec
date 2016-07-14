@@ -2,7 +2,7 @@
 %define version 	1.4.rc05
 %define release		1
 
-Requires: java-1.7.0-openjdk
+Requires: java-1.8.0-openjdk
 Summary: The BSC COMP Superscalar Runtime Worker
 Name: %{name}
 Version: %{version}

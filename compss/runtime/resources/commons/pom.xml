@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
@@ -7,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-resources</artifactId>
-<version>1.4.rc05</version>
+		<version>1.4.rc05</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -26,7 +27,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-    
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
@@ -41,19 +42,19 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-project-schema</artifactId>
 		</dependency>
-		
+
 		<!-- Log4j -->
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
 		</dependency>
-		
+
 		<!-- SSH -->
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 		</dependency>
-		
+
 		<!-- Xalan and Xerces -->
 		<dependency>
 			<groupId>xalan</groupId>
@@ -69,7 +70,7 @@
 			<artifactId>xml-apis</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>

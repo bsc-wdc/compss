@@ -2,7 +2,8 @@ package integratedtoolkit.nio.worker.util;
 
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;
@@ -15,7 +16,7 @@ import integratedtoolkit.util.RequestQueue;
  */
 public abstract class JobsThreadPool {
 	
-	protected static final Logger logger = Logger.getLogger(Loggers.WORKER_POOL);
+	protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_POOL);
 	protected static final boolean debug = logger.isDebugEnabled();
 	
 	protected static final String JOB_THREADS_POOL_NAME = "JobsThreadPool";
@@ -26,6 +27,7 @@ public abstract class JobsThreadPool {
     protected final RequestQueue<NIOTask> queue;
     protected final Semaphore sem;
 
+    
     /**
      * Constructs a new thread pool but not the threads inside it.
      *

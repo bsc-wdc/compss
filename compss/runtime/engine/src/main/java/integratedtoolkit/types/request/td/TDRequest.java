@@ -7,7 +7,8 @@ import integratedtoolkit.types.request.Request;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -29,10 +30,10 @@ public abstract class TDRequest<P extends Profile, T extends WorkerResourceDescr
     }
 
     // Logging
-    protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TD_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    protected static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
+    protected static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
     protected static final boolean resourcesLoggerDebug = resourcesLogger.isDebugEnabled();
 
     public abstract TDRequestType getType();

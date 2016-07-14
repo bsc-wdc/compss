@@ -1,13 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-adaptors-ws-master</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-adaptors-ws</artifactId>
-<version>1.4.rc05</version>
+		<version>1.4.rc05</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -26,7 +27,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
@@ -34,12 +35,8 @@
 			<artifactId>compss-adaptors-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		    
+
 		<!-- Web Service -->
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-frontend-jaxws</artifactId>
@@ -56,7 +53,7 @@
 					<groupId>org.apache.geronimo.specs</groupId>
 					<artifactId>geronimo-servlet_2.5_spec</artifactId>
 				</exclusion>
-			</exclusions> 
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
@@ -65,13 +62,13 @@
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-api</artifactId>
-		</dependency>       
+		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-xjc</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -84,8 +81,8 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-			
-			<!-- Copia les dependencies a la carpeta lib-->
+
+			<!-- Copia les dependencies a la carpeta lib -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -93,18 +90,18 @@
 					<execution>
 						<id>copy</id>
 						<phase>packaging</phase>
-						<goals> 
-							<goal>copy-dependencies</goal> 
-						</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 
-			<!-- Crea el Jar amb les dependencies-->
+			<!-- Crea el Jar amb les dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -128,45 +125,56 @@
 								</filter>
 							</filters>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/spring.handlers</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/services/com.sun.tools.xjc.Plugin</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/spring.schemas</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/cxf/cxf.extension</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/extensions.xml</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/cxf/extensions.xml</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/cxf/bus-extensions.txt</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/cxf/bus-extensions.xml</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/wsdl.plugin.xml</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/tools.service.validator.xml</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.XmlAppendingTransformer">
 									<resource>META-INF/cxf/java2wsbeans.xml</resource>
 								</transformer>
-							</transformers>							
+							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-					    
+
 			<!--Copy compss-adaptors-ws-master.jar to adaptor basedir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>

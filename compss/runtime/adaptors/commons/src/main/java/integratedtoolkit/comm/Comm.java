@@ -8,8 +8,6 @@ import integratedtoolkit.exceptions.UnstartedNodeException;
 
 import java.lang.reflect.Constructor;
 
-import org.apache.log4j.Logger;
-
 import storage.StorageException;
 import storage.StorageItf;
 import integratedtoolkit.log.Loggers;
@@ -33,6 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
 public class Comm {
 
     private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
@@ -46,7 +48,7 @@ public class Comm {
     private static final HashMap<String, CommAdaptor> adaptors = new HashMap<String, CommAdaptor>();
 
     // Log and debug
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     private static final boolean debug = logger.isDebugEnabled();
 
     // Logical data

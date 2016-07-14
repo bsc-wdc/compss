@@ -1,6 +1,7 @@
 package integratedtoolkit.types.job;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
@@ -61,9 +62,10 @@ public abstract class Job<T extends COMPSsWorker> {
     protected JobHistory history;
     protected int transferId;
 
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
 
+    
     public Job(int taskId, TaskParams task, Implementation<?> impl, Resource res, JobListener listener) {
         jobId = nextJobId++;
         this.taskId = taskId;

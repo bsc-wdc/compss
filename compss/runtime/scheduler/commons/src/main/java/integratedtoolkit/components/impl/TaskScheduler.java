@@ -25,12 +25,14 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class TaskScheduler<P extends Profile, T extends WorkerResourceDescription> {
 
     // Logger
-    protected static final Logger logger = Logger.getLogger(Loggers.TS_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
     private final ActionSet<P, T> blockedActions = new ActionSet<P, T>();

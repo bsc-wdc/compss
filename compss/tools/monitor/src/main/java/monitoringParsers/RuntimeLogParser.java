@@ -4,11 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Vector;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Properties;
 import com.bsc.compss.ui.ExecutionInformationTask;
+
 
 public class RuntimeLogParser {
 
@@ -22,9 +25,8 @@ public class RuntimeLogParser {
     
     private static String runtimeLogPath = "";
     private static int lastParsedLine = -1;
-  
 
-    private static final Logger logger = Logger.getLogger("compssMonitor.monitoringParser");
+    private static final Logger logger = LogManager.getLogger("compssMonitor.monitoringParser");
     
     
     public static Vector<ExecutionInformationTask> getTasks() {

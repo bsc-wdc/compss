@@ -5,7 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Properties;
@@ -22,7 +23,7 @@ public class ResourcesLogParser {
 	private static int scaleTimeStamp = 0;						//To scale X-axe for long applications
 	private static boolean processInformation = false;
 	
-	private static final Logger logger = Logger.getLogger("compssMonitor.monitoringParser");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.monitoringParser");
 
 	
 	// Format: Each entry separated by " ". Entry = "time:totalLoad:numResources" (int:float:int)

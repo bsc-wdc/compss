@@ -26,18 +26,17 @@
 	
 	<!-- PROPERTIES -->
 	<properties>
-<compss.version>1.4.rc05</compss.version>
-		
-		<junit.version>4.11</junit.version>
+		<compss.version>1.4.rc05</compss.version>
+		<junit.version>4.12</junit.version>
 		
 		<!-- Maven Plugins -->
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-		<maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>		
-		<maven-shade-plugin.version>2.1</maven-shade-plugin.version>
-		<maven-resources-plugin.version>2.6</maven-resources-plugin.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>		
+		<maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
+		<maven-resources-plugin.version>3.0.1</maven-resources-plugin.version>
 		<maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
-		<maven-war-plugin.version>2.1.1</maven-war-plugin.version>
+		<maven-war-plugin.version>2.6</maven-war-plugin.version>
 		<tomcat7-maven-plugin.version>2.1</tomcat7-maven-plugin.version>
 		<maven-jaxb2-plugin.version>0.12.1</maven-jaxb2-plugin.version>
 		

@@ -5,13 +5,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.URI;
@@ -76,7 +77,7 @@ public class CleanerExecutor {
     /**
      * Logger
      */
-    private static final Logger logger = Logger.getLogger(Loggers.FTM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     /**

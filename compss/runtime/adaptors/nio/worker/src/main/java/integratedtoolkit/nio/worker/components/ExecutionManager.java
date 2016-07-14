@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.worker.components;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.log.Loggers;
@@ -14,7 +15,7 @@ import integratedtoolkit.nio.worker.util.PythonThreadPool;
 
 public class ExecutionManager {
 	
-	private static final Logger logger = Logger.getLogger(Loggers.WORKER_EXEC_MANAGER);
+	private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
 	private JobsThreadPool pool;
 	

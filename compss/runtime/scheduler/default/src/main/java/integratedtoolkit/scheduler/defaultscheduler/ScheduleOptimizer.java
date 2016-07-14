@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
+
 public class ScheduleOptimizer extends Thread {
 
     private static long OPTIMIZATION_THRESHOLD = 5_000;
@@ -24,6 +25,7 @@ public class ScheduleOptimizer extends Thread {
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
+    
     public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
         this.setName("ScheduleOptimizer");
         this.scheduler = scheduler;
@@ -76,10 +78,10 @@ public class ScheduleOptimizer extends Thread {
             return;
         }
         OptimizationWorker[] optimizedWorkers = new OptimizationWorker[workersCount];
-        LinkedList<OptimizationWorker> receivers = new LinkedList();
+        LinkedList<OptimizationWorker> receivers = new LinkedList<OptimizationWorker>();
 
         for (int i = 0; i < workersCount; i++) {
-            optimizedWorkers[i] = new OptimizationWorker((DefaultResourceScheduler) workers[i]);
+            optimizedWorkers[i] = new OptimizationWorker((DefaultResourceScheduler<?,?>) workers[i]);
         }
 
         boolean hasDonated = true;
@@ -95,7 +97,7 @@ public class ScheduleOptimizer extends Thread {
             OptimizationWorker donor = determineDonorAndReceivers(optimizedWorkers, receivers);
 
             while (!hasDonated) {
-                AllocatableAction candidate = donor.pollDonorAction();
+                AllocatableAction<?,?> candidate = donor.pollDonorAction();
                 if (candidate == null) {
                     break;
                 }
@@ -113,8 +115,8 @@ public class ScheduleOptimizer extends Thread {
 
     public static OptimizationWorker determineDonorAndReceivers(
             OptimizationWorker[] workers,
-            LinkedList<OptimizationWorker> receivers
-    ) {
+            LinkedList<OptimizationWorker> receivers) {
+    	
         receivers.clear();
         PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
         long topIndicator = Long.MIN_VALUE;
@@ -187,7 +189,7 @@ public class ScheduleOptimizer extends Thread {
         LinkedList<AllocatableAction> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {
-            for (AllocatableAction dataPred : dataPreds) {
+            for (AllocatableAction<?,?> dataPred : dataPreds) {
                 DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) dataPred.getSchedulingInfo();
                 dataAvailable = Math.max(dataAvailable, dsi.getExpectedEnd());
             }
@@ -196,11 +198,11 @@ public class ScheduleOptimizer extends Thread {
             dataPreds = action.getDataPredecessors();
         }
 
-        Implementation bestImpl = null;
+        Implementation<?> bestImpl = null;
         long bestTime = Long.MAX_VALUE;
 
-        LinkedList<Implementation> impls = action.getCompatibleImplementations(receiver.getResource());
-        for (Implementation impl : impls) {
+        LinkedList<Implementation<?>> impls = action.getCompatibleImplementations(receiver.getResource());
+        for (Implementation<?> impl : impls) {
             Profile p = receiver.getResource().getProfile(impl);
             long avgTime = p.getAverageExecutionTime();
             if (avgTime < bestTime) {
@@ -222,7 +224,7 @@ public class ScheduleOptimizer extends Thread {
 
     private DefaultScore dummyScore = new DefaultScore(0, 0, 0, 0);
 
-    public void schedule(AllocatableAction action, Implementation impl, OptimizationWorker ow) {
+    public void schedule(AllocatableAction action, Implementation<?> impl, OptimizationWorker ow) {
         try {
             action.schedule(ow.getResource(), impl);
             action.tryToLaunch();

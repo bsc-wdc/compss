@@ -13,12 +13,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.commons.io.FileUtils;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.xml.sax.SAXException;
 
 
@@ -48,12 +51,13 @@ public class ProjectFileTest {
 	private static final String ERROR_JCLOUDS_XML 		= "JClouds XML doesn't exist";
 	
 	// Test Logger
-	private static final Logger logger = Logger.getLogger("test.xml.project");
+	private static final Logger logger = LogManager.getLogger("Console");
 	
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		// Initialize logger
-		BasicConfigurator.configure();
+		// No longer needed since log4j2 automatically sets it up on error level
+		//BasicConfigurator.configure();
 		
 		// Check existance of all files
 		if ( !(new File(SCHEMA_PATH)).exists() ) {

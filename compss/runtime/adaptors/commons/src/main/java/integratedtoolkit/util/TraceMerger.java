@@ -1,7 +1,8 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -12,12 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-/**
- * Created by Pol Alvarez on 6/17/16.
- */
 public class TraceMerger {
 
-    protected static final Logger logger = Logger.getLogger(Loggers.TRACING);
+    protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
 
     private static final Integer SYNC_TYPE = 8000666;
     private static final Integer R_ID_INDEX = 1;

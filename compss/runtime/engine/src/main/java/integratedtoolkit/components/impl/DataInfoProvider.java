@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.*;
@@ -37,7 +38,7 @@ public class DataInfoProvider {
     private TreeMap<String, Object> renamingToValue; // TODO: Remove obsolete from here
 
     // Component logger - No need to configure, ProActive does
-    private static final Logger logger = Logger.getLogger(Loggers.DIP_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     public DataInfoProvider() {

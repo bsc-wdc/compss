@@ -16,7 +16,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class WorkerStarter {
@@ -57,7 +58,7 @@ public class WorkerStarter {
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
 
     // Logger
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
     
     
@@ -209,7 +210,7 @@ public class WorkerStarter {
         String[] jvmFlags = workerJVMflags.split(",");
         
         // Configure worker debug level
-        String workerDebug = Boolean.toString(Logger.getLogger(Loggers.WORKER).isDebugEnabled());
+        String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
         
         // Configure storage
         String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);

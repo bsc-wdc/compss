@@ -13,7 +13,7 @@
   sudo apt-get -y --force-Yes install maven subversion
 
   # Runtime dependencies
-  sudo apt-get -y --force-Yes install openjdk-7-jdk graphviz xdg-utils
+  sudo apt-get -y --force-Yes install openjdk-8-jdk graphviz xdg-utils
   # Bindings-common-dependencies
   sudo apt-get -y --force-Yes install libtool automake build-essential
   # Python-binding dependencies
@@ -23,7 +23,7 @@
   # Extrae dependencies
   sudo apt-get -y --force-Yes install libxml2 gfortran
 
-  export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+  export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
   echo "      Success"
  
 

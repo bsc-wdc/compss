@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class ResourceOptimizer extends Thread {
@@ -34,8 +35,8 @@ public class ResourceOptimizer extends Thread {
     private static boolean redo;
 
     // Loggers
-    private static final Logger resourcesLogger = Logger.getLogger(Loggers.RESOURCES);
-    private static final Logger logger = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
+    private static final Logger logger = LogManager.getLogger(Loggers.RM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     // Sleep times

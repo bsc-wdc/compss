@@ -9,7 +9,8 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
@@ -63,7 +64,7 @@ public class TaskAnalyser {
     private Hashtable<Task, List<Semaphore>> waitedTasks;
 
     // Logger
-    private static final Logger logger = Logger.getLogger(Loggers.TA_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.TA_COMP);
     private static final boolean debug = logger.isDebugEnabled();
     // Graph drawing
     private static final boolean drawGraph = GraphGenerator.isEnabled();

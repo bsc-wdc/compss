@@ -2,12 +2,13 @@ package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
 import java.util.concurrent.Semaphore;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class OneOpWithSemListener extends DataOperation.EventListener {
 
-    private static final Logger logger = Logger.getLogger(Loggers.FTM_COMP);
+    private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
     private Semaphore sem;

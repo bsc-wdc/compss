@@ -121,7 +121,7 @@
       -XX:+UseG1GC \
       -XX:+UseThreadPriorities \
       -XX:ThreadPriorityPolicy=42 \
-      -Dlog4j.configuration=${installDir}/Runtime/configuration/log/${itlog4j_file} \
+      -Dlog4j.configurationFile=${installDir}/Runtime/configuration/log/${itlog4j_file} \
       -classpath $cp:$CLASSPATH:${worker_jar} \
       ${main_worker_class}"
   }

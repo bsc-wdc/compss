@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.zkoss.bind.annotation.BindingParam;
 import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
@@ -20,7 +21,7 @@ public class LoadChartViewModel {
 	private boolean noConnection_drawn;
 	private boolean chart_drawn;
 	private final int TIMEOUT = 3000; //ms - for internet connection check
-	private static final Logger logger = Logger.getLogger("compssMonitor.LoadChartVM");
+	private static final Logger logger = LogManager.getLogger("compssMonitor.LoadChartVM");
 
 	
 	@Init

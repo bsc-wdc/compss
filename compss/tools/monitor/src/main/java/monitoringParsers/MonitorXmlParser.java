@@ -8,18 +8,22 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Properties;
+
 
 public class MonitorXmlParser {
 
     private static List<String[]> WorkersDataArray;
     private static List<String[]> CoresDataArray;
     private static String[] statisticsParameters;
-    private static final Logger logger = Logger.getLogger("compssMonitor.monitoringParser");
+    
+    private static final Logger logger = LogManager.getLogger("compssMonitor.monitoringParser");
 
+    
     public static List<String[]> getWorkersDataArray() {
         logger.debug("Granting access to resources data");
         return WorkersDataArray;

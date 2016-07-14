@@ -3,7 +3,7 @@ Version:
 Priority: optional
 Architecture: all
 Essential: no
-Depends: openjdk-7-jdk
+Depends: openjdk-8-jdk
 Replaces: compss-engine
 Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Description: The BSC COMP Superscalar Worker.

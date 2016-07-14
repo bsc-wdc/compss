@@ -14,7 +14,7 @@
   echo "--- Unninstalling needed software..."
   sudo apt-get -y --force-Yes remove maven
   #Runtime dependencies
-  sudo apt-get -y --force-Yes remove openjdk-7-jdk graphviz xdg-utils
+  sudo apt-get -y --force-Yes remove openjdk-8-jdk graphviz xdg-utils
   #Bindings-common-dependencies
   sudo apt-get -y --force-Yes remove libtool automake build-essential
   #Python-binding dependencies

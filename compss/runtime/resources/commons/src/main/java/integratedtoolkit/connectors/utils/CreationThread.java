@@ -13,7 +13,8 @@ import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.util.ResourceManager;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
@@ -21,8 +22,8 @@ import java.util.concurrent.Semaphore;
 public class CreationThread extends Thread {
     
     // Loggers
-    private static final Logger resourceLogger = Logger.getLogger(Loggers.CONNECTORS);
-    private static final Logger runtimeLogger = Logger.getLogger(Loggers.RM_COMP);
+    private static final Logger resourceLogger = LogManager.getLogger(Loggers.CONNECTORS);
+    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
     private static final boolean debug = resourceLogger.isDebugEnabled();
     
     // Error and warn messages

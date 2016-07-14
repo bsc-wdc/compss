@@ -12,15 +12,17 @@ import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
 
-import org.apache.log4j.Logger;
-
 import integratedtoolkit.log.Loggers;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.util.ErrorManager;
 
 
 public class AddOrchestration {
 
-	private static final Logger logger = Logger.getLogger(Loggers.LOADER);
+	private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
+	
 	
 	public static void main(String[] args) throws Exception {
 		if (args.length < 2){

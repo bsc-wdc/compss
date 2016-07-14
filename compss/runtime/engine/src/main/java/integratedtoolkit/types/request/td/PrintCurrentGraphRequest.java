@@ -18,8 +18,6 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
-
 
 /**
  * The DeleteIntermediateFilesRequest represents a request to delete the
@@ -29,7 +27,6 @@ import org.apache.log4j.Logger;
 public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P,T> {
 	
 	private static final String ERROR_PRINT_CURRENT_GRAPH = "ERROR: Cannot print current graph state";
-	protected static final Logger logger = Logger.getLogger(Loggers.TD_COMP);
 
     /**
      * Semaphore to synchronize until the representation is constructed

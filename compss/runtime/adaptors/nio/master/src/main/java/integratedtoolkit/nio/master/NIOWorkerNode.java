@@ -36,12 +36,13 @@ import integratedtoolkit.util.ErrorManager;
 
 import java.util.LinkedList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class NIOWorkerNode extends COMPSsWorker {
 
-    protected static final Logger logger = Logger.getLogger(Loggers.COMM);
+    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     private NIONode node;
     private final NIOConfiguration config;

@@ -6,6 +6,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.commands.CommandCheckWorker;
+import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.nio.master.handlers.Ender;
 import integratedtoolkit.nio.master.handlers.ProcessOut;
 import integratedtoolkit.util.Tracer;
@@ -138,7 +139,7 @@ public class WorkerStarter {
             if (!workerIsReady) {
                 ++port;
             } else {
-                Runtime.getRuntime().addShutdownHook(new Ender(nw, pid));
+                Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
                 return n;
             } 
         }
@@ -151,7 +152,7 @@ public class WorkerStarter {
     }
 
     // Ender function called from the JVM Ender Hook
-    public static void ender(NIOWorkerNode node, int pid) {
+    public void ender(NIOWorkerNode node, int pid) {
         String user = node.getUser();
         
         // Execute stop command
@@ -295,24 +296,42 @@ public class WorkerStarter {
     }
 
 
-    protected static ProcessOut executeCommand(String user, String resource, String[] command) {        
+    protected ProcessOut executeCommand(String user, String resource, String[] command) {        
         ProcessOut processOut = new ProcessOut();
 
-        String[] cmd = new String[5 + command.length];
-        cmd[0] = "ssh";
-        cmd[1] = "-o StrictHostKeyChecking=no";
-        cmd[2] = "-o BatchMode=yes";
-        cmd[3] = "-o ChallengeResponseAuthentication=no";
-        cmd[4] = ((user == null || user.isEmpty()) ? "" : user + "@") + resource;
-        System.arraycopy(command, 0, cmd, 5, command.length);
-
+        String[] cmd = null;
+        
+        switch(this.nw.getConfiguration().getRemoteExecutionCommand()) {
+        	case NIOConfiguration.SRUN_REMOTE_EXECUTION_COMMAND:
+        		cmd = new String[4 + command.length];
+    			cmd[0] = "srun";
+    			cmd[1] = "-n1";
+    			cmd[2] = "-N1";
+    			cmd[3] = "--nodelist="+ resource;
+    			System.arraycopy(command, 0, cmd, 4, command.length);
+        		break;
+        	case NIOConfiguration.SSH_REMOTE_EXECUTION_COMMAND:
+        	default:
+        		// SSH OR Default
+            	cmd = new String[5 + command.length];
+            	cmd[0] = "ssh";
+                cmd[1] = "-o StrictHostKeyChecking=no";
+                cmd[2] = "-o BatchMode=yes";
+                cmd[3] = "-o ChallengeResponseAuthentication=no";
+                cmd[4] = ((user == null || user.isEmpty()) ? "" : user + "@") + resource;
+                System.arraycopy(command, 0, cmd, 5, command.length);
+        		break;
+        }
+        
+        // Log command
         StringBuilder sb = new StringBuilder("");
         for (String param : cmd) {
             sb.append(param).append(" ");
         }
         logger.debug("COMM CMD: " + sb.toString());
+        
+        // Execute command
         try {
-            
             ProcessBuilder pb = new ProcessBuilder();
             pb.environment().remove(Tracer.LD_PRELOAD);
             pb.command(cmd);

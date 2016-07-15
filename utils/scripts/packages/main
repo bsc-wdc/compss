@@ -31,8 +31,11 @@
 
   #Deploy scripts
   echo "--- Deploying files..."
+  echo " : ${script_dir}/${bp_script} --> ${vm_user}@${vm_ip}:/home/${vm_user}/"
   scp -r -o StrictHostKeyChecking=no ${script_dir}/${bp_script} ${vm_user}@${vm_ip}:/home/${vm_user}/
+  echo " : ${script_dir}/${clean_script} --> ${vm_user}@${vm_ip}:/home/${vm_user}/"
   scp -r -o StrictHostKeyChecking=no ${script_dir}/${clean_script} ${vm_user}@${vm_ip}:/home/${vm_user}/
+  echo " : ${script_dir}/compss.tar.gz --> ${vm_user}@${vm_ip}:/home/${vm_user}/"
   scp -r -o StrictHostKeyChecking=no ${script_dir}/compss.tar.gz ${vm_user}@${vm_ip}:/home/${vm_user}/
   echo "      Success"
  

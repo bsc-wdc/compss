@@ -244,7 +244,7 @@ install() {
   echo "- Compile sources"
   cd ${sourcesDir}/compss/
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
-    mvn clean package
+    mvn -U clean package
   else 
     sudo -E -u ${user_exec} mvn clean install
   fi

@@ -1,223 +1,367 @@
-#!/bin/sh
+#!/bin/bash
 
-export IT_HOME=$1
-export GAT_LOCATION=$2
+  #---------------------------------------------------------------------------------------
+  # HELPER FUNCTIONS
+  #---------------------------------------------------------------------------------------
+  load_tracing_env() {
+    local module_tmp=$(mktemp)
+    module list 2> ${module_tmp}
 
-SLURM_NODES=$3
-TPN=$4
-TRACING=$5
-MONITORING=$6
-DEBUG=$7
-CP=$8
-GRAPH=$9
-LANG=${10}
-TASK_COUNT=${11}
-LIBRARY_PATH=${12}
-APP_NAME=${13}
+    # Look for openmpi / impi / none
+    impi=$(cat ${module_tmp} | grep -i "impi")
+    openmpi=$(cat ${module_tmp} | grep -i "openmpi")
+    
+    if [ ! -z "$impi" ]; then
+      # Load Extrae IMPI
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-impi/
+    elif [ ! -z "$openmpi" ]; then
+      # Load Extrae OpenMPI
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae-openmpi/
+    else 
+      # Load sequential extrae
+      export EXTRAE_HOME=${IT_HOME}/Dependencies/extrae/
+    fi
 
-shift 13
+    # Clean tmp file
+    rm -f ${module_tmp}
+  }
 
-WORKER_INSTALL_DIR=$IT_HOME/scripts/system/
-WORKER_WORKING_DIR=/tmp/
-
-sec=`/bin/date +%s`
-RESOURCES_FILE=$WORKER_WORKING_DIR/resources_$sec.xml
-PROJECT_FILE=$WORKER_WORKING_DIR/project_$sec.xml
-
-# Begin creating the resources file and the project file
-
-/bin/cat > $RESOURCES_FILE << EOT
-<?xml version="1.0" encoding="UTF-8"?>
-<ResourceList>
-
-  <Disk Name="gpfs">
-    <MountPoint>/gpfs</MountPoint>
-  </Disk>
+  insert_xml_headers() {
+    cat > ${RESOURCES_FILE} << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+    <SharedDisk Name="gpfs" />
 
 EOT
 
-/bin/cat > $PROJECT_FILE << EOT
-<?xml version="1.0" encoding="UTF-8"?>
+    cat > ${PROJECT_FILE} << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
-
-
-EOT
-
-ASSIGNED_LIST=`scontrol show hostname $SLURM_NODES`
-#ASSIGNED_LIST=$(scontrol show hostname $SLURM_NODES)
-echo "Nodes assigned"
-echo "$ASSIGNED_LIST"
-
-MASTER_NODE=`hostname`;
-echo "Master will run in $MASTER_NODE"
-
-#WORKER_LIST=`echo $ASSIGNED_LIST | sed -e "s/$MASTER_NODE//g"`;
-WORKER_LIST=`echo "$ASSIGNED_LIST" | tail -n +2`
-echo "List of workers:"
-echo "$WORKER_LIST"
-
-AUX_LIST=`echo $WORKER_LIST`;
-
-# Find the number of tasks to be executed on each node
-for node in $WORKER_LIST
-do
-	ntasks=$TPN
-	#echo "Num tasks per node is $TPN"
-        if [ $ntasks -ne 0 ]
-        then
-		/bin/cat >> $RESOURCES_FILE << EOT
-  <Resource Name="${node}">
-    <Capabilities>
-      <Host>
-        <TaskCount>0</TaskCount>
-      </Host>
-      <Processor>
-        <Architecture>Intel</Architecture>
-        <Speed>3.47</Speed>
-        <CPUCount>12</CPUCount>
-      </Processor>
-      <OS>
-        <OSType>Linux</OSType>
-      </OS>
-      <StorageElement>
-        <Size>36</Size>
-      </StorageElement>
-      <Memory>
-        <PhysicalSize>24</PhysicalSize>
-      </Memory>
-      <ApplicationSoftware>
-        <Software>COMPSs</Software>
-        <Software>JavaGAT</Software>
-      </ApplicationSoftware>
-      <FileSystem/>
-      <NetworkAdaptor/>
-    </Capabilities>
-    <Requirements/>
-    <Disks>
-      <Disk Name="gpfs">
-	<MountPoint>/gpfs</MountPoint>
-      </Disk>
-    </Disks>
-  </Resource>
+    <MasterNode>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </MasterNode>
 
 EOT
 
-	/bin/cat >> $PROJECT_FILE << EOT
-  <Worker Name="${node}">
-    <InstallDir>$WORKER_INSTALL_DIR</InstallDir>
-    <WorkingDir>$WORKER_WORKING_DIR</WorkingDir>
-    <LibraryPath>$LIBRARY_PATH</LibraryPath>
-    <LimitOfTasks>$ntasks</LimitOfTasks>
-  </Worker>
+  }
 
+  insert_xml_footers() {
+    cat >> ${RESOURCES_FILE} << EOT
+</ResourcesList>
 EOT
 
-        fi
-        AUX_LIST=`echo $AUX_LIST | sed -e "s/$node//g"`
-done
-
-
-# Finish the resources file and the project file 
-
-/bin/cat >> $RESOURCES_FILE << EOT
-</ResourceList>
-EOT
-
-/bin/cat >> $PROJECT_FILE << EOT
+    cat >> ${PROJECT_FILE} << EOT
 </Project>
 EOT
 
-echo "Generation of resources and project file finished"
+  }
 
+  add_compute_node() {
+    local nodeName=$1
+    local cus=$2
+    local memory=$3
 
-# Launch the application with COMPSs
+    srun -n1 -N1 --nodelist=${MASTER_NODE} "/bin/mkdir -p ${worker_working_dir}"
 
-JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+    cat >> ${RESOURCES_FILE} << EOT
+    <ComputeNode Name="${nodeName}">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>${cus}</ComputingUnits>
+            <Architecture>Intel</Architecture>
+            <Speed>2.6</Speed>
+        </Processor>
+        <OperatingSystem>
+            <Type>Linux</Type>
+            <Distribution>SMP</Distribution>
+            <Version>3.0.101-0.35-default</Version>
+        </OperatingSystem>
+        <Memory>
+            <Size>${memory}</Size>
+        </Memory>
+        <Software>
+            <Application>JAVA</Application>
+            <Application>PYTHON</Application>
+            <Application>EXTRAE</Application>
+            <Application>COMPSS</Application>
+        </Software>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="gpfs">
+                <MountPoint>/gpfs/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
 
-if [ "$DEBUG" == "true" ]
-then
-        log_file=$IT_HOME/log/it-log4j.debug
-else
-        log_file=$IT_HOME/log/it-log4j.info
-fi
-
-if [ "$TRACING" == "true" ]
-then
-	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$IT_HOME/../extrae/lib
-	export EXTRAE_ON=1
-fi
-
-if [ $LANG = java ]
-then
-        JAVACMD=$JAVA_HOME/bin/java" \
-        -classpath $CP:$IT_HOME/rt/compss-rt.jar \
-        -Dlog4j.configuration=$log_file \
-	-Dgat.adaptor.path=$GAT_LOCATION/lib/adaptors \
-        -Dit.to.file=false \
-        -Dit.gat.broker.adaptor=sshtrilead \
-        -Dit.gat.file.adaptor=sshtrilead \
-        -Dit.lang=$LANG \
-        -Dit.project.file=$PROJECT_FILE \
-        -Dit.resources.file=$RESOURCES_FILE \
-	-Dit.project.schema=$IT_HOME/xml/projects/project_schema.xsd \
-	-Dit.resources.schema=$IT_HOME/xml/resources/resources_schema.xsd \
-        -Dit.appName=$APP_NAME \
-        -Dit.graph=$GRAPH \
-        -Dit.monitor=$MONITORING \
-        -Dit.tracing=$TRACING \
-        -Dit.worker.cp=$CP \
-	-Dit.log.root=${PWD}/${SLURM_JOB_ID}"
-
-        time $JAVACMD integratedtoolkit.loader.ITAppLoader total $APP_NAME $*
-
-	echo "Application finished"
-
-elif [ $LANG = c ]
-then
-        echo "C language not implemented"
-
-elif [ $LANG = python ]
-then
-	PYCOMPSS_HOME=$IT_HOME/bindings/python
-
-	export PYTHONPATH=$PYCOMPSS_HOME:$CP
-        export LD_LIBRARY_PATH=$LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server:$IT_HOME/bindings/c/lib:$LD_LIBRARY_PATH
-
-        jvm_options_file=`mktemp`
-        if [ $? -ne 0 ]
-        then
-                echo "Can't create temp file for JVM options, exiting..."
-                exit 1
-        fi
-        export JVM_OPTIONS_FILE=$jvm_options_file
-
-        app_no_py=$(basename "$APP_NAME" ".py")
-        /bin/cat >> $jvm_options_file << EOT
--Djava.class.path=$IT_HOME/rt/compss-rt.jar
--Dlog4j.configuration=$log_file
--Dgat.adaptor.path=$GAT_LOCATION/lib/adaptors
--Dit.to.file=false
--Dit.gat.broker.adaptor=sshtrilead
--Dit.gat.file.adaptor=sshtrilead
--Dit.lang=$LANG
--Dit.project.file=$PROJECT_FILE
--Dit.resources.file=$RESOURCES_FILE
--Dit.project.schema=$IT_HOME/xml/projects/project_schema.xsd
--Dit.resources.schema=$IT_HOME/xml/resources/resources_schema.xsd
--Dit.appName=$app_no_py
--Dit.graph=$GRAPH
--Dit.monitor=$MONITORING
--Dit.tracing=$TRACING
--Dit.core.count=$TASK_COUNT
--Dit.worker.cp=$CP
--Dit.log.root=${PWD}/${SLURM_JOB_ID}
 EOT
 
-	time python $PYCOMPSS_HOME/pycompss/runtime/launch.py $APP_NAME $*
-fi
+    cat >> ${PROJECT_FILE} << EOT
+    <ComputeNode Name="${nodeName}">
+        <InstallDir>${worker_install_dir}</InstallDir>
+        <WorkingDir>${worker_working_dir}</WorkingDir>
+        <Application>
+            <LibraryPath>${library_path}</LibraryPath>
+        </Application>
+    </ComputeNode>
+
+EOT
+  }
+
+  worker_cmd() {
+    # WARNING: SETS GLOBAL SCRIPT VARIABLE WCMD
+    local nodeId=$1
+    local nodeName=$2
+    local jvm_opts_size=$3
+    local jvm_opts_str=$4
+    local cus=$5
+
+    local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
+    local maxSend=5
+    local maxReceive=5
+    local worker_port=43001
+
+    WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh \
+              ${library_path} \
+              null \
+              ${cp} \
+              ${jvm_opts_size} \
+              ${jvm_opts_str} \
+              ${debug} \
+              ${cus} \
+              ${maxSend} \
+              ${maxReceive} \
+              ${nodeName} \
+              ${worker_port} \
+              ${master_port} \
+              ${uuid} \
+              ${lang} \
+              ${sandbox_worker_working_dir} \
+              ${worker_install_dir} \
+              null \
+              ${library_path} \
+              ${cp} \
+              ${pythonpath} \
+              ${w_tracing} \
+              ${nodeId} \
+              ${storageConf} \
+              ${taskExecution}"
+  }
+
+  master_cmd() {
+    # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
+    MCMD="${IT_HOME}/Runtime/scripts/user/runcompss \
+              --master_port=${master_port} \
+              --project=${PROJECT_FILE} \
+              --resources=${RESOURCES_FILE} \
+              --storage_conf=${storageConf} \
+              --task_execution=${taskExecution} \
+              --uuid=${uuid} \
+              --jvm_master_opts="${jvm_master_opts}" \
+              --jvm_workers_opts="${jvm_workers_opts}" \
+              --specific_log_dir=${specific_log_dir}" 
+  }  
 
 
-/bin/rm -rf $PROJECT_FILE
-/bin/rm -rf $RESOURCES_FILE
+  #---------------------------------------------------------------------------------------
+  # MAIN
+  #---------------------------------------------------------------------------------------
+  #Get script parameters
+  IT_HOME=$1
+  LSB_DJOB_HOSTFILE=$2
+  tasks_per_node=$3
+  worker_in_master_tasks=$4
+  worker_in_master_memory=$5
+  worker_WD_type=$6
+  specific_log_dir=$7
+  jvm_master_opts=$8
+  jvm_workers_opts=$9
+  jvm_worker_in_master_opts=${10}
+  network=${11}
+  node_memory=${12}
+  master_port=${13}
+  library_path=${14}
+  cp=${15}
+  pythonpath=${16}
+  lang=${17}
+  log_level=${18}
+  tracing=${19}
+  comm=${20}
+  storageName=${21}
+  storageConf=${22}
+  taskExecution=${23}
 
+  #Leave COMPSs parameters in $*
+  shift 23
+
+  #Set script variables
+  export IT_HOME=${IT_HOME}
+  export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
+  worker_install_dir=${IT_HOME}
+  if [ "${worker_WD_type}" == "gpfs" ]; then
+     worker_working_dir=$(mktemp -d -p ${HOME})
+  elif [ "${worker_WD_type}" == "scratch" ]; then
+     worker_working_dir=$TMPDIR
+  else 
+     # The working dir is a custom absolute path, create tmp
+     worker_working_dir=$(mktemp -d -p ${worker_WD_type})
+  fi
+  if [ "${network}" == "ethernet" ]; then
+    network=""
+  elif [ "${network}" == "infiniband" ]; then
+    network="i"
+  elif [ "${network}" == "data" ]; then
+    network="-data"
+  fi
+  if [ "${node_memory}" == "disabled" ]; then
+    # Default value
+    node_memory=28
+  else
+    # Change from MB to GB
+    node_memory=$(( node_memory / 1024 - 4))
+  fi
+
+  sec=$(date +%s)
+  RESOURCES_FILE=${worker_working_dir}/resources_$sec.xml
+  PROJECT_FILE=${worker_working_dir}/project_mn_$sec.xml
+
+
+  #---------------------------------------------------------------------------------------
+  # Begin creating the resources file and the project file
+  insert_xml_headers
+
+  # Get node list
+  ASSIGNED_LIST=$(scontrol show hostname ${SLURM_JOB_NODELIST} | sed -e 's/\.[^\ ]*//g')
+  echo "Node list assigned is:"
+  echo "${ASSIGNED_LIST}"
+  # Remove the processors of the master node from the list
+  MASTER_NODE=$(hostname)
+  echo "Master will run in ${MASTER_NODE}"
+
+  if [ "${storageName}" != "dataclay" ]; then
+    WORKER_LIST=$(echo ${ASSIGNED_LIST} | /usr/bin/sed -e "s/$MASTER_NODE//g")
+    # To remove only once: WORKER_LIST=\`echo \$ASSIGNED_LIST | /usr/bin/sed -e "s/\$MASTER_NODE//"\`;
+  else 
+    # Skip node assigned to COMPSs master and node assigned to DataClay Logic Module
+    i=0
+    space=" "
+    for node in ${ASSIGNED_LIST}; do
+      if [ $i -gt 1 ]; then
+        WORKER_LIST=${WORKER_LIST}$node$space
+      fi
+      let i=i+1
+    done
+    WORKER_LIST=${WORKER_LIST%?}
+  fi
+
+  echo "List of workers:"
+  echo "${WORKER_LIST}"
+ 
+  # Add worker slots on master if needed
+  if [ ${worker_in_master_tasks} -ne 0 ]; then
+    add_compute_node "${MASTER_NODE}${network}" ${worker_in_master_tasks} ${worker_in_master_memory}        
+  fi
+
+  # Find the number of tasks to be executed on each node
+  for node in ${WORKER_LIST}; do
+    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory}
+  done
+
+  # Finish the resources file and the project file 
+  insert_xml_footers
+
+  echo "Generation of resources and project file finished"
+  echo "Project.xml:   ${PROJECT_FILE}"
+  echo "Resources.xml: ${RESOURCES_FILE}"
+
+  #---------------------------------------------------------------------------------------
+  # Generate a UUID for workers and runcompss
+  uuid=$(cat /proc/sys/kernel/random/uuid)
+
+  #---------------------------------------------------------------------------------------
+  # Launch the application with COMPSs
+  echo "Launching application"
+
+  # Launch workers separately if they are persistent
+  if [ "${comm/NIO}" != "${comm}" ]; then
+    # Adapting tracing flag to worker tracing level
+    if [ -z "$tracing" ]; then
+       w_tracing=0
+    elif [ $tracing == "false" ]; then
+       w_tracing=0
+    elif [ $tracing == "basic" ] || [ $tracing == "true" ]; then
+       w_tracing=1
+       load_tracing_env
+    elif [ $tracing == "advanced" ]; then
+       w_tracing=2
+       load_tracing_env
+    fi
+
+    # Adapt debug flag to worker script
+    if [ "${log_level}" == "debug" ]; then
+      debug="true"
+    else
+      debug="false"
+    fi
+
+    # Start workers' processes
+    hostid=1
+    if [ ${worker_in_master_tasks} -ne 0 ]; then
+      # Worker in master node
+      jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
+      jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
+      worker_cmd $hostid "${MASTER_NODE}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_tasks}
+      WCMD="srun -n1 -N1 --nodelist=${MASTER_NODE} ${WCMD}"
+      echo "CMD Worker $hostid launcher: $WCMD"
+      $WCMD&
+      hostid=$((hostid+1))
+    fi
+
+    jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
+    jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+    for node in ${WORKER_LIST}; do
+      worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node}
+      WCMD="srun -n1 -N1 --nodelist=${node} ${WCMD}"
+      echo "CMD Worker $hostid launcher: $WCMD"
+      $WCMD&
+      hostid=$((hostid+1))
+    done
+  fi
+
+  # Launch master
+  master_cmd
+  MCMD="srun -n1 -N1 --nodelist=$MASTER_NODE ${MCMD} $*"
+  echo "CMD Master: $MCMD"
+  $MCMD&
+
+  # Wait for Master and Workers to finish
+  echo "Waiting for application completion"
+  wait
+
+  #---------------------------------------------------------------------------------------
+  # Cleanup
+  echo "Cleanup TMP files"
+  for node in ${WORKER_LIST}; do
+    srun -n1 -N1 --nodelist=$node rm -rf ${worker_working_dir}
+  done
+  rm -f ${PROJECT_FILE}
+  rm -f ${RESOURCES_FILE}
 

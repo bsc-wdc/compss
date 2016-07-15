@@ -97,7 +97,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static boolean workerDebug = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
     public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
-
+    
+    
     public NIOAdaptor() {
         super(MAX_SEND, MAX_RECEIVE, MASTER_PORT);
         File file = new File(JOBS_DIR);
@@ -148,6 +149,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
         integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
 
+        // Get ports
         int min_project = (props_project != null) ? props_project.getMinPort() : -1;
         int min_resources = -1;
         if (props_resources != null) {
@@ -159,7 +161,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
         int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
 
-        // Merge ranges
+        // Merge port ranges
         int min_final = -1;
         if (min_project < 0) {
             min_final = min_resources;
@@ -192,6 +194,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         logger.info("NIO MAX Port: " + max_final);
         config.setMinPort(min_final);
         config.setMaxPort(max_final);
+        
+        // Add remote execution command
+        String remoteExecutionCommand = props_resources.getRemoteExecutionCommand();
+        if (remoteExecutionCommand == null || remoteExecutionCommand.isEmpty()) {
+        	remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
+        }
+        
+        if (!remoteExecutionCommand.equals(NIOConfiguration.SSH_REMOTE_EXECUTION_COMMAND) 
+        		&& !remoteExecutionCommand.equals(NIOConfiguration.SRUN_REMOTE_EXECUTION_COMMAND)) {
+        	throw new Exception("Invalid remote execution command on resources file");
+        }
+        config.setRemoteExecutionCommand(remoteExecutionCommand);
 
         return config;
     }

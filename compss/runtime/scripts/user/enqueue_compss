@@ -39,7 +39,14 @@ ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory i
 #---------------------------------------------------
 usage() { 
   exitValue=$1
+
+  # Load default CFG for default values
+  local defaultSC_cfg=${scriptDir}/../queues/cfgs/${DEFAULT_SC_CFG}.cfg
+  source ${defaultSC_cfg}
+  local defaultQS_cfg=${scriptDir}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  source ${defaultQS_cfg}
   
+  # Show usage
   /bin/cat <<EOT
 Usage: $0 [queue_system_options] [COMPSs_options] application_name application_arguments
 

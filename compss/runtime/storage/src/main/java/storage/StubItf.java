@@ -1,7 +1,13 @@
 package storage;
 
+
 public interface StubItf {
-	public void deletePersistent();
-	public String getID();
-	public void makePersistent(String id);
+
+        public abstract void deletePersistent();
+
+        public abstract String getID();
+
+        public abstract void makePersistent(String id);
+
 }
+

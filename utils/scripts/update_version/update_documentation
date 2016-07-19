@@ -35,6 +35,7 @@ usage() {
   #---------------------------------------------------------------------
   # Update internal files version
   echo "- Update files version"
+  sed -i '/Version: /cVersion: '${version}'' ${documentation_dir}/${version}/README
   docs=$(ls ${documentation_dir}/${version}/)
   for doc in ${docs}; do
     cd ${documentation_dir}/${version}/${doc}

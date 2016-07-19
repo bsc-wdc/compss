@@ -24,7 +24,7 @@ public class MethodConfiguration extends Configuration {
     public MethodConfiguration(MethodConfiguration clone) {
         super(clone);
         host = clone.host;
-        user = clone.host;
+        user = clone.user;
 
         installDir = clone.installDir;
         workingDir = clone.workingDir;

@@ -3,28 +3,7 @@
 #---------------------------------------------------
 # SCRIPT CONSTANTS DECLARATION
 #---------------------------------------------------
-DEFAULT_EXEC_TIME=10
-DEFAULT_NUM_NODES=2
-DEFAULT_NUM_SWITCHES=0
-MAX_NODES_SWITCH=18
-MIN_NODES_REQ_SWITCH=4
-DEFAULT_QUEUE_SYSTEM=lsf
-DEFAULT_QUEUE=default
-DEFAULT_TASKS_PER_NODE=16
-DEFAULT_WORKER_IN_MASTER_TASKS=0
-DEFAULT_WORKER_IN_MASTER_MEMORY=disabled
-DEFAULT_MASTER_WORKING_DIR=.
-DEFAULT_WORKER_WORKING_DIR=scratch
-DEFAULT_NETWORK=ethernet
-DEFAULT_DEPENDENCY_JOB=None
-DEFAULT_RESERVATION=disabled
-DEFAULT_NODE_MEMORY=disabled
-DEFAULT_TASK_EXECUTION=compss
-DEFAULT_STORAGE_CONF=null
-DEFAULT_STORAGE_NAME=null
-DEFAULT_JVM_MASTER=""
-DEFAULT_JVM_WORKERS="-Xms24800m,-Xmx24800m,-Xmn1600m"
-DEFAULT_JVM_WORKER_IN_MASTER=""
+DEFAULT_SC_CFG="default"
 
 # Next default values need to be consistent with runcompss
 DEFAULT_LANGUAGE=java
@@ -38,8 +17,13 @@ DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
+DEFAULT_TASK_EXECUTION=compss
+DEFAULT_STORAGE_CONF=null
+DEFAULT_STORAGE_NAME=null
 
 # Error constant messages
+ERROR_CFG_SC="SuperComputer CFG file doesn't exist"
+ERROR_CFG_Q="Queue system CFG file doesn't exist"
 ERROR_WORKER_WD="Invalid Worker Working Dir option"
 ERROR_NETWORK="Invalid network option"
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
@@ -80,8 +64,8 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
     --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
                                             Default: ${DEFAULT_NETWORK}
 
-    --queue_system=<name>                   Queue system to use: lsf | pbs | slurm
-                                            Default: ${DEFAULT_QUEUE_SYSTEM}
+    --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
+                                            Default: ${DEFAULT_SC_CFG}
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
@@ -178,8 +162,8 @@ get_args() {
           num_switches=*)
             num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
             ;;
-	  queue_system=*)
-	    queue_system=$(echo $OPTARG | sed -e 's/queue_system=//g')
+	  sc_cfg=*)
+	    sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
 	    ;;
           queue=*)
 	    queue=$(echo $OPTARG | sed -e 's/queue=//g')
@@ -311,12 +295,40 @@ get_args() {
 
 check_args() {
   ###############################################################
-  # Queue system checks
+  # SC Configuration checks
   ###############################################################
-  if [ -z "${queue_system}" ]; then
-    queue_system=${DEFAULT_QUEUE_SYSTEM}
+  # Check sc configuration argument
+  if [ -z "${sc_cfg}" ]; then
+    sc_cfg=${DEFAULT_SC_CFG}
+  fi
+  if [[ ${sc_cfg} != *cfg ]]; then
+    # Add cfg suffix
+    sc_cfg=${sc_cfg}.cfg
+  fi
+   
+  local scCfgFullPath=${scriptDir}/../queues/cfgs/${sc_cfg}
+
+  if [ ! -f ${scCfgFullPath} ]; then
+    # CFG file doesn't exist
+    display_error "${ERROR_CFG_SC}"   
+  fi
+ 
+  # Source SC CFG env
+  source ${scCfgFullPath}
+
+  # Check queue configuration env
+  local queueCfgFullPath=${scriptDir}/../queues/${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+  if [ ! -f ${queueCfgFullPath} ]; then
+    # CFG file doesn't exist
+    display_error "${ERROR_CFG_Q}" 
   fi
 
+  # Source queue system CFG env
+  source ${queueCfgFullPath}
+
+  ###############################################################
+  # Queue system checks
+  ###############################################################
   if [ -z "${queue}" ]; then
     queue=${DEFAULT_QUEUE}
   fi
@@ -493,7 +505,42 @@ check_args() {
 # MAIN EXECUTION
 #---------------------------------------------------
   scriptDir=$(dirname $0)
-  get_args $@
+
+  # Get command args
+  get_args "$@"
+
+  # Check other command args
   check_args
 
-  ${scriptDir}/../queues/${queue_system}/submit.sh ${queue} ${reservation} ${exec_time} ${dependencyJob} ${num_nodes} ${num_switches} ${tasks_per_node} ${node_memory} ${network} ${master_port} ${master_working_dir} "${jvm_master_opts}" ${worker_working_dir} "${jvm_workers_opts}" ${worker_in_master_tasks} ${worker_in_master_memory} "${jvm_worker_in_master_opts}" ${library_path} ${cp} ${pythonpath} ${lang} ${log_level} ${tracing} ${comm} ${storageName} ${storageConf} ${taskExecution} ${args_pass}
+  # Submit command
+  ${scriptDir}/../queues/commons/submit.sh \
+        "${sc_cfg}" \
+        "${queue}" \
+        "${reservation}" \
+        ${exec_time} \
+        ${dependencyJob} \
+        ${num_nodes} \
+        ${num_switches} \
+        ${tasks_per_node} \
+        ${node_memory} \
+        "${network}" \
+        ${master_port} \
+        "${master_working_dir}" \
+        "${jvm_master_opts}" \
+        "${worker_working_dir}" \
+        "${jvm_workers_opts}" \
+        ${worker_in_master_tasks} \
+        ${worker_in_master_memory} \
+        "${jvm_worker_in_master_opts}" \
+        "${library_path}" \
+        "${cp}" \
+        "${pythonpath}" \
+        ${lang} \
+        ${log_level} \
+        ${tracing} \
+        ${comm} \
+        ${storageName} \
+        ${storageConf} \
+        ${taskExecution} \
+        ${args_pass}
+

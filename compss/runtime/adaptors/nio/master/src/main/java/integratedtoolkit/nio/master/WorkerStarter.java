@@ -300,7 +300,6 @@ public class WorkerStarter {
         ProcessOut processOut = new ProcessOut();
 
         String[] cmd = null;
-        
         switch(this.nw.getConfiguration().getRemoteExecutionCommand()) {
         	case NIOConfiguration.SRUN_REMOTE_EXECUTION_COMMAND:
         		cmd = new String[4 + command.length];

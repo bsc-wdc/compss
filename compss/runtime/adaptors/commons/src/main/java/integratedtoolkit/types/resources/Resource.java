@@ -298,7 +298,12 @@ public abstract class Resource implements Comparable<Resource> {
         DataLocation errTarget = DataLocation.getLocation(Comm.appHost, errFileTarget);
         logger.debug("- Source: " + errFileOrigin);
         logger.debug("- Target: " + errFileTarget);
-        masterNode.obtainData(new LogicalData("workerErr" + this.getName()), errSource, errTarget, new LogicalData("workerErr" + this.getName()), new WorkersDebugInfoCopyTransferable(), wdil);
+        masterNode.obtainData(new LogicalData("workerErr" + this.getName()), 
+        		errSource, 
+        		errTarget, 
+        		new LogicalData("workerErr" + this.getName()), 
+        		new WorkersDebugInfoCopyTransferable(), 
+        		wdil);
 
         // Wait transfers
         wdil.enable();

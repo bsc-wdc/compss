@@ -42,6 +42,7 @@ usage() {
     latexFile=$(ls *.tex | grep -v configuration.tex)
     echo $latexFile
     sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
+    sed -i 's/<\<version\>>/'${version}'/g' $latexFile
     cd ${script_dir}
   done
 

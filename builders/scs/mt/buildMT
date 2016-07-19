@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildMT
+  # Description: SCRIPT FOR MinoTauro COMPSs BUILD
+  # Parameters: <MT_user> MinoTauro user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTargetPath> Base Target Installation folder on MinoTauro
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildMT <MT_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+
+  MTuser=$1
+  MTtmpDir=$2
+  MTtargetDir=$3
+  MTloginNode=mt1.bsc.es
+  MTauxScript=${scriptDir}/buildMT_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons
+  ./buildSC ${MTuser} ${MTloginNode} ${MTtmpDir} ${MTtargetDir} ${MTauxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

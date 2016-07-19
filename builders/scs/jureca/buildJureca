@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildJureca
+  # Description: SCRIPT FOR Jureca COMPSs BUILD
+  # Parameters: <Jureca_user> Jureca user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTargetPath> Base Target Installation folder on Jureca
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildJureca <Jureca_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+  
+  JurecaUser=$1
+  JurecaTmpDir=$2
+  JurecaTargetDir=$3
+  JurecaLoginNode=jureca.fz-juelich.de
+  JurevaAuxScript=${scriptDir}/buildJureca_aux
+  PRELOAD_ENV="BASH_ENV=/etc/bash.bashrc"
+
+  # Perform installation
+  cd ${scriptDir}/../commons
+  ./buildSC ${JurecaUser} ${JurecaLoginNode} ${JurecaTmpDir} ${JurecaTargetDir} ${JurecaAuxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

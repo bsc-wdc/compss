@@ -1,0 +1,121 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildSC
+  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
+  # Parameters: <SC_user>         SuperComputer user account. Preferable with ssh keys inserted
+  #             <SC_loginNode>    Node to login to the SuperComputer
+  #             <FullTmpPath>     Tmp path on MareNostrum for deployment
+  #             <FullTargetPath>  Base Target Installation folder on SuperComputer
+  #             <AuxScript>       Script to execute inside the SuperComputer
+  #             <PRELOAD_ENV>     Pre-load environment on <AuxScript> execution
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildSC <SC_user> <SC_loginNode> <FullTmpPath> <FullTargetPath> <AuxScript> <PRELOAD_ENV>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 6 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  SCuser=$1
+  SCloginNode=$2
+  SCtmpDir=$3
+  SCtargetDir=$4
+  SCauxScript=$5
+  PRELOAD_ENV=$6
+
+  scriptDir=$(pwd)/$(dirname $0)
+  sourcesDir=$(pwd)/$(dirname $0)/../../..
+  tmpDir=${scriptDir}/tmp
+  SCauxScript_generic=${scriptDir}/buildSC_aux
+
+
+  echo "- SC user           = ${SCuser}"
+  echo "- SC login node     = ${SCloginNode}"
+  echo "- SC tmp Dir        = ${SCtmpDir}"
+  echo "- SC target Dir     = ${SCtargetDir}"
+  echo "- Script Dir        = ${scriptDir}"
+  echo "- Aux Script        = ${SCauxScript}"
+  echo "- Generic AuxScript = ${SCauxScript_generic}"
+  echo "- Sources Dir       = ${sourcesDir}"
+  echo "- Local tmp Dir     = ${tmpDir}"
+  sleep 5
+
+  echo "- Compile sources"
+  cd ${sourcesDir}/compss/
+  mvn -U clean package
+  cd ${scriptDir}
+
+  # COPY TRUNK
+  echo "- Copy trunk to tmpdir"
+  rm -rf ${tmpDir}
+  mkdir -p ${tmpDir}
+  cp ${sourcesDir}/changelog ${tmpDir}
+  cp -r ${sourcesDir}/compss ${tmpDir}
+  cp -r ${sourcesDir}/dependencies ${tmpDir}
+  cp -r ${sourcesDir}/doc ${tmpDir}
+  cp -r ${sourcesDir}/files ${tmpDir}
+  cp ${sourcesDir}/LICENSE ${tmpDir}
+  cp ${sourcesDir}/NOTICE ${tmpDir}
+  cp ${sourcesDir}/pom.xml ${tmpDir}
+  cp ${sourcesDir}/README ${tmpDir}
+  cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
+  find . -name .svn | xargs rm -rf  #Cleans svn files
+
+  # CLEAN TRUNK COMPILATION
+  echo "- Clean sources"
+  cd ${sourcesDir}/compss/
+  mvn -U clean
+  cd ${scriptDir}
+  # COMPSs Monitor APACHE
+  echo "- Downloading Apache for COMSPs Monitor"
+  cd ${tmpDir}
+  TOMCAT_VER="7.0.65"
+  TOMCAT_URL="http://compss.bsc.es/repo/apache-tomcat/apache-tomcat-7.0.65.tar.gz"
+  wget ${TOMCAT_URL}
+  mv apache-tomcat-${TOMCAT_VER}.tar.gz apache-tomcat.tar.gz
+  cd ${scriptDir}
+
+  # DEPLOY ON TMP SC
+  echo "- Deploy files to tmpDir in SC"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "rm -rf ${SCtmpDir}; mkdir -p ${SCtmpDir}"
+  scp -r -q -o StrictHostKeyChecking=no ${tmpDir} ${SCuser}@${SCloginNode}:${SCtmpDir}
+  scp -r -q -o StrictHostKeyChecking=no ${SCauxScript} ${SCuser}@${SCloginNode}:${SCtmpDir}
+  scp -r -q -o StrictHostKeyChecking=no ${SCauxScript_generic} ${SCuser}@${SCloginNode}:${SCtmpDir}
+
+  # Execute deployment aux script
+  echo "- Execute installation on SC"
+  SCauxScriptName=$(basename ${SCauxScript})
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "${PRELOAD_ENV} ${SCtmpDir}/${SCauxScriptName} ${SCtargetDir}"
+
+  # ERASE TMP FILES
+  echo "- Erase tmp files"
+  ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${SCuser}@${SCloginNode} "rm -rf ${SCtmpDir}"
+  rm -rf ${tmpDir}
+
+  # END
+  echo "Congratulations!"
+  echo "COMPSs Runtime Successfully installed!"
+  echo " "
+  exit 0
+

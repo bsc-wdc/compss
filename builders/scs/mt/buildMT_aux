@@ -1,0 +1,42 @@
+#!/bin/bash
+ 
+  #############################################################
+  # Name: buildMT_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MinoTauro
+  # Parameters: <targetDir> Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  #            EXECUTED FROM buildMT script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildMT_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  scriptDir=$(dirname $0)
+
+  modules="python/2.7.2 java boost"
+  additionalExports="export BOOST_CPPFLAGS=-I$BOOST_INCLUDE ; export PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH ;"
+  extrae_with_openmpi="true"
+  openmpi_version=""
+  extrae_with_impi="true"
+  impi_version=""
+
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+
+  # END
+  exit 0
+

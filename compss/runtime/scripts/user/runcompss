@@ -775,12 +775,14 @@ clean_env() {
 #---------------------------------------------------
 # MAIN EXECUTION
 #---------------------------------------------------
-  # Trap to ensure clean end
-  trap clean_env EXIT
-
-  # Normal main execution
+  # Environment and arguments
   check_env
   get_args $@
   check_args
+
+  # Trap to ensure clean end
+  trap clean_env EXIT
+  
+  # Real runtime execution
   execute_runtime
 

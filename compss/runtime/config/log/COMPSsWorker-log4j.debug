@@ -17,7 +17,7 @@
     <!-- RUNTIME ROOT -->
     <!-- IntegratedToolkit: DEFAULT = DEBUG -->
     <Logger name="integratedtoolkit" additivity="FALSE" level="debug">
-      <AppenderRef ref="COMPSsRuntimeLog"/>
+      <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- COMMUNICATION -->
@@ -25,7 +25,13 @@
     <Logger name="Communication" additivity="FALSE" level="debug">
       <AppenderRef ref="Console"/>
     </Logger>
+
     <Logger name="integratedtoolkit.Communication" additivity="FALSE" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- Integratedtoolkit.Worker.Tracing: DEFAULT = DEBUG -->
+     <Logger name="integratedtoolkit.Components.Tracing" additivity="FALSE" level="debug">
       <AppenderRef ref="Console"/>
     </Logger>
 
@@ -48,7 +54,6 @@
     <Logger name="integratedtoolkit.Worker.Executor" additivity="FALSE" level="debug">
       <AppenderRef ref="Console"/>
     </Logger>
-
   </Loggers>
 </Configuration>
 

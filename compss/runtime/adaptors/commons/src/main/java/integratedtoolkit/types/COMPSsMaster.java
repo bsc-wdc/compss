@@ -41,7 +41,8 @@ public class COMPSsMaster extends COMPSsNode {
             InetAddress localHost = InetAddress.getLocalHost();
             hostName = localHost.getCanonicalHostName();
         } catch (UnknownHostException e) {
-            ErrorManager.error("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
+            ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
+            hostName="master";
         }
         name = hostName;
 

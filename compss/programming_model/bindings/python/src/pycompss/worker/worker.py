@@ -41,13 +41,10 @@ try:
     # Import storage libraries if possible
     from storage.api import getByID
     from storage.api import TaskContext
-    #from storage.api import start_task, end_task
 except ImportError:
     # If not present, import dummy functions
     from dummy.storage import getByID
     from dummy.storage import TaskContext
-    #from dummy.storage import start_task
-    #from dummy.storage import end_task
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -83,10 +80,10 @@ def compss_worker():
 
         if ptype == Type.FILE:
             values.append(args[pos + 1])
-        elif (ptype == Type.PERSISTENT):
+        elif ptype == Type.PERSISTENT:
             po = getByID(args[pos+1])
             values.append(po)
-            pos = pos + 1  # Skip info about direction (R, W)
+            pos += 1  # Skip info about direction (R, W)
         elif ptype == Type.STRING:
             num_substrings = int(args[pos + 1])
             aux = ''
@@ -167,15 +164,6 @@ def compss_worker():
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
                 pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
-        '''
-        # Old school
-        # Storage Prolog
-        start_task(values)
-        # Task execution
-        getattr(module, method_name)(*values, compss_types=types)
-        # Storage Epilog
-        end_task(values)
-        '''
     # ==========================================================================
     except AttributeError:
         # Appears with functions that have not been well defined.
@@ -192,10 +180,9 @@ def compss_worker():
         from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
-        # module_name = path.replace('.' + class_name, '')  # BUG - does not support same filename as a package
-        module_name = '.'.join(path.split('.')[0:-1])       # SOLUTION - all path but the class_name means the module_name
+        module_name = '.'.join(path.split('.')[0:-1])
         if '.' in path:
-            module_name = '.'.join(path.split('.')[0:-1])   # SOLUTION - all path but the class_name means the module_name
+            module_name = '.'.join(path.split('.')[0:-1])
         else:
             module_name = path
 
@@ -216,7 +203,6 @@ def compss_worker():
             types.pop()
             types.insert(0, Type.OBJECT)
 
-
             with TaskContext(logger, values):
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -225,14 +211,6 @@ def compss_worker():
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
-            ''' Old school
-            # Storage Prolog
-            start_task(values)
-            # Task execution
-            getattr(klass, method_name)(*values, compss_types=types)
-            #  Storage Epilog
-            end_task(values)
-            '''
             serialize_to_file(obj, file_name, force=True)
         else:
             # Class method - class is not included in values (e.g. values = [7])
@@ -246,14 +224,6 @@ def compss_worker():
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
-            ''' Old school
-            # Storage Prolog
-            start_task(values)
-            # Task execution
-            getattr(klass, method_name)(*values, compss_types=types)
-            #  Storage Epilog
-            end_task(values)
-            '''
     # ==========================================================================
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -276,7 +246,6 @@ if __name__ == "__main__":
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
-
 
     # Load log level configuration file
     log_level = sys.argv[1]

@@ -39,7 +39,8 @@ class task(object):
         from pycompss.api.parameter import Parameter, Type, Direction
         import copy
 
-        if (not inspect.stack()[-2][3] == 'compss_worker') and (not inspect.stack()[-2][3] == 'compss_persistent_worker'):
+        if (not inspect.stack()[-2][3] == 'compss_worker') and \
+           (not inspect.stack()[-2][3] == 'compss_persistent_worker'):
             for arg_name in self.kwargs.keys():
                 if arg_name not in ['isModifier', 'returns', 'priority']:
                     # Prevent p.value from being overwritten later by ensuring
@@ -57,7 +58,6 @@ class task(object):
         if self.kwargs['returns']:
             self.kwargs['compss_retvalue'] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
         logger.debug("Init task...")
-        
 
     def __call__(self, f):
         """
@@ -121,8 +121,9 @@ class task(object):
                     is_nested = True
                 if i_s[3] == 'launch_pycompss_application':
                     is_nested = True
-            
-            if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') and (not is_nested):
+
+            if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') \
+                    and (not is_nested):
                 # Called from worker code, run the method
                 from pycompss.util.serializer import serialize_objects
 
@@ -189,7 +190,7 @@ class task(object):
                     # Parameter Sorting
                     for p in self.spec_args[0][len(args):num_params]:
                         if p in kwargs:
-                            #argsl.append(kwargs[p[0]])
+                            # argsl.append(kwargs[p[0]])
                             argsl.append(kwargs[p])
                         else:
                             for dp in default_params:
@@ -200,9 +201,8 @@ class task(object):
 
                 return process_task(f, ftype, self.spec_args[0], class_name,
                                     self.module, args, kwargs, self.kwargs)
-                # Inicio de la creacion asincrona de la tarea.
-                # Libreria de pycompss y luego c.
-                # Retorna al terminar esto.
+                # Starts the asyncrhonous creation of the task.
+                # First calling the pycompss library and then C library (bindings-commons).
 
         return wrapped_f
 
@@ -257,7 +257,7 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
         if p == None:  # decoration not present, using default
             p = Parameter()
             # deco_kwargs[spec_arg] = p
-        
+
         if compss_type == Type.FILE and p.type != Type.FILE:
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
@@ -284,5 +284,5 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
                 # if any exception arised, then it has to be a simple value
                 real_values.append(value)
         '''
-            
+
     return real_values, to_serialize

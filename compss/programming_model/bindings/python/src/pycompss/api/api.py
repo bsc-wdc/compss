@@ -72,10 +72,6 @@ def compss_wait_on(obj, to_write=True):
             res = wait_on_list(obj)
             return res
         
-            
-        
-    
-
 ##############
 # DEPRECATED #
 ##############

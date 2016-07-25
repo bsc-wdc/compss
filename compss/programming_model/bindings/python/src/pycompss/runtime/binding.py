@@ -52,7 +52,7 @@ python_to_compss = {types.IntType: Type.INT,          # int
                     types.DictType: Type.OBJECT
                     }
 
-#temp_dir = mkdtemp(prefix='pycompss', dir=os.getcwd())
+# temp_dir = mkdtemp(prefix='pycompss', dir=os.getcwd())
 temp_dir = ''
 temp_obj_prefix = "/compss-serialized-obj_"
 
@@ -260,8 +260,10 @@ def process_task(f,             # Function or method
         # Check if the object is small in order not to serialize it.
         # Evaluates the size before serializing it
         if object_conversion:
-            if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
-                if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
+            if (p.type == Type.OBJECT or p.type == Type.STRING) and \
+               not is_future.get(i) and p.direction == Direction.IN:
+                if not isinstance(p.value, basestring) and \
+                   isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
                     # check object size
                     # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
                     bytes = total_sizeof(p.value)

@@ -19,21 +19,6 @@ from cPickle import HIGHEST_PROTOCOL
 # cross-module variable (set/modified from launch.py)
 mmap_file_storage = False
 
-'''
-# Provide support for serializing functions
-import cPickle as pickle
-import marshal, copy_reg, types
-
-def make_cell(value):
-    return(lambda: value).__closure__[0]
-
-def make_function(*args):
-    return types.FunctionType(*args)
-    
-copy_reg.pickle(types.CodeType, lambda code: (marshal.loads, (marshal.dumps(code),)))
-copy_reg.pickle(type((lambda i=0: lambda: i)().__closure__[0]), lambda cell: (make_cell, (cell.cell_contents,)))
-copy_reg.pickle(types.FunctionType, lambda fn: (make_function, (fn.__code__, {}, fn.__name__, fn.__defaults__, fn.__closure__)))
-'''
 
 def serialize_to_file(obj, file_name, force=False):
     """

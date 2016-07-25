@@ -40,25 +40,4 @@ class TaskContext( object ):
         pass
 
 
-# Old school
-# 
-# def start_task(values):
-#     """
-#     This function is called before performing the user task.
-#     Take into account that return is no required since it is ignored.
-#     In this dummy, it does nothing.
-#     @param values: the values that the task will receive.
-#     """
-#     pass
-# 
-# 
-# def end_task(values):
-#     """
-#     This function is called after performing the user task.
-#     Take into account that return is no required since it is ignored.
-#     In this dummy, it does nothing.
-#     @param values: the values that the task received.
-#     """
-#     pass
-
 

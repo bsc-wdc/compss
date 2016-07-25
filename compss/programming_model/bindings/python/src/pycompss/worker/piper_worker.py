@@ -35,8 +35,8 @@ WORKER_END = 6
 PROCESS_DESTRUCTION = 7
 
 # Persistent worker global variables
-tracing=False
-debug=True
+tracing = False
+debug = True
 processes = []
 
 if sys.version_info >= (2, 7):
@@ -46,22 +46,19 @@ try:
     # Import storage libraries if possible
     from storage.api import getByID
     from storage.api import TaskContext
-    #from storage.api import start_task, end_task
 except ImportError:
     # If not present, import dummy functions
     from dummy.storage import getByID
     from dummy.storage import TaskContext
-    #from dummy.storage import start_task
-    #from dummy.storage import end_task
 
 
 #####################
 #  Tag variables
 #####################
-INIT = "init"              # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
+INIT = "init"  # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
 EXECUTE_TASK_TAG = "task"  # -- "task" taskId jobOut jobErr task_params
-END_TASK_TAG = "endTask"   # -- "endTask" taskId endStatus
-QUIT_TAG = "quit"          # -- "quit"
+END_TASK_TAG = "endTask"  # -- "endTask" taskId endStatus
+QUIT_TAG = "quit"  # -- "quit"
 
 
 ######################
@@ -107,15 +104,15 @@ def worker(queue, process_name, input_pipe, output_pipe):
                             sys.stdout = open(job_out, 'w')
                             sys.stderr = open(job_err, 'w')
                             exitvalue = execute_task(process_name, line[7:])
-		            sys.stdout = stdout
-			    sys.stderr = stderr
+                            sys.stdout = stdout
+                            sys.stderr = stderr
 
                             # endTask jobId exitValue
                             message = END_TASK_TAG + " " + str(job_id) \
-                                                       + " " + str(exitvalue) + "\n"
-			    print "[PYTHON WORKER] - Pipe ", output_pipe, " END TASK MESSAGE: ", message
+                                      + " " + str(exitvalue) + "\n"
+                            print "[PYTHON WORKER] - Pipe ", output_pipe, " END TASK MESSAGE: ", message
                             with open(output_pipe, 'w+') as out_pipe:
-				out_pipe.write(message)
+                                out_pipe.write(message)
                         except Exception, e:
                             print "[PYTHON WORKER] Exception ", e
                             queue.put("EXCEPTION")
@@ -161,7 +158,7 @@ def execute_task(process_name, params):
         if ptype == Type.FILE:
             values.append(args[pos + 1])
         elif (ptype == Type.PERSISTENT):
-            po = getByID(args[pos+1])
+            po = getByID(args[pos + 1])
             values.append(po)
             pos = pos + 1  # Skip info about direction (R, W)
         elif ptype == Type.STRING:
@@ -238,7 +235,7 @@ def execute_task(process_name, params):
         else:
             module = __import__(path, globals(), locals(), [path], -1)
             logger.debug("Version < 2.7")
-        
+
         with TaskContext(logger, values):
             # if tracing:
             #     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -261,16 +258,17 @@ def execute_task(process_name, params):
         return 1
     # ==========================================================================
     except ImportError, e:
-        logger.exception("WORKER EXCEPTION ", e) 
+        logger.exception("WORKER EXCEPTION ", e)
         logger.exception("Trying to recover!!!")
         from pycompss.util.serializer import deserialize_from_file
         from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
         # module_name = path.replace('.' + class_name, '')  # BUG - does not support same filename as a package
-        module_name = '.'.join(path.split('.')[0:-1])       # SOLUTION - all path but the class_name means the module_name
+        module_name = '.'.join(path.split('.')[0:-1])  # SOLUTION - all path but the class_name means the module_name
         if '.' in path:
-            module_name = '.'.join(path.split('.')[0:-1])   # SOLUTION - all path but the class_name means the module_name
+            module_name = '.'.join(
+                path.split('.')[0:-1])  # SOLUTION - all path but the class_name means the module_name
         else:
             module_name = path
 
@@ -291,7 +289,6 @@ def execute_task(process_name, params):
             types.pop()
             types.insert(0, Type.OBJECT)
 
-
             with TaskContext(logger, values):
                 # if tracing:
                 #     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -303,7 +300,7 @@ def execute_task(process_name, params):
             serialize_to_file(obj, file_name, force=True)
         else:
             # Class method - class is not included in values (e.g. values = [7])
-            types.insert(0, None)    # class must be first type
+            types.insert(0, None)  # class must be first type
 
             with TaskContext(logger, values):
                 # if tracing:
@@ -332,9 +329,10 @@ def execute_task(process_name, params):
 
     return 0
 
+
 def shutdown_handler(signal, frame):
     for proc in processes:
-	if proc.is_alive():
+        if proc.is_alive():
             proc.terminate()
 
 
@@ -373,7 +371,7 @@ def compss_persistent_worker():
         # Default
         init_logging_worker(os.path.realpath(__file__) +
                             '/../../log/logging.json.off')
-    
+
     # Create new threads
     queues = []
     for i in xrange(0, tasks_x_node):
@@ -397,7 +395,6 @@ def compss_persistent_worker():
     for i in xrange(0, tasks_x_node):
         if not queues[i].empty:
             print queues[i].get()
-
 
     print "[PYTHON WORKER] Finished"
 

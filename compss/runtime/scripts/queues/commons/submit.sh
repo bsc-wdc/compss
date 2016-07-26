@@ -331,7 +331,7 @@ check_args() {
 
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # Check storage props is defined
-    if [ -z "${storage_props}" ];
+    if [ -z "${storage_props}" ]; then
       display_error "${ERROR_STORAGE_PROPS}"
     fi
 

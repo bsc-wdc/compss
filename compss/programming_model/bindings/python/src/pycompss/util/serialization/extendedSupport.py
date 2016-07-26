@@ -9,7 +9,7 @@
 #
 ###
 
-import pickle
+import cPickle as pickle
 import types
 import new
 import copy
@@ -32,16 +32,16 @@ def copy_generator(f_gen):
                 yield i
                 i+= step
 
-        >>> inc_gen = inc(3)
-        >>> inc_gen.next()
-        3
-        >>> inc_gen.next()
-        4
-        >>> inc_gen_c, inc_c = copy_generator(inc_gen)
-        >>> inc_gen_c.next() == inc_gen.next()
-        True
-        >>> inc_gen_c.next()
-        6
+        # >>> inc_gen = inc(3)
+        # >>> inc_gen.next()
+        # 3
+        # >>> inc_gen.next()
+        # 4
+        # >>> inc_gen_c, inc_c = copy_generator(inc_gen)
+        # >>> inc_gen_c.next() == inc_gen.next()
+        # True
+        # >>> inc_gen_c.next()
+        # 6
 
     Implementation strategy:
 
@@ -139,7 +139,7 @@ class GeneratorSnapshot(object):
             else:
                 self.gi_frame.f_locals[key] = value
 
-def pickle_generator(f_gen, filename):
+def pickle_generator_filename(f_gen, filename):
     '''
     @param f_gen: generator object
     @param filename: destination file for pickling generator
@@ -148,10 +148,25 @@ def pickle_generator(f_gen, filename):
     f_gen.next() # jump one ahead for not to repeat when unpickling
     pickle.dump(GeneratorSnapshot(f_gen), output_pkl)
 
-def unpickle_generator(filename):
+def unpickle_generator_filename(filename):
     '''
     @param filename: source file of pickled generator
     '''
     input_pkl = open(filename, "rb")
     gen_snapshot = pickle.load(input_pkl)
+    return copy_generator(gen_snapshot)[0]
+
+def pickle_generator(f_gen, f):
+    '''
+    @param f_gen: generator object
+    @param filename: destination file for pickling generator
+    '''
+    f_gen.next() # jump one ahead for not to repeat when unpickling
+    pickle.dump(GeneratorSnapshot(f_gen), f)
+
+def unpickle_generator(f):
+    '''
+    @param filename: source file of pickled generator
+    '''
+    gen_snapshot = pickle.load(f)
     return copy_generator(gen_snapshot)[0]

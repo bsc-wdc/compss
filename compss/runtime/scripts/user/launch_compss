@@ -616,7 +616,7 @@ set_variables() {
   worker_install_dir=${IT_HOME}
   
   # Create .COMPSs log dir for application execution
-  specific_log_dir=$HOME/.COMPSs/${ENV_VAR_JOB_ID}/
+  specific_log_dir=$HOME/.COMPSs/${!ENV_VAR_JOB_ID}/
   mkdir -p ${specific_log_dir}
   
   # SharedDisk variables

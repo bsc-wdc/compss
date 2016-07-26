@@ -126,6 +126,8 @@ log_args() {
   echo "Num Switches:              ${num_switches}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
+  echo "Storage Home:              ${storage_home}"
+  echo "Storage Properties:        ${storage_props}"
   echo "Other:                     ${args_pass}"
 }
 

@@ -728,7 +728,6 @@ public class NIOWorker extends NIOAgent {
 	@Override
 	public void waitUntilWorkersDebugInfoGenerated() {
 		// Nothing to do
-
 	}
 
 	@Override

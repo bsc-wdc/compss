@@ -14,10 +14,19 @@ import math
 from cPickle import load, dump
 from cPickle import loads, dumps
 from cPickle import HIGHEST_PROTOCOL
+import types
+import dill
+from serialization.extendedSupport import pickle_generator
+from serialization.extendedSupport import copy_generator
+from serialization.extendedSupport import GeneratorSnapshot
 
 # Enable or disable the use of mmap for the file read and write operations
 # cross-module variable (set/modified from launch.py)
 mmap_file_storage = False
+
+
+class GeneratorException(Exception):
+    pass
 
 
 def serialize_to_file(obj, file_name, force=False):
@@ -36,7 +45,6 @@ def serialize_to_file(obj, file_name, force=False):
                 size = int(mmap.PAGESIZE * (math.ceil(size / float(mmap.PAGESIZE))))
             else:
                 size = int(mmap.PAGESIZE)
-
             fd = os.open(file_name, os.O_CREAT | os.O_TRUNC | os.O_RDWR)
             os.write(fd, '\x00' * size)
             mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
@@ -46,7 +54,15 @@ def serialize_to_file(obj, file_name, force=False):
     else:
         if not os.path.exists(file_name) or force:
             f = open(file_name, 'wb')
-            dump(obj, f, HIGHEST_PROTOCOL)
+            if isinstance(obj, types.FunctionType):
+                # The object is a function or a lambda
+                dill.dump(obj, f, HIGHEST_PROTOCOL)
+            elif isinstance(obj, types.GeneratorType):
+                # The object is a generator - Save the state
+                pickle_generator(obj, f)
+            else:
+                # All other objects are serialized using cPickle
+                dump(obj, f, HIGHEST_PROTOCOL)
             f.close()
         return file_name
 
@@ -66,8 +82,18 @@ def deserialize_from_file(file_name):
         mm.close()
         return l
     else:
+        l = None
         f = open(file_name, 'rb')
-        l = load(f)
+        try:
+            l = load(f)
+            if isinstance(l, GeneratorSnapshot):
+                raise GeneratorException
+        except AttributeError:  # It is a function or a lambda
+            f.seek(0, 0)
+            l = dill.load(f)
+        except GeneratorException:
+            # It is a generator and needs to be unwrapped (from GeneratorSnapshot to generator).
+            l = copy_generator(l)[0]
         f.close()
         return l
 
@@ -91,7 +117,6 @@ def serialize_objects(to_serialize):
                 size = int(mmap.PAGESIZE * (math.ceil(size / float(mmap.PAGESIZE))))
             else:
                 size = int(mmap.PAGESIZE)
-
             fd = os.open(file_name, os.O_CREAT | os.O_TRUNC | os.O_RDWR)
             os.write(fd, '\x00' * size)
             mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
@@ -102,5 +127,13 @@ def serialize_objects(to_serialize):
             obj = target[0]
             file_name = target[1]
             f = open(file_name, 'wb')
-            dump(obj, f, HIGHEST_PROTOCOL)
-            f.close()  # new
+            if isinstance(obj, types.FunctionType):
+                # The object is a function or a lambda
+                dill.dump(obj, f, HIGHEST_PROTOCOL)
+            elif isinstance(obj, types.GeneratorType):
+                # The object is a generator - Save the state
+                pickle_generator(obj, f)
+            else:
+                # All other objects are serialized using cPickle
+                dump(obj, f, HIGHEST_PROTOCOL)
+            f.close()

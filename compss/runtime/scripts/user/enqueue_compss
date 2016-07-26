@@ -5,38 +5,21 @@
 #---------------------------------------------------
 DEFAULT_SC_CFG="default"
 
-# Next default values need to be consistent with runcompss
-DEFAULT_LANGUAGE=java
-DEFAULT_LIBRARY_PATH=$(pwd)
-DEFAULT_CLASSPATH=$(pwd)
-DEFAULT_PYTHONPATH=$(pwd)
-DEFAULT_DEBUG=off
-DEFAULT_LOG_LEVEL_ARG=debug
-DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
-DEFAULT_TRACING=false
-DEFAULT_TRACING_ARG=true
-DEFAULT_MASTER_PORT_BASE=43000
-DEFAULT_MASTER_PORT_RAND_RANGE=1000
-DEFAULT_TASK_EXECUTION=compss
-DEFAULT_STORAGE_CONF=null
-DEFAULT_STORAGE_NAME=null
 
-# Error constant messages
+#---------------------------------------------------
+# ERROR CONSTANTS DECLARATION
+#---------------------------------------------------
 ERROR_CFG_SC="SuperComputer CFG file doesn't exist"
 ERROR_CFG_Q="Queue system CFG file doesn't exist"
-ERROR_WORKER_WD="Invalid Worker Working Dir option"
-ERROR_NETWORK="Invalid network option"
-ERROR_SWITCHES="Too little switches for the specified number of nodes"
-ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
-ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
-ERROR_WORKER_IN_MASTER_TASKS="Parameter worker_in_master_tasks is bigger than the maximum number of tasks_per_node"
-ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
-ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH="Parameter worker_in_master_memory exceeds the node_memory limit"
-ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_tasks is not 0"
  
-#---------------------------------------------------
-# FUNCTIONS DECLARATION
-#---------------------------------------------------
+ 
+#---------------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Displays usage
+###############################################
 usage() { 
   exitValue=$1
 
@@ -55,67 +38,31 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
     --help, -h                              Print this help message
   
   Queue system configuration:
-    --exec_time=<minutes>                   Expected execution time of the application (in minutes)
-                                            Default: ${DEFAULT_EXEC_TIME}
-    --num_nodes=<int>                       Number of nodes to use
-                                            Default: ${DEFAULT_NUM_NODES}
-    --num_switches=<int>                    Maximum number of different switches. Select 0 for no restrictions.
-                                            Maximum nodes per switch: ${MAX_NODES_SWITCH}
-    					    Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
-    					    Default: ${DEFAULT_NUM_SWITCHES} 
-
-    --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
-                                            Default: ${DEFAULT_TASKS_PER_NODE}
-    --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
-                                            Default: ${DEFAULT_NODE_MEMORY}
-    --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
-                                            Default: ${DEFAULT_NETWORK}
-
     --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
                                             Default: ${DEFAULT_SC_CFG}
-    --queue=<name>                          Queue name to submit the job. Depends on the queue system.
-                                            For example (MN3): bsc_cs | bsc_debug | debug | interactive
-                                            Default: ${DEFAULT_QUEUE}
-    --reservation=<name>		    Reservation to use when submitting the job. 
-                                            Default: ${DEFAULT_RESERVATION}
-    --job_dependency=<jobID>                Postpone job execution until the job dependency has ended.
-					    Default: ${DEFAULT_DEPENDENCY_JOB}
 
-    --master_working_dir=<path>             Working directory of the application
-                                            Default: ${DEFAULT_MASTER_WORKING_DIR}
-    --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
-                                            Default: ${DEFAULT_WORKER_WORKING_DIR}
-    --worker_in_master_tasks=<int>          Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
-					    Default: ${DEFAULT_WORKER_IN_MASTER_TASKS}
-    --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
-                                            Mandatory if worker_in_master_tasks is specified.
-                                            Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
-    --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. Each option separed by "," and without blank spaces (Notice the quotes)
-                                            Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
-    --task_execution=<compss|storage>	    Task execution under COMPSs or Storage.
-                                            Default: ${DEFAULT_TASK_EXECUTION}
-    --storage_conf=<path>		    Path to the storage configuration file
-    --storage_name=<dataclay|hecuba>	    Name of the storage platform dataClay or Hecuba.
-    	
-
-  Runcompss delegated parameters:
+  Submission configuration: 
 
 EOT
-  ${scriptDir}/runcompss --opts 
+  ${scriptDir}/../queues/commons/submit.sh --opts 
 
   exit $exitValue
 }
 
+###############################################
 # Displays version
+###############################################
 display_version() {
   local exitValue=$1
 
-  runcompss --version
+  ${scriptDir}/runcompss --version
 
   exit $exitValue
 }
 
-# Displays parsing arguments errors
+###############################################
+# Displays errors treating arguments
+###############################################
 display_error() {
   local error_msg=$1
   
@@ -125,13 +72,20 @@ display_error() {
   usage 1
 }
 
+#---------------------------------------------------------------------------------------
+# MAIN FUNCTIONS
+#---------------------------------------------------------------------------------------
+
+###############################################
+# Get arguments
+###############################################
 get_args() {
   # Avoid enqueue if there is no application
   if [ $# -eq 0 ]; then
     usage 1
   fi
 
-  #Parse COMPSs Options
+  # Parse COMPSs Options
   while getopts hdt-: flag; do 
     # Treat the argument
     case "$flag" in
@@ -139,16 +93,6 @@ get_args() {
 	# Display help
 	usage 0
 	;;
-      d)
-        log_level=${DEFAULT_LOG_LEVEL_ARG}
-        #Keep it for runcompss (to add them to master)
-        args_pass="$args_pass -$flag"
-        ;;
-      t)
-        tracing=${DEFAULT_TRACING_ARG}
-        #Keep it for runcompss (to add them to master)
-        args_pass="$args_pass -$flag"
-        ;;
       -)
 	# Check more complex arguments 
 	case "$OPTARG" in
@@ -160,126 +104,16 @@ get_args() {
             # Display compss version
             display_version 0
             ;;
-	  exec_time=*)
-	    exec_time=$(echo $OPTARG | sed -e 's/exec_time=//g')
-	    ;;
-	  num_nodes=*)
-	    num_nodes=$(echo $OPTARG | sed -e 's/num_nodes=//g')
-	    ;;
-          num_switches=*)
-            num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
-            ;;
 	  sc_cfg=*)
 	    sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
 	    ;;
-          queue=*)
-	    queue=$(echo $OPTARG | sed -e 's/queue=//g')
+          master_node=*)
+            # Master node is automatically selected. Remove it from COMPSs flags
+            echo "WARNING: master_node is automatically selected. Omitting parameter"
             ;;
-          node_memory=*)
-            node_memory=$(echo $OPTARG | sed -e 's/node_memory=//g')
-            ;;
-          reservation=*)
-            reservation=$(echo $OPTARG | sed -e 's/reservation=//g')
-            ;;
-          job_dependency=*)
-            dependencyJob=$(echo $OPTARG | sed -e 's/job_dependency=//g')
-            ;;
-	  tasks_per_node=*)
-	    tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
-	    ;;
-	  master_working_dir=*)
-	    master_working_dir=$(echo $OPTARG | sed -e 's/master_working_dir=//g')
-	    ;;
-	  worker_working_dir=*)
-	    worker_working_dir=$(echo $OPTARG | sed -e 's/worker_working_dir=//g')
-	    ;; 
-          worker_in_master_tasks=*)
-            worker_in_master_tasks=$(echo $OPTARG | sed -e 's/worker_in_master_tasks=//g')
-            ;;
-          worker_in_master_memory=*)
-            worker_in_master_memory=$(echo $OPTARG | sed -e 's/worker_in_master_memory=//g')
-            ;;
-          network=*)
-            network=$(echo $OPTARG | sed -e 's/network=//g')
-            ;;
-          lang=*)
-            lang=$(echo $OPTARG | sed -e 's/lang=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          library_path=*)
-            library_path=$(echo $OPTARG | sed -e 's/library_path=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          classpath=*)
-            cp=$(echo $OPTARG | sed -e 's/classpath=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          pythonpath=*)
-            pythonpath=$(echo $OPTARG | sed -e 's/pythonpath=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          log_level=*)
-            log_level=$(echo $OPTARG | sed -e 's/log_level=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-	    ;;
-          debug)
-            log_level=${DEFAULT_LOG_LEVEL_ARG}
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          tracing=*)
-            tracing=$(echo $OPTARG | sed -e 's/tracing=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-	  tracing)
-            tracing=${DEFAULT_TRACING_ARG}
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          comm=*)
-            comm=$(echo $OPTARG | sed -e 's/comm=//g')
-            #Keep it for runcompss (to add them to master)
-            args_pass="$args_pass --$OPTARG"
-            ;;
-          jvm_master_opts=*)
-            jvm_master_opts=$(echo $OPTARG | sed -e 's/jvm_master_opts=//g')
-            ;;
-          jvm_workers_opts=*)
-            jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
-            ;;
-          jvm_worker_in_master_opts=*)
-            jvm_worker_in_master_opts=$(echo $OPTARG | sed -e 's/jvm_worker_in_master_opts=//g')
-            ;;
-	  storage_conf=*)
-	    storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
-	    ;;
-	  storage_name=*)
-	    storageName=`echo $OPTARG | sed -e 's/storage_name=//g'`;
-	    ;;		    
-          task_execution=*)
-            taskExecution=$(echo $OPTARG | sed -e 's/task_execution=//g')
-            ;;
-	  uuid=*)
-            # UUID will be generated by launch.sh remove it from COMPSs flags
-            echo "WARNING: UUID is automatically generated. Omitting parameter"
-	    ;;
-          specific_log_dir=*)
-            # Specific log dir is automatically generated by launch.sh. Remove it from COMPSs flags
-            echo "WARNING: specific_log_dir is automatically generated. Omitting parameter"
-            ;;
-          base_log_dir=*)
-            # Base log dir is automatically generated by launch.sh. Remove it from COMPSs flags
-            echo "WARNING: base_log_dir is automatically generated. Omitting parameter"
-            ;;
-          master_port=*)
-            master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
-            # Remove from runcompss since launcher will add it
+          worker_nodes=*)
+            # Worker nodes are automatically selected. Remove it from COMPSs flags
+            echo "WARNING: worker_nodes are automatically selected. Omitting parameter"
             ;;
           *)
 	    # Flag didn't match any patern. Add to COMPSs 
@@ -293,13 +127,16 @@ get_args() {
 	;; 
     esac
   done
-  #Shift COMPSs arguments
+  # Shift COMPSs arguments
   shift $((OPTIND-1))
 
-  #Pass application name and args
-  args_pass="$args_pass $*" 
+  # Pass application name and args
+  args_pass="$args_pass $@" 
 }
 
+###############################################
+# Checks arguments
+###############################################
 check_args() {
   ###############################################################
   # SC Configuration checks
@@ -332,179 +169,6 @@ check_args() {
 
   # Source queue system CFG env
   source ${queueCfgFullPath}
-
-  ###############################################################
-  # Queue system checks
-  ###############################################################
-  if [ -z "${queue}" ]; then
-    queue=${DEFAULT_QUEUE}
-  fi
-
-  if [ -z "${exec_time}" ]; then
-    exec_time=${DEFAULT_EXEC_TIME}
-  fi
-  
-  if [ -z "${reservation}" ]; then
-    reservation=${DEFAULT_RESERVATION}
-  fi
-
-  if [ -z "${dependencyJob}" ]; then
-    dependencyJob=${DEFAULT_DEPENDENCY_JOB}
-  fi
-
-  ###############################################################
-  # Infrastructure checks
-  ###############################################################
-  if [ -z "${num_nodes}" ]; then
-    num_nodes=${DEFAULT_NUM_NODES}
-  fi
-
-  if [ -z "${num_switches}" ]; then
-    num_switches=${DEFAULT_NUM_SWITCHES}
-  fi
-  maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
-  if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
-    display_error "${ERROR_SWITCHES}"
-  fi
-  if [ ${num_nodes} -lt ${MIN_NODES_REQ_SWITCH} ] && [ "${num_switches}" != "0" ]; then
-    display_error "${ERROR_NO_ASK_SWITCHES}"
-  fi
-
-  if [ -z "${network}" ]; then
-    network=${DEFAULT_NETWORK}
-  elif [ "${network}" == "default" ]; then
-    network=${DEFAULT_NETWORK}
-  elif [ "${network}" != "ethernet" ] && [ "${network}" != "infiniband" ] && [ "${network}" != "data" ]; then
-    display_error "${ERROR_NETWORK}"
-  fi
-
-  ###############################################################
-  # Node checks
-  ###############################################################
-  if [ -z "${tasks_per_node}" ]; then
-    tasks_per_node=${DEFAULT_TASKS_PER_NODE}
-  fi
-  
-  if [ -z "${worker_in_master_tasks}" ]; then
-    worker_in_master_tasks=${DEFAULT_WORKER_IN_MASTER_TASKS}
-  fi
-  if [ ${worker_in_master_tasks} -gt ${tasks_per_node} ]; then
-    display_error "${ERROR_WORKER_IN_MASTER_TASKS}"
-  fi
-
-  if [ -z "${node_memory}" ]; then
-    node_memory=${DEFAULT_NODE_MEMORY}
-  elif [ "${node_memory}" != "disabled" ] && ! [[ "${node_memory}" =~ ^[0-9]+$ ]]; then
-    display_error "${ERROR_NODE_MEMORY}"
-  fi
-
-  if [ -z "${worker_in_master_memory}" ]; then
-    worker_in_master_memory=${DEFAULT_WORKER_IN_MASTER_MEMORY}
-  elif [ "${worker_in_master_memory}" != "disabled" ] && ! [[ "${worker_in_master_memory}" =~ ^[0-9]+$ ]]; then
-    display_error "${ERROR_WORKER_IN_MASTER_MEMORY}"
-  fi
-  if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] && [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ] && [ ${worker_in_master_memory} -lt ${node_memory} ]; then
-    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH}"
-  fi
-
-  if [ ${worker_in_master_tasks} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
-    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED}"
-  fi
-
-  if [ -z "${master_port}" ]; then
-    rand_num=$RANDOM
-    offset=$((rand_num % DEFAULT_MASTER_PORT_RAND_RANGE))
-    master_port=$((DEFAULT_MASTER_PORT_BASE + offset))
-  fi
-
-  ###############################################################
-  # Working Directory Checks
-  ###############################################################
-  if [ -z "${master_working_dir}" ]; then
-    master_working_dir=${DEFAULT_MASTER_WORKING_DIR}
-  fi
-  
-  if [ -z "${worker_working_dir}" ]; then
-    worker_working_dir=${DEFAULT_WORKER_WORKING_DIR}
-  elif [ "${worker_working_dir}" != "scratch" ] && [ "${worker_working_dir}" != "gpfs" ] && [[ ${worker_working_dir} != /* ]]; then
-    display_error "${ERROR_WORKER_WD}"
-  fi
-
-  ###############################################################
-  # JVM Checks
-  ###############################################################
-  if [ -z "${jvm_master_opts}" ]; then
-    jvm_master_opts=${DEFAULT_JVM_MASTER}
-  fi
-
-  if [ -z "${jvm_workers_opts}" ]; then
-    jvm_workers_opts=${DEFAULT_JVM_WORKERS}
-  fi
-
-  ###############################################################
-  # Runtime and Tools Checks
-  ###############################################################
-  if [ -z "${log_level}" ]; then
-    log_level=${DEFAULT_DEBUG}
-  fi
-
-  if [ -z "${comm}" ]; then
-    comm=${DEFAULT_COMMUNICATION_ADAPTOR}
-  fi
-
-  if [ -z "${tracing}" ]; then
-    tracing=${DEFAULT_TRACING}
-  fi
-
-  if [ -z "${taskExecution}" ]; then
-    taskExecution=${DEFAULT_TASK_EXECUTION}
-  fi
-
-  if [ -z "${storageConf}" ]; then
-    storageConf=${DEFAULT_STORAGE_CONF}
-  fi
-
-  if [ -z "${storageName}" ]; then
-    storageName=${DEFAULT_STORAGE_NAME}
-  fi
-
-  ###############################################################
-  # Application Checks
-  ###############################################################
-  # Lang
-  if [ -z "$lang" ]; then
-    lang=${DEFAULT_LANGUAGE}
-  fi
-
-  # Library path
-  if [ -z "${library_path}" ]; then
-    library_path=${DEFAULT_LIBRARY_PATH}
-  fi
-  
-  # Classpath
-  if [ -z "$cp" ]; then
-    cp=${DEFAULT_CLASSPATH}
-  else
-    fcp=""
-    for currcp in ${cp//:/$'\n'}; do
-        if [ ! ${currcp:0:1} == '/' ]; then                     # Relative paths to abs
-                if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists
-                        absdir="$(cd "$(dirname "$currcp")" && pwd)" # Get absolute dir
-                        file="$(basename "$currcp")"
-                        currcp="$absdir/$file"
-                else
-                        echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
-                fi
-        fi
-        fcp="${fcp}:$currcp"
-    done
-    cp="$(echo "$fcp" | cut -c2-)"
-  fi
-
-  # Pythonpath
-  if [ -z "$pythonpath" ]; then
-    pythonpath=${DEFAULT_PYTHONPATH}
-  fi
 }
 
 
@@ -521,33 +185,6 @@ check_args() {
 
   # Submit command
   ${scriptDir}/../queues/commons/submit.sh \
-        "${sc_cfg}" \
-        "${queue}" \
-        "${reservation}" \
-        ${exec_time} \
-        ${dependencyJob} \
-        ${num_nodes} \
-        ${num_switches} \
-        ${tasks_per_node} \
-        ${node_memory} \
-        "${network}" \
-        ${master_port} \
-        "${master_working_dir}" \
-        "${jvm_master_opts}" \
-        "${worker_working_dir}" \
-        "${jvm_workers_opts}" \
-        ${worker_in_master_tasks} \
-        ${worker_in_master_memory} \
-        "${jvm_worker_in_master_opts}" \
-        "${library_path}" \
-        "${cp}" \
-        "${pythonpath}" \
-        ${lang} \
-        ${log_level} \
-        ${tracing} \
-        ${comm} \
-        ${storageName} \
-        ${storageConf} \
-        ${taskExecution} \
-        ${args_pass}
+       --sc_cfg=${sc_cfg} \
+       ${args_pass}
 

@@ -1,9 +1,11 @@
 #!/bin/bash
 
-  #Get script parameters                                                                                                                                                                                                                     
-  IT_HOME=$IT_HOME                                                                                                                                                                                                                           
-  LSB_DJOB_HOSTFILE=$LSB_DJOB_HOSTFILE                                                                                                                                                                                                       
-  tasks_per_node=$Tasks_Per_Node                                                                                                                                                                                                             
+  # Get script parameters from environment
+  IT_HOME=$IT_HOME
+  LSB_DJOB_HOSTFILE=$LSB_DJOB_HOSTFILE
+
+  # Get script parameters from unicore
+  tasks_per_node=$Tasks_Per_Node
   tasks_in_master=$Tasks_In_Master
   worker_WD_type=$Worker_Working_Dir
   network=$Network
@@ -14,7 +16,7 @@
   graph=$Graph
   comm=$Comm
 
-  #Leave COMPSs parameters in $*
+  # Leave COMPSs parameters in $*
   app=$PYCOMPSSFILE
   real_app_name=$PYCOMPSS_FILE_NAME
   arguments=$ARGUMENTS
@@ -22,7 +24,6 @@
   echo "---------------------------"
   echo "PyCOMPSs 4 UNICORE Launcher"
   echo "---------------------------"
-
   echo "IT_HOME: " $IT_HOME
   echo "LSB_DJOB_HOSTFILE: " $LSB_DJOB_HOSTFILE
   echo "tasks_per_node: " $tasks_per_node
@@ -36,10 +37,10 @@
   echo "graph: " $graph
   echo "comm: " $comm
 
-  pwd=`pwd`
+  pwd=$(pwd)
   #echo "pwd: " $pwd
 
-  bindingsPath=$IT_HOME/../Bindings/bindings-common/lib
+  bindingsPath=$IT_HOME/Bindings/bindings-common/lib
 
   cp=$cp":"$ClassPath":"$pwd":"$bindingsPath":"$JAVA_HOME":"$JAVA_HOME/jre/lib/amd64/server/
   library_path=$library_path":"$bindingsPath":"$JAVA_HOME":"$JAVA_HOME/jre/lib/amd64/server/
@@ -57,15 +58,17 @@
   echo "absoluteRealApp: " $absoluteRealApp
   echo "arguments: " $arguments
 
-  bindingsPath=$IT_HOME/../Bindings/bindings-common/lib
-
+  bindingsPath=$IT_HOME/Bindings/bindings-common/lib
 
   echo "---------------------------"
 
+  ${IT_HOME}/Runtime/scripts/user/launch_compss \
+       --
+
   #Set script variables
   export IT_HOME=${IT_HOME}
-  export GAT_LOCATION=${IT_HOME}/../Dependencies/JAVA_GAT
-  worker_install_dir=${IT_HOME}/scripts/system/
+  export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
+  worker_install_dir=${IT_HOME}/Runtime/scripts/system/
   if [ "${worker_WD_type}" == "gpfs" ]; then
      worker_working_dir=$(mktemp -d -p /gpfs/${HOME})
   elif [ "${worker_WD_type}" == "scratch" ]; then

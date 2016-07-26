@@ -216,3 +216,28 @@ def function_time_decorated_worker(x):
     print("\t- Parameter x: %s" %x)
     return x*x*x
 
+@task(returns = int)
+def function_argfunc(f,v):
+    print "TEST"
+    print "- Function passed as parameter"
+    print "Function: ", f
+    value = f(v)
+    return value
+
+@task(returns = int)
+def function_lambda(f, v):
+    print "TEST" 
+    print "- Function lambda passed as parameter"
+    print "Lambda: ", f
+    value = f(v)
+    return value
+
+@task(returns = int)
+def function_generator(g):
+    print "TEST"
+    print "- Function generator passed as parameter"
+    print g
+    out = g.next()
+    print "Generator value: ", out
+    return out
+

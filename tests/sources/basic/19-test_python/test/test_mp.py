@@ -16,6 +16,7 @@ from test.modules.test_tasks import function_fu_object, function_fu_in_task
 from test.modules.test_tasks import function_fu_list_object, function_fu_list_in_task
 from test.modules.test_tasks import function_iterable_object_wait, function_wait_on_string
 from test.modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
+from test.modules.test_tasks import function_argfunc, function_lambda, function_generator
 
 
 def main_program():
@@ -44,7 +45,12 @@ def main_program():
     test_wait_on_string()
      
     test_time_decorator()
-    
+
+    test_argfunc()
+    test_lambda()
+      
+    test_generator()
+
         
     
 def test_function_primitives():
@@ -375,8 +381,53 @@ def test_time_decorator():
             print("\t * %s" %times[i])
     else:
         print("- Test timeit decorator with list (worker time): ERROR")
+
+# My function        
+def fun(x):   
+    return x*x
         
-        
+def test_argfunc():
+    print "test_argfunc"
+    f = fun
+    v = function_argfunc(f, 2)
+    v = compss_wait_on(v)
+    if (v == 2*2):
+        print("- Test function as argument: OK")
+    else:
+        print("- Test funcition as argument: ERROR")
+    
+def test_lambda():
+    print "test_lambda"
+    f = lambda x: x**2 + 2*x - 5
+    v = function_lambda(f, 10)
+    v = compss_wait_on(v)
+    if (v == 115):
+        print("- Test lambda as argument: OK")
+    else:
+        print("- Test lambda as argument: ERROR")
+
+# My generator
+def gen(n):
+    num = 0
+    while num < n:
+        yield num
+        num += 1
+
+def test_generator():
+    print "test_generator"
+    g = gen(10)
+    g.next()
+    g.next()
+    pre = g.next()
+    print "Status before task: ", pre
+    v = function_generator(g)
+    post = compss_wait_on(v)
+    print "Status within task (next generator value): ", post
+    if post == (pre+1):
+        print("- Test generator as argument: OK")
+    else:
+        print("- Test generator as argument: ERROR")
+
 
 if __name__ == "__main__":
     main_program()

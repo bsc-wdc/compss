@@ -17,7 +17,7 @@ from pycompss.util.logs import init_logging
 from cPickle import PicklingError
 import traceback
 import pycompss.runtime.binding as binding
-import pycompss.util.serializer as serializer
+
 
 app_path = None
 
@@ -111,11 +111,14 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     fd, temp_path = mkstemp()
     jvm_options_file = open(temp_path, 'w')
 
-    jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + e_classpath + ':' + cp + ':' + classpath + '\n')
+    jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + e_classpath
+                           + ':' + cp + ':' + classpath + '\n')
     if debug:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')   # DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home
+                                + '/Runtime/configuration/log/COMPSsMaster-log4j.debug\n')   # DEBUG
     else:
-        jvm_options_file.write('-Dlog4j.configuration=' + it_home + '/Runtime/configuration/log/COMPSsMaster-log4j\n')       # NO DEBUG
+        jvm_options_file.write('-Dlog4j.configuration=' + it_home
+                                + '/Runtime/configuration/log/COMPSsMaster-log4j\n')       # NO DEBUG
     jvm_options_file.write('-Dit.to.file=false\n')
     jvm_options_file.write('-Dit.lang=python\n')
     jvm_options_file.write('-Dit.project.file=' + project_xml + '\n')
@@ -167,7 +170,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     saved_argv = sys.argv
     sys.argv = args
     # Execution:
-    if func == None or func == '__main__':
+    if func is None or func == '__main__':
         result = execfile(app)
     else:
         import imp
@@ -240,7 +243,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     saved_argv = sys.argv
 #     sys.argv = args
 #     # Execution:
-#     if func == None or func == '__main__':
+#     if func is None or func == '__main__':
 #         execfile(app)
 #     else:
 #         import imp
@@ -313,7 +316,7 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
 #     saved_argv = sys.argv
 #     sys.argv = args
 #     # Execution:
-#     if func == None or func == '__main__':
+#     if func is None or func == '__main__':
 #         execfile(app)
 #     else:
 #         import imp

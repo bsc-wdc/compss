@@ -1,9 +1,17 @@
+"""
+@author: scorella
+
+PyCOMPSs Functions: Data generators
+===================================
+    This file defines the common data producing functions.
+"""
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 
 
 def chunks(l, n, balanced=False):
-    """ Generator to chunk data
+    """
+    Generator to chunk data
     :param l: List of data to be chunked
     :param n: length of the fragments
     :param balanced: True to generate balanced fragments
@@ -50,7 +58,8 @@ def _genUniform(size, sizeFrag, seed, jumps):
 
 
 def generator(size, numFrag, seed=None, distribution='random', wait=False):
-    """ Data generator
+    """
+    Data generator
     :param size: (numElements,dim)
     :param numFrag: dataset's number of fragments
     :param seed: random seed. Default None, system time is used-
@@ -68,7 +77,6 @@ def generator(size, numFrag, seed=None, distribution='random', wait=False):
     elif distribution == 'uniform':
         data = [_genUniform(size[1], sizeFrag, seed, sizeFrag*i)
                 for i in xrange(numFrag)]
-
     if wait:
         from pycompss.api.api import compss_wait_on
         data = compss_wait_on(data)

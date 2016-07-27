@@ -1,15 +1,11 @@
-
-
-
+from numpy import *
 
 import pp
-import time
-import sys
-import pickle
-from numpy import * 
+from src.pycompss.functions import time
+
 
 #load experiment and analysis parameters
-from experiment_params import num_neurons,num_secs,num_bins
+from experiment_params import num_neurons, num_bins
 from analysis_params import maxlag,num_surrs
 
 #cc_surrogate range calculates cc and surrogate cc for a given range of indices

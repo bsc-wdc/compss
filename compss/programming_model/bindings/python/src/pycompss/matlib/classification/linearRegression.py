@@ -1,11 +1,18 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+"""
+@author: scorella
+
+PyCOMPSs Mathematical Library: Classification: Linear Regression
+================================================================
+    This file contains the linear regression algorithm.
+
+    # yi = alpha + betaxi + epsiloni
+    # goal: y=alpha + betax
+"""
+
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 from pycompss.functions.reduce import mergeReduce
 import math
-# yi = alpha + betaxi + epsiloni
-# goal: y=alpha + betax
 
 
 @task(returns=int)

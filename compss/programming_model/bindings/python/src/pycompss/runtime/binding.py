@@ -16,19 +16,16 @@ from shutil import rmtree
 
 import types
 import os
-import sys
 import re
 import inspect
 import logging
 import traceback
-import string
 from collections import *
 
 import compss
 
 from cPickle import dumps
 from cPickle import PicklingError
-from cPickle import HIGHEST_PROTOCOL
 
 
 python_to_compss = {types.IntType: Type.INT,          # int
@@ -79,16 +76,26 @@ class Function_Type:
 
 
 class Future(object):
+    """
+    Future object class definition.
+    """
     pass
 
 
 def start_runtime():
+    """
+    Starts the runtime by calling the external python library that calls the bindings-common.
+    """
     logger.info("Starting COMPSs...")
     compss.start_runtime()
     logger.info("COMPSs started")
 
 
 def stop_runtime():
+    """
+    Stops the runtime by calling the external python library that calls the bindings-common.
+    Also cleans objects and temporary files created during runtime.
+    """
     clean_objects()
     logger.info("Stopping COMPSs...")
     compss.stop_runtime()
@@ -98,6 +105,10 @@ def stop_runtime():
 
 
 def get_file(file_name, mode):
+    """
+    Calls the the external python library (that calls the bindings-common) in order to request a file.
+    :return: The current name of the file requested (that may have been renamed during runtime).
+    """
     logger.debug("Getting file %s with mode %s" % (file_name, mode))
     compss_name = compss.get_file(file_name, mode)
     logger.debug("COMPSs file name is %s" % compss_name)
@@ -105,6 +116,10 @@ def get_file(file_name, mode):
 
 
 def get_logPath():
+    """
+    Requests the logging path to the external python library (that calls the bindings-common).
+    :return: The path where to store the logs.
+    """
     logger.debug("Requesting log path")
     logPath = compss.get_logging_path()
     logger.debug("Log path received: %s" % logPath)
@@ -112,6 +127,13 @@ def get_logPath():
 
 
 def set_constraints(func_name, func_module, constraints):
+    """
+    Calls the external python library (that calls the bindings-common) in order to notify the runtime
+    about a constraint that a function will have.
+    :param func_name: Function name.
+    :param func_module: Module where the function is.
+    :param constraints: List of constraints.
+    """
     logger.debug("Setting constraints for function %s of module %s." % (func_name, func_module))
     for key, value in constraints.iteritems():
         logger.debug("\t - %s -> %s" % (key, value))
@@ -126,7 +148,6 @@ def set_constraints(func_name, func_module, constraints):
     app_id = 0          # Always 0 (not needed for the signature)
     values = []         # Not needed in python (required for C binding)
     parameterCount = 0  # Not needed in python (required for C binding)
-
     compss.set_constraints(app_id,
                            func_module,
                            func_name,
@@ -135,14 +156,20 @@ def set_constraints(func_name, func_module, constraints):
                            constraints_string,
                            parameterCount,  # not necessary for python apps
                            values)          # not necessary for python apps
-
     logger.debug("Constraints successfully set.")
 
 
 def synchronize(obj, mode):
-    # TODO - CUANDO SE LLAME A compss.get_file, anadir un booleano
-    # diferenciando si es fichero u objeto para mejorar el detalle de las
-    # trazas. Esto se tiene que implementar primero en el runtime, despues
+    """
+    Synchronization function.
+    This method retrieves the value of a future object.
+    Calls the runtime in order to wait for the value and when received, returns it.
+    :param obj: Object to syncrhorinze.
+    :param mode: Direction of the object to synchronize.
+    :return: The value of the object requested.
+    """
+    # TODO - CUANDO SE LLAME A compss.get_file, anadir un booleano diferenciando si es fichero u objeto
+    # Objetivo: mejorar el detalle de las trazas. Esto se tiene que implementar primero en el runtime, despues
     # adaptar el api de C, y finalmente anadir el booleano aqui.
     logger.debug("Synchronizing object %d with mode %s" % (id(obj), mode))
 
@@ -159,8 +186,7 @@ def synchronize(obj, mode):
     # The main program won't work with the old object anymore, update mapping
     objid_to_filename[new_obj_id] = file_name
     task_objects[new_obj_id] = new_obj
-    # Do not let python free old objects until compss_stop,
-    # otherwise python could reuse object ids.
+    # Do not let python free old objects until compss_stop, otherwise python could reuse object ids.
     # del objid_to_filename[obj_id]
     # del task_objects[obj_id]
 
@@ -172,15 +198,19 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f,             # Function or method
-                 ftype,         # Function type
-                 spec_args,     # Names of the task arguments
-                 class_name,    # Name of the class (if method)
-                 module_name,   # Name of the module containing the function/method (including packages, if any)
-                 task_args,     # Unnamed arguments
-                 task_kwargs,   # Named arguments
-                 deco_kwargs):  # Decorator arguments
-
+def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_kwargs, deco_kwargs):
+    """
+    Function that submits a task to the runtime.
+    :param f: Function or method
+    :param ftype: Function type
+    :param spec_args: Names of the task arguments
+    :param class_name: Name of the class (if method)
+    :param module_name: Name of the module containing the function/method (including packages, if any)
+    :param task_args: Unnamed arguments
+    :param task_kwargs: Named arguments
+    :param deco_kwargs: Decorator arguments
+    :return: The future object related to the task return
+    """
     logger.debug("TASK: %s of type %s, in module %s, in class %s" % (f.__name__, ftype, module_name, class_name))
 
     first_par = 0
@@ -231,7 +261,7 @@ def process_task(f,             # Function or method
     for i in range(first_par, num_pars):
         spec_arg = spec_args[i]
         p = deco_kwargs.get(spec_arg)
-        if p == None:
+        if p is None:
             logger.debug("Adding default decoration for param %s" % spec_arg)
             p = Parameter()
             deco_kwargs[spec_arg] = p
@@ -247,9 +277,9 @@ def process_task(f,             # Function or method
                      "\t- User-defined type: " + str(p.type))
 
         # Infer type if necessary
-        if p.type == None:
+        if p.type is None:
             p.type = python_to_compss.get(val_type)
-            if p.type == None:
+            if p.type is None:
                 if 'getID' in dir(p.value):  # criteria for persistent object
                     p.type = Type.PERSISTENT
                 else:
@@ -298,7 +328,8 @@ def process_task(f,             # Function or method
             ############################################################
             # Check if the object is small in order not to serialize it.
             # THIS ALTERNATIVE EVALUATES THE SIZE AFTER SERIALIZING THE PARAMETER
-            if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
+            if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i)
+                                                                and p.direction == Direction.IN:
                 if not isinstance(p.value, basestring):
                     real_value = p.value
                     try:
@@ -435,7 +466,7 @@ def manage_persistent(p):
 def turn_into_file(p):
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
-    if file_name == None:
+    if file_name is None:
         # This is the first time a task accesses this object
         task_objects[obj_id] = p.value
         file_name = temp_dir + temp_obj_prefix + str(obj_id)

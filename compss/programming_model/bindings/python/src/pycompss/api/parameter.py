@@ -46,6 +46,10 @@ class Type:
 
 
 class Parameter:
+    """
+    Parameter class
+    Used to group the type, direction and value of a parameter
+    """
     def __init__(self, p_type=None, p_direction=Direction.IN):
         self.type = p_type
         self.direction = p_direction

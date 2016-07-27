@@ -8,6 +8,7 @@ PyCOMPSs Testbench Tasks
 
 from pycompss.api.task import task
 from pycompss.api.parameter import *
+import types
 
 ##### DECORATORS #####
 from decorator import decorator
@@ -241,3 +242,14 @@ def function_generator(g):
     print "Generator value: ", out
     return out
 
+@task(returns = types.LambdaType)
+def function_lambda_return():
+    return lambda x: x**2 + 2*x - 5
+
+@task(returns = types.GeneratorType)
+def function_generator_return(g):
+    print "TEST"
+    print "- Function return a generator"
+    print "Generator value: ", g.next()
+    return g
+  

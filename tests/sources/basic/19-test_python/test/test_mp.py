@@ -17,6 +17,7 @@ from test.modules.test_tasks import function_fu_list_object, function_fu_list_in
 from test.modules.test_tasks import function_iterable_object_wait, function_wait_on_string
 from test.modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
 from test.modules.test_tasks import function_argfunc, function_lambda, function_generator
+from test.modules.test_tasks import function_lambda_return, function_generator_return
 
 
 def main_program():
@@ -48,9 +49,10 @@ def main_program():
 
     test_argfunc()
     test_lambda()
-      
     test_generator()
-
+    
+    test_lambda_return()
+    test_generator_return()
         
     
 def test_function_primitives():
@@ -427,6 +429,31 @@ def test_generator():
         print("- Test generator as argument: OK")
     else:
         print("- Test generator as argument: ERROR")
+
+
+def test_lambda_return():
+    print "test_lambda_return"
+    l = function_lambda_return()
+    l = compss_wait_on(l)
+    out = l(10)
+    if out == 115:
+        print("- Test return lambda: OK")
+    else:
+        print("- Test return lambda: ERROR")
+
+
+def test_generator_return():
+    print "test_generator_return"
+    g = gen(10)
+    pre = g.next()
+    gr = function_generator_return(g)
+    gr = compss_wait_on(gr)
+    out = gr.next()
+    if out == (pre+2):
+        print("- Test return generator: OK")
+    else:
+        print("- Test return generator: ERROR")
+
 
 
 if __name__ == "__main__":

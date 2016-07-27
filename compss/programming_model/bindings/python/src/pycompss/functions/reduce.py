@@ -1,8 +1,17 @@
+"""
+@author: scorella
+
+PyCOMPSs Functions: Reduce
+===================================
+    This file defines the common reduce functions.
+"""
+
 
 def mergeReduce(function, data):
-    """ Apply function cumulatively to the items of data,
-        from left to right in binary tree structure, so as to
-        reduce the data to a single value.
+    """
+    Apply function cumulatively to the items of data,
+    from left to right in binary tree structure, so as to
+    reduce the data to a single value.
     :param function: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value
@@ -21,9 +30,10 @@ def mergeReduce(function, data):
 
 
 def mergeNReduce(function, data):
-    """ Apply function cumulatively to the items of data,
-        from left to right in n-tree structure, so as to
-        reduce the data.
+    """
+    Apply function cumulatively to the items of data,
+    from left to right in n-tree structure, so as to
+    reduce the data.
     :param function: function to apply to reduce data
     :param data: List of items to be reduced
     :return: List of results
@@ -41,9 +51,10 @@ def mergeNReduce(function, data):
 
 
 def simpleReduce(function, data):
-    """ Apply function of two arguments cumulatively to the items
-        of data, from left to right, so as to reduce the iterable
-        to a single value.
+    """
+    Apply function of two arguments cumulatively to the items
+    of data, from left to right, so as to reduce the iterable
+    to a single value.
     :param function: function to apply to reduce data
     :param data: List of items to be reduced
     :return: result of reduce the data to a single value

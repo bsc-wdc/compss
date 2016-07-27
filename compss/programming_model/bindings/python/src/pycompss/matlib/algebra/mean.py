@@ -1,12 +1,20 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+"""
+@author: scorella
+
+PyCOMPSs Mathematical Library: Algebra: Mean
+============================================
+    This file contains the arithmetic mean algorithm.
+"""
+
+
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 from pycompss.functions.reduce import mergeReduce
 
 
 def _list_lenght(l):
-    """ Recursive function to get the size of any list """
+    """
+    Recursive function to get the size of any list
+    """
     if l:
         if not isinstance(l[0], list):
             return 1 + _list_lenght(l[1:])
@@ -21,12 +29,12 @@ def _mean(X, n):
 
 
 def mean(X, wait=False):
-    """ Arithmetic mean
+    """
+    Arithmetic mean
     :param X: chunked data
     :param wait: if we want to wait for result. Default False
     :return: mean of X.
     """
-    # chunked data
     n = _list_lenght(X)
     result = mergeReduce(reduce_add, [_mean(x, n) for x in X])
     if wait:

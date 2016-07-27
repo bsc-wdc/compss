@@ -1,8 +1,16 @@
+"""
+@author: scorella
+
+PyCOMPSs Mathematical Library: Clustering: KMeans
+=================================================
+    This file contains the KMeans algorithm.
+"""
+
+
 import numpy as np
 from pycompss.api.task import task
-from pycompss.api.parameter import *
 from pycompss.functions.reduce import mergeReduce
-#from pycompss.functions.data import chunks
+
 
 def chunks(l, n, balanced=False):
     if not balanced or not len(l) % n:
@@ -133,7 +141,8 @@ def init(X, k, mode):
 
 
 def kmeans(data, k, numFrag=-1, maxIterations=10, epsilon=1e-4, initMode='random'):
-    """ kmeans: starting with a set of randomly chosen initial centers,
+    """
+    kmeans: starting with a set of randomly chosen initial centers,
     one repeatedly assigns each imput point to its nearest center, and
     then recomputes the centers given the point assigment. This local
     search called Lloyd's iteration, continues until the solution does

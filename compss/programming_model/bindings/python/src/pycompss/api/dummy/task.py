@@ -1,35 +1,44 @@
-'''
-# How to use it:
-try:
-    from pycompss.api.parameter import *
-    from pycompss.api.task import task
-    from pycompss.api.constraint import constraint
-except ImportError:
-    from pycompss.api.dummy.parameter import *
-    from pycompss.api.dummy.task import task
-    from pycompss.api.dummy.constraint import constraint
+"""
+@author: fconejer
 
-@constraint(ProcessorCoreCount=8)
-@task(returns=list, a=FILE_IN)
-def foo(a, b):
-    return (a, b)
+PyCOMPSs Dummy API - task
+=========================
+    This file contains the dummy class task used as decorator.
 
-
-def main():
-    res = foo(1, 2)
+    # How to use it:
     try:
-        from pycompss.api.api import compss_wait_on
+        from pycompss.api.parameter import *
+        from pycompss.api.task import task
+        from pycompss.api.constraint import constraint
     except ImportError:
-        from pycompss.api.dummy.api import compss_wait_on
+        from pycompss.api.dummy.parameter import *
+        from pycompss.api.dummy.task import task
+        from pycompss.api.dummy.constraint import constraint
 
-    res = compss_wait_on(res)
-    print res
+    @constraint(ProcessorCoreCount=8)
+    @task(returns=list, a=FILE_IN)
+    def foo(a, b):
+        return (a, b)
 
-if __name__ == "__main__":
-    main()
-'''
+    def main():
+        res = foo(1, 2)
+        try:
+            from pycompss.api.api import compss_wait_on
+        except ImportError:
+            from pycompss.api.dummy.api import compss_wait_on
+
+        res = compss_wait_on(res)
+        print res
+
+    if __name__ == "__main__":
+        main()
+"""
+
 
 class task(object):
+    """
+    Dummy task class (decorator style)
+    """
 
     def __init__(self, *args, **kwargs):
         self.args = args

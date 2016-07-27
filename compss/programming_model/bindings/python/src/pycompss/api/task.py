@@ -254,7 +254,7 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
                 continue
 
         p = deco_kwargs.get(spec_arg)
-        if p == None:  # decoration not present, using default
+        if p is None:  # decoration not present, using default
             p = Parameter()
             # deco_kwargs[spec_arg] = p
 

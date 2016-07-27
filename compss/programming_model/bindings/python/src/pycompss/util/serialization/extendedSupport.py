@@ -1,11 +1,19 @@
 ###
+# Recipe source:  http://en.sharejs.com/python/12922
+###
+
+###
 #
 #  W A R N I N G
+#
+#  This recipe is obsolete!
 #
 #  When you are looking for copying and pickling functionality for generators
 #  implemented in pure Python download the
 #
 #             generator_tools  for python 2.5, 2.6 or 3.2+
+#
+# package at the cheeseshop or at www.fiber-space.de
 #
 ###
 
@@ -70,7 +78,6 @@ def copy_generator(f_gen):
 
         - if a generator has been already closed ( gi_frame = None ) a ValueError exception
           is raised.
-
     '''
     if not f_gen.gi_frame:
         raise ValueError("Can't copy closed generator")
@@ -83,10 +90,10 @@ def copy_generator(f_gen):
     else:
         # bytecode hack - insert jump to current offset
         # the offset depends on the version of the Python interpreter
-        if sys.version_info[:2] == (2,4):
-            offset +=4
-        elif sys.version_info[:2] == (2,5):
-            offset +=5
+        if sys.version_info[:2] == (2, 4):
+            offset += 4
+        elif sys.version_info[:2] == (2, 5):
+            offset += 5
         start_sequence = (opmap["JUMP_ABSOLUTE"],)+divmod(offset, 256)[::-1]
         modified_code = "".join([chr(op) for op in start_sequence])+f_code.co_code
         argcount = f_code.co_nlocals
@@ -103,23 +110,25 @@ def copy_generator(f_gen):
                 varnames[i] = loc
 
     new_code = new.code(argcount,
-             f_code.co_nlocals,
-             f_code.co_stacksize,
-             f_code.co_flags,
-             modified_code,
-             f_code.co_consts,
-             f_code.co_names,
-             f_code.co_varnames,
-             f_code.co_filename,
-             f_code.co_name,
-             f_code.co_firstlineno,
-             f_code.co_lnotab)
+                        f_code.co_nlocals,
+                        f_code.co_stacksize,
+                        f_code.co_flags,
+                        modified_code,
+                        f_code.co_consts,
+                        f_code.co_names,
+                        f_code.co_varnames,
+                        f_code.co_filename,
+                        f_code.co_name,
+                        f_code.co_firstlineno,
+                        f_code.co_lnotab)
     g = new.function(new_code, globals(),)
     g_gen = g(*varnames)
     return g_gen, g
 
+
 class any_obj:
     "Used to create objects for spawning arbitrary attributes by assignment"
+
 
 class GeneratorSnapshot(object):
     '''
@@ -128,10 +137,10 @@ class GeneratorSnapshot(object):
     def __init__(self, f_gen):
         f_code = f_gen.gi_frame.f_code
         self.gi_frame = any_obj()
-        self.gi_frame.f_code   = any_obj()
+        self.gi_frame.f_code = any_obj()
         self.gi_frame.f_code.__dict__.update((key, getattr(f_code, key))
-                                                   for key in dir(f_code) if key.startswith("co_"))
-        self.gi_frame.f_lasti  = f_gen.gi_frame.f_lasti
+                                             for key in dir(f_code) if key.startswith("co_"))
+        self.gi_frame.f_lasti = f_gen.gi_frame.f_lasti
         self.gi_frame.f_locals = {}
         for key, value in f_gen.gi_frame.f_locals.items():
             if isinstance(value, types.GeneratorType):
@@ -139,14 +148,16 @@ class GeneratorSnapshot(object):
             else:
                 self.gi_frame.f_locals[key] = value
 
+
 def pickle_generator_filename(f_gen, filename):
     '''
     @param f_gen: generator object
     @param filename: destination file for pickling generator
     '''
     output_pkl = open(filename, "wb")
-    f_gen.next() # jump one ahead for not to repeat when unpickling
+    f_gen.next()  # jump one ahead for not to repeat when unpickling
     pickle.dump(GeneratorSnapshot(f_gen), output_pkl)
+
 
 def unpickle_generator_filename(filename):
     '''
@@ -156,17 +167,23 @@ def unpickle_generator_filename(filename):
     gen_snapshot = pickle.load(input_pkl)
     return copy_generator(gen_snapshot)[0]
 
+
+##############
+# Interfaces #
+##############
+
 def pickle_generator(f_gen, f):
     '''
     @param f_gen: generator object
-    @param filename: destination file for pickling generator
+    @param f: destination file for pickling generator
     '''
-    f_gen.next() # jump one ahead for not to repeat when unpickling
+    f_gen.next()  # jump one ahead for not to repeat when unpickling
     pickle.dump(GeneratorSnapshot(f_gen), f)
+
 
 def unpickle_generator(f):
     '''
-    @param filename: source file of pickled generator
+    @param f: source file of pickled generator
     '''
     gen_snapshot = pickle.load(f)
     return copy_generator(gen_snapshot)[0]

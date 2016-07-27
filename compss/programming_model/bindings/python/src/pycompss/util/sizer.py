@@ -1,3 +1,11 @@
+"""
+@author: fconejer
+
+Utils - Object sizing algorithm
+===============================
+  This file contains the object sizing algorithm method.
+"""
+
 from __future__ import print_function
 from sys import getsizeof, stderr
 from itertools import chain
@@ -22,7 +30,6 @@ def total_sizeof(o, handlers={}, verbose=False):
 
         handlers = {SomeContainerClass: iter,
                     OtherContainerClass: OtherContainerClass.get_elements}
-
     """
     # dict_handler = lambda d: chain.from_iterable(d.items())
     all_handlers = {tuple: iter,

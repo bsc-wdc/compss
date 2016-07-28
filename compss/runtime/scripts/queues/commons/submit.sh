@@ -115,6 +115,18 @@ display_error() {
 }
 
 ###############################################
+# Displays errors when executing
+###############################################
+display_execution_error() {
+  local error_msg=$1
+
+  echo $error_msg
+  echo " "
+
+  exit 1
+}
+
+###############################################
 # Function to log the arguments
 ###############################################
 log_args() {
@@ -128,7 +140,11 @@ log_args() {
   echo "Exec-Time:                 ${wc_limit}"
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
-  echo "Other:                     ${args_pass}"
+  echo " "
+  local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t--/g')
+  other="                $other"
+  echo "Other:"
+  echo "$other"
 }
 
 ###############################################
@@ -340,7 +356,7 @@ check_args() {
     # Check storage props file exists
     if [ ! -f ${storage_props} ]; then
       # PropsFile doesn't exist
-      display_error "${ERROR_STORAGE_PROPS_FILE}"
+      display_execution_error "${ERROR_STORAGE_PROPS_FILE}"
     fi
   fi
 }
@@ -359,13 +375,13 @@ create_tmp_submit() {
   # Add queue selection
   if [ "${queue}" != "default" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-#!/bin/bash
+#!/bin/bash -e
 #
 #${QUEUE_CMD} ${QARG_QUEUE_SELECTION} ${queue}
 EOT
   else 
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-#!/bin/bash
+#!/bin/bash -e
 #
 EOT
   fi
@@ -440,7 +456,7 @@ EOT
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/client.properties
 storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
-worker_nodes=\$(echo \${host_list} | sed -e "s/\${storage_master_node}//g")
+worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
 
 ${storage_home}/scripts/storage_init.sh \$${ENV_VAR_JOB_ID} "\${master_node}" "\${storage_master_node}" "\${worker_nodes}" ${network} ${storage_props}
 

@@ -15,9 +15,9 @@
   #---------------------------------------------------------
   # ERROR CONSTANTS
   #---------------------------------------------------------
-  ERROR_PROPS_FILE="ERROR: Cannot find storage properties file"
-  ERROR_GENERATE_CONF="ERROR: Cannot generate conf file"
-  ERROR_START_DATACLAY="ERROR: Cannot start dataClay"
+  ERROR_PROPS_FILE="Cannot find storage properties file"
+  ERROR_GENERATE_CONF="Cannot generate conf file"
+  ERROR_START_DATACLAY="Cannot start dataClay"
  
 
   #---------------------------------------------------------
@@ -98,14 +98,29 @@
     fi
   }
 
+  ####################
+  # Function to log received arguments
+  ####################
+  log_args() {
+    echo "--- STORAGE_INIT.SH ---"
+    echo "Job ID:              $jobId"
+    echo "Master Node:         $master_node"
+    echo "Storage Master Node: $storage_master_node"
+    echo "Worker Nodes:        $worker_nodes"
+    echo "Network:             $network"
+    echo "Storage Props:       $storageProps"
+    echo "-----------------------"
+  }
+
 
   #---------------------------------------------------------
   # MAIN FUNCTIONS
   #---------------------------------------------------------
-  STORAGE_HOME=$(pwd)/$(dirname $0)/../
+  STORAGE_HOME=$(dirname $0)/../
 
   get_args "$@"
   check_args
+  log_args
 
   ############################
   ## STORAGE DEPENDENT CODE ##
@@ -133,12 +148,20 @@
   fi
   
   # Start dataClay
-  ${STORAGE_HOME}/scripts/_startDataClay.sh \
+  echo "${STORAGE_HOME}/scripts/_startDataClay.sh \
      --lmnode ${storageMasterNode} \
-     --dsnodes ${workerNodes} \
+     --dsnodes \"${workerNodes:1}\" \
      --dcdir ${STORAGE_HOME} \
      --jobid ${jobId} \
-     --networksuffix ${network}
+     --networksuffix \"${network}\"
+  "
+
+  ${STORAGE_HOME}/scripts/_startDataClay.sh \
+     --lmnode ${storageMasterNode} \
+     --dsnodes "${workerNodes:1}" \
+     --dcdir ${STORAGE_HOME} \
+     --jobid ${jobId} \
+     --networksuffix "${network}"
   if [ $? -ne 0 ]; then
     display_error "${ERROR_START_DATACLAY}"
   fi

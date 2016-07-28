@@ -135,7 +135,7 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   // close file
   fin.close();
   
-  vm_args.version = JNI_VERSION_1_6; //JDK version. This indicates version 1.6
+  vm_args.version = JNI_VERSION_1_8; //JDK version. This indicates version 1.8
   vm_args.nOptions = options.size();
   vm_args.options = new JavaVMOption[vm_args.nOptions];
   copy(options.begin(), options.end(), vm_args.options);

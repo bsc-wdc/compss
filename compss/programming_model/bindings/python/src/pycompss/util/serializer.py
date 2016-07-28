@@ -13,8 +13,9 @@ import mmap
 import math
 from cPickle import load, dump
 from cPickle import loads, dumps
-from cPickle import HIGHEST_PROTOCOL
+from cPickle import HIGHEST_PROTOCOL, UnpicklingError
 import types
+import marshal
 from serialization.extendedSupport import pickle_generator
 from serialization.extendedSupport import copy_generator
 from serialization.extendedSupport import GeneratorSnapshot
@@ -55,8 +56,7 @@ def serialize_to_file(obj, file_name, force=False):
             f = open(file_name, 'wb')
             if isinstance(obj, types.FunctionType):
                 # The object is a function or a lambda
-                import dill
-                dill.dump(obj, f, HIGHEST_PROTOCOL)
+                marshal.dump(obj.func_code, f)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
                 pickle_generator(obj, f)
@@ -88,10 +88,10 @@ def deserialize_from_file(file_name):
             l = load(f)
             if isinstance(l, GeneratorSnapshot):
                 raise GeneratorException
-        except AttributeError:  # It is a function or a lambda
+        except (UnpicklingError, AttributeError):  # It is a function or a lambda
             f.seek(0, 0)
-            import dill
-            l = dill.load(f)
+            func = marshal.load(f)
+            l = types.FunctionType(func, globals())
         except GeneratorException:
             # It is a generator and needs to be unwrapped (from GeneratorSnapshot to generator).
             l = copy_generator(l)[0]
@@ -130,8 +130,7 @@ def serialize_objects(to_serialize):
             f = open(file_name, 'wb')
             if isinstance(obj, types.FunctionType):
                 # The object is a function or a lambda
-                import dill
-                dill.dump(obj, f, HIGHEST_PROTOCOL)
+                marshal.dump(obj.func_code, f, HIGHEST_PROTOCOL)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
                 pickle_generator(obj, f)

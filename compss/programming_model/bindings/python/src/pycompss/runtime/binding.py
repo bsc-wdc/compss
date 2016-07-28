@@ -30,7 +30,7 @@ from cPickle import PicklingError
 
 python_to_compss = {types.IntType: Type.INT,          # int
                     types.LongType: Type.LONG,        # long
-                    types.FloatType: Type.FLOAT,      # float
+                    types.FloatType: Type.DOUBLE,      # float
                     types.BooleanType: Type.BOOLEAN,  # bool
                     types.StringType: Type.STRING,    # str
                     # The type of instances of user-defined classes

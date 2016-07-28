@@ -115,7 +115,7 @@ def compss_worker():
                 # would have been passed as a serialized object.
                 l = int(l)
             values.append(l)
-        elif ptype == Type.FLOAT:
+        elif ptype == Type.DOUBLE:
             values.append(float(args[pos + 1]))
         elif ptype == Type.BOOLEAN:
             if args[pos + 1] == 'true':

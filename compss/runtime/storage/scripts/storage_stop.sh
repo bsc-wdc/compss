@@ -86,14 +86,28 @@
     fi
   }
 
+  ####################
+  # Function to log received arguments
+  ####################
+  log_args() {
+    echo "--- STORAGE_STOP.SH ---"
+    echo "Job ID:              $jobId"
+    echo "Master Node:         $master_node"
+    echo "Storage Master Node: $storage_master_node"
+    echo "Worker Nodes:        $worker_nodes"
+    echo "Network:             $network"
+    echo "-----------------------"
+  }
+
 
   #---------------------------------------------------------
   # MAIN FUNCTIONS
   #---------------------------------------------------------
-  STORAGE_HOME=$(pwd)/$(dirname $0)/../
+  STORAGE_HOME=$(dirname $0)/../
 
   get_args "$@"
   check_args
+  log_args
 
   ############################
   ## STORAGE DEPENDENT CODE ##
@@ -102,10 +116,10 @@
   # Stop dataClay
   ${STORAGE_HOME}/scripts/_stopDataClay.sh \
      --lmnode ${storageMasterNode} \
-     --dsnodes ${workerNodes} \
+     --dsnodes "${workerNodes:1}" \
      --dcdir ${STORAGE_HOME} \
      --jobid ${jobId} \
-     --networksuffix ${network}
+     --networksuffix "${network}"
   if [ $? -ne 0 ]; then
     display_error "${ERROR_STOP_DATACLAY}"
   fi

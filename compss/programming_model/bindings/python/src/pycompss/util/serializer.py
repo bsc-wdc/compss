@@ -54,8 +54,9 @@ def serialize_to_file(obj, file_name, force=False):
     else:
         if not os.path.exists(file_name) or force:
             f = open(file_name, 'wb')
-            if isinstance(obj, types.FunctionType):
-                # The object is a function or a lambda
+            if isinstance(obj, types.LambdaType) and obj.func_name == '<lambda>':
+                # The object is a lambda function
+                # The two conditions must be done since types.LambdaType equals types.FunctionType
                 marshal.dump(obj.func_code, f)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
@@ -88,7 +89,7 @@ def deserialize_from_file(file_name):
             l = load(f)
             if isinstance(l, GeneratorSnapshot):
                 raise GeneratorException
-        except (UnpicklingError, AttributeError):  # It is a function or a lambda
+        except (UnpicklingError):  # It is a lambda function
             f.seek(0, 0)
             func = marshal.load(f)
             l = types.FunctionType(func, globals())
@@ -130,7 +131,7 @@ def serialize_objects(to_serialize):
             f = open(file_name, 'wb')
             if isinstance(obj, types.FunctionType):
                 # The object is a function or a lambda
-                marshal.dump(obj.func_code, f, HIGHEST_PROTOCOL)
+                marshal.dump(obj.func_code, f)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
                 pickle_generator(obj, f)

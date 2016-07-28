@@ -47,7 +47,8 @@ def main_program():
      
     test_time_decorator()
 
-    test_argfunc()
+    # test_argfunc()   # can not be done if the function is defined within the same file as __main__
+                       # pickle limitation
     test_lambda()
     test_generator()
     

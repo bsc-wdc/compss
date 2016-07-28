@@ -15,7 +15,6 @@ from cPickle import load, dump
 from cPickle import loads, dumps
 from cPickle import HIGHEST_PROTOCOL
 import types
-import dill
 from serialization.extendedSupport import pickle_generator
 from serialization.extendedSupport import copy_generator
 from serialization.extendedSupport import GeneratorSnapshot
@@ -56,6 +55,7 @@ def serialize_to_file(obj, file_name, force=False):
             f = open(file_name, 'wb')
             if isinstance(obj, types.FunctionType):
                 # The object is a function or a lambda
+                import dill
                 dill.dump(obj, f, HIGHEST_PROTOCOL)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
@@ -90,6 +90,7 @@ def deserialize_from_file(file_name):
                 raise GeneratorException
         except AttributeError:  # It is a function or a lambda
             f.seek(0, 0)
+            import dill
             l = dill.load(f)
         except GeneratorException:
             # It is a generator and needs to be unwrapped (from GeneratorSnapshot to generator).
@@ -129,6 +130,7 @@ def serialize_objects(to_serialize):
             f = open(file_name, 'wb')
             if isinstance(obj, types.FunctionType):
                 # The object is a function or a lambda
+                import dill
                 dill.dump(obj, f, HIGHEST_PROTOCOL)
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state

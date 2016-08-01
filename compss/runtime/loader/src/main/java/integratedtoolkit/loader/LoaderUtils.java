@@ -18,7 +18,7 @@ import javassist.expr.MethodCall;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StubItf;
+import storage.interfaces.StubItf;
 
 
 public class LoaderUtils {

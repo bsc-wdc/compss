@@ -34,7 +34,7 @@ import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StubItf;
+import storage.interfaces.StubItf;
 
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
@@ -458,7 +458,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Execute task
+     * Execute task: methods
      * 
      */
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
@@ -484,7 +484,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Execute task
+     * Execute task: services
      * 
      */
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,

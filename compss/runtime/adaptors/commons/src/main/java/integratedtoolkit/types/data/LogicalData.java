@@ -31,7 +31,14 @@ import org.apache.logging.log4j.Logger;
 
 
 public class LogicalData {
+	
+	// List of copies in progress
+	private static final ConcurrentHashMap<String, LinkedList<CopyInProgress>> inProgress = new ConcurrentHashMap<String, LinkedList<CopyInProgress>>();
+	private static final TreeMap<Resource, HashSet<LogicalData>> hostToPrivateFiles = new TreeMap<Resource, HashSet<LogicalData>>();
+	private static final TreeMap<String, HashSet<LogicalData>> sharedDiskToSharedFiles = new TreeMap<String, HashSet<LogicalData>>();
 
+	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+	
 	// Logical data name
 	protected final String name;
 
@@ -44,12 +51,6 @@ public class LogicalData {
 	private Semaphore removeHostLock = new Semaphore(1);		// Semaphore to avoid host deletion when file is beeing transfered
 	private boolean isBeingSaved = false;
 	
-	// List of copies in progress
-	private static final ConcurrentHashMap<String, LinkedList<CopyInProgress>> inProgress = new ConcurrentHashMap<String, LinkedList<CopyInProgress>>();
-	private static final TreeMap<Resource, HashSet<LogicalData>> hostToPrivateFiles = new TreeMap<Resource, HashSet<LogicalData>>();
-	private static final TreeMap<String, HashSet<LogicalData>> sharedDiskToSharedFiles = new TreeMap<String, HashSet<LogicalData>>();
-
-	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
 	/*
 	 * Constructors

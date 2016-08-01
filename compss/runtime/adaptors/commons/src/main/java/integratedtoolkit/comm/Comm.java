@@ -8,8 +8,8 @@ import integratedtoolkit.exceptions.UnstartedNodeException;
 
 import java.lang.reflect.Constructor;
 
-import storage.StorageException;
-import storage.StorageItf;
+import storage.exceptions.StorageException;
+import storage.interfaces.StorageItf;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.parameter.PSCOId;

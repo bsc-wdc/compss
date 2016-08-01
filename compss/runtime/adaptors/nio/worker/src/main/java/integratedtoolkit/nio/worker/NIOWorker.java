@@ -10,8 +10,8 @@ import java.util.LinkedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.StorageException;
-import storage.StorageItf;
+import storage.exceptions.StorageException;
+import storage.interfaces.StorageItf;
 import es.bsc.comm.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;

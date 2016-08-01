@@ -1,4 +1,5 @@
-package storage;
+package storage.callbacks;
+
 
 public abstract class CallbackHandler {
 
@@ -8,7 +9,6 @@ public abstract class CallbackHandler {
 
 	protected void eventListener(CallbackEvent e) {
 		// Nothing to do
-		
 	}
 
 }

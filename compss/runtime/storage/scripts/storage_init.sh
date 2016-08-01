@@ -136,35 +136,32 @@
 
   # Generate configuration
   cfgFile=${cfgDir}/client.properties
+  cfgFileStorage=${cfgDir}/storage.properties
   ${STORAGE_HOME}/scripts/generateStorageConf.sh \
      --jobdir ${baseSandbox} \
-     --lmnode ${storageMasterNode} \
+     --lmnode ${storage_master_node} \
      --account ${APPUSER} \
      --stubsdir ${stubsDir} \
      --dataset ${DATASET} \
+     --outputfile ${cfgFileStorage} \
      --networksuffix ${network}
   if [ $? -ne 0 ]; then
     display_error "${ERROR_GENERATE_CONF}"
   fi
   
   # Start dataClay
-  echo "${STORAGE_HOME}/scripts/_startDataClay.sh \
-     --lmnode ${storageMasterNode} \
-     --dsnodes \"${workerNodes:1}\" \
-     --dcdir ${STORAGE_HOME} \
-     --jobid ${jobId} \
-     --networksuffix \"${network}\"
-  "
-
   ${STORAGE_HOME}/scripts/_startDataClay.sh \
-     --lmnode ${storageMasterNode} \
-     --dsnodes "${workerNodes:1}" \
+     --lmnode ${storage_master_node} \
+     --dsnodes "${worker_nodes}" \
      --dcdir ${STORAGE_HOME} \
      --jobid ${jobId} \
-     --networksuffix "${network}"
+     --networksuffix "${network}" &
   if [ $? -ne 0 ]; then
     display_error "${ERROR_START_DATACLAY}"
   fi
+ 
+  # Sleep to allow dataClay start
+  sleep 60
 
   ############################
   ## END                    ##

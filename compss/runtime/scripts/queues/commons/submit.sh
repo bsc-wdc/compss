@@ -140,11 +140,9 @@ log_args() {
   echo "Exec-Time:                 ${wc_limit}"
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
-  echo " "
   local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t--/g')
-  other="                $other"
-  echo "Other:"
-  echo "$other"
+  echo "Other:                     $other"
+  echo " "
 }
 
 ###############################################
@@ -454,7 +452,7 @@ EOT
   if [ "${storage_home}" != "${DISABLED_STORAGE_HOME}" ]; then
     # ADD STORAGE_INIT, STORAGE_FINISH AND NODES PARSING
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/client.properties
+storage_conf=$HOME/.COMPSs/\$${ENV_VAR_JOB_ID}/storage/cfgfiles/storage.properties
 storage_master_node=\$(echo \${worker_nodes} | tr " " "\t" | awk {' print \$1 '})
 worker_nodes=\$(echo \${worker_nodes} | sed -e "s/\${storage_master_node}//g")
 

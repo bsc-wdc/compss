@@ -1,13 +1,14 @@
-package storage;
+package storage.exceptions;
 
 import java.io.Serializable;
+
 
 public class StorageException extends Exception implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	public StorageException() {
-		
+
 	}
 
 	public StorageException(String message) {
@@ -16,9 +17,7 @@ public class StorageException extends Exception implements Serializable {
 
 	public StorageException(Exception cause) {
 		super(cause);
-		
-	}
 
-	
+	}
 
 }

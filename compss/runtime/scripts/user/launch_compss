@@ -682,6 +682,7 @@ log_variables() {
   echo "Master:                    ${master_node}"
   echo "Workers:                   ${worker_nodes}"
   echo "Tasks per Node:            ${tasks_per_node}"
+  echo "Network:                   ${network}"
   echo "Worker in Master Tasks:    ${worker_in_master_tasks}"
   echo "Worker in Master Memory:   ${worker_in_master_memory}"
   echo "Master Port:               ${master_port}"

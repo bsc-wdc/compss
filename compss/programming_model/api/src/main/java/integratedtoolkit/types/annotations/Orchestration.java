@@ -8,10 +8,17 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+/**
+ * Orchestration definition
+ *
+ */
 public @interface Orchestration {
 
-    static final String UNASSIGNED = "[unassigned]";
-
-    String interfaceName() default UNASSIGNED;
+	/**
+	 * Returns the name of the interface 
+	 * 
+	 * @return the name of the interface
+	 */
+    String interfaceName() default Constants.UNASSIGNED_STR;
 
 }

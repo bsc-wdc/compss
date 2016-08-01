@@ -8,6 +8,10 @@ import java.lang.annotation.ElementType;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+/**
+ * Multi-constraints definition
+ * 
+ */
 public @interface MultiConstraints {
 
     Constraints[] value();

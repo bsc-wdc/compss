@@ -1,6 +1,9 @@
 package integratedtoolkit.api;
 
-
+/**
+ * COMPSs API Class for JAVA
+ *
+ */
 public class COMPSs {
 	
 	private static final String SKIP_MESSAGE = "COMPSs Runtime is not loaded. Skipping call";

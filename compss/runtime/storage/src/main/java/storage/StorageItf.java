@@ -2,10 +2,6 @@ package storage;
 
 import java.util.List;
 
-import storage.callbacks.CallbackEvent;
-import storage.callbacks.CallbackHandler;
-import storage.exceptions.StorageException;
-
 
 public final class StorageItf {
 

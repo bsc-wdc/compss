@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsMaster" status="WARN">
+
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
+    </Console>
+  </Appenders>
+
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="debug">
+      <AppenderRef ref="Console"/>
+    </Root>
+
+    <!-- RUNTIME ROOT -->
+    <!-- Integratedtoolkit: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- RUNTIME LOADER -->
+    <!-- Integratedtoolkit.Loader: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.Loader" additivity="FALSE" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <!-- Integratedtoolkit.LoaderUtils: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.LoaderUtils" additivity="FALSE" level="debug">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+    <!-- RUNTIME API -->
+    <!-- Integratedtoolkit.API: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.API" additivity="FALSE" level="info">
+      <AppenderRef ref="Console"/>
+    </Logger>
+
+  </Loggers>
+</Configuration>
+

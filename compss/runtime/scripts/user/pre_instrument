@@ -25,7 +25,12 @@ cd $destDir
 runtimeClassPath=$libDir/compss-engine.jar
 
 java \
--Dlog4j.configuration=$runtimeInstDir/Runtime/configuration/log/it-log4j.instrument \
+-XX:+PerfDisableSharedMem \
+-XX:-UsePerfData \
+-XX:+UseG1GC \
+-XX:+UseThreadPriorities \
+-XX:ThreadPriorityPolicy=42 \
+-Dlog4j.configurationFile=$runtimeInstDir/Runtime/configuration/log/COMPSsMaster-log4j.instrument \
 -Dit.to.file=true \
 -classpath $appClassPath:$runtimeClassPath \
 integratedtoolkit.loader.AddOrchestration $fullAppName $@ 

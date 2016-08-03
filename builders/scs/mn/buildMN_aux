@@ -30,12 +30,13 @@
 
   modules="PYTHON/2.7.3 BOOST/1.52.0 java/1.8.0u66 PAPI/5.4.1"
   additionalExports=""
+  queues_cfg="mn.cfg"
   extrae_with_openmpi="true"
   openmpi_version="/1.8.1"
   extrae_with_impi="true"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
 
   # END
   exit 0

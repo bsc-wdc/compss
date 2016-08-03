@@ -188,6 +188,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (System.getProperty(ITConstants.IT_PRESCHED) == null) {
                     System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
                 }
+                if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
+                    System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.COMPSs);
+                }
 
                 if (manager.getContext() != null) {
                     System.setProperty(ITConstants.IT_CONTEXT, manager.getContext());
@@ -224,6 +227,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
         if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
             System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
+        }
+        if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
+            System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.COMPSs);
         }
     }
 

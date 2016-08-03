@@ -23,12 +23,13 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.xml.sax.SAXException;
-
 import org.apache.logging.log4j.Logger;
+
 
 
 public class ResourcesFile {
 
+	
     // JAXB context
     private JAXBContext context;
 
@@ -177,6 +178,28 @@ public class ResourcesFile {
         validator = new Validator(this, this.logger);
         validator.validate();
         this.logger.info("Resources.xml finished");
+    }
+    
+    
+    /** Create an empty resourceFile object
+     * @param xsdPath
+     * @param logger
+     * @throws SAXException
+     * @throws JAXBException
+     * @throws ResourcesFileValidationException
+     */
+    public ResourcesFile(String xsdPath, Logger logger) throws SAXException, JAXBException, ResourcesFileValidationException {
+    	this.logger = logger;
+        this.logger.info("Init Resources.xml parsing");
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug("XML String");
+            this.logger.debug("XSD Path: " + xsdPath);
+        }
+        this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+        SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        this.xsd = sf.newSchema(new File(xsdPath));
+        this.resources = new ResourcesListType();
+        validator = new Validator(this, this.logger);
     }
 
     /* **************************************
@@ -388,6 +411,32 @@ public class ResourcesFile {
 
         return res;
     }
+    
+   
+    /** Gets the mount points defined in the different compute nodes
+     * @param diskName Name of the disk
+     * @return Map of Compute Node name: Mount point
+     */
+    public HashMap<String, String> getDiskMountPointsInComputeNodes(String diskName) {
+        HashMap<String, String> mountPoints = new HashMap<String, String>();
+        List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof ComputeNodeType) {
+                    ComputeNodeType cn = (ComputeNodeType) obj;
+                	HashMap<String, String> disks = getSharedDisks(cn);
+                    if (disks.containsKey(diskName)){
+                    	mountPoints.put(cn.getName(),disks.get(diskName));
+                    }
+                }
+            }
+        }
+
+        return mountPoints;
+    }
+    
+    
+    
 
     /**
      * Returns a HashMap of declared Services (Key: WSDL, Value: Service)
@@ -987,7 +1036,25 @@ public class ResourcesFile {
 
         return null;
     }
+    
+    /**
+     * Returns the AttacSharedDisks of a given ComputeNode
+     *
+     * @param c
+     * @return
+     */
+    private static AttachedDisksListType getAttachedSharedDisks(ComputeNodeType c) {
+        List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
+        if (objList != null) {
+            for (Object obj : objList) {
+                if (obj instanceof AttachedDisksListType) {
+                    return (AttachedDisksListType) obj;
+                }
+            }
+        }
 
+        return null;
+    }
     /**
      * Returns the queues of a given Adaptor within a given ComputeNode
      *
@@ -1041,6 +1108,38 @@ public class ResourcesFile {
                         for (AdaptorType adaptor : adaptors) {
                             if (adaptor.getName().equals(adaptorName)) {
                                 return getAdaptorProperties(adaptor);
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+    
+    /**
+     * Returns the declared properties of a given Adaptor within a given
+     * ComputeNode
+     *
+     * @param cn
+     * @param adaptorName
+     * @return
+     */
+    public AdaptorType getAdaptor(ComputeNodeType cn, String adaptorName) {
+        List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
+        if (objList != null) {
+            // Loop for adaptors tag
+            for (Object obj : objList) {
+                if (obj instanceof AdaptorsListType) {
+                    List<AdaptorType> adaptors = ((AdaptorsListType) obj).getAdaptor();
+                    if (adaptors != null) {
+                        // Loop for specific adaptor name
+                        for (AdaptorType adaptor : adaptors) {
+                            if (adaptor.getName().equals(adaptorName)) {
+                                return adaptor;
                             }
                         }
                     } else {
@@ -1939,6 +2038,22 @@ public class ResourcesFile {
 
         return this.addComputeNode(name, processors, adaptorsList, null, null, null, (SoftwareListType) null, (AttachedDisksListType) null, null);
     }
+    
+    /** Add a compute node with a single instances of processor and adaptor
+     * @param name
+     * @param processor
+     * @param adaptor
+     * @return
+     * @throws InvalidElementException
+     */
+    public ComputeNodeType addComputeNode(String name, ProcessorType processor, AdaptorType adaptor) throws InvalidElementException {
+        AdaptorsListType adaptorsList = new AdaptorsListType();
+        adaptorsList.getAdaptor().add(adaptor);
+        List<ProcessorType>  processors = new ArrayList<ProcessorType>();
+        processors.add(processor);
+
+        return this.addComputeNode(name, processors, adaptorsList, null, null, null, (SoftwareListType) null, (AttachedDisksListType) null, null);
+    }
 
     /**
      * Adds a new ComputeNode with the given information and returns the
@@ -2026,14 +2141,17 @@ public class ResourcesFile {
                 adaptorsList.getAdaptor().add(a);
             }
         }
-        SoftwareListType software = new SoftwareListType();
+
+        SoftwareListType software = null;
         if (applications != null) {
+        	software = new SoftwareListType();
             for (String app : applications) {
                 software.getApplication().add(app);
             }
         }
-        AttachedDisksListType sharedDisksList = new AttachedDisksListType();
+        AttachedDisksListType sharedDisksList = null;
         if (sharedDisks != null) {
+        	sharedDisksList = new AttachedDisksListType();
             for (AttachedDiskType d : sharedDisks) {
                 sharedDisksList.getAttachedDisk().add(d);
             }
@@ -2066,38 +2184,30 @@ public class ResourcesFile {
 
         cn.setName(name);
         if (processors != null) {
-            for (ProcessorType p : processors) {
-                JAXBElement<ProcessorType> processorElement = new JAXBElement<ProcessorType>(new QName("Processor"), ProcessorType.class, p);
-                cn.getProcessorOrAdaptorsOrMemory().add(processorElement);
+            for (ProcessorType p : processors) {               
+                cn.getProcessorOrAdaptorsOrMemory().add(p);
             }
         }
-        JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class, adaptors);
-        cn.getProcessorOrAdaptorsOrMemory().add(adaptorsElement);
+        cn.getProcessorOrAdaptorsOrMemory().add(adaptors);
 
         // Optional parameters
         if (memory != null) {
-            JAXBElement<MemoryType> memoryElement = new JAXBElement<MemoryType>(new QName("Memory"), MemoryType.class, memory);
-            cn.getProcessorOrAdaptorsOrMemory().add(memoryElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(memory);
         }
         if (storage != null) {
-            JAXBElement<StorageType> storageElement = new JAXBElement<StorageType>(new QName("Storage"), StorageType.class, storage);
-            cn.getProcessorOrAdaptorsOrMemory().add(storageElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(storage);
         }
         if (os != null) {
-            JAXBElement<OSType> osElement = new JAXBElement<OSType>(new QName("OperatingSystem"), OSType.class, os);
-            cn.getProcessorOrAdaptorsOrMemory().add(osElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(os);
         }
         if (software != null) {
-            JAXBElement<SoftwareListType> softwareElement = new JAXBElement<SoftwareListType>(new QName("Software"), SoftwareListType.class, software);
-            cn.getProcessorOrAdaptorsOrMemory().add(softwareElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(software);
         }
         if (sharedDisks != null) {
-            JAXBElement<AttachedDisksListType> sdElement = new JAXBElement<AttachedDisksListType>(new QName("SharedDisks"), AttachedDisksListType.class, sharedDisks);
-            cn.getProcessorOrAdaptorsOrMemory().add(sdElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(sharedDisks);
         }
         if (price != null) {
-            JAXBElement<PriceType> priceElement = new JAXBElement<PriceType>(new QName("Price"), PriceType.class, price);
-            cn.getProcessorOrAdaptorsOrMemory().add(priceElement);
+            cn.getProcessorOrAdaptorsOrMemory().add(price);
         }
 
         return this.addComputeNode(cn);
@@ -2124,8 +2234,7 @@ public class ResourcesFile {
         cn.setName(name);
         if (processors != null) {
             for (ProcessorType p : processors) {
-                JAXBElement<ProcessorType> processorElement = new JAXBElement<ProcessorType>(new QName("Processor"), ProcessorType.class, p);
-                cn.getProcessorOrAdaptorsOrMemory().add(processorElement);
+                cn.getProcessorOrAdaptorsOrMemory().add(p);
             }
         }
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -2134,37 +2243,111 @@ public class ResourcesFile {
                 adaptorsList.getAdaptor().add(a);
             }
         }
-        JAXBElement<AdaptorsListType> adaptorsElement = new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class, adaptorsList);
-        cn.getProcessorOrAdaptorsOrMemory().add(adaptorsElement);
+        
+        cn.getProcessorOrAdaptorsOrMemory().add(adaptorsList);
 
         // Optional parameters
-        if (memorySize != -1.0) {
-            MemoryType memory = new MemoryType();
-            JAXBElement<Float> memorySizeElement = new JAXBElement<Float>(new QName("Size"), Float.class, memorySize);
-            memory.getSizeOrType().add(memorySizeElement);
-            JAXBElement<MemoryType> memoryElement = new JAXBElement<MemoryType>(new QName("Memory"), MemoryType.class, memory);
-            cn.getProcessorOrAdaptorsOrMemory().add(memoryElement);
+        if (memorySize > 0) {
+            MemoryType memory = createMemory(memorySize, null);
+            cn.getProcessorOrAdaptorsOrMemory().add(memory);
         }
-        if (diskSize != -1.0) {
-            StorageType storage = new StorageType();
-            JAXBElement<Float> storageSizeElement = new JAXBElement<Float>(new QName("Size"), Float.class, diskSize);
-            storage.getSizeOrType().add(storageSizeElement);
-            JAXBElement<StorageType> storageElement = new JAXBElement<StorageType>(new QName("Storage"), StorageType.class, storage);
-            cn.getProcessorOrAdaptorsOrMemory().add(storageElement);
+        if (diskSize > 0) {
+            StorageType storage = createStorage(diskSize, null); 
+            cn.getProcessorOrAdaptorsOrMemory().add(storage);
         }
         if (osName != null) {
             if (!osName.isEmpty()) {
-                OSType ostype = new OSType();
-                JAXBElement<String> osTypeTypeElement = new JAXBElement<String>(new QName("Type"), String.class, osName);
-                ostype.getTypeOrDistributionOrVersion().add(osTypeTypeElement);
-                JAXBElement<OSType> osElement = new JAXBElement<OSType>(new QName("OperatingSystem"), OSType.class, ostype);
-                cn.getProcessorOrAdaptorsOrMemory().add(osElement);
+                OSType os = createOperatingSystem(osName, null, null);
+                cn.getProcessorOrAdaptorsOrMemory().add(os);
             }
         }
 
         return this.addComputeNode(cn);
     }
-
+    
+    /** Add an instance of compute node with a single processor and a NIO adaptor
+     * @param name Node name
+     * @param procName Processor Name
+     * @param procCU Processor Computing Units
+     * @param procArch Processor Architecture
+     * @param procSpeed Processor Speed
+     * @param procProp Processor Property
+     * @param adaptorName Adaptor Name
+     * @param maxPort Maximum port number of the port range
+     * @param minPort Minimum port number of the port range
+     * @param executor Executor command
+     * @param user Username
+     * @param memorySize Memory size
+     * @param memoryType Memory type
+     * @param storageSize Storage size
+     * @param storageType Storage type
+     * @param osType Operating system type
+     * @param osDistribution Operating system distribution
+     * @param osVersion Operating system version
+     * @return
+     * @throws InvalidElementException
+     */
+    public ComputeNodeType addComputeNode(String name, 
+    		String procName, int procCU, String procArch, float procSpeed, ProcessorPropertyType procProp,
+    		String adaptorName, int maxPort, int minPort, String executor, String user,
+    		float memorySize, String memoryType, float storageSize, String storageType, 
+    		String osType, String osDistribution, String osVersion) throws InvalidElementException{
+    	List<ProcessorType> processors = new ArrayList<ProcessorType>();
+		ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+		processors.add(pr);
+		MemoryType mem = createMemory(memorySize, memoryType);
+		StorageType storage = createStorage(storageSize, storageType);
+		OSType os = createOperatingSystem(osType, osDistribution, osVersion);
+		List<AdaptorType> adaptors = new ArrayList<AdaptorType>();
+		NIOAdaptorProperties nioProp = new NIOAdaptorProperties();
+		nioProp.setMaxPort(maxPort);
+		nioProp.setMinPort(minPort);
+		nioProp.setRemoteExecutionCommand(executor);
+		AdaptorType	adaptor = ResourcesFile.createAdaptor(adaptorName, false, null, true, nioProp, user);
+		adaptors.add(adaptor);
+		return this.addComputeNode(name,processors,adaptors,mem, storage,os,null,null,null);
+    }
+    /** Add an instance of compute node with a single processor and a GAT adaptor
+     * @param name Node name
+     * @param procName Processor Name
+     * @param procCU Processor Computing Units
+     * @param procArch Processor Architecture
+     * @param procSpeed Processor Speed
+     * @param procProp Processor Property
+     * @param adaptorName Adaptor Name
+     * @param bath Maximum port number of the port range
+     * @param queues Minimum port number of the port range
+     * @param interactive Executor command
+     * @param brokerAdaptor GAT broker adaptor
+     * @param user User name
+     * @param memorySize Memory size
+     * @param memoryType Memory type
+     * @param storageSize Storage size
+     * @param storageType Storage type
+     * @param osType Operating system type
+     * @param osDistribution Operating system distribution
+     * @param osVersion Operating system version
+     * @return
+     * @throws InvalidElementException
+     */
+    public ComputeNodeType addComputeNode(String name, 
+       		String procName, int procCU, String procArch, float procSpeed, ProcessorPropertyType procProp,
+       		String adaptorName, boolean batch, List<String> queues, boolean interactive, String brokerAdaptor, String user,
+       		float memorySize, String memoryType, float storageSize, String storageType, 
+       		String osType, String osDistribution, String osVersion) throws InvalidElementException{
+    	List<ProcessorType> processors = new ArrayList<ProcessorType>();
+		ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+		processors.add(pr);
+		MemoryType mem = createMemory(memorySize, memoryType);
+		StorageType storage = createStorage(storageSize, storageType);
+		OSType os = createOperatingSystem(osType, osDistribution, osVersion);
+		List<AdaptorType> adaptors = new ArrayList<AdaptorType>();
+		AdaptorType adaptor = ResourcesFile.createAdaptor(adaptorName, batch, queues, interactive, brokerAdaptor, user);
+		adaptors.add(adaptor);
+		return this.addComputeNode(name,processors,adaptors,mem, storage,os,null,null,null);
+    }
+    
+    
     /**
      * Add the given Service @s to the resources file
      *
@@ -2378,6 +2561,157 @@ public class ResourcesFile {
     /* **************************************
      * SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
      * **************************************/
+    
+    /** Creates a Processor element
+     * @param name Processor Name
+     * @param cu Processor Computing Units
+     * @param procArchitecture Processor Architecture
+     * @param procSpeed Porcessor Speed
+     * @param procProperty Processor Property
+     * @return
+     */
+    public static ProcessorType createProcessor(String name, int cu, String procArchitecture, float procSpeed, ProcessorPropertyType procProperties) {
+        ProcessorType processor = new ProcessorType();
+        processor.setName(name);
+        processor.getComputingUnitsOrArchitectureOrSpeed().add(cu);
+        processor.getComputingUnitsOrArchitectureOrSpeed().add(procArchitecture);
+        processor.getComputingUnitsOrArchitectureOrSpeed().add(procSpeed);
+        
+        if(procProperties!=null){
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(procProperties);
+        }
+        return processor;
+    }
+    
+    /** Creates a Processor Property element
+     * @param key Processor property key
+     * @param value Processor property value
+     * @return
+     */
+    public static ProcessorPropertyType createProcessorProperty(String key, String value){
+    	ProcessorPropertyType prop = new ProcessorPropertyType();
+    	prop.setKey(key);
+    	prop.setValue(value);
+    	return prop;
+    }
+    
+    /** Creates a Memory element
+     * @param memorySize Memory size
+     * @param type Memory type
+     * @return
+     */
+    public static MemoryType createMemory(float memorySize, String type){
+    	MemoryType mem = new MemoryType();
+		mem.getSizeOrType().add(new Float(memorySize));
+		if (type != null){
+			mem.getSizeOrType().add(type);
+		}
+		return mem;
+    }
+    
+    /** Creates a Storage element
+     * @param storageSize Storage size
+     * @param type Storage type
+     * @return
+     */
+    public static StorageType createStorage(float storageSize, String type){
+    	StorageType storage = new StorageType();
+		storage.getSizeOrType().add(new Float(storageSize));
+		if (type != null){
+			storage.getSizeOrType().add(type);
+		}
+		return storage;
+    }
+    
+    /** Creates a Operating System element
+     * @param osType Operating System type (linux, windows, ...)
+     * @param osDistribution Operating System Distribution (Ubuntu, Centos, ...)
+     * @param osVersion Operating System version
+     * @return
+     */
+    public static OSType createOperatingSystem(String osType, String osDistribution , String osVersion) {
+        OSType os = new OSType();
+        OSTypeType osTypeType = OSTypeType.fromValue(osType);
+        JAXBElement<OSTypeType> typeElement = new JAXBElement<OSTypeType>(new QName("Type"), OSTypeType.class, osTypeType);
+        os.getTypeOrDistributionOrVersion().add(typeElement);
+
+        // Optional parameters
+        if (osDistribution != null) {
+            JAXBElement<String> distElement = new JAXBElement<String>(new QName("Distribution"), String.class, osDistribution);
+            os.getTypeOrDistributionOrVersion().add(distElement);
+        }
+        if (osVersion != null) {
+            JAXBElement<String> verElement = new JAXBElement<String>(new QName("Version"), String.class, osVersion);
+            os.getTypeOrDistributionOrVersion().add(verElement);
+        }
+
+        return os;
+    }
+    
+    public static ImageType createImage(String name,
+    		String adaptorName, boolean batch, List<String> queues, boolean interactive, String brokerAdaptor, String user, 
+       		String osType, String osDistribution, String osVersion){
+    	ImageType image = new ImageType();
+    	image.setName(name);
+    	AdaptorsListType adaptorsList = new AdaptorsListType();
+    	AdaptorType adaptor = ResourcesFile.createAdaptor(adaptorName, batch, queues, interactive, brokerAdaptor, user);
+    	adaptorsList.getAdaptor().add(adaptor);
+    	image.getAdaptorsOrOperatingSystemOrSoftware().add(adaptorsList);
+    	OSType os = createOperatingSystem(osType, osDistribution, osVersion);
+    	image.getAdaptorsOrOperatingSystemOrSoftware().add(os);
+    	return image;
+    	
+    }
+    
+    public static ImageType createImage(String name,
+    		String adaptorName, int maxPort, int minPort, String executor, String user, 
+       		String osType, String osDistribution, String osVersion){
+    	ImageType image = new ImageType();
+    	image.setName(name);
+    	AdaptorsListType adaptorsList = new AdaptorsListType();
+    	NIOAdaptorProperties nioProp = new NIOAdaptorProperties();
+		nioProp.setMaxPort(maxPort);
+		nioProp.setMinPort(minPort);
+		nioProp.setRemoteExecutionCommand(executor);
+		AdaptorType	adaptor = ResourcesFile.createAdaptor(adaptorName, false, null, true, nioProp, user);
+    	adaptorsList.getAdaptor().add(adaptor);
+    	image.getAdaptorsOrOperatingSystemOrSoftware().add(adaptorsList);
+    	OSType os = createOperatingSystem(osType, osDistribution, osVersion);
+    	image.getAdaptorsOrOperatingSystemOrSoftware().add(os);
+    	return image;
+    	
+    }
+    
+    public static InstanceTypeType createInstance(String name, 
+    		String procName, int procCU, String procArch, float procSpeed, ProcessorPropertyType procProp,
+    		float memorySize, String memoryType, float storageSize, String storageType ){
+    	InstanceTypeType instance = new InstanceTypeType();
+    	instance.setName(name);
+		ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+		instance.getProcessorOrMemoryOrStorage().add(pr);
+		MemoryType mem = createMemory(memorySize, memoryType);
+		instance.getProcessorOrMemoryOrStorage().add(mem);
+		StorageType storage = createStorage(storageSize, storageType);
+		instance.getProcessorOrMemoryOrStorage().add(storage);
+    	return instance;
+    }
+    
+    public static EndpointType createEndpoint(String server, String connector, String port){
+    	EndpointType endPoint = new EndpointType();
+    	
+    	JAXBElement<String> serverElement = new JAXBElement<String>(new QName("Server"), String.class, server);
+        endPoint.getServerOrConnectorOrPort().add(serverElement);
+        
+        JAXBElement<String> connectorElement = new JAXBElement<String>(new QName("Connector"), String.class, connector);
+        endPoint.getServerOrConnectorOrPort().add(connectorElement);
+    	
+    	if (port != null) {
+            JAXBElement<String> portElement = new JAXBElement<String>(new QName("Port"), String.class, port);
+            endPoint.getServerOrConnectorOrPort().add(portElement);
+        }
+    	return endPoint;
+    }
+    
     /**
      * Creates an instance of an Adaptor with the given information
      *
@@ -2387,7 +2721,7 @@ public class ResourcesFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -2415,7 +2749,7 @@ public class ResourcesFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -2443,7 +2777,7 @@ public class ResourcesFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -2471,7 +2805,7 @@ public class ResourcesFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -2499,15 +2833,15 @@ public class ResourcesFile {
     /**
      * Creates an instance of an Adaptor with the given information
      *
-     * @param name
-     * @param batch
-     * @param queues
-     * @param interactive
-     * @param nioproperties
-     * @param user
+     * @param name Adaptor's name
+     * @param batch Flag to indicate if supports batch submission
+     * @param queues Batch queues
+     * @param interactive Flag to indicate if supports interactive submission
+     * @param nioproperties NIO adaptor properties
+     * @param user Username
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, NIOAdaptorProperties nioproperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, NIOAdaptorProperties nioproperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2516,30 +2850,28 @@ public class ResourcesFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, nioproperties, user);
+        return createAdaptor(name, subsys, nioproperties, user);
     }
 
     /**
      * Creates an instance of an Adaptor with the given information
      *
-     * @param name
-     * @param batch
-     * @param queues
-     * @param interactive
-     * @param gatproperties
-     * @param user
+     * @param name Adaptor's name
+     * @param batch Flag to indicate if supports batch submission
+     * @param queues Batch queues
+     * @param interactive Flag to indicate if supports interactive submission
+     * @param gatproperties GAT broker adaptor
+     * @param user Username
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2548,48 +2880,14 @@ public class ResourcesFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, gatproperties, user);
-    }
-
-    /**
-     * Creates an instance of an Adaptor with the given information
-     *
-     * @param name
-     * @param batch
-     * @param queues
-     * @param interactive
-     * @param externalProperties
-     * @param user
-     * @return
-     */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, ExternalAdaptorProperties externalProperties, String user) {
-        SubmissionSystemType subsys = new SubmissionSystemType();
-        if (batch) {
-            BatchType b = new BatchType();
-            if (queues != null) {
-                for (String q : queues) {
-                    b.getQueue().add(q);
-                }
-            }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
-        }
-        if (interactive) {
-            InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
-        }
-
-        return this.createAdaptor(name, subsys, externalProperties, user);
+        return createAdaptor(name, subsys, gatproperties, user);
     }
 
     /**
@@ -2603,7 +2901,7 @@ public class ResourcesFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, List<PropertyAdaptorType> externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, ExternalAdaptorProperties externalProperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2612,16 +2910,44 @@ public class ResourcesFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, externalProperties, user);
+        return createAdaptor(name, subsys, externalProperties, user);
+    }
+
+    /**
+     * Creates an instance of an Adaptor with the given information
+     *
+     * @param name
+     * @param batch
+     * @param queues
+     * @param interactive
+     * @param externalProperties
+     * @param user
+     * @return
+     */
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, List<PropertyAdaptorType> externalProperties, String user) {
+        SubmissionSystemType subsys = new SubmissionSystemType();
+        if (batch) {
+            BatchType b = new BatchType();
+            if (queues != null) {
+                for (String q : queues) {
+                    b.getQueue().add(q);
+                }
+            }
+            subsys.getBatchOrInteractive().add(b);
+        }
+        if (interactive) {
+            InteractiveType i = new InteractiveType();
+            subsys.getBatchOrInteractive().add(i);
+        }
+
+        return createAdaptor(name, subsys, externalProperties, user);
     }
 
     /**
@@ -2665,6 +2991,48 @@ public class ResourcesFile {
             return false;
         }
     }
+    
+    public void attachSharedDiskToComputeNode(String diskName, String cnName, String mountPoint) throws InvalidElementException{
+    	ComputeNodeType cn = getComputeNode(cnName);
+    	if (cn != null){
+    		
+    		AttachedDisksListType disks = getAttachedSharedDisks(cn);
+    		if (disks == null){
+    			disks = new AttachedDisksListType();
+    			cn.getProcessorOrAdaptorsOrMemory().add(disks);
+    		}
+    		AttachedDiskType d = new AttachedDiskType();
+    		d.setName(diskName);
+    		d.setMountPoint(mountPoint);
+    		disks.getAttachedDisk().add(d);
+    	}else{
+    		throw new InvalidElementException("ComputeNodeType", cnName, "Not found");
+    	} 
+    }
+    
+    public void detachSharedDiskToComputeNode(String diskName, String cnName) throws InvalidElementException{
+    	ComputeNodeType cn = getComputeNode(cnName);
+    	if (cn != null){
+    		
+    		AttachedDisksListType disks = getAttachedSharedDisks(cn);
+    		if (disks != null){
+    			for (int i=0; i<disks.getAttachedDisk().size();i++){
+    				if (disks.getAttachedDisk().get(i).getName().equals(diskName)){
+    					disks.getAttachedDisk().remove(i);
+    					return;
+    				}
+    			}
+    			throw new InvalidElementException("AttachedDisksType", diskName, "Not found");
+    		}else{
+    			throw new InvalidElementException("AttachedDisksListType", "none", "Not found");
+    		}
+    		
+    	}else{
+    		throw new InvalidElementException("ComputeNodeType", cnName, "Not found");
+    	} 
+    }
+    
+    
 
     /* **************************************
      * GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
@@ -2850,7 +3218,7 @@ public class ResourcesFile {
 
     /**
      * Deletes the SharedDisk with name=@name Returns true if deletion is
-     * successfull, false otherwise
+     * successful, false otherwise
      *
      * @param name
      * @return
@@ -2900,5 +3268,6 @@ public class ResourcesFile {
 
         return null;
     }
+
 
 }

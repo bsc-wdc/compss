@@ -18,7 +18,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.apache.logging.log4j.Logger;
-
 import org.xml.sax.SAXException;
 
 import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
@@ -160,8 +159,33 @@ public class ProjectFile {
         validator.validate();
         this.logger.info("Project.xml finished");
     }
+    
+    public ProjectFile( String xsdPath, Logger logger) throws SAXException, JAXBException, ProjectFileValidationException {
+        this.logger = logger;
+        this.logger.info("Init Project.xml parsing");
+        this.context = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+        SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        this.xsd = sf.newSchema(new File(xsdPath));
 
-    /* **************************************
+        // Unmarshall
+        Unmarshaller um = this.context.createUnmarshaller();
+        um.setSchema(this.xsd);
+        this.project = new ProjectType();
+        addEmptyMaster();
+
+        // Validate
+        this.logger.info("Init Project.xml validation");
+        validator = new Validator(this, this.logger);
+        this.logger.info("Project.xml finished");
+    }
+
+    private void addEmptyMaster() {
+		MasterNodeType master = new MasterNodeType();
+		project.getMasterNodeOrComputeNodeOrDataNode().add(master);
+		
+	}
+
+	/* **************************************
      * DUMPERS
      * **************************************/
     /**
@@ -1068,12 +1092,13 @@ public class ProjectFile {
      * @param name
      * @param installDir
      * @param workingDir
+     * @param user
      * @param app
      * @param limitOfTasks
      * @param adaptors
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir,
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
             ApplicationType app, int limitOfTasks, AdaptorsListType adaptors) throws InvalidElementException {
 
         ComputeNodeType cn = new ComputeNodeType();
@@ -1082,10 +1107,14 @@ public class ProjectFile {
         // Mandatory elements
         JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class, installDir);
         cn.getInstallDirOrWorkingDirOrUser().add(installDir_jaxb);
-        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class, installDir);
+        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class, workingDir);
         cn.getInstallDirOrWorkingDirOrUser().add(workingDir_jaxb);
 
         // Non mandatory elements
+        if (user !=null) {
+        	JAXBElement<String> user_jaxb = new JAXBElement<String>(new QName("User"), String.class, user);
+            cn.getInstallDirOrWorkingDirOrUser().add(user_jaxb);
+        }
         if (app != null) {
             JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"), ApplicationType.class, app);
             cn.getInstallDirOrWorkingDirOrUser().add(apps_jaxb);
@@ -1109,11 +1138,16 @@ public class ProjectFile {
      * @param name
      * @param installDir
      * @param workingDir
+     * @param user
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir) throws InvalidElementException {
-        return addComputeNode(name, installDir, workingDir, null, -1, (AdaptorsListType) null);
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user) throws InvalidElementException {
+        return addComputeNode(name, installDir, workingDir, user, null, -1, (AdaptorsListType) null);
     }
+    
+    
+    
+    
 
     /**
      * Adds a new ComputeNode with the given information and returns the
@@ -1122,12 +1156,13 @@ public class ProjectFile {
      * @param name
      * @param installDir
      * @param workingDir
+     * @param user
      * @param app
      * @param limitOfTasks
      * @param adaptors
      * @return
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir,
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
             ApplicationType app, int limitOfTasks, List<AdaptorType> adaptors) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -1137,7 +1172,7 @@ public class ProjectFile {
             }
         }
 
-        return addComputeNode(name, installDir, workingDir, app, limitOfTasks, adaptorsList);
+        return addComputeNode(name, installDir, workingDir, user, app, limitOfTasks, adaptorsList);
     }
 
     /**
@@ -1147,6 +1182,7 @@ public class ProjectFile {
      * @param name
      * @param installDir
      * @param workingDir
+     * @param user
      * @param appDir
      * @param libPath
      * @param cp
@@ -1156,7 +1192,7 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir,
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
             String appDir, String libPath, String cp, String pypath, int limitOfTasks, List<AdaptorType> adaptors) throws InvalidElementException {
 
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -1166,7 +1202,7 @@ public class ProjectFile {
             }
         }
 
-        return addComputeNode(name, installDir, workingDir, appDir, libPath, cp, pypath, limitOfTasks, adaptorsList);
+        return addComputeNode(name, installDir, workingDir, user, appDir, libPath, cp, pypath, limitOfTasks, adaptorsList);
     }
 
     /**
@@ -1176,6 +1212,7 @@ public class ProjectFile {
      * @param name
      * @param installDir
      * @param workingDir
+     * @param user
      * @param appDir
      * @param libPath
      * @param cp
@@ -1185,28 +1222,18 @@ public class ProjectFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir,
+    public ComputeNodeType addComputeNode(String name, String installDir, String workingDir, String user,
             String appDir, String libPath, String cp, String pypath, int limitOfTasks, AdaptorsListType adaptors) throws InvalidElementException {
+    	
+    	
+        ApplicationType app = createApplication(appDir, libPath, cp, pypath);
 
-        ApplicationType app = new ApplicationType();
-        // Optional parameters
-        if (appDir != null && !appDir.isEmpty()) {
-            app.setAppDir(appDir);
-        }
-        if (libPath != null && !libPath.isEmpty()) {
-            app.setLibraryPath(libPath);
-        }
-        if (cp != null && !cp.isEmpty()) {
-            app.setClasspath(cp);
-        }
-        if (pypath != null && !pypath.isEmpty()) {
-            app.setPythonpath(pypath);
-        }
-
-        return addComputeNode(name, installDir, workingDir, app, limitOfTasks, adaptors);
+        return addComputeNode(name, installDir, workingDir, user, app, limitOfTasks, adaptors);
     }
 
-    /**
+    
+
+	/**
      * Adds the given DataNode @dn to the project file
      *
      * @param dn
@@ -1625,6 +1652,7 @@ public class ProjectFile {
 
         return addCloudProvider(cp);
     }
+    
 
     /* **************************************
      * SETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
@@ -1740,6 +1768,69 @@ public class ProjectFile {
             return false;
         }
     }
+    
+    public static ApplicationType createApplication(String appDir, String libPath, String cp,
+			String pypath) {
+    	ApplicationType app = new ApplicationType();
+        // Optional parameters
+        if (appDir != null && !appDir.isEmpty()) {
+            app.setAppDir(appDir);
+        }
+        if (libPath != null && !libPath.isEmpty()) {
+            app.setLibraryPath(libPath);
+        }
+        if (cp != null && !cp.isEmpty()) {
+            app.setClasspath(cp);
+        }
+        if (pypath != null && !pypath.isEmpty()) {
+            app.setPythonpath(pypath);
+        }
+        return app;
+		
+	}
+    
+    public static ImageType createImage(String name, String installDir, String workingDir, String user,
+            String appDir, String libPath, String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors){
+    	ImageType image = new ImageType();
+    	
+    	// Mandatory elements
+    	image.setName(name);
+        JAXBElement<String> installDir_jaxb = new JAXBElement<String>(new QName("InstallDir"), String.class, installDir);
+        image.getInstallDirOrWorkingDirOrUser().add(installDir_jaxb);
+        JAXBElement<String> workingDir_jaxb = new JAXBElement<String>(new QName("WorkingDir"), String.class, workingDir);
+        image.getInstallDirOrWorkingDirOrUser().add(workingDir_jaxb);
+
+        // Non mandatory elements
+        if (user !=null) {
+        	JAXBElement<String> user_jaxb = new JAXBElement<String>(new QName("User"), String.class, user);
+            image.getInstallDirOrWorkingDirOrUser().add(user_jaxb);
+        }
+        ApplicationType app = createApplication(appDir, libPath, cp, pypath);
+        JAXBElement<ApplicationType> apps_jaxb = new JAXBElement<ApplicationType>(new QName("Application"), ApplicationType.class, app);
+        image.getInstallDirOrWorkingDirOrUser().add(apps_jaxb);
+        if (limitOfTasks >= 0) {
+            JAXBElement<Integer> limitOfTasks_jaxb = new JAXBElement<Integer>(new QName("LimitOfTasks"), Integer.class, limitOfTasks);
+            image.getInstallDirOrWorkingDirOrUser().add(limitOfTasks_jaxb);
+        }
+        if (pack!=null){
+        	JAXBElement<PackageType> pack_jaxb = new JAXBElement<PackageType>(new QName("Package"), PackageType.class, pack);
+            image.getInstallDirOrWorkingDirOrUser().add(pack_jaxb);
+        }
+        if (adaptors != null) {
+            JAXBElement<AdaptorsListType> adaptors_jaxb = new JAXBElement<AdaptorsListType>(new QName("Adaptors"), AdaptorsListType.class, adaptors);
+            image.getInstallDirOrWorkingDirOrUser().add(adaptors_jaxb);
+        }
+    	return image;
+    	
+    }
+    
+    public static InstanceTypeType createInstance(String name){
+    	InstanceTypeType instance = new InstanceTypeType();
+    	instance.setName(name);
+    	return instance;
+    	
+    }
+    
 
     /**
      * Creates an instance of an Adaptor with the given information
@@ -1749,8 +1840,8 @@ public class ProjectFile {
      * @param nioproperties
      * @param user
      * @return
-     */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
+     */ 
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, NIOAdaptorProperties nioproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1778,7 +1869,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, String gatproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1806,7 +1897,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1834,7 +1925,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties, String user) {
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1870,7 +1961,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, NIOAdaptorProperties nioproperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, NIOAdaptorProperties nioproperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1879,16 +1970,14 @@ public class ProjectFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, nioproperties, user);
+        return createAdaptor(name, subsys, nioproperties, user);
     }
 
     /**
@@ -1902,7 +1991,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1911,16 +2000,14 @@ public class ProjectFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, gatproperties, user);
+        return createAdaptor(name, subsys, gatproperties, user);
     }
 
     /**
@@ -1934,7 +2021,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, ExternalAdaptorProperties externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, ExternalAdaptorProperties externalProperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1943,16 +2030,14 @@ public class ProjectFile {
                     b.getQueue().add(q);
                 }
             }
-            JAXBElement<BatchType> batchElement = new JAXBElement<BatchType>(new QName("Batch"), BatchType.class, b);
-            subsys.getBatchOrInteractive().add(batchElement);
+            subsys.getBatchOrInteractive().add(b);
         }
         if (interactive) {
             InteractiveType i = new InteractiveType();
-            JAXBElement<InteractiveType> interactiveElement = new JAXBElement<InteractiveType>(new QName("Interactive"), InteractiveType.class, i);
-            subsys.getBatchOrInteractive().add(interactiveElement);
+            subsys.getBatchOrInteractive().add(i);
         }
 
-        return this.createAdaptor(name, subsys, externalProperties, user);
+        return createAdaptor(name, subsys, externalProperties, user);
     }
 
     /**
@@ -1966,7 +2051,7 @@ public class ProjectFile {
      * @param user
      * @return
      */
-    public AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, List<PropertyAdaptorType> externalProperties, String user) {
+    public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, List<PropertyAdaptorType> externalProperties, String user) {
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1984,7 +2069,7 @@ public class ProjectFile {
             subsys.getBatchOrInteractive().add(interactiveElement);
         }
 
-        return this.createAdaptor(name, subsys, externalProperties, user);
+        return createAdaptor(name, subsys, externalProperties, user);
     }
 
     /* **************************************

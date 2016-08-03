@@ -3,13 +3,26 @@ package integratedtoolkit.types.resources.test;
 import static org.junit.Assert.*;
 import integratedtoolkit.types.resources.ResourcesFile;
 import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
+import integratedtoolkit.types.resources.jaxb.AdaptorType;
+import integratedtoolkit.types.resources.jaxb.ComputeNodeType;
+import integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties;
+import integratedtoolkit.types.resources.jaxb.OSTypeType;
+import integratedtoolkit.types.resources.jaxb.ObjectFactory;
+import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
+import integratedtoolkit.types.resources.jaxb.ProcessorType;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -380,6 +393,133 @@ public class ResourcesFileTest {
         sb.append("</ResourcesList>").append("\n");
         
         return sb.toString();
+	}
+	
+	@Test
+	public void staticProcessorAdaptorComputeNodeCreationAndRead() throws SAXException, JAXBException, ResourcesFileValidationException{
+		int cu = 5;
+		float speed = 2.6f;
+		String nodeName = "blablahost";
+		String procName = "Proc1";
+		String arch = "amd64";
+		String key = "procKey";
+		String value = "procValue";
+		String adaptorName = "nio";
+		boolean batch = false;
+		boolean interactive = true;
+		String gatprop="gat_prop";
+		String user = "user";
+		
+		ProcessorPropertyType pp = ResourcesFile.createProcessorProperty(key, value);
+		ProcessorType proc = ResourcesFile.createProcessor(procName,cu,arch,speed,pp);
+		AdaptorType ad = ResourcesFile.createAdaptor(adaptorName,batch,null,interactive,gatprop,user);
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+			
+			// Instantiate ResourcesFile
+			ResourcesFile resources =  new ResourcesFile(xsd_path, logger);
+			List<ProcessorType> processors = new LinkedList<ProcessorType>();
+			processors.add(proc);
+			List<AdaptorType> adaptors = new LinkedList<AdaptorType>();
+			adaptors.add(ad);
+			resources.addComputeNode(nodeName, processors, adaptors);
+		ComputeNodeType cn = resources.getComputeNode(nodeName);
+		ProcessorType procExtracted = resources.getProcessors(cn).get(0);
+		assertEquals(procName, procExtracted.getName());
+		assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
+		assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
+		assertEquals(speed, resources.getProcessorSpeed(procExtracted),0);
+		assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
+		assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
+	}
+	
+	@Test
+	public void computeNodeCreationWithNIOAndRead() throws SAXException, JAXBException, ResourcesFileValidationException{
+		int cu = 5;
+		float speed = 2.6f;
+		String nodeName = "blablahost";
+		String procName = "Proc1";
+		String arch = "amd64";
+		String key = "procKey";
+		String value = "procValue";
+		float memSize =32.5f;
+		float storageSize = 256.0f;
+		String osType = OSTypeType.LINUX.value();
+		String adaptorName = "nio";
+		int minPort = 20;
+		int maxPort = 40;
+		String executor ="ssh";
+		//boolean batch = true;
+		//String queue = "default";
+		//boolean interactive = true;
+		//String gatprop = "sshtrillead";
+		String user = "user";
+		
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+			
+		// Instantiate ResourcesFile
+		ResourcesFile resources =  new ResourcesFile(xsd_path, logger);
+		resources.addComputeNode(nodeName, procName, cu, arch, speed, ResourcesFile.createProcessorProperty(key,value), adaptorName, maxPort, minPort, executor, user, memSize, null, storageSize, null, osType, null, null);
+		ComputeNodeType cn = resources.getComputeNode(nodeName);
+		ProcessorType procExtracted = resources.getProcessors(cn).get(0);
+		assertEquals(procName, procExtracted.getName());
+		assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
+		assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
+		assertEquals(speed, resources.getProcessorSpeed(procExtracted),0);
+		assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
+		assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
+		assertEquals(memSize, resources.getMemorySize(cn),0);
+		assertEquals(storageSize, resources.getStorageSize(cn),0);
+		
+		assertEquals(osType, resources.getOperatingSystemType(cn));
+		assertEquals(NIOAdaptorProperties.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
+		assertEquals(minPort, ((NIOAdaptorProperties)resources.getAdaptorProperties(cn, adaptorName)).getMinPort());
+		assertEquals(maxPort, ((NIOAdaptorProperties)resources.getAdaptorProperties(cn, adaptorName)).getMaxPort());
+		assertEquals(executor, ((NIOAdaptorProperties)resources.getAdaptorProperties(cn, adaptorName)).getRemoteExecutionCommand());
+	}
+	
+	@Test
+	public void computeNodeCreationWithGATAndRead() throws SAXException, JAXBException, ResourcesFileValidationException{
+		int cu = 5;
+		float speed = 2.6f;
+		String nodeName = "blablahost";
+		String procName = "Proc1";
+		String arch = "amd64";
+		String key = "procKey";
+		String value = "procValue";
+		float memSize =32.5f;
+		float storageSize = 256.0f;
+		String osType = OSTypeType.LINUX.value();
+		String adaptorName = "gat";
+		//int minPort = 20;
+		//int maxPort = 40;
+		//String executor ="ssh";
+		boolean batch = true;
+		String queue = "default";
+		List<String> queues = new ArrayList<String>();
+		queues.add(queue);
+		boolean interactive = true;
+		String gatprop = "sshtrillead";
+		String user = "user";
+		
+		String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
+			
+		// Instantiate ResourcesFile
+		ResourcesFile resources =  new ResourcesFile(xsd_path, logger);
+		resources.addComputeNode(nodeName, procName, cu, arch, speed, ResourcesFile.createProcessorProperty(key,value), adaptorName, batch, queues, interactive, gatprop, user, memSize, null, storageSize, null, osType, null, null);
+		ComputeNodeType cn = resources.getComputeNode(nodeName);
+		ProcessorType procExtracted = resources.getProcessors(cn).get(0);
+		assertEquals(procName, procExtracted.getName());
+		assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
+		assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
+		assertEquals(speed, resources.getProcessorSpeed(procExtracted),0);
+		assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
+		assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
+		assertEquals(memSize, resources.getMemorySize(cn),0);
+		assertEquals(storageSize, resources.getStorageSize(cn),0);
+		assertEquals(osType, resources.getOperatingSystemType(cn));
+		assertEquals(String.class, resources.getAdaptorProperties(cn, adaptorName).getClass());
+		assertEquals(gatprop, resources.getAdaptorProperties(cn, adaptorName));
+		assertEquals(queue, resources.getAdaptorQueues(cn, adaptorName).get(0));
 	}
 	
 }

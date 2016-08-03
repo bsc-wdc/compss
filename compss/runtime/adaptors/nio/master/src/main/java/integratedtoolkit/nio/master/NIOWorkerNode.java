@@ -184,7 +184,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     }
                 }
             }
-            String path = target.getPath();
+            String path = target.getURIInHost(Comm.appHost).getPath();
             ld.startCopy(c, c.getTargetLoc());
             NIOAgent.DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
             commManager.addTransferRequest(dr);

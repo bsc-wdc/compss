@@ -1,4 +1,4 @@
-package storage.exceptions;
+package storage;
 
 import java.io.Serializable;
 

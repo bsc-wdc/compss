@@ -1,4 +1,4 @@
-package storage.callbacks;
+package storage;
 
 public class CallbackEvent {
 

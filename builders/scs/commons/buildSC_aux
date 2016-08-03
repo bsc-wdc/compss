@@ -6,6 +6,7 @@
   # Parameters: <targetDir>           Base Target Installation folder
   #             <modules>             Modules needed to perform installation
   #             <additionalExports>   Additional exports to perform installation
+  #		<queues_cfg>	      CFG to set as default	
   #             <extrae_with_openmpi> Extrae with openmpi enabled
   #             <openmpi_version>     OpenMPI module version
   #             <extrae_with_impi>    Extrae with impi enabled
@@ -17,7 +18,7 @@
 
   usage() {
     echo "Incorrect number of parameters"
-    echo " Usage: buildSC_aux <FullTargetPath> <modules> <additionalExports> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version>"
+    echo " Usage: buildSC_aux <FullTargetPath> <modules> <additionalExports> <queues_cfg> <extrae_with_openmpi> <openmpi_version> <extrae_with_impi> <impi_version>"
     echo " "
     exit 1
   }
@@ -26,7 +27,7 @@
   # MAIN
   ####################
   # Get parameters
-  if [ $# -ne 7 ]; then
+  if [ $# -ne 8 ]; then
     usage
   fi
 
@@ -34,10 +35,11 @@
   targetDir=$1
   modules=$2
   additionalExports=$3
-  extrae_with_openmpi=$4
-  openmpi_version=$5
-  extrae_with_impi=$6
-  impi_version=$7
+  queues_cfg=$4
+  extrae_with_openmpi=$5
+  openmpi_version=$6
+  extrae_with_impi=$7
+  impi_version=$8
 
   scriptDir=$(dirname $0)
   tmpDir=${scriptDir}/tmp
@@ -135,6 +137,7 @@
   # Scripts
   echo "--- Copy scripts"
   cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
+  cp ${targetDir}/Runtime/scripts/queues/cfgs/${queues_cfg} ${targetDir}/Runtime/scripts/queues/cfgs/default.cfg
 
   # Adaptors
   echo "--- Copy adaptors"

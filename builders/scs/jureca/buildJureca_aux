@@ -30,13 +30,14 @@
   scriptDir=$(dirname $0)
 
   modules="Python/2.7.11 Java Intel/2016.2.181-GCC-4.9.3-2.25 IntelMPI/5.1.3.181 Boost XML-LibXML/2.0124-Perl-5.22.1 GCCcore/.4.9.3 PAPI/5.4.3 Autotools/20150215"
-  additionalExports="export PATH=/apps/CEPBATOOLS/deps/libxml2/2.9.4/bin:$PATH ;"
+  additionalExports=""
+  queues_cfg="jureca.cfg"
   extrae_with_openmpi="false"
   openmpi_version=""
   extrae_with_impi="false"
   impi_version=""
 
-  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
 
   # END
   exit 0

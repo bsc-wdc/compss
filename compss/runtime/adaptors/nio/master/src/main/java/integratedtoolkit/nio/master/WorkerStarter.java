@@ -207,9 +207,11 @@ public class WorkerStarter {
         }
 
         // Get JVM Flags
-        String workerJVMflags = (System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) != null) ? System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) : "";
-        String[] jvmFlags = workerJVMflags.split(",");
-        
+        String workerJVMflags = System.getProperty(ITConstants.IT_WORKER_JVM_OPTS);
+        String[] jvmFlags = new String[0];
+        if (workerJVMflags!=null && !workerJVMflags.isEmpty()){
+        	jvmFlags =workerJVMflags.split(",");
+        }
         // Configure worker debug level
         String workerDebug = Boolean.toString(LogManager.getLogger(Loggers.WORKER).isDebugEnabled());
         
@@ -220,6 +222,10 @@ public class WorkerStarter {
         	logger.warn("No storage configuration file passed");
         }
         String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
+        if ( executionType == null || executionType.equals("") || executionType.equals("null") ) {
+        	executionType = ITConstants.COMPSs;
+        	logger.warn("No storage execution file passed");
+        }
 
         /* ********************************************************
          * BUILD COMMAND

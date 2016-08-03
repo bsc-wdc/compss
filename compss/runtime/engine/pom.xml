@@ -123,6 +123,7 @@
 						<item>timestamp</item>
 						<item>scmVersion</item>
 					</items>
+					<revisionOnScmFailure>not-found</revisionOnScmFailure>
 				</configuration>
 			</plugin>
 

@@ -10,8 +10,8 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.interfaces.StorageItf;
-import storage.interfaces.StubItf;
+import storage.StorageItf;
+import storage.StubItf;
 
 
 public class ObjectRegistry {

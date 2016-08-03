@@ -18,8 +18,8 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
-import storage.exceptions.StorageException;
-import storage.interfaces.StorageItf;
+import storage.StorageException;
+import storage.StorageItf;
 
 
 public abstract class ExternalExecutor extends Executor {

@@ -34,7 +34,7 @@ import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import storage.interfaces.StubItf;
+import storage.StubItf;
 
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {

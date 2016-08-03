@@ -22,11 +22,11 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 import javassist.bytecode.Descriptor;
-import storage.callbacks.CallbackEvent;
-import storage.callbacks.CallbackHandler;
-import storage.exceptions.StorageException;
-import storage.interfaces.StorageItf;
-import storage.interfaces.StubItf;
+import storage.CallbackEvent;
+import storage.CallbackHandler;
+import storage.StorageException;
+import storage.StorageItf;
+import storage.StubItf;
 
 
 public class JavaExecutor extends Executor {

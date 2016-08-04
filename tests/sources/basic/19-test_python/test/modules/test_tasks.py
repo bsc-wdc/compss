@@ -46,6 +46,7 @@ class MyClass(object):
     
     def __init__(self, field = None):   #def __init__(self, *args, **kwargs):
         self.field = field
+        self.v = 0
 
     @task()
     def instance_method(self):
@@ -67,18 +68,18 @@ class MyClass(object):
         print "- Class method of class", cls
         print "- Static field:", cls.static_field
 
+    @task(returns=int)
+    def return_value_square(self, v):
+        print "TEST"
+        print "self.field: ", self.field
+        print "- Return value square"   
+        print "- Input value:", v
+        self.v += v
+        print "- Self.v value: ", self.v
+        o=v*v
+        print "- Output value:", o
+        return o
 
-    #===========================================================================
-    # # Not supported
-    # @task(returns=float)
-    # def return_value_square(self,v):
-    #     print "TEST"
-    #     print "- Return value square"
-    #     print "- Input value:", v
-    #     o=v*v
-    #     print "- Output value:", o
-    #     return o
-    #===========================================================================
     
 ##### FUNCTIONS #####
 

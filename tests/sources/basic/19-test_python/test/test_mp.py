@@ -54,6 +54,8 @@ def main_program():
     
     test_lambda_return()
     test_generator_return()
+  
+    test_all_class_tasks()
         
     
 def test_function_primitives():
@@ -455,7 +457,53 @@ def test_generator_return():
     else:
         print("- Test return generator: ERROR")
 
+def test_all_class_tasks():
+    print "test_instance_method"
+    val = 1
+    o = MyClass(val)
+    o.instance_method(88)                # 1
+    o.instance_method_nonmodifier()      # 2
+    o.instance_method(88)                # 3
+    o = compss_wait_on(o)
+    if (o.field == val * 4):
+        print "- Object access from MP: OK"
+    else:
+        print "- Object access from MP: ERROR"
+                    
+    print "test_class_method"
+    MyClass.class_method()               # 4
+    
+    print "test_instance_method_with_parameter_and_return"
 
+    o = MyClass('HolaMundo')
+    b = o.return_value_square(99)        # 5
+    b1 = compss_wait_on(b)
+    o1 = compss_wait_on(o)
+    #print 'result1: ', b1   
+    #print 'accum  : ', o1.v
+    if b1 == 9801 and o1.v == 99:
+        print "- Object access from MP (Round 1): OK"
+    else:
+        print "- Object access from MP (Round 1): ERROR"
+                    
+    
+    b = o.return_value_square(199)        # 5
+    b2 = compss_wait_on(b)
+    #print 'result2: ', b2  
+    if b2 == 39601:
+        print "- Object access from MP (Round 2): OK"
+    else:      
+        print "- Object access from MP (Round 2): ERROR"
+
+    b = o.return_value_square(299)        # 5
+    b3 = compss_wait_on(b)
+    o3 = compss_wait_on(o)
+    #print 'result3: ', b3
+    #print 'accum  : ', o3.v 
+    if b3 == 89401 and o3.v == 597:
+        print "- Object access from MP (Round 3): OK"
+    else:           
+        print "- Object access from MP (Round 3): ERROR"
 
 if __name__ == "__main__":
     main_program()

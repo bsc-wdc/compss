@@ -187,3 +187,12 @@ def unpickle_generator(f):
     '''
     gen_snapshot = pickle.load(f)
     return copy_generator(gen_snapshot)[0]
+
+
+def getPickled_generator(f_gen):
+    '''
+    @param f_gen: generator object
+    @param f: destination file for pickling generator
+    '''
+    f_gen.next()  # jump one ahead for not to repeat when unpickling
+    return GeneratorSnapshot(f_gen)

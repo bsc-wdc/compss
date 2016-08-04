@@ -11,14 +11,20 @@ import sys
 import os
 import mmap
 import math
+import logging
 from cPickle import load, dump
 from cPickle import loads, dumps
 from cPickle import HIGHEST_PROTOCOL, UnpicklingError
 import types
 import marshal
 from serialization.extendedSupport import pickle_generator
+from serialization.extendedSupport import getPickled_generator
 from serialization.extendedSupport import copy_generator
 from serialization.extendedSupport import GeneratorSnapshot
+from ..api.gentask import GeneratorWrapper
+
+logger = logging.getLogger(__name__)
+
 
 # Enable or disable the use of mmap for the file read and write operations
 # cross-module variable (set/modified from launch.py)
@@ -29,6 +35,17 @@ class GeneratorException(Exception):
     pass
 
 
+class GeneratorTaskException(Exception):
+    pass
+
+
+class genTaskSerializer(object):
+    def __init__(self, gen, n, maxiter):
+        self.gen = gen
+        self.n = n
+        self.maxiter = maxiter
+
+
 def serialize_to_file(obj, file_name, force=False):
     """
     Serialize an object to file.
@@ -37,6 +54,7 @@ def serialize_to_file(obj, file_name, force=False):
     @param force: Force serialization. Values = [True, False]. Default = False.
     @return: String -> the file name (same as the parameter)
     """
+    logger.debug("Serialize to file from object: " + str(obj) + " To file: " + str(file_name))
     if mmap_file_storage:
         if not os.path.exists(file_name) or force:
             d = dumps(obj, HIGHEST_PROTOCOL)
@@ -61,6 +79,9 @@ def serialize_to_file(obj, file_name, force=False):
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
                 pickle_generator(obj, f)
+            elif isinstance(obj, GeneratorWrapper):
+                sg = genTaskSerializer(getPickled_generator(obj.gen), obj.n, obj.maxiter)
+                dump(sg, f)
             else:
                 # All other objects are serialized using cPickle
                 dump(obj, f, HIGHEST_PROTOCOL)
@@ -75,6 +96,7 @@ def deserialize_from_file(file_name):
                       be deserialized.
     @return: The object deserialized.
     """
+    logger.debug("Deserialize from file: " + str(file_name))
     if mmap_file_storage:
         fd = os.open(file_name, os.O_RDONLY)
         mm = mmap.mmap(fd, 0, mmap.MAP_SHARED, mmap.PROT_READ)
@@ -88,7 +110,11 @@ def deserialize_from_file(file_name):
         try:
             l = load(f)
             if isinstance(l, GeneratorSnapshot):
+                logger.debug("Found a generator when deserializing.")
                 raise GeneratorException
+            if isinstance(l, genTaskSerializer):
+                logger.debug("Found a taskified generator when deserializing.")
+                raise GeneratorTaskException
         except (UnpicklingError):  # It is a lambda function
             f.seek(0, 0)
             func = marshal.load(f)
@@ -96,6 +122,9 @@ def deserialize_from_file(file_name):
         except GeneratorException:
             # It is a generator and needs to be unwrapped (from GeneratorSnapshot to generator).
             l = copy_generator(l)[0]
+        except GeneratorTaskException:
+            # Rebuild the object
+            l = GeneratorWrapper(copy_generator(l.gen)[0], l.n, l.maxiter)
         f.close()
         return l
 
@@ -109,6 +138,9 @@ def serialize_objects(to_serialize):
                          Each sublist is composed of pairs
                          ['object','file name'].
     """
+    logger.debug("Serialize objects:")
+    for target in to_serialize:
+        logger.debug("\t - " + str(target))
     if mmap_file_storage:
         for target in to_serialize:
             obj = target[0]
@@ -135,6 +167,9 @@ def serialize_objects(to_serialize):
             elif isinstance(obj, types.GeneratorType):
                 # The object is a generator - Save the state
                 pickle_generator(obj, f)
+            elif isinstance(obj, GeneratorWrapper):
+                sg = genTaskSerializer(getPickled_generator(obj.gen), obj.n, obj.maxiter)
+                dump(sg, f)
             else:
                 # All other objects are serialized using cPickle
                 dump(obj, f, HIGHEST_PROTOCOL)

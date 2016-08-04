@@ -364,13 +364,13 @@ def compss_persistent_worker():
         assert tasks_x_node == len(out_pipes)
 
     # Load log level configuration file
+    worker_path = os.path.dirname(os.path.realpath(__file__))
     if debug:
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.debug')
+        # Debug
+        init_logging_worker(worker_path + '/../../log/logging.json.debug')
     else:
         # Default
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.off')
+        init_logging_worker(worker_path + '/../../log/logging.json.off')
 
     # Create new threads
     queues = []

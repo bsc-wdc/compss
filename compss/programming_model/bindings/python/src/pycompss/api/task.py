@@ -175,7 +175,9 @@ class task(object):
                     # if the task returns a value, appears as an argument
                     num_params -= 1
 
-                if num_params > len(args):
+                #if num_params > len(args):
+                a = inspect.getargspec(f)
+                if a.defaults is not None:
                     # There are default parameters
                     # Get the variable names and values that have been
                     # defined by default (get_default_args(f)).
@@ -190,7 +192,6 @@ class task(object):
                     # Parameter Sorting
                     for p in self.spec_args[0][len(args):num_params]:
                         if p in kwargs:
-                            # argsl.append(kwargs[p[0]])
                             argsl.append(kwargs[p])
                         else:
                             for dp in default_params:

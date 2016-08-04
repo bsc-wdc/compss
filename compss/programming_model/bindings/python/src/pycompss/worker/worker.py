@@ -73,10 +73,16 @@ def compss_worker():
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
         pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
+
     # Get all parameter values
+    logger.debug("Processing parameters:")
     for i in range(0, num_params):
         ptype = int(args[pos])
         types.append(ptype)
+
+        logger.debug("Parameter : " + str(i) )
+        logger.debug("\t * Type : " + str(ptype))
+        logger.debug("\t * Value: " + str(args[pos + 1]) )
 
         if ptype == Type.FILE:
             values.append(args[pos + 1])
@@ -127,11 +133,12 @@ def compss_worker():
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
             exit(1)
-
         pos += 2
+
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
         pyextrae.event(TASK_EVENTS, LOGGING)
+
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
         types_str = ''
@@ -149,13 +156,14 @@ def compss_worker():
 
     try:
         # Try to import the module (for functions)
+        logger.debug("Trying to import the user module.")
         if sys.version_info >= (2, 7):
             module = importlib.import_module(path)  # Python 2.7
-            logger.debug("Version >= 2.7")
+            logger.debug("Module successfully loaded (Python version >= 2.7)")
         else:
             module = __import__(path, globals(), locals(), [path], -1)
-            logger.debug("Version < 2.7")
-        
+            logger.debug("Module successfully loaded (Python version < 2.7")
+
         with TaskContext(logger, values):
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -176,29 +184,28 @@ def compss_worker():
         exit(1)
     # ==========================================================================
     except ImportError:
+        logger.debug("Could not import the module. Reason: Method in class.")
         from pycompss.util.serializer import deserialize_from_file
         from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
         module_name = '.'.join(path.split('.')[0:-1])
+
         if '.' in path:
             module_name = '.'.join(path.split('.')[0:-1])
         else:
             module_name = path
-
         module = __import__(module_name, fromlist=[class_name])
-
         klass = getattr(module, class_name)
-
-        logger.debug("Method in class %s of module %s"
-                     % (class_name, module_name))
+        logger.debug("Method in class %s of module %s" % (class_name, module_name))
 
         if has_target == 'true':
             # Instance method
             file_name = values.pop()
+            logger.debug("Deserialize self from file.")
             obj = deserialize_from_file(file_name)
-            logger.debug("Processing callee, a hidden object of %s in file %s"
-                         % (file_name, type(obj)))
+
+            logger.debug("Processing callee, a hidden object of %s in file %s" % (file_name, type(obj)))
             values.insert(0, obj)
             types.pop()
             types.insert(0, Type.OBJECT)
@@ -211,6 +218,8 @@ def compss_worker():
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+            logger.debug("Serializing self to file")
+            logger.debug("Obj: " + str(obj))
             serialize_to_file(obj, file_name, force=True)
         else:
             # Class method - class is not included in values (e.g. values = [7])
@@ -249,16 +258,17 @@ if __name__ == "__main__":
 
     # Load log level configuration file
     log_level = sys.argv[1]
+
+    worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.debug')
+        # Debug
+        init_logging_worker(worker_path + '/../../log/logging.json.debug')
     elif log_level == "info" or log_level == "off":
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json.off')
+        # Info or no debug
+        init_logging_worker(worker_path + '/../../log/logging.json.off')
     else:
         # Default
-        init_logging_worker(os.path.realpath(__file__) +
-                            '/../../log/logging.json')
+        init_logging_worker(worker_path + '/../../log/logging.json')
 
     # Init worker
     compss_worker()

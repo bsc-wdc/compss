@@ -265,10 +265,22 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
             logger.debug("Adding default decoration for param %s" % spec_arg)
             p = Parameter()
             deco_kwargs[spec_arg] = p
-        if i < len(task_args):
-            p.value = task_args[i]
+        if spec_args[0] != 'self':
+            # It is a function
+            if i < len(task_args):
+                p.value = task_args[i]
+            else:
+                p.value = task_kwargs[spec_arg]
         else:
-            p.value = task_kwargs[spec_arg]
+            # It is a class function
+            if spec_arg == 'self':
+                p.value = task_args[0]
+            elif spec_arg == 'compss_retvalue':
+                p.value = task_kwargs[spec_arg]
+            else:
+                p.value = task_args[i]
+
+
 
         val_type = type(p.value)
         is_future[i] = (val_type == Future)
@@ -372,7 +384,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                 # This could be delegated to the runtime.
                 # Will have to be discussed.
                 if(val_type == type(list())):
-                    # is there a future object within the list?
+                    # Is there a future object within the list?
                     if any(isinstance(v, (Future)) for v in p.value):
                         logger.debug("Found a list that contains future objects - synchronizing...")
                         mode = get_compss_mode('in')

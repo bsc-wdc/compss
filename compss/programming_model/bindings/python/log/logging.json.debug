@@ -20,6 +20,13 @@
             "formatter": "medium",
             "stream": "ext://sys.stdout"
         },
+        
+        "error_console": {
+            "class": "logging.StreamHandler",
+            "level": "ERROR",
+            "formatter": "medium",
+            "stream": "ext://sys.stderr"
+        },
 
         "debug_file_handler": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -65,9 +72,14 @@
             "handlers": ["debug_file_handler","error_file_handler"], 
             "propagate": "no"
         },
+        "pycompss.util.serializer": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"], 
+            "propagate": "no"
+        },
         "pycompss.worker.worker": {
             "level": "DEBUG",
-            "handlers": ["console"],
+            "handlers": ["console", "error_console"],
             "propagate": "no"
         }
     },

@@ -54,7 +54,7 @@ def serialize_to_file(obj, file_name, force=False):
     @param force: Force serialization. Values = [True, False]. Default = False.
     @return: String -> the file name (same as the parameter)
     """
-    logger.debug("Serialize to file from object: " + str(obj) + " To file: " + str(file_name))
+    logger.debug("Serialize to file: " + str(file_name))
     if mmap_file_storage:
         if not os.path.exists(file_name) or force:
             d = dumps(obj, HIGHEST_PROTOCOL)

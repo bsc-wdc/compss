@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 usage() {
   exitValue=$1

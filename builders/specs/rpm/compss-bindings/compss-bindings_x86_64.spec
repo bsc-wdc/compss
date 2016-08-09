@@ -1,5 +1,5 @@
 %define name	 	compss-bindings 
-%define version 	1.4.rc05
+%define version 	1.4.rc08
 %define release		1
 
 Requires: compss-bindings-common, compss-c-binding, compss-python-binding

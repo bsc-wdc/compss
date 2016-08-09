@@ -1,26 +1,33 @@
 package integratedtoolkit.types.data.location;
 
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.uri.MultiURI;
+
 import java.util.LinkedList;
 
 
-public class PrivateLocation extends DataLocation{
+public class PrivateLocation extends DataLocation {
 
-    final URI uri;
+    private final MultiURI uri;
 
-    public PrivateLocation(Resource host, String path) {
+    public PrivateLocation(Protocol protocol, Resource host, String path) {
         super();
-        this.uri = new URI(host, path);
+        this.uri = new MultiURI(protocol, host, path);
     }
 
     @Override
     public DataLocation.Type getType() {
         return DataLocation.Type.PRIVATE;
     }
+    
+    @Override
+    public Protocol getProtocol() {
+    	return this.uri.getProtocol();
+    }
 
     @Override
-    public LinkedList<URI> getURIs() {
-        LinkedList<URI> list = new LinkedList<URI>();
+    public LinkedList<MultiURI> getURIs() {
+        LinkedList<MultiURI> list = new LinkedList<MultiURI>();
         list.add(this.uri);
         return list;
     }
@@ -33,7 +40,7 @@ public class PrivateLocation extends DataLocation{
     }
 
     @Override
-    public URI getURIInHost(Resource targetHost) {
+    public MultiURI getURIInHost(Resource targetHost) {
         if (uri.getHost() == targetHost) {
             return uri;
         } else {
@@ -46,13 +53,9 @@ public class PrivateLocation extends DataLocation{
         if (target.getType() != DataLocation.Type.PRIVATE) {
             return false;
         }
-        URI targetURI = ((PrivateLocation) target).uri;
+        MultiURI targetURI = ((PrivateLocation) target).uri;
         return (targetURI.getHost() == uri.getHost()
                 && targetURI.getPath().contentEquals(uri.getPath()));
-    }
-
-    public String toString() {
-        return this.uri.toString();
     }
 
     @Override
@@ -76,10 +79,15 @@ public class PrivateLocation extends DataLocation{
             throw new NullPointerException();
         }
         if (o.getClass() != PrivateLocation.class) {
-            return (this.getClass().getName()).compareTo("integratedtoolkit.types.data.location.PrivateLocation");
+            return (this.getClass().getName()).compareTo(PrivateLocation.class.toString());
         } else {
             return uri.compareTo(((PrivateLocation) o).uri);
         }
+    }
+    
+    @Override
+    public String toString() {
+        return this.uri.toString();
     }
 
 }

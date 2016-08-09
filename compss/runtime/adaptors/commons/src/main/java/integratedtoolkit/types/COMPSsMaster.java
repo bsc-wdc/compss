@@ -4,15 +4,17 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
-import integratedtoolkit.types.data.location.URI;
-import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.SafeCopyListener;
+import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 
@@ -59,7 +61,7 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public void setInternalURI(URI u) {
+    public void setInternalURI(MultiURI u) {
         for (CommAdaptor adaptor : Comm.getAdaptors().values()) {
             adaptor.completeMasterURI(u);
         }
@@ -109,7 +111,7 @@ public class COMPSsMaster extends COMPSsNode {
             logger.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progres");
         }
 
-        ld.lockHostRemove();
+        ld.lockHostRemoval();
         //Check if there are current copies in progress
 
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
@@ -141,7 +143,7 @@ public class COMPSsMaster extends COMPSsNode {
 							reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
 
 							listener.notifyEnd(null);
-							ld.releaseHostRemoveLock();
+							ld.releaseHostRemoval();
                             return;
                         } catch (IOException ex) {
                             ErrorManager.warn("Error master local copying file "+ copy.getFinalTarget()+ " from master to "
@@ -170,7 +172,7 @@ public class COMPSsMaster extends COMPSsNode {
                         	reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
 
                         	listener.notifyEnd(null);
-                        	ld.releaseHostRemoveLock();
+                        	ld.releaseHostRemoval();
                         	return;
                         } catch (IOException ex) {
                         	ErrorManager.warn("Error master local copy from "+ copy.getFinalTarget()+ " to "
@@ -189,7 +191,7 @@ public class COMPSsMaster extends COMPSsNode {
             logger.debug("Checking if " + ld.getName() + " is at master ("+Comm.appHost+").");
         }
         //Checking if in master
-        for (URI u : ld.getURIs()) {
+        for (MultiURI u : ld.getURIs()) {
         	logger.debug(ld.getName() + " is at "+ u.toString() + "("+ u.getHost()+")");
             if (u.getHost() == Comm.appHost) {
             	try {
@@ -204,7 +206,7 @@ public class COMPSsMaster extends COMPSsNode {
             		reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
 
             		listener.notifyEnd(null);
-            		ld.releaseHostRemoveLock();
+            		ld.releaseHostRemoval();
             		return;
                 } catch (IOException ex) {
                     ErrorManager.warn("Error master local copy file from "+u.getPath()+" to " + target.getURIInHost(Comm.appHost).getPath() + " with replacing", ex);
@@ -230,7 +232,7 @@ public class COMPSsMaster extends COMPSsNode {
                         continue;
                     }
                     logger.debug("Data " + ld.getName() + " sent.");
-                    ld.releaseHostRemoveLock();
+                    ld.releaseHostRemoval();
                     return;
                 } else {
                     try {
@@ -242,7 +244,7 @@ public class COMPSsMaster extends COMPSsNode {
                         logger.debug("File copied. Set data target to "+ target.getPath());
                     	reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
                         listener.notifyEnd(null);
-                        ld.releaseHostRemoveLock();
+                        ld.releaseHostRemoval();
                         return;
 
                     } catch (IOException ex) {
@@ -264,7 +266,7 @@ public class COMPSsMaster extends COMPSsNode {
                     continue;
                 }
                 logger.debug("Data " + ld.getName() + " sent.");
-                ld.releaseHostRemoveLock();
+                ld.releaseHostRemoval();
                 return;
             } else {
                 if (debug) {
@@ -274,7 +276,7 @@ public class COMPSsMaster extends COMPSsNode {
         }
 
         ErrorManager.warn("Error file " + ld.getName() + " not transferred to " + target.getPath());
-        ld.releaseHostRemoveLock();
+        ld.releaseHostRemoval();
     }
 
     private void waitForCopyTofinish(Copy copy) {
@@ -301,15 +303,24 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public String getCompletePath(DataType type, String name) {
+    public SimpleURI getCompletePath(DataType type, String name) {
+    	String path = null;
         switch (type) {
             case FILE_T:
-                return Comm.appHost.getTempDirPath() + name;
+            	path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
+            	break;
             case OBJECT_T:
-                return name;
+            	path = Protocol.OBJECT_URI.getSchema() + name;
+            	break;
+            case PSCO_T:
+            	path = Protocol.PERSISTENT_URI.getSchema() + name;
+            	break;
             default:
                 return null;
         }
+        
+        // Switch path to URI
+        return new SimpleURI(path);
     }
 
     @Override

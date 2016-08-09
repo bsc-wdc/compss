@@ -1,236 +1,392 @@
 package integratedtoolkit.types.data;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
-import static integratedtoolkit.comm.Comm.appHost;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.data.location.DataLocation.Type;
 
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.location.URI;
-import integratedtoolkit.types.data.operation.Copy;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
+import integratedtoolkit.types.data.location.PersistentLocation;
 import integratedtoolkit.types.data.operation.SafeCopyListener;
+import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.SharedDiskManager;
+import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import storage.StorageException;
+import storage.StorageItf;
+import storage.StubItf;
+
 
 public class LogicalData {
 	
-	// List of copies in progress
-	private static final ConcurrentHashMap<String, LinkedList<CopyInProgress>> inProgress = new ConcurrentHashMap<String, LinkedList<CopyInProgress>>();
-	private static final TreeMap<Resource, HashSet<LogicalData>> hostToPrivateFiles = new TreeMap<Resource, HashSet<LogicalData>>();
-	private static final TreeMap<String, HashSet<LogicalData>> sharedDiskToSharedFiles = new TreeMap<String, HashSet<LogicalData>>();
-
+	// Logger
 	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 	
+    // Tracing
+    private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+	
 	// Logical data name
-	protected final String name;
-
+	private final String name;
 	// Value in memory, null if value in disk
-	protected Object value;
-	protected boolean onFile;
-
+	private Object value;
+	
 	// List of existing copies
-	protected final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
-	private Semaphore removeHostLock = new Semaphore(1);		// Semaphore to avoid host deletion when file is beeing transfered
-	private boolean isBeingSaved = false;
+	private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
+	// In progress
+	private final LinkedList<CopyInProgress> inProgress = new LinkedList<CopyInProgress>();
+	
+	// Indicates if object is also in storage
+	private boolean onStorage;
+	// Indicates if LogicalData has been ordered to save before
+	private boolean isBeingSaved;
+	// Locks the host while LogicalData is beeing copied
+	private final Semaphore lockHostRemoval = new Semaphore(1);
 	
 
 	/*
 	 * Constructors
 	 */
+	/**
+	 * Constructs a LogicalData for a given data version
+	 * 
+	 * @param name
+	 */
 	public LogicalData(String name) {
 		this.name = name;
 		this.value = null;
-		this.onFile = false;
+		
+		this.onStorage = false;
+		this.isBeingSaved = false;
 	}
 
 	/*
 	 * Getters
 	 */
-	// No need to sync because it cannot be modified
+	/**
+	 * Returns the data version name
+	 * 
+	 * @return
+	 */
 	public String getName() {
+		// No need to sync because it cannot be modified
 		return this.name;
 	}
 
+	/**
+	 * Returns all the hosts that contain a data location
+	 * 
+	 * @return
+	 */
 	public synchronized HashSet<Resource> getAllHosts() {
 		HashSet<Resource> list = new HashSet<Resource>();
-		for (DataLocation loc : locations) {
+		for (DataLocation loc : this.locations) {
 			list.addAll(loc.getHosts());
 		}		
 		return list;
 	}
 
-	// Obtain all the URIs that refer all the files
-	public synchronized LinkedList<URI> getURIs() {
-		LinkedList<URI> list = new LinkedList<URI>();
-		for (DataLocation loc : locations) {
+	/**
+	 * Obtain the all the URIs
+	 * 
+	 * @return
+	 */
+	public synchronized LinkedList<MultiURI> getURIs() {
+		LinkedList<MultiURI> list = new LinkedList<MultiURI>();
+		for (DataLocation loc : this.locations) {
 			list.addAll(loc.getURIs());
 		}
 		return list;
 	}
 
-	// Obtain one URI per file copy (files in shared disks will only return one URI)
-	public LinkedList<URI> getRepresentativeURIs() {
-		return this.getURIs();
-	}
-
+	/**
+	 * Returns if the data value is stored in memory or not
+	 * 
+	 * @return
+	 */
 	public synchronized boolean isInMemory() {
-			return this.value != null;
+		return (this.value != null);
 	}
 
-	public boolean isOnFile() {
-		return this.onFile;
+	/**
+	 * Returns if the data is on storage or not
+	 * 
+	 * @return
+	 */
+	public boolean isOnStorage() {
+		// WARN: The data can be in memory and on storage (disk / persistent storage) at the same time
+		return this.onStorage;
 	}
 
+	/**
+	 * Returns the value stored in memory
+	 * 
+	 * @return
+	 */
 	public synchronized Object getValue() {
 		return this.value;
 	}
 
-	public boolean isBeingSaved() {
-		return this.isBeingSaved;
-	}
 
 	/*
 	 * Setters
 	 */
-	public void addLocation(DataLocation loc) {
-		addLocation_private(loc);
+	/**
+	 * Adds a new location
+	 * 
+	 * @param loc
+	 */
+	public synchronized void addLocation(DataLocation loc) {
+		this.isBeingSaved = false;
+		this.locations.add(loc);
+		for (Resource r : loc.getHosts()) {
+			switch(loc.getType()) {
+				case PRIVATE:
+					r.addLogicalData(this);
+					break;
+				case SHARED:
+					SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+					break;
+				case PERSISTENT:
+					// Nothing to do
+					break;
+			}
+		}
 	}
 
-	public synchronized void addLocationAndValue(DataLocation loc, Object value) {
-		addLocation_private(loc);
-		this.value = value;
-	}
-
+	/**
+	 * Removes the object from master main memory and removes its location
+	 * 
+	 * @return
+	 */
 	public synchronized Object removeValue() {
-		DataLocation location = DataLocation.getLocation(appHost, name);
+		DataLocation loc = null;
+		String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+		try {
+			SimpleURI uri = new SimpleURI(targetPath);
+			loc = DataLocation.createLocation(Comm.appHost, uri);
+		} catch (Exception e) {
+			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+		}
+
 		Object val = this.value;
 		this.value = null;
-		this.locations.remove(location);
+		// Removes only the memory location (no need to check private, shared, persistent)
+		this.locations.remove(loc);
 
 		return val;
 	}
 
+	/**
+	 * Sets the memory value
+	 * 
+	 * @param o
+	 */
 	public synchronized void setValue(Object o) {
 		this.value = o;
 	}
 
-	public synchronized void writeToFile() throws Exception {
-		String path = Comm.appHost.getWorkingDirectory() + name;
-		DataLocation loc = DataLocation.getLocation(Comm.appHost, path);
-
-		Serializer.serialize(value, path);
-		addLocation_private(loc);
+	/**
+	 * Writes memory value to file
+	 * 
+	 * @throws Exception
+	 */
+	public synchronized void writeToStorage() throws Exception {
+		if ( (this.value instanceof StubItf) && (((StubItf) this.value).getID() != null) ) {
+			// It is a persistent object that is already persisted
+			// Nothing to do
+		} else {
+			// The object must be written to file		
+			String targetPath = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkingDirectory() + this.name;
+			SimpleURI uri = new SimpleURI(targetPath);
+			DataLocation loc = DataLocation.createLocation(Comm.appHost, uri);
+	
+			Serializer.serialize(value, targetPath);
+			
+			this.isBeingSaved = false;
+			this.locations.add(loc);
+			for (Resource r : loc.getHosts()) {
+				switch(loc.getType()) {
+					case PRIVATE:
+						r.addLogicalData(this);
+						break;
+					case SHARED:
+						SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+						break;
+					case PERSISTENT:
+						// Nothing to do
+						break;
+				}
+			}
+		}
 	}
-
-	public synchronized void writeToFileAndRemoveValue() throws Exception {
-		String path = Comm.appHost.getWorkingDirectory() + name;
-		DataLocation new_loc = DataLocation.getLocation(Comm.appHost, path);
-		DataLocation old_loc = DataLocation.getLocation(Comm.appHost, name);
-
-		Serializer.serialize(value, path);
-
-		this.locations.remove(old_loc);
-		addLocation_private(new_loc);
-		this.value = null;
-	}
-
-	public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
-		lockHostRemove_private();
-		DataLocation hostLocation = null;
-		boolean hasToSave = true;
-		if (isBeingSaved) {
-			releaseHostRemoveLock_private();
-			return null;
+	
+	/**
+	 * Loads the value of the LogicalData from a file
+	 * 
+	 * @throws Exception
+	 */
+	public synchronized void loadFromStorage() throws Exception {
+		if (value != null) {
+			// Value is already loaded in memory
+			return;
 		}
 
-		Iterator<DataLocation> it = locations.iterator();
+		for (DataLocation loc : this.locations) {
+			switch(loc.getType()) {
+				case PRIVATE:
+				case SHARED:
+					// Get URI and deserialize object if possible
+					MultiURI u = loc.getURIInHost(Comm.appHost);
+					if (u == null) {
+						continue;
+					}
+					String path = u.getPath();
+					if (path.startsWith(File.separator)) {
+						this.value = Serializer.deserialize(path);
+						
+						String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+						SimpleURI uri = new SimpleURI(targetPath);
+						DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+						addLocation(tgtLoc);
+					}
+					return;
+				case PERSISTENT:
+					PersistentLocation pLoc = (PersistentLocation) loc;
+
+					if (tracing) {
+						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+					}
+					try {
+						this.value = StorageItf.getByID(pLoc.getId());
+					} catch (StorageException se) {
+						throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
+					} finally {
+						if (tracing) {
+							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+						}
+					}
+					
+					String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+					SimpleURI uri = new SimpleURI(targetPath);
+					DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+					addLocation(tgtLoc);
+					
+					return;
+			}
+		}
+
+		// Any location has been able to load the value
+		throw new Exception("Object has not any valid location available in the master");
+	}
+
+	/**
+	 * Removes all the locations assigned to a given host and
+	 * returns a valid location if the file is unique
+	 * 
+	 * @param host
+	 * @param sharedMountPoints
+	 * @return a valid location if the file is unique
+	 */
+	public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
+		// If the file is being saved means that this function has already been executed
+		// for the same LogicalData. Thus, all the host locations are already removed
+		// and there is no unique file to save
+		if (isBeingSaved) {
+			return null;
+		}
+		
+		// Otherwise, we must remove all the host locations and store a unique
+		// location if needed. We only store the "best" location if any (by choosing
+		// any private location found or the first shared location)
+		lockHostRemoval_private();
+		DataLocation uniqueHostLocation = null;
+		Iterator<DataLocation> it = this.locations.iterator();
 		while (it.hasNext()) {
 			DataLocation loc = it.next();
-			if (loc.getType() == Type.PRIVATE) {
-				if (loc.getURIInHost(host) != null) {
-					hostLocation = loc;
-					it.remove();
-				} else {
-					releaseHostRemoveLock_private();
-					return null;
-				}
-			} else { // is a SharedLocation
-				if (loc.getHosts().isEmpty()) {
-					String sharedDisk;
-					String mountPoint;
-					if ((sharedDisk = loc.getSharedDisk()) != null) {
-						if ((mountPoint = sharedMountPoints.get(sharedDisk)) != null) {
-							hostLocation = DataLocation.getPrivateLocation(
-									host, mountPoint + loc.getPath());
-						} else {
-							releaseHostRemoveLock_private();
-							return null;
-						}
-					} else {
-						releaseHostRemoveLock_private();
-						return null;
+			switch (loc.getType()) {
+				case PRIVATE:
+					if (loc.getURIInHost(host) != null) {
+						this.isBeingSaved = true;
+						uniqueHostLocation = loc;
+						it.remove();
 					}
-				} else {
-					releaseHostRemoveLock_private();
-					return null;
-				}
+					break;
+				case SHARED:
+					// When calling this function the host inside the SharedDiskManager has been removed
+					// If there are no remaining hosts it means it was the last host thus, the location
+					// is unique and must be saved
+					if (loc.getHosts().isEmpty()) {
+						String sharedDisk = loc.getSharedDisk();
+						if (sharedDisk != null) {
+							String mountPoint = sharedMountPoints.get(sharedDisk);
+							if (mountPoint != null) {
+								if (uniqueHostLocation == null) {
+									this.isBeingSaved = true;
+									
+									String targetPath = Protocol.FILE_URI.getSchema() + loc.getPath();
+									try {
+										SimpleURI uri = new SimpleURI(targetPath);									
+										uniqueHostLocation = DataLocation.createLocation(host, uri);
+									} catch (Exception e) {
+										ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+									}
+								}
+							}
+						}
+					}
+					break;
+				case PERSISTENT:
+					// Persistent location must never be saved
+					break;
 			}
 		}
-
-		if (hasToSave) {
-			this.isBeingSaved = true;
-			releaseHostRemoveLock_private();
-			return hostLocation;
-		} else {
-			releaseHostRemoveLock_private();
-			return null;
-		}
+		
+		releaseHostRemoval_private();
+		return uniqueHostLocation;
 	}
 
-	public Collection<Copy> getCopiesInProgress() {
-		LinkedList<CopyInProgress> stored = null;
-		boolean done = false;
-		while (!done) {
-			try {
-				stored = inProgress.get(this.name);
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("getCopiesInProgress concurrent modification. Re-calculating");
-			}
-		}
-
-		if (stored == null) {
-			return null;
-		}
+	/**
+	 * Returns the copies in progress
+	 * 
+	 * @return
+	 */
+	public synchronized Collection<Copy> getCopiesInProgress() {
 		LinkedList<Copy> copies = new LinkedList<Copy>();
-		for (CopyInProgress cp : stored) {
+		for (CopyInProgress cp : this.inProgress) {
 			copies.add(cp.getCopy());
 		}
-
+		
 		return copies;
 	}
 
-	public synchronized URI alreadyAvailable(Resource targetHost) {
+	/**
+	 * Returns if the data is already available in a given targetHost
+	 * 
+	 * @param targetHost
+	 * @return
+	 */
+	public synchronized MultiURI alreadyAvailable(Resource targetHost) {
 		for (DataLocation loc : locations) {
-			URI u = loc.getURIInHost(targetHost);
+			MultiURI u = loc.getURIInHost(targetHost);
 			if (u != null) {
 				return u;
 			}
@@ -238,63 +394,43 @@ public class LogicalData {
 		return null;
 	}
 
-	public Copy alreadyCopying(DataLocation target) {
-		LinkedList<CopyInProgress> copying = null;
-		boolean done = false;
-		while (!done) {
-			try {
-				copying = inProgress.get(this.name);
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("alreadyCopying concurrent modification. Re-calculating");
+	/**
+	 * Returns if a copy of the LogicalData is being performed to a target host
+	 * 
+	 * @param target
+	 * @return the copy in progress or null if none
+	 */
+	public synchronized Copy alreadyCopying(DataLocation target) {
+		for (CopyInProgress cip : this.inProgress) {
+			if (cip.hasTarget(target)) {
+				return cip.getCopy();
 			}
 		}
-
-		if (copying != null) {
-			for (CopyInProgress cip : copying) {
-				if (cip.hasTarget(target)) {
-					return cip.getCopy();
-				}
-			}
-		}
+		
 		return null;
 	}
 
-	public void startCopy(Copy c, DataLocation target) {
-		LinkedList<CopyInProgress> cips = null;
-		
-		boolean done = false;
-		while (!done) {
-			try {
-				cips = inProgress.get(this.name);
-				if (cips == null) {
-					cips = new LinkedList<CopyInProgress>();
-					inProgress.put(this.name, cips);
-				}
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("startCopy concurrent modification. Re-calculating");
-			}
-		}
-
-		cips.add(new CopyInProgress(c, target));
+	/**
+	 * Begins a copy of the LogicalData to a target host
+	 * 
+	 * @param c
+	 * @param target
+	 */
+	public synchronized void startCopy(Copy c, DataLocation target) {
+		this.inProgress.add(new CopyInProgress(c, target));
 	}
 
-	public DataLocation finishedCopy(Copy c) {
+	/**
+	 * Marks the end of a copy. Returns the location of the finished copy or 
+	 * null if not found
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public synchronized DataLocation finishedCopy(Copy c) {
 		DataLocation loc = null;
-		LinkedList<CopyInProgress> cips = null;
 		
-		boolean done = false;
-		while (!done) {
-			try {
-				cips = inProgress.get(this.name);
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("finishedCopy concurrent modification. Re-calculating");
-			}
-		}
-		
-		Iterator<CopyInProgress> it = cips.iterator();
+		Iterator<CopyInProgress> it = this.inProgress.iterator();
 		while (it.hasNext()) {
 			CopyInProgress cip = it.next();
 			if (cip.c == c) {
@@ -303,119 +439,38 @@ public class LogicalData {
 				break;
 			}
 		}
-
-		if (cips.isEmpty()) {
-			done = false;
-			while (!done) {
-				try {
-					inProgress.remove(this.name);
-					done = true;
-				} catch (ConcurrentModificationException cme) {
-					logger.debug("finishedCopy concurrent modification. Re-calculating");
-				}
-			}
-		}
-
+		
 		return loc;
 	}
 
-	public static HashSet<LogicalData> getAllDataFromHost(Resource host) {
-		boolean done = false;
-		LinkedList<String> shareds = null;
-		while (!done) {
-			try {
-				shareds = SharedDiskManager.getAllSharedNames(host);
-				if (shareds.isEmpty()) {
-					if (hostToPrivateFiles.get(host) != null) {
-						return hostToPrivateFiles.get(host);
-					} else {
-						return new HashSet<LogicalData>();
-					}
-				}
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("getAllDataFromHost concurrent modification. Re-calculating");
-			}
-		}
-		
-		HashSet<LogicalData> data = new HashSet<LogicalData>();
-		done = false;
-		while (!done) {
-			try {
-				for (String shared : shareds) {
-					HashSet<LogicalData> sharedData = sharedDiskToSharedFiles.get(shared);
-					if (sharedData != null) {
-						data.addAll(sharedData);
-					}
-				}
-				if (hostToPrivateFiles.get(host) != null) {
-					data.addAll(hostToPrivateFiles.get(host));
-				}
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("getAllDataFromHost concurrent modification. Re-calculating");
-				data.clear();
-			}
-		}
-		return data;
-	}
-
+	/**
+	 * Adds a listener to the inProgress copies
+	 * 
+	 * @param listener
+	 */
 	public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
-		boolean done = false;
-		LinkedList<CopyInProgress> copies = null;
-		while (!done) {
-			try {
-				copies = inProgress.get(this.name);
-				done = true;
-			} catch (ConcurrentModificationException cme) {
-				logger.debug("notifyToInProgressCopiesEnd concurrent modification. Re-calculating");
-			}
-		}
-
-		if (copies != null) {
-			for (CopyInProgress copy : copies) {
-				listener.addOperation();
-				copy.c.addEventListener(listener);
-			}
+		for (CopyInProgress cip : this.inProgress) {
+			listener.addOperation();
+			cip.c.addEventListener(listener);
 		}
 	}
 
+	/**
+	 * Sets the LogicalData as obsolete
+	 * 
+	 */
 	public synchronized void isObsolete() {
 		for (Resource res : this.getAllHosts()) {
-			res.addObsolete(name);
+			res.addObsolete(this);
 		}
 	}
 
-	public synchronized void loadFromFile() throws Exception {
-		if (value != null) {
-			return;
-		}
-
-		for (DataLocation loc : locations) {
-			URI u = loc.getURIInHost(Comm.appHost);
-			if (u == null) {
-				continue;
-			}
-			String path = u.getPath();
-			if (path.startsWith(File.separator)) {
-				value = Serializer.deserialize(path);
-				DataLocation tgtLoc = DataLocation.getLocation(Comm.appHost, name);
-				addLocation(tgtLoc);
-			}
-			return;
-		}
-
-		if (value == null) {
-			throw new Exception("File does not exists in the master");
-		}
+	public synchronized void lockHostRemoval() {
+		lockHostRemoval_private();
 	}
 
-	public synchronized void lockHostRemove() {
-		lockHostRemove_private();
-	}
-
-	public synchronized void releaseHostRemoveLock() {
-		releaseHostRemoveLock_private();
+	public synchronized void releaseHostRemoval() {
+		releaseHostRemoval_private();
 	}
 
 	public synchronized String toString() {
@@ -434,74 +489,21 @@ public class LogicalData {
 	/*
 	 * PRIVATE HELPER METHODS
 	 */
-	private synchronized void addLocation_private(DataLocation loc) {
-		isBeingSaved = false;
-		locations.add(loc);
-		if (logger.isDebugEnabled()){
-			logger.debug("Adding location for data "+ this.getName() + " (location: "+ loc.getLocationKey()+")");
-		}	
-		switch (loc.getType()) {
-			case PRIVATE:
-				for (Resource host : loc.getHosts()) {
-					if (host == null) {
-						host = Comm.appHost;
-					}
-					boolean done = false;
-					HashSet<LogicalData> files = null;
-					while (!done) {
-						try {
-							files = hostToPrivateFiles.get(host);
-							if (files == null) {
-								files = new HashSet<LogicalData>();
-								hostToPrivateFiles.put(host, files);
-							}
-							done = true;
-						} catch (ConcurrentModificationException cme) {
-							logger.debug("notifyToInProgressCopiesEnd concurrent modification. Re-calculating");
-						}
-					}
-					files.add(this);
-				}
-				if (loc.getPath().startsWith(File.separator)) {
-					onFile = true;
-				}
-				break;
-				
-			case SHARED:
-				String shared = loc.getSharedDisk();
-				boolean done = false;
-				HashSet<LogicalData> files = null;
-				while (!done) {
-					try {
-						files = sharedDiskToSharedFiles.get(shared);
-						if (files == null) {
-							files = new HashSet<LogicalData>();
-							sharedDiskToSharedFiles.put(shared, files);
-						}
-						done = true;
-					} catch (ConcurrentModificationException cme) {
-						logger.debug("notifyToInProgressCopiesEnd concurrent modification. Re-calculating");
-					}
-				}
-				files.add(this);
-				onFile = true;
-				break;
-		}
-	}
-
-	private void lockHostRemove_private() {
+	private void lockHostRemoval_private() {
 		try {
-			removeHostLock.acquire();
+			lockHostRemoval.acquire();
 		} catch (InterruptedException e) {
 			logger.error("Exception", e);
 		}
 	}
 
-	private void releaseHostRemoveLock_private() {
-		removeHostLock.release();
+	private void releaseHostRemoval_private() {
+		lockHostRemoval.release();
 	}
 
-	
+	/*
+	 * Copy in progress class to extend external copy
+	 */
 	private static class CopyInProgress {
 
 		private final Copy c;

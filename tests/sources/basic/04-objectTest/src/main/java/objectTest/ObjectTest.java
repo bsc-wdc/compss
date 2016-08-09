@@ -13,6 +13,7 @@ public class ObjectTest {
 	}
 	
 	private static void testUserObjects() throws InterruptedException {
+		System.out.println("[LOG] Test User Objects");
 		C c = ObjectTestImpl.createCObject(7, "OPTIMIS");		
 		
 		A a = c.getAField();
@@ -38,6 +39,7 @@ public class ObjectTest {
 	}
 	
 	private static void testImmutableObjects() throws InterruptedException {
+		System.out.println("[LOG] Test Immutable Objects");
 		Integer i = ObjectTestImpl.createInteger(5);
 		String s = ObjectTestImpl.createString("SDO");
 		
@@ -49,6 +51,7 @@ public class ObjectTest {
 	}
 	
 	private static void testTargetObjects() {
+		System.out.println("[LOG] Test Target Objects");
 		A a = new A(32);
 		B b = new B("Old value");
 		
@@ -63,6 +66,7 @@ public class ObjectTest {
 	}
 	
 	private static void testPrimitiveReturn() {
+		System.out.println("[LOG] Test Primitive Return");
 		A a = new A(4);
 		int i = a.square();
 		System.out.println("Square of " + a.getIntField() + " is " + i);
@@ -71,6 +75,7 @@ public class ObjectTest {
 	}
 	
 	private static void testConstructor() {
+		System.out.println("[LOG] Test Constructor");
 		A a = new A(3);
 		B b = new B("CONSTRUCTOR");
 		
@@ -82,6 +87,7 @@ public class ObjectTest {
 	}
 	
 	private static void testArrays() {
+		System.out.println("[LOG] Test Arrays");
 		int[] array = ObjectTestImpl.createIntArray(9);
 		A[][] matrix = ObjectTestImpl.createObjectArray(11);
 		ObjectTestImpl.printArrays(array, matrix);

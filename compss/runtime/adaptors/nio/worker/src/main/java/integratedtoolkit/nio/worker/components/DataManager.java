@@ -1,12 +1,20 @@
 package integratedtoolkit.nio.worker.components;
 
+import integratedtoolkit.log.Loggers;
+
 import java.util.HashMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class DataManager {
 	
+	// Logger
+	private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
+	// Cache
 	private final HashMap<String, Object> objectCache;
-	
+
 
 	public DataManager() {
 		objectCache = new HashMap<String, Object>();
@@ -20,22 +28,37 @@ public class DataManager {
 		
 	}
 	
-    public synchronized void store(String name, Object value) {
+	/* ************************************
+	 * STORE METHODS
+	 * ************************************/
+	public synchronized void storeObject(String name, Object value) {
         try {
             objectCache.put(name, value);
         } catch (NullPointerException e) {
-            System.err.println("Object Cache " + objectCache + " dataId " + name + " object " + value);
+        	wLogger.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
         }
     }
 
-    public synchronized Object get(String name) {
+	
+	/* ************************************
+	 * GET METHODS
+	 * ************************************/
+	public synchronized Object getObject(String name) {
         return objectCache.get(name);
     }
 
+	
+	/* ************************************
+	 * REMOVE METHODS
+	 * ************************************/
     public synchronized void remove(String name) {
         objectCache.remove(name);
     }
 
+    
+	/* ************************************
+	 * CHECKER METHODS
+	 * ************************************/
     public synchronized boolean checkPresence(String name) {
         return objectCache.containsKey(name);
     }

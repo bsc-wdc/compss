@@ -2,13 +2,14 @@ package integratedtoolkit.components.impl;
 
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.io.File;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.*;
@@ -19,8 +20,12 @@ import integratedtoolkit.types.data.operation.ObjectTransferable;
 import integratedtoolkit.types.data.operation.OneOpWithSemListener;
 import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.request.ap.TransferObjectRequest;
-import java.io.File;
-import java.util.concurrent.Semaphore;
+import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.util.ErrorManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class DataInfoProvider {
 
@@ -54,15 +59,10 @@ public class DataInfoProvider {
     public DataAccessId registerDataAccess(AccessParams access) {
         if (access instanceof FileAccessParams) {
             FileAccessParams fAccess = (FileAccessParams) access;
-            return registerFileAccess(fAccess.getMode(),
-                    fAccess.getLocation(),
-                    -1);
+            return registerFileAccess(fAccess.getMode(), fAccess.getLocation(), -1);
         } else {
             ObjectAccessParams oAccess = (ObjectAccessParams) access;
-            return registerObjectAccess(oAccess.getMode(),
-                    oAccess.getValue(),
-                    oAccess.getCode(),
-                    -1);
+            return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode(), -1);
         }
     }
 
@@ -99,7 +99,7 @@ public class DataInfoProvider {
     }
 
     // Object access
-    public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code, int readerId) {
+    public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code, int readerId) {    	
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
@@ -211,9 +211,10 @@ public class DataInfoProvider {
     }
 
     public boolean alreadyAccessed(DataLocation loc) {
+    	logger.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
-        return fileId != null;
+        return (fileId != null);
     }
 
     // DataInformation interface
@@ -294,9 +295,10 @@ public class DataInfoProvider {
         LogicalData ld = Comm.getData(sourceName);
 
         if (ld.isInMemory()) {
-            if (!ld.isOnFile()) { // Only if there are no readers
+            if (!ld.isOnStorage()) { // Only if there are no readers
                 try {
-                    ld.writeToFileAndRemoveValue();
+                	ld.writeToStorage();
+                    ld.removeValue();
                 } catch (Exception e) {
                     logger.fatal("Exception writing object to file.", e);
                 }
@@ -306,7 +308,15 @@ public class DataInfoProvider {
             toRequest.setResponse(ld.getValue());
             toRequest.getSemaphore().release();
         } else {
-            DataLocation targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + sourceName);
+        	DataLocation targetLocation = null;
+        	String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + sourceName;
+            try {
+            	SimpleURI uri = new SimpleURI(path);
+            	targetLocation = DataLocation.createLocation(Comm.appHost, uri);
+            } catch (Exception e) {
+            	ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+            }
+            
             Comm.appHost.getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
     }

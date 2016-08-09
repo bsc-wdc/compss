@@ -6,7 +6,7 @@ import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.URI;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
@@ -15,6 +15,9 @@ import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
 
@@ -66,7 +69,7 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public void setInternalURI(URI uri) {
+    public void setInternalURI(MultiURI uri) {
 
     }
 
@@ -88,10 +91,17 @@ public class ServiceInstance extends COMPSsWorker {
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
-        //Delegate on the master to obtain the data value
-        DataLocation tgtLoc = DataLocation.getLocation(Comm.appHost, target.getPath());
-        COMPSsNode node = null;
-        node = Comm.appHost.getNode();
+        // Delegate on the master to obtain the data value
+    	String path = target.getProtocol().getSchema() + target.getPath();
+    	DataLocation tgtLoc = null;
+    	try {
+    		SimpleURI uri = new SimpleURI(path);
+    		tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+    	} catch (Exception e) {
+    		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+    	}
+
+        COMPSsNode node = Comm.appHost.getNode();
         node.obtainData(ld, source, tgtLoc, tgtData, reason, listener);
     }
 
@@ -116,17 +126,25 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(DataType type, String name) {
+    public SimpleURI getCompletePath(DataType type, String name) {
+    	// The path of the data is the same than in the master
+    	String path = null;
         switch (type) {
             case FILE_T:
-                return Comm.appHost.getTempDirPath() + name;
+            	path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
+            	break;
             case OBJECT_T:
-            case SCO_T:
+            	path = Protocol.OBJECT_URI.getSchema() + name;
+            	break;
             case PSCO_T:
-                return name;
+            	path = Protocol.PERSISTENT_URI.getSchema() + name;
+            	break;
             default:
                 return null;
         }
+        
+        // Switch path to URI
+        return new SimpleURI(path);
     }
 
     @Override

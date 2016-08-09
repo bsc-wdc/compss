@@ -13,28 +13,26 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.components.monitor.impl.RuntimeMonitor;
 import integratedtoolkit.loader.LoaderAPI;
-import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.loader.total.ObjectRegistry;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
-import integratedtoolkit.types.data.location.URI;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RuntimeConfigManager;
 import integratedtoolkit.util.Tracer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import storage.StubItf;
 
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
@@ -48,10 +46,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     protected static final String ERROR_OBJECT_SERIALIZE = "ERROR: Cannot serialize object to file";
     protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
     protected static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
-
-    // Constants
-    protected static final String FILE_URI = "file:";
-    protected static final String SHARED_URI = "shared:";
 
     // COMPSs Version and buildnumber attributes
     protected static String COMPSs_VERSION = null;
@@ -189,7 +183,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
                 }
                 if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
-                    System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.COMPSs);
+                    System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
                 }
 
                 if (manager.getContext() != null) {
@@ -229,7 +223,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
         }
         if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
-            System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.COMPSs);
+            System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
         }
     }
 
@@ -322,6 +316,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Starts the COMPSs Runtime
      * 
      */
+    @Override
     public synchronized void startIT() {
     	if (tracing) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -358,12 +353,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
                 }
 
-                // Python and C++
-                String lang = System.getProperty(ITConstants.IT_LANG);
-                if (! lang.toUpperCase().equals(ITConstants.Lang.JAVA.toString()) ) {
-                    this.setObjectRegistry(new ObjectRegistry(this));
-                }
-
                 initialized = true;
                 logger.debug("Ready to process tasks");
             }
@@ -388,12 +377,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Stops the COMPSsRuntime
      * 
      */
+    @Override
     public void stopIT(boolean terminate) {
         synchronized (this) {
             if (tracing) {
                 Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
-
 
             // Stop monitor components
             logger.debug("Stop IT reached");
@@ -433,6 +422,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns the Application Directory
      * 
      */
+    @Override
     public String getApplicationDirectory() {
         return Comm.appHost.getAppLogDirPath();
     }
@@ -441,6 +431,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     /**
      * Registers a new CoreElement in the COMPSs Runtime
      */
+    @Override
     public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
             int parameterCount, Object... parameters) {
 
@@ -467,6 +458,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: methods
      * 
      */
+    @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
@@ -493,6 +485,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: services
      * 
      */
+    @Override
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters) {
 
@@ -519,6 +512,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Notifies the Runtime that there are no more tasks created by the current appId
      * 
      */
+    @Override
     public void noMoreTasks(Long appId, boolean terminate) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
@@ -540,6 +534,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Freezes the task generation until all previous tasks have been executed
      * 
      */
+    @Override
     public void waitForAllTasks(Long appId) {
     	if (tracing) {
             Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
@@ -558,6 +553,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Deletes the specified version of a file
      * 
      */
+    @Override
     public boolean deleteFile(String fileName) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
@@ -566,7 +562,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Parse the file name and translate the access mode
         DataLocation loc = null;
         try {
-            loc = getDataLocation(fileName);
+            loc = createLocation(fileName);
         } catch (Exception e) {
             ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
@@ -583,6 +579,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Emit a tracing event (for bindings)
      * 
      */
+    @Override
     public void emitEvent(int type, long id) {
         Tracer.emitEvent(id, type);
     }
@@ -595,6 +592,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns a copy of the last file version
      * 
      */
+    @Override
     public String getFile(String fileName, String destDir) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
@@ -606,7 +604,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Parse the file name
         DataLocation sourceLocation = null;
         try {
-            sourceLocation = DataLocation.getLocation(Comm.appHost, fileName);
+            sourceLocation = createLocation(fileName);
         } catch (Exception e) {
             ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
@@ -614,7 +612,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
         String path;
         if (targetLocation == null) {
-            URI u = sourceLocation.getURIInHost(Comm.appHost);
+            MultiURI u = sourceLocation.getURIInHost(Comm.appHost);
             if (u != null) {
                 path = u.getPath();
             } else {
@@ -636,6 +634,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns a copy of the last object version
      * 
      */
+    @Override
     public Object getObject(Object o, int hashCode, String destDir) {
         /* We know that the object has been accessed before by a task, otherwise
          * the ObjectRegistry would have discarded it and this method
@@ -676,6 +675,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     /**
      * Serializes a given object
      */
+    @Override
     public void serializeObject(Object o, int hashCode, String destDir) {
         /*System.out.println("IT: Serializing object");
          String rename = TP.getLastRenaming(hashCode);
@@ -694,6 +694,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     /**
      * Sets the Object Registry
      */
+    @Override
     public void setObjectRegistry(ObjectRegistry oReg) {
         COMPSsRuntimeImpl.oReg = oReg;
     }
@@ -702,6 +703,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns the tmp dir configured by the Runtime
      * 
      */
+    @Override
     public String getTempDir() {
         return Comm.appHost.getTempDirPath();
     }
@@ -714,21 +716,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns the renaming of the file version opened
      * 
      */
+    @Override
     public String openFile(String fileName, DataDirection mode) {
         if (tracing) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Opening file " + fileName + " in mode " + mode);
-        }
+        logger.info("Opening file " + fileName + " in mode " + mode);
 
         DataLocation loc = null;
         try {
-            loc = getDataLocation(fileName);
+            loc = createLocation(fileName);
         } catch (Exception e) {
             ErrorManager.fatal(ERROR_FILE_NAME, e);
         }
+        
         AccessMode am = null;
         switch (mode) {
             case IN:
@@ -741,39 +743,31 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 am = AccessMode.RW;
                 break;
         }
+        
         // Tell the DM that the application wants to access a file.
-        logger.debug("Requesting mainAccess");
+        //logger.debug("Requesting mainAccess");
         FileAccessParams fap = new FileAccessParams(am, loc);
         DataLocation targetLocation = ap.mainAccessToFile(loc, fap, null);
-        logger.debug("MainAccess finished");
-        String path;
-        if (targetLocation == null) {
-            URI u = loc.getURIInHost(Comm.appHost);
-            if (u != null) {
-                logger.debug("File URI: " + u.toString());
-                path = u.getPath();
-            } else {
-                path = fileName;
-            }
+        
+        String path = (targetLocation == null) ? fileName : targetLocation.getPath();
+        DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
+        String finalPath;
+        MultiURI u = finalLocation.getURIInHost(Comm.appHost);
+        if (u != null) {
+            finalPath = u.getPath();
         } else {
-            /* Return the path that the application must use to access the (renamed) file
-             * The file won't recover its origin)al name until stopIT is called
-             */
-            URI u = targetLocation.getURIInHost(Comm.appHost);
-            if (u != null) {
-                logger.debug("File URI: " + u.toString());
-                path = u.getPath();
-            } else {
-                path = targetLocation.getPath();
-            }
-            logger.debug("File target Location: " + path);
+        	finalPath = path;
+        }
+        
+        if (logger.isDebugEnabled()) {
+        	logger.debug("File target Location: " + finalPath);
         }
 
         if (tracing) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
-        return path;
+        return finalPath;
     }
 
     
@@ -791,50 +785,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (logger.isDebugEnabled()) {
                 logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
             }
+
             switch (type) {
                 case FILE_T:
                     DataLocation location = null;
                     try {
-                        location = getDataLocation((String) parameters[i]);
+                        location = createLocation((String) parameters[i]);
                     } catch (Exception e) {
+                    	logger.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
                     pars[npar] = new FileParameter(direction, location);
                     break;
 
-                case SCO_T:
                 case PSCO_T:
-                    Object internal = oReg.getInternalObject(parameters[i]);
-                    if (internal != null) {
-                        DataType internalType = LoaderUtils.checkSCOType(internal);
-                        if ((type != internalType) && (internalType == DataType.PSCO_T)) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("  Parameter " + (npar + 1) + " change type from " + type.name() + " to " + internalType.name());
-                            }
-                            parameters[i] = LoaderUtils.checkSCOPersistent(internal);
-                            parameters[i + 1] = internalType;
-                            type = internalType;
-                        }
-                    } else {
-                        // Python and C++
-                        String lang = System.getProperty(ITConstants.IT_LANG);
-                        if (ITConstants.Lang.JAVA.toString().compareTo(lang.toUpperCase()) != 0) {
-                            if (type == DataType.PSCO_T) {
-                                if (!(parameters[i] instanceof StubItf)) {
-                                    // There is no Python or C++ PSCO so create directly a new PSCOId(Object, String)
-                                    PSCOId pscoId = new PSCOId(parameters[i], (String) parameters[i]);
-                                    logger.debug("PSCO with id " + pscoId.getId() + " and hashcode " + pscoId.hashCode() + " detected");
-                                    parameters[i] = pscoId;
-                                }
-                            }
-                        }
-                    }
-                    pars[npar] = new SCOParameter(type,
-                            direction,
-                            parameters[i],
-                            oReg.newObjectParameter(parameters[i])); // hashCode
-                    break;
-
                 case OBJECT_T:
                     pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
                     break;
@@ -856,38 +820,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return pars;
     }
-
-    // Private method for file name parsing. TODO: Logical file names?
-    private DataLocation getDataLocation(String fullName) throws Exception {
-        DataLocation loc;
-        if (fullName.startsWith(FILE_URI)) {
-            /* URI syntax with host name and absolute path, e.g. "file://bscgrid01.bsc.es/home/etejedor/file.txt"
-             * Only used in grid-aware applications, using IT API and partial loader,
-             * since total loader targets sequential applications that use local files.
-             */
-            /*String name, path, host;
-             java.net.URI u = new java.net.URI(fullName);
-             host = u.getHost();
-             String fullPath = u.getPath();
-             int pathEnd = fullPath.lastIndexOf(File.separator);
-             path = fullPath.substring(0, pathEnd + 1);
-             name = fullPath.substring(pathEnd + 1);*/
-            throw new UnsupportedOperationException("Referencing files from remote hosts by URI is not supported yet.");
-            // TODO To change body of generated methods, choose Tools | Templates.
-        } else if (fullName.startsWith(SHARED_URI)) {
-            java.net.URI u = new java.net.URI(fullName);
-            logger.debug("Shared URI host: " + u.getHost() + " path:" + u.getPath());
-            String sharedDisk = u.getHost();
-            String fullPath = u.getPath();
-            loc = DataLocation.getSharedLocation(sharedDisk, fullPath);
-        } else {
-            // Local file, format will depend on OS
-            File f = new File(fullName);
-            String canonicalPath = f.getCanonicalPath();
-            loc = DataLocation.getLocation(Comm.appHost, canonicalPath);
-        }
-
-        return loc;
+    
+    private DataLocation createLocation(String fileName) throws Exception {
+    	// Check if fileName contains schema
+    	SimpleURI uri = new SimpleURI(fileName);
+    	if (uri.getSchema().isEmpty()) {
+    		// Add default File scheme and wrap local paths
+            String canonicalPath = new File(fileName).getCanonicalPath();
+    		uri = new SimpleURI(Protocol.FILE_URI.getSchema() + canonicalPath);
+    	}
+    	
+    	// Check host
+    	Resource host = Comm.appHost;
+    	String hostName = uri.getHost();
+    	if (hostName != null && !hostName.isEmpty()) {
+    		host = Resource.getResource(hostName);
+    	}
+    	
+    	// Create location
+    	return DataLocation.createLocation(host, uri);
     }
 
 }

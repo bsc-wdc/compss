@@ -1,8 +1,8 @@
 package integratedtoolkit.comm;
 
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 
@@ -12,11 +12,11 @@ import storage.StorageException;
 import storage.StorageItf;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.parameter.PSCOId;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.MasterResource;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.configuration.Configuration;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.Classpath;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
@@ -26,8 +26,6 @@ import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -53,7 +51,6 @@ public class Comm {
 
     // Logical data
     private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
-    private static Map<Integer, PSCOId> pscoids = Collections.synchronizedMap(new TreeMap<Integer, PSCOId>());
 
     // Master information
     public static MasterResource appHost;
@@ -65,6 +62,7 @@ public class Comm {
         	if ( STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null") ) {
                 logger.warn("No storage configuration file passed");
             } else {
+            	logger.debug("Initializing Storage with: " + STORAGE_CONF);
                 StorageItf.init(STORAGE_CONF);
             }
         } catch (StorageException e) {
@@ -137,8 +135,7 @@ public class Comm {
         return logicalData;
     }
 
-    public static synchronized LogicalData registerLocation(String dataId,
-            DataLocation location) {
+    public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         logger.debug("Registering new Location for data " + dataId + ":");
         logger.debug("  * Location: " + location);
         LogicalData logicalData = data.get(dataId);
@@ -146,13 +143,20 @@ public class Comm {
         return logicalData;
     }
 
-    public static synchronized LogicalData registerValue(String dataId,
-            Object value) {
-        logger.debug("Register value " + value + "for data " + dataId);
-        DataLocation location = DataLocation.getLocation(appHost, dataId);
-
+    public static synchronized LogicalData registerValue(String dataId, Object value) {
+        logger.debug("Register value " + value + " for data " + dataId);
+        DataLocation location = null;        
+        String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
+		try {
+			SimpleURI uri = new SimpleURI(targetPath);
+			location = DataLocation.createLocation(appHost, uri);
+		} catch (Exception e) {
+			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+		}
+        
         LogicalData logicalData = data.get(dataId);
-        logicalData.addLocationAndValue(location, value);
+        logicalData.addLocation(location);
+        logicalData.setValue(value);
 
         return logicalData;
     }
@@ -169,9 +173,7 @@ public class Comm {
     }
 
     public static synchronized LogicalData getData(String dataId) {
-        // logger.debug("Get data " + dataId + " with value " +
-        // data.get(dataId));
-
+        logger.debug("Get data " + dataId + " with value " + data.get(dataId));
         return data.get(dataId);
     }
 
@@ -180,7 +182,7 @@ public class Comm {
         for (Map.Entry<String, LogicalData> lde : data.entrySet()) {
             sb.append("\t *").append(lde.getKey()).append(":\n");
             LogicalData ld = lde.getValue();
-            for (URI u : ld.getURIs()) {
+            for (MultiURI u : ld.getURIs()) {
                 sb.append("\t\t + ").append(u.toString()).append("\n");
                 for (String adaptor : adaptors.keySet()) {
 
@@ -201,8 +203,7 @@ public class Comm {
 
     public static synchronized HashSet<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
-
-        return LogicalData.getAllDataFromHost(host);
+    	return host.getAllDataFromHost();
     }
 
     public static synchronized void removeData(String renaming) {
@@ -222,53 +223,7 @@ public class Comm {
         }
     }
 
-    public static synchronized void registerPSCOId(int id, PSCOId pscoid) {
-        pscoids.put(id, pscoid);
-    }
-
-    public static synchronized PSCOId getPSCOId(int id) {
-        return pscoids.get(id);
-    }
-
-    public static synchronized PSCOId removePSCOId(int id) {
-        return pscoids.remove(id);
-    }
-
-    public static synchronized List<String> getPSCOLocations(SCOParameter p) {
-        List<String> backends = new LinkedList<String>();
-
-        Integer id = p.getCode();
-        if (!(p.getValue() instanceof PSCOId)) {
-            // Check if the SCOParamter has a PSCOId not updated yet.
-            PSCOId pscoId = Comm.removePSCOId(id);
-            p.setValue(pscoId);
-        }
-
-        if ((p.getValue() instanceof PSCOId)) {
-            String pscoId = ((PSCOId) (p.getValue())).getId();
-            try {
-                if (tracing) {
-                    Tracer.emitEvent(Tracer.Event.STORAGE_GETLOCATIONS.getId(), Tracer.Event.STORAGE_GETLOCATIONS.getType());
-                }
-                backends = StorageItf.getLocations(pscoId);
-                if (tracing) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETLOCATIONS.getType());
-                }
-            } catch (StorageException e) {
-                backends = new LinkedList<String>();
-                ErrorManager.warn(e.getMessage());
-                if (tracing) {
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETLOCATIONS.getType());
-                }
-            }
-            ((PSCOId) p.getValue()).setBackends(backends);
-        }
-
-        return backends;
-    }
-
     private static void loadAdaptorsJars() {
-
         logger.info("Loading Adaptors...");
         String itHome = System.getenv("IT_HOME");
 
@@ -283,4 +238,5 @@ public class Comm {
             logger.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }
     }
+    
 }

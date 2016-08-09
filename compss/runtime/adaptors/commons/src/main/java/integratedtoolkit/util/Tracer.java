@@ -1,24 +1,23 @@
 package integratedtoolkit.util;
 
-import integratedtoolkit.ITConstants;
-import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.data.LogicalData;
-
 import java.io.File;
 import java.io.IOException;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 
 import es.bsc.cepbatools.extrae.Wrapper;
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.types.COMPSsNode;
+import integratedtoolkit.ITConstants;
+import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.TracingCopyListener;
 import integratedtoolkit.types.data.operation.TracingCopyTransferable;
-
-import java.util.HashMap;
-import java.util.concurrent.Semaphore;
+import integratedtoolkit.types.uri.SimpleURI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -483,20 +482,39 @@ public abstract class Tracer {
         if (debug) {
             logger.debug("Tracing: Transferring master package");
         }
-        Semaphore sem = new Semaphore(0);
 
-        TracingCopyListener tracingListener = new TracingCopyListener(sem);
-
+        // Create source and target locations for tar.gz file
         String filename = "master_compss_trace.tar.gz";
-        DataLocation source = DataLocation.getLocation(Comm.appHost, filename);
-        DataLocation target = DataLocation.getLocation(Comm.appHost, traceDirPath + filename);
+        DataLocation source = null;
+        String sourcePath = DataLocation.Protocol.FILE_URI.getSchema() + filename;
+        try {
+        	SimpleURI uri = new SimpleURI(sourcePath);
+        	source = DataLocation.createLocation(Comm.appHost, uri);
+        } catch (Exception e) {
+        	ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + sourcePath, e);
+        }
+        DataLocation target = null;
+        String targetPath = DataLocation.Protocol.FILE_URI.getSchema() + traceDirPath + filename;
+        try {
+        	SimpleURI uri = new SimpleURI(targetPath);
+        	target = DataLocation.createLocation(Comm.appHost, uri);
+        } catch (Exception e) {
+        	ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        }
 
-        COMPSsNode node = Comm.appHost.getNode();
-
+        // Ask for data
+        Semaphore sem = new Semaphore(0);
+        TracingCopyListener tracingListener = new TracingCopyListener(sem);
         tracingListener.addOperation();
 
-        node.obtainData(new LogicalData("tracing master package"), source, target, new LogicalData("tracing master package"), new TracingCopyTransferable(), tracingListener);
+        Comm.appHost.getNode().obtainData(new LogicalData("tracing master package"), 
+        		source, 
+        		target, 
+        		new LogicalData("tracing master package"), 
+        		new TracingCopyTransferable(), 
+        		tracingListener);
 
+        // Wait for data
         tracingListener.enable();
         try {
             sem.acquire();
@@ -548,8 +566,15 @@ public abstract class Tracer {
     }
 
     private static void cleanMasterPackage() {
-        String filename = "master_compss_trace.tar.gz";
-        DataLocation source = DataLocation.getLocation(Comm.appHost, filename);
+        String filename = DataLocation.Protocol.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
+        
+        DataLocation source = null;
+        try {
+        	SimpleURI uri = new SimpleURI(filename);
+        	source = DataLocation.createLocation(Comm.appHost, uri);
+        } catch (Exception e) {
+        	ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filename, e);
+        }
 
         if (debug) {
             logger.debug("Tracing: Removing tracing master package: " + source.getPath());

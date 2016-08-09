@@ -3,11 +3,11 @@ package integratedtoolkit.gat.master;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.WorkersDebugInfoCopyTransferable;
-import integratedtoolkit.types.data.operation.Copy.ImmediateCopy;
+import integratedtoolkit.types.data.operation.copy.ImmediateCopy;
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.io.File;
@@ -23,17 +23,23 @@ public class GATCopy extends ImmediateCopy {
     private static final String ERR_NO_SRC_URI = "No valid source URIs";
     private final Transferable reason;
 
-    public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public GATCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, 
+    		Transferable reason, EventListener listener) {
+    	
         super(srcData, prefSrc, prefTgt, tgtData, reason, listener);
         this.reason = reason;
 
-        for (URI uri : prefTgt.getURIs()) {
+        for (MultiURI uri : prefTgt.getURIs()) {
             String path = uri.getPath();
             if (path.startsWith(File.separator)) {
                 break;
             } else {
                 Resource host = uri.getHost();
-                this.tgtLoc = DataLocation.getLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
+                try {
+					this.tgtLoc = DataLocation.createLocation(host, host.getCompleteRemotePath(DataType.FILE_T, path));
+				} catch (Exception e) {
+					ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+				}
             }
         }
     }
@@ -41,9 +47,9 @@ public class GATCopy extends ImmediateCopy {
     @Override
     public void specificCopy() throws Exception {
         //Fetch valid destination URIs
-        LinkedList<URI> targetURIs = tgtLoc.getURIs();
+        LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
         LinkedList<org.gridlab.gat.URI> gatTargetUris = new LinkedList<org.gridlab.gat.URI>();
-        for (URI uri : targetURIs) {
+        for (MultiURI uri : targetURIs) {
             org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
             if (internalURI != null) {
                 gatTargetUris.add(internalURI);
@@ -55,12 +61,12 @@ public class GATCopy extends ImmediateCopy {
         }
 
         //Fetch valid source URIs
-        LinkedList<URI> sourceURIs;
+        LinkedList<MultiURI> sourceURIs;
         LinkedList<org.gridlab.gat.URI> gatSrcUris = new LinkedList<org.gridlab.gat.URI>();
         synchronized (srcData) {
             if (srcLoc != null) {
                 sourceURIs = srcLoc.getURIs();
-                for (URI uri : sourceURIs) {
+                for (MultiURI uri : sourceURIs) {
                     org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
                     if (internalURI != null) {
                         gatSrcUris.add(internalURI);
@@ -69,7 +75,7 @@ public class GATCopy extends ImmediateCopy {
             }
 
             sourceURIs = srcData.getURIs();
-            for (URI uri : sourceURIs) {
+            for (MultiURI uri : sourceURIs) {
                 org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
                 if (internalURI != null) {
                     gatSrcUris.add(internalURI);
@@ -79,9 +85,9 @@ public class GATCopy extends ImmediateCopy {
             if (gatSrcUris.isEmpty()) {
                 if (srcData.isInMemory()) {
                     try {
-                        srcData.writeToFile();
+                        srcData.writeToStorage();
                         sourceURIs = srcData.getURIs();
-                        for (URI uri : sourceURIs) {
+                        for (MultiURI uri : sourceURIs) {
                             org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
                             if (internalURI != null) {
                                 gatSrcUris.add(internalURI);

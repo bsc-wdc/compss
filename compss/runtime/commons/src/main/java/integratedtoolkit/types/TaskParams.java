@@ -37,7 +37,7 @@ public class TaskParams implements Serializable {
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T));
+            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(methodClass, methodName, hasTarget, hasReturn, parameters);
         type = Type.METHOD;
@@ -53,7 +53,7 @@ public class TaskParams implements Serializable {
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T));
+            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(namespace, service, port, operation, hasTarget, hasReturn, parameters);
         this.type = Type.SERVICE;

@@ -21,18 +21,15 @@ public final class StorageItf {
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 
-	public static List<String> getLocations(String pscoId)
-			throws StorageException {
+	public static List<String> getLocations(String pscoId) throws StorageException {
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 
-	public static void newReplica(String id, String hostName)
-			throws StorageException {
+	public static void newReplica(String id, String hostName) throws StorageException {
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 
-	public static String newVersion(String id, String hostName)
-			throws StorageException {
+	public static String newVersion(String id, String hostName) throws StorageException {
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 

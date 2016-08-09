@@ -26,7 +26,6 @@ import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.*;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.parameter.FileParameter;
@@ -163,13 +162,7 @@ public class TaskAnalyser {
                     FileParameter fp = (FileParameter) p;
                     daId = DIP.registerFileAccess(am, fp.getLocation(), methodId);
                     break;
-
-                case SCO_T:
                 case PSCO_T:
-                    SCOParameter sco = (SCOParameter) p;
-                    daId = DIP.registerObjectAccess(am, sco.getValue(), sco.getCode(), methodId);
-                    break;
-
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
                     daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode(), methodId);
@@ -306,7 +299,7 @@ public class TaskAnalyser {
 
         for (Parameter param : task.getTaskParams().getParameters()) {
             DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.SCO_T || type == DataType.PSCO_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 DIP.dataHasBeenAccessed(dAccId);

@@ -142,23 +142,20 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
                         if (parameters[i].getDirection() == DataDirection.IN) {
                             switch (parameters[i].getType()) {
                                 case OBJECT_T:
-                                case SCO_T:
                                 case PSCO_T:
                                     DependencyParameter dp = (DependencyParameter) parameters[i];
                                     Object o = getObjectValue(dp);
                                     input.add(o);
                                     break;
                                 case FILE_T:
-                                    //¿¿¿¿?????
                                     //CAN'T USE A FILE AS A PARAMETER
                                     //SKIP!
                                     break;
-                                default:// Basic or String
+                                default:
+                                	// Basic or String
                                     BasicTypeParameter btParB = (BasicTypeParameter) parameters[i];
                                     input.add(btParB.getValue());
-
                             }
-
                         }
                     }
                     ServiceInstance si = (ServiceInstance) job.getResourceNode();
@@ -223,10 +220,9 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
             String renaming = ((RAccessId) dp.getDataAccessId()).getReadDataInstance().getRenaming();
             LogicalData ld = Comm.getData(renaming);
             if (!ld.isInMemory()) {
-                ld.loadFromFile();
+                ld.loadFromStorage();
             }
             return ld.getValue();
-
         }
     }
     

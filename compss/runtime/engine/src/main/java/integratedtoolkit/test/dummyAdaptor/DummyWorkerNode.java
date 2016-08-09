@@ -7,13 +7,14 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 
 
 public class DummyWorkerNode extends COMPSsWorker {
@@ -55,7 +56,7 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void setInternalURI(URI uri) {
+    public void setInternalURI(MultiURI uri) {
     }
 
     @Override
@@ -83,7 +84,7 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(DataType type, String name) {
+    public SimpleURI getCompletePath(DataType type, String name) {
     	return null;
     }
 

@@ -3,7 +3,6 @@ package integratedtoolkit.loader;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.annotations.Service;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.ErrorManager;
 
 import java.lang.reflect.InvocationTargetException;
@@ -25,50 +24,9 @@ public class LoaderUtils {
 
 	private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
 	
-	// Storage: Check whether Persistent Self-Contained Object or not
-	public static Object checkSCOPersistent(Object o) {   	
-    	if (o instanceof StubItf) {
-    		// Cast to SCO Stub
-    		StubItf sco = (StubItf) o;
-    		// Check whether persisted
-    		String id = null;
-    		try {
-    			id = sco.getID();
-    		} catch (Exception e) {                 			
-    			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
-    		}
-    		if (id != null) {
-    			PSCOId pscoID = new PSCOId(o, id);
-    			return pscoID;
-    		}    		
-    	}   		
-   		return o;
-	}
-	
 	// Storage: Check object type
 	public static DataType checkSCOType(Object o) {
-    	if (o instanceof PSCOId) {
-    		return DataType.PSCO_T;
-    	}
-    	
-    	if (o instanceof StubItf) {
-    		// Cast to SCO Stub
-    		StubItf sco = (StubItf) o;
-    		// Check whether persisted
-    		String id = null;
-    		try {
-    			id = sco.getID();
-    		} catch (Exception e) {                 			
-    			logger.debug("SCO with hashcode " + o.hashCode() + " is not persisted yet");
-    		}
-
-    		if (id == null) {
-    			return DataType.SCO_T;
-    		} else {
-    			return DataType.PSCO_T;
-    		}    		
-    	}   		
-   		return DataType.OBJECT_T;
+		return (o instanceof StubItf) ? DataType.PSCO_T : DataType.OBJECT_T;
 	}	
 
     // Return the called method if it is in the remote list
@@ -83,6 +41,7 @@ public class LoaderUtils {
                     return remote;
                 }
             } else {
+            	logger.error("Task '" + remote.getName() + "' does not have @Method or @Service annotation");
             	ErrorManager.error("Task '" + remote.getName() + "' does not have @Method or @Service annotation.\n" + 
             					   "Check the COMPSs manual for more information.");
             }

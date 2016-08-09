@@ -3,15 +3,11 @@ package integratedtoolkit.loader.total;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.parameter.PSCOId;
 
 import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import storage.StorageItf;
-import storage.StubItf;
 
 
 public class ObjectRegistry {
@@ -110,13 +106,8 @@ public class ObjectRegistry {
             return;
         }
 
-        int hashCode = o.hashCode();
-        Object oStored = appTaskObjects.get(hashCode);
-        
-        if (oStored instanceof PSCOId) {
-        	return; // A PSCO doesn't need to be serialized
-        }        
-        
+        int hashCode = o.hashCode();       
+        Object oStored = appTaskObjects.get(hashCode);   
         while (oStored != o) {
             if (oStored == null) {
                 return; // Not a task parameter object
@@ -124,6 +115,7 @@ public class ObjectRegistry {
                 oStored = appTaskObjects.get(++hashCode);
             }
         }
+        
         /* The object has been accessed by a task before.
          * Delegate its serialization to the API.
          * Serialize the internal object
@@ -151,43 +143,6 @@ public class ObjectRegistry {
         }
         
 		Object internal = internalObjects.get(hashCode);
-    	
-        if (oStored instanceof StubItf) {        	       	        		
-        	if (internal instanceof PSCOId) {
-        		PSCOId pscoId = new PSCOId(o, ((PSCOId) internal).getId());        			
-        		internalObjects.put(hashCode, pscoId);
-        		oStored = pscoId;       		
-        	} 
-        }
-        
-        if (oStored instanceof PSCOId) {
-        	try {
-        		//String firstPSCOId = ((PSCOId) oStored).getId();        		        	
-        		String lastPSCOId = ((PSCOId) internalObjects.get(hashCode)).getId();
-        		/*
-        		StorageItf.consolidateVersion(lastPSCOId);
-        		if (debug) {
-        			logger.debug("Consolidate internal object " + hashCode + " and PSCO Id " + lastPSCOId);
-        		}
-        		Object oStorage = StorageItf.getByID(firstPSCOId);
-        		*/
-        		
-    	        
-        		//if (tracing){
-    	        //    Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.getRuntimeEventsType());
-    	        //}
-    			
-        		Object oStorage = StorageItf.getByID(lastPSCOId);
-    			
-    	        //if (tracing){
-    	        //    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-    	        //}
-        		
-        		internal = oStorage;        		        		        		        		        
-        	} catch (Exception e) {
-            	logger.debug("Error returning internal " + ((PSCOId) oStored).getId() + " hash code " + hashCode);
-        	}
-        }
                 
         /* The object has been accessed by a task before.
          * Return its internal (real) value

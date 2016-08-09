@@ -1,11 +1,14 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.resources.Resource;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 /**
@@ -18,11 +21,18 @@ public class SharedDiskManager {
     /**
      * Relation shared disk name --> worker names where it is mounted
      */
-    private static HashMap<String, LinkedList<Resource>> shared2Machines = new HashMap<String, LinkedList<Resource>>();
+    private static final HashMap<String, LinkedList<Resource>> shared2Machines = new HashMap<String, LinkedList<Resource>>();
+    
     /**
      * Relation resource name --> Shared disks contained
      */
-    private static HashMap<Resource, Machine> machine2Shareds = new HashMap<Resource, Machine>();
+    private static final HashMap<Resource, Machine> machine2Shareds = new HashMap<Resource, Machine>();
+    
+    /**
+     * LogicalData stored in any sharedDisk
+     */
+    private static final TreeMap<String, HashSet<LogicalData>> sharedDisk2SharedFiles = new TreeMap<String, HashSet<LogicalData>>();
+
 
     /**
      * Adds a new resource to be managed
@@ -30,7 +40,7 @@ public class SharedDiskManager {
      * @param host Resource
      */
     public static void addMachine(Resource host) {
-        Machine m = new Machine(host);
+        Machine m = new Machine();
         synchronized (machine2Shareds) {
             machine2Shareds.put(host, m);
         }
@@ -153,7 +163,7 @@ public class SharedDiskManager {
         Machine m;
         synchronized (machine2Shareds) {
             m = machine2Shareds.remove(host);
-            if (m!= null){
+            if (m !=  null){
             	for (String sharedName : m.allShared) {
             		shared2Machines.get(sharedName).remove(host);
             	}
@@ -165,58 +175,90 @@ public class SharedDiskManager {
         	return new HashMap<String, String>();
         }
     }
-}
-
-class Machine {
-
-    Resource resource;
-    LinkedList<String> allShared;
-    HashMap<String, String> mountpoint2Name;
-    HashMap<String, String> name2Mountpoint;
-
-    public Machine(Resource resource) {
-        this.resource = resource;
-        allShared = new LinkedList<String>();
-        mountpoint2Name = new HashMap<String, String>();
-        name2Mountpoint = new HashMap<String, String>();
+    
+    /**
+     * Adds a LogicalData to a diskName
+     * 
+     * @param diskName
+     * @param ld
+     */
+    public static void addLogicalData(String diskName, LogicalData ld) {
+    	HashSet<LogicalData> lds = null;
+    	if (sharedDisk2SharedFiles.containsKey(diskName)) {
+    		lds = sharedDisk2SharedFiles.get(diskName);
+    	} else {
+    		lds = new HashSet<LogicalData>();
+    	}
+    	lds.add(ld);
+		sharedDisk2SharedFiles.put(diskName, lds);
     }
-
-    public void addSharedDisk(String diskName, String mountpoint) {
-        allShared.add(diskName);
-        if (!mountpoint.endsWith(File.separator)) {
-            mountpoint += File.separator;
-        }
-        mountpoint2Name.put(mountpoint, diskName);
-        name2Mountpoint.put(diskName, mountpoint);
+    
+    /**
+     * Removes all the obsolete logical data appearances in the given shared disk.
+     * It doesn't have any effect if the diskName or the logicalData don't exist
+     * 
+     * @param r
+     * @param obsolete
+     */
+    public static void removeLogicalData(String diskName, LogicalData obsolete) {
+    	HashSet<LogicalData> lds = sharedDisk2SharedFiles.get(diskName);
+    	if (lds != null) {
+    		lds.remove(obsolete);
+    	}
     }
-
-    public String getSharedName(String path) {
-        if (path == null) {
-            return null;
-        }
-        for (Entry<String, String> e : mountpoint2Name.entrySet()) {
-            if (path.startsWith(e.getKey())) {
-                return e.getValue();
-            }
-        }
-        return null;
+        
+    /**
+     * Recovers all the data of a given sharedDisk
+     * 
+     * @param diskName
+     * @return
+     */
+    public static HashSet<LogicalData> getAllSharedFiles(String diskName) {
+    	HashSet<LogicalData> lds = sharedDisk2SharedFiles.get(diskName);
+    	return lds;
     }
+    
 
-    public String getPath(String sharedDisk) {
-        return name2Mountpoint.get(sharedDisk);
-    }
+	private static class Machine {
+	
+	    private LinkedList<String> allShared;
+	    private HashMap<String, String> mountpoint2Name;
+	    private HashMap<String, String> name2Mountpoint;
+	
+	    public Machine() {
+	        allShared = new LinkedList<String>();
+	        mountpoint2Name = new HashMap<String, String>();
+	        name2Mountpoint = new HashMap<String, String>();
+	    }
+	
+	    public void addSharedDisk(String diskName, String mountpoint) {
+	        allShared.add(diskName);
+	        if (!mountpoint.endsWith(File.separator)) {
+	            mountpoint += File.separator;
+	        }
+	        mountpoint2Name.put(mountpoint, diskName);
+	        name2Mountpoint.put(diskName, mountpoint);
+	    }
+	
+	    public String getSharedName(String path) {
+	        if (path == null) {
+	            return null;
+	        }
+	        for (Entry<String, String> e : mountpoint2Name.entrySet()) {
+	            if (path.startsWith(e.getKey())) {
+	                return e.getValue();
+	            }
+	        }
+	        return null;
+	    }
+	
+	    public String getPath(String sharedDisk) {
+	        return name2Mountpoint.get(sharedDisk);
+	    }
+	
+	    public LinkedList<String> getAllSharedNames() {
+	        return allShared;
+	    }
+	}
 
-    public String getPath(LinkedList<String> sharedDisks) {
-        for (int i = 0; i < sharedDisks.size(); i++) {
-            String path = name2Mountpoint.get(sharedDisks.get(i));
-            if (path != null) {
-                return path;
-            }
-        }
-        return null;
-    }
-
-    public LinkedList<String> getAllSharedNames() {
-        return allShared;
-    }
 }

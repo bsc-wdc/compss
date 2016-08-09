@@ -98,7 +98,6 @@ public abstract class NIOAgent {
 
     // Reply the data
     public void sendData(Connection c, Data d, int receiverID) {
-
         if (tracing) {
             int tag = abs(d.getName().hashCode());
             CommandTracingID cmd = new CommandTracingID(tracingID, tag);
@@ -214,7 +213,7 @@ public abstract class NIOAgent {
         }
     }
 
-    public abstract void receivedTaskDone(Connection c, int jobID, NIOTask nt, boolean successful);
+    public abstract void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful);
 
     public abstract void copiedData(int transfergroupID);
 

@@ -1,6 +1,7 @@
 package integratedtoolkit.nio;
 
 import es.bsc.comm.nio.NIONode;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 
 import java.io.Externalizable;
 import java.io.File;
@@ -11,9 +12,8 @@ import java.io.ObjectOutput;
 
 public class NIOURI implements Externalizable {
 
-    private static final String SCHEME = "any://";
-    NIONode host;
-    String path;
+    private NIONode host;
+    private String path;
 
     public NIOURI() {
     }
@@ -36,13 +36,13 @@ public class NIOURI implements Externalizable {
     }
 
     public String getScheme() {
-        return SCHEME;
+        return Protocol.ANY_URI.getSchema();
     }
 
+    @Override
     public String toString() {
-        return SCHEME + host + File.separator + path;
+        return Protocol.ANY_URI.getSchema() + host + File.separator + path;
     }
-
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {

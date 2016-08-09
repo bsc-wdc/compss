@@ -1,6 +1,7 @@
 package integratedtoolkit.types.data.location;
 
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
@@ -11,32 +12,39 @@ public class SharedLocation extends DataLocation {
 
     private final String diskName;
     private final String path;
+    private final Protocol protocol;
 
-    SharedLocation(String sharedDisk, String path) {
+    public SharedLocation(Protocol protocol, String sharedDisk, String path) {
     	this.diskName = sharedDisk;
         this.path = path;
+        this.protocol = protocol;
     }
 
     @Override
-    public URI getURIInHost(Resource host) {
-        String diskPath = SharedDiskManager.getMounpoint(host, diskName);
+    public MultiURI getURIInHost(Resource host) {
+        String diskPath = SharedDiskManager.getMounpoint(host, this.diskName);
         if (diskPath == null) {
             return null;
         }
-        return new URI(host, diskPath + path);
+        return new MultiURI(this.protocol, host, diskPath + this.path);
     }
 
     @Override
     public DataLocation.Type getType() {
         return DataLocation.Type.SHARED;
     }
+    
+    @Override
+    public Protocol getProtocol() {
+    	return this.protocol;
+    }
 
     @Override
-    public LinkedList<URI> getURIs() {
-        LinkedList<URI> uris = new LinkedList<URI>();
+    public LinkedList<MultiURI> getURIs() {
+        LinkedList<MultiURI> uris = new LinkedList<MultiURI>();
         for (Resource host : SharedDiskManager.getAllMachinesfromDisk(diskName)) {
             String diskPath = SharedDiskManager.getMounpoint(host, diskName);
-            uris.add(new URI(host, diskPath + path));
+            uris.add(new MultiURI(this.protocol, host, diskPath + path));
         }
         return uris;
     }
@@ -52,18 +60,14 @@ public class SharedLocation extends DataLocation {
         String targetPath;
         if (target.getType() == DataLocation.Type.PRIVATE) {
             PrivateLocation privateLoc = (PrivateLocation) target;
-            targetDisk = null;//TODO: extract from URI
-            targetPath = privateLoc.uri.getPath();
+            targetDisk = null; //TODO: extract from URI
+            targetPath = privateLoc.getPath();
         } else {
             SharedLocation sharedloc = (SharedLocation) target;
             targetDisk = sharedloc.diskName;
             targetPath = sharedloc.path;
         }
         return (targetDisk != null && targetDisk.contentEquals(diskName) && targetPath.contentEquals(targetPath));
-    }
-
-    public String toString() {
-        return "shared:" + diskName + File.separator + path;
     }
 
     @Override
@@ -87,7 +91,7 @@ public class SharedLocation extends DataLocation {
             throw new NullPointerException();
         }
         if (o.getClass() != SharedLocation.class) {
-            return (this.getClass().getName()).compareTo("integratedtoolkit.types.data.location.SharedLocation");
+            return (this.getClass().getName()).compareTo(SharedLocation.class.toString());
         } else {
             SharedLocation sl = (SharedLocation) o;
             int compare = diskName.compareTo(sl.diskName);
@@ -97,4 +101,10 @@ public class SharedLocation extends DataLocation {
             return compare;
         }
     }
+    
+    @Override
+    public String toString() {
+        return "shared:" + diskName + File.separator + path;
+    }
+    
 }

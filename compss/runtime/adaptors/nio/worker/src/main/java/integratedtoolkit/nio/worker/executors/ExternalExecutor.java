@@ -9,17 +9,12 @@ import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
-import integratedtoolkit.util.Tracer;
 
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
-
-import storage.StorageException;
-import storage.StorageItf;
 
 
 public abstract class ExternalExecutor extends Executor {
@@ -140,52 +135,7 @@ public abstract class ExternalExecutor extends Executor {
             case FILE_T:
             	lArgs.add(np.getValue().toString());
             	break;
-        	case SCO_T:
-        	case PSCO_T:
-        		String renaming = np.getValue().toString();
-        		Object o = nw.getObject(renaming);
-        		PSCOId pscoId = null;
-        		if (o instanceof PSCOId) {
-        			pscoId = (PSCOId) o;					
-					if (!np.isWriteFinalValue()) {    							
-						if (!pscoId.getBackends().contains(nw.getHostName())){    								
-							if (tracing) {
-								NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
-							}								
-							try {
-								// Replicate PSCO
-								StorageItf.newReplica(pscoId.getId(), nw.getHostName());
-							} catch (StorageException e) {
-								throw new JobExecutionException("Error New Replica: parameter with id " + pscoId.getId() +  ", " + e.getMessage());
-							} finally {
-								if (tracing) {
-									NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
-								}									
-							}
-						}    						    						
-					} else {
-						if (tracing) {
-							NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
-						}
-						try {
-							// New PSCO Version
-							String newId = StorageItf.newVersion(pscoId.getId(), nw.getHostName());
-							// Modify the PSCO Identifier
-							pscoId.setId(newId);
-						} catch (StorageException e) {
-							throw new JobExecutionException("Error New Version: parameter with id " + pscoId.getId() +  ", " + e.getMessage());    						
-						} finally {
-							if (tracing) {
-								NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
-							}
-						}
-					}
-	           		lArgs.add(pscoId.getId());
-	                lArgs.add(np.isWriteFinalValue() ? "W" : "R");                        		
-        		} else {
-        			throw new JobExecutionException("Parameter " + o + " must be a PSCO");
-        		}
-        		break;            	
+            case PSCO_T:           	
             case OBJECT_T:
                 lArgs.add(np.getValue().toString());
                 lArgs.add(np.isWriteFinalValue() ? "W" : "R");                

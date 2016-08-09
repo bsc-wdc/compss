@@ -8,13 +8,15 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.location.URI;
-import integratedtoolkit.types.data.operation.Copy;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
+import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SSHManager;
 
 import org.gridlab.gat.GATContext;
@@ -110,7 +112,7 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void setInternalURI(URI uri) {
+    public void setInternalURI(MultiURI uri) {
         String scheme = uri.getScheme();
         String user = this.config.getUser().isEmpty() ? "" : this.config.getUser() + "@";
         String host = this.config.getHost();
@@ -188,15 +190,20 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public String getCompletePath(DataType type, String name) {
+    public SimpleURI getCompletePath(DataType type, String name) {
+    	String path = null;
         switch (type) {
             case FILE_T:
-                return this.config.getWorkingDir() + name;
             case OBJECT_T:
-                return this.config.getWorkingDir() + name;
+            case PSCO_T:
+                path = Protocol.FILE_URI.getSchema() + this.config.getWorkingDir() + name;
+                break;
             default:
                 return null;
         }
+        
+        // Convert path to URI
+        return new SimpleURI(path);
     }
 
     @Override

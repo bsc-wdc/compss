@@ -7,22 +7,18 @@ import integratedtoolkit.types.resources.jaxb.AdaptorType;
 import integratedtoolkit.types.resources.jaxb.ComputeNodeType;
 import integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties;
 import integratedtoolkit.types.resources.jaxb.OSTypeType;
-import integratedtoolkit.types.resources.jaxb.ObjectFactory;
 import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
 import integratedtoolkit.types.resources.jaxb.ProcessorType;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 

@@ -14,7 +14,7 @@ public class DependencyParameter extends Parameter implements Transferable {
 	
     private DataAccessId daId;
     private Object dataSource;
-    private String dataTarget;
+    private String dataTarget;		// Full path with PROTOCOL
 
     public DependencyParameter(DataType type, DataDirection direction) {
         super(type, direction);

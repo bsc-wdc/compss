@@ -6,6 +6,7 @@ import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.location.DataLocation;
+
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.DataAccessId;
@@ -14,6 +15,8 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.operation.FileTransferable;
 import integratedtoolkit.types.data.operation.OneOpWithSemListener;
+import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.util.ErrorManager;
 
 
 /**
@@ -104,29 +107,56 @@ public class TransferOpenFileRequest extends APRequest {
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         logger.debug("Process TransferOpenFileRequest");
-        DataLocation targetLocation;
         if (faId instanceof DataAccessId.WAccessId) {
             DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;
             DataInstanceId targetFile = waId.getWrittenDataInstance();
             String targetName = targetFile.getRenaming();
-            targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+            String targetPath = Comm.appHost.getTempDirPath() + targetName;
+            
+            DataLocation targetLocation = null;
+        	try {
+        		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+        		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
+        	} catch (Exception e) {
+        		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        	}
+
             logger.debug(targetFile + " to be opened as " + targetLocation);
             Comm.registerLocation(targetName, targetLocation);
             setLocation(targetLocation);
+            
             sem.release();
         } else {
             if (faId instanceof DataAccessId.RWAccessId) {
                 DataAccessId.RWAccessId waId = (DataAccessId.RWAccessId) faId;
                 String srcName = waId.getReadDataInstance().getRenaming();
                 String targetName = waId.getWrittenDataInstance().getRenaming();
-                targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                String targetPath = Comm.appHost.getTempDirPath() + targetName;
+                
+                DataLocation targetLocation = null;
+            	try {
+            		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+            		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
+            	} catch (Exception e) {
+            		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
+            	}
+
                 setLocation(targetLocation);
                 Comm.appHost.getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
             } else {
                 RAccessId waId = (RAccessId) faId;
                 String srcName = waId.getReadDataInstance().getRenaming();
                 String targetName = waId.getReadDataInstance().getRenaming();
-                targetLocation = DataLocation.getLocation(Comm.appHost, Comm.appHost.getTempDirPath() + targetName);
+                String targetPath = Comm.appHost.getTempDirPath() + targetName;
+                
+                DataLocation targetLocation = null;
+            	try {
+            		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+            		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
+            	} catch (Exception e) {
+            		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
+            	}
+
                 setLocation(targetLocation);
                 Comm.appHost.getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
             }

@@ -58,7 +58,6 @@ public class ITAppEditor extends ExprEditor {
 	private static final String DATA_DIRECTION 			= DataDirection.class.getCanonicalName();
 	
 	private static final String CHECK_SCO_TYPE 			= "LoaderUtils.checkSCOType(";
-	private static final String CHECK_SCO_PERSISTENT 	= "LoaderUtils.checkSCOPersistent(";
 	private static final String RUN_METHOD_ON_OBJECT 	= "LoaderUtils.runMethodOnObject(";
 	
 	// Logger
@@ -407,7 +406,7 @@ public class ITAppEditor extends ExprEditor {
             }
         } else { // Object or Self-Contained Object or Persistent SCO
         	type = CHECK_SCO_TYPE + "$" + (paramIndex + 1) + ")";
-        	infoToAppend.append(CHECK_SCO_PERSISTENT).append("$").append(paramIndex + 1).append("),");
+        	infoToAppend.append("$").append(paramIndex + 1).append(",");
         }
     	
     	switch (paramDirection) {
@@ -448,7 +447,11 @@ public class ITAppEditor extends ExprEditor {
             if (numRealParams > 1) {
             	targetObj.append(',');
             }
-            targetObj.append(CHECK_SCO_PERSISTENT + "$0),").append(CHECK_SCO_TYPE + "$0)");
+            // Add target object
+            targetObj.append("$0,");
+            // Add type
+            targetObj.append(CHECK_SCO_TYPE + "$0)");
+            // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
                 integratedtoolkit.types.annotations.Method methodAnnot = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.Method.class);

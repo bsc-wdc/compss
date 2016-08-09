@@ -89,7 +89,6 @@ public class NIOJob extends Job<NIOWorkerNode> {
             switch (type) {
                 case FILE_T:
                 case OBJECT_T:
-                case SCO_T:
                 case PSCO_T:
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
@@ -109,12 +108,14 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     boolean writeFinalValue = !(dAccId instanceof RAccessId);	// Only store W and RW	                
                     np = new NIOParam(type, preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
                     break;
+                    
                 default:
                     BasicTypeParameter btParB = (BasicTypeParameter) param;
                     value = btParB.getValue();
                     preserveSourceData = false;	// Basic parameters are not preserved on Worker
                     writeFinalValue = false;	// Basic parameters are not stored on Worker	                
                     np = new NIOParam(type, preserveSourceData, writeFinalValue, value, null);
+                    break;
             }
 
             params.add(np);

@@ -45,6 +45,8 @@ import integratedtoolkit.types.request.ap.UnblockResultFilesRequest;
 import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
+import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
 
@@ -105,31 +107,23 @@ public class AccessProcessor implements Runnable, TaskProducer {
             APRequest request = null;
             try {
                 request = requestQueue.take();
+                
                 if (tracing){
                     Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(), Tracer.getRuntimeEventsType());
                 }
                 request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
-                if (tracing){
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
-            } catch (InterruptedException e) {
-            	logger.error("Exception", e);
-                if (tracing){
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
-                continue;
+                
             } catch (ShutdownException se) {
-                if (tracing){
-                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-                }
                 break;
             } catch (Exception e) {
-                if (tracing){
+                logger.error("Exception", e);
+            } finally {
+            	if (tracing){
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
-                logger.error("Exception", e);
             }
         }
+        
         logger.info("AccessProcessor shutdown");
     }
 
@@ -161,7 +155,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
         if (!alreadyAccessed) {
-            logger.debug("File not accessed before returning the same location");
+            logger.debug("File not accessed before, returning the same location");
             return sourceLocation;
         }
 
@@ -184,8 +178,15 @@ public class AccessProcessor implements Runnable, TaskProducer {
                     RWAccessId ra = (RWAccessId) faId;
                     daId = ra.getReadDataInstance();
                 }
+                
                 String rename = daId.getRenaming();
-                tgtLocation = DataLocation.getLocation(Comm.appHost, destDir + rename);
+                String path = DataLocation.Protocol.FILE_URI.getSchema() + destDir + rename;
+                try {
+                	SimpleURI uri = new SimpleURI(path);
+                	tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
+                } catch (Exception e) {
+                	ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                }
 
                 transferFileRaw(faId, tgtLocation);
             }

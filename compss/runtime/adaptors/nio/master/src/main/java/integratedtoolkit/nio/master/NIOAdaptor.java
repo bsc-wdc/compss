@@ -16,12 +16,11 @@ import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
 import integratedtoolkit.nio.NIOMessageHandler;
-import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
+import integratedtoolkit.nio.NIOTaskResult;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
 import integratedtoolkit.nio.commands.Data;
@@ -31,12 +30,10 @@ import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.DataOperation;
-import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation.EventListener;
+import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job.JobHistory;
-import integratedtoolkit.types.parameter.PSCOId;
-import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.SCOParameter;
+import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.resources.Resource;
 
 import java.util.HashSet;
@@ -44,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.Configuration;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
@@ -253,9 +251,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         logger.debug("NIO submitting new job " + job.getJobId());
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
-        LinkedList<String> obsolete = res.clearObsoletes();
+        
+        LinkedList<LogicalData> obsoletes = res.clearObsoletes();
+        LinkedList<String> obsoleteRenamings = new LinkedList<String>();
+        for (LogicalData ld : obsoletes) {
+        	obsoleteRenamings.add(ld.getName());
+        }
+        
         runningJobs.put(job.getJobId(), job);
-        worker.submitTask(job, obsolete);
+        worker.submitTask(job, obsoleteRenamings);
     }
 
     @Override
@@ -282,28 +286,23 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         ws.setWorkerIsReady();
     }
 
-    public void receivedTaskDone(Connection c, int jobId, NIOTask nt, boolean successful) {
-        NIOJob nj = runningJobs.remove(jobId);
+    public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
+        NIOJob nj = runningJobs.remove(tr.getTaskId());
 
-        if (!executionType.equals(ITConstants.COMPSs)) {
-            int numParams = nj.getTaskParams().getParameters().length;
-            for (int i = 0; i < numParams; i++) {
-                Parameter dp = nj.getTaskParams().getParameters()[i];
-                if (dp instanceof SCOParameter) {
-                    SCOParameter scop = (SCOParameter) dp;
-                    NIOParam np = (NIOParam) nt.getParams().get(i);
-                    Object value = np.getValue();
-                    if (value instanceof PSCOId) {
-                        scop.setValue(value);
-                    }
-                }
-            }
+        // Update information
+        for (int i = 0; i < tr.getParamTypes().size(); ++i) {
+        	DataType d = tr.getParamTypes().get(i);
+        	if (d.equals(DataType.PSCO_T)) {
+        		String pscoId = (String) tr.getParamValue(i);
+        		
+        		DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+        		dp.setType(DataType.PSCO_T);
+        		dp.setDataTarget(pscoId);
+        	}
         }
 
+        // Update out/err files
         if (nj != null) {
-            // Check if all the FILE outs have been generated
-            // nj.getCore().getParameters()
-
             JobHistory h = nj.getHistory();
             nj.taskFinished(successful);
             if (workerDebug) {
@@ -315,8 +314,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + nj.getHistory() + ".err");
                 }
             }
-            c.finishConnection();
         }
+        
+        // Close connection
+        c.finishConnection();
     }
 
     public void registerCopy(Copy c) {
@@ -427,7 +428,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Check if the object has been serialized meanwhile
         if (o == null) {
-            for (URI loc : ld.getURIs()) {
+            for (MultiURI loc : ld.getURIs()) {
                 if (loc.getHost().getName().equals(Comm.appHost.getName())) {
                     // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
@@ -437,7 +438,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // If we arrive to this return means:
         //    1- The object has been found		or
-        //    2- The object is really null (no exception thown)
+        //    2- The object is really null (no exception thrown)
         return o;
     }
 
@@ -445,7 +446,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         LogicalData ld = Comm.getData(name);
 
     	// Get a Master location
-		for (URI loc : ld.getURIs()) {
+		for (MultiURI loc : ld.getURIs()) {
 			if (loc.getHost().getName().equals(Comm.appHost.getName())) {
 				return loc.getPath();
 			}
@@ -473,7 +474,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public void completeMasterURI(URI u) {
+    public void completeMasterURI(MultiURI u) {
         u.setInternalURI(ID, new NIOURI(masterNode, u.getPath()));
     }
 

@@ -33,6 +33,10 @@ public class NIOParam implements Externalizable {
     public DataType getType() {
         return type;
     }
+    
+    public void setType(DataType type) {
+    	this.type = type;
+    }
 
     public boolean isPreserveSourceData() {
         return preserveSourceData;
@@ -54,6 +58,7 @@ public class NIOParam implements Externalizable {
         return data;
     }
 
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         type = (DataType) in.readObject();
         preserveSourceData = in.readBoolean();
@@ -67,6 +72,7 @@ public class NIOParam implements Externalizable {
         }
     }
 
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(type);
         out.writeBoolean(preserveSourceData);
@@ -78,6 +84,7 @@ public class NIOParam implements Externalizable {
         }
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[PARAM");
         sb.append("[TYPE = ").append(type).append("]");

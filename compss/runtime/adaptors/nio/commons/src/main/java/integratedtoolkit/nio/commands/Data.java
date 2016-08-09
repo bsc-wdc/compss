@@ -3,7 +3,7 @@ package integratedtoolkit.nio.commands;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.URI;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.nio.NIOURI;
 
 import java.io.Externalizable;
@@ -25,30 +25,14 @@ public class Data implements Externalizable {
 
     public Data(String name, NIOURI uri) {
         this.name = name;
-        sources = new LinkedList<NIOURI>();
-        sources.add(uri);
+        this.sources = new LinkedList<NIOURI>();
+        this.sources.add(uri);
     }
 
     public Data(LogicalData ld) {
         this.name = ld.getName();
-        sources = new LinkedList<NIOURI>();
-        for (URI uri : ld.getURIs()) {
-            try {
-                Object o = uri.getInternalURI(NIOAgent.ID);
-                if (o != null) {
-                    this.sources.add((NIOURI) o);
-                }
-            } catch (UnstartedNodeException une) {
-                //Ignore internal URI.
-            }
-        }
-    }
-
-    public Data(LogicalData ld, NIOURI source) {
-        this.name = ld.getName();
-        sources = new LinkedList<NIOURI>();
-        sources.add(source);
-        for (URI uri : ld.getURIs()) {
+        this.sources = new LinkedList<NIOURI>();
+        for (MultiURI uri : ld.getURIs()) {
             try {
                 Object o = uri.getInternalURI(NIOAgent.ID);
                 if (o != null) {
@@ -98,7 +82,8 @@ public class Data implements Externalizable {
         return null;
     }
 
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    @SuppressWarnings("unchecked")
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         name = in.readUTF();
         sources = (LinkedList<NIOURI>) in.readObject();
     }

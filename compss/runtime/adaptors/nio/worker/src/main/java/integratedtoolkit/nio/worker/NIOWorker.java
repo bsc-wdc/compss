@@ -21,6 +21,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
+import integratedtoolkit.nio.NIOTaskResult;
 import integratedtoolkit.nio.NIOURI;
 import integratedtoolkit.nio.commands.CommandDataReceived;
 import integratedtoolkit.nio.commands.Data;
@@ -36,6 +37,7 @@ import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
+import integratedtoolkit.util.Tracer;
 
 
 public class NIOWorker extends NIOAgent {
@@ -51,6 +53,11 @@ public class NIOWorker extends NIOAgent {
 	private static final String EXECUTION_MANAGER_ERR 		= "Error starting ExecutionManager";
 	private static final String DATA_MANAGER_ERROR 			= "Error starting DataManager";
 	private static final String ERROR_INCORRECT_NUM_PARAMS 	= "Error: Incorrect number of parameters";
+	
+	// JVM Flag for WorkingDir removal
+	private static boolean removeWDFlagDefined = System.getProperty(ITConstants.IT_WORKER_REMOVE_WD) != null
+			&& !System.getProperty(ITConstants.IT_WORKER_REMOVE_WD).isEmpty();
+	private static boolean removeWD = removeWDFlagDefined ? Boolean.valueOf(System.getProperty(ITConstants.IT_WORKER_REMOVE_WD)) : true;
 	
 	// Application dependent attributes
 	private final String deploymentId;
@@ -218,7 +225,6 @@ public class NIOWorker extends NIOAgent {
 				switch (param.getType()) {
             	/* OBJECTS */
                 case OBJECT_T:
-                case SCO_T:
                 case PSCO_T:
                 	wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
 
@@ -227,8 +233,7 @@ public class NIOWorker extends NIOAgent {
 					boolean existInHost = false;
 					boolean askTransfer = false;
 					// Try if parameter is in cache
-					wLogger.debug("   - Checking if "
-							+ (String) param.getValue() + " is in cache.");
+					wLogger.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
 					catched = dataManager.checkPresence((String) param.getValue());
 					if (!catched) {
 						// Try if any of the object locations is in cache
@@ -239,15 +244,14 @@ public class NIOWorker extends NIOAgent {
 								wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") location found in cache.");
 								try {
 									if (param.isPreserveSourceData()) {
-										wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue()
-												+ ") preserves sources. CACHE-COPYING");
+										wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") preserves sources. CACHE-COPYING");
 										Object o = Serializer.deserialize(loc.getPath());
-										storeInCache((String) param.getValue(), o);
+										storeObject((String) param.getValue(), o);
 									} else {
 										wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. CACHE-MOVING");
-										Object o = dataManager.get(loc.getPath());
+										Object o = dataManager.getObject(loc.getPath());
 										dataManager.remove(loc.getPath());
-										storeInCache((String) param.getValue(), o);
+										storeObject((String) param.getValue(), o);
 									}
 									locationsInCache = true;
 								} catch (IOException ioe) {
@@ -288,7 +292,7 @@ public class NIOWorker extends NIOAgent {
 									}
 									// Move object to cache
 									Object o = Serializer.deserialize((String) param.getValue());
-									storeInCache((String) param.getValue(), o);
+									storeObject((String) param.getValue(), o);
 									existInHost = true;
 								} catch (IOException ioe) {
 									// If exception is raised, existInHost
@@ -316,8 +320,7 @@ public class NIOWorker extends NIOAgent {
 						DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
 						addTransferRequest(dr);
 					} else {
-						// If no transfer, decrease the parameter counter (we
-						// already have it)
+						// If no transfer, decrease the parameter counter (we already have it)
 						wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
 						--tt.params;
 					}
@@ -485,7 +488,7 @@ public class NIOWorker extends NIOAgent {
 	public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
 		if (type == Transfer.Destination.OBJECT) {
 			wLogger.info("Received data " + dataId + " with associated object " + object);
-			storeInCache(dataId, object);
+			storeObject(dataId, object);
 		} else {
 			wLogger.info("Received data " + dataId);
 		}
@@ -530,12 +533,8 @@ public class NIOWorker extends NIOAgent {
 			}
 		}
 		
-		CommandTaskDone cmd;
-        if (executionType.compareTo(ITConstants.COMPSs) == 0) {
-        	cmd = new CommandTaskDone(this, taskID, successful);
-        } else {
-        	cmd = new CommandTaskDone(this, nt, successful);
-        }        
+		NIOTaskResult tr = new NIOTaskResult(taskID, nt.getParams());
+		CommandTaskDone cmd = new CommandTaskDone(this, tr, successful);     
         c.sendCommand(cmd);
 		
 		if (isWorkerDebugEnabled) {
@@ -636,12 +635,12 @@ public class NIOWorker extends NIOAgent {
 				}
 			}
 
-			// Remove working Dir
-            String wDir = workingDir.substring(0, workingDir.indexOf(deploymentId) + deploymentId.length());
-            removeFolder(wDir);
-
-
-
+			// Remove workingDir
+			if (removeWD) {
+				wLogger.debug("Erasing Worker Sandbox WorkingDir");
+	            String wDir = workingDir.substring(0, workingDir.indexOf(deploymentId) + deploymentId.length());
+	            removeFolder(wDir);
+			}
 		} catch (Exception e) {
 			wLogger.error("Exception", e);
 		}
@@ -665,11 +664,38 @@ public class NIOWorker extends NIOAgent {
         }
     }
 
-	public Object getObject(String s) throws SerializedObjectException {
-		String realName = s.substring(s.lastIndexOf('/') + 1);
-		return dataManager.get(realName);
+	public Object getObject(String name) throws SerializedObjectException {
+		String realName = name.substring(name.lastIndexOf('/') + 1);
+		return dataManager.getObject(realName);
+	}
+	
+	public Object getPersistentObject(String id) throws StorageException {
+		// Get PSCO if cached
+		if (dataManager.checkPresence(id)) {
+			return dataManager.getObject(id);
+		}
+		
+		// Get PSCO by ID and cache value
+		if (tracing) {
+			NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+		}
+
+		Object obj = null;
+		try {
+			obj = StorageItf.getByID(id);
+			dataManager.storeObject(id, obj);
+		} catch (StorageException e) {
+			throw e;
+		} finally {
+			if (tracing) {
+				NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+			}
+		}
+		
+		return obj;
 	}
 
+	@Override
 	public String getObjectAsFile(String s) {
 		// This method should never be called in the worker side
 		wLogger.warn("getObjectAsFile has been called in the worker side!");
@@ -677,8 +703,12 @@ public class NIOWorker extends NIOAgent {
 		return null;
 	}
 
-	public void storeInCache(String name, Object value) {
-		dataManager.store(name, value);
+	public void storeObject(String name, Object value) {
+		dataManager.storeObject(name, value);
+	}
+	
+	public void storePersistentObject(String id, Object value) {
+		dataManager.storeObject(id, value);
 	}
 
 	public void removeFromCache(String name) {
@@ -696,7 +726,7 @@ public class NIOWorker extends NIOAgent {
 	}
 
 	@Override
-	public void receivedTaskDone(Connection c, int jobID, NIOTask nt, boolean successful) {
+	public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
 		// Should not receive this call
 	}
 
@@ -887,6 +917,8 @@ public class NIOWorker extends NIOAgent {
 			
 			wLogger.debug("StorageConf: " + storageConf);
 			wLogger.debug("executionType: " + executionType);
+			
+			wLogger.debug("Remove Sanbox WD: " + removeWD);
 		}
 		
 		/* **************************************

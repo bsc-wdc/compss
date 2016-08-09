@@ -4,7 +4,6 @@ import java.net.URISyntaxException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.gridlab.gat.GAT;
 import org.gridlab.gat.GATContext;
 
@@ -15,9 +14,10 @@ import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.comm.Dispatcher;
 import integratedtoolkit.gat.master.configuration.GATConfiguration;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.data.operation.Copy;
 import integratedtoolkit.types.data.operation.DataOperation;
+import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.resources.configuration.Configuration;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
@@ -170,7 +170,7 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     @Override
-    public void completeMasterURI(integratedtoolkit.types.data.location.URI uri) {
+    public void completeMasterURI(MultiURI uri) {
         String scheme = uri.getScheme();
         String user = masterUser + "@";
         String host = uri.getHost().getName();

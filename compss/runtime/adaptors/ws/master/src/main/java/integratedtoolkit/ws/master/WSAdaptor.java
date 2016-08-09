@@ -3,10 +3,10 @@ package integratedtoolkit.ws.master;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.resources.jaxb.PriceType;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
 import java.util.LinkedList;
@@ -91,7 +91,7 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public void completeMasterURI(URI u) {
+    public void completeMasterURI(MultiURI u) {
         //No need to do nothing
     }
 

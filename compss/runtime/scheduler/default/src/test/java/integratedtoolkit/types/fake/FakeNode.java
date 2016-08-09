@@ -7,11 +7,12 @@ import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 
 
 public class FakeNode extends COMPSsNode {
@@ -28,7 +29,7 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public void setInternalURI(URI uri) {
+    public void setInternalURI(MultiURI uri) {
 
     }
 
@@ -54,8 +55,8 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public String getCompletePath(DataType pt, String string) {
-        return "";
+    public SimpleURI getCompletePath(DataType pt, String string) {
+        return new SimpleURI("");
     }
 
     @Override

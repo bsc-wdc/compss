@@ -19,6 +19,13 @@ public class ITConstants {
     public static final String DM = "Data Manager";
     public static final String DIP = "Data Information Provider";
     public static final String FTM = "File Transfer Manager";
+    
+    // Languages
+    public static enum Lang {
+        JAVA,
+        C,
+        PYTHON
+    }
 
     // Dynamic system properties
     public static final String IT_APP_NAME 			= "it.appName";
@@ -42,7 +49,8 @@ public class ITConstants {
     public static final String IT_LANG 				= "it.lang";
     public static final String IT_WORKER_CP 		= "it.worker.cp";
     public static final String IT_WORKER_PP			= "it.worker.pythonpath";
-    public static final String IT_WORKER_JVM_OPTS   = "it.worker.jvm_opts"; 
+    public static final String IT_WORKER_JVM_OPTS   = "it.worker.jvm_opts";
+    public static final String IT_WORKER_REMOVE_WD  = "it.worker.removeWD";
     public static final String IT_CORE_COUNT 		= "it.core.count";
 
     public static final String COMM_ADAPTOR 		= "it.comm";
@@ -82,14 +90,7 @@ public class ITConstants {
     // Storage properties
 	public static final String IT_STORAGE_CONF 		= "it.storage.conf";
 	public static final String IT_TASK_EXECUTION 	= "it.task.execution";
-    public static final String COMPSs 				= "compss";
-
-    // Languages
-    public static enum Lang {
-        JAVA,
-        C,
-        PYTHON
-    }
+    public static final String EXECUTION_INTERNAL	= "compss";
 
     //According to runcompss script default value
     //private static final String DEFAULT_ADAPTOR 			= "integratedtoolkit.gat.master.GATAdaptor";
@@ -105,6 +106,7 @@ public class ITConstants {
 																+ "projects" + File.separator + "project_schema.xsd";
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
     public static final long DEFAULT_MONITOR_INTERVAL 		= 0;
+    
     
     private ITConstants() {
         throw new NonInstantiableException("ITConstants");

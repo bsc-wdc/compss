@@ -16,8 +16,7 @@ public interface COMPSsRuntime {
         STRING_T,
         FILE_T,
         OBJECT_T,
-        PSCO_T,
-        SCO_T;        
+        PSCO_T;       
     }
 
     // Parameter directions
@@ -168,5 +167,5 @@ public interface COMPSsRuntime {
 	 * @param id
 	 */
 	public void emitEvent(int type, long id);
-	
+		
 }

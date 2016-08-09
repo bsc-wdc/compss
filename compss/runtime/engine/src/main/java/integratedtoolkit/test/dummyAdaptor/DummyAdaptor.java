@@ -40,7 +40,7 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public void completeMasterURI(integratedtoolkit.types.data.location.URI uri) {
+    public void completeMasterURI(integratedtoolkit.types.uri.MultiURI uri) {
     }
 
 	@Override

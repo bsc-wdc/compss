@@ -9,14 +9,12 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Iterator;
-import java.util.List;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -31,15 +29,16 @@ import storage.StubItf;
 
 public class JavaExecutor extends Executor {
 	
-	private static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
-	private static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";
-	private static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
-	private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Class not found on external call";
-	private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
-	private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot serialize object";
-	private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
-	private static final String ERROR_PSCO_GET_LOC = "ERROR: Exception raised in external getLocations";
-	private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task '";
+	private static final String ERROR_CLASS_REFLECTION 		= "Cannot get class by reflection";
+	private static final String ERROR_METHOD_REFLECTION 	= "Cannot get method by reflection";
+	private static final String ERROR_TASK_EXECUTION 		= "ERROR: Exception executing task (user code)";
+	private static final String ERROR_CLASS_NOT_FOUND 		= "ERROR: Class not found on external call";
+	private static final String ERROR_CALLBACK_INTERRUPTED 	= "ERROR: External callback interrupted";
+	private static final String ERROR_SERIALIZED_OBJ 		= "ERROR: Cannot obtain object";
+	private static final String ERROR_PERSISTENT_OBJ		= "ERROR: Cannot getById persistent object";
+	private static final String ERROR_STORAGE_CALL 			= "ERROR: External executeTask call failed";
+	private static final String ERROR_OUT_FILES 			= "ERROR: One or more OUT files have not been created by task '";
+	private static final String WARN_RET_VALUE_EXCEPTION    = "WARN: Exception on externalExecution return value";
 	
 	private final boolean debug;
 
@@ -60,6 +59,9 @@ public class JavaExecutor extends Executor {
 		try {
 			processTask(nw, nt);
 		} catch (JobExecutionException jee) {
+			System.out.println("[JAVA EXECUTOR] executeTask - Error in task execution");
+			System.err.println("[JAVA EXECUTOR] executeTask - Error in task execution");
+			jee.printStackTrace();
 			throw jee;
 		} finally {
 			System.out.println("[JAVA EXECUTOR] executeTask - End task execution");
@@ -88,19 +90,21 @@ public class JavaExecutor extends Executor {
 		int totalNumberOfParams = hasTarget ? numParams - 1 : numParams;	// Don't count target if needed (i.e. obj.func())
 		Class<?>[] types = new Class[totalNumberOfParams];
 		Object[] values = new Object[totalNumberOfParams];
-		boolean[] isFile = new boolean[numParams];
 		String[] renamings = new String[numParams];
+		boolean[] isFile = new boolean[numParams];
+		boolean[] canBePSCO = new boolean[numParams];
 		boolean[] writeFinalValue = new boolean[numParams];		// By default the boolean initializer is in false
 					    										// False because basic types aren't nor written nor preserved
-		PSCOId[] pscoIds = new PSCOId[numParams];
+		TargetParam target = new TargetParam();	
 		
 		/* Parse the parameters *************************************/
-		Target target = new Target();
 		Iterator<NIOParam> params = nt.getParams().iterator();
 		for (int i = 0; i < numParams; i++) {
 			NIOParam np = params.next();
-			processParameter(nw, className, methodName, hasTarget, target, numParams, 
-					np, i, types, values, isFile, renamings, writeFinalValue, pscoIds);
+			processParameter(np, i,
+					nw, className, methodName, 
+					numParams, hasTarget, target,
+					types, values, renamings, isFile, canBePSCO, writeFinalValue);
 		}
 
 		/* DEBUG information ****************************************/
@@ -109,12 +113,14 @@ public class JavaExecutor extends Executor {
 			System.out.println("WORKER - Parameters of execution:");
 			System.out.println("  * Method class: " + className);
 			System.out.println("  * Method name: " + methodName);
+			
 			System.out.print("  * Parameter types:");
 			for (int i = 0; i < types.length; i++) {
 				System.out.print(" " + types[i].getName());
 
 			}
 			System.out.println();
+			
 			System.out.print("  * Parameter values:");
 			for (Object v : values) {
 				System.out.print(" " + v);
@@ -137,6 +143,7 @@ public class JavaExecutor extends Executor {
 		} catch (JobExecutionException jee) {
 			throw jee;
 		} finally {
+			// TRACING: Emit end task
 			if (tracing) {
 				NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
 				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
@@ -144,18 +151,20 @@ public class JavaExecutor extends Executor {
 		}
 		
 		/* Check SCO persistence for return and target ***************/
-		checkSCOPersistence(nw, numParams, hasTarget, target, renamings, writeFinalValue, values, pscoIds);
+		checkSCOPersistence(nw, nt, numParams, hasTarget, target, retValue, renamings, values, canBePSCO, writeFinalValue);
 		
 		/* Check files existence *************************************/
 		checkJobFiles(className, methodName, numParams, values, isFile);
 		
 		/* Write to disk the updated values **************************/
-		writeUpdatedParameters(nw, nt, hasTarget, numParams, writeFinalValue, values, renamings, target, retValue);
+		writeUpdatedParameters(nw, nt, numParams, hasTarget, target, retValue, renamings, values, writeFinalValue);
 	}
 
-	private void processParameter(NIOWorker nw, String className, String methodName, boolean hasTarget, Target target,
-			int numParams, NIOParam np, int i, Class<?>[] types, Object[] values, boolean[] isFile, 
-			String[] renamings, boolean[] writeFinalValue, PSCOId[] pscoIds) throws JobExecutionException {
+	private void processParameter(NIOParam np, int i,
+			NIOWorker nw, String className, String methodName,
+			int numParams, boolean hasTarget, TargetParam target, 
+			Class<?>[] types, Object[] values, String[] renamings, 
+			boolean[] isFile, boolean[] canBePSCO, boolean[] writeFinalValue) throws JobExecutionException {
 
 		// We need to use wrapper classes for basic types, reflection will unwrap automatically
 		switch (np.getType()) {
@@ -203,127 +212,74 @@ public class JavaExecutor extends Executor {
 			case OBJECT_T:
 				renamings[i] = np.getValue().toString();
 				writeFinalValue[i] = np.isWriteFinalValue();
-				Object o;
-				try {
-					o = nw.getObject(renamings[i]);
-				} catch (SerializedObjectException e) {
-					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
-				}
-				if (hasTarget && i == numParams - 1) { // last parameter is the target object
-					if (o == null) {
-						throw new JobExecutionException("Target object with renaming " + renamings[i] 
-								+ ", method " + methodName + ", class " + className + " is null!" + "\n");
-					}
-					target.setNpTarget(np);
-					target.setTarget(o);
-				} else {
-					if (o == null) {
-						throw new JobExecutionException("Object parameter " + i + " with renaming " + renamings[i] + ", method "
-								+ methodName + ", class " + className + " is null!" + "\n");
-					}
-					types[i] = o.getClass();
-					values[i] = o;
-				}
-				break;
-			case SCO_T:
-			case PSCO_T:
-				renamings[i] = np.getValue().toString();
-				writeFinalValue[i] = np.isWriteFinalValue();
+				
+				// Get object
 				Object obj;
 				try {
 					obj = nw.getObject(renamings[i]);
 				} catch (SerializedObjectException e) {
 					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
 				}
-				PSCOId pscoId = null;
-				if (obj instanceof PSCOId) {
-					pscoId = (PSCOId) obj;
-					if (!writeFinalValue[i]) {
-						if ((NIOWorker.getExecutionType().compareTo(ITConstants.COMPSs) != 0)
-								&& !pscoId.getBackends().contains(nw.getHostName())) {
-
-							if (tracing) {
-								NIOTracer.emitEvent(Tracer.Event.STORAGE_NEWREPLICA.getId(), Tracer.Event.STORAGE_NEWREPLICA.getType());
-							}
-
-							try {
-								// Replicate PSCO
-								StorageItf.newReplica(pscoId.getId(), nw.getHostName());
-							} catch (StorageException e) {
-								throw new JobExecutionException(
-										"Error New Replica: parameter " + i + " with id " + pscoId.getId()
-												+ ", method " + methodName + ", class " + className
-												+ ", exception " + e.getMessage() + "\n");
-							} finally {
-								if (tracing) {
-									NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWREPLICA.getType());
-								}
-							}
-
-						}
-					} else {
-						if (tracing) {
-							NIOTracer.emitEvent( Tracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
-						}
-
-						try {
-							// New PSCO Version
-							String newId = StorageItf.newVersion(pscoId.getId(), nw.getHostName());
-							// Modify the PSCO Identifier
-							pscoId.setId(newId);
-						} catch (StorageException e) {
-							throw new JobExecutionException(
-									"Error New Version: parameter " + i + " with id " + pscoId.getId()
-											+ ", method " + methodName + ", class " + className + ", exception " + e.getMessage() + "\n");
-						} finally {
-							if (tracing) {
-								NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
-							}
-						}
-					}
-
-					// GET PSCO BY ID
-					if (tracing) {
-						NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-					}
-
-					try {
-						obj = StorageItf.getByID(pscoId.getId());
-					} catch (StorageException e) {
-						throw new JobExecutionException(
-								"Error GetByID: parameter " + i + " with id "
-										+ pscoId.getId() + ", method "
-										+ methodName + ", class " + className
-										+ ", exception " + e.getMessage() + "\n");
-					} finally {
-						if (tracing) {
-							NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-						}
-					}
-				}
-
-				// Store parameter information (as target if needed)
-				if (hasTarget && i == numParams - 1) { // last parameter is the target object
+				
+				// Store information as target or as normal parameter
+				if (hasTarget && i == numParams - 1) { 
+					// Last parameter is the target object
 					if (obj == null) {
-						throw new JobExecutionException("Target SCO with renaming " + renamings[i]
-										+ ", method " + methodName + ", class " + className + " is null!" + "\n");
+						throw new JobExecutionException("Target object with renaming " + renamings[i] 
+								+ ", method " + methodName + ", class " + className + " is null!" + "\n");
 					}
-					target.setNpTarget(np);
-					target.setTarget(obj);
-					target.setTargetPscoId(pscoId);
+					target.setValue(obj);
 				} else {
+					// Any other parameter
 					if (obj == null) {
-						throw new JobExecutionException("SCO parameter " + i + " with renaming " + renamings[i] + ", method "
+						throw new JobExecutionException("Object parameter " + i + " with renaming " + renamings[i] + ", method "
 								+ methodName + ", class " + className + " is null!" + "\n");
 					}
 					types[i] = obj.getClass();
 					values[i] = obj;
-					pscoIds[i] = pscoId;
+				}
+				break;
+			case PSCO_T:
+				renamings[i] = np.getValue().toString();
+				writeFinalValue[i] = np.isWriteFinalValue();
+				
+				// Get ID
+				String id;
+				try {
+					id = (String) nw.getObject(renamings[i]);
+				} catch (SerializedObjectException e) {
+					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
+				}
+				
+				// Get Object
+				try {
+					obj = nw.getPersistentObject(id);
+				} catch (StorageException e) {
+					throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + id, e);
+				}
+				
+				// Store information as target or as normal parameter
+				if (hasTarget && i == numParams - 1) { 
+					// Last parameter is the target object
+					if (obj == null) {
+						throw new JobExecutionException("Target PSCO with renaming " + renamings[i] 
+								+ ", method " + methodName + ", class " + className + " is null!" + "\n");
+					}
+					target.setValue(obj);
+				} else {
+					// Any other parameter
+					if (obj == null) {
+						throw new JobExecutionException("Object parameter " + i + " with renaming " + renamings[i] + ", method "
+								+ methodName + ", class " + className + " is null!" + "\n");
+					}
+					types[i] = obj.getClass();
+					values[i] = obj;
 				}
 				break;				
 		}
 
 		isFile[i] = (np.getType().equals(DataType.FILE_T));
+		canBePSCO[i] = (np.getType().equals(DataType.OBJECT_T)) || (np.getType().equals(DataType.PSCO_T));		
 	}
 	
 	private Method getMethod(String className, String methodName, Class<?>[] types) throws JobExecutionException {
@@ -343,11 +299,11 @@ public class JavaExecutor extends Executor {
 		return method;
 	}
 	
-	private Object invokeMethod(NIOWorker nw, Method method, Target target, Object[] values) throws JobExecutionException {
+	private Object invokeMethod(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {	
 		/* Invoke the requested method ********************************/
 		Object retValue = null;
-
-		if (target.getTargetPscoId() == null) {
+		
+		if (NIOWorker.getExecutionType().equals(ITConstants.EXECUTION_INTERNAL)) {
 			// Invoke the requested method from COMPSs
 			retValue = internalExecution(nw, method, target, values);
 		} else {
@@ -357,15 +313,16 @@ public class JavaExecutor extends Executor {
 		return retValue;
 	}
 	
-	private Object internalExecution(NIOWorker nw, Method method, Target target, Object[] values) throws JobExecutionException {
+	private Object internalExecution(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {		
 		Object retValue = null;
+		
 		if (tracing) {
 			NIOTracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
 		}
-
+		
 		try {
-			retValue = method.invoke(target.getTarget(), values);
-			logger.info("Invoked " + method.getName() + " of " + target.getTarget() + " in " + nw.getHostName());
+			logger.info("Invoked " + method.getName() + " of " + target + " in " + nw.getHostName());
+			retValue = method.invoke(target.getValue(), values);
 		} catch (Exception e) {
 			throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
 		} finally {
@@ -377,12 +334,8 @@ public class JavaExecutor extends Executor {
 		return retValue;
 	}
 	
-	private Object externalExecution(NIOWorker nw, Method method, Target target, Object[] values) throws JobExecutionException {
+	private Object externalExecution(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {
 		// Invoke the requested method from the external platform
-		if (tracing) {
-			NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
-		}
-
 		int n = method.getParameterAnnotations().length;
 		ClassPool pool = ClassPool.getDefault();
 		Class<?>[] cParams = method.getParameterTypes();
@@ -402,14 +355,25 @@ public class JavaExecutor extends Executor {
 			throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
 		}
 		
-
 		// Call Storage executeTask
-		logger.info("executeTask " + descriptor + " with " + target.getTarget() + " in " + nw.getHostName());
+		String targetId = ((StubItf) target.getValue()).getID();
+		logger.info("executeTask " + descriptor + " with " + targetId + " in " + nw.getHostName());
+		if (tracing) {
+			NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
+		}
+		
 		PSCOCallbackHandler callback = new PSCOCallbackHandler();
 		try {
-			String call_result = StorageItf.executeTask(((PSCOId) target.getTargetPscoId()).getId(), descriptor, values, nw.getHostName(), callback);
+			String call_result = StorageItf.executeTask(
+					targetId,
+					descriptor, 
+					values, 
+					nw.getHostName(), 
+					callback);
+			
 			logger.debug(call_result);
 			
+			// Wait for execution
 			callback.wait();
 		} catch (StorageException e) {
 			throw new JobExecutionException(ERROR_STORAGE_CALL, e);
@@ -421,11 +385,13 @@ public class JavaExecutor extends Executor {
 			}
 		}
 
+		// Process return value
 		Object retValue = null;
 		if (method.getReturnType().getName().compareTo(void.class.getName()) != 0) {
 			try {
 				retValue = callback.getResult();
 			} catch (StorageException e) {
+				logger.warn(WARN_RET_VALUE_EXCEPTION, e);
 				retValue = null;
 			}
 		}
@@ -433,51 +399,68 @@ public class JavaExecutor extends Executor {
 		return retValue;
 	}
 	
-	private void checkSCOPersistence(NIOWorker nw, int numParams, boolean hasTarget, Target target,
-			String[] renamings, boolean[] writeFinalValue, Object[] values, PSCOId[] pscoIds) throws JobExecutionException {
+	private void checkSCOPersistence(NIOWorker nw, NIOTask nt, int numParams, boolean hasTarget, TargetParam target,
+			Object retValue, String[] renamings, Object[] values, boolean[] canBePSCO, boolean[] writeFinalValue) {
 		
-		/* Check target SCO Persistence *******************************/
-		if (hasTarget && (target.getNpTarget().getType() == DataType.SCO_T) && (target.getTargetPscoId() == null)) {
-			String renaming = renamings[numParams - 1] = target.getNpTarget().getValue().toString();
-			String name = renaming;
-			writeFinalValue[numParams - 1] = target.getNpTarget().isWriteFinalValue();
-			StubItf sco;
-			try {
-				sco = (StubItf) nw.getObject(name);
-			} catch (SerializedObjectException e) {
-				throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
+		// Check all parameters and target
+		for (int i = 0; i < numParams; i++) {
+			if (canBePSCO[i] && writeFinalValue[i]) {
+				// Get information as target or as normal parameter
+				Object obj = null;
+				if (hasTarget && i == numParams - 1) { 
+					obj = target.getValue();
+				} else {
+					obj = values[i];
+				}
+
+				// Check if it is a PSCO and has been persisted in task
+				String id = null;
+				try {
+					StubItf psco = (StubItf) obj;
+					id = psco.getID();
+				} catch (Exception e) {
+					// No need to raise an exception because normal objects are not PSCOs
+					id = null;
+				}
+				
+				// Update to PSCO if needed
+				if (id != null) {
+					// Object has been persisted, we store the PSCO and change the value to its ID
+					nw.storePersistentObject(id, obj);
+					
+					if (hasTarget && i == numParams - 1) { 
+						target.setValue(id);
+					} else {
+						values[i] = id;
+					}
+					nt.getParams().get(i).setType(DataType.PSCO_T);
+					nt.getParams().get(i).setValue(id);
+				}
 			}
+		}
+
+		// Check return
+		if (retValue != null) {
+			// Check if it is a PSCO and has been persisted in task
 			String id = null;
 			try {
-				id = sco.getID();
+				StubItf psco = (StubItf) retValue;
+				id = psco.getID();
 			} catch (Exception e) {
+				// No need to raise an exception because normal objects are not PSCOs
 				id = null;
 			}
+			
+			// Update to PSCO if needed
 			if (id != null) {
-				target.setTargetPscoId(new PSCOId(sco, id));
-				List<String> backends;
-				try {
-					backends = StorageItf.getLocations(target.getTargetPscoId().getId());
-				} catch (StorageException e) {
-					throw new JobExecutionException(ERROR_PSCO_GET_LOC, e);
-				}
-				target.getTargetPscoId().setBackends(backends);
-				target.getNpTarget().setValue(target.getTargetPscoId());
-			}
-		}
-
-		// Write to disk the target PSCO
-		if (target.getTargetPscoId() != null) {
-			target.setTarget(target.getTargetPscoId());
-		}
-
-		for (int i = 0; i < numParams; i++) {
-			if (pscoIds[i] != null) {
-				// Put the new SCO Identifier as modified value.
-				values[i] = pscoIds[i];
+				// Object has been persisted
+				nw.storePersistentObject(id, retValue);
+				nt.getParams().getLast().setType(DataType.PSCO_T);
+				retValue = id;
 			}
 		}
 	}
+
 	
 	private void checkJobFiles(String className, String methodName, int numParams, Object[] values, 
 			boolean[] isFile) throws JobExecutionException {
@@ -505,16 +488,18 @@ public class JavaExecutor extends Executor {
 			throw new JobExecutionException(ERROR_OUT_FILES + methodName + "'");
 		}
 	}
-	
-	private void writeUpdatedParameters(NIOWorker nw, NIOTask nt, boolean hasTarget, int numParams, 
-			boolean[] writeFinalValue, Object[] values, String[] renamings, Target target, Object retValue) {
+
+	private void writeUpdatedParameters(NIOWorker nw, NIOTask nt, int numParams, boolean hasTarget, TargetParam target,
+			Object retValue, String[] renamings, Object[] values, boolean[] writeFinalValue) {
 		
 		// Write to disk the updated object parameters, if any (including the target)
 		for (int i = 0; i < numParams; i++) {
 			if (writeFinalValue[i]) {
-				// The parameter is a file or an object that MUST be stored
-				Object res = (hasTarget && i == numParams - 1) ? target.getTarget() : values[i];
-				nw.storeInCache(renamings[i], res);
+				Object res = (hasTarget && i == numParams - 1) ? target.getValue() : values[i];
+				// Update task params for TaskResult command
+				nt.getParams().get(i).setValue(res);
+				// The parameter is a file, an object or PSCO Id that MUST be stored
+				nw.storeObject(renamings[i], res);
 			}
 		}
 
@@ -522,58 +507,23 @@ public class JavaExecutor extends Executor {
 		if (retValue != null) {
 			String renaming = (String) nt.getParams().getLast().getValue();
 			// Always stored because it can only be a OUT object
-			nw.storeInCache(renaming.substring(renaming.lastIndexOf('/') + 1), retValue);
+			nw.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), retValue);
 		}
-	}
+	}	
+
 	
-	
-	private class Target {
-		
-		private NIOParam npTarget = null;
-		private Object target = null;
-		private PSCOId targetPscoId = null;
-		
-		public Target() {
-			
-		}
-
-		public NIOParam getNpTarget() {
-			return npTarget;
-		}
-
-		public void setNpTarget(NIOParam npTarget) {
-			this.npTarget = npTarget;
-		}
-
-		public Object getTarget() {
-			return target;
-		}
-
-		public void setTarget(Object target) {
-			this.target = target;
-		}
-
-		public PSCOId getTargetPscoId() {
-			return targetPscoId;
-		}
-
-		public void setTargetPscoId(PSCOId targetPscoId) {
-			this.targetPscoId = targetPscoId;
-		}
-		
-	}
-	
-
+	/**
+	 * Class to get the Storage Callback
+	 * 
+	 */
 	private class PSCOCallbackHandler extends CallbackHandler {
 
 		private CallbackEvent event;
 
 		@Override
 		protected void eventListener(CallbackEvent e) {
-
 			this.event = e;
-			logger.debug("Received event task finished with callback id "
-					+ event.getRequestID());
+			logger.debug("Received event task finished with callback id " + event.getRequestID());
 
 			synchronized (this) {
 				this.notifyAll();
@@ -584,6 +534,29 @@ public class JavaExecutor extends Executor {
 			return StorageItf.getResult(event);
 		}
 
+	}
+	
+	
+	/**
+	 * Class to Wrap Target Parameter
+	 * 
+	 */
+	private class TargetParam {
+		
+		private Object value = null;
+		
+		
+		public TargetParam() {
+		}
+		
+		public Object getValue() {
+			return this.value;
+		}
+		
+		public void setValue(Object value) {
+			this.value = value;
+		}
+		
 	}
 
 }

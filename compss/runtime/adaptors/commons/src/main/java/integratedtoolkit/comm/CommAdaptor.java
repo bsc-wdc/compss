@@ -1,12 +1,11 @@
 package integratedtoolkit.comm;
 
-import integratedtoolkit.types.data.location.URI;
-
 import java.util.LinkedList;
 
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.resources.configuration.Configuration;
+import integratedtoolkit.types.uri.MultiURI;
 
 
 public interface CommAdaptor {
@@ -21,7 +20,7 @@ public interface CommAdaptor {
 
     public LinkedList<DataOperation> getPending();
 
-    public void completeMasterURI(URI u);
+    public void completeMasterURI(MultiURI u);
 
     public void stopSubmittedJobs();
 

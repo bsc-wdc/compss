@@ -4,7 +4,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.types.COMPSsMaster;
-import integratedtoolkit.types.data.location.URI;
+import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.io.File;
@@ -239,7 +239,7 @@ public class MasterResource extends Resource {
     }
 
     @Override
-    public void setInternalURI(URI u) {
+    public void setInternalURI(MultiURI u) {
         for (CommAdaptor adaptor : Comm.getAdaptors().values()) {
             adaptor.completeMasterURI(u);
         }

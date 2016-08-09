@@ -1,20 +1,15 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.util.ResourceManager;
 
 import java.util.HashSet;
-import java.util.List;
 
 
 public class Score {
@@ -69,18 +64,6 @@ public class Score {
             // Obtain the scores for the host: number of task parameters that are located in the host
             for (Parameter p : parameters) {
                 if (p instanceof DependencyParameter && p.getDirection() != DataDirection.OUT) {
-
-                    DataType type = p.getType();
-
-                    if (type == DataType.SCO_T) {
-                        SCOParameter scop = (SCOParameter) p;
-                        PSCOId pscoId = Comm.getPSCOId(scop.getCode());
-                        if (pscoId != null) {
-                            scop.setType(DataType.PSCO_T);
-                            scop.setValue(pscoId);
-                        }
-                    }
-
                     DependencyParameter dp = (DependencyParameter) p;
                     DataInstanceId dId = null;
                     switch (dp.getDirection()) {
@@ -93,27 +76,20 @@ public class Score {
                             dId = rwaId.getReadDataInstance();
                             break;
                         case OUT:
+                        	// Cannot happen because of previous if
                             break;
                     }
+                    
+                    // Get hosts for resource score
                     if (dId != null) {
-                        if (type == DataType.PSCO_T) {
-                            List<String> backends = Comm.getPSCOLocations((SCOParameter) p);
-                            for (String backendID : backends) {
-                                Resource host = ResourceManager.getWorker(backendID);
-                                if (host == w) {
-                                    resourceScore++;
-                                }
-                            }
-
-                        } else {
-                            HashSet<Resource> hosts = Comm.getData(dId.getRenaming()).getAllHosts();
-                            for (Resource host : hosts) {
-                                if (host == w) {
-                                    resourceScore++;
-                                }
+                        HashSet<Resource> hosts = Comm.getData(dId.getRenaming()).getAllHosts();
+                        for (Resource host : hosts) {
+                            if (host == w) {
+                                resourceScore++;
                             }
                         }
                     }
+                    
                 }
             }
         }

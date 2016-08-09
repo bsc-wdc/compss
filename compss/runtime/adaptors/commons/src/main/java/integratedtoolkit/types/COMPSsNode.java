@@ -5,7 +5,6 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.URI;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.DataOperation;
@@ -13,6 +12,8 @@ import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +41,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void start() throws Exception;
 
-    public abstract void setInternalURI(URI u) throws UnstartedNodeException;
+    public abstract void setInternalURI(MultiURI u) throws UnstartedNodeException;
 
     public abstract Job<?> newJob(int taskId, TaskParams taskparams, Implementation<?> impl, Resource res, JobListener listener);
 
@@ -50,7 +51,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void stop(ShutdownListener sl);
 
-    public abstract String getCompletePath(DataType type, String name);
+    public abstract SimpleURI getCompletePath(DataType type, String name);
 
     public abstract void deleteTemporary();
 

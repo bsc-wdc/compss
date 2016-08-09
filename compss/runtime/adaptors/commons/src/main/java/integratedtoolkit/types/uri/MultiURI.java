@@ -1,29 +1,24 @@
-package integratedtoolkit.types.data.location;
+package integratedtoolkit.types.uri;
 
 import integratedtoolkit.exceptions.UnstartedNodeException;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.resources.Resource;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
-public class URI implements Comparable<URI> {
 
-    private final String scheme;
+public class MultiURI implements Comparable<MultiURI> {
+
+    private final Protocol protocol;
     private final Resource host;
     private final String path;
     private final HashMap<String, Object> internal;
 
-    protected static final String ANY_PROT = "any://";
 
-    public URI(Resource host, String path) {
-        this.scheme = ANY_PROT;
-        this.host = host;
-        this.path = path;
-        this.internal = new HashMap<String, Object>();
-    }
-
-    public URI(String scheme, Resource host, String path) {
-        this.scheme = scheme;
+    public MultiURI(Protocol protocol, Resource host, String path) {
+        this.protocol = protocol;
         this.host = host;
         this.path = path;
         this.internal = new HashMap<String, Object>();
@@ -47,27 +42,32 @@ public class URI implements Comparable<URI> {
     }
 
     public String getPath() {
-        return path;
+        return this.path;
+    }
+    
+    public Protocol getProtocol() {
+    	return this.protocol;
     }
 
     public String getScheme() {
-        return this.scheme;
+        return this.protocol.getSchema();
     }
 
+    @Override
     public String toString() {
-        return scheme + host.getName() + File.separator + path;
+        return this.protocol.getSchema() + this.host.getName() + File.separator + this.path;
     }
 
     public String debugString() {
-        StringBuilder sb = new StringBuilder(scheme + host.toString() + File.separator + path + "\n");
-        for (java.util.Map.Entry<String, Object> e : internal.entrySet()) {
+        StringBuilder sb = new StringBuilder(this.protocol.getSchema() + this.host.toString() + File.separator + this.path + "\n");
+        for (Entry<String, Object> e : internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }
         return sb.toString();
     }
 
     @Override
-    public int compareTo(URI o) {
+    public int compareTo(MultiURI o) {
         if (o == null) {
             throw new NullPointerException();
         }

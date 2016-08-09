@@ -24,11 +24,10 @@ import integratedtoolkit.types.data.operation.JobTransfersListener;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobStatusListener;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.parameter.PSCOId;
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.parameter.SCOParameter;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.JobDispatcher;
@@ -136,7 +135,8 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
             if (debug) {
                 jobLogger.debug("Setting data target job transfer: " + w.getCompleteRemotePath(param.getType(), tgtName));
             }
-            param.setDataTarget(w.getCompleteRemotePath(param.getType(), tgtName));
+            param.setDataTarget( w.getCompleteRemotePath(param.getType(), tgtName).getPath() );
+            
             return;
         }
 
@@ -207,6 +207,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         int jobId = job.getJobId();
         Worker<?> w = selectedResource.getResource();
         jobLogger.info("Received a notification for job " + jobId + " with state OK");
+        
         // Job finished, update info about the generated/updated data
         for (Parameter p : job.getTaskParams().getParameters()) {
             if (p instanceof DependencyParameter) {
@@ -228,24 +229,36 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
                         break;
                 }
 
-                if (!executionType.equals(ITConstants.COMPSs)) {
-                    if (p instanceof SCOParameter) {
-                        SCOParameter scop = (SCOParameter) p;
-                        int id = scop.getCode();
-                        Object value = scop.getValue();
-                        if (value instanceof PSCOId) {
-                            PSCOId pscoId = (PSCOId) value;
-                            Comm.registerPSCOId(id, pscoId);
-                        }
-                    }
-                }
-
                 String name = dId.getRenaming();
-
                 if (job.getKind() == Job.JobKind.METHOD) {
-                    DataLocation outLoc = DataLocation.getLocation(w, dp.getDataTarget());
+                	String targetProtocol = null;
+                	switch (dp.getType()) {
+                		case FILE_T:
+                			targetProtocol = DataLocation.Protocol.FILE_URI.getSchema();
+                			break;
+                		case OBJECT_T:
+                			targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
+                			break;
+                		case PSCO_T:
+                			targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                			break;
+                		default:
+                			// Should never reach this point because only DependencyParameter types are treated
+                			// Ask for any_uri just in case
+                			targetProtocol = DataLocation.Protocol.ANY_URI.getSchema();
+                			break;
+                	}
+                	
+                	DataLocation outLoc = null;
+                	try {
+                		SimpleURI targetURI = new SimpleURI(targetProtocol + dp.getDataTarget());
+                		outLoc = DataLocation.createLocation(w, targetURI);
+                	} catch (Exception e) {
+                		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + dp.getDataTarget(), e);
+                	}
                     Comm.registerLocation(name, outLoc);
                 } else {
+                	// Service
                     Object value = job.getReturnValue();
                     Comm.registerValue(name, value);
                 }

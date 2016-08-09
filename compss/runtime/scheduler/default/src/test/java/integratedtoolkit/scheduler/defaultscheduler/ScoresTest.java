@@ -21,6 +21,7 @@ import integratedtoolkit.types.fake.FakeResourceDescription;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.CoreManager;
 
 import org.junit.After;
@@ -28,6 +29,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 
 public class ScoresTest {
 
@@ -135,7 +137,7 @@ public class ScoresTest {
     }
 
     @Test
-    public void testResourceScores() throws BlockedActionException, UnassignedActionException {
+    public void testResourceScores() throws BlockedActionException, UnassignedActionException, Exception {
         drs.clear();
         FakeAllocatableAction action1 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(0));
 
@@ -161,11 +163,11 @@ public class ScoresTest {
         DefaultScore score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 2 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
 
-        Comm.registerLocation(d1v1.getRenaming(), DataLocation.getPrivateLocation(drs.getResource(), "/home/test/a"));
+        Comm.registerLocation(d1v1.getRenaming(), DataLocation.createLocation(drs.getResource(), new SimpleURI("/home/test/a")));
         score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 1 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 1 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
 
-        Comm.registerLocation(d2v2.getRenaming(), DataLocation.getPrivateLocation(drs.getResource(), "/home/test/b"));
+        Comm.registerLocation(d2v2.getRenaming(), DataLocation.createLocation(drs.getResource(), new SimpleURI("/home/test/b")));
         score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
         Verifiers.verifyScore(score1, 0, 0 * DefaultResourceScheduler.DATA_TRANSFER_DELAY, 0, 0, 0 * DefaultResourceScheduler.DATA_TRANSFER_DELAY);
 

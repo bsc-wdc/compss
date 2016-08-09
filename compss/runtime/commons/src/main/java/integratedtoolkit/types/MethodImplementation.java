@@ -52,13 +52,11 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
             }
             if (numPars > 0) {
             	DataType type = parameters[0].getType();
-            	if (type == DataType.SCO_T) type = DataType.OBJECT_T;
-            	if (type == DataType.PSCO_T) type = DataType.OBJECT_T;            	
+            	type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;      	
                 buffer.append(type);
                 for (int i = 1; i < numPars; i++) {
                 	type = parameters[i].getType();
-                	if (type == DataType.SCO_T) type = DataType.OBJECT_T;
-                	if (type == DataType.PSCO_T) type = DataType.OBJECT_T;
+                	type = (type == DataType.PSCO_T) ? DataType.OBJECT_T : type;  
                     buffer.append(",").append(type);
                 }
             }
@@ -72,6 +70,7 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
         return Type.METHOD;
     }
 
+    @Override
     public String toString() {
         return super.toString() + " Method declared in class " + declaringClass + ": " + requirements.toString();
     }

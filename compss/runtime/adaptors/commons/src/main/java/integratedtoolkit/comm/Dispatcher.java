@@ -2,9 +2,9 @@ package integratedtoolkit.comm;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.operation.DataOperation;
-import integratedtoolkit.types.data.operation.Copy.DeferredCopy;
-import integratedtoolkit.types.data.operation.Copy.ImmediateCopy;
 import integratedtoolkit.types.data.operation.Delete;
+import integratedtoolkit.types.data.operation.copy.DeferredCopy;
+import integratedtoolkit.types.data.operation.copy.ImmediateCopy;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 

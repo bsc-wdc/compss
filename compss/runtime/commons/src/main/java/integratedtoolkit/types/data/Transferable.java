@@ -5,13 +5,13 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 public interface Transferable {
 
-    Object getDataSource();
+    public Object getDataSource();
 
-    void setDataSource(Object dataSource);
+    public void setDataSource(Object dataSource);
 
-    String getDataTarget();
+    public String getDataTarget();
 
-    void setDataTarget(String target);
+    public void setDataTarget(String target);
     
-    DataType getType();
+    public DataType getType();
 }

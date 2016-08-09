@@ -31,6 +31,7 @@ import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.DataAccessId.*;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.Resource;
@@ -227,10 +228,11 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         lArgs.add(lang);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
-        LinkedList<String> obsoleteFiles = getResource().clearObsoletes();
+        LinkedList<LogicalData> obsoleteFiles = getResource().clearObsoletes();
         if (obsoleteFiles != null) {
             lArgs.add("" + obsoleteFiles.size());
-            for (String renaming : obsoleteFiles) {
+            for (LogicalData ld : obsoleteFiles) {
+            	String renaming = ld.getName();
                 lArgs.add(renaming);
             }
         } else {

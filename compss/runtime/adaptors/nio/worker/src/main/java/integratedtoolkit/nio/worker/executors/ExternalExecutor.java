@@ -39,9 +39,15 @@ public abstract class ExternalExecutor extends Executor {
 		
 		this.writePipe = writePipe;
 		this.taskResultReader = resultReader;
-		
+
+		if (tracing) {
+			NIOTracer.disablePThreads();
+		}
 		// Start task Reader
 		this.taskResultReader.start();
+		if (tracing){
+			NIOTracer.enablePThreads();
+		}
 	}
 
     @Override

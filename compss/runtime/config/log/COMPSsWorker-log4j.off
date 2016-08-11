@@ -54,6 +54,12 @@
       <AppenderRef ref="Console"/>
     </Logger>
 
+    <!-- STORAGE -->
+    <!-- Integratedtoolkit.Storage: DEFAULT = OFF -->
+    <Logger name="integratedtoolkit.Storage" additivity="FALSE" level="off">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+
   </Loggers>
 </Configuration>
 

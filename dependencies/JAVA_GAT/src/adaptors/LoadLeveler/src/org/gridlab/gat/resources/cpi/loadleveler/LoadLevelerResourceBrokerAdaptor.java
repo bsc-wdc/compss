@@ -1,8 +1,8 @@
 /*
  *  A JAVAGAT adaptor for LoadLeveler+GPFS Clusters
  *  
- *  Author: Carlos Díaz
- *	www.linkedin.com/in/carlosdiazsuarez
+ *  	Author: Carlos Díaz
+ *      Contact: support-compss@bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es
@@ -41,9 +41,7 @@ import org.gridlab.gat.resources.cpi.WrapperJobCpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author carlos.diaz@bsc.es
- */
+
 public class LoadLevelerResourceBrokerAdaptor extends ResourceBrokerCpi {
 	
 	public static String LOADL_PID = null;

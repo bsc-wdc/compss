@@ -1,8 +1,8 @@
 /*
  *  A JAVAGAT adaptor for LSF+GPFS Clusters
  *  
- *  Author: Carlos Díaz
- *	www.linkedin.com/in/carlosdiazsuarez
+ *  	Author: Carlos Díaz
+ *      Contact: support-compss@bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es
@@ -37,6 +37,7 @@ import org.gridlab.gat.resources.cpi.JobCpi;
 import org.gridlab.gat.resources.cpi.Sandbox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 @SuppressWarnings("serial")
 public class LsfJob extends JobCpi {

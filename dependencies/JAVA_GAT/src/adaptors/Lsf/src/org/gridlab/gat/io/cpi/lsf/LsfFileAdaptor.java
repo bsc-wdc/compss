@@ -1,8 +1,8 @@
 /*
  *  A JAVAGAT adaptor for LSF+GPFS Clusters
  *  
- *  Author: Carlos Díaz
- *	www.linkedin.com/in/carlosdiazsuarez
+ *  	Author: Carlos Díaz
+ *      Contact: support-compss@bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es
@@ -34,9 +34,7 @@ import org.gridlab.gat.io.cpi.FileCpi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author carlos.diaz@bsc.es
- */
+
 @SuppressWarnings("serial")
 public class LsfFileAdaptor extends FileCpi {
 

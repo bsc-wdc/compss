@@ -141,6 +141,12 @@
       <AppenderRef ref="COMPSsRuntimeLog"/>
     </Logger>
 
+    <!-- STORAGE -->
+    <!-- Integratedtoolkit.Storage: DEFAULT = DEBUG -->
+    <Logger name="integratedtoolkit.Storage" additivity="FALSE" level="debug">
+      <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+
   </Loggers>
 </Configuration>
 

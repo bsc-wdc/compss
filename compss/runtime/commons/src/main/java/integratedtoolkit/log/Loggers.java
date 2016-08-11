@@ -52,6 +52,9 @@ public final class Loggers {
     		
     // Communications
     public static final String COMM = IT + ".Communication";
+    
+    // Storage
+    public static final String STORAGE = IT + ".Storage";
 
     private Loggers() {
         throw new NonInstantiableException("Loggers should not be instantiated");

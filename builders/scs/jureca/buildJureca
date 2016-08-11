@@ -41,7 +41,7 @@
   JurecaTargetDir=$3
   JurecaLoginNode=jureca.fz-juelich.de
   JurecaAuxScript=${scriptDir}/buildJureca_aux
-  PRELOAD_ENV="BASH_ENV=/etc/bash.bashrc"
+  PRELOAD_ENV="BASH_ENV=/etc/bashrc"
 
   # Perform installation
   cd ${scriptDir}/../commons

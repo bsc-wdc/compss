@@ -36,6 +36,8 @@
 
   <sampling enabled="no"/>
 
+  <input-output enabled="no" />
+
   <merge enabled="yes"
     synchronization="default"
     tree-fan-out="16"

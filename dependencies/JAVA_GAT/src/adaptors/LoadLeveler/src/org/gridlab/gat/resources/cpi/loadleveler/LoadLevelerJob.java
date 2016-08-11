@@ -1,8 +1,8 @@
 /*
  *  A JAVAGAT adaptor for LoadLeveler+GPFS Clusters
  *  
- *  Author: Carlos Díaz
- *	www.linkedin.com/in/carlosdiazsuarez
+ *  	Author: Carlos Díaz
+ *      Contact: support-compss@bsc.es
  *
  *	Barcelona Supercomputing Center
  * 	www.bsc.es

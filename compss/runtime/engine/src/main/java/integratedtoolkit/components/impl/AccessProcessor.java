@@ -81,7 +81,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         //Start Subcomponents
         taskAnalyser = new TaskAnalyser();
         dataInfoProvider = new DataInfoProvider();
-        taskAnalyser.setCoWorkers(dataInfoProvider);
 
         taskAnalyser.setCoWorkers(dataInfoProvider);
         requestQueue = new LinkedBlockingQueue<APRequest>();

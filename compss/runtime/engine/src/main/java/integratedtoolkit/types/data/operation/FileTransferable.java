@@ -6,8 +6,11 @@ import integratedtoolkit.types.data.Transferable;
 
 public class FileTransferable implements Transferable {
 
-    Object source;
-    String target;
+    private Object source;
+    private String target;
+    
+    public FileTransferable() {
+    }
 
     @Override
     public Object getDataSource() {

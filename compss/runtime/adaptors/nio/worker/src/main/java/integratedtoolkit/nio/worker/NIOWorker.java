@@ -25,12 +25,14 @@ import integratedtoolkit.nio.NIOTaskResult;
 import integratedtoolkit.nio.NIOURI;
 import integratedtoolkit.nio.commands.CommandDataReceived;
 import integratedtoolkit.nio.commands.Data;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOMessageHandler;
 import integratedtoolkit.nio.commands.CommandShutdownACK;
 import integratedtoolkit.nio.commands.CommandTaskDone;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
+import integratedtoolkit.nio.dataRequest.DataRequest;
+import integratedtoolkit.nio.dataRequest.WorkerDataRequest;
+import integratedtoolkit.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
@@ -95,7 +97,7 @@ public class NIOWorker extends NIOAgent {
 			wLogger.error("Exception", e);
 		}
 	}
-
+	
 	
 	public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, 
 			String appUuid, String lang, String hostName, String workingDir, String installDir,
@@ -322,7 +324,7 @@ public class NIOWorker extends NIOAgent {
 					} else {
 						// If no transfer, decrease the parameter counter (we already have it)
 						wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
-						--tt.params;
+						tt.decreaseParams();
 					}
 					break;
 
@@ -385,7 +387,7 @@ public class NIOWorker extends NIOAgent {
 					} else {
 						// If no transfer, decrease the parameter counter (we already have it)
 						wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
-						--tt.params;
+						tt.decreaseParams();
 					}
 					break;
 
@@ -400,21 +402,21 @@ public class NIOWorker extends NIOAgent {
 			} else {
 				// OUT parameter. Has no associated data. Decrease the parameter
 				// counter (we already have it)
-				--tt.params;
+				tt.decreaseParams();
 			}
 		}
 
         // Request the transfers
     	if (tracing) {
-        		NIOTracer.emitEvent(tt.task.getTaskId(), NIOTracer.getTaskTransfersType());
+        	NIOTracer.emitEvent(tt.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
    		}
     	requestTransfers();
     	if (tracing) {
-        		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
+        	NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
     	}
 
-        if (tt.params == 0) {
-                executeTask(tt.task);
+        if (tt.getParams() == 0) {
+        	executeTask(tt.getTask());
         }
         if (tracing) {
         	NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
@@ -438,13 +440,13 @@ public class NIOWorker extends NIOAgent {
 												// this request, flag it as an
 												// error
 			WorkerDataRequest wdr = (WorkerDataRequest) dr;
-			wdr.task.params--;
+			wdr.getTransferringTask().decreaseParams();
 
 			// mark as an error task. When all the params've been consumed,
 			// sendTaskDone unsuccessful
-			wdr.task.error = true;
-			if (wdr.task.params == 0) {
-				sendTaskDone(wdr.task.task, false);
+			wdr.getTransferringTask().setError(true);
+			if (wdr.getTransferringTask().getParams() == 0) {
+				sendTaskDone(wdr.getTransferringTask().getTask(), false);
 			}
 
 			// Create job*_[NEW|RESUBMITTED|RESCHEDULED].[out|err]
@@ -455,7 +457,7 @@ public class NIOWorker extends NIOAgent {
 			// to read the job out, which wouldnt exist
 
 			String baseJobPath = workingDir + File.separator + "jobs" + File.separator 
-					+ "job" + wdr.task.task.getJobId() + "_" + wdr.task.task.getHist();
+					+ "job" + wdr.getTransferringTask().getTask().getJobId() + "_" + wdr.getTransferringTask().getTask().getHist();
 			File fout = new File(baseJobPath + ".out");
 			File ferr = new File(baseJobPath + ".err");
 			if (!fout.exists() || !ferr.exists()) {
@@ -494,15 +496,15 @@ public class NIOWorker extends NIOAgent {
 		}
 		for (DataRequest dr : achievedRequests) {
 			WorkerDataRequest wdr = (WorkerDataRequest) dr;
-			wdr.task.params--;
+			wdr.getTransferringTask().decreaseParams();
 			if (tracing) {
                 		NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
             		}
-			if (wdr.task.params == 0) {
-				if (!wdr.task.error) {
-					executeTask(wdr.task.task);
+			if (wdr.getTransferringTask().getParams() == 0) {
+				if (!wdr.getTransferringTask().getError()) {
+					executeTask(wdr.getTransferringTask().getTask());
 				} else {
-					sendTaskDone(wdr.task.task, false);
+					sendTaskDone(wdr.getTransferringTask().getTask(), false);
 				}
 			}
 		}
@@ -828,28 +830,6 @@ public class NIOWorker extends NIOAgent {
 		c.finishConnection();
 	}
 	
-	private class WorkerDataRequest extends DataRequest {
-
-		private final TransferringTask task;
-
-		public WorkerDataRequest(TransferringTask task, DataType type, Data source, String target) {
-			super(type, source, target);
-			this.task = task;
-		}
-
-	}
-
-	private static class TransferringTask {
-
-		NIOTask task;
-		int params;
-		boolean error;
-
-		public TransferringTask(NIOTask task) {
-			this.task = task;
-			params = task.getParams().size();
-		}
-	}
 	
 	public static void main(String[] args) {		
 		/* **************************************

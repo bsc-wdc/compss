@@ -2,6 +2,7 @@ package integratedtoolkit.types.data.operation.copy;
 
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 
 public class DeferredCopy extends Copy {

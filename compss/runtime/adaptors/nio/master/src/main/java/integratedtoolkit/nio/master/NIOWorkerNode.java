@@ -2,17 +2,16 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.nio.NIOAgent;
-import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
@@ -21,13 +20,14 @@ import integratedtoolkit.nio.commands.CommandShutdown;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.tracing.CommandGeneratePackage;
 import integratedtoolkit.nio.commands.workerFiles.CommandGenerateWorkerDebugFiles;
+import integratedtoolkit.nio.dataRequest.DataRequest;
+import integratedtoolkit.nio.dataRequest.MasterDataRequest;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.DataOperation;
-import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.data.operation.copy.DeferredCopy;
 import integratedtoolkit.types.job.Job.JobListener;
@@ -162,7 +162,9 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
-        if (target.getHosts().contains(Comm.appHost)) { // Master
+        if (target.getHosts().contains(Comm.appHost)) {
+        	// Request to master
+        	
             // Order petition directly
             if (tgtData != null) {
                 MultiURI u = ld.alreadyAvailable(Comm.appHost);
@@ -189,10 +191,11 @@ public class NIOWorkerNode extends COMPSsWorker {
             }
             String path = target.getURIInHost(Comm.appHost).getPath();
             ld.startCopy(c, c.getTargetLoc());
-            NIOAgent.DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
+            DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
             commManager.addTransferRequest(dr);
             commManager.requestTransfers();
         } else {
+        	// Request to any other 
             orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
         }
     }

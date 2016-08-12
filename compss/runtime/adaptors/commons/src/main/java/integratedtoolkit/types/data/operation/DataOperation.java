@@ -1,10 +1,11 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.types.data.LogicalData;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.log.Loggers;
+
 import java.util.List;
 import java.util.LinkedList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,20 +31,6 @@ public abstract class DataOperation {
         OP_FAILED,
         OP_PREPARATION_FAILED,
         OP_WAITING_SOURCES;
-    }
-
-    public static abstract class EventListener {
-
-        private static final AtomicInteger nextId = new AtomicInteger(0);
-        private int id = nextId.getAndIncrement();
-
-        public Integer getId() {
-            return id;
-        }
-
-        public abstract void notifyEnd(DataOperation fOp);
-
-        public abstract void notifyFailure(DataOperation fOp, Exception e);
     }
 
     public DataOperation(LogicalData ld, EventListener listener) {

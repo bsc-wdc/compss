@@ -1,9 +1,11 @@
-package integratedtoolkit.types.data.operation;
+package integratedtoolkit.types.data.listener;
+
+import integratedtoolkit.types.data.operation.DataOperation;
 
 import java.util.concurrent.Semaphore;
 
 
-public class SafeCopyListener extends DataOperation.EventListener {
+public class SafeCopyListener extends EventListener {
 
     int operation = 0;
     int errors = 0;

@@ -11,7 +11,7 @@ public class Main {
 	public static void main(String[] args) {
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO IN");
-		//testPSCOIn();
+		testPSCOIn();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO INOUT");
@@ -28,13 +28,6 @@ public class Main {
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO IN RETURN NO TASK PERSISTED");
 		//testPSCOReturnNoTaskPersisted();
-		
-		try {
-			Thread.sleep(5_000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	private static void testPSCOIn() {

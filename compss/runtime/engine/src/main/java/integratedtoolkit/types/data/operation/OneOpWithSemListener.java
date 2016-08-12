@@ -1,12 +1,15 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.data.listener.EventListener;
+
 import java.util.concurrent.Semaphore;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class OneOpWithSemListener extends DataOperation.EventListener {
+public class OneOpWithSemListener extends EventListener {
 
     private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();

@@ -1,10 +1,10 @@
-package integratedtoolkit.types.data.operation;
+package integratedtoolkit.types.data.transferable;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.Transferable;
 
 
-public class WorkersDebugInfoCopyTransferable  implements Transferable {
+public class TracingCopyTransferable  implements Transferable {
 
     Object dataSource;
     String dataTarget;

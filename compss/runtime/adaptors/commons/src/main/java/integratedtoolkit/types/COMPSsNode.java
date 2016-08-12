@@ -3,11 +3,11 @@ package integratedtoolkit.types;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.UnstartedNodeException;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.Transferable;
-import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
@@ -45,9 +45,9 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract Job<?> newJob(int taskId, TaskParams taskparams, Implementation<?> impl, Resource res, JobListener listener);
 
-    public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener);
+    public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener);
 
-    public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener);
+    public abstract void obtainData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener);
 
     public abstract void stop(ShutdownListener sl);
 

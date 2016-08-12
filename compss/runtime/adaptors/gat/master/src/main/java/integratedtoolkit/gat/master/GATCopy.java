@@ -1,11 +1,12 @@
 package integratedtoolkit.gat.master;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
-import integratedtoolkit.types.data.operation.WorkersDebugInfoCopyTransferable;
 import integratedtoolkit.types.data.operation.copy.ImmediateCopy;
+import integratedtoolkit.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;

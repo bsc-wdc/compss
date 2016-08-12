@@ -17,7 +17,6 @@ import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.nio.NIOAgent;
-import integratedtoolkit.nio.NIOAgent.DataRequest.MasterDataRequest;
 import integratedtoolkit.nio.NIOMessageHandler;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTaskResult;
@@ -25,12 +24,14 @@ import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
+import integratedtoolkit.nio.dataRequest.DataRequest;
+import integratedtoolkit.nio.dataRequest.MasterDataRequest;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.data.LogicalData;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.DataOperation;
-import integratedtoolkit.types.data.operation.DataOperation.EventListener;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job.JobHistory;
 import integratedtoolkit.types.parameter.DependencyParameter;
@@ -105,6 +106,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
     }
 
+    @Override
     public void init() {
         logger.info("Initializing NIO Adaptor...");
         masterNode = new NIONode(null, MASTER_PORT);
@@ -221,6 +223,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         nodes.remove(worker);
     }
 
+    @Override
     public void stop() {
         logger.debug("NIO Adaptor stoping workers...");
         HashSet<NIOWorkerNode> workers = new HashSet<NIOWorkerNode>();
@@ -270,7 +273,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void setMaster(NIONode master) {
         // this is called on NIOWorker
-        // Setting Master on Adaptor --> Nothig to be done
+        // Setting Master on Adaptor --> Nothing to be done
     }
 
     @Override
@@ -286,6 +289,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         ws.setWorkerIsReady();
     }
 
+    @Override
     public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
         NIOJob nj = runningJobs.remove(tr.getTaskId());
 
@@ -384,7 +388,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             DataLocation actualLocation = c.getSourceData().finishedCopy(c);
             if (actualLocation!=null){
             	logger.debug("Actual Location "+ actualLocation.getPath() );
-            }else{
+            } else {
             	logger.debug("Actual Location is null ");
             }
             LogicalData tgtData = c.getTargetData();
@@ -393,13 +397,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             	if (actualLocation.getType().equals(DataLocation.Type.PRIVATE)){
             		logger.debug("Adding location:"+ actualLocation.getPath()+ " to " + tgtData.getName());
             		tgtData.addLocation(actualLocation);
-            	}else{
+            	} else {
             		logger.debug("Shared location no need to update location for " + tgtData.getName());
             		
             	}
             	logger.debug("Locations for " + tgtData.getName() + " are: " +tgtData.getURIs());
             		
-            }else{
+            } else {
             	logger.warn("No target Data defined for copy "+ c.getName());
             }
         }
@@ -456,12 +460,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         return null;
     }
 
+    @Override
     public String getWorkingDir() {
         return "";
     }
 
+    @Override
     public void stopSubmittedJobs() {
-
         synchronized (runningJobs) {
             for (Job<?> job : runningJobs.values()) {
                 try {

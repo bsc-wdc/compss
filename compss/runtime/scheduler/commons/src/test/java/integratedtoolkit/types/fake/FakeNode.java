@@ -6,8 +6,8 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
+import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
@@ -28,11 +28,11 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, DataOperation.EventListener el) {
+    public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, DataOperation.EventListener el) {
+    public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
     }
 
     @Override

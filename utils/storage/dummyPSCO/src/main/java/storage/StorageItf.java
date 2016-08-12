@@ -61,6 +61,7 @@ public final class StorageItf {
 		hostnames.add(MASTER_HOSTNAME);
 		
 		// Add worker' hostnames (by storageConf)
+		logger.info("[LOG] Configuration received: " + storageConf);
 		BufferedReader br = null;
 		try {
 			br = new BufferedReader(new FileReader(storageConf));
@@ -94,6 +95,7 @@ public final class StorageItf {
 		
 		// Create specific WD
 		for (String hostname : hostnames) {
+			logger.debug("[LOG] Hostname: " + hostname);
 			String hostPath = BASE_WORKING_DIR + hostname;
 			File hostWD = new File(hostPath);
 			if (!hostWD.exists()) {
@@ -120,14 +122,14 @@ public final class StorageItf {
 		// Remove WD
 		// All nodes may execute this code so we only erase it
 		// Worker sandboxes are inside so they are automatically removed
-		try {
+		/*try {
 			File wd = new File(BASE_WORKING_DIR);
 			if (wd.exists()) {
 				FileUtils.deleteDirectory(new File(BASE_WORKING_DIR));
 			}
 		} catch (IOException e) {
 			throw new StorageException(ERROR_ERASE_WD, e);
-		}
+		}*/
 		
 		// Log
 		logger.info("[LOG] Storage Finish finished");

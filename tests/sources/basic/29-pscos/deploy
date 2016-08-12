@@ -10,7 +10,7 @@
   cd ${source_base_dir}/../../../../utils/storage/dummyPSCO/
   mvn clean package
   cd -
-  cp -f ${source_base_dir}/target/compss-dummyPSCO.jar ${target_base_dir}/jars/compss-dummyPSCO.jar
+  cp -f ${source_base_dir}/../../../../utils/storage/dummyPSCO/target/compss-dummyPSCO.jar ${target_base_dir}/jars/compss-dummyPSCO.jar
   
   # Copy files
   cp -f ${source_base_dir}/target/29-pscos.jar ${target_base_dir}/pscos.jar   

@@ -1,13 +1,15 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.data.listener.EventListener;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.Semaphore;
 
 
-public class ResultListener extends DataOperation.EventListener {
+public class ResultListener extends EventListener {
 
     private int operation = 0;
     private int errors = 0;

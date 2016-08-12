@@ -144,9 +144,10 @@ public class Comm {
     }
 
     public static synchronized LogicalData registerValue(String dataId, Object value) {
-        logger.debug("Register value " + value + " for data " + dataId);
-        DataLocation location = null;        
+    	logger.debug("Register value " + value + " for data " + dataId);
+    	
         String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
+        DataLocation location = null;
 		try {
 			SimpleURI uri = new SimpleURI(targetPath);
 			location = DataLocation.createLocation(appHost, uri);
@@ -157,6 +158,22 @@ public class Comm {
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
         logicalData.setValue(value);
+
+        return logicalData;
+    }
+    
+    public static synchronized LogicalData registerPSCO(String dataId, String id) {
+        String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;        
+        DataLocation location = null;
+		try {
+			SimpleURI uri = new SimpleURI(targetPath);
+			location = DataLocation.createLocation(appHost, uri);
+		} catch (Exception e) {
+			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+		}
+        
+        LogicalData logicalData = data.get(dataId);
+        logicalData.addLocation(location);
 
         return logicalData;
     }

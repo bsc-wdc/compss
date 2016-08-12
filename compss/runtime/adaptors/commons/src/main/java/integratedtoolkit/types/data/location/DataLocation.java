@@ -77,6 +77,9 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      */
     public static DataLocation createLocation(Resource host, SimpleURI uri) throws Exception {
     	logger.debug("Creating new location: " + uri.toString());
+    	for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+    		logger.debug(ste);
+    	}
     	Protocol protocol = Protocol.getBySchema(uri.getSchema());
     	if (protocol == null) {
     		logger.warn("WARN: Unrecognised protocol [ " + uri.getSchema()

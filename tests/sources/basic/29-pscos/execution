@@ -43,7 +43,7 @@ EOF
      --debug \
      --lang=java \
      --comm=$comm \
-     --storage_conf=${storageImplPath} \
+     --storage_conf=${storageConf} \
      --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
      testPSCO.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

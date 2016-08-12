@@ -1,9 +1,11 @@
-package integratedtoolkit.types.data.operation;
+package integratedtoolkit.types.data.listener;
+
+import integratedtoolkit.types.data.operation.DataOperation;
 
 import java.util.concurrent.Semaphore;
 
 
-public class WorkersDebugInformationListener extends DataOperation.EventListener {
+public class TracingCopyListener extends EventListener {
 
     int operation = 0;
     int errors = 0;
@@ -11,7 +13,7 @@ public class WorkersDebugInformationListener extends DataOperation.EventListener
 
     final Semaphore sem;
 
-    public WorkersDebugInformationListener(Semaphore sem) {
+    public TracingCopyListener(Semaphore sem) {
         this.sem = sem;
     }
 
@@ -23,7 +25,7 @@ public class WorkersDebugInformationListener extends DataOperation.EventListener
             finished = operation == 0;
             failed = errors > 0;
         }
-
+        
         if (finished) {
             if (failed) {
                 doFailures();

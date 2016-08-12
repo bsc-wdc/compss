@@ -167,7 +167,6 @@ public class TaskAnalyser {
                     ObjectParameter op = (ObjectParameter) p;
                     daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode(), methodId);
                     break;
-
                 default:
                     /* Basic types (including String).
                      * The only possible access mode is R (already checked by the API)

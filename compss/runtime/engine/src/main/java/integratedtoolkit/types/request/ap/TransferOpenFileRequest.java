@@ -126,40 +126,38 @@ public class TransferOpenFileRequest extends APRequest {
             setLocation(targetLocation);
             
             sem.release();
+        } else if (faId instanceof DataAccessId.RWAccessId) {
+            DataAccessId.RWAccessId waId = (DataAccessId.RWAccessId) faId;
+            String srcName = waId.getReadDataInstance().getRenaming();
+            String targetName = waId.getWrittenDataInstance().getRenaming();
+            String targetPath = Comm.appHost.getTempDirPath() + targetName;
+            
+            DataLocation targetLocation = null;
+        	try {
+        		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+        		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
+        	} catch (Exception e) {
+        		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
+        	}
+
+            setLocation(targetLocation);
+            Comm.appHost.getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
         } else {
-            if (faId instanceof DataAccessId.RWAccessId) {
-                DataAccessId.RWAccessId waId = (DataAccessId.RWAccessId) faId;
-                String srcName = waId.getReadDataInstance().getRenaming();
-                String targetName = waId.getWrittenDataInstance().getRenaming();
-                String targetPath = Comm.appHost.getTempDirPath() + targetName;
-                
-                DataLocation targetLocation = null;
-            	try {
-            		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
-            		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
-            	} catch (Exception e) {
-            		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
-            	}
+            RAccessId waId = (RAccessId) faId;
+            String srcName = waId.getReadDataInstance().getRenaming();
+            String targetName = waId.getReadDataInstance().getRenaming();
+            String targetPath = Comm.appHost.getTempDirPath() + targetName;
+            
+            DataLocation targetLocation = null;
+        	try {
+        		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
+        		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
+        	} catch (Exception e) {
+        		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
+        	}
 
-                setLocation(targetLocation);
-                Comm.appHost.getData(srcName, targetName, (LogicalData) null, new FileTransferable(), new OneOpWithSemListener(sem));
-            } else {
-                RAccessId waId = (RAccessId) faId;
-                String srcName = waId.getReadDataInstance().getRenaming();
-                String targetName = waId.getReadDataInstance().getRenaming();
-                String targetPath = Comm.appHost.getTempDirPath() + targetName;
-                
-                DataLocation targetLocation = null;
-            	try {
-            		SimpleURI targetURI = new SimpleURI(DataLocation.Protocol.FILE_URI.getSchema() + targetPath);
-            		targetLocation = DataLocation.createLocation(Comm.appHost, targetURI);
-            	} catch (Exception e) {
-            		ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
-            	}
-
-                setLocation(targetLocation);
-                Comm.appHost.getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
-            }
+            setLocation(targetLocation);
+            Comm.appHost.getData(srcName, srcName, new FileTransferable(), new OneOpWithSemListener(sem));
         }
     }
 

@@ -2,7 +2,6 @@ package integratedtoolkit.util;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,9 +13,9 @@ import integratedtoolkit.comm.Comm;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.LogicalData;
+import integratedtoolkit.types.data.listener.TracingCopyListener;
 import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.data.operation.TracingCopyListener;
-import integratedtoolkit.types.data.operation.TracingCopyTransferable;
+import integratedtoolkit.types.data.transferable.TracingCopyTransferable;
 import integratedtoolkit.types.uri.SimpleURI;
 
 import org.apache.logging.log4j.LogManager;

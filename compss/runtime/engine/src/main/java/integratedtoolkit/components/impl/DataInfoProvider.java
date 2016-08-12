@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
-
 import java.io.File;
 
 import integratedtoolkit.log.Loggers;
@@ -25,6 +24,8 @@ import integratedtoolkit.util.ErrorManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import storage.StubItf;
 
 
 public class DataInfoProvider {
@@ -122,15 +123,25 @@ public class DataInfoProvider {
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerValue(renaming, value);
+                
+                // If it is PSCO and it is persisted, record location
+                if (value instanceof StubItf) {
+                	String id = ((StubItf) value).getID();
+                	if (id != null) {
+                		Comm.registerPSCO(renaming, id);
+                	}
+                }
             }
 
-        } else {// The datum has already been accessed
+        } else {
+        	// The datum has already been accessed
             if (debug) {
                 logger.debug("Another access to object " + code);
             }
 
             oInfo = idToData.get(aoId);
         }
+        
         // Version management
         return willAccess(mode, oInfo);
     }
@@ -295,7 +306,8 @@ public class DataInfoProvider {
         LogicalData ld = Comm.getData(sourceName);
 
         if (ld.isInMemory()) {
-            if (!ld.isOnStorage()) { // Only if there are no readers
+            if (!ld.isOnStorage()) { 
+            	// Only if there are no readers
                 try {
                 	ld.writeToStorage();
                     ld.removeValue();

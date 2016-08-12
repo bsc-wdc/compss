@@ -1,13 +1,15 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.data.listener.EventListener;
 
 
-public class JobTransfersListener extends DataOperation.EventListener {
+public class JobTransfersListener extends EventListener {
 
     private int operation = 0;
     private int errors = 0;

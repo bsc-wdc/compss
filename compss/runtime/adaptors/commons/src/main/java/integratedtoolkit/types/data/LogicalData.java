@@ -7,10 +7,10 @@ import integratedtoolkit.log.Loggers;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
+import integratedtoolkit.types.data.listener.SafeCopyListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.location.PersistentLocation;
-import integratedtoolkit.types.data.operation.SafeCopyListener;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.uri.MultiURI;
@@ -58,7 +58,7 @@ public class LogicalData {
 	private boolean onStorage;
 	// Indicates if LogicalData has been ordered to save before
 	private boolean isBeingSaved;
-	// Locks the host while LogicalData is beeing copied
+	// Locks the host while LogicalData is being copied
 	private final Semaphore lockHostRemoval = new Semaphore(1);
 	
 
@@ -213,6 +213,7 @@ public class LogicalData {
 		if ( (this.value instanceof StubItf) && (((StubItf) this.value).getID() != null) ) {
 			// It is a persistent object that is already persisted
 			// Nothing to do
+			// If the PSCO is not persisted we treat it as a normal object
 		} else {
 			// The object must be written to file		
 			String targetPath = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkingDirectory() + this.name;
@@ -473,6 +474,7 @@ public class LogicalData {
 		releaseHostRemoval_private();
 	}
 
+	@Override
 	public synchronized String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Logical Data name: ").append(this.name).append(":\n");
@@ -509,7 +511,7 @@ public class LogicalData {
 		private final Copy c;
 		private final DataLocation loc;
 
-		CopyInProgress(Copy c, DataLocation loc) {
+		public CopyInProgress(Copy c, DataLocation loc) {
 			this.c = c;
 			this.loc = loc;
 		}

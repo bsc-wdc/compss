@@ -3,12 +3,12 @@ package integratedtoolkit.types;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.types.data.listener.EventListener;
+import integratedtoolkit.types.data.listener.SafeCopyListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
-import integratedtoolkit.types.data.operation.DataOperation;
-import integratedtoolkit.types.data.operation.SafeCopyListener;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
@@ -34,7 +34,7 @@ public class COMPSsMaster extends COMPSsNode {
 
     private final String name;
 
-    //private final String workingDirectory;
+    
     public COMPSsMaster() {
         super();
         // Initializing host attributes
@@ -47,7 +47,6 @@ public class COMPSsMaster extends COMPSsNode {
             hostName="master";
         }
         name = hostName;
-
     }
 
     @Override
@@ -73,7 +72,7 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener) {
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
         for (Resource targetRes : target.getHosts()) {
             COMPSsNode node = targetRes.getNode();
             if (node != this) {
@@ -91,40 +90,46 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, DataOperation.EventListener listener) {
-        //Check if data is in memory
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+        // Check if data is in memory
         if (ld.isInMemory()) {
-            try {
-                Serializer.serialize(ld.getValue(), target.getPath());
-                if (tgtData != null) {
-                    tgtData.addLocation(target);
-                }
-                logger.debug("Object in memory set dataTarget "+ target.getPath());
-                reason.setDataTarget(target.getPath());
-                listener.notifyEnd(null);
-                return;
-            } catch (IOException ex) {
-                ErrorManager.warn("Error copying file from memory to " + target.getPath(), ex);
+        	switch(target.getProtocol()) {
+	        	case PERSISTENT_URI:
+	        		// PSCO in memory doesn't need to be persisted
+	        		// because the target location is already valid
+	        		break;
+	        	default:
+	        		// Any other location must be serialized
+	        		try {
+	                    Serializer.serialize(ld.getValue(), target.getPath());
+	                } catch (IOException ex) {
+	                    ErrorManager.warn("Error copying file from memory to " + target.getPath(), ex);
+	                }
+	        		break;
+        	}
+        	
+        	if (tgtData != null) {
+                tgtData.addLocation(target);
             }
+        	logger.debug("Object in memory set dataTarget "+ target.getPath());
+            reason.setDataTarget(target.getPath());
+            listener.notifyEnd(null);
+            return;
         }
+        
         if (debug) {
             logger.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progres");
         }
 
+        // Check if there are current copies in progress
         ld.lockHostRemoval();
-        //Check if there are current copies in progress
-
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
-
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {
                 if (copy != null) {
-                    if (copy.getTargetLoc() != null
-                            && copy.getTargetLoc().getHosts()
-                            .contains(Comm.appHost)) {
+                    if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.appHost)) {
                         if (debug) {
-                            logger.debug("Copy in progress tranfering "+ ld.getName()
-                                    + "to master. Waiting for finishing");
+                            logger.debug("Copy in progress tranfering "+ ld.getName() + "to master. Waiting for finishing");
                         }
                         waitForCopyTofinish(copy);
 						try {
@@ -150,12 +155,9 @@ public class COMPSsMaster extends COMPSsNode {
                                     + target.getURIInHost(Comm.appHost).getPath() + " with replacing", ex);
                         }
 
-                    } else if (copy.getTargetData() != null
-                            && copy.getTargetData().getAllHosts()
-                            .contains(Comm.appHost)) {
+                    } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.appHost)) {
                         waitForCopyTofinish(copy);
                         try {
-
                         	if (debug) {
                         		logger.debug("Master local copy " + ld.getName() + " from "
                         				+ copy.getFinalTarget() + " to "
@@ -187,12 +189,14 @@ public class COMPSsMaster extends COMPSsNode {
                 }
             }
         }
+        
+        // Checking if in master
         if (debug) {
-            logger.debug("Checking if " + ld.getName() + " is at master ("+Comm.appHost+").");
+            logger.debug("Checking if " + ld.getName() + " is at master (" + Comm.appHost + ").");
         }
-        //Checking if in master
+
         for (MultiURI u : ld.getURIs()) {
-        	logger.debug(ld.getName() + " is at "+ u.toString() + "("+ u.getHost()+")");
+        	logger.debug(ld.getName() + " is at "+ u.toString() + "("+ u.getHost() + ")");
             if (u.getHost() == Comm.appHost) {
             	try {
             		if (debug) {
@@ -218,6 +222,7 @@ public class COMPSsMaster extends COMPSsNode {
             }
 
         }
+        
         if (source != null) {
             for (Resource sourceRes : source.getHosts()) {
                 COMPSsNode node = sourceRes.getNode();
@@ -240,7 +245,11 @@ public class COMPSsMaster extends COMPSsNode {
                             logger.debug("Local copy " + ld.getName() + " from " + source.getURIInHost(Comm.appHost).getPath() + " to " + target.getURIInHost(Comm.appHost).getPath());
                         }
                         //URI u = source.getURIInHost(sourceRes);
-                        Files.copy(new File(source.getURIInHost(Comm.appHost).getPath()).toPath(), new File(target.getURIInHost(sourceRes).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(
+                        		new File(source.getURIInHost(Comm.appHost).getPath()).toPath(), 
+                        		new File(target.getURIInHost(sourceRes).getPath()).toPath(), 
+                        		StandardCopyOption.REPLACE_EXISTING);
+                        
                         logger.debug("File copied. Set data target to "+ target.getPath());
                     	reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
                         listener.notifyEnd(null);

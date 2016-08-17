@@ -32,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
-import storage.StubItf;
 
 
 public class LogicalData {
@@ -48,6 +47,8 @@ public class LogicalData {
 	private final String name;
 	// Value in memory, null if value in disk
 	private Object value;
+	// Id if PSCO, null otherwise
+	private String id;
 	
 	// List of existing copies
 	private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
@@ -73,6 +74,7 @@ public class LogicalData {
 	public LogicalData(String name) {
 		this.name = name;
 		this.value = null;
+		this.id = null;
 		
 		this.onStorage = false;
 		this.isBeingSaved = false;
@@ -89,6 +91,15 @@ public class LogicalData {
 	public String getName() {
 		// No need to sync because it cannot be modified
 		return this.name;
+	}
+	
+	/**
+	 * Returns the PSCO id. Null if its not a PSCO
+	 * 
+	 * @return
+	 */
+	public String getId() {
+		return this.id;
 	}
 
 	/**
@@ -115,6 +126,10 @@ public class LogicalData {
 			list.addAll(loc.getURIs());
 		}
 		return list;
+	}
+	
+	public synchronized TreeSet<DataLocation> getLocations() {
+		return this.locations;
 	}
 
 	/**
@@ -166,7 +181,7 @@ public class LogicalData {
 					SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
 					break;
 				case PERSISTENT:
-					// Nothing to do
+					this.id = ((PersistentLocation) loc).getId();
 					break;
 			}
 		}
@@ -210,7 +225,7 @@ public class LogicalData {
 	 * @throws Exception
 	 */
 	public synchronized void writeToStorage() throws Exception {
-		if ( (this.value instanceof StubItf) && (((StubItf) this.value).getID() != null) ) {
+		if (this.id != null) {
 			// It is a persistent object that is already persisted
 			// Nothing to do
 			// If the PSCO is not persisted we treat it as a normal object
@@ -524,6 +539,7 @@ public class LogicalData {
 			return loc.isTarget(target);
 		}
 
+		@Override
 		public String toString() {
 			return c.getName() + " to " + loc.toString();
 		}

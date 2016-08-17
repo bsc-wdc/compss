@@ -21,9 +21,9 @@
   #----------------------------------------------------------------------------------
   #Run application 1 - Simple
   echo
-  echo "*** RUNNING JAVA APPLICATION SIMPLE"
-  output_log="${target_log_folder}/simple.outputlog"
-  error_log="${target_log_folder}/simple.errorlog"
+  echo "*** RUNNING JAVA APPLICATION BASIC TASKS"
+  output_log="${target_log_folder}/basicTasks.outputlog"
+  error_log="${target_log_folder}/basicTasks.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \

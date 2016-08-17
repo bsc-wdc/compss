@@ -242,7 +242,7 @@ public class Comm {
 
     private static void loadAdaptorsJars() {
         logger.info("Loading Adaptors...");
-        String itHome = System.getenv("IT_HOME");
+        String itHome = System.getenv(ITConstants.IT_HOME);
 
         if (itHome == null || itHome.isEmpty()) {
             logger.warn("WARN: IT_HOME not defined, no adaptors loaded.");

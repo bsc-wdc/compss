@@ -101,6 +101,7 @@ public class PersistentLocation extends DataLocation {
         return this.id.equals( ((PersistentLocation)target).id );
     }
 
+    @Override
     public String toString() {
         return Protocol.PERSISTENT_URI.getSchema() + this.id;
     }

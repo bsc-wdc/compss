@@ -244,12 +244,7 @@ public class JavaExecutor extends Executor {
 				writeFinalValue[i] = np.isWriteFinalValue();
 				
 				// Get ID
-				String id;
-				try {
-					id = (String) nw.getObject(renamings[i]);
-				} catch (SerializedObjectException e) {
-					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
-				}
+				String id = renamings[i];
 				
 				// Get Object
 				try {

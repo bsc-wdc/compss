@@ -12,6 +12,7 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import storage.StubItf;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
@@ -165,6 +166,10 @@ public class TaskAnalyser {
                 case PSCO_T:
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
+                    // Check if its PSCO class and persisted to infer its type
+                    if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
+                    	op.setType(DataType.PSCO_T);
+                    }
                     daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode(), methodId);
                     break;
                 default:

@@ -1,5 +1,6 @@
 package integratedtoolkit.components.impl;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
 
@@ -21,10 +22,13 @@ import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.request.ap.TransferObjectRequest;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.util.Tracer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import storage.StorageException;
+import storage.StorageItf;
 import storage.StubItf;
 
 
@@ -46,6 +50,11 @@ public class DataInfoProvider {
     // Component logger - No need to configure, ProActive does
     private static final Logger logger = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean debug = logger.isDebugEnabled();
+    
+    // Tracing
+    private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+            
 
     public DataInfoProvider() {
         nameToId = new TreeMap<String, Integer>();
@@ -124,11 +133,23 @@ public class DataInfoProvider {
             if (mode != AccessMode.W) {
                 Comm.registerValue(renaming, value);
                 
-                // If it is PSCO and it is persisted, record location
+                // If it is PSCO and it is persisted, create new version and record location
                 if (value instanceof StubItf) {
                 	String id = ((StubItf) value).getID();
                 	if (id != null) {
-                		Comm.registerPSCO(renaming, id);
+                		if (tracing) {
+                			Tracer.emitEvent( Tracer.Event.STORAGE_NEWVERSION.getId(), Tracer.Event.STORAGE_NEWVERSION.getType());
+                		}
+	                    try {
+	                    	String newId = StorageItf.newVersion(id, Comm.appHost.getName());
+	                		Comm.registerPSCO(renaming, newId);
+	                    } catch (StorageException e) {
+	                        ErrorManager.error("Error New Version in Back-end for PSCO Id " + id, e);
+	                    } finally {
+	                    	if (tracing) {
+	                    		Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_NEWVERSION.getType());
+	                        }
+	                    }
                 	}
                 }
             }

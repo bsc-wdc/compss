@@ -22,6 +22,7 @@ import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
 import integratedtoolkit.types.data.DataAccessId.WAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.ResultFile;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.request.ap.TransferRawFileRequest;
@@ -47,13 +48,12 @@ import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
-import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
 
 
 public class AccessProcessor implements Runnable, TaskProducer {
 
-    protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
+    protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
 
     // Other supercomponent
     protected TaskDispatcher taskDispatcher;    
@@ -227,9 +227,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Tell the DIP that the application wants to access an object
         AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
-
-        DataInstanceId rdId = ((DataAccessId.RWAccessId) oaId).getReadDataInstance();
-        String rRename = rdId.getRenaming();
         DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
 
@@ -240,18 +237,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // TODO: Check if the object was already piggybacked in the task notification
         // Ask for the object
         Object oUpdated = obtainObject(oaId);
-
-        if (oUpdated == null) {
-            /* The Object didn't come from a WS but was transferred from a worker
-             * Deserialize the object from the file
-             */
-            try {
-                oUpdated = Serializer.deserialize(destDir + rRename);
-            } catch (Exception e) {
-                logger.fatal(ERROR_OBJECT_DESERIALIZE + ": " + destDir + rRename, e);
-                System.exit(1);
-            }
-        }
+        
         setObjectVersionValue(wRename, oUpdated);
         return oUpdated;
     }
@@ -414,15 +400,35 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     private Object obtainObject(DataAccessId oaId) {
+    	// Ask for the object
         Semaphore sem = new Semaphore(0);
         TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
         requestQueue.offer(tor);
+        
+        // Wait for completion
         try {
             sem.acquire();
         } catch (InterruptedException e) {
             // Nothing to do
         }
-        return tor.getResponse();
+        
+        // Get response
+        Object oUpdated = tor.getResponse();
+        if (oUpdated == null) {
+            /* The Object didn't come from a WS but was transferred from a worker,
+             * we load it from its storage (file or persistent)
+             */
+        	LogicalData ld = tor.getLogicalDataTarget();
+            try {
+            	ld.loadFromStorage();
+                oUpdated = ld.getValue();
+            } catch (Exception e) {
+                logger.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
+                ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
+            }
+        }
+        
+        return oUpdated;
     }
 
     public void getResultFiles(Long appId) {

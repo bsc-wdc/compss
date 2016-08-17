@@ -15,7 +15,7 @@ public class Main {
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO INOUT");
-		//testPSCOInOut();
+		testPSCOInOut();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO RETURN");

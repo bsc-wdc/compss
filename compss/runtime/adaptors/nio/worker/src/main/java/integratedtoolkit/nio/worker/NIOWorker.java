@@ -528,8 +528,8 @@ public class NIOWorker extends NIOAgent {
 			WorkerDataRequest wdr = (WorkerDataRequest) dr;
 			wdr.getTransferringTask().decreaseParams();
 			if (tracing) {
-                		NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
-            		}
+                NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+            }
 			if (wdr.getTransferringTask().getParams() == 0) {
 				if (!wdr.getTransferringTask().getError()) {
 					executeTask(wdr.getTransferringTask().getTask());
@@ -566,6 +566,10 @@ public class NIOWorker extends NIOAgent {
 		}
 		
 		NIOTaskResult tr = new NIOTaskResult(taskID, nt.getParams());
+		if (wLogger.isDebugEnabled()) {
+			wLogger.debug("TASK RESULT FOR TASK ID " + taskID);
+			wLogger.debug(tr);
+		}
 		CommandTaskDone cmd = new CommandTaskDone(this, tr, successful);     
         c.sendCommand(cmd);
 		

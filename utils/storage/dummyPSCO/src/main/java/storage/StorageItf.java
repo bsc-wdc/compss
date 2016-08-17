@@ -139,14 +139,14 @@ public final class StorageItf {
 		// Remove WD
 		// All nodes may execute this code so we only erase it
 		// Worker sandboxes are inside so they are automatically removed
-		/*try {
+		try {
 			File wd = new File(BASE_WORKING_DIR);
 			if (wd.exists()) {
 				FileUtils.deleteDirectory(new File(BASE_WORKING_DIR));
 			}
 		} catch (IOException e) {
 			throw new StorageException(ERROR_ERASE_WD, e);
-		}*/
+		}
 		
 		// Log
 		logger.info("[LOG] Storage Finish finished");
@@ -243,6 +243,7 @@ public final class StorageItf {
 			if (source.exists()) {
 				try {
 					Object obj = Serializer.deserialize(path);
+					((StorageObject) obj).setID(id);
 					return obj;
 				} catch (ClassNotFoundException e) {
 					throw new StorageException(ERROR_DESERIALIZE + id, e);

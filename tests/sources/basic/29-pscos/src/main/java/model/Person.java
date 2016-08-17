@@ -2,8 +2,8 @@ package model;
 
 import java.io.Serializable;
 import java.util.LinkedList;
-
 import storage.StorageObject;
+
 
 public class Person extends StorageObject implements Serializable {
 	

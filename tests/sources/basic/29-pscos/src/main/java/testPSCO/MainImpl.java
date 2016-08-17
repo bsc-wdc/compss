@@ -2,17 +2,29 @@ package testPSCO;
 
 import java.util.UUID;
 
+import storage.StorageException;
+import storageManager.StorageManager;
 import model.Computer;
 import model.Person;
 
 
 public class MainImpl {
+	
+	private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
 
 	public static void taskPSCOIn(Person p) {
 		String name = p.getName();
 		int age = p.getAge();
 		int numC = p.getNumComputers();
 		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
 	}
 
 	public static void taskPSCOInOut(Person p) {
@@ -25,6 +37,19 @@ public class MainImpl {
 		p.setAge(10);
 		Computer c = new Computer("DELL", "Latitude", name + "_" + age, age);
 		p.addComputer(c);
+		
+		name = p.getName();
+		age = p.getAge();
+		numC = p.getNumComputers();
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
 	}
 
 	public static String taskPSCOInOutTaskPersisted(Person p) {

@@ -91,37 +91,55 @@ public class COMPSsMaster extends COMPSsNode {
 
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
-        // Check if data is in memory
+    	logger.info("Obtain Data " + ld.getName());
+    	logger.debug("SourceLD " + ld);
+    	logger.debug("TargetLD " + tgtData);
+    	logger.debug("SourceLocation " + source);
+    	logger.debug("TargetLocation " + target);
+    	logger.debug("----------------------------");
+    	for (StackTraceElement se : Thread.currentThread().getStackTrace()) {
+    		logger.debug(se);
+    	}
+    	logger.debug("----------------------------");
+    	
+    	/*
+    	 *  PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
+    	 */
+    	for (DataLocation loc : ld.getLocations()) {
+    		if (loc.getProtocol().equals(DataLocation.Protocol.PERSISTENT_URI)) {
+    			logger.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
+        		reason.setDataTarget(loc.getPath());
+                listener.notifyEnd(null);
+                return;
+    		}
+    	}
+    	
+    	/* Otherwise the data is a file or an object that can be already in the master memory,
+    	 * in the master disk or being transfered
+    	 */
+    	
+    	// Check if data is in memory (no need to check if it is PSCO since previous case avoids it)
         if (ld.isInMemory()) {
-        	switch(target.getProtocol()) {
-	        	case PERSISTENT_URI:
-	        		// PSCO in memory doesn't need to be persisted
-	        		// because the target location is already valid
-	        		break;
-	        	default:
-	        		// Any other location must be serialized
-	        		try {
-	                    Serializer.serialize(ld.getValue(), target.getPath());
-	                } catch (IOException ex) {
-	                    ErrorManager.warn("Error copying file from memory to " + target.getPath(), ex);
-	                }
-	        		break;
-        	}
+        	// Serialize value to file
+    		try {
+                Serializer.serialize(ld.getValue(), target.getPath());
+            } catch (IOException ex) {
+                ErrorManager.warn("Error copying file from memory to " + target.getPath(), ex);
+            }
         	
         	if (tgtData != null) {
                 tgtData.addLocation(target);
             }
-        	logger.debug("Object in memory set dataTarget "+ target.getPath());
+        	logger.debug("Object in memory. Set dataTarget to "+ target.getPath());
             reason.setDataTarget(target.getPath());
             listener.notifyEnd(null);
             return;
         }
         
+        // Check if there are current copies in progress
         if (debug) {
             logger.debug("Data " + ld.getName() + " not in memory. Checking if there is a copy to the master in progres");
-        }
-
-        // Check if there are current copies in progress
+        }        
         ld.lockHostRemoval();
         Collection<Copy> copiesInProgress = ld.getCopiesInProgress();
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
@@ -182,8 +200,7 @@ public class COMPSsMaster extends COMPSsNode {
                         }
                     } else {
                         if (debug) {
-                            logger.debug("Current copies are not transfering " + ld.getName()
-                                    + " to master. Ignoring at this moment");
+                            logger.debug("Current copies are not transfering " + ld.getName() + " to master. Ignoring at this moment");
                         }
                     }
                 }

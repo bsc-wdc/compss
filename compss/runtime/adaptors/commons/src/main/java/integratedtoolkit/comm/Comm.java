@@ -179,7 +179,7 @@ public class Comm {
     }
 
     public static synchronized Object clearValue(String dataId) {
-        logger.debug("Clear value of data " + dataId);
+    	logger.debug("Clear value of data " + dataId);
         LogicalData logicalData = data.get(dataId);
 
         return logicalData.removeValue();
@@ -190,7 +190,10 @@ public class Comm {
     }
 
     public static synchronized LogicalData getData(String dataId) {
-        logger.debug("Get data " + dataId + " with value " + data.get(dataId));
+    	if (logger.isDebugEnabled()) {
+    		logger.debug("Get data " + data.get(dataId));
+    	}
+    	
         return data.get(dataId);
     }
 

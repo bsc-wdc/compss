@@ -386,7 +386,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                 continue;
             }
             DataLocation actualLocation = c.getSourceData().finishedCopy(c);
-            if (actualLocation!=null){
+            if (actualLocation != null){
             	logger.debug("Actual Location "+ actualLocation.getPath() );
             } else {
             	logger.debug("Actual Location is null ");
@@ -394,15 +394,20 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             LogicalData tgtData = c.getTargetData();
             if (tgtData != null) {
             	logger.debug("targetData is not null");
-            	if (actualLocation.getType().equals(DataLocation.Type.PRIVATE)){
-            		logger.debug("Adding location:"+ actualLocation.getPath()+ " to " + tgtData.getName());
-            		tgtData.addLocation(actualLocation);
-            	} else {
-            		logger.debug("Shared location no need to update location for " + tgtData.getName());
-            		
+            	switch(actualLocation.getType()) {
+	            	case PERSISTENT:
+	            		logger.debug("Persistent location no need to update location for " + tgtData.getName());
+	            		break;
+	            	case PRIVATE:
+	            		logger.debug("Adding location:"+ actualLocation.getPath()+ " to " + tgtData.getName());
+	            		tgtData.addLocation(actualLocation);
+	            		break;
+	            	case SHARED:
+	            		logger.debug("Shared location no need to update location for " + tgtData.getName());
+	            		break;
             	}
             	logger.debug("Locations for " + tgtData.getName() + " are: " +tgtData.getURIs());
-            		
+            	
             } else {
             	logger.warn("No target Data defined for copy "+ c.getName());
             }

@@ -28,8 +28,10 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.DataOperation;
+import integratedtoolkit.types.data.operation.DataOperation.OpEndState;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.data.operation.copy.DeferredCopy;
+import integratedtoolkit.types.data.operation.copy.Replica;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
@@ -38,9 +40,14 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import storage.StorageException;
+import storage.StorageItf;
+import storage.StubItf;
 
 
 public class NIOWorkerNode extends COMPSsWorker {
@@ -161,7 +168,9 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, 
+    		EventListener listener) {
+    	
         if (target.getHosts().contains(Comm.appHost)) {
         	// Request to master
         	
@@ -201,22 +210,103 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
-        orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, 
+    		Transferable reason, EventListener listener) {
+    	
+		if (logger.isDebugEnabled()) {
+	    	logger.debug("Obtain Data " + ld.getName() + " as " + target);
+		}
+
+		// If it has a PSCO location, it is a PSCO -> Order new Replica
+    	for (DataLocation d : ld.getLocations()) {
+    		if (d.getType().equals(DataLocation.Type.PERSISTENT)) {
+    			// TODO: Is new replica necessary?
+    			askForNewReplica(new Replica(ld, source, target, tgtData, reason, listener));
+    			return;
+    		}
+    	}
+    	
+    	orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
     }
+    
+	private void askForNewReplica(Replica r) {
+		String targetHostname = this.getName();
+		LogicalData srcLD = r.getSourceData();
+		
+		logger.debug("Performing new Replica of " + srcLD.getName() + " to " + targetHostname);
+		
+		// Get the PSCO to replicate
+		Object value = srcLD.getValue();
+		if (value == null || !(value instanceof StubItf)) {
+			try {
+				logger.debug(" - Load value from storage");
+				srcLD.loadFromStorage();
+			} catch (Exception e) {
+				// Cannot load value
+				r.end(OpEndState.OP_FAILED, e);
+				return;
+			}
+			value = srcLD.getValue();
+		}
+		String pscoId = ((StubItf) value).getID();
+		
+		// Get the current locations
+		List<String> currentLocations = new LinkedList<String>();
+		try {
+			logger.debug(" - Load locations for PSCO " + pscoId);
+			currentLocations = StorageItf.getLocations(pscoId);
+			if (logger.isDebugEnabled()) {
+				for (String hostname : currentLocations) {
+					logger.debug("   " + hostname);
+				}
+			}
+		} catch (StorageException se) {
+			// Cannot obtain current locations from back-end
+			r.end(OpEndState.OP_FAILED, se);
+			return;
+		}
+
+		if (!currentLocations.contains(targetHostname)) {
+			// Perform replica
+			logger.debug(" - Performing new replica for PSCO " + pscoId);
+			if (tracing) {
+            	NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+            }
+            try {
+            	StorageItf.newReplica(pscoId, targetHostname);
+            } catch (StorageException se) {
+            	r.end(OpEndState.OP_FAILED, se);
+            	return;
+            } finally {
+            	if (tracing) {
+            		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+            	}
+            }
+		} else {
+			logger.debug(" - PSCO " + pscoId + " already present. Skip replica.");
+		}
+		
+		// Notify successful end
+		r.setFinalTarget(r.getTargetLoc().getPath());
+		r.end(OpEndState.OP_OK);
+	}
 
     private void orderCopy(DeferredCopy c) {
         Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
         LogicalData ld = c.getSourceData();
         String path;
-        synchronized (ld) {
-            MultiURI u;
-
-            if ((c.getTargetData() != null) && (u = ld.alreadyAvailable(tgtRes)) != null) {
-                path = u.getPath();
+        synchronized (ld) {            
+            if (c.getTargetData() != null) {
+            	MultiURI u = ld.alreadyAvailable(tgtRes);
+            	if (u != null) {
+            		path = u.getPath();
+            	} else {
+            		path = c.getTargetLoc().getPath();
+            	}
             } else {
-                path = c.getTargetLoc().getPath();
+            	path = c.getTargetLoc().getPath();
             }
+
             //TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION    
             ld.startCopy(c, c.getTargetLoc());
             commManager.registerCopy(c);
@@ -251,7 +341,9 @@ public class NIOWorkerNode extends COMPSsWorker {
             	path = Protocol.OBJECT_URI.getSchema() + name;
             	break;
             case PSCO_T:
-            	path = Protocol.PERSISTENT_URI.getSchema() + name;
+            	// Search for the PSCO id
+            	String id = Comm.getData(name).getId();
+            	path = Protocol.PERSISTENT_URI.getSchema() + id;
             	break;
             default:
                 return null;

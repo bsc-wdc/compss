@@ -225,9 +225,39 @@ public class NIOWorker extends NIOAgent {
 				wLogger.debug("- Checking transfers for data of parameter " + (String) param.getValue());
 
 				switch (param.getType()) {
+				/* PSCOs */
+				case PSCO_T:
+					String pscoId = (String) param.getValue();
+					wLogger.debug("   - " + pscoId + " registered as PSCO.");
+					// The replica must have been ordered by the master so the real object must be
+					// catched or can be retrieved by the ID
+					
+					// Try if parameter is in cache
+					wLogger.debug("   - Checking if " + pscoId + " is in cache.");
+					boolean inCache = dataManager.checkPresence(pscoId);
+					if (!inCache) {
+						wLogger.debug("   - Retrieving psco " + pscoId + " from Storage");
+						// Get Object from its ID
+						Object obj = null;
+						if (tracing) {
+                            NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+						}
+	                    try {
+	                    	obj = StorageItf.getByID(pscoId);
+	                    } catch (StorageException e) {
+	                    	wLogger.error("Cannot getByID PSCO " + pscoId, e);
+	                    } finally {
+                            if (tracing) {
+                                NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+                            }
+	                    }
+						storeObject(pscoId, obj);
+					}
+					wLogger.debug("   - PSCO with id "+ pscoId + " stored");
+					break;
+					
             	/* OBJECTS */
                 case OBJECT_T:
-                case PSCO_T:
                 	wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
 
 					boolean catched = false;
@@ -650,7 +680,6 @@ public class NIOWorker extends NIOAgent {
 	}
 
     private void removeFolder(String sandBox) throws IOException {
-
         File wdirFile = new File(sandBox);
         remove(wdirFile);
     }
@@ -677,7 +706,8 @@ public class NIOWorker extends NIOAgent {
 			return dataManager.getObject(id);
 		}
 		
-		// Get PSCO by ID and cache value
+		// If there was any problem on transfer, try to get it now by id from
+		// any other host (done by storage getById)
 		if (tracing) {
 			NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
 		}

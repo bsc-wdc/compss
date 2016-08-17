@@ -21,10 +21,10 @@
   # Build dependencies
   sudo yum install -y rpm-build subversion
   cd /usr/local/
-  sudo wget http://mirror.cc.columbia.edu/pub/software/apache/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
-  sudo tar -zxf apache-maven-3.3.3-bin.tar.gz
-  sudo rm apache-maven-3.3.3-bin.tar.gz
-  sudo ln -s apache-maven-3.3.3 maven
+  sudo wget http://compss.bsc.es/repo/apache-maven/apache-maven-3.3.9-bin.tar.gz
+  sudo tar -zxf apache-maven-3.3.9-bin.tar.gz
+  sudo rm apache-maven-3.3.9-bin.tar.gz
+  sudo ln -s apache-maven-3.3.9 maven
   cd -
   cat >> maven.sh << EOT
 export M2_HOME=/usr/local/maven/

@@ -250,7 +250,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     private static void loadSchedulerJars() {
         logger.info("Loading schedulers...");
-        String itHome = System.getenv("IT_HOME");
+        String itHome = System.getenv(ITConstants.IT_HOME);
 
         if (itHome == null || itHome.isEmpty()) {
             logger.warn("WARN: IT_HOME not defined, no schedulers loaded.");
@@ -276,4 +276,5 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
         return scheduler;
     }
+    
 }

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
@@ -23,6 +25,7 @@ public final class StorageItf {
 	// Logger According to Loggers.STORAGE
     private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
 
+    private static final String ERROR_HOSTNAME						= "ERROR: Cannot find localhost hostname";
 	private static final String ERROR_CREATE_WD 					= "ERROR: Cannot create WD ";
 	private static final String ERROR_ERASE_WD 						= "ERROR: Cannot erase WD";
 	private static final String ERROR_CONFIGURATION_NOT_FOUND 		= "ERROR: Configuration file not found";
@@ -36,10 +39,24 @@ public final class StorageItf {
 
 	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 	
-	private static final String MASTER_HOSTNAME = "master";
-	private static final String MASTER_WORKING_DIR = BASE_WORKING_DIR + File.separator + MASTER_HOSTNAME + File.separator;
+	private static final String MASTER_HOSTNAME;
+	private static final String MASTER_WORKING_DIR;
 	
 	private static final LinkedList<String> hostnames = new LinkedList<String>();
+	
+	static {
+		String hostname = null;
+		try {
+			hostname = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			System.err.println(ERROR_HOSTNAME);
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		MASTER_HOSTNAME = hostname;
+		MASTER_WORKING_DIR = BASE_WORKING_DIR + File.separator + MASTER_HOSTNAME + File.separator;
+	}
 
 	/**
 	 * Constructor
@@ -148,8 +165,8 @@ public final class StorageItf {
 		for (String hostname : hostnames) {
 			String path = BASE_WORKING_DIR + hostname + File.separator + id;
 			File pscoLocation = new File(path);
-			if (!pscoLocation.exists()) {
-				result.add(path);
+			if (pscoLocation.exists()) {
+				result.add(hostname);
 			}
 		}
 
@@ -164,6 +181,7 @@ public final class StorageItf {
 	 * @throws StorageException
 	 */
 	public static void newReplica(String id, String hostName) throws StorageException {
+		logger.info("NEW REPLICA: " + id + " on host " + hostName);
 		// New replica always copies PSCO from master
 		File source = new File(MASTER_WORKING_DIR + id);
 		if (source.exists()) {
@@ -189,16 +207,18 @@ public final class StorageItf {
 	 * @throws StorageException
 	 */
 	public static String newVersion(String id, String hostName) throws StorageException {
+		logger.info("NEW VERSION: " + id + " on host " + hostName);
+		
 		// New version always copies PSCO from master
 		File source = new File(MASTER_WORKING_DIR + id);
 		String newId = "psco_" + UUID.randomUUID().toString();
 		if (source.exists()) {
-			String targetPath = BASE_WORKING_DIR + hostName + File.separator + newId;
+			String targetPath = MASTER_WORKING_DIR + newId;
 			File target = new File(targetPath);
 			try {
 				Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 			} catch (IOException e) {
-				throw new StorageException(ERROR_NEW_VERSION + id + " to " + newId, e);
+				throw new StorageException(ERROR_NEW_VERSION + id + " to " + targetPath, e);
 			}
 		} else {
 			throw new StorageException(ERROR_NO_PSCO + id);

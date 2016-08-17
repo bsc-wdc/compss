@@ -149,15 +149,13 @@ public class Task implements Comparable<Task> {
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
+    
+    public void setExecution(SingleExecution<?,?> execution) {
+        this.execution = execution;
+    }
 
-    public String toString() {
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append("[[Task id: ").append(getId()).append("]");
-        buffer.append(", [Status: ").append(getStatus()).append("]");
-        buffer.append(", ").append(getTaskParams().toString()).append("]");
-
-        return buffer.toString();
+    public SingleExecution<?,?> getExecution() {
+        return execution;
     }
 
     // Comparable interface implementation
@@ -179,13 +177,16 @@ public class Task implements Comparable<Task> {
     public int hashCode() {
         return super.hashCode();
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
 
-    public void setExecution(SingleExecution<?,?> execution) {
-        this.execution = execution;
-    }
+        buffer.append("[[Task id: ").append(getId()).append("]");
+        buffer.append(", [Status: ").append(getStatus()).append("]");
+        buffer.append(", ").append(getTaskParams().toString()).append("]");
 
-    public SingleExecution<?,?> getExecution() {
-        return execution;
+        return buffer.toString();
     }
 
 }

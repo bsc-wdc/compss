@@ -7,7 +7,7 @@ import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.DataOperation;
 
 
-public class Replica extends DataOperation {
+public class StorageCopy extends DataOperation {
 
     private final LogicalData srcData;
     private final DataLocation srcLoc;
@@ -16,7 +16,7 @@ public class Replica extends DataOperation {
     private Transferable reason;
 
     
-    public Replica(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, 
+    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, 
     		Transferable reason, EventListener listener) {
     	
         super(srcData, listener);
@@ -48,7 +48,7 @@ public class Replica extends DataOperation {
     
     public void setFinalTarget(String targetAbsolutePath) {
     	if (debug){
-    		logger.debug(" Setting replica final target to : "+ targetAbsolutePath );
+    		logger.debug(" Setting StorageCopy final target to : "+ targetAbsolutePath );
     	}
     	reason.setDataTarget(targetAbsolutePath);
     }

@@ -7,7 +7,6 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
-import java.util.Comparator;
 import java.util.LinkedList;
 
 import org.apache.logging.log4j.LogManager;
@@ -77,10 +76,6 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * @throws Exception
      */
     public static DataLocation createLocation(Resource host, SimpleURI uri) throws Exception {
-    	/*logger.debug("Creating new location: " + uri.toString());
-    	for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-    		logger.debug(ste);
-    	}*/
     	Protocol protocol = Protocol.getBySchema(uri.getSchema());
     	if (protocol == null) {
     		logger.warn("WARN: Unrecognised protocol [ " + uri.getSchema()

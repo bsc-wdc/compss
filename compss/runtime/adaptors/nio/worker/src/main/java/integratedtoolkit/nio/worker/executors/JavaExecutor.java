@@ -397,7 +397,7 @@ public class JavaExecutor extends Executor {
 	private void checkSCOPersistence(NIOWorker nw, NIOTask nt, int numParams, boolean hasTarget, TargetParam target,
 			Object retValue, String[] renamings, Object[] values, boolean[] canBePSCO, boolean[] writeFinalValue) {
 		
-		// Check all parameters and target
+		// Check all parameters and target		
 		for (int i = 0; i < numParams; i++) {
 			if (canBePSCO[i] && writeFinalValue[i]) {
 				// Get information as target or as normal parameter

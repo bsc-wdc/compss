@@ -4,9 +4,11 @@ import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
+
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.LogicalData;
 
 
 /**
@@ -27,6 +29,11 @@ public class TransferObjectRequest extends APRequest {
      * Object asked for
      */
     private Object response;
+    
+    /**
+     * LogicalData refering to the final object location
+     */
+    private LogicalData target;
 
     /**
      * Constructs a new TransferObjectRequest
@@ -85,6 +92,15 @@ public class TransferObjectRequest extends APRequest {
     public Object getResponse() {
         return response;
     }
+    
+    /**
+     * Returns the requested LogicalData instance
+     *
+     * @return the requested LogicalData instance
+     */
+    public LogicalData getLogicalDataTarget() {
+        return target;
+    }
 
     /**
      * Sets the requested object.
@@ -97,7 +113,7 @@ public class TransferObjectRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
-        dip.transferObjectValue(this);
+        this.target = dip.transferObjectValue(this);
     }
 
     @Override

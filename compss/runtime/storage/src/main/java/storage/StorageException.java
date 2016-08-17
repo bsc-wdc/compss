@@ -17,7 +17,10 @@ public class StorageException extends Exception implements Serializable {
 
 	public StorageException(Exception cause) {
 		super(cause);
-
+	}
+	
+	public StorageException(String message, Exception cause) {
+		super(message, cause);
 	}
 
 }

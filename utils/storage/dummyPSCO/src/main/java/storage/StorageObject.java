@@ -16,6 +16,7 @@ public class StorageObject implements StubItf {
 	 * 
 	 * @return
 	 */
+	@Override
 	public String getID() {
 		return this.id;
 	}
@@ -25,6 +26,7 @@ public class StorageObject implements StubItf {
 	 * 
 	 * @param id
 	 */
+	@Override
 	public void makePersistent(String id) {
 		try {
 			StorageItf.makePersistent(this, id);
@@ -37,9 +39,16 @@ public class StorageObject implements StubItf {
 	/**
 	 * Deletes the persistent object occurrences
 	 */
+	@Override
 	public void deletePersistent() {
 		StorageItf.removeById(this.id);
 		this.id = null;
 	}
-
+	
+	/**
+	 * Sets the ID (only used by this implementation)
+	 */
+	protected void setID(String id) {
+		this.id = id;
+	}
 }

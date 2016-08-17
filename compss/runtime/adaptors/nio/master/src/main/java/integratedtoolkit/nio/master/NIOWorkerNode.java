@@ -31,7 +31,7 @@ import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.DataOperation.OpEndState;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.data.operation.copy.DeferredCopy;
-import integratedtoolkit.types.data.operation.copy.Replica;
+import integratedtoolkit.types.data.operation.copy.StorageCopy;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
@@ -212,16 +212,15 @@ public class NIOWorkerNode extends COMPSsWorker {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, 
     		Transferable reason, EventListener listener) {
-    	
+
 		if (logger.isDebugEnabled()) {
 	    	logger.debug("Obtain Data " + ld.getName() + " as " + target);
 		}
 
-		// If it has a PSCO location, it is a PSCO -> Order new Replica
+		// If it has a PSCO location, it is a PSCO -> Order new StorageCopy
     	for (DataLocation d : ld.getLocations()) {
     		if (d.getType().equals(DataLocation.Type.PERSISTENT)) {
-    			// TODO: Is new replica necessary?
-    			askForNewReplica(new Replica(ld, source, target, tgtData, reason, listener));
+    			orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
     			return;
     		}
     	}
@@ -229,21 +228,45 @@ public class NIOWorkerNode extends COMPSsWorker {
     	orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
     }
     
-	private void askForNewReplica(Replica r) {
-		String targetHostname = this.getName();
-		LogicalData srcLD = r.getSourceData();
+	private void orderStorageCopy(StorageCopy sc) {
+		logger.info("Order PSCO Copy for " + sc.getSourceData().getName());
+		if (logger.isDebugEnabled()) {
+	    	logger.debug("LD Target " + sc.getTargetData());
+	    	logger.debug("FROM: " + sc.getPreferredSource());
+	    	logger.debug("TO: " + sc.getTargetLoc());
+		}
 		
-		logger.debug("Performing new Replica of " + srcLD.getName() + " to " + targetHostname);
+		LogicalData source = sc.getSourceData();
+		LogicalData target = sc.getTargetData();
+		if (target != null) {
+			if (target.getName().equals(source.getName())) {
+				// The source and target are the same --> IN
+				// TODO: Is new replica necessary?
+				newReplica(sc);
+			} else {
+				// The source and target are different --> OUT
+				newVersion(sc);
+			}
+		} else {
+			// Target doesn't exist yet --> INOUT
+			newVersion(sc);
+		}
+	}
+	
+	private void newReplica(StorageCopy sc) {
+		String targetHostname = this.getName();
+		LogicalData srcLD = sc.getSourceData();
+		
+		logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 		
 		// Get the PSCO to replicate
 		Object value = srcLD.getValue();
 		if (value == null || !(value instanceof StubItf)) {
 			try {
-				logger.debug(" - Load value from storage");
 				srcLD.loadFromStorage();
 			} catch (Exception e) {
 				// Cannot load value
-				r.end(OpEndState.OP_FAILED, e);
+				sc.end(OpEndState.OP_FAILED, e);
 				return;
 			}
 			value = srcLD.getValue();
@@ -253,29 +276,23 @@ public class NIOWorkerNode extends COMPSsWorker {
 		// Get the current locations
 		List<String> currentLocations = new LinkedList<String>();
 		try {
-			logger.debug(" - Load locations for PSCO " + pscoId);
 			currentLocations = StorageItf.getLocations(pscoId);
-			if (logger.isDebugEnabled()) {
-				for (String hostname : currentLocations) {
-					logger.debug("   " + hostname);
-				}
-			}
 		} catch (StorageException se) {
 			// Cannot obtain current locations from back-end
-			r.end(OpEndState.OP_FAILED, se);
+			sc.end(OpEndState.OP_FAILED, se);
 			return;
 		}
 
 		if (!currentLocations.contains(targetHostname)) {
 			// Perform replica
-			logger.debug(" - Performing new replica for PSCO " + pscoId);
+			logger.debug("Performing new replica for PSCO " + pscoId);
 			if (tracing) {
             	NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
             }
             try {
             	StorageItf.newReplica(pscoId, targetHostname);
             } catch (StorageException se) {
-            	r.end(OpEndState.OP_FAILED, se);
+            	sc.end(OpEndState.OP_FAILED, se);
             	return;
             } finally {
             	if (tracing) {
@@ -283,15 +300,59 @@ public class NIOWorkerNode extends COMPSsWorker {
             	}
             }
 		} else {
-			logger.debug(" - PSCO " + pscoId + " already present. Skip replica.");
+			logger.debug("PSCO " + pscoId + " already present. Skip replica.");
 		}
 		
 		// Notify successful end
-		r.setFinalTarget(r.getTargetLoc().getPath());
-		r.end(OpEndState.OP_OK);
+		sc.setFinalTarget(sc.getTargetLoc().getPath());
+		sc.end(OpEndState.OP_OK);
+	}
+	
+	private void newVersion(StorageCopy sc) {
+		String targetHostname = this.getName();
+		LogicalData srcLD = sc.getSourceData();
+		
+		logger.debug("Ask for new Version of " + srcLD.getName() + " to " + targetHostname);
+		
+		// Get the PSCO to replicate
+		Object value = srcLD.getValue();
+		if (value == null || !(value instanceof StubItf)) {
+			try {
+				srcLD.loadFromStorage();
+			} catch (Exception e) {
+				// Cannot load value
+				sc.end(OpEndState.OP_FAILED, e);
+				return;
+			}
+			value = srcLD.getValue();
+		}
+		String pscoId = ((StubItf) value).getID();
+
+		// Perform version
+		logger.debug("Performing new version for PSCO " + pscoId);
+		if (tracing) {
+			NIOTracer.emitEvent( NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
+		}
+        try {
+        	String newId = StorageItf.newVersion(pscoId, Comm.appHost.getName());
+        	logger.debug("Register new new version of " + pscoId + " as " + newId);
+        	sc.setFinalTarget(newId);
+        } catch (Exception e) {
+        	sc.end(OpEndState.OP_FAILED, e);
+        	return;
+        } finally {
+        	if (tracing) {
+        		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWVERSION.getType());
+            }
+        }
+		
+		// Notify successful end
+		sc.end(OpEndState.OP_OK);	
 	}
 
     private void orderCopy(DeferredCopy c) {
+    	logger.info("Order Copy for " + c.getSourceData());
+    	
         Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
         LogicalData ld = c.getSourceData();
         String path;

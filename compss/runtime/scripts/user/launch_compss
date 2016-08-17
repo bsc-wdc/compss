@@ -259,12 +259,16 @@ get_args() {
   fi
   
   # Parse COMPSs Options
-  while getopts hdt-: flag; do 
+  while getopts hvgtmd-: flag; do 
     # Treat the argument
     case "$flag" in
       h)
         # Display help
         usage 0
+        ;;
+      v)
+        # Display version
+        display_version 0
         ;;
       d)
         log_level=${DEFAULT_LOG_LEVEL_ARG}

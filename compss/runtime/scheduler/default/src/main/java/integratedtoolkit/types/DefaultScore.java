@@ -31,7 +31,7 @@ public class DefaultScore<P extends Profile, T extends WorkerResourceDescription
 
     @Override
     public boolean isBetter(Score other) {
-        DefaultScore<P, T> otherDS = (DefaultScore<P, T>) other;
+		DefaultScore<P, T> otherDS = (DefaultScore<P, T>) other;
         if (actionScore != other.actionScore) {
             return actionScore > other.actionScore;
         }

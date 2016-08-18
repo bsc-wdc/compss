@@ -83,7 +83,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public MethodResourceDescription(Constraints constraints) {
         super();
 
-        // Parse processors - When comming from Constraints only one processor is available
+        // Parse processors - When coming from Constraints only one processor is available
         Processor p = new Processor();
         String procName = constraints.processorName();
         if (procName != null && !procName.equals(UNASSIGNED_STR)) {

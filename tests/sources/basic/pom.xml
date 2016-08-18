@@ -60,6 +60,7 @@
 		<!-- Module 27 is 27-simple_python -->
 		<!-- Module 28 is 28-simple_c -->
 		<module>29-pscos</module>
+		<module>30-mpi</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

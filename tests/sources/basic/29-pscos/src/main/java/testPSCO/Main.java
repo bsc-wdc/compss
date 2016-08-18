@@ -36,7 +36,7 @@ public class Main {
 		Person p = new Person("PName1", 1, 1);
 		p.makePersistent(id);
 		
-		MainImpl.taskPSCOIn(p);		
+		MainImpl.taskPSCOIn(p);
 	}
 	
 	private static void testPSCOInOut() {

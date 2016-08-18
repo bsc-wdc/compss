@@ -29,7 +29,7 @@ ERROR_STORAGE_PROPS_FILE="storage_props file doesn't exist"
 usage() {
   local exitValue=$1
 
-  /bin/cat <<EOT
+  cat <<EOT
 Usage: $0 [options] application_name application_arguments
 
 * Options:
@@ -63,7 +63,7 @@ show_opts() {
   source ${defaultQS_cfg}
   
   # Show usage
-  /bin/cat <<EOT
+  cat <<EOT
     --exec_time=<minutes>                   Expected execution time of the application (in minutes)
                                             Default: ${DEFAULT_EXEC_TIME}
     --num_nodes=<int>                       Number of nodes to use

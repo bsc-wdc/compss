@@ -53,7 +53,7 @@ TRACING_ERROR="Value of option --tracing must be: false, true, basic or advanced
 # FUNCTIONS DECLARATION
 #---------------------------------------------------
 show_opts() {
-/bin/cat <<EOT
+  cat <<EOT
   Tools enablers:
     --graph=<bool>, --graph, -g             Generation of the complete graph (true/false)
                                             When no value is provided it is set to ${DEFAULT_GRAPH_ARGUMENT}
@@ -130,7 +130,7 @@ EOT
 usage() {
   exitValue=$1
 
-  /bin/cat <<EOT
+  cat <<EOT
 Usage: $0 [options] application_name application_arguments
 
 * Options:

@@ -178,7 +178,9 @@ check_env() {
   #  export XML_DIR=$(dirname $0)
   #fi
 
-  export IT_HOME=$(dirname $0)/../../..
+  # Command to simulate realpath
+  IT_HOME=$(cd $(dirname $0)/../../.. ; pwd)
+  export IT_HOME=${IT_HOME}
 
   if [ -z "$DEFAULT_PROJECT" ]; then
     DEFAULT_PROJECT=${IT_HOME}/Runtime/configuration/xml/projects/default_project.xml

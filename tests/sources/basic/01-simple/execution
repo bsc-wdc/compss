@@ -33,7 +33,6 @@
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/simple.jar \
-     --jvm_workers_opts="-Dit.worker.removeWD=false" \
      simple.Simple 1 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   

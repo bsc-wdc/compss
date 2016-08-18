@@ -92,15 +92,6 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason, EventListener listener) {
     	logger.info("Obtain Data " + ld.getName());
-    	logger.debug("SourceLD " + ld);
-    	logger.debug("TargetLD " + tgtData);
-    	logger.debug("SourceLocation " + source);
-    	logger.debug("TargetLocation " + target);
-    	logger.debug("----------------------------");
-    	for (StackTraceElement se : Thread.currentThread().getStackTrace()) {
-    		logger.debug(se);
-    	}
-    	logger.debug("----------------------------");
     	
     	/*
     	 *  PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer

@@ -51,6 +51,21 @@ public class MainImpl {
 			e.printStackTrace();
 		}
 	}
+	
+	public static Person taskPSCOReturn(String name, int age, int numC, String id) {
+		Person p = new Person(name, age, numC);
+		p.makePersistent(id);
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+		
+		return p;
+	}
 
 	public static String taskPSCOInOutTaskPersisted(Person p) {
 		String name = p.getName();
@@ -65,14 +80,16 @@ public class MainImpl {
 		
 		String id = "person_" + UUID.randomUUID().toString();
 		p.makePersistent(id);
-		return id;
-	}
-
-	public static Person taskPSCOReturn(String name, int age, int numC, String id) {
-		Person p = new Person(name, age, numC);
-		p.makePersistent(id);
 		
-		return p;
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+		
+		return id;
 	}
 
 	public static Person taskPSCOReturnNoTaskPersisted(String name, int age, int numC) {

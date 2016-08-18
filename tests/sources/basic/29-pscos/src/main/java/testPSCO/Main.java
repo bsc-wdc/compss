@@ -19,15 +19,15 @@ public class Main {
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO RETURN");
-		//testPSCOReturn();
+		testPSCOReturn();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO INOUT TASK PERSISTED");
-		//testPSCOInOutTaskPersisted();
+		testPSCOInOutTaskPersisted();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO IN RETURN NO TASK PERSISTED");
-		//testPSCOReturnNoTaskPersisted();
+		testPSCOReturnNoTaskPersisted();
 	}
 	
 	private static void testPSCOIn() {
@@ -50,8 +50,8 @@ public class Main {
 		String name = p.getName();
 		int age = p.getAge();
 		int numC = p.getNumComputers();
-		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
-		System.out.println("[LOG] BeginId = " + id + " EndId = " + p.getID());
+		System.out.println("[LOG][PSCO_INOUT] Person " + name + " with age " + age + " has " + numC + " computers");
+		System.out.println("[LOG][PSCO_INOUT] BeginId = " + id + " EndId = " + p.getID());
 	}
 	
 	private static void testPSCOInOutTaskPersisted() {
@@ -62,8 +62,8 @@ public class Main {
 		String name = p.getName();
 		int age = p.getAge();
 		int numC = p.getNumComputers();
-		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
-		System.out.println("[LOG] BeginId = " + id + " EndId = " + p.getID());
+		System.out.println("[LOG][PSCO_INOUT_TP] Person " + name + " with age " + age + " has " + numC + " computers");
+		System.out.println("[LOG][PSCO_INOUT_TP] BeginId = " + id + " EndId = " + p.getID());
 	}
 
 	private static void testPSCOReturn() {
@@ -73,8 +73,8 @@ public class Main {
 		String name = p.getName();
 		int age = p.getAge();
 		int numC = p.getNumComputers();
-		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
-		System.out.println("[LOG] BeginId = " + id+ " EndId = " + p.getID());
+		System.out.println("[LOG][PSCO_RETURN] Person " + name + " with age " + age + " has " + numC + " computers");
+		System.out.println("[LOG][PSCO_RETURN] BeginId = " + id+ " EndId = " + p.getID());
 	}
 	
 	private static void testPSCOReturnNoTaskPersisted() {
@@ -83,8 +83,8 @@ public class Main {
 		String name = p.getName();
 		int age = p.getAge();
 		int numC = p.getNumComputers();
-		System.out.println("[LOG] Person " + name + " with age " + age + " has " + numC + " computers");
-		System.out.println("[LOG] BeginId = null EndId = " + p.getID());
+		System.out.println("[LOG][PSCO_RETURN_NTP] Person " + name + " with age " + age + " has " + numC + " computers");
+		System.out.println("[LOG][PSCO_RETURN_NTP] BeginId = null EndId = " + p.getID());
 	}
 	
 } 

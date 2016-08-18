@@ -449,9 +449,8 @@ public class JavaExecutor extends Executor {
 			// Update to PSCO if needed
 			if (id != null) {
 				// Object has been persisted
-				nw.storePersistentObject(id, retValue);
 				nt.getParams().getLast().setType(DataType.PSCO_T);
-				retValue = id;
+				nt.getParams().getLast().setValue(id);
 			}
 		}
 	}
@@ -499,6 +498,7 @@ public class JavaExecutor extends Executor {
 		}
 
 		// Serialize the return value if existing
+		// PSCOs are already stored, skip them
 		if (retValue != null) {
 			String renaming = (String) nt.getParams().getLast().getValue();
 			// Always stored because it can only be a OUT object

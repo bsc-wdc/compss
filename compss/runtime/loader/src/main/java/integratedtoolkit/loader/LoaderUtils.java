@@ -24,9 +24,18 @@ public class LoaderUtils {
 
 	private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
 	
+	
 	// Storage: Check object type
 	public static DataType checkSCOType(Object o) {
-		return (o instanceof StubItf) ? DataType.PSCO_T : DataType.OBJECT_T;
+		if (o instanceof StubItf) {
+			if ( ((StubItf) o).getID() != null) {
+				// Persisted Object
+				return DataType.PSCO_T;
+			}
+		}
+		
+		// The Data is an Object or a non persisted PSCO
+		return DataType.OBJECT_T;
 	}	
 
     // Return the called method if it is in the remote list

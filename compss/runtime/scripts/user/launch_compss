@@ -117,7 +117,7 @@ show_opts() {
                                               Each option separed by "," and without blank spaces (Notice the quotes)
                                               Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
 
-    Runcompss delegated parameters:
+  Runcompss delegated parameters:
 
 EOT
     ${scriptDir}/runcompss --opts 

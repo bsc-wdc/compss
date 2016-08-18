@@ -84,7 +84,7 @@ show_opts() {
     --storage_props=<string>                Absolute path of the storage properties file
                                             Mandatory if storage_home is defined
 
- Launch configuration:
+  Launch configuration:
 EOT
   ${scriptDir}/../../user/launch_compss --opts 
 

@@ -48,24 +48,26 @@ ERROR_EPILOG_ACTION="Exception executing epilog action"
 usage() {
   local exitValue=$1
 
-  /bin/cat <<EOT
+  cat <<EOT
 Usage: $0 [options] application_name application_arguments
 
 * Options:
   General:
-      --help, -h                              Print this help message
+    --help, -h                              Print this help message
 
-      --opts                                  Show available options
+    --opts                                  Show available options
 
-      --version, -v                           Print COMPSs version
+    --version, -v                           Print COMPSs version
     
-      --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
-                                              Mandatory
-                                              Default: ${DEFAULT_SC_CFG}
-      --master_node=<string>                  Node where to run the COMPSs Master
-                                              Mandatory
-      --worker_nodes="<string string...>"     Space separated nodes where to run the COMPSs Workers (Notice the quotes)
-                                              Mandatory
+    --sc_cfg=<name>                         SuperComputer configuration file to use. Must exist inside queues/cfgs/
+                                            Mandatory
+                                            Default: ${DEFAULT_SC_CFG}
+
+    --master_node=<string>                  Node where to run the COMPSs Master
+                                            Mandatory
+
+    --worker_nodes="<string string...>"     Space separated nodes where to run the COMPSs Workers (Notice the quotes)
+                                            Mandatory
     
   Launch configuration:
 EOT
@@ -86,38 +88,38 @@ show_opts() {
   source ${defaultQS_cfg}
   
   # Show usage
-  /bin/cat <<EOT
-      --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
-                                              Default: ${DEFAULT_TASKS_PER_NODE}
-      --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
-                                              Default: ${DEFAULT_NODE_MEMORY}
-      --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
-                                              Default: ${DEFAULT_NETWORK}
+  cat <<EOT
+    --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
+                                            Default: ${DEFAULT_TASKS_PER_NODE}
+    --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
+                                            Default: ${DEFAULT_NODE_MEMORY}
+    --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
+                                            Default: ${DEFAULT_NETWORK}
                                               
-      --prolog="<string>"                     Task to execute before launching COMPSs (Notice the quotes)
-                                              If the task has arguments split them by "," rather than spaces.
-                                              This argument can appear multiple times for more than one prolog action
-                                              Default: Empty
-      --epilog="<string>"                     Task to execute after executing the COMPSs application (Notice the quotes)
-                                              If the task has arguments split them by "," rather than spaces.
-                                              This argument can appear multiple times for more than one epilog action
-                                              Default: Empty
+    --prolog="<string>"                     Task to execute before launching COMPSs (Notice the quotes)
+                                            If the task has arguments split them by "," rather than spaces.
+                                            This argument can appear multiple times for more than one prolog action
+                                            Default: Empty
+    --epilog="<string>"                     Task to execute after executing the COMPSs application (Notice the quotes)
+                                            If the task has arguments split them by "," rather than spaces.
+                                            This argument can appear multiple times for more than one epilog action
+                                            Default: Empty
 
-      --master_working_dir=<path>             Working directory of the application
-                                              Default: ${DEFAULT_MASTER_WORKING_DIR}
-      --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
-                                              Default: ${DEFAULT_WORKER_WORKING_DIR}
+    --master_working_dir=<path>             Working directory of the application
+                                            Default: ${DEFAULT_MASTER_WORKING_DIR}
+    --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
+                                            Default: ${DEFAULT_WORKER_WORKING_DIR}
                                               
-      --worker_in_master_tasks=<int>          Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
-                                              Default: ${DEFAULT_WORKER_IN_MASTER_TASKS}
-      --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
-                                              Mandatory if worker_in_master_tasks is specified.
-                                              Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
-      --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
-                                              Each option separed by "," and without blank spaces (Notice the quotes)
-                                              Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
+    --worker_in_master_tasks=<int>          Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
+                                            Default: ${DEFAULT_WORKER_IN_MASTER_TASKS}
+    --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
+                                            Mandatory if worker_in_master_tasks is specified.
+                                            Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
+    --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
+                                            Each option separed by "," and without blank spaces (Notice the quotes)
+                                            Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
 
-  Runcompss delegated parameters:
+  Runcompss configuration:
 
 EOT
     ${scriptDir}/runcompss --opts 

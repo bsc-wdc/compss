@@ -30,7 +30,7 @@ usage() {
   source ${defaultQS_cfg}
   
   # Show usage
-  /bin/cat <<EOT
+  cat <<EOT
 Usage: $0 [queue_system_options] [COMPSs_options] application_name application_arguments
 
 * Options:
@@ -42,7 +42,6 @@ Usage: $0 [queue_system_options] [COMPSs_options] application_name application_a
                                             Default: ${DEFAULT_SC_CFG}
 
   Submission configuration: 
-
 EOT
   ${scriptDir}/../queues/commons/submit.sh --opts 
 

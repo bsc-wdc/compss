@@ -3,8 +3,8 @@ package integratedtoolkit.types;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.PriorityQueue;
+
 
 public class PriorityActionSet {
 

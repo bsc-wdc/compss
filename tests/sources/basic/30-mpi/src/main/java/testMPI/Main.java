@@ -36,11 +36,11 @@ public class Main {
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test MPI with 1 node");
-		//testMPISingleNode();
+		testMPISingleNode();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] Test MPI with 2 node");
-		//testMPIMultipleNodes();
+		testMPIMultipleNodes();
 		
 		//------------------------------------------------------------------------
 		System.out.println("[LOG] MPI Test finished");
@@ -65,13 +65,23 @@ public class Main {
 	
 	private static void testMPISingleNode() {
 		int sum = MainImpl.taskSingleMPI(BINARY_PATH, data);
-		assert (sum == totalSum);
+		
+		if (sum == totalSum) {
+			System.out.println("[MPI_SINGLE] Received value from task is correct");
+		} else {
+			System.out.println("[MPI_SINGLE] Received value from task is not correct: " + sum + " vs " + totalSum);
+		}
 	}
 	
 	
 	private static void testMPIMultipleNodes() {
 		int sum = MainImpl.taskMultipleMPI(BINARY_PATH, data);
-		assert (sum == totalSum);
+		
+		if (sum == totalSum) {
+			System.out.println("[MPI_MULTIPLE] Received value from task is correct");
+		} else {
+			System.out.println("[MPI_MULTIPLE] Received value from task is not correct: " + sum + " vs " + totalSum);
+		}
 	}
 	
 } 

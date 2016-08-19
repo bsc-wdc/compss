@@ -26,6 +26,23 @@ public class Constants {
     public static final float UNASSIGNED_FLOAT 	= (float) -1.0;
     
     
+    /**
+     * Available hostnames for MPI tasks
+     * 
+     */
+    public static final String COMPSS_HOSTNAMES = "COMPSS_HOSTNAMES";
+    
+    /**
+     * Number of available workers for MPI tasks
+     */
+    public static final String COMPSS_NUM_NODES = "COMPSS_NUM_NODES";
+    
+    /**
+     * Number of available cores for Ompss tasks
+     */
+    public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
+    
+    
     //Private constructor to avoid instantiation
     private Constants() {
     	throw new UnsupportedOperationException();

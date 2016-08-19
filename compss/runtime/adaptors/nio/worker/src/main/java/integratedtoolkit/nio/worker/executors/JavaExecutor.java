@@ -9,6 +9,7 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.Tracer;
 
@@ -47,6 +48,13 @@ public class JavaExecutor extends Executor {
 		super(nw, pool, queue);
 		
 		this.debug = NIOWorker.isWorkerDebugEnabled;
+	}
+	
+	@Override
+	public void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
+		System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames);
+		System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
+		System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
 	}
 
 	@Override

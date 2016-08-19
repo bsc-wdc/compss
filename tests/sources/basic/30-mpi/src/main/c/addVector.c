@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     int myresult = 0;
     
     // Global variables
-    int DATA_SIZE = argc;
+    int DATA_SIZE = argc - 1;
     int data[DATA_SIZE], result;
     
     // Chunk control variables
@@ -23,14 +23,15 @@ int main(int argc, char **argv) {
     //-------------------------------------------
     // PROCESS 0 GETS THE DATA
     if (myid == 0) {
+        printf("Processing data\n");
         // Get data from args
-        for (i = 0; i < argc; ++i) {
-          data[i] = argv[i];
+        for (i = 1; i < argc; ++i) {
+          data[i - 1] = atoi(argv[i]);
         }
     }
 
     // Distribute the Data
-    MPI_Bcast(data, MAXSIZE, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(data, DATA_SIZE, MPI_INT, 0, MPI_COMM_WORLD);
     
     //-------------------------------------------
     // EACH PROCESS COMPUTES ITS PART
@@ -40,7 +41,7 @@ int main(int argc, char **argv) {
     for (i = low; i < high; ++i) {
         myresult += data[i];
     }
-    //printf("I got %d from %d\n", myresult, myid);
+    printf("Process %d gets from %d to %d with result %d\n", myid, low, high, myresult);
 
     //-------------------------------------------
     // COMPUTE GLOBAL SUM

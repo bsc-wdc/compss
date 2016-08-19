@@ -5,9 +5,8 @@
   target_base_dir=$2
   
   # Compile C sub-program with MPI
-  #mpicc ${source_base_dir}/src/main/c/addVector.c
   mkdir ${target_base_dir}/bin/
-  #cp ${source_base_dir}/src/main/c/a.out ${target_base_dir}/bin/addVector
+  mpicc -o ${target_base_dir}/bin/addVector ${source_base_dir}/src/main/c/addVector.c
   
   # Copy files
   cp -f ${source_base_dir}/target/30-mpi.jar ${target_base_dir}/mpi.jar   

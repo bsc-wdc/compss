@@ -49,6 +49,11 @@ public abstract class ExternalExecutor extends Executor {
 			NIOTracer.enablePThreads();
 		}
 	}
+	
+	@Override
+	public void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
+		// TODO: Add environment variables for MPI or Ompss tasks executed with bindings
+	}
 
     @Override
     public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception {

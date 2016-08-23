@@ -50,26 +50,10 @@
   mkdir -p ${package_base_folder}
 
   #---------------------------------------------------------------------------------------------------------------------
-  # Package COMPSs SVN Revision
-  ${script_dir}/pre_process/package_compss_svn
-  if [ $? -ne 0 ]; then
-    display_error "Error Packaging COMPSs SVN Revision"
-    exit 1
-  fi
-
-  #---------------------------------------------------------------------------------------------------------------------
   # Compile COMPSs SVN Revision
   ${script_dir}/pre_process/compile_compss_svn
   if [ $? -ne 0 ]; then
     display_error "Error Compiling COMPSs SVN Revision"
-    exit 1
-  fi
-
-  #---------------------------------------------------------------------------------------------------------------------
-  # Compile and prepare tests structure
-  ${script_dir}/tests_pre_process/prepare_tests
-  if [ $? -ne 0 ]; then
-    display_error "Error Preparing Tests"
     exit 1
   fi
 

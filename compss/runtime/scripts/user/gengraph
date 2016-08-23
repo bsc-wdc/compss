@@ -5,7 +5,7 @@
 
   # Generate output file name
   if [[ $dotGraph == *.dot ]]; then 
-    pdfGraph=${dotGraph:0:-4}.pdf
+    pdfGraph=${dotGraph::${#dotGraph}-4}.pdf
   else
     pdfGraph=${dotGraph}.pdf
   fi

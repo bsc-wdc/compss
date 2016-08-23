@@ -1,26 +1,30 @@
 #!/bin/bash
+  
+  # Get distribution parameter
+  if [ $# -ne 1 ]; then
+    echo "[ERROR] No distribution specified, skipping"
+    exit 1
+  fi
+  distr=$1
 
-  #Script variables
+  # Script variables
   email=$WORKSPACE/email_content.txt
 
-  #Delete previous e-mail file
+  # Delete previous e-mail file
   rm -f $email
 
-  #Create header
+  # Create header
   echo "Next you will find the test results for each distribution." > $email
   echo "All test results for all distributions should have OK status" >> $email
 
-  #Copy result table for each distribution
-  distrs="ubuntu debian suse centos"
-  for distr in $distrs; do
-    logFile=$WORKSPACE/logs/$distr/full_exec.log
-    echo " " >> $email
-    echo "DISTRIBUTION: $distr" >> $email
-    echo "FULL LOG: $logFile" >> $email
-    grep "\[TEST RESULT\] Application BASIC BLOCK " $logFile >> $email
-    echo " " >> $email
-  done
+  # Copy result table for each distribution
+  logFile=$WORKSPACE/logs/$distr/full_exec.log
+  echo " " >> $email
+  echo "DISTRIBUTION: $distr" >> $email
+  echo "FULL LOG: $logFile" >> $email
+  grep "\[TEST RESULT\] Application BASIC BLOCK " $logFile >> $email
+  echo " " >> $email
 
-  #End
+  # End
   exit 0
 

@@ -1,0 +1,111 @@
+#!/bin/bash
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Functions
+  #---------------------------------------------------------------------------------------------------------------------
+  usage() {
+    echo "***********************************************************"
+    echo "  Usage: main_distribution <distribution>"
+    echo "    - distribution : ubuntu | suse | debian | centos"
+    echo "***********************************************************"
+  }
+
+  display_error() {
+    local errMsg=$1
+    echo " "
+    echo "ERROR: $errMsg"
+    echo " "
+  }
+
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # MAIN PROGRAM
+  #---------------------------------------------------------------------------------------------------------------------
+  # Define script variables
+  script_dir=$(pwd)/$(dirname $0)
+
+  # Define user variables
+  log_base_folder=${script_dir}/../../logs/                            #Folder to store logs
+  package_base_folder=${script_dir}/../../builders/packages/           #Folder to store packages and upload them to repository
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # WARNING: DO NOT MODIFY ANYTHING BELOW THIS MESSAGE UNLESS YOU KNOW WHAT YOU ARE DOING
+  #---------------------------------------------------------------------------------------------------------------------
+  # Check no parameters
+  if [ $# -ne 1 ]; then
+     display_error "Incorrect number of parameters"
+     usage
+     exit 1
+  fi
+
+  distribution=$1
+  if [ "${distribution}" != "ubuntu" ] && [ "${distribution}" != "suse" ] && [ "${distribution}" != "debian" ] && [ "${distribution}" != "centos" ]; then
+     display_error "Unknown distribution parameter"
+     usage
+     exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------------------------------------------
+  # Create package base folder if needed
+  mkdir -p ${package_base_folder}
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Package COMPSs SVN Revision
+  ${script_dir}/pre_process/package_compss_svn
+  if [ $? -ne 0 ]; then
+    display_error "Error Packaging COMPSs SVN Revision"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Compile COMPSs SVN Revision
+  ${script_dir}/pre_process/compile_compss_svn
+  if [ $? -ne 0 ]; then
+    display_error "Error Compiling COMPSs SVN Revision"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Compile and prepare tests structure
+  ${script_dir}/tests_pre_process/prepare_tests
+  if [ $? -ne 0 ]; then
+    display_error "Error Preparing Tests"
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # Execute process in distribution
+  echo -e "\e[0m"
+  echo "********************************"
+  echo "*** Start process on ${distr}  ***"
+  echo "********************************"
+  echo -e "\e[0m"
+
+  # Wipe and create log folder
+  rm -rf ${log_base_folder}/${distr}
+  mkdir -p ${log_base_folder}/${distr}
+
+  # Execute distribution process
+  full_log=${log_base_folder}/${distr}/full_exec.log
+  if [ "${distr}" != "sc" ]; then 
+    #${script_dir}/pre_process/exec_distribution ${distr} ${static_id} ${static_ip} ${log_base_folder}/${distr} ${package_base_folder} > >(tee ${full_log}) 2> >(tee ${full_log} >&2)
+    echo "DONE ${distr} in $(hostname)"
+    exitValue=$?
+  else
+    #${script_dir}/pre_process/exec_sc ${distr} ${log_base_folder}/${distr} ${package_base_folder} > >(tee ${full_log}) 2> >(tee ${full_log} >&2)
+    echo "DONE SC"
+    exitValue=$?
+  fi
+
+  #---------------------------------------------------------------------------------------------------------------------
+  # End value
+  if [ $exitValue -ne 0 ]; then
+      display_error "Build on distribution failed. Please check errors above"
+      exit 1
+  fi
+
+  echo " "
+  echo " SUCCESS!"
+  echo " "
+  exit 0
+

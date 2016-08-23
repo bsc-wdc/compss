@@ -74,7 +74,8 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
         this.response = response;
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void process(TaskScheduler<P,T> ts) {
         String prefix = "\t";
         StringBuilder monitorData = new StringBuilder();

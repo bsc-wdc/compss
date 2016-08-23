@@ -15,31 +15,57 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 
 
-public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
+public class MultipleExecution<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
 
-    private WorkerResourceDescription resourceConsumption;
+    private WorkerResourceDescription mainResourceConsumption;
+    private WorkerResourceDescription slavesResourceConsumption;
 
     
-    public SingleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
+    public MultipleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
         super(schedulingInformation, producer, task);
     }
 
     @Override
     protected boolean areEnoughResources() {
+    	boolean canRun = false;
+    	
+    	// Check main resoruce
         Worker<T> w = selectedMainResource.getResource();
-        return w.canRunNow(selectedImpl.getRequirements());
+        canRun = w.canRunNow(selectedImpl.getRequirements());
+        
+        // Check slaves
+        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+        	Worker<T> slave = rs.getResource();
+        	canRun = canRun || slave.canRunNow(selectedImpl.getRequirements());
+        }
+        
+        return canRun;
     }
 
     @Override
     protected void reserveResources() {
+    	// Reserve main
         Worker<T> w = selectedMainResource.getResource();
-        resourceConsumption = w.runTask(selectedImpl.getRequirements());
+        mainResourceConsumption = w.runTask(selectedImpl.getRequirements());
+        
+        // Reserve slaves
+        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+        	Worker<T> slave = rs.getResource();
+        	slave.runTask(selectedImpl.getRequirements());
+        }
     }
 
     @Override
     protected void releaseResources() {
+    	// Release main
         Worker w = selectedMainResource.getResource();
-        w.endTask(resourceConsumption);
+        w.endTask(mainResourceConsumption);
+        
+        // Release slaves
+        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+        	Worker slave = rs.getResource();
+        	slave.endTask(slavesResourceConsumption);
+        }
     }
     
     @Override

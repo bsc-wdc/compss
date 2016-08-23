@@ -72,7 +72,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
         this.sem = sem;
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void process(TaskScheduler<P,T> ts) throws ShutdownException {
     	try {
     		PriorityQueue<Task> pending = new PriorityQueue<Task>();

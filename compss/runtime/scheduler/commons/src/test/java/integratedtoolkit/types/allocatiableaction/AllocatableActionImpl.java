@@ -1,6 +1,5 @@
 package integratedtoolkit.types.allocatiableaction;
 
-import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -14,6 +13,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
+
 
 public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
@@ -50,6 +50,7 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
         failed[id]++;
     }
 
+    @Override
     public String toString() {
         return "AllocatableAction " + id;
     }
@@ -100,7 +101,7 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException {
 
     }
 

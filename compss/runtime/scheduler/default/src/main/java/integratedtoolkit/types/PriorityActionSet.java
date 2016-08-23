@@ -2,38 +2,44 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 
-public class PriorityActionSet {
+public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescription> {
 
-    private PriorityQueue<AllocatableAction> noCoreActions;
-    private PriorityQueue<AllocatableAction>[] coreActions;
-    private PriorityQueue<AllocatableAction> priority;
-    public final Comparator<AllocatableAction> comparator;
+    private PriorityQueue<AllocatableAction<P,T>> noCoreActions;
+    private PriorityQueue<AllocatableAction<P,T>>[] coreActions;
+    private PriorityQueue<AllocatableAction<P,T>> priority;
+    public final Comparator<AllocatableAction<P,T>> comparator;
 
-    public PriorityActionSet(Comparator<AllocatableAction> comparator) {
+    
+    @SuppressWarnings("unchecked")
+	public PriorityActionSet(Comparator<AllocatableAction<P,T>> comparator) {
         this.comparator = comparator;
-        noCoreActions = new PriorityQueue<AllocatableAction>(1, comparator);
-        priority = new PriorityQueue<AllocatableAction>(1, comparator);
+        noCoreActions = new PriorityQueue<AllocatableAction<P,T>>(1, comparator);
+        priority = new PriorityQueue<AllocatableAction<P,T>>(1, comparator);
         coreActions = new PriorityQueue[0];
     }
 
-    public PriorityActionSet(PriorityActionSet clone) {
+    @SuppressWarnings("unchecked")
+	public PriorityActionSet(PriorityActionSet<P,T> clone) {
         comparator = clone.comparator;
-        noCoreActions = new PriorityQueue(clone.noCoreActions);
+        noCoreActions = new PriorityQueue<AllocatableAction<P,T>>(clone.noCoreActions);
         coreActions = new PriorityQueue[clone.coreActions.length];
         for (int idx = 0; idx < coreActions.length; idx++) {
-            coreActions[idx] = new PriorityQueue(clone.coreActions[idx]);
+            coreActions[idx] = new PriorityQueue<AllocatableAction<P,T>>(clone.coreActions[idx]);
         }
-        priority = new PriorityQueue<AllocatableAction>(clone.priority);
+        priority = new PriorityQueue<AllocatableAction<P,T>>(clone.priority);
     }
 
-    public void offer(AllocatableAction action) {
-        if (((DefaultSchedulingInformation) action.getSchedulingInfo()).isToReschedule()) {
+    @SuppressWarnings("unchecked")
+	public void offer(AllocatableAction<P,T> action) {
+        if (((DefaultSchedulingInformation<P,T>) action.getSchedulingInfo()).isToReschedule()) {
             Integer coreId = action.getCoreId();
-            AllocatableAction currentPeek = null;
+            AllocatableAction<P,T> currentPeek = null;
             if (coreId == null) {
                 currentPeek = noCoreActions.peek();
                 noCoreActions.offer(action);
@@ -43,10 +49,10 @@ public class PriorityActionSet {
                 } else {
                     //Resize coreActions array
                     int originalSize = this.coreActions.length;
-                    PriorityQueue<AllocatableAction>[] coreActions = new PriorityQueue[coreId + 1];
+                    PriorityQueue<AllocatableAction<P,T>>[] coreActions = new PriorityQueue[coreId + 1];
                     System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
                     for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
-                        coreActions[coreIdx] = new PriorityQueue<AllocatableAction>(1, comparator);
+                        coreActions[coreIdx] = new PriorityQueue<AllocatableAction<P,T>>(1, comparator);
                     }
                     this.coreActions = coreActions;
                 }
@@ -58,11 +64,11 @@ public class PriorityActionSet {
         }
     }
 
-    public AllocatableAction poll() {
-        AllocatableAction currentPeek;
+    public AllocatableAction<P,T> poll() {
+        AllocatableAction<P,T> currentPeek;
         while ((currentPeek = priority.poll()) != null) {
             Integer coreId = currentPeek.getCoreId();
-            AllocatableAction nextPeek;
+            AllocatableAction<P,T> nextPeek;
             if (coreId == null) {
                 noCoreActions.poll();
                 nextPeek = noCoreActions.peek();
@@ -73,7 +79,7 @@ public class PriorityActionSet {
             if (nextPeek != null) {
                 priority.offer(nextPeek);
             }
-            DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) currentPeek.getSchedulingInfo();
+            DefaultSchedulingInformation<P,T> dsi = (DefaultSchedulingInformation<P,T>) currentPeek.getSchedulingInfo();
             if (dsi.isToReschedule()) {
                 break;
             }
@@ -90,22 +96,22 @@ public class PriorityActionSet {
         rebuildPriorityQueue();
     }
 
-    public AllocatableAction peek() {
-        AllocatableAction currentPeek = priority.peek();
+    public AllocatableAction<P,T> peek() {
+        AllocatableAction<P,T> currentPeek = priority.peek();
         while (currentPeek != null
-                && !((DefaultSchedulingInformation) currentPeek.getSchedulingInfo()).isToReschedule()) {
+                && !((DefaultSchedulingInformation<P,T>) currentPeek.getSchedulingInfo()).isToReschedule()) {
             removeFirst(currentPeek.getCoreId());
             currentPeek = priority.peek();
         }
         return currentPeek;
     }
 
-    public PriorityQueue<AllocatableAction> peekAll() {
-        PriorityQueue<AllocatableAction> peeks = new PriorityQueue(coreActions.length + 1, comparator);
+    public PriorityQueue<AllocatableAction<P,T>> peekAll() {
+        PriorityQueue<AllocatableAction<P,T>> peeks = new PriorityQueue<AllocatableAction<P,T>>(coreActions.length + 1, comparator);
 
-        AllocatableAction currentCore = noCoreActions.peek();
+        AllocatableAction<P,T> currentCore = noCoreActions.peek();
         if (currentCore != null
-                && !((DefaultSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+                && !((DefaultSchedulingInformation<P,T>) currentCore.getSchedulingInfo()).isToReschedule()) {
             noCoreActions.poll();
             currentCore = noCoreActions.peek();
         }
@@ -113,10 +119,10 @@ public class PriorityActionSet {
             peeks.offer(currentCore);
         }
 
-        for (PriorityQueue<AllocatableAction> core : coreActions) {
+        for (PriorityQueue<AllocatableAction<P,T>> core : coreActions) {
             currentCore = core.peek();
             if (currentCore != null
-                    && !((DefaultSchedulingInformation) currentCore.getSchedulingInfo()).isToReschedule()) {
+                    && !((DefaultSchedulingInformation<P,T>) currentCore.getSchedulingInfo()).isToReschedule()) {
                 core.poll();
                 currentCore = core.peek();
             }
@@ -129,11 +135,11 @@ public class PriorityActionSet {
 
     private void rebuildPriorityQueue() {
         priority.clear();
-        AllocatableAction action = noCoreActions.peek();
+        AllocatableAction<P,T> action = noCoreActions.peek();
         if (action != null) {
             priority.offer(action);
         }
-        for (PriorityQueue<AllocatableAction> coreAction : coreActions) {
+        for (PriorityQueue<AllocatableAction<P,T>> coreAction : coreActions) {
             action = coreAction.peek();
             if (action != null) {
                 priority.offer(action);
@@ -144,7 +150,7 @@ public class PriorityActionSet {
     public int size() {
         int size = 0;
         size += noCoreActions.size();
-        for (PriorityQueue pq : coreActions) {
+        for (PriorityQueue<AllocatableAction<P,T>> pq : coreActions) {
             size += pq.size();
         }
         return size;
@@ -154,7 +160,7 @@ public class PriorityActionSet {
         return size() == 0;
     }
 
-    public void remove(AllocatableAction action) {
+    public void remove(AllocatableAction<P,T> action) {
         if (action.getCoreId() == null) {
             noCoreActions.remove(action);
         } else {
@@ -162,6 +168,7 @@ public class PriorityActionSet {
         }
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("noCore -> ").append(noCoreActions).append("\n");

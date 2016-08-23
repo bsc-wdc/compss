@@ -290,7 +290,8 @@ public class ResourceOptimizer extends Thread {
     }
 
     // Removes from the list all the Constraints fullfilled by existing resources
-    private static LinkedList<ConstraintsCore>[] getUnfulfilledConstraints() {
+    @SuppressWarnings("unchecked")
+	private static LinkedList<ConstraintsCore>[] getUnfulfilledConstraints() {
         int coreCount = CoreManager.getCoreCount();
 		LinkedList<ConstraintsCore>[] unfulfilledConstraints = new LinkedList[coreCount];
         int[] maxSimTasks = ResourceManager.getTotalSlots();
@@ -997,7 +998,8 @@ public class ResourceOptimizer extends Thread {
         private CloudMethodResourceDescription desc;
         private LinkedList<ConstraintsCore>[] cores;
         
-        public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
+        @SuppressWarnings("unchecked")
+		public ConstraintsCore(CloudMethodResourceDescription desc, int core, LinkedList<ConstraintsCore> coreList) {
             this.desc = desc;
             this.cores = new LinkedList[CoreManager.getCoreCount()];
             this.cores[core] = coreList;

@@ -28,19 +28,19 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
 
     @Override
     protected boolean areEnoughResources() {
-        Worker r = selectedResource.getResource();
+        Worker r = selectedMainResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker r = selectedResource.getResource();
+        Worker r = selectedMainResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker r = selectedResource.getResource();
+        Worker r = selectedMainResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 
@@ -100,7 +100,7 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
     }
    
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException {
 
     }
 

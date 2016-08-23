@@ -9,7 +9,9 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.OptimizationWorker;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
+
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -18,12 +20,15 @@ import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
 
-public class ScheduleOptimizer extends Thread {
+public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescription> extends Thread {
 
-    private static long OPTIMIZATION_THRESHOLD = 5_000;
+    private static final long OPTIMIZATION_THRESHOLD = 5_000;
+    
     private DefaultScheduler<?, ?> scheduler;
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
+    
+    private DefaultScore<P,T> dummyScore = new DefaultScore<P,T>(0, 0, 0, 0);
 
     
     public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
@@ -70,9 +75,7 @@ public class ScheduleOptimizer extends Thread {
      --------------- Local  optimization ---------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    public void globalOptimization(long optimizationTS,
-            ResourceScheduler<?, ?>[] workers
-    ) {
+    public void globalOptimization(long optimizationTS, ResourceScheduler<?, ?>[] workers) {
         int workersCount = workers.length;
         if (workersCount == 0) {
             return;
@@ -97,7 +100,7 @@ public class ScheduleOptimizer extends Thread {
             OptimizationWorker donor = determineDonorAndReceivers(optimizedWorkers, receivers);
 
             while (!hasDonated) {
-                AllocatableAction<?,?> candidate = donor.pollDonorAction();
+                AllocatableAction<P,T> candidate = donor.pollDonorAction();
                 if (candidate == null) {
                     break;
                 }
@@ -113,9 +116,7 @@ public class ScheduleOptimizer extends Thread {
         }
     }
 
-    public static OptimizationWorker determineDonorAndReceivers(
-            OptimizationWorker[] workers,
-            LinkedList<OptimizationWorker> receivers) {
+    public static OptimizationWorker determineDonorAndReceivers(OptimizationWorker[] workers, LinkedList<OptimizationWorker> receivers) {
     	
         receivers.clear();
         PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
@@ -146,10 +147,10 @@ public class ScheduleOptimizer extends Thread {
      ----------- Comparators  optimization -------------
      ---------------------------------------------------
      --------------------------------------------------*/
-    public static Comparator<AllocatableAction> getSelectionComparator() {
-        return new Comparator<AllocatableAction>() {
+    public static Comparator<AllocatableAction<?,?>> getSelectionComparator() {
+        return new Comparator<AllocatableAction<?,?>>() {
             @Override
-            public int compare(AllocatableAction action1, AllocatableAction action2) {
+            public int compare(AllocatableAction<?,?> action1, AllocatableAction<?,?> action2) {
                 int priority = Integer.compare(action1.getPriority(), action2.getPriority());
                 if (priority == 0) {
                     return Long.compare(action1.getId(), action2.getId());
@@ -160,12 +161,12 @@ public class ScheduleOptimizer extends Thread {
         };
     }
 
-    public static Comparator<AllocatableAction> getDonationComparator() {
-        return new Comparator<AllocatableAction>() {
+    public static Comparator<AllocatableAction<?,?>> getDonationComparator() {
+        return new Comparator<AllocatableAction<?,?>>() {
             @Override
-            public int compare(AllocatableAction action1, AllocatableAction action2) {
-                DefaultSchedulingInformation action1DSI = (DefaultSchedulingInformation) action1.getSchedulingInfo();
-                DefaultSchedulingInformation action2DSI = (DefaultSchedulingInformation) action2.getSchedulingInfo();
+            public int compare(AllocatableAction<?,?> action1, AllocatableAction<?,?> action2) {
+                DefaultSchedulingInformation<?,?> action1DSI = (DefaultSchedulingInformation<?,?>) action1.getSchedulingInfo();
+                DefaultSchedulingInformation<?,?> action2DSI = (DefaultSchedulingInformation<?,?>) action2.getSchedulingInfo();
                 int priority = Long.compare(action2DSI.getExpectedEnd(), action1DSI.getExpectedEnd());
                 if (priority == 0) {
                     return Long.compare(action1.getId(), action2.getId());
@@ -185,12 +186,12 @@ public class ScheduleOptimizer extends Thread {
         };
     }
 
-    private boolean move(AllocatableAction action, OptimizationWorker donor, OptimizationWorker receiver) {
-        LinkedList<AllocatableAction> dataPreds = action.getDataPredecessors();
+    private boolean move(AllocatableAction<P,T> action, OptimizationWorker donor, OptimizationWorker receiver) {
+        LinkedList<AllocatableAction<P,T>> dataPreds = action.getDataPredecessors();
         long dataAvailable = 0;
         try {
             for (AllocatableAction<?,?> dataPred : dataPreds) {
-                DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) dataPred.getSchedulingInfo();
+                DefaultSchedulingInformation<?,?> dsi = (DefaultSchedulingInformation<?,?>) dataPred.getSchedulingInfo();
                 dataAvailable = Math.max(dataAvailable, dsi.getExpectedEnd());
             }
         } catch (ConcurrentModificationException cme) {
@@ -198,11 +199,11 @@ public class ScheduleOptimizer extends Thread {
             dataPreds = action.getDataPredecessors();
         }
 
-        Implementation<?> bestImpl = null;
+        Implementation<T> bestImpl = null;
         long bestTime = Long.MAX_VALUE;
 
-        LinkedList<Implementation<?>> impls = action.getCompatibleImplementations(receiver.getResource());
-        for (Implementation<?> impl : impls) {
+        LinkedList<Implementation<T>> impls = action.getCompatibleImplementations(receiver.getResource());
+        for (Implementation<T> impl : impls) {
             Profile p = receiver.getResource().getProfile(impl);
             long avgTime = p.getAverageExecutionTime();
             if (avgTime < bestTime) {
@@ -211,7 +212,7 @@ public class ScheduleOptimizer extends Thread {
             }
         }
 
-        DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
+        DefaultSchedulingInformation<P,T> dsi = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
         long currentEnd = dsi.getExpectedEnd();
 
         if (bestImpl != null && currentEnd > receiver.getResource().getLastGapExpectedStart() + bestTime) {
@@ -222,9 +223,7 @@ public class ScheduleOptimizer extends Thread {
         return false;
     }
 
-    private DefaultScore dummyScore = new DefaultScore(0, 0, 0, 0);
-
-    public void schedule(AllocatableAction action, Implementation<?> impl, OptimizationWorker ow) {
+    public void schedule(AllocatableAction<P,T> action, Implementation<T> impl, OptimizationWorker ow) {
         try {
             action.schedule(ow.getResource(), impl);
             action.tryToLaunch();
@@ -232,7 +231,7 @@ public class ScheduleOptimizer extends Thread {
             try {
                 long actionScore = DefaultScore.getActionScore(action);
                 long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0);
+                Score aScore = new DefaultScore<P,T>(actionScore, dataTime, 0, 0);
                 action.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
                 try {
                     action.tryToLaunch();
@@ -247,8 +246,8 @@ public class ScheduleOptimizer extends Thread {
         }
     }
 
-    public void unschedule(AllocatableAction action) {
-        DefaultResourceScheduler resource = (DefaultResourceScheduler) action.getAssignedResource();
+    public void unschedule(AllocatableAction<P,T> action) {
+        DefaultResourceScheduler<P,T> resource = (DefaultResourceScheduler<P,T>) action.getAssignedResource();
         resource.unscheduleAction(action);
     }
 }

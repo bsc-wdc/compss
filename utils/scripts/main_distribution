@@ -6,7 +6,7 @@
   usage() {
     echo "***********************************************************"
     echo "  Usage: main_distribution <distribution>"
-    echo "    - distribution : ubuntu | suse | debian | centos"
+    echo "    - distribution : ubuntu | suse | debian | centos | sc"
     echo "***********************************************************"
   }
 
@@ -39,7 +39,7 @@
   fi
 
   distribution=$1
-  if [ "${distribution}" != "ubuntu" ] && [ "${distribution}" != "suse" ] && [ "${distribution}" != "debian" ] && [ "${distribution}" != "centos" ]; then
+  if [ "${distribution}" != "ubuntu" ] && [ "${distribution}" != "suse" ] && [ "${distribution}" != "debian" ] && [ "${distribution}" != "centos" ] && [ "${distribution}" != "sc" ]; then
      display_error "Unknown distribution parameter"
      usage
      exit 1

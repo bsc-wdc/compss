@@ -10,10 +10,10 @@ import java.util.LinkedList;
 
 public class SchedulingInformation<P extends Profile, T extends WorkerResourceDescription> {
 
-    private static final LinkedList<ResourceScheduler<?,?>>[] coreToWorkers;
+    @SuppressWarnings("unchecked")
+	private static final LinkedList<ResourceScheduler<?,?>>[] coreToWorkers = new LinkedList[CoreManager.getCoreCount()];
 
     static {
-        coreToWorkers = new LinkedList[CoreManager.getCoreCount()];
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
             coreToWorkers[coreId] = new LinkedList<ResourceScheduler<?,?>>();
         }

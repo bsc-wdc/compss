@@ -1,14 +1,14 @@
 package integratedtoolkit.types.job;
 
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.job.Job.JobListener;
 
 
 public class JobStatusListener implements JobListener {
 
-    private final SingleExecution<?,?> execution;
+    private final ExecutionAction<?,?> execution;
 
-    public JobStatusListener(SingleExecution<?,?> ex) {
+    public JobStatusListener(ExecutionAction<?,?> ex) {
         this.execution = ex;
     }
 

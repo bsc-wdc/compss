@@ -227,7 +227,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             synchronized (workers) {
                 workers.put(worker, ui);
             }
-            StartWorkerAction action = new StartWorkerAction(generateSchedulingInformation(), ui, this);
+            StartWorkerAction<P,T> action = new StartWorkerAction(generateSchedulingInformation(), ui, this);
             try {
                 action.schedule(ui, (Score) null);
                 action.tryToLaunch();
@@ -477,7 +477,8 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         return new Score(action.getPriority(), 0, 0);
     }
 
-    public ResourceScheduler<P, T>[] getWorkers() {
+    @SuppressWarnings("unchecked")
+	public ResourceScheduler<P, T>[] getWorkers() {
         synchronized (workers) {
             Collection<ResourceScheduler<P, T>> resScheds = workers.values();
             ResourceScheduler<P, T>[] scheds = new ResourceScheduler[resScheds.size()];

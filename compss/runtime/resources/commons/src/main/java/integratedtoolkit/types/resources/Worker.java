@@ -28,7 +28,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private int usedTaskCount = 0;
     private final int maxTaskCount;
 
-    public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
+    @SuppressWarnings("unchecked")
+	public Worker(String name, T description, COMPSsNode worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
         super(worker, sharedDisks);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
@@ -45,7 +46,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.maxTaskCount = limitOfTasks;
     }
 
-    public Worker(String name, T description, Configuration config, HashMap<String, String> sharedDisks) {
+    @SuppressWarnings("unchecked")
+	public Worker(String name, T description, Configuration config, HashMap<String, String> sharedDisks) {
         super(name, config, sharedDisks);
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
@@ -107,7 +109,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * ************************************************************************
      * ************************************************************************
      * -----------------------------------------------------------------------*/
-    public void updatedCoreElements(LinkedList<Integer> updatedCoreIds) {
+    @SuppressWarnings("unchecked")
+	public void updatedCoreElements(LinkedList<Integer> updatedCoreIds) {
         int coreCount = CoreManager.getCoreCount();
         boolean[] coresToUpdate = new boolean[coreCount];
         for (int coreId : updatedCoreIds) {
@@ -160,7 +163,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.idealSimultaneousTasks = idealSimultaneousTasks;
     }
 
-    public void updatedFeatures() {
+    @SuppressWarnings("unchecked")
+	public void updatedFeatures() {
         int coreCount = CoreManager.getCoreCount();
         executableCores.clear();
         executableImpls = new LinkedList[coreCount];
@@ -259,7 +263,8 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return cores;
     }
 
-    public LinkedList<Implementation<T>>[] getRunnableImplementations() {
+    @SuppressWarnings("unchecked")
+	public LinkedList<Implementation<T>>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
         LinkedList<Implementation<T>>[] runnable = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {

@@ -16,7 +16,8 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
     private LinkedList<AllocatableAction<P,T>>[] coreIndexed;
     private int[] counts;
 
-    public ActionSet() {
+    @SuppressWarnings("unchecked")
+	public ActionSet() {
         noCore = new LinkedList<AllocatableAction<P,T>>();
         int coreCount = CoreManager.getCoreCount();
         coreIndexed = new LinkedList[coreCount];
@@ -27,7 +28,8 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
         }
     }
 
-    public void updateCoreCount() {
+    @SuppressWarnings("unchecked")
+	public void updateCoreCount() {
         int oldCoreCount = coreIndexed.length;
         int newCoreCount = CoreManager.getCoreCount();
         LinkedList<AllocatableAction<P,T>>[] coreIndexed = new LinkedList[newCoreCount];

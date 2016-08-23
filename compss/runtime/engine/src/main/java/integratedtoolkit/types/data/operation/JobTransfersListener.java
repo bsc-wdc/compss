@@ -5,7 +5,7 @@ import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.data.listener.EventListener;
 
 
@@ -18,10 +18,10 @@ public class JobTransfersListener extends EventListener {
     private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    private SingleExecution<?,?> execution;
+    private ExecutionAction<?,?> execution;
 
     
-    public JobTransfersListener(SingleExecution<?,?> execution) {
+    public JobTransfersListener(ExecutionAction<?,?> execution) {
         this.execution = execution;
     }
 
@@ -98,4 +98,5 @@ public class JobTransfersListener extends EventListener {
     private void doFailures() {
         execution.failedTransfers(errors);
     }
+    
 }

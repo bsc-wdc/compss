@@ -1,7 +1,7 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.colors.ColorConfiguration;
 import integratedtoolkit.types.colors.ColorNode;
 
@@ -35,7 +35,7 @@ public class Task implements Comparable<Task> {
 
     // Scheduling info
     private Task enforcingTask;
-    private SingleExecution<?,?> execution;
+    private ExecutionAction<?,?> execution;
 
 
     public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
@@ -150,11 +150,11 @@ public class Task implements Comparable<Task> {
         return color.getFillColor();
     }
     
-    public void setExecution(SingleExecution<?,?> execution) {
+    public void setExecution(ExecutionAction<?,?> execution) {
         this.execution = execution;
     }
 
-    public SingleExecution<?,?> getExecution() {
+    public ExecutionAction<?,?> getExecution() {
         return execution;
     }
 

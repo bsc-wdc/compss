@@ -3,7 +3,9 @@ package integratedtoolkit.types;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultResourceScheduler;
 import integratedtoolkit.scheduler.defaultscheduler.ScheduleOptimizer;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+
 import java.util.PriorityQueue;
+
 
 public class OptimizationWorker {
 
@@ -33,9 +35,5 @@ public class OptimizationWorker {
     public DefaultResourceScheduler getResource() {
         return resource;
     }
-
-
-
-
 
 }

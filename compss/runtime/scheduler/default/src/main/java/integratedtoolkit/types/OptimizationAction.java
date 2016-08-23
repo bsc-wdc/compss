@@ -5,15 +5,16 @@ import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
+
 import java.util.LinkedList;
 
-public class OptimizationAction extends AllocatableAction {
+public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
 
     public OptimizationAction() {
-        super(new DefaultSchedulingInformation());
+        super(new DefaultSchedulingInformation<P,T>());
     }
 
     @Override
@@ -56,22 +57,22 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public LinkedList getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
         return null;
     }
 
     @Override
-    public Implementation[] getImplementations() {
+    public Implementation<T>[] getImplementations() {
         return null;
     }
 
     @Override
-    public boolean isCompatible(Worker r) {
+    public boolean isCompatible(Worker<T> r) {
         return true;
     }
 
     @Override
-    public LinkedList getCompatibleImplementations(ResourceScheduler r) {
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
         return null;
     }
 
@@ -81,7 +82,7 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
         return null;
     }
 
@@ -91,12 +92,12 @@ public class OptimizationAction extends AllocatableAction {
     }
 
     @Override
-    public void schedule(ResourceScheduler targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public void schedule(ResourceScheduler targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P,T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException {
 
     }
 

@@ -53,7 +53,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     private final LinkedList<AllocatableAction<P, T>> dataSuccessors;
 
     private State state;
-    protected ResourceScheduler<P, T> selectedResource;
+    protected ResourceScheduler<P, T> selectedMainResource;
+    protected ResourceScheduler<P, T>[] selectedSlaveResources;
     protected Implementation<T> selectedImpl;
     protected final LinkedList<ResourceScheduler<P, T>> executingResources;
 
@@ -69,7 +70,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         state = State.RUNNABLE;
         dataPredecessors = new LinkedList<AllocatableAction<P, T>>();
         dataSuccessors = new LinkedList<AllocatableAction<P, T>>();
-        selectedResource = null;
+        selectedMainResource = null;
+        selectedSlaveResources = null;
         executingResources = new LinkedList<ResourceScheduler<P, T>>();
         schedulingInfo = schedulingInformation;
     }
@@ -181,9 +183,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return selectedImpl;
     }
 
-    public void assignResource(ResourceScheduler<P, T> res) {
+    public void assignResources(ResourceScheduler<P, T> mainRes, ResourceScheduler<P,T>[] slaveRes) {
         if (state == State.RUNNABLE) {
-            selectedResource = res;
+        	selectedMainResource = mainRes;
+        	selectedSlaveResources = slaveRes;
         }
     }
 
@@ -193,14 +196,14 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * @return
      */
     public ResourceScheduler<P, T> getAssignedResource() {
-        return selectedResource;
+        return selectedMainResource;
     }
 
     public void tryToLaunch() throws InvalidSchedulingException {
         //gets the lock on the action
         lock.lock();
         if ( // has an assigned resource where to run
-                selectedResource != null
+        		selectedMainResource != null
                 && // has not been started yet
                 state == State.RUNNABLE
                 && // has no data dependencies with other methods
@@ -209,7 +212,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
                 schedulingInfo.isExecutable()) {
 
             //Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-            if (isSchedulingConstrained() && this.getConstrainingPredecessor().getAssignedResource() != selectedResource) {
+            if (isSchedulingConstrained() && this.getConstrainingPredecessor().getAssignedResource() != selectedMainResource) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling
@@ -223,21 +226,21 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     }
 
     private void execute() {
-        logger.info(this + " execution starts on worker " + selectedResource.getName());
+        logger.info(this + " execution starts on worker " + selectedMainResource.getName());
 
         // there are enough resources to host the actions and no waiting tasks in the queue
-        if (!selectedResource.hasBlockedActions() && areEnoughResources()) {
+        if (!selectedMainResource.hasBlockedActions() && areEnoughResources()) {
             // register executing resource
-            executingResources.add(selectedResource);
+            executingResources.add(selectedMainResource);
             // Run action
             run();
         } else {
-            logger.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
+            logger.info(this + " execution paused due to lack of resources on worker " + selectedMainResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.
             // execute won't be executed again since tryToLaunch is blocked
             state = State.WAITING;
-            selectedResource.waitOnResource(this);
+            selectedMainResource.waitOnResource(this);
 
             // Allow other threads to execute the task (complete and error executor)
             lock.unlock();
@@ -251,8 +254,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         // Allow other threads to execute the task (complete and error executor)
         lock.unlock();
         reserveResources();
-        profile = selectedResource.generateProfileForAllocatable();
-        selectedResource.hostAction(this);
+        profile = selectedMainResource.generateProfileForAllocatable();
+        selectedMainResource.hostAction(this);
         doAction();
     }
 
@@ -277,13 +280,13 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
         //Release resources and run tasks blocked on the resource
         releaseResources();
-        selectedResource.unhostAction(this);
+        selectedMainResource.unhostAction(this);
 
-        while (selectedResource.hasBlockedActions()) {
-            AllocatableAction<P, T> firstBlocked = selectedResource.getFirstBlocked();
+        while (selectedMainResource.hasBlockedActions()) {
+            AllocatableAction<P, T> firstBlocked = selectedMainResource.getFirstBlocked();
             if (firstBlocked.areEnoughResources()) {
-                selectedResource.removeFirstBlocked();
-                logger.info(this + " execution resumed on worker " + selectedResource.getName());
+            	selectedMainResource.removeFirstBlocked();
+                logger.info(this + " execution resumed on worker " + selectedMainResource.getName());
                 firstBlocked.lock.lock();
                 firstBlocked.run();
             } else {
@@ -321,12 +324,12 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         state = State.RUNNABLE;
         //Release resources and run tasks blocked on the resource
         releaseResources();
-        selectedResource.unhostAction(this);
-        while (selectedResource.hasBlockedActions()) {
-            AllocatableAction<P, T> firstBlocked = selectedResource.getFirstBlocked();
+        selectedMainResource.unhostAction(this);
+        while (selectedMainResource.hasBlockedActions()) {
+            AllocatableAction<P, T> firstBlocked = selectedMainResource.getFirstBlocked();
             if (firstBlocked.areEnoughResources()) {
-                selectedResource.removeFirstBlocked();
-                logger.info(this + " execution resumed on worker " + selectedResource.getName());
+            	selectedMainResource.removeFirstBlocked();
+                logger.info(this + " execution resumed on worker " + selectedMainResource.getName());
                 firstBlocked.lock.lock();
                 firstBlocked.run();
             } else {
@@ -349,7 +352,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
             pred.dataSuccessors.remove(this);
         }
 
-        selectedResource.cancelAction(this);
+        selectedMainResource.cancelAction(this);
 
         //Remove data links
         //Triggering failure on Data Predecessors
@@ -438,6 +441,6 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     public abstract void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException;
 
-    public abstract void schedule(ResourceScheduler<P, T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException;
+    public abstract void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException;
 
 }

@@ -27,7 +27,7 @@
   # MAIN PROGRAM
   #---------------------------------------------------------------------------------------------------------------------
   #Define user variables
-  jenkins_job="COMPSs_Framework_Trunk"                                #Jenkins Trunk job name
+  jenkins_job="COMPSs_Framework_Trunk_Build_SC"                                #Jenkins Trunk job name
 
 
   #---------------------------------------------------------------------------------------------------------------------

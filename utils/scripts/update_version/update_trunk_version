@@ -50,12 +50,21 @@ usage() {
   #---------------------------------------------------------------------
   # Modify utils/scripts
   echo "- Modifying utils/scripts files..."
-  cd ${base_trunk_dir}/utils/scripts/packages
+  cd ${base_trunk_dir}/utils/scripts/
   files=$(grep -R -l "$previousVersion")
   for file in $files; do
     echo "    $file"
     sed -i 's/'${previousVersion}'/'${newVersion}'/g' $file
   done
+  cd ${base_trunk_dir}
+
+  #---------------------------------------------------------------------
+  # Modify utils/storage
+  echo "- Modifying utils/storage files..."
+  cd ${base_trunk_dir}/utils/storage/dummyPSCO/
+  file="pom.xml"
+  echo "    $file"
+  sed -i '/<version>'${previousVersion}'<\/version>/c<version>'${newVersion}'<\/version>' $pom
   cd ${base_trunk_dir}
 
   #---------------------------------------------------------------------

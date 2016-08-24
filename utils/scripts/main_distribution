@@ -214,9 +214,21 @@ EOT
   }
 
   clean_vm() {
+    echo -e "\e[0m"
+    echo "**************************"
+    echo "***      Clean VM      ***"
+    echo "**************************"
+    echo -e "\e[0m"
+
   }
 
   snapshot() {
+    echo -e "\e[0m"
+    echo "**************************"
+    echo "***    Snapshot VM     ***"
+    echo "**************************"
+    echo -e "\e[0m"
+
   }
 
 

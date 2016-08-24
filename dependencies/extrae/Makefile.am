@@ -502,5 +502,5 @@ endif
 	$(top_srcdir)/substitute-all $(SED) "@sub_XMLID@" "`grep 'rcsid\[\]' $(top_srcdir)/src/tracer/xml-parse.c | $(AWK) -F'$$' '{ print $$2"$$" }'`" $(DESTDIR)$(datadir)/example
 	rm null # Remove null file created at the beginning
 # SVN installations may have some subversion control files
-	find $(DESTDIR)$(datadir)/example -name .svn -delete
+	rm -fr `find $(DESTDIR)$(datadir)/example $(distdir) -name .svn`
 	find $(DESTDIR)$(datadir)/example -name null -delete

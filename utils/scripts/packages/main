@@ -22,14 +22,14 @@
   echo "****************************"
   echo -e "\e[0m"
 
-  #Configure installation scrupt
+  # Configure installation script
   echo "--- Configuring installation script..."
   sed -i '/vm_user=/c  vm_user='$vm_user'' ${script_dir}/${bp_script}
   sed -i '/COMPSs_version=/c  COMPSs_version='$COMPSs_version'' ${script_dir}/${bp_script}
   sed -i '/vm_user=/c  vm_user='$vm_user'' ${script_dir}/${clean_script}
   echo "      Success"
 
-  #Deploy scripts
+  # Deploy scripts
   echo "--- Deploying files..."
   echo " : ${script_dir}/${bp_script} --> ${vm_user}@${vm_ip}:/home/${vm_user}/"
   scp -r -o StrictHostKeyChecking=no ${script_dir}/${bp_script} ${vm_user}@${vm_ip}:/home/${vm_user}/

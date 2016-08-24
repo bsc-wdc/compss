@@ -18,6 +18,7 @@
   }
 
   clean() {
+    # Clean test environment
     if [ "${cfgFile}" != "" ]; then
       # We must clean the test environment
       #rm -f ${cfgFile}
@@ -25,6 +26,16 @@
       if [ $? -ne 0 ]; then
         display_error "Cannot remove hosts after execution"
       fi
+    fi
+
+    # Unninstall COMPSs if needed
+    local unninstaller_script=${script_dir}/installation/unninstall_compss_${distr}.sh
+    sudo sh ${unninstaller_script}
+    if [ $? -ne 0 ]; then
+      echo "------------------------- WARNING -----------------------------"
+      echo "Unninstall script failed on ${distr} either because"
+      echo "COMPSs was not installed or because there was an internal error"
+      echo "---------------------------------------------------------------"
     fi
   }
 
@@ -92,7 +103,7 @@
 
     # END
     echo " "
-    echo " CONGRATULATIONS! The ${dist} process succeeded"
+    echo " CONGRATULATIONS! The ${distr} process succeeded"
     echo " "
   }
 
@@ -205,12 +216,13 @@ target_base_dir=${log_folder}/tests/
 comm=integratedtoolkit.nio.master.NIOAdaptor
 JAVA_HOME=${JAVA_HOME}
 EOT
-
-    ${trunk_base}/tests/scripts/main local $cfgFile
+    cd ${trunk_base}/tests/scripts/
+    ./main local $cfgFile
     #if [ $? -ne 0 ]; then
     #  display_error "Tests failed. Check errors above"
     #  exit 1
     #fi
+    cd ${script_dir}
   }
 
   clean_vm() {

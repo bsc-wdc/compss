@@ -131,7 +131,7 @@
         exit 1
       fi 
       cd ${script_dir}
-    elif [[ ${RPM_DISTRS} != *"${distr}"* ]]; then
+    elif [[ ${RPM_DISTRS} == *"${distr}"* ]]; then
       cd ${specs_base_folder}/rpm/
       ./buildrpm "${distr}" ${COMPSs_version}
       if [ $? -ne 0 ]; then
@@ -253,13 +253,6 @@ EOT
   RPM_DISTRS="suse centos"
   OTHER_DISTRS="sc"
 
-  # Log start of execution
-  echo -e "\e[0m"
-  echo "********************************"
-  echo "*** Start process on ${distr}  ***"
-  echo "********************************"
-  echo -e "\e[0m"
-
   # Check parameters
   if [ $# -ne 1 ]; then
      display_error "Incorrect number of parameters"
@@ -273,7 +266,14 @@ EOT
      usage
      exit 1
   fi
-  
+ 
+  # Log start of execution
+  echo -e "\e[0m"
+  echo "********************************"
+  echo "*** Start process on ${distr}  ***"
+  echo "********************************"
+  echo -e "\e[0m"
+ 
   # Set environment
   set_env
   if [ $? -ne 0 ]; then

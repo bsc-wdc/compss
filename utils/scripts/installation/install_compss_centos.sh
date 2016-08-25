@@ -11,6 +11,8 @@
   wget http://compss.bsc.es/releases/repofiles/repo_rpm_centos_x86-64_unstable.repo -O /etc/yum.repos.d/compss-framework_x86_64.repo
 
   # Refresh and install
+  yum --enablerepo=compss clean all
+  yum update
   yum install -y compss-framework
 
   # Exit with status from last command

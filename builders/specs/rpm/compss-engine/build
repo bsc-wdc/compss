@@ -49,12 +49,12 @@
   echo " "
   echo "* Copying SPEC file to RPM build path..."
   echo " "
-  cp ./${package_name}_${mode}.spec tmp/SPECS/
+  cp ./${package_name}_${distr}_${mode}.spec tmp/SPECS/
 
   echo " "
   echo "* Generating RPM package..."
   cd tmp/
-  rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_${mode}.spec
+  rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_${distr}_${mode}.spec
   if [ $? -ne 0 ]; then
 	echo "Error creating rpm";
 	exit 1;

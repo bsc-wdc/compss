@@ -56,7 +56,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
 
     // Other supercomponent
-    protected TaskDispatcher taskDispatcher;    
+    protected TaskDispatcher<?,?> taskDispatcher;    
     // Subcomponents
     protected TaskAnalyser taskAnalyser;
     protected DataInfoProvider dataInfoProvider;
@@ -75,7 +75,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
     
 
-    public AccessProcessor(TaskDispatcher td) {
+    public AccessProcessor(TaskDispatcher<?,?> td) {
         taskDispatcher = td;
         
         //Start Subcomponents

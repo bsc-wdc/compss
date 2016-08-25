@@ -28,7 +28,7 @@ public class RuntimeMonitor implements Runnable {
     /**
      * Task Dispatcher associated to the monitor
      */
-    private TaskDispatcher TD;
+    private TaskDispatcher<?,?> TD;
     /**
      * Access Processor associated to the monitor
      */
@@ -76,7 +76,7 @@ public class RuntimeMonitor implements Runnable {
      * @param TD Task Dispatcher associated to the monitor
      * @param sleepTime interval of time between state queries
      */
-    public RuntimeMonitor(AccessProcessor AP, TaskDispatcher TD, GraphGenerator GM, long sleepTime) {
+    public RuntimeMonitor(AccessProcessor AP, TaskDispatcher<?,?> TD, GraphGenerator GM, long sleepTime) {
         this.TD = TD;
         this.AP = AP;
         this.GM = GM;

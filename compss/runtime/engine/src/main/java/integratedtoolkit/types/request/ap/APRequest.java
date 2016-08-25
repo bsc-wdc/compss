@@ -67,5 +67,5 @@ public abstract class APRequest extends Request {
      * @throws
      * integratedtoolkit.types.request.ap.ShutdownRequest.ShutdownException
      */
-    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) throws ShutdownException;
+    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) throws ShutdownException;
 }

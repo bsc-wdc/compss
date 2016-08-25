@@ -219,7 +219,8 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
     }
 
-    public final void updatedWorker(Worker<T> worker) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public final void updatedWorker(Worker<T> worker) {
         ResourceScheduler<P, T> ui = workers.get(worker);
         if (ui == null) {
             //Register worker if it's the first time it is useful.
@@ -227,7 +228,8 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             synchronized (workers) {
                 workers.put(worker, ui);
             }
-            StartWorkerAction<P,T> action = new StartWorkerAction(generateSchedulingInformation(), ui, this);
+            
+			StartWorkerAction<P,T> action = new StartWorkerAction(generateSchedulingInformation(), ui, this);
             try {
                 action.schedule(ui, (Score) null);
                 action.tryToLaunch();

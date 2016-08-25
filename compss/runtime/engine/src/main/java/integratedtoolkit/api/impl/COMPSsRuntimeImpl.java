@@ -53,7 +53,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Components
     protected static AccessProcessor ap;
-    protected static TaskDispatcher td;
+    protected static TaskDispatcher<?,?> td;
 
     // Application attributes and directories
     public static String appName;
@@ -312,7 +312,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     /* ****************************************************
      * COMPSsRuntime INTERFACE IMPLEMENTATION
      * ****************************************************/
-    /**
+    @SuppressWarnings("rawtypes")
+	/**
      * Starts the COMPSs Runtime
      * 
      */

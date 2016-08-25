@@ -22,6 +22,7 @@
     if [ "${cfgFile}" != "" ]; then
       # We must clean the test environment
       #rm -f ${cfgFile}
+      rm -rf ~/.COMPSs/
       sudo sh ${trunk_base}/tests/scripts/configure_hosts_remove
       if [ $? -ne 0 ]; then
         display_error "Cannot remove hosts after execution"

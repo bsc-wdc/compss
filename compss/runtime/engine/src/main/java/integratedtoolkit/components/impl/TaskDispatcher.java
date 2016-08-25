@@ -4,6 +4,7 @@ import integratedtoolkit.types.request.td.UpdateLocalCEIRequest;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.AllocatableAction.ActionOrchestrator;
@@ -11,6 +12,7 @@ import integratedtoolkit.types.request.td.*;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CEIParser;
 import integratedtoolkit.util.Classpath;
 import integratedtoolkit.util.ErrorManager;
@@ -28,7 +30,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrator {
+public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescription> implements Runnable, ResourceUser, ActionOrchestrator {
 
     public interface TaskProducer {
 
@@ -39,8 +41,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
     // Subcomponents
-    protected TaskScheduler<?, ?> scheduler;
-    protected LinkedBlockingDeque<TDRequest<?, ?>> requestQueue;
+    protected TaskScheduler<P,T> scheduler;
+    protected LinkedBlockingDeque<TDRequest<P,T>> requestQueue;
     
     // Scheduler thread
     protected Thread dispatcher;
@@ -58,7 +60,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
             
     public TaskDispatcher() {
-        requestQueue = new LinkedBlockingDeque<TDRequest<?, ?>>();
+        requestQueue = new LinkedBlockingDeque<TDRequest<P,T>>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
@@ -96,7 +98,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     public void run() {
         while (keepGoing) {
             try {
-                TDRequest request = requestQueue.take();
+                TDRequest<P,T> request = requestQueue.take();
                 if (tracing) {
                     Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
                 }
@@ -125,11 +127,11 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    private void addRequest(TDRequest<?, ?> request) {
+    private void addRequest(TDRequest<P,T> request) {
         requestQueue.offer(request);
     }
 
-    private void addPrioritaryRequest(TDRequest<?, ?> request) {
+    private void addPrioritaryRequest(TDRequest<P,T> request) {
         requestQueue.offerFirst(request);
     }
 
@@ -140,25 +142,28 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
             logger.debug(sb);
         }
-        addRequest(new ExecuteTasksRequest(producer, task));
+        ExecuteTasksRequest<P,T> request = new ExecuteTasksRequest(producer, task);
+        addRequest(request);
     }
 
     // Notification thread
     @Override
     public void actionCompletion(AllocatableAction<?, ?> action) {
-        addRequest(new ActionUpdate(action, ActionUpdate.Update.COMPLETED));
+    	ActionUpdate<P,T> request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
+        addRequest(request);
     }
 
     // Notification thread
     @Override
     public void actionError(AllocatableAction<?, ?> action) {
-        addRequest(new ActionUpdate(action, ActionUpdate.Update.ERROR));
+    	ActionUpdate<P,T> request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
+        addRequest(request);
     }
 
     // Scheduling optimizer thread
     public WorkloadStatus getWorkload() {
         Semaphore sem = new Semaphore(0);
-        GetCurrentScheduleRequest request = new GetCurrentScheduleRequest(sem);
+        GetCurrentScheduleRequest<P,T> request = new GetCurrentScheduleRequest(sem);
         addPrioritaryRequest(request);
         try {
             sem.acquire();
@@ -175,7 +180,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
      */
     public String getCurrentMonitoringData() {
         Semaphore sem = new Semaphore(0);
-        MonitoringDataRequest request = new MonitoringDataRequest(sem);
+        MonitoringDataRequest<P,T> request = new MonitoringDataRequest(sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -186,7 +191,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     
     public void printCurrentGraph(BufferedWriter graph) {
     	Semaphore sem = new Semaphore(0);
-    	PrintCurrentGraphRequest request = new PrintCurrentGraphRequest(sem, graph);
+    	PrintCurrentGraphRequest<P,T> request = new PrintCurrentGraphRequest(sem, graph);
     	addRequest(request);
     	
     	// Synchronize until request has been processed
@@ -198,7 +203,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
 
     @Override
     public void updatedResource(Worker<?> r) {
-        WorkerUpdateRequest request = new WorkerUpdateRequest(r);
+        WorkerUpdateRequest<P,T> request = new WorkerUpdateRequest(r);
         addPrioritaryRequest(request);
     }
 
@@ -207,7 +212,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             logger.debug("Updating CEI " + forName.getName());
         }
         Semaphore sem = new Semaphore(0);
-        addRequest(new UpdateLocalCEIRequest(forName, sem));
+        UpdateLocalCEIRequest<P,T> request = new UpdateLocalCEIRequest(forName, sem);
+        addRequest(request);
 
         try {
             sem.acquire();
@@ -224,7 +230,8 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
             logger.debug("Registering CEI");
         }
         Semaphore sem = new Semaphore(0);
-        addRequest(new CERegistration(signature, declaringClass, constraints, sem));
+        CERegistration<P,T> request = new CERegistration(signature, declaringClass, constraints, sem);
+        addRequest(request);
 
         try {
             sem.acquire();
@@ -239,7 +246,7 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
     // TP (TA)
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
-        ShutdownRequest request = new ShutdownRequest(sem);
+        ShutdownRequest<P,T> request = new ShutdownRequest(sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -264,13 +271,14 @@ public class TaskDispatcher implements Runnable, ResourceUser, ActionOrchestrato
         }
     }
 
-    private TaskScheduler<?, ?> constructScheduler() {
-        TaskScheduler<?, ?> scheduler = null;
+    @SuppressWarnings("unchecked")
+	private TaskScheduler<P,T> constructScheduler() {
+        TaskScheduler<P,T> scheduler = null;
         try {
             String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
-            scheduler = (TaskScheduler<?, ?>) schedCnstr.newInstance();
+            scheduler = (TaskScheduler<P,T>) schedCnstr.newInstance();
         } catch (Exception e) {
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }

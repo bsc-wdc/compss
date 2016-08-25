@@ -1,11 +1,10 @@
 package integratedtoolkit.types.fake;
 
-import java.util.HashMap;
-
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+
 
 public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
 

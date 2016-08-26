@@ -1,6 +1,5 @@
 package storage;
 
-
 public interface StubItf {
 
 	/**

@@ -10,18 +10,52 @@ import integratedtoolkit.types.uri.MultiURI;
 
 public interface CommAdaptor {
 
-    public void init();
-    
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
+	/**
+	 * Initializes the Communication Adaptor
+	 */
+	public void init();
 
-    public COMPSsWorker initWorker(String workerName, Configuration config);
+	/**
+	 * Creates a configuration instance for the specific adaptor
+	 * 
+	 * @param project_properties
+	 * @param resources_properties
+	 * @return
+	 * @throws Exception
+	 */
+	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
 
-    public void stop();
+	/**
+	 * Initializes a worker through an adaptor
+	 * 
+	 * @param workerName
+	 * @param config
+	 * @return
+	 */
+	public COMPSsWorker initWorker(String workerName, Configuration config);
 
-    public LinkedList<DataOperation> getPending();
+	/**
+	 * Stops the Communicatio Adaptor
+	 */
+	public void stop();
 
-    public void completeMasterURI(MultiURI u);
+	/**
+	 * Retrieves all the pending operations
+	 * 
+	 * @return
+	 */
+	public LinkedList<DataOperation> getPending();
 
-    public void stopSubmittedJobs();
+	/**
+	 * Returns the complete Master URI
+	 * 
+	 * @param u
+	 */
+	public void completeMasterURI(MultiURI u);
+
+	/**
+	 * Stops all the pending jobs inside the Communication Adaptor
+	 */
+	public void stopSubmittedJobs();
 
 }

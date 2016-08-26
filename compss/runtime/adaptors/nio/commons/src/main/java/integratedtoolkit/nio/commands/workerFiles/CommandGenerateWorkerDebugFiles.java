@@ -15,7 +15,7 @@ public class CommandGenerateWorkerDebugFiles extends Command implements External
 	public CommandGenerateWorkerDebugFiles() {
 		super();
 	}
-	
+
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 	}
@@ -33,10 +33,10 @@ public class CommandGenerateWorkerDebugFiles extends Command implements External
 	public void handle(Connection c) {
 		agent.generateWorkersDebugInfo(c);
 	}
-	
-    @Override
-    public String toString() {
-        return "GenerateWorkerDebugFiles";
-    }
+
+	@Override
+	public String toString() {
+		return "GenerateWorkerDebugFiles";
+	}
 
 }

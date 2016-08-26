@@ -12,48 +12,50 @@ import integratedtoolkit.types.data.DataAccessId;
 
 public class RegisterDataAccessRequest extends APRequest {
 
-    private AccessParams access;
-    private Semaphore sem;
-    private DataAccessId response;
+	private AccessParams access;
+	private Semaphore sem;
+	private DataAccessId response;
 
-    public RegisterDataAccessRequest(AccessParams access, Semaphore sem) {
-        this.access = access;
-        this.sem = sem;
-    }
 
-    public AccessParams getAccess() {
-        return access;
-    }
+	public RegisterDataAccessRequest(AccessParams access, Semaphore sem) {
+		this.access = access;
+		this.sem = sem;
+	}
 
-    public void setAccess(AccessParams access) {
-        this.access = access;
-    }
+	public AccessParams getAccess() {
+		return access;
+	}
 
-    public Semaphore getSemaphore() {
-        return sem;
-    }
+	public void setAccess(AccessParams access) {
+		this.access = access;
+	}
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
+	public Semaphore getSemaphore() {
+		return sem;
+	}
 
-    public DataAccessId getResponse() {
-        return response;
-    }
+	public void setSemaphore(Semaphore sem) {
+		this.sem = sem;
+	}
 
-    public void setResponse(DataAccessId response) {
-        this.response = response;
-    }
+	public DataAccessId getResponse() {
+		return response;
+	}
 
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) {
-        DataAccessId daId = dip.registerDataAccess(this.access);
-        this.response = daId;
-        sem.release();
-    }
+	public void setResponse(DataAccessId response) {
+		this.response = response;
+	}
 
-    @Override
-    public APRequestType getRequestType() {
-        return APRequestType.REGISTER_DATA_ACCESS;
-    }
+	@Override
+	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+		DataAccessId daId = dip.registerDataAccess(this.access);
+		this.response = daId;
+		sem.release();
+	}
+
+	@Override
+	public APRequestType getRequestType() {
+		return APRequestType.REGISTER_DATA_ACCESS;
+	}
+	
 }

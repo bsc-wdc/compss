@@ -1,10 +1,9 @@
 package constraintManager;
 
-
 public class Implementation2 {
 
 	/* ********************************************
-	 * MULTI-CONSTRAINTS CORE-ELEMENTS
+	 * MULTI-CONSTRAINTS CORE-ELEMENTS 
 	 * *******************************************/
 	public void multiCoreElement0() {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -78,7 +77,6 @@ public class Implementation2 {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
 	}
 
-	
 	private void printMethodInformation(String methodName) {
 		System.out.println("Running " + this.getClass().getCanonicalName() + "." + methodName);
 	}

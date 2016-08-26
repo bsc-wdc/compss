@@ -9,7 +9,7 @@ public abstract class DataRequest {
 	private final DataType type;
 	private final Data source;
 	private final String target;
-	
+
 
 	public DataRequest(DataType type, Data source, String target) {
 		this.source = source;

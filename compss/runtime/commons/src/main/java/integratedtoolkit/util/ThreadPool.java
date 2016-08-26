@@ -9,83 +9,85 @@ import java.util.concurrent.Semaphore;
 public class ThreadPool {
 
 	protected final int size;
-    protected final String name;
-    protected final Thread[] workerThreads;
-    protected final RequestDispatcher<?> runObject;
-    protected final RequestQueue<?> queue;
-    protected final Semaphore sem;
+	protected final String name;
+	protected final Thread[] workerThreads;
+	protected final RequestDispatcher<?> runObject;
+	protected final RequestQueue<?> queue;
+	protected final Semaphore sem;
 
-    /**
-     * Constructs a new thread pool but not the threads inside it.
-     *
-     * @param size number of threads that will be in the pool
-     * @param name name of the thread pool inherited by the threads
-     * @param runObject Request Dispatcher associated to the pool which
-     * implements the function executed by the threads
-     */
-    public ThreadPool(int size, String name, RequestDispatcher<?> runObject) {
-        this.size = size;
 
-        this.workerThreads = new Thread[this.size];
-        this.name = name;
+	/**
+	 * Constructs a new thread pool but not the threads inside it.
+	 *
+	 * @param size
+	 *            number of threads that will be in the pool
+	 * @param name
+	 *            name of the thread pool inherited by the threads
+	 * @param runObject
+	 *            Request Dispatcher associated to the pool which implements the function executed by the threads
+	 */
+	public ThreadPool(int size, String name, RequestDispatcher<?> runObject) {
+		this.size = size;
 
-        this.runObject = runObject;
-        this.runObject.setPool(this);
+		this.workerThreads = new Thread[this.size];
+		this.name = name;
 
-        this.queue = runObject.getQueue();
+		this.runObject = runObject;
+		this.runObject.setPool(this);
 
-        this.sem = new Semaphore(size);
-    }
+		this.queue = runObject.getQueue();
 
-    /**
-     * Creates and starts the threads of the pool and waits until they are created
-     * 
-     */
-    public void startThreads() {
-        int i = 0;
-        for (Thread t : workerThreads) {
-            t = new Thread(runObject);
-            t.setName(name + " pool thread # " + i++);
-            t.start();
-        }
+		this.sem = new Semaphore(size);
+	}
 
-        sem.acquireUninterruptibly(this.size);
-    }
+	/**
+	 * Creates and starts the threads of the pool and waits until they are created
+	 * 
+	 */
+	public void startThreads() {
+		int i = 0;
+		for (Thread t : workerThreads) {
+			t = new Thread(runObject);
+			t.setName(name + " pool thread # " + i++);
+			t.start();
+		}
 
-    /**
-     * Stops all the threads. Inserts as many null objects to the queue as
-     * threads are managed. It wakes up all the threads and wait until they
-     * process the null objects inserted which will stop them.
-     */
-    public void stopThreads() {
-        /* Empty queue to discard any pending requests
-         * and make threads finish
-         */
-        synchronized (queue) {
-            for (int i = 0; i < this.size; i++) {
-                queue.addToFront(null);
-            }
-            queue.wakeUpAll();
-        }
+		sem.acquireUninterruptibly(this.size);
+	}
 
-        // Wait until all threads have completed their last request
-        sem.acquireUninterruptibly(this.size);
-    }
+	/**
+	 * Stops all the threads. Inserts as many null objects to the queue as threads are managed. It wakes up all the
+	 * threads and wait until they process the null objects inserted which will stop them.
+	 */
+	public void stopThreads() {
+		/*
+		 * Empty queue to discard any pending requests and make threads finish
+		 */
+		synchronized (queue) {
+			for (int i = 0; i < this.size; i++) {
+				queue.addToFront(null);
+			}
+			queue.wakeUpAll();
+		}
 
-    /**
-     * Notifies that one of the threads as completed an action required by the
-     * Threadpool (start or stop)
-     */
-    public void threadEnd() {
-        sem.release();
-    }
+		// Wait until all threads have completed their last request
+		sem.acquireUninterruptibly(this.size);
+	}
 
-    /**
-     * Returns the number of Threads in the pool
-     *
-     * @return number of Threads in the pool
-     */
-    public int getNumThreads() {
-        return this.size;
-    }
+	/**
+	 * Notifies that one of the threads as completed an action required by the Threadpool (start or stop)
+	 */
+	public void threadEnd() {
+		sem.release();
+	}
+
+	/**
+	 * Returns the number of Threads in the pool
+	 *
+	 * @return number of Threads in the pool
+	 */
+	public int getNumThreads() {
+		return this.size;
+	}
+	
 }

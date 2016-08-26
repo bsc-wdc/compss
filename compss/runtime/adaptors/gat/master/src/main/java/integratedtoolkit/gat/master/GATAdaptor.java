@@ -27,75 +27,76 @@ import java.io.File;
 
 public class GATAdaptor implements CommAdaptor {
 
-    public static final String ID = GATAdaptor.class.getCanonicalName();
+	public static final String ID = GATAdaptor.class.getCanonicalName();
 
-    protected static final String POOL_NAME 		= "FTM";
-    private static final int GAT_POOL_SIZE 			= 5;
-    protected static final String SAFE_POOL_NAME 	= "SAFE_FTM";
-    protected static final int SAFE_POOL_SIZE 		= 1;
-    
-    protected static final String THREAD_POOL_ERR 	= "Error starting pool of threads";
-    protected static final String POOL_ERR 			= "Error deleting pool of threads";
+	protected static final String POOL_NAME = "FTM";
+	private static final int GAT_POOL_SIZE = 5;
+	protected static final String SAFE_POOL_NAME = "SAFE_FTM";
+	protected static final int SAFE_POOL_SIZE = 1;
+
+	protected static final String THREAD_POOL_ERR = "Error starting pool of threads";
+	protected static final String POOL_ERR = "Error deleting pool of threads";
+
+	// Copy request queues
+	// copyQueue is for ordinary copies
+	// safeQueue is for priority copies
+	public static RequestQueue<DataOperation> copyQueue;
+	public static RequestQueue<DataOperation> safeQueue;
+
+	protected static ThreadPool pool;
+	protected static ThreadPool safePool;
+
+	private static String masterUser = System.getProperty("user.name");
+	// GAT context
+	private static GATContext transferContext;
+
+	// LOGGING
+	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+	private static final boolean debug = logger.isDebugEnabled();
 
 
-    // Copy request queues
-    // copyQueue is for ordinary copies
-    // safeQueue is for priority copies
-    public static RequestQueue<DataOperation> copyQueue;
-    public static RequestQueue<DataOperation> safeQueue;
+	public GATAdaptor() {
 
-    protected static ThreadPool pool;
-    protected static ThreadPool safePool;
+	}
 
-    private static String masterUser = System.getProperty("user.name");
-    // GAT context
-    private static GATContext transferContext;
+	public void init() {
+		// Create request queues
+		copyQueue = new RequestQueue<DataOperation>();
+		safeQueue = new RequestQueue<DataOperation>();
 
-    //LOGGING
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    private static final boolean debug = logger.isDebugEnabled();
+		String adaptor = System.getProperty(ITConstants.GAT_FILE_ADAPTOR);
 
-    public GATAdaptor() {
+		if (debug) {
+			logger.debug("Initializing GAT");
+		}
+		pool = new ThreadPool(GAT_POOL_SIZE, POOL_NAME, new Dispatcher(copyQueue));
+		try {
+			pool.startThreads();
+		} catch (Exception e) {
+			ErrorManager.error(THREAD_POOL_ERR, e);
+		}
 
-    }
+		safePool = new ThreadPool(SAFE_POOL_SIZE, SAFE_POOL_NAME, new Dispatcher(safeQueue));
+		try {
+			safePool.startThreads();
+		} catch (Exception e) {
+			ErrorManager.error(THREAD_POOL_ERR, e);
+		}
 
-    public void init() {
-        // Create request queues
-        copyQueue = new RequestQueue<DataOperation>();
-        safeQueue = new RequestQueue<DataOperation>();
+		// GAT adaptor path
+		if (debug) {
+			logger.debug("Initializing GAT Tranfer Context");
+		}
+		transferContext = new GATContext();
 
-        String adaptor = System.getProperty(ITConstants.GAT_FILE_ADAPTOR);
-        
-        if (debug) {
-        	logger.debug("Initializing GAT");
-        }
-        pool = new ThreadPool(GAT_POOL_SIZE, POOL_NAME, new Dispatcher(copyQueue));
-        try {
-            pool.startThreads();
-        } catch (Exception e) {
-        	ErrorManager.error(THREAD_POOL_ERR, e);
-        }
+		/*
+		 * We need to try the local adaptor when both source and target hosts
+		 * are local, because ssh file adaptor cannot perform local operations
+		 */
+		transferContext.addPreference("File.adaptor.name", adaptor + ", srcToLocalToDestCopy, local");
+	}
 
-        safePool = new ThreadPool(SAFE_POOL_SIZE, SAFE_POOL_NAME, new Dispatcher(safeQueue));
-        try {
-            safePool.startThreads();
-        } catch (Exception e) {
-        	ErrorManager.error(THREAD_POOL_ERR, e);
-        }
-
-        // GAT adaptor path
-        if (debug) {
-        	logger.debug("Initializing GAT Tranfer Context");
-        }
-        transferContext = new GATContext();
-
-        /* We need to try the local adaptor when both source and target hosts
-         * are local, because ssh file adaptor cannot perform local operations
-         */
-        transferContext.addPreference("File.adaptor.name", adaptor + ", srcToLocalToDestCopy, local");
-    }
-    
-    @Override
+	@Override
 	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
 		String brokerAdaptorName = System.getProperty(ITConstants.GAT_BROKER_ADAPTOR);
 		String project_brokerAdaptor = (String) project_properties;
@@ -123,75 +124,76 @@ public class GATAdaptor implements CommAdaptor {
 				logger.debug("GAT Broker Adaptor not specified. Setting default value " + brokerAdaptorName);
 			}
 		}
-		
+
 		GATConfiguration config = new GATConfiguration(this.getClass().getName(), brokerAdaptorName);
 		return config;
 	}
 
-    // GAT adaptor initializes the worker each time it sends a new job
-    @Override
-    public GATWorkerNode initWorker(String name, Configuration config) {
-    	GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration)config);
-        return node;
-    }
+	// GAT adaptor initializes the worker each time it sends a new job
+	@Override
+	public GATWorkerNode initWorker(String name, Configuration config) {
+		GATWorkerNode node = new GATWorkerNode(name, (GATConfiguration) config);
+		return node;
+	}
 
-    public static void addTransferContextPreferences(String name, String value) {
-        transferContext.addPreference(name, value);
-    }
+	public static void addTransferContextPreferences(String name, String value) {
+		transferContext.addPreference(name, value);
+	}
 
-    public LinkedList<DataOperation> getPending() {
-        LinkedList<DataOperation> l = new LinkedList<DataOperation>();
+	public LinkedList<DataOperation> getPending() {
+		LinkedList<DataOperation> l = new LinkedList<DataOperation>();
 
-        for (DataOperation c : copyQueue.getQueue()) {
-            l.add(c);
-        }
-        for (DataOperation c : safeQueue.getQueue()) {
-            l.add(c);
-        }
-        return l;
-    }
+		for (DataOperation c : copyQueue.getQueue()) {
+			l.add(c);
+		}
+		for (DataOperation c : safeQueue.getQueue()) {
+			l.add(c);
+		}
+		return l;
+	}
 
-    @Override
-    public void stop() {
-        // Make pool threads finish
-        try {
-            pool.stopThreads();
-            safePool.stopThreads();
-        } catch (Exception e) {
-            logger.error(POOL_ERR, e);
-        }
+	@Override
+	public void stop() {
+		// Make pool threads finish
+		try {
+			pool.stopThreads();
+			safePool.stopThreads();
+		} catch (Exception e) {
+			logger.error(POOL_ERR, e);
+		}
 
-        GAT.end();
-    }
+		GAT.end();
+	}
 
-    @Override
-    public void stopSubmittedJobs() {
-    	GATJob.stopAll();
-    }
+	@Override
+	public void stopSubmittedJobs() {
+		GATJob.stopAll();
+	}
 
-    @Override
-    public void completeMasterURI(MultiURI uri) {
-        String scheme = uri.getScheme();
-        String user = masterUser + "@";
-        String host = uri.getHost().getName();
-        String path = uri.getPath();
-        if (!path.contains(File.separator)) {
-            return;
-        }
+	@Override
+	public void completeMasterURI(MultiURI uri) {
+		String scheme = uri.getScheme();
+		String user = masterUser + "@";
+		String host = uri.getHost().getName();
+		String path = uri.getPath();
+		if (!path.contains(File.separator)) {
+			return;
+		}
 
-        String s = (scheme + user + host + File.separator + path);
-        try {
-            uri.setInternalURI(ID, new org.gridlab.gat.URI(s));
-        } catch (URISyntaxException e) {
-        	logger.error("Exception", e);
-        }
-    }
+		String s = (scheme + user + host + File.separator + path);
+		try {
+			uri.setInternalURI(ID, new org.gridlab.gat.URI(s));
+		} catch (URISyntaxException e) {
+			logger.error("Exception", e);
+		}
+	}
 
-    public static void enqueueCopy(Copy c) {
-        copyQueue.enqueue(c);
-    }
-    
-    public static GATContext getTransferContext(){
-    	return transferContext;
-    }
+	public static void enqueueCopy(Copy c) {
+		copyQueue.enqueue(c);
+	}
+
+	public static GATContext getTransferContext() {
+		return transferContext;
+	}
+	
 }

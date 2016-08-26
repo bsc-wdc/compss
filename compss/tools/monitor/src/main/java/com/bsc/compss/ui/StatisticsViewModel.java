@@ -12,46 +12,48 @@ import org.zkoss.zul.ListModelList;
 
 
 public class StatisticsViewModel {
+
 	private List<StatisticParameter> statistics;
 	private static final Logger logger = LogManager.getLogger("compssMonitor.StatisticsVM");
 
-    @Init
-    public void init () {
-    	statistics = new LinkedList<StatisticParameter>();
-    	
-    	//Add accumulated cost
-    	StatisticParameter accumulatedCost = new StatisticParameter("Accumulated Cost", "0.0", "0.0");
-    	statistics.add(accumulatedCost);
-    }
-    
-    public List<StatisticParameter> getStatistics () {
-    	return new ListModelList<StatisticParameter>(this.statistics);
-    }
-  
-    @Command
-    @NotifyChange("statistics")
-    public void update (String[] statisticsParameters) {
-    	logger.debug("Updating Statistics ViewModel...");
-    	//Erase all current resources
-    	for (StatisticParameter param : statistics) {
-    		param.reset();
-    	}
-    	
-    	//Import new values
-    	for (int i = 0; i < statistics.size(); ++i) {
-    		statistics.get(i).setValue(statisticsParameters[i]);
-    	}
-    	
-    	logger.debug("Statistics ViewModel updated");
-    }
-    
-    @Command
-    @NotifyChange("statistics")
-    public void clear() {
-    	//Erase all current resources
-    	for (StatisticParameter param : statistics) {
-    		param.reset();
-    	}
-    }
+
+	@Init
+	public void init() {
+		statistics = new LinkedList<StatisticParameter>();
+
+		// Add accumulated cost
+		StatisticParameter accumulatedCost = new StatisticParameter("Accumulated Cost", "0.0", "0.0");
+		statistics.add(accumulatedCost);
+	}
+
+	public List<StatisticParameter> getStatistics() {
+		return new ListModelList<StatisticParameter>(this.statistics);
+	}
+
+	@Command
+	@NotifyChange("statistics")
+	public void update(String[] statisticsParameters) {
+		logger.debug("Updating Statistics ViewModel...");
+		// Erase all current resources
+		for (StatisticParameter param : statistics) {
+			param.reset();
+		}
+
+		// Import new values
+		for (int i = 0; i < statistics.size(); ++i) {
+			statistics.get(i).setValue(statisticsParameters[i]);
+		}
+
+		logger.debug("Statistics ViewModel updated");
+	}
+
+	@Command
+	@NotifyChange("statistics")
+	public void clear() {
+		// Erase all current resources
+		for (StatisticParameter param : statistics) {
+			param.reset();
+		}
+	}
 
 }

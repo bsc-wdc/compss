@@ -10,7 +10,7 @@ public class Delete extends DataOperation {
 
 	protected File file;
 
-	
+
 	public Delete(File file, EventListener listener) {
 		super(null, listener);
 		this.file = file;
@@ -19,5 +19,5 @@ public class Delete extends DataOperation {
 	public File getFile() {
 		return file;
 	}
-	
+
 }

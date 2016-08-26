@@ -7,8 +7,8 @@ import java.io.FileNotFoundException;
 
 
 public class ConcurrentImpl {
-	
-	public static void increment(String counterFile) {	
+
+	public static void increment(String counterFile) {
 		// Increment value on file
 		try {
 			FileInputStream fis = new FileInputStream(counterFile);
@@ -17,14 +17,14 @@ public class ConcurrentImpl {
 			FileOutputStream fos = new FileOutputStream(counterFile);
 			fos.write(++count);
 			fos.close();
-		} catch(FileNotFoundException fnfe) {
+		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
-		
+
 		// Sleep to make task bigger
 		try {
 			Thread.sleep(5_000);
@@ -32,5 +32,5 @@ public class ConcurrentImpl {
 			// No need to handle such exceptions
 		}
 	}
-	
+
 }

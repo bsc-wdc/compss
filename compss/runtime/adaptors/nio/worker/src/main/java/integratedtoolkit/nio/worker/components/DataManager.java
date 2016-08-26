@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 
 public class DataManager {
-	
+
 	// Logger
 	private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
 	// Cache
@@ -19,48 +19,45 @@ public class DataManager {
 	public DataManager() {
 		objectCache = new HashMap<String, Object>();
 	}
-	
+
 	public void init() throws Exception {
-		
+
 	}
-	
+
 	public void stop() {
-		
+
 	}
-	
+
 	/* ************************************
-	 * STORE METHODS
+	 * STORE METHODS 
 	 * ************************************/
 	public synchronized void storeObject(String name, Object value) {
-        try {
-            objectCache.put(name, value);
-        } catch (NullPointerException e) {
-        	wLogger.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
-        }
-    }
+		try {
+			objectCache.put(name, value);
+		} catch (NullPointerException e) {
+			wLogger.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
+		}
+	}
 
-	
 	/* ************************************
-	 * GET METHODS
+	 * GET METHODS 
 	 * ************************************/
 	public synchronized Object getObject(String name) {
-        return objectCache.get(name);
-    }
+		return objectCache.get(name);
+	}
 
-	
 	/* ************************************
-	 * REMOVE METHODS
+	 * REMOVE METHODS 
 	 * ************************************/
-    public synchronized void remove(String name) {
-        objectCache.remove(name);
-    }
+	public synchronized void remove(String name) {
+		objectCache.remove(name);
+	}
 
-    
 	/* ************************************
-	 * CHECKER METHODS
+	 * CHECKER METHODS 
 	 * ************************************/
-    public synchronized boolean checkPresence(String name) {
-        return objectCache.containsKey(name);
-    }
+	public synchronized boolean checkPresence(String name) {
+		return objectCache.containsKey(name);
+	}
 
 }

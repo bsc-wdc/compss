@@ -1,10 +1,9 @@
 package constraintManager;
 
-
 public class Implementation1 {
 
 	/* ********************************************
-	 * EMPTY CORE-ELEMENTS
+	 * EMPTY CORE-ELEMENTS 
 	 * *******************************************/
 	public void emptyCoreElement0() {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -15,7 +14,7 @@ public class Implementation1 {
 	}
 
 	/* ********************************************
-	 * SIMPLE CONSTRAINTS CORE-ELEMENTS
+	 * SIMPLE CONSTRAINTS CORE-ELEMENTS 
 	 * *******************************************/
 	public void simpleCoreElement0() {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -85,9 +84,8 @@ public class Implementation1 {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
 	}
 
-	
 	/* ********************************************
-	 * COMPLEX CONSTRAINTS CORE-ELEMENTS
+	 * COMPLEX CONSTRAINTS CORE-ELEMENTS 
 	 * *******************************************/
 	public void complexCoreElement0() {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -97,9 +95,8 @@ public class Implementation1 {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
 	}
 
-
 	/* ********************************************
-	 * MULTI-CONSTRAINTS CORE-ELEMENTS
+	 * MULTI-CONSTRAINTS CORE-ELEMENTS 
 	 * *******************************************/
 	public void multiCoreElement0() {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
@@ -173,7 +170,6 @@ public class Implementation1 {
 		printMethodInformation(this.getClass().getEnclosingMethod().getName());
 	}
 
-	
 	private void printMethodInformation(String methodName) {
 		System.out.println("Running " + this.getClass().getCanonicalName() + "." + methodName);
 	}

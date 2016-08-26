@@ -2,19 +2,20 @@ package model;
 
 import java.io.Serializable;
 
+
 public class Computer implements Serializable {
-	
+
 	/**
 	 * Serial ID for Objects outside the runtime
 	 */
 	private static final long serialVersionUID = 3L;
-	
+
 	private String brand;
 	private String model;
 	private String id;
 	private int old;
-	
-	
+
+
 	public Computer(String brand, String model, String id, int old) {
 		this.brand = brand;
 		this.model = model;

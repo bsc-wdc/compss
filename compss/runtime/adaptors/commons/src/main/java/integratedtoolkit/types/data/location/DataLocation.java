@@ -19,139 +19,143 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 	 * DataLocation Types
 	 *
 	 */
-    public enum Type {
-        PRIVATE,
-        SHARED,
-        PERSISTENT
-    }
-    
-    /**
-     * Supported Protocols
-     * 
-     */
-    public enum Protocol {
-    	FILE_URI("file://"),
-    	SHARED_URI("shared://"),
-    	OBJECT_URI("object://"),
-    	PERSISTENT_URI("storage://"),
-    	ANY_URI("any://");
-    	
-    	private final String schema;
-    	
-    	private Protocol(String schema) {
-    		this.schema = schema;
-    	}
-    	
-    	public String getSchema() {
-    		return this.schema;
-    	}
-    	
-    	public static Protocol getBySchema(String schema) {
-    		for (Protocol p : Protocol.values()) {
-    			if (p.schema.equals(schema)) {
-    				return p;
-    			}
-    		}
-    		
-    		return null;
-    	}
+	public enum Type {
+		PRIVATE, 
+		SHARED, 
+		PERSISTENT
+	}
 
-    }
-    
+	/**
+	 * Supported Protocols
+	 * 
+	 */
+	public enum Protocol {
+		FILE_URI("file://"),
+		SHARED_URI("shared://"), 
+		OBJECT_URI("object://"), 
+		PERSISTENT_URI("storage://"),
+		ANY_URI("any://");
+
+		private final String schema;
+
+
+		private Protocol(String schema) {
+			this.schema = schema;
+		}
+
+		public String getSchema() {
+			return this.schema;
+		}
+
+		public static Protocol getBySchema(String schema) {
+			for (Protocol p : Protocol.values()) {
+				if (p.schema.equals(schema)) {
+					return p;
+				}
+			}
+
+			return null;
+		}
+
+	}
+
+
 	// Logger
 	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
-    
-    
-    /**
-     * Creates a new location in the host @host with path @uri. 
-     * The URI must:
-     * 		- Contain a valid schema (file://, shared://, object://, storage://)
-     * 		- Contain a valid path
-     * 		- Any hostname (ignored since host is received from the other parameter)
-     * 
-     * @param host
-     * @param uri
-     * @return
-     * @throws Exception
-     */
-    public static DataLocation createLocation(Resource host, SimpleURI uri) throws Exception {
-    	Protocol protocol = Protocol.getBySchema(uri.getSchema());
-    	if (protocol == null) {
-    		logger.warn("WARN: Unrecognised protocol [ " + uri.getSchema()
-    				+ " ] for createLocation. Switching to " + Protocol.ANY_URI.getSchema());
-    		protocol = Protocol.ANY_URI;
-    	}    	
-    	
-    	DataLocation loc = null;
-    	switch (protocol) {
-	    	case FILE_URI:
-	    		// Local file
-	            String canonicalPath = new File(uri.getPath()).getCanonicalPath();
-	            logger.debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
-	            loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
-	    		break;
-	    	case SHARED_URI:
-	    		// Shared file
-	            String sharedDisk = uri.getHost(); // The shared Disk name is stored as host in the URI
-	            String path = uri.getPath();
-	            logger.debug("Creating new SharedLocation: " + protocol.getSchema() + host.getName() + "@" + sharedDisk + path);
-	            loc = new SharedLocation(Protocol.SHARED_URI, sharedDisk, path);
-	    		break;
-	    	case OBJECT_URI:
-	    		// Object
-	    		String objectName = uri.getPath();	// The Object name is stored as host in the URI
-	    		logger.debug("Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
-	    		loc = createLocation(Protocol.OBJECT_URI, host, objectName);
-	    		break;
-	    	case PERSISTENT_URI:
-	    		String id = uri.getPath();	// The PSCO Id is stored as host in the URI
-	    		logger.debug("Creating new PersistentLocation: " + id);
-	    		loc = new PersistentLocation(id);
-	    		break;
-	    	case ANY_URI:
-	    		logger.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@" + uri.getPath());
-	    		loc = createLocation(Protocol.ANY_URI, host, uri.getPath());
-	    		break;
-    	}
+	public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
 
-        return loc;
-    }
-    
-    /**
-     * Private Helper method for createLocation
-     * 
-     * @param host
-     * @param path
-     * @param protocol
-     * @return
-     */
-    private static DataLocation createLocation(Protocol protocol, Resource host, String path) {
-        String diskName = SharedDiskManager.getSharedName(host, path);
-        if (diskName != null) {
-            String mountpoint = SharedDiskManager.getMounpoint(host, diskName);
-            return new SharedLocation(protocol, diskName, path.substring(mountpoint.length()));
-        } else {
-            return new PrivateLocation(protocol, host, path);
-        }
-    }    
-    
-    public abstract Type getType();
-    
-    public abstract Protocol getProtocol();
 
-    public abstract LinkedList<MultiURI> getURIs();
+	/**
+	 * Creates a new location in the host @host with path @uri. The URI must: -
+	 * Contain a valid schema (file://, shared://, object://, storage://) -
+	 * Contain a valid path - Any hostname (ignored since host is received from
+	 * the other parameter)
+	 * 
+	 * @param host
+	 * @param uri
+	 * @return
+	 * @throws Exception
+	 */
+	public static DataLocation createLocation(Resource host, SimpleURI uri) throws Exception {
+		Protocol protocol = Protocol.getBySchema(uri.getSchema());
+		if (protocol == null) {
+			logger.warn("WARN: Unrecognised protocol [ " + uri.getSchema() + " ] for createLocation. Switching to "
+					+ Protocol.ANY_URI.getSchema());
+			protocol = Protocol.ANY_URI;
+		}
 
-    public abstract String getSharedDisk();
+		DataLocation loc = null;
+		switch (protocol) {
+			case FILE_URI:
+				// Local file
+				String canonicalPath = new File(uri.getPath()).getCanonicalPath();
+				logger.debug("Creating new FileLocation: " + protocol.getSchema() + host.getName() + "@" + canonicalPath);
+				loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
+				break;
+			case SHARED_URI:
+				// Shared file
+				String sharedDisk = uri.getHost(); // The shared Disk name is
+													// stored as host in the URI
+				String path = uri.getPath();
+				logger.debug("Creating new SharedLocation: " + protocol.getSchema() + host.getName() + "@" + sharedDisk + path);
+				loc = new SharedLocation(Protocol.SHARED_URI, sharedDisk, path);
+				break;
+			case OBJECT_URI:
+				// Object
+				String objectName = uri.getPath(); // The Object name is stored
+													// as host in the URI
+				logger.debug("Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
+				loc = createLocation(Protocol.OBJECT_URI, host, objectName);
+				break;
+			case PERSISTENT_URI:
+				String id = uri.getPath(); // The PSCO Id is stored as host in
+											// the URI
+				logger.debug("Creating new PersistentLocation: " + id);
+				loc = new PersistentLocation(id);
+				break;
+			case ANY_URI:
+				logger.debug("Creating new AnyLocation: " + Protocol.ANY_URI.getSchema() + host.getName() + "@" + uri.getPath());
+				loc = createLocation(Protocol.ANY_URI, host, uri.getPath());
+				break;
+		}
 
-    public abstract LinkedList<Resource> getHosts();
+		return loc;
+	}
 
-    public abstract String getPath();
+	/**
+	 * Private Helper method for createLocation
+	 * 
+	 * @param host
+	 * @param path
+	 * @param protocol
+	 * @return
+	 */
+	private static DataLocation createLocation(Protocol protocol, Resource host, String path) {
+		String diskName = SharedDiskManager.getSharedName(host, path);
+		if (diskName != null) {
+			String mountpoint = SharedDiskManager.getMounpoint(host, diskName);
+			return new SharedLocation(protocol, diskName, path.substring(mountpoint.length()));
+		} else {
+			return new PrivateLocation(protocol, host, path);
+		}
+	}
 
-    public abstract MultiURI getURIInHost(Resource targetHost);
+	public abstract Type getType();
 
-    public abstract boolean isTarget(DataLocation target);
+	public abstract Protocol getProtocol();
 
-    public abstract String getLocationKey();
+	public abstract LinkedList<MultiURI> getURIs();
+
+	public abstract String getSharedDisk();
+
+	public abstract LinkedList<Resource> getHosts();
+
+	public abstract String getPath();
+
+	public abstract MultiURI getURIInHost(Resource targetHost);
+
+	public abstract boolean isTarget(DataLocation target);
+
+	public abstract String getLocationKey();
 
 }

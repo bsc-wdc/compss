@@ -7,10 +7,11 @@ public class StorageException extends Exception implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+
 	public StorageException() {
 
 	}
-	
+
 	public StorageException(String message, Exception cause) {
 		super(message, cause);
 	}

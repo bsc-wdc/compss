@@ -28,59 +28,59 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public class JClouds extends AbstractSSHConnector {
 
-	private JCloudsClient jclouds; 
+	private JCloudsClient jclouds;
 	private String provider;
 	private String server;
 	private String user;
 	private String credential;
 	private long timeSlot;
-    private static final long POLLING_INTERVAL = 5;
-    private static final int TIMEOUT = 1800;
-    private static final int DEFAULT_IP_INDEX = 0;
-    private int ipIndex = DEFAULT_IP_INDEX;
-	
+	private static final long POLLING_INTERVAL = 5;
+	private static final int TIMEOUT = 1800;
+	private static final int DEFAULT_IP_INDEX = 0;
+	private int ipIndex = DEFAULT_IP_INDEX;
+
+
 	public JClouds(String providerName, HashMap<String, String> props) throws Exception {
 		super(providerName, props);
 		super.setDefaultUser("jclouds");
 		server = props.get("Server");
-		/*if (server == null) {
-			throw new Exception ("Server endpoint must be specified with \"Server\" property");
-		}*/
+		/*
+		 * if (server == null) { throw new Exception ("Server endpoint must be specified with \"Server\" property"); }
+		 */
 		provider = props.get("provider");
-	    if (provider == null) {
-	    	throw new Exception ("Provider must be specified with \"provider\" property"); 
-	    }
-	    user = props.get("provider-user");
+		if (provider == null) {
+			throw new Exception("Provider must be specified with \"provider\" property");
+		}
+		user = props.get("provider-user");
 		if (user == null) {
-			throw new Exception ("Provider user must be specified with \"provider-user\" property");
-	    }
+			throw new Exception("Provider user must be specified with \"provider-user\" property");
+		}
 		credential = props.get("provider-user-credential");
-	    if (credential == null) {
-	    	throw new Exception ("Provider user credential must be specified with \"provider-user-credential\" property");
-	        }    
-	    String time = props.get("time-slot");
-	    if (time != null) {
-	            timeSlot = Integer.parseInt(time)*1000;
-	    }else{
-	       	throw new Exception ("Provider billing time-slot must be specified with \"time-slot\" property");
-	    }
-	    String index = props.get("ip-index");
-	    if (index != null) {
-	            ipIndex = Integer.parseInt(index);
-	    }
-		
+		if (credential == null) {
+			throw new Exception("Provider user credential must be specified with \"provider-user-credential\" property");
+		}
+		String time = props.get("time-slot");
+		if (time != null) {
+			timeSlot = Integer.parseInt(time) * 1000;
+		} else {
+			throw new Exception("Provider billing time-slot must be specified with \"time-slot\" property");
+		}
+		String index = props.get("ip-index");
+		if (index != null) {
+			ipIndex = Integer.parseInt(index);
+		}
+
 		jclouds = new JCloudsClient(user, credential, provider, server);
 	}
-	
+
 	@Override
 	public void destroy(Object vm) throws ConnectorException {
-		jclouds.destroyNode(((NodeMetadata)vm).getId());
+		jclouds.destroyNode(((NodeMetadata) vm).getId());
 
 	}
 
 	@Override
-	public Object create(String name, CloudMethodResourceDescription rd)
-			throws ConnectorException {
+	public Object create(String name, CloudMethodResourceDescription rd) throws ConnectorException {
 		try {
 			Template template = generateTemplate(rd);
 			Set<? extends NodeMetadata> vms = jclouds.createVMS(name, 1, template);
@@ -90,17 +90,17 @@ public class JClouds extends AbstractSSHConnector {
 		} catch (IOException e) {
 			throw new ConnectorException(e);
 		}
-		
+
 	}
 
 	private Template generateTemplate(CloudMethodResourceDescription rd) throws IOException {
 		TemplateOptions to = new TemplateOptions();
-		//to.overrideLoginUser(super.getDefaultUser());
+		// to.overrideLoginUser(super.getDefaultUser());
 		String key = super.getKeyPairLocation() + super.getKeyPairName();
 		logger.debug("Authorizing keys :" + key);
-		to.authorizePublicKey(Files.toString(new File(key + ".pub"), UTF_8)) ;
-		to.overrideLoginPrivateKey(Files.toString(new File(key),UTF_8));
-		
+		to.authorizePublicKey(Files.toString(new File(key + ".pub"), UTF_8));
+		to.overrideLoginPrivateKey(Files.toString(new File(key), UTF_8));
+
 		logger.debug("Adding ssh inbound port");
 		HashSet<Integer> ports = new HashSet<Integer>();
 		ports.add(22);
@@ -114,32 +114,29 @@ public class JClouds extends AbstractSSHConnector {
 			}
 		}
 		to.inboundPorts(Ints.toArray(ports));
-		
-		logger.debug("Creating template with image " + rd.getImage().getImageName() );
-		return jclouds.createTemplate(rd.getType(), rd.getImage().getImageName() , to);
+
+		logger.debug("Creating template with image " + rd.getImage().getImageName());
+		return jclouds.createTemplate(rd.getType(), rd.getImage().getImageName(), to);
 	}
 
 	@Override
-	public CloudMethodResourceDescription waitUntilCreation(Object vm,
-			CloudMethodResourceDescription requested) throws ConnectorException {
+	public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
 		CloudMethodResourceDescription granted = new CloudMethodResourceDescription();
-        NodeMetadata vmd = (NodeMetadata) vm;
-        try{
-			logger.info("VM State is "+vmd.getStatus().toString());
+		NodeMetadata vmd = (NodeMetadata) vm;
+		try {
+			logger.info("VM State is " + vmd.getStatus().toString());
 			int tries = 0;
 			while (vmd.getStatus() == null || !vmd.getStatus().equals(NodeMetadata.Status.RUNNING)) {
 
 				if (vmd.getStatus().equals(NodeMetadata.Status.ERROR)) {
 					logger.error("Error waiting for VM Creation. Middleware has return an error state");
-					throw new ConnectorException(
-							"Error waiting for VM Creation. Middleware has return an error state");
-				}else if (vmd.getStatus().equals(NodeMetadata.Status.SUSPENDED)) {
+					throw new ConnectorException("Error waiting for VM Creation. Middleware has return an error state");
+				} else if (vmd.getStatus().equals(NodeMetadata.Status.SUSPENDED)) {
 					logger.error("VM Creation Suspended");
 					throw new ConnectorException("VM creation suspended");
 				}
 				if (tries * POLLING_INTERVAL > TIMEOUT) {
-					throw new ConnectorException(
-							"Maximum VM creation time reached.");
+					throw new ConnectorException("Maximum VM creation time reached.");
 				}
 
 				tries++;
@@ -152,72 +149,68 @@ public class JClouds extends AbstractSSHConnector {
 				vmd = jclouds.getNode(vmd.getId());
 			}
 			String ip = getIp(vmd);
-			
-			
+
 			granted = requested.copy();
 			granted.setName(ip);
-	        granted.resetProcessors();
-	        
-	        String arch = CloudMethodResourceDescription.UNASSIGNED_STR;
-	        List<String> available_archs = requested.getArchitectures();
-	        if (available_archs != null && !available_archs.isEmpty()) {
-	        	arch = available_archs.get(0);
-	        }
-	        for (Processor p : vmd.getHardware().getProcessors()) {
-	        	integratedtoolkit.types.resources.components.Processor runtime_proc = new integratedtoolkit.types.resources.components.Processor();
-	        	runtime_proc.setComputingUnits( (int) p.getCores() );
-	        	runtime_proc.setSpeed( (float)p.getSpeed() );
-	        	runtime_proc.setArchitecture(arch);
-	        	granted.addProcessor(runtime_proc);
-	        }
-	        
-	        granted.setMemorySize(vmd.getHardware().getRam()/1024);
-	        float disk = getTotalDisk(vmd.getHardware().getVolumes());
+			granted.resetProcessors();
+
+			String arch = CloudMethodResourceDescription.UNASSIGNED_STR;
+			List<String> available_archs = requested.getArchitectures();
+			if (available_archs != null && !available_archs.isEmpty()) {
+				arch = available_archs.get(0);
+			}
+			for (Processor p : vmd.getHardware().getProcessors()) {
+				integratedtoolkit.types.resources.components.Processor runtime_proc = new integratedtoolkit.types.resources.components.Processor();
+				runtime_proc.setComputingUnits((int) p.getCores());
+				runtime_proc.setSpeed((float) p.getSpeed());
+				runtime_proc.setArchitecture(arch);
+				granted.addProcessor(runtime_proc);
+			}
+
+			granted.setMemorySize(vmd.getHardware().getRam() / 1024);
+			float disk = getTotalDisk(vmd.getHardware().getVolumes());
 			granted.setStorageSize(disk);
-	        granted.setOperatingSystemType("Linux");
-	        granted.setValue(getMachineCostPerTimeSlot(granted));
-	        
+			granted.setOperatingSystemType("Linux");
+			granted.setValue(getMachineCostPerTimeSlot(granted));
+
 			return granted;
-		} catch(Exception e){
-        	logger.error("Exception waiting for VM Creation");
-            throw new ConnectorException(e);
-        }
-		
+		} catch (Exception e) {
+			logger.error("Exception waiting for VM Creation");
+			throw new ConnectorException(e);
+		}
+
 	}
 
 	private float getTotalDisk(List<? extends Volume> volumes) {
 		float totalDisk = 0;
-		for (Volume vol : volumes){
+		for (Volume vol : volumes) {
 			totalDisk = totalDisk + vol.getSize();
 		}
 		return totalDisk;
 	}
 
-	/*private int getTotalCores(List<? extends Processor> processors) {
-		int totalCores = 0;
-		for (Processor proc : processors){
-			totalCores = totalCores + (int)proc.getCores();
-		}
-		return totalCores;
-	}*/
+	/*
+	 * private int getTotalCores(List<? extends Processor> processors) { int totalCores = 0; for (Processor proc :
+	 * processors){ totalCores = totalCores + (int)proc.getCores(); } return totalCores; }
+	 */
 
 	private String getIp(NodeMetadata vmd) throws ConnectorException {
-		
-		if (vmd.getPublicAddresses().isEmpty()){
-			if (vmd.getPrivateAddresses().isEmpty()){
+
+		if (vmd.getPublicAddresses().isEmpty()) {
+			if (vmd.getPrivateAddresses().isEmpty()) {
 				throw new ConnectorException("No addresses found in the node description");
-			}else{
-				if (vmd.getPrivateAddresses().size()<ipIndex+1){
+			} else {
+				if (vmd.getPrivateAddresses().size() < ipIndex + 1) {
 					return vmd.getPrivateAddresses().iterator().next();
-				}else{
-					return (String)vmd.getPrivateAddresses().toArray()[ipIndex];
+				} else {
+					return (String) vmd.getPrivateAddresses().toArray()[ipIndex];
 				}
 			}
-		}else{
-			if (vmd.getPublicAddresses().size()<ipIndex+1){
+		} else {
+			if (vmd.getPublicAddresses().size() < ipIndex + 1) {
 				return vmd.getPublicAddresses().iterator().next();
-			}else{
-				return (String)vmd.getPublicAddresses().toArray()[ipIndex];
+			} else {
+				return (String) vmd.getPublicAddresses().toArray()[ipIndex];
 			}
 		}
 	}
@@ -229,13 +222,13 @@ public class JClouds extends AbstractSSHConnector {
 
 	@Override
 	public long getTimeSlot() {
-		
+
 		return timeSlot;
 	}
-	
+
 	@Override
-	protected void close(){
-	    	jclouds.close();
+	protected void close() {
+		jclouds.close();
 	}
 
 }

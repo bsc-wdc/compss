@@ -13,18 +13,17 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * The TPRequest class represents any interaction with the TaskProcessor
- * component.
+ * The TPRequest class represents any interaction with the TaskProcessor component.
  */
 public abstract class APRequest extends Request {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
+	protected static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
 
-    /**
-     * Contains the different types of request that the Access Processor can
-     * response.
-     */
-    public enum APRequestType {
+
+	/**
+	 * Contains the different types of request that the Access Processor can response.
+	 */
+	public enum APRequestType {
         ANALYSE_TASK,
         UPDATE_GRAPH,
         WAIT_FOR_TASK,
@@ -48,24 +47,30 @@ public abstract class APRequest extends Request {
         DEBUG
     }
 
-    /**
-     * Returns the type of request for this instance
-     *
-     * @return returns the request type name of this instance
-     * @result returns the request type name of this instance
-     *
-     */
-    public abstract APRequestType getRequestType();
 
-    /**
-     * Processes the Request
-     *
-     * @param ap AccessProcessor processing the request
-     * @param ta Task Analyser of the processing AccessProcessor
-     * @param dip DataInfoProvider of the processing AccessProcessor
-     * @param td Task Dispatcher attached to the processing AccessProcessor
-     * @throws
-     * integratedtoolkit.types.request.ap.ShutdownRequest.ShutdownException
-     */
-    public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) throws ShutdownException;
+	/**
+	 * Returns the type of request for this instance
+	 *
+	 * @return returns the request type name of this instance
+	 * @result returns the request type name of this instance
+	 *
+	 */
+	public abstract APRequestType getRequestType();
+
+	/**
+	 * Processes the Request
+	 *
+	 * @param ap
+	 *            AccessProcessor processing the request
+	 * @param ta
+	 *            Task Analyser of the processing AccessProcessor
+	 * @param dip
+	 *            DataInfoProvider of the processing AccessProcessor
+	 * @param td
+	 *            Task Dispatcher attached to the processing AccessProcessor
+	 * @throws integratedtoolkit.types.request.ap.ShutdownRequest.ShutdownException
+	 */
+	public abstract void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td)
+			throws ShutdownException;
+	
 }

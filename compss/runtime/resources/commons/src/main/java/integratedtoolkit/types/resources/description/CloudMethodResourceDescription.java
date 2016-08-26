@@ -7,54 +7,54 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 
 public class CloudMethodResourceDescription extends MethodResourceDescription {
 
-    public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
-    
-    // Resource Description
-    private String providerName = "";
-    private String name = "";
-    private String type = "";  
-    private CloudImageDescription image = null;
+	public static final CloudMethodResourceDescription EMPTY = new CloudMethodResourceDescription();
 
-    public CloudMethodResourceDescription() {
-    	super();
-    }
-    
-    public CloudMethodResourceDescription(String providerName, String name, String type) {
-        super();
-        this.providerName = providerName;
-        this.name = name;
-        this.type = type;
-    }
+	// Resource Description
+	private String providerName = "";
+	private String name = "";
+	private String type = "";
+	private CloudImageDescription image = null;
 
-    public CloudMethodResourceDescription(Constraints constraints) {
-        super(constraints);
-    }
 
-    public CloudMethodResourceDescription(MethodResourceDescription constraints) {
-        super(constraints);
-    }
+	public CloudMethodResourceDescription() {
+		super();
+	}
 
-    public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
-        super(clone);
-        providerName = clone.providerName;
-        name = clone.name;
-        type = clone.type;
-        image = clone.image;
-    }
-    
-    @Override
-    public CloudMethodResourceDescription copy() {
-        return new CloudMethodResourceDescription(this);
-    } 
-    
+	public CloudMethodResourceDescription(String providerName, String name, String type) {
+		super();
+		this.providerName = providerName;
+		this.name = name;
+		this.type = type;
+	}
 
-    public String getProviderName() {
+	public CloudMethodResourceDescription(Constraints constraints) {
+		super(constraints);
+	}
+
+	public CloudMethodResourceDescription(MethodResourceDescription constraints) {
+		super(constraints);
+	}
+
+	public CloudMethodResourceDescription(CloudMethodResourceDescription clone) {
+		super(clone);
+		providerName = clone.providerName;
+		name = clone.name;
+		type = clone.type;
+		image = clone.image;
+	}
+
+	@Override
+	public CloudMethodResourceDescription copy() {
+		return new CloudMethodResourceDescription(this);
+	}
+
+	public String getProviderName() {
 		return providerName;
 	}
-    
-    public void setProviderName(String providerName) {
-    	this.providerName = providerName;
-    }
+
+	public void setProviderName(String providerName) {
+		this.providerName = providerName;
+	}
 
 	public String getName() {
 		return name;
@@ -80,15 +80,16 @@ public class CloudMethodResourceDescription extends MethodResourceDescription {
 		this.image = image;
 	}
 
-    public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString());
-        sb.append("[CLOUD");
-        sb.append(" PROVIDER =").append(this.providerName);
-        sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getImageName());
-        sb.append(" TYPE=").append(this.type);
-        sb.append("]");
-        
-        return sb.toString();
-    }
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(super.toString());
+		sb.append("[CLOUD");
+		sb.append(" PROVIDER =").append(this.providerName);
+		sb.append(" IMAGE=").append((this.image == null) ? "NULL" : this.image.getImageName());
+		sb.append(" TYPE=").append(this.type);
+		sb.append("]");
+
+		return sb.toString();
+	}
 
 }

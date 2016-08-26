@@ -1,6 +1,7 @@
 package integratedtoolkit.connectors;
 
 import integratedtoolkit.log.Loggers;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,19 +12,52 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public interface Connector {
 
-    public final Logger logger = LogManager.getLogger(Loggers.CONNECTORS_IMPL);
-    public final boolean debug = logger.isDebugEnabled();
+	public final Logger logger = LogManager.getLogger(Loggers.CONNECTORS_IMPL);
+	public final boolean debug = logger.isDebugEnabled();
 
-    public boolean turnON(String name, ResourceCreationRequest rR);
 
-    public void stopReached();
+	/**
+	 * Starts a resource
+	 * 
+	 * @param name
+	 * @param rR
+	 * @return
+	 */
+	public boolean turnON(String name, ResourceCreationRequest rR);
 
-    public Long getNextCreationTime() throws ConnectorException;
-    
-    public long getTimeSlot();
+	/**
+	 * Sets the stop flag
+	 * 
+	 */
+	public void stopReached();
 
-    public void terminate(CloudMethodWorker worker, CloudMethodResourceDescription reduction);
+	/**
+	 * Returns the expected creation time for next request
+	 * 
+	 * @return
+	 * @throws ConnectorException
+	 */
+	public Long getNextCreationTime() throws ConnectorException;
 
-    public void terminateAll();
+	/**
+	 * Returns the time slot size
+	 * 
+	 * @return
+	 */
+	public long getTimeSlot();
+
+	/**
+	 * Terminates an specific machine
+	 * 
+	 * @param worker
+	 * @param reduction
+	 */
+	public void terminate(CloudMethodWorker worker, CloudMethodResourceDescription reduction);
+
+	/**
+	 * Terminates all instances
+	 * 
+	 */
+	public void terminateAll();
 
 }

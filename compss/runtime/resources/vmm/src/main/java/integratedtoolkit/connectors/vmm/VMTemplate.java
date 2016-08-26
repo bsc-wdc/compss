@@ -19,6 +19,7 @@ import org.xml.sax.SAXException;
 
 
 class VMTemplate {
+
 	private static final String IMAGE_TAG = "IMAGE";
 	private static final String CONTEXT_TAG = "CONTEXT";
 	private static final String PUBKEY_TAG = "SSH_PUBLIC_KEY";
@@ -27,23 +28,20 @@ class VMTemplate {
 
 	private Document template;
 
-	VMTemplate(String temp) throws SAXException, IOException,
-			ParserConfigurationException {
+
+	VMTemplate(String temp) throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		this.template = db.parse(new ByteArrayInputStream(temp.getBytes()));
 	}
 
-	String getString() throws ClassCastException, ClassNotFoundException,
-			InstantiationException, IllegalAccessException {
+	String getString() throws ClassCastException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 		DOMImplementationRegistry reg = DOMImplementationRegistry.newInstance();
-		DOMImplementationLS impl = (DOMImplementationLS) reg
-				.getDOMImplementation("LS");
+		DOMImplementationLS impl = (DOMImplementationLS) reg.getDOMImplementation("LS");
 		LSSerializer serializer = impl.createLSSerializer();
 		serializer.getDomConfig().setParameter("xml-declaration", false);
 
-		return serializer.writeToString(this.template.getElementsByTagName(
-				TEMPLATE_TAG).item(0));
+		return serializer.writeToString(this.template.getElementsByTagName(TEMPLATE_TAG).item(0));
 	}
 
 	// String getHomeDevice() {
@@ -154,12 +152,12 @@ class VMTemplate {
 
 	public static void main(String args[]) throws Exception {
 		/*
-		 * VMTemplate template = new VMTemplate(FileUtils.getStringFromFile(new
-		 * File("a.xml")));
+		 * VMTemplate template = new VMTemplate(FileUtils.getStringFromFile(new File("a.xml")));
 		 * 
 		 * template.setImage("sasaa"); template.setPublicKey("1234");
 		 * 
 		 * System.out.println(template.getString());
 		 */
 	}
+	
 }

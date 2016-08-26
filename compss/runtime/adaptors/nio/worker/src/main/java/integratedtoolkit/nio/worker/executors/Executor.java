@@ -16,49 +16,49 @@ import integratedtoolkit.util.RequestQueue;
 
 
 public abstract class Executor implements Runnable {
-	
-    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-    protected static final boolean workerDebug = logger.isDebugEnabled();
-       
-    // Tracing
-    protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-   
-    // Attached component NIOWorker
-    private final NIOWorker nw;  
-    // Attached component Jobs thread Pool
-    protected final JobsThreadPool pool;
-    // Attached component Request queue
-    protected final RequestQueue<NIOTask> queue;
-    
-    
-    public Executor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue) {
-    	logger.info("Executor init");
-    	this.nw = nw;
-    	this.pool = pool;
-    	this.queue = queue;
-    }
-            
-    /**
-     * Thread main code which enables the request processing
-     */
-    public void run() {
-    	// Main loop to process requests
-        processRequests();
-        
-        // Close language specific properties
-        finish();
-        
-        // Notify pool of thread end
-        if (pool != null) {
-            pool.threadEnd();
-        }
-    }
-                
-    private void processRequests() {
-    	NIOTask nt;
+
+	protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+	protected static final boolean workerDebug = logger.isDebugEnabled();
+
+	// Tracing
+	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+
+	// Attached component NIOWorker
+	private final NIOWorker nw;
+	// Attached component Jobs thread Pool
+	protected final JobsThreadPool pool;
+	// Attached component Request queue
+	protected final RequestQueue<NIOTask> queue;
+
+
+	public Executor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue) {
+		logger.info("Executor init");
+		this.nw = nw;
+		this.pool = pool;
+		this.queue = queue;
+	}
+
+	/**
+	 * Thread main code which enables the request processing
+	 */
+	public void run() {
+		// Main loop to process requests
+		processRequests();
+
+		// Close language specific properties
+		finish();
+
+		// Notify pool of thread end
+		if (pool != null) {
+			pool.threadEnd();
+		}
+	}
+
+	private void processRequests() {
+		NIOTask nt;
 		while (true) {
-			nt = queue.dequeue(); 	// Get tasks until there are no more tasks pending
+			nt = queue.dequeue(); // Get tasks until there are no more tasks pending
 
 			if (nt == null) {
 				logger.debug("Dequeued job is null");
@@ -92,40 +92,40 @@ public abstract class Executor implements Runnable {
 				return false;
 		}
 	}
-    
-    public final boolean execute(NIOTask nt, NIOWorker nw) {
-        if (tracing){
-            NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId() , NIOTracer.Event.TASK_RUNNING.getType());
-        }
-        
-        String workingDir = nw.getWorkingDir();
-        
-        // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
-        String outputsBasename = workingDir + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
-        
-        // Sets the process environment variables (just in case its a MPI or Ompss task)
-        // TODO: Add real values
-        setEnvironmentVariables(nw.getHostName(), 1, 1);        
 
-        // Execute task
-        try {
-            executeTask(nw, nt, outputsBasename);
-        } catch (Exception e) {
-        	logger.error(e.getMessage(), e);
-            return false;
-        } finally {
-            if (tracing) {
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
-            }
-        }
+	public final boolean execute(NIOTask nt, NIOWorker nw) {
+		if (tracing) {
+			NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId(), NIOTracer.Event.TASK_RUNNING.getType());
+		}
 
-        return true;
-    }
-    
-    public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus);
+		String workingDir = nw.getWorkingDir();
 
-    public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception;
-    
-    public abstract void finish();
-    
+		// Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
+		String outputsBasename = workingDir + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
+
+		// Sets the process environment variables (just in case its a MPI or Ompss task)
+		// TODO: Add real values
+		setEnvironmentVariables(nw.getHostName(), 1, 1);
+
+		// Execute task
+		try {
+			executeTask(nw, nt, outputsBasename);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			return false;
+		} finally {
+			if (tracing) {
+				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
+			}
+		}
+
+		return true;
+	}
+
+	public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus);
+
+	public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception;
+
+	public abstract void finish();
+
 }

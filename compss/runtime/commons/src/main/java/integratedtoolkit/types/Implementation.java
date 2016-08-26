@@ -3,42 +3,45 @@ package integratedtoolkit.types;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public abstract class Implementation <T extends WorkerResourceDescription> {
+public abstract class Implementation<T extends WorkerResourceDescription> {
 
-    public enum Type {
-        METHOD,
-        SERVICE
-    }
+	public enum Type {
+		METHOD, 
+		SERVICE
+	}
 
-    protected final Integer coreId;
-    protected final Integer implementationId;
-    protected T requirements;
 
-    public Implementation(Integer coreId, Integer implementationId, T annot) {
-        this.coreId = coreId;
-        this.implementationId = implementationId;
-        this.requirements = annot;
-    }
+	protected final Integer coreId;
+	protected final Integer implementationId;
+	protected T requirements;
 
-    public Integer getCoreId() {
-        return coreId;
-    }
 
-    public Integer getImplementationId() {
-        return implementationId;
-    }
+	public Implementation(Integer coreId, Integer implementationId, T annot) {
+		this.coreId = coreId;
+		this.implementationId = implementationId;
+		this.requirements = annot;
+	}
 
-    public T getRequirements() {
-        return requirements;
-    }
+	public Integer getCoreId() {
+		return coreId;
+	}
 
-    public abstract Type getType();
+	public Integer getImplementationId() {
+		return implementationId;
+	}
 
-    public String toString() {
-        StringBuilder sb = new StringBuilder("Implementation ").append(implementationId);
-        sb.append(" for core ").append(coreId);
-        sb.append(":");
-        return sb.toString();
-    }
+	public T getRequirements() {
+		return requirements;
+	}
+
+	public abstract Type getType();
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Implementation ").append(implementationId);
+		sb.append(" for core ").append(coreId);
+		sb.append(":");
+		return sb.toString();
+	}
 
 }

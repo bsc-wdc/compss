@@ -14,11 +14,11 @@ import storage.StubItf;
  *       COMPSS DUMMY STORAGE (trunk/utils/storage/dummyPSCO)
  */
 public class StorageManager {
-	
-	private static final String ERROR_SERIALIZE	= "ERROR: Cannot serialize object to id=";
+
+	private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
 	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
-	
-	
+
+
 	public static void persist(StubItf o) throws StorageException {
 		String id = o.getID();
 		if (id != null) {
@@ -33,5 +33,5 @@ public class StorageManager {
 			}
 		}
 	}
-	
+
 }

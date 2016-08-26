@@ -16,10 +16,10 @@ import storage.StubItf;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.TaskParams;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
-import integratedtoolkit.types.TaskParams.Type;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.AccessParams.*;
@@ -127,7 +127,7 @@ public class TaskAnalyser {
 
         //Check scheduling enforcing data
         int constrainingParam = -1;
-        if (params.getType() == TaskParams.Type.SERVICE && params.hasTargetObject()) {
+        if (params.getType() == Type.SERVICE && params.hasTargetObject()) {
             if (params.hasReturnValue()) {
                 constrainingParam = params.getParameters().length - 2;
             } else {

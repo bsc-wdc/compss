@@ -9,58 +9,56 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 
 public class VMMConnector extends AbstractSSHConnector {
-	
-	private static final String ENDPOINT_PROP 	= "Server";
-    private static final String ACTIVE 			= "ACTIVE";
-    private static final String ERROR 			= "ERROR";
-    private static final long POLLING_INTERVAL = 5;
-    private static final int TIMEOUT = 1800;
-    
-    private VMMClient client;
-    
-    public VMMConnector(String providerName, HashMap<String, String> props) {
+
+	private static final String ENDPOINT_PROP = "Server";
+	private static final String ACTIVE = "ACTIVE";
+	private static final String ERROR = "ERROR";
+	private static final long POLLING_INTERVAL = 5;
+	private static final int TIMEOUT = 1800;
+
+	private VMMClient client;
+
+
+	public VMMConnector(String providerName, HashMap<String, String> props) {
 		super(providerName, props);
 		this.client = new VMMClient(props.get(ENDPOINT_PROP));
 	}
-    
+
 	@Override
 	public void destroy(Object vm) throws ConnectorException {
 		String vmId = (String) vm;
-        try{
+		try {
 			client.deleteVM(vmId);
-        }catch(Exception e){
-        	logger.error("Exception waiting for VM Creation");
-            throw new ConnectorException(e);
+		} catch (Exception e) {
+			logger.error("Exception waiting for VM Creation");
+			throw new ConnectorException(e);
 
-        }
+		}
 	}
 
 	@Override
-	public Object create(String name, CloudMethodResourceDescription requested)
-			throws ConnectorException {
+	public Object create(String name, CloudMethodResourceDescription requested) throws ConnectorException {
 		try {
 			logger.debug("Image password:" + requested.getImage().getProperties().get(ITConstants.PASSWORD));
-			String id =  client.createVM(name, requested.getImage().getImageName(), 
-   				 requested.getTotalComputingUnits(), 
-   				 (int)(requested.getMemorySize()*1000), 
-   				 (int)requested.getStorageSize(), 
-   				 System.getProperty(ITConstants.IT_APP_NAME));
-		logger.debug("Machine "+ id + " created");
-   		return id; 
-       } catch (Exception e) {
-           logger.error("Exception submitting vm creation", e);           
-           throw new ConnectorException(e);
-       }
+			String id = client
+					.createVM(name, requested.getImage().getImageName(), requested.getTotalComputingUnits(),
+							(int) (requested.getMemorySize() * 1000), (int) requested.getStorageSize(),
+							System.getProperty(ITConstants.IT_APP_NAME));
+			logger.debug("Machine " + id + " created");
+			return id;
+		} catch (Exception e) {
+			logger.error("Exception submitting vm creation", e);
+			throw new ConnectorException(e);
+		}
 	}
 
 	@Override
-	public CloudMethodResourceDescription waitUntilCreation(Object vm,
-			CloudMethodResourceDescription requested) throws ConnectorException {
+	public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
 		CloudMethodResourceDescription granted = new CloudMethodResourceDescription();
-        String vmId = (String) vm;
-        try {
+		String vmId = (String) vm;
+		try {
 			VMDescription vmd = client.getVMDescription(vmId);
-			logger.info("VM State is "+vmd.getState());
+			logger.info("VM State is " + vmd.getState());
 			int tries = 0;
 			while (vmd.getState() == null || !vmd.getState().equals(ACTIVE)) {
 				if (vmd.getState().equals(ERROR)) {
@@ -80,18 +78,18 @@ public class VMMConnector extends AbstractSSHConnector {
 				}
 				vmd = client.getVMDescription(vmId);
 			}
-			
+
 			granted = requested.copy();
 			granted.setName(vmd.getIpAddress());
 			granted.setOperatingSystemType("Linux");
 			granted.setValue(getMachineCostPerTimeSlot(granted));
 
 			return granted;
-        } catch(Exception e) {
-        	logger.error("Exception waiting for VM Creation");
-            throw new ConnectorException(e);
-        }
-			
+		} catch (Exception e) {
+			logger.error("Exception waiting for VM Creation");
+			throw new ConnectorException(e);
+		}
+
 	}
 
 	@Override
@@ -103,10 +101,10 @@ public class VMMConnector extends AbstractSSHConnector {
 	public long getTimeSlot() {
 		return 0;
 	}
-	
+
 	@Override
-	protected void close(){
-	    	//Nothing to do;
+	protected void close() {
+		// Nothing to do;
 	}
 
 }

@@ -7,8 +7,8 @@ import java.io.FileNotFoundException;
 
 
 public class SimpleImpl {
-	
-	public static void increment(String counterFile) {	
+
+	public static void increment(String counterFile) {
 		try {
 			FileInputStream fis = new FileInputStream(counterFile);
 			int count = fis.read();
@@ -16,13 +16,13 @@ public class SimpleImpl {
 			FileOutputStream fos = new FileOutputStream(counterFile);
 			fos.write(++count);
 			fos.close();
-		} catch(FileNotFoundException fnfe) {
+		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 }

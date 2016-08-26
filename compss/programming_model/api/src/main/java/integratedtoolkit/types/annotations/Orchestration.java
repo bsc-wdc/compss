@@ -15,10 +15,10 @@ import java.lang.annotation.Target;
 public @interface Orchestration {
 
 	/**
-	 * Returns the name of the interface 
+	 * Returns the name of the interface
 	 * 
 	 * @return the name of the interface
 	 */
-    String interfaceName() default Constants.UNASSIGNED_STR;
+	String interfaceName() default Constants.UNASSIGNED_STR;
 
 }

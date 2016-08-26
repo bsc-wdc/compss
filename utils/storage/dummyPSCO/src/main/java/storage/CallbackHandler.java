@@ -1,6 +1,5 @@
 package storage;
 
-
 public abstract class CallbackHandler {
 
 	public CallbackHandler() {

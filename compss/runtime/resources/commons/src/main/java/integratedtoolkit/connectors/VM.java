@@ -7,96 +7,91 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public class VM implements Comparable<VM> {
 
-    protected Object envId;
-    protected CloudMethodResourceDescription rd;
-    protected COMPSsWorker node;
-    protected CloudMethodWorker worker;
-    protected long requestTime;
-    protected long startTime;
-    protected long creationTime;
-    protected boolean toDelete;
+	protected Object envId;
+	protected CloudMethodResourceDescription rd;
+	protected COMPSsWorker node;
+	protected CloudMethodWorker worker;
+	protected long requestTime;
+	protected long startTime;
+	protected long creationTime;
+	protected boolean toDelete;
 
-    public VM(Object envId, CloudMethodResourceDescription description) {
-        this.envId = envId;
-        this.rd = description;
-        this.requestTime = System.currentTimeMillis();
-        this.startTime = 0;
-        this.creationTime = 0;
-        this.toDelete = false;
-    }
 
-    public void computeCreationTime() {
-        creationTime = this.startTime - this.requestTime;
-    }
+	public VM(Object envId, CloudMethodResourceDescription description) {
+		this.envId = envId;
+		this.rd = description;
+		this.requestTime = System.currentTimeMillis();
+		this.startTime = 0;
+		this.creationTime = 0;
+		this.toDelete = false;
+	}
 
-    public String toString() {
-        return "VM " + envId
-                + " (ip = " + rd.getName()
-                + ", request time = " + requestTime
-                + ", start time = " + startTime
-                + ", creation time = " + creationTime
-                + ", image = " + rd.getImage().getImageName()
-                + ", procs = " + rd.getTotalComputingUnits()
-                + ", memory = " + rd.getMemorySize()
-                + ", disk = " + rd.getStorageSize()
-                + ", to delete = " + toDelete + ")";
-    }
+	public void computeCreationTime() {
+		creationTime = this.startTime - this.requestTime;
+	}
 
-    public Object getEnvId() {
-        return envId;
-    }
+	public String toString() {
+		return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = " + startTime
+				+ ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName() + ", procs = "
+				+ rd.getTotalComputingUnits() + ", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize() + ", to delete = "
+				+ toDelete + ")";
+	}
 
-    public String getName() {
-        return rd.getName();
-    }
+	public Object getEnvId() {
+		return envId;
+	}
 
-    public CloudMethodResourceDescription getDescription() {
-        return this.rd;
-    }
+	public String getName() {
+		return rd.getName();
+	}
 
-    public COMPSsWorker getNode() {
-        return node;
-    }
+	public CloudMethodResourceDescription getDescription() {
+		return this.rd;
+	}
 
-    public void setWorker(CloudMethodWorker worker) {
-        this.worker = worker;
-    }
+	public COMPSsWorker getNode() {
+		return node;
+	}
 
-    public CloudMethodWorker getWorker() {
-        return worker;
-    }
+	public void setWorker(CloudMethodWorker worker) {
+		this.worker = worker;
+	}
 
-    public long getStartTime() {
-        return startTime;
-    }
+	public CloudMethodWorker getWorker() {
+		return worker;
+	}
 
-    public String getImage() {
-        return rd.getImage().getImageName();
-    }
+	public long getStartTime() {
+		return startTime;
+	}
 
-    public boolean isToDelete() {
-        return toDelete;
-    }
+	public String getImage() {
+		return rd.getImage().getImageName();
+	}
 
-    public void setToDelete(boolean toDelete) {
-        this.toDelete = toDelete;
-    }
+	public boolean isToDelete() {
+		return toDelete;
+	}
 
-    // Comparable interface implementation
-    public int compareTo(VM vm) throws NullPointerException {
-        if (vm == null) {
-            throw new NullPointerException();
-        }
+	public void setToDelete(boolean toDelete) {
+		this.toDelete = toDelete;
+	}
 
-        if (vm.getName().equals(getName())) {
-            return 0;
-        }
+	// Comparable interface implementation
+	public int compareTo(VM vm) throws NullPointerException {
+		if (vm == null) {
+			throw new NullPointerException();
+		}
 
-        long now = System.currentTimeMillis();
-        int mod1 = (int) (now - getStartTime()) % 3600000;  // 1 h in ms
-        int mod2 = (int) (now - vm.getStartTime()) % 3600000;  // 1 h in ms
+		if (vm.getName().equals(getName())) {
+			return 0;
+		}
 
-        return mod2 - mod1;
-    }
+		long now = System.currentTimeMillis();
+		int mod1 = (int) (now - getStartTime()) % 3600000; // 1 h in ms
+		int mod2 = (int) (now - vm.getStartTime()) % 3600000; // 1 h in ms
+
+		return mod2 - mod1;
+	}
 
 }

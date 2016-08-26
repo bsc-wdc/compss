@@ -9,16 +9,17 @@ import java.util.StringTokenizer;
 
 
 public class Matmul {
+
 	private static final int MSIZE = 8;
 	private static final int BSIZE = 2;
 
 	private Block[][] A;
 	private Block[][] B;
 	private Block[][] C;
-	
-	
+
+
 	public static void main(String args[]) {
-		//Get parameters
+		// Get parameters
 		if (args.length != 3) {
 			System.out.println("[ERROR] Usage: matmul <Ain> <Bin> <Cout>");
 			System.exit(-1);
@@ -29,19 +30,18 @@ public class Matmul {
 		System.out.println("[LOG] MSIZE parameter value = " + MSIZE);
 		System.out.println("[LOG] BSIZE parameter value = " + BSIZE);
 
-		//Run matmul app
+		// Run matmul app
 		Matmul matmul = new Matmul();
 		matmul.Run(fA, fB);
-		
-		//Check result
+
+		// Check result
 		System.out.println("[LOG] Storing C matrix obtained");
 		matmul.storeMatrix(fC);
 		System.out.println("[LOG] Main program finished. Result needs to be checked (result script)");
 	}
 
-	
-	private void Run (String fileA, String fileB) {
-		//Load Matrices
+	private void Run(String fileA, String fileB) {
+		// Load Matrices
 		System.out.println("[LOG] Allocating A/B/C matrix space");
 		A = new Block[MSIZE][MSIZE];
 		B = new Block[MSIZE][MSIZE];
@@ -50,8 +50,8 @@ public class Matmul {
 		loadMatrix(A, fileA);
 		System.out.println("[LOG] Loading B Matrix from file");
 		loadMatrix(B, fileB);
-		
-		//Compute result
+
+		// Compute result
 		System.out.println("[LOG] Computing Result");
 		for (int i = 0; i < MSIZE; i++) {
 			for (int j = 0; j < MSIZE; j++) {
@@ -59,12 +59,12 @@ public class Matmul {
 				for (int k = 0; k < MSIZE; k++) {
 					C[i][j].multiplyAccumulative(A[i][k], B[k][j]);
 				}
-            }
+			}
 		}
 	}
-	
+
 	private void loadMatrix(Block[][] matrix, String fileName) {
-		try { 
+		try {
 			FileReader filereader = new FileReader(fileName);
 			BufferedReader br = new BufferedReader(filereader);
 			StringTokenizer tokens;
@@ -87,17 +87,15 @@ public class Matmul {
 			}
 			br.close();
 			filereader.close();
-		}
-		catch ( FileNotFoundException fnfe ) {
+		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		}
-		catch ( IOException ioe ) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 	private void storeMatrix(String fileName) {
 		try {
 			FileOutputStream fos = new FileOutputStream(fileName);
@@ -115,29 +113,21 @@ public class Matmul {
 				fos.write("\n".getBytes());
 			}
 			fos.close();
-    	} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
-    	}
+		}
 	}
-	
+
 	@SuppressWarnings("unused")
 	private void printMatrix(Block[][] matrix, String name) {
 		System.out.println("MATRIX " + name);
 		for (int i = 0; i < MSIZE; i++) {
-			 for (int j = 0; j < MSIZE; j++) {
+			for (int j = 0; j < MSIZE; j++) {
 				matrix[i][j].printBlock();
-			 }
-			 System.out.println("");
-		 }
+			}
+			System.out.println("");
+		}
 	}
-	
+
 }
-
-
-
-
-
-
-
-

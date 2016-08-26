@@ -4,10 +4,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+
 public class Concurrent {
 
 	public static void main(String[] args) {
-		//Check and get parameters
+		// Check and get parameters
 		if (args.length != 1) {
 			System.out.println("[ERROR] Bad number of parameters");
 			System.out.println("    Usage: applicationConcurrent.Concurrent <counterValue>");
@@ -22,24 +23,24 @@ public class Concurrent {
 			fos.write(initialValue);
 			System.out.println("Initial counter value is " + initialValue);
 			fos.close();
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
-		
-		//------------------------------------------------------------------------
-		//Execute increment
+
+		// ------------------------------------------------------------------------
+		// Execute increment
 		ConcurrentImpl.increment(counterName);
-		
-		//Read new value
+
+		// Read new value
 		try {
 			FileInputStream fis = new FileInputStream(counterName);
 			System.out.println("Final counter value is " + fis.read());
 			fis.close();
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 }

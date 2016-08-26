@@ -9,16 +9,17 @@ import java.util.StringTokenizer;
 
 
 public class Matmul {
+
 	private static final int MSIZE = 8;
 	private static final int BSIZE = 2;
 
-	private String [][]_A;
-	private String [][]_B;
-	private String [][]_C;
+	private String[][] _A;
+	private String[][] _B;
+	private String[][] _C;
 
-	
+
 	public static void main(String[] args) {
-		//Get parameters
+		// Get parameters
 		if (args.length != 3) {
 			System.out.println("[ERROR] Usage: matmul <Ain> <Bin> <Cout>");
 			System.exit(-1);
@@ -28,58 +29,58 @@ public class Matmul {
 		String fC = args[2];
 		System.out.println("[LOG] MSIZE parameter value = " + MSIZE);
 		System.out.println("[LOG] BSIZE parameter value = " + BSIZE);
-		
-		//Run matmul app
+
+		// Run matmul app
 		Matmul matmul = new Matmul();
 		matmul.Run(fA, fB);
-		
-		//Check result
+
+		// Check result
 		System.out.println("[LOG] Storing C matrix obtained");
 		matmul.storeMatrix(fC);
 		System.out.println("[LOG] Main program finished. Result needs to be checked (result script)");
 	}
-	
-	private void Run (String fileA, String fileB) {
-		//Initialize file Names
+
+	private void Run(String fileA, String fileB) {
+		// Initialize file Names
 		System.out.println("[LOG] Initialising files' names for each matrix");
 		initializeVariables();
-		
-		//Load A and B matrices
+
+		// Load A and B matrices
 		System.out.println("[LOG] Loading matrix A from file");
 		loadMatrix("A", fileA);
 		System.out.println("[LOG] Loading matrix B from file");
 		loadMatrix("B", fileB);
-		
-		//Create result files
+
+		// Create result files
 		System.out.println("[LOG] Creating files for result computation");
 		fillMatrix();
-		
-		//Compute result
+
+		// Compute result
 		System.out.println("[LOG] Computing result");
 		for (int i = 0; i < MSIZE; i++) {
 			for (int j = 0; j < MSIZE; j++) {
 				for (int k = 0; k < MSIZE; k++) {
-					MatmulImpl.multiplyAccumulative( _C[i][j], _A[i][k], _B[k][j] );
+					MatmulImpl.multiplyAccumulative(_C[i][j], _A[i][k], _B[k][j]);
 				}
-            }
+			}
 		}
 	}
 
-	private void initializeVariables () {
+	private void initializeVariables() {
 		_A = new String[MSIZE][MSIZE];
 		_B = new String[MSIZE][MSIZE];
 		_C = new String[MSIZE][MSIZE];
-		for ( int i = 0; i < MSIZE; i ++ ) {
-			for ( int j = 0; j < MSIZE; j ++ ) {
+		for (int i = 0; i < MSIZE; i++) {
+			for (int j = 0; j < MSIZE; j++) {
 				_A[i][j] = "A." + i + "." + j;
 				_B[i][j] = "B." + i + "." + j;
 				_C[i][j] = "C." + i + "." + j;
 			}
 		}
 	}
-	
-	private void loadMatrix (String tag, String fileName) {
-		try { 
+
+	private void loadMatrix(String tag, String fileName) {
+		try {
 			FileReader filereader = new FileReader(fileName);
 			BufferedReader br = new BufferedReader(filereader);
 			StringTokenizer tokens;
@@ -89,8 +90,10 @@ public class Matmul {
 					nextLine = br.readLine();
 					tokens = new StringTokenizer(nextLine);
 					FileOutputStream fos = null;
-					if (tag.equals("A")) fos = new FileOutputStream(_A[i][j]);
-					else if (tag.equals("B")) fos = new FileOutputStream(_B[i][j]);
+					if (tag.equals("A"))
+						fos = new FileOutputStream(_A[i][j]);
+					else if (tag.equals("B"))
+						fos = new FileOutputStream(_B[i][j]);
 					else {
 						System.out.println("[ERROR] Bad load parameter.");
 						System.exit(1);
@@ -108,39 +111,37 @@ public class Matmul {
 			}
 			br.close();
 			filereader.close();
-		}
-		catch ( FileNotFoundException fnfe ) {
+		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 			System.exit(-1);
-		}
-		catch ( IOException ioe ) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
-	private void fillMatrix () {
+
+	private void fillMatrix() {
 		try {
-	        for ( int i = 0; i < MSIZE; i++ ) {
-	            for ( int j = 0; j < MSIZE; j++ ) {
-	                FileOutputStream fos = new FileOutputStream(_C[i][j]);
-	                for (int ii = 0; ii < BSIZE; ii++ ) {
-	                    for (int jj = 0; jj < BSIZE; jj ++) {
-	                        fos.write("0.0 ".getBytes());
-	                    }
-	                    fos.write("\n".getBytes());
-	                }
-	                fos.close();
-	            }
-	        }
+			for (int i = 0; i < MSIZE; i++) {
+				for (int j = 0; j < MSIZE; j++) {
+					FileOutputStream fos = new FileOutputStream(_C[i][j]);
+					for (int ii = 0; ii < BSIZE; ii++) {
+						for (int jj = 0; jj < BSIZE; jj++) {
+							fos.write("0.0 ".getBytes());
+						}
+						fos.write("\n".getBytes());
+					}
+					fos.close();
+				}
+			}
 		} catch (FileNotFoundException fnfe) {
 			fnfe.printStackTrace();
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 	}
-	
-	private void storeMatrix (String fileName) {
+
+	private void storeMatrix(String fileName) {
 		try {
 			FileOutputStream fos = new FileOutputStream(fileName);
 			for (int i = 0; i < MSIZE; ++i) {
@@ -172,4 +173,3 @@ public class Matmul {
 	}
 
 }
-

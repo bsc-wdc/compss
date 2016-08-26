@@ -15,134 +15,138 @@ import integratedtoolkit.util.ResourceScheduler;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+
 public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
-    private int id;
-    private int priority;
-    private Implementation<T>[] impls;
+	private int id;
+	private int priority;
+	private Implementation<T>[] impls;
 
-    public FakeAllocatableAction(int id, int priority, Implementation<T>[] impls) {
-        super(new DefaultSchedulingInformation<P, T>());
-        this.id = id;
-        this.priority = priority;
-        this.impls = impls;
-    }
 
-    @Override
-    public void doAction() {
-        profile.start();
-    }
+	public FakeAllocatableAction(int id, int priority, Implementation<T>[] impls) {
+		super(new DefaultSchedulingInformation<P, T>());
+		this.id = id;
+		this.priority = priority;
+		this.impls = impls;
+	}
 
-    @Override
-    public void doCompleted() {
-        profile.end();
-    }
+	@Override
+	public void doAction() {
+		profile.start();
+	}
 
-    @Override
-    public void doError() throws FailedActionException {
-    }
+	@Override
+	public void doCompleted() {
+		profile.end();
+	}
 
-    @Override
-    public void doFailed() {
-    }
+	@Override
+	public void doError() throws FailedActionException {
+	}
 
-    public String toString() {
-        return "AllocatableAction " + id;
-    }
+	@Override
+	public void doFailed() {
+	}
 
-    @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        LinkedList<Implementation<T>> ret = new LinkedList<Implementation<T>>();
-        ret.addAll(Arrays.asList(impls));
-        return ret;
-    }
+	public String toString() {
+		return "AllocatableAction " + id;
+	}
 
-    @Override
-    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
-        return null;
-    }
+	@Override
+	public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
+		LinkedList<Implementation<T>> ret = new LinkedList<Implementation<T>>();
+		ret.addAll(Arrays.asList(impls));
+		return ret;
+	}
 
-    @Override
-    public Implementation<T>[] getImplementations() {
-        return this.impls;
-    }
+	@Override
+	public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+		return null;
+	}
 
-    @Override
-    public boolean isCompatible(Worker<T> r) {
-        return true;
-    }
+	@Override
+	public Implementation<T>[] getImplementations() {
+		return this.impls;
+	}
 
-    @Override
-    protected boolean areEnoughResources() {
-        Worker<T> r = selectedMainResource.getResource();
-        return r.canRunNow(selectedImpl.getRequirements());
-    }
+	@Override
+	public boolean isCompatible(Worker<T> r) {
+		return true;
+	}
 
-    @Override
-    protected void reserveResources() {
-        Worker<T> r = selectedMainResource.getResource();
-        r.runTask(selectedImpl.getRequirements());
-    }
+	@Override
+	protected boolean areEnoughResources() {
+		Worker<T> r = selectedMainResource.getResource();
+		return r.canRunNow(selectedImpl.getRequirements());
+	}
 
-    @Override
-    protected void releaseResources() {
-        Worker<T> r = selectedMainResource.getResource();
-        r.endTask(selectedImpl.getRequirements());
-    }
+	@Override
+	protected void reserveResources() {
+		Worker<T> r = selectedMainResource.getResource();
+		r.runTask(selectedImpl.getRequirements());
+	}
 
-    public void selectExecution(ResourceScheduler<P, T> resource, Implementation<T> impl) {
-    	selectedMainResource = resource;
-        selectedImpl = impl;
-    }
+	@Override
+	protected void releaseResources() {
+		Worker<T> r = selectedMainResource.getResource();
+		r.endTask(selectedImpl.getRequirements());
+	}
 
-    @Override
-    public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+	public void selectExecution(ResourceScheduler<P, T> resource, Implementation<T> impl) {
+		selectedMainResource = resource;
+		selectedImpl = impl;
+	}
 
-    }
+	@Override
+	public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
-    @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.assignImplementation(impls[0]);
-        this.assignResources(targetWorker, null);
-        targetWorker.initialSchedule(this);
-    }
+	}
 
-    @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException {
-        this.assignImplementation(impl);
-        this.assignResources(targetWorker, null);
-        targetWorker.initialSchedule(this);
-    }
+	@Override
+	public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+		this.assignImplementation(impls[0]);
+		this.assignResources(targetWorker, null);
+		targetWorker.initialSchedule(this);
+	}
 
-    @Override
-    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-        return null;
-    }
+	@Override
+	public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException,
+			UnassignedActionException {
+		this.assignImplementation(impl);
+		this.assignResources(targetWorker, null);
+		targetWorker.initialSchedule(this);
+	}
 
-    public String dependenciesDescription() {
-        StringBuilder sb = new StringBuilder("Action" + id + "\n");
-        DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) this.getSchedulingInfo();
-        sb.append("\t depends on\n");
-        sb.append("\t\tData : ").append(this.getDataPredecessors()).append("\n");
-        sb.append("\t\tResource : ").append(dsi.getPredecessors()).append("\n");
-        sb.append("\t enables\n");
-        sb.append("\t\tData : ").append(this.getDataSuccessors()).append("\n");
-        sb.append("\t\tResource : ").append(dsi.getSuccessors()).append("\n");
+	@Override
+	public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+		return null;
+	}
 
-        return sb.toString();
-    }
+	public String dependenciesDescription() {
+		StringBuilder sb = new StringBuilder("Action" + id + "\n");
+		DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) this.getSchedulingInfo();
+		sb.append("\t depends on\n");
+		sb.append("\t\tData : ").append(this.getDataPredecessors()).append("\n");
+		sb.append("\t\tResource : ").append(dsi.getPredecessors()).append("\n");
+		sb.append("\t enables\n");
+		sb.append("\t\tData : ").append(this.getDataSuccessors()).append("\n");
+		sb.append("\t\tResource : ").append(dsi.getSuccessors()).append("\n");
 
-    @Override
-    public Integer getCoreId() {
-        if (impls == null || impls.length == 0) {
-            return null;
-        } else {
-            return impls[0].getCoreId();
-        }
-    }
+		return sb.toString();
+	}
 
-    @Override
-    public int getPriority() {
-        return priority;
-    }
+	@Override
+	public Integer getCoreId() {
+		if (impls == null || impls.length == 0) {
+			return null;
+		} else {
+			return impls[0].getCoreId();
+		}
+	}
+
+	@Override
+	public int getPriority() {
+		return priority;
+	}
+	
 }

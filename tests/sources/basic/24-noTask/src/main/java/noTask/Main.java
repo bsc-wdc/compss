@@ -1,9 +1,9 @@
 package noTask;
 
-
 public class Main {
-	
+
 	private static final int SLEEP_TIME = 5_000;
+
 
 	public static void main(String[] args) {
 		// Check and get parameters
@@ -26,7 +26,7 @@ public class Main {
 		} catch (InterruptedException e) {
 			// No need to handle such exceptions
 		}
-		
+
 		// Print out message
 		System.out.println(msg);
 	}

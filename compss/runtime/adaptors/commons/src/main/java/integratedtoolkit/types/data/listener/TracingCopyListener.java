@@ -7,79 +7,80 @@ import java.util.concurrent.Semaphore;
 
 public class TracingCopyListener extends EventListener {
 
-    int operation = 0;
-    int errors = 0;
-    boolean enabled = false;
+	private int operation = 0;
+	private int errors = 0;
+	private boolean enabled = false;
 
-    final Semaphore sem;
+	private final Semaphore sem;
 
-    public TracingCopyListener(Semaphore sem) {
-        this.sem = sem;
-    }
 
-    public void enable() {
-        boolean finished;
-        boolean failed;
-        synchronized (this) {
-            enabled = true;
-            finished = operation == 0;
-            failed = errors > 0;
-        }
-        
-        if (finished) {
-            if (failed) {
-                doFailures();
-            } else {
-                doReady();
-            }
-        }
-    }
+	public TracingCopyListener(Semaphore sem) {
+		this.sem = sem;
+	}
 
-    public synchronized void addOperation() {
-        operation++;
-    }
+	public void enable() {
+		boolean finished;
+		boolean failed;
+		synchronized (this) {
+			enabled = true;
+			finished = operation == 0;
+			failed = errors > 0;
+		}
 
-    @Override
-    public void notifyEnd(DataOperation fOp) {
-        boolean enabled;
-        boolean finished;
-        boolean failed;
-        synchronized (this) {
-            operation--;
-            finished = operation == 0;
-            failed = errors > 0;
-            enabled = this.enabled;
-        }
-        if (finished && enabled) {
-            if (failed) {
-                doFailures();
-            } else {
-                doReady();
-            }
-        }
-    }
+		if (finished) {
+			if (failed) {
+				doFailures();
+			} else {
+				doReady();
+			}
+		}
+	}
 
-    @Override
-    public void notifyFailure(DataOperation fOp, Exception e) {
-        boolean enabled;
-        boolean finished;
-        synchronized (this) {
-            errors++;
-            operation--;
-            finished = operation == 0;
-            enabled = this.enabled;
-        }
-        if (enabled && finished) {
-            doFailures();
-        }
-    }
+	public synchronized void addOperation() {
+		operation++;
+	}
 
-    private void doReady() {
-        sem.release();
-    }
+	@Override
+	public void notifyEnd(DataOperation fOp) {
+		boolean enabled;
+		boolean finished;
+		boolean failed;
+		synchronized (this) {
+			operation--;
+			finished = operation == 0;
+			failed = errors > 0;
+			enabled = this.enabled;
+		}
+		if (finished && enabled) {
+			if (failed) {
+				doFailures();
+			} else {
+				doReady();
+			}
+		}
+	}
 
-    private void doFailures() {
-        sem.release();
-    }
-    
+	@Override
+	public void notifyFailure(DataOperation fOp, Exception e) {
+		boolean enabled;
+		boolean finished;
+		synchronized (this) {
+			errors++;
+			operation--;
+			finished = operation == 0;
+			enabled = this.enabled;
+		}
+		if (enabled && finished) {
+			doFailures();
+		}
+	}
+
+	private void doReady() {
+		sem.release();
+	}
+
+	private void doFailures() {
+		sem.release();
+	}
+
 }

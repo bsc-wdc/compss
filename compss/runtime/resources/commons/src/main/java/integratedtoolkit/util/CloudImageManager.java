@@ -16,119 +16,115 @@ import org.apache.logging.log4j.Logger;
 
 
 /**
- * The CloudImageManager is an utility to manage the different images that can
- * be used for a certain Cloud Provider
+ * The CloudImageManager is an utility to manage the different images that can be used for a certain Cloud Provider
  */
 public class CloudImageManager {
 
-    /**
-     * Relation between the name of an image and its features
-     */
-    private HashMap<String, CloudImageDescription> images;
-    
-    // Logger
-    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
+	/**
+	 * Relation between the name of an image and its features
+	 */
+	private HashMap<String, CloudImageDescription> images;
 
-    
-    /**
-     * Constructs a new CloudImageManager
-     */
-    public CloudImageManager() {
-    	logger.info("Initializing CloudImageManager");
-        images = new HashMap<String, CloudImageDescription>();
-    }
+	// Logger
+	private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
 
-    /**
-     * Adds a new image which can be used by the Cloud Provider
-     *
-     * @param cid Description of the image
-     */
-    public void add(CloudImageDescription cid) {
-    	logger.debug("Add new Image description");
-        images.put(cid.getImageName(), cid);
-    }
 
-    /**
-     * Finds all the images provided by the Cloud Provider which fulfill the
-     * resource description.
-     *
-     * @param requested description of the features that the image must provide
-     * @return The best image provided by the Cloud Provider which fulfills the
-     * resource description
-     */
-    public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
-    	//logger.debug("REQUESTED: " + requested.toString());
-        LinkedList<CloudImageDescription> compatiblesList = new LinkedList<CloudImageDescription>();
-        for (CloudImageDescription cid : images.values()) {
-        	//logger.debug("CID:     " + cid.toString());
-        	
-        	// OS CHECK
-            String imageOSType = cid.getOperatingSystemType();
-            String reqOSType = requested.getOperatingSystemType();
-            if (!imageOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !reqOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !imageOSType.equals(reqOSType)) {
-            	continue;
-            }
+	/**
+	 * Constructs a new CloudImageManager
+	 */
+	public CloudImageManager() {
+		logger.info("Initializing CloudImageManager");
+		images = new HashMap<String, CloudImageDescription>();
+	}
 
-            String imageOSDistr = cid.getOperatingSystemDistribution();
-            String reqOSDistr = requested.getOperatingSystemDistribution();
-            if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !imageOSDistr.equals(reqOSDistr)) {
-            	continue;
-            }
+	/**
+	 * Adds a new image which can be used by the Cloud Provider
+	 *
+	 * @param cid
+	 *            Description of the image
+	 */
+	public void add(CloudImageDescription cid) {
+		logger.debug("Add new Image description");
+		images.put(cid.getImageName(), cid);
+	}
 
-            String imageOSVersion = cid.getOperatingSystemVersion();
-            String reqOSVersion = requested.getOperatingSystemVersion();
-            if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
-            		&& !imageOSVersion.equals(reqOSVersion)) {
-            	continue;
-            }
-            
-            // SOFTWARE CHECK
-            if (!cid.getAppSoftware().containsAll(requested.getAppSoftware())) {
-            	continue;
-            }
-            
-            // CHECK QUEUES
-            List<String> req_queues = requested.getHostQueues();
-            List<String> image_queues = cid.getQueues();
-            // Disjoint = true if the two specified collections have no elements in common.
-            if (!req_queues.isEmpty() && Collections.disjoint(req_queues, image_queues)) {
-            	continue;
-            }
+	/**
+	 * Finds all the images provided by the Cloud Provider which fulfill the resource description.
+	 *
+	 * @param requested
+	 *            description of the features that the image must provide
+	 * @return The best image provided by the Cloud Provider which fulfills the resource description
+	 */
+	public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
+		// logger.debug("REQUESTED: " + requested.toString());
+		LinkedList<CloudImageDescription> compatiblesList = new LinkedList<CloudImageDescription>();
+		for (CloudImageDescription cid : images.values()) {
+			// logger.debug("CID:     " + cid.toString());
 
-            compatiblesList.add(cid);
-        }
-        return compatiblesList;
-    }
+			// OS CHECK
+			String imageOSType = cid.getOperatingSystemType();
+			String reqOSType = requested.getOperatingSystemType();
+			if (!imageOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+					&& !reqOSType.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSType.equals(reqOSType)) {
+				continue;
+			}
 
-    /**
-     * Return all the image names offered by that Cloud Provider
-     *
-     * @return set of image names offered by that Cloud Provider
-     */
-    public Set<String> getAllImageNames() {
-        return images.keySet();
-    }
+			String imageOSDistr = cid.getOperatingSystemDistribution();
+			String reqOSDistr = requested.getOperatingSystemDistribution();
+			if (!imageOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+					&& !reqOSDistr.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSDistr.equals(reqOSDistr)) {
+				continue;
+			}
 
-    public String getCurrentState(String prefix) {
-        StringBuilder sb = new StringBuilder();
-        //IMAGES
-        sb.append(prefix).append("IMAGES = [").append("\n");
-        for (java.util.Map.Entry<String, CloudImageDescription> image : images.entrySet()) {
-            String imageName = image.getKey();
-            //CloudImageDescription description = image.getValue();
-            sb.append(prefix).append("\t").append("IMAGE = [").append("\n");
-            sb.append(prefix).append("\t").append("\t").append("NAME = ").append(imageName).append("\n");
-            sb.append(prefix).append("\t").append("\t").append("]").append("\n");
-            sb.append(prefix).append("\t").append("]").append("\n");
-        }
-        sb.append(prefix).append("]").append("\n");
+			String imageOSVersion = cid.getOperatingSystemVersion();
+			String reqOSVersion = requested.getOperatingSystemVersion();
+			if (!imageOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR)
+					&& !reqOSVersion.equals(CloudMethodResourceDescription.UNASSIGNED_STR) && !imageOSVersion.equals(reqOSVersion)) {
+				continue;
+			}
 
-        return sb.toString();
-    }
-    
+			// SOFTWARE CHECK
+			if (!cid.getAppSoftware().containsAll(requested.getAppSoftware())) {
+				continue;
+			}
+
+			// CHECK QUEUES
+			List<String> req_queues = requested.getHostQueues();
+			List<String> image_queues = cid.getQueues();
+			// Disjoint = true if the two specified collections have no elements in common.
+			if (!req_queues.isEmpty() && Collections.disjoint(req_queues, image_queues)) {
+				continue;
+			}
+
+			compatiblesList.add(cid);
+		}
+		return compatiblesList;
+	}
+
+	/**
+	 * Return all the image names offered by that Cloud Provider
+	 *
+	 * @return set of image names offered by that Cloud Provider
+	 */
+	public Set<String> getAllImageNames() {
+		return images.keySet();
+	}
+
+	public String getCurrentState(String prefix) {
+		StringBuilder sb = new StringBuilder();
+		// IMAGES
+		sb.append(prefix).append("IMAGES = [").append("\n");
+		for (java.util.Map.Entry<String, CloudImageDescription> image : images.entrySet()) {
+			String imageName = image.getKey();
+			// CloudImageDescription description = image.getValue();
+			sb.append(prefix).append("\t").append("IMAGE = [").append("\n");
+			sb.append(prefix).append("\t").append("\t").append("NAME = ").append(imageName).append("\n");
+			sb.append(prefix).append("\t").append("\t").append("]").append("\n");
+			sb.append(prefix).append("\t").append("]").append("\n");
+		}
+		sb.append(prefix).append("]").append("\n");
+
+		return sb.toString();
+	}
+
 }

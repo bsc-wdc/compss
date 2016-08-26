@@ -11,94 +11,96 @@ import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
 
-public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P,T> {
 
-    public OptimizationAction() {
-        super(new DefaultSchedulingInformation<P,T>());
-    }
+public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
-    @Override
-    protected boolean areEnoughResources() {
-        return true;
-    }
+	public OptimizationAction() {
+		super(new DefaultSchedulingInformation<P, T>());
+	}
 
-    @Override
-    protected void reserveResources() {
-    }
+	@Override
+	protected boolean areEnoughResources() {
+		return true;
+	}
 
-    @Override
-    protected void releaseResources() {
+	@Override
+	protected void reserveResources() {
+	}
 
-    }
+	@Override
+	protected void releaseResources() {
 
-    @Override
-    protected void doAction() {
+	}
 
-    }
+	@Override
+	protected void doAction() {
 
-    @Override
-    protected void doCompleted() {
+	}
 
-    }
+	@Override
+	protected void doCompleted() {
 
-    @Override
-    protected void doError() throws FailedActionException {
+	}
 
-    }
+	@Override
+	protected void doError() throws FailedActionException {
 
-    @Override
-    protected void doFailed() {
+	}
 
-    }
+	@Override
+	protected void doFailed() {
 
-    @Override
-    public Integer getCoreId() {
-        return null;
-    }
+	}
 
-    @Override
-    public LinkedList<ResourceScheduler<?,?>> getCompatibleWorkers() {
-        return null;
-    }
+	@Override
+	public Integer getCoreId() {
+		return null;
+	}
 
-    @Override
-    public Implementation<T>[] getImplementations() {
-        return null;
-    }
+	@Override
+	public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+		return null;
+	}
 
-    @Override
-    public boolean isCompatible(Worker<T> r) {
-        return true;
-    }
+	@Override
+	public Implementation<T>[] getImplementations() {
+		return null;
+	}
 
-    @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P,T> r) {
-        return null;
-    }
+	@Override
+	public boolean isCompatible(Worker<T> r) {
+		return true;
+	}
 
-    @Override
-    public int getPriority() {
-        return 0;
-    }
+	@Override
+	public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
+		return null;
+	}
 
-    @Override
-    public Score schedulingScore(ResourceScheduler<P,T> targetWorker, Score actionScore) {
-        return null;
-    }
+	@Override
+	public int getPriority() {
+		return 0;
+	}
 
-    @Override
-    public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+	@Override
+	public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+		return null;
+	}
 
-    }
+	@Override
+	public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
-    @Override
-    public void schedule(ResourceScheduler<P,T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+	}
 
-    }
+	@Override
+	public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
-    @Override
-    public void schedule(ResourceScheduler<P,T> targetWorker, Implementation<T> impl) throws BlockedActionException, UnassignedActionException {
+	}
 
-    }
+	@Override
+	public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException,
+			UnassignedActionException {
+
+	}
 
 }

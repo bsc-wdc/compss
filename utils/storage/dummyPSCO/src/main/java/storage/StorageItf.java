@@ -21,29 +21,28 @@ import storage.utils.Serializer;
 
 
 public final class StorageItf {
-	
-	// Logger According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
 
-    private static final String ERROR_HOSTNAME						= "ERROR: Cannot find localhost hostname";
-	private static final String ERROR_CREATE_WD 					= "ERROR: Cannot create WD ";
-	private static final String ERROR_ERASE_WD 						= "ERROR: Cannot erase WD";
-	private static final String ERROR_CONFIGURATION_NOT_FOUND 		= "ERROR: Configuration file not found";
-	private static final String ERROR_CONFIGURATION_CANNOT_OPEN 	= "ERROR: Cannot open configuration file";
-	private static final String ERROR_NO_PSCO						= "ERROR: Cannot found PSCO in master with id=";
-	private static final String ERROR_NEW_REPLICA 					= "ERROR: Cannot create new replica of PSCO with id=";
-	private static final String ERROR_NEW_VERSION 					= "ERROR: Cannot create new version of PSCO with id=";
-	private static final String ERROR_DESERIALIZE 					= "ERROR: Cannot deserialize object with id=";
-	private static final String ERROR_SERIALIZE						= "ERROR: Cannot serialize object to id=";
-	
+	// Logger According to Loggers.STORAGE
+	private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
+
+	private static final String ERROR_HOSTNAME = "ERROR: Cannot find localhost hostname";
+	private static final String ERROR_CREATE_WD = "ERROR: Cannot create WD ";
+	private static final String ERROR_ERASE_WD = "ERROR: Cannot erase WD";
+	private static final String ERROR_CONFIGURATION_NOT_FOUND = "ERROR: Configuration file not found";
+	private static final String ERROR_CONFIGURATION_CANNOT_OPEN = "ERROR: Cannot open configuration file";
+	private static final String ERROR_NO_PSCO = "ERROR: Cannot found PSCO in master with id=";
+	private static final String ERROR_NEW_REPLICA = "ERROR: Cannot create new replica of PSCO with id=";
+	private static final String ERROR_NEW_VERSION = "ERROR: Cannot create new version of PSCO with id=";
+	private static final String ERROR_DESERIALIZE = "ERROR: Cannot deserialize object with id=";
+	private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
 
 	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
-	
+
 	private static final String MASTER_HOSTNAME;
 	private static final String MASTER_WORKING_DIR;
-	
+
 	private static final LinkedList<String> hostnames = new LinkedList<String>();
-	
+
 	static {
 		String hostname = null;
 		try {
@@ -53,10 +52,11 @@ public final class StorageItf {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		MASTER_HOSTNAME = hostname;
 		MASTER_WORKING_DIR = BASE_WORKING_DIR + File.separator + MASTER_HOSTNAME + File.separator;
 	}
+
 
 	/**
 	 * Constructor
@@ -65,18 +65,17 @@ public final class StorageItf {
 	}
 
 	/**
-	 * Initializes the persistent storage
-	 * Configuration file must contain all the worker hostnames, one by line
+	 * Initializes the persistent storage Configuration file must contain all the worker hostnames, one by line
 	 * 
 	 * @param storageConf
 	 * @throws StorageException
 	 */
 	public static void init(String storageConf) throws StorageException {
 		logger.info("[LOG] Storage Initialization");
-		
+
 		// Add master hostname
 		hostnames.add(MASTER_HOSTNAME);
-		
+
 		// Add worker' hostnames (by storageConf)
 		logger.info("[LOG] Configuration received: " + storageConf);
 		BufferedReader br = null;
@@ -84,7 +83,7 @@ public final class StorageItf {
 			br = new BufferedReader(new FileReader(storageConf));
 			String line;
 			while ((line = br.readLine()) != null) {
-			   hostnames.add(line);
+				hostnames.add(line);
 			}
 		} catch (FileNotFoundException e) {
 			throw new StorageException(ERROR_CONFIGURATION_NOT_FOUND, e);
@@ -99,7 +98,7 @@ public final class StorageItf {
 				// No need to handle such exceptions
 			}
 		}
-		
+
 		// Create base WD if needed
 		File wd = new File(BASE_WORKING_DIR);
 		if (!wd.exists()) {
@@ -109,7 +108,7 @@ public final class StorageItf {
 				throw new StorageException(ERROR_CREATE_WD + BASE_WORKING_DIR, se);
 			}
 		}
-		
+
 		// Create specific WD
 		for (String hostname : hostnames) {
 			logger.debug("[LOG] Hostname: " + hostname);
@@ -147,7 +146,7 @@ public final class StorageItf {
 		} catch (IOException e) {
 			throw new StorageException(ERROR_ERASE_WD, e);
 		}
-		
+
 		// Log
 		logger.info("[LOG] Storage Finish finished");
 	}
@@ -160,8 +159,8 @@ public final class StorageItf {
 	 * @throws StorageException
 	 */
 	public static List<String> getLocations(String id) throws StorageException {
-		List<String> result = new LinkedList<String> ();
-		
+		List<String> result = new LinkedList<String>();
+
 		for (String hostname : hostnames) {
 			String path = BASE_WORKING_DIR + hostname + File.separator + id;
 			File pscoLocation = new File(path);
@@ -198,8 +197,7 @@ public final class StorageItf {
 	}
 
 	/**
-	 * Create a new version of the PSCO id @id in the host @hostname
-	 * Returns the id of the new version
+	 * Create a new version of the PSCO id @id in the host @hostname Returns the id of the new version
 	 * 
 	 * @param id
 	 * @param hostName
@@ -208,7 +206,7 @@ public final class StorageItf {
 	 */
 	public static String newVersion(String id, String hostName) throws StorageException {
 		logger.info("NEW VERSION: " + id + " on host " + hostName);
-		
+
 		// New version always copies PSCO from master
 		File source = new File(MASTER_WORKING_DIR + id);
 		String newId = "psco_" + UUID.randomUUID().toString();
@@ -223,13 +221,12 @@ public final class StorageItf {
 		} else {
 			throw new StorageException(ERROR_NO_PSCO + id);
 		}
-		
+
 		return newId;
 	}
 
 	/**
-	 * Returns the object with id @id
-	 * This function retrieves the object from any location
+	 * Returns the object with id @id This function retrieves the object from any location
 	 * 
 	 * @param id
 	 * @return
@@ -252,10 +249,10 @@ public final class StorageItf {
 				}
 			}
 		}
-		
+
 		// If we reach this point the ID has not been found.
 		throw new StorageException(ERROR_NO_PSCO + id);
-	} 
+	}
 
 	/**
 	 * Executes the task into persistent storage
@@ -268,9 +265,9 @@ public final class StorageItf {
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(String id, String descriptor,
-			Object[] values, String hostName, CallbackHandler callback) throws StorageException {
-		
+	public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
+			throws StorageException {
+
 		throw new UnsupportedOperationException();
 	}
 
@@ -284,10 +281,9 @@ public final class StorageItf {
 		// Nothing to do since executeTask is not supported
 		return null;
 	}
-	
-	
+
 	/* ************************************************
-	 * SPECIFIC IMPLEMENTATION METHODS
+	 * SPECIFIC IMPLEMENTATION METHODS 
 	 * ************************************************/
 	/**
 	 * Stores the object @o in the persistent storage with id @id
@@ -304,7 +300,7 @@ public final class StorageItf {
 			throw new StorageException(ERROR_SERIALIZE + id, e);
 		}
 	}
-	
+
 	/**
 	 * Removes all the occurrences of a given @id
 	 * 

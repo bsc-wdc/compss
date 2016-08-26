@@ -8,39 +8,40 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 
 public class NewVersionSameValueRequest extends APRequest {
 
-    private String rRenaming;
-    private String wRenaming;
+	private String rRenaming;
+	private String wRenaming;
 
-    public NewVersionSameValueRequest(String rRenaming, String wRenaming) {
-        super();
-        this.rRenaming = rRenaming;
-        this.wRenaming = wRenaming;
-    }
 
-    public String getrRenaming() {
-        return rRenaming;
-    }
+	public NewVersionSameValueRequest(String rRenaming, String wRenaming) {
+		super();
+		this.rRenaming = rRenaming;
+		this.wRenaming = wRenaming;
+	}
 
-    public void setrRenaming(String rRenaming) {
-        this.rRenaming = rRenaming;
-    }
+	public String getrRenaming() {
+		return rRenaming;
+	}
 
-    public String getwRenaming() {
-        return wRenaming;
-    }
+	public void setrRenaming(String rRenaming) {
+		this.rRenaming = rRenaming;
+	}
 
-    public void setwRenaming(String wRenaming) {
-        this.wRenaming = wRenaming;
-    }
+	public String getwRenaming() {
+		return wRenaming;
+	}
 
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) {
-        dip.newVersionSameValue(rRenaming, wRenaming);
-    }
+	public void setwRenaming(String wRenaming) {
+		this.wRenaming = wRenaming;
+	}
 
-    @Override
-    public APRequestType getRequestType() {
-        return APRequestType.NEW_VERSION_SAME_VALUE;
-    }
+	@Override
+	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+		dip.newVersionSameValue(rRenaming, wRenaming);
+	}
+
+	@Override
+	public APRequestType getRequestType() {
+		return APRequestType.NEW_VERSION_SAME_VALUE;
+	}
 
 }

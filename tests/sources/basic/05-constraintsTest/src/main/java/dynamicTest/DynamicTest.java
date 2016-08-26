@@ -4,17 +4,18 @@ import commons.ConstantValues;
 
 
 public class DynamicTest {
-	
+
 	private static final int NUM_TASKS = 2;
+
 
 	public static void main(String[] args) {
 		// Wait for Runtime to be loaded
-    	System.out.println("[LOG] Waiting for Runtime to be loaded");
-        try {
-            Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
-        } catch (Exception e) {
-        	// No need to handle such exceptions
-        }
+		System.out.println("[LOG] Waiting for Runtime to be loaded");
+		try {
+			Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
+		} catch (Exception e) {
+			// No need to handle such exceptions
+		}
 
 		// Run Dynamic Test
 		System.out.println("[LOG] Running Dynamic Test");

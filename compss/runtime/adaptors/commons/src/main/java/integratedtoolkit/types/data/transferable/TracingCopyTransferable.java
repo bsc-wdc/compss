@@ -6,8 +6,8 @@ import integratedtoolkit.types.data.Transferable;
 
 public class TracingCopyTransferable  implements Transferable {
 
-    Object dataSource;
-    String dataTarget;
+    private Object dataSource;
+    private String dataTarget;
 
     @Override
     public Object getDataSource() {

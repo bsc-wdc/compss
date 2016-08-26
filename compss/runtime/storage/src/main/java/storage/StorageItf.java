@@ -8,7 +8,7 @@ public final class StorageItf {
 	private static final String STORAGE_NOT_FOUND_MESSAGE = "You are trying to start a run with "
 			+ "persistent object storage but any back-end client is loaded in the classpath.";
 
-	
+
 	/**
 	 * Constructor
 	 * 
@@ -60,8 +60,7 @@ public final class StorageItf {
 	}
 
 	/**
-	 * Create a new version of the PSCO id @id in the host @hostname
-	 * Returns the id of the new version
+	 * Create a new version of the PSCO id @id in the host @hostname Returns the id of the new version
 	 * 
 	 * @param id
 	 * @param hostName
@@ -73,8 +72,7 @@ public final class StorageItf {
 	}
 
 	/**
-	 * Returns the object with id @id
-	 * This function retrieves the object from any location
+	 * Returns the object with id @id This function retrieves the object from any location
 	 * 
 	 * @param id
 	 * @return
@@ -95,9 +93,9 @@ public final class StorageItf {
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(String id, String descriptor,
-			Object[] values, String hostName, CallbackHandler callback) throws StorageException {
-		
+	public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
+			throws StorageException {
+
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 

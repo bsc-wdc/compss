@@ -14,7 +14,7 @@ public class CommandWorkerDebugFilesDone extends Command implements Externalizab
 	public CommandWorkerDebugFilesDone() {
 		super();
 	}
-	
+
 	@Override
 	public CommandType getType() {
 		return CommandType.GEN_WORKERS_INFO_DONE;
@@ -27,17 +27,17 @@ public class CommandWorkerDebugFilesDone extends Command implements Externalizab
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		
+
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		
+
 	}
-	
-    @Override
-    public String toString() {
-        return "GeneratingWorkerDebugFilesDone";
-    }
+
+	@Override
+	public String toString() {
+		return "GeneratingWorkerDebugFilesDone";
+	}
 
 }

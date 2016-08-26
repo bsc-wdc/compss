@@ -1,6 +1,5 @@
 package testNonExistingInFile;
 
-
 public class Main {
 
 	public static void main(String[] args) {
@@ -14,7 +13,7 @@ public class Main {
 		} catch (Exception e) {
 			// No need to catch such exception
 		}
-		
+
 		return new Dummy();
 	}
 }

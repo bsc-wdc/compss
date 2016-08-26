@@ -6,35 +6,36 @@ import integratedtoolkit.types.data.Transferable;
 
 public class FileTransferable implements Transferable {
 
-    private Object source;
-    private String target;
-    
-    public FileTransferable() {
-    }
+	private Object source;
+	private String target;
 
-    @Override
-    public Object getDataSource() {
-        return source;
-    }
 
-    @Override
-    public void setDataSource(Object dataSource) {
-        this.source = dataSource;
-    }
+	public FileTransferable() {
+	}
 
-    @Override
-    public String getDataTarget() {
-        return target;
-    }
+	@Override
+	public Object getDataSource() {
+		return source;
+	}
 
-    @Override
-    public void setDataTarget(String target) {
-        this.target = target;
-    }
+	@Override
+	public void setDataSource(Object dataSource) {
+		this.source = dataSource;
+	}
 
-    @Override
-    public DataType getType() {
-        return DataType.FILE_T;
-    }
+	@Override
+	public String getDataTarget() {
+		return target;
+	}
+
+	@Override
+	public void setDataTarget(String target) {
+		this.target = target;
+	}
+
+	@Override
+	public DataType getType() {
+		return DataType.FILE_T;
+	}
 
 }

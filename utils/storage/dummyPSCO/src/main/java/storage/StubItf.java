@@ -1,17 +1,16 @@
 package storage;
 
-
 public interface StubItf {
-	
+
 	/**
 	 * Returns the Id of the persistent object
 	 * 
 	 * @return
 	 */
 	public abstract String getID();
-	
+
 	/**
-	 * Makes persistent the current object 
+	 * Makes persistent the current object
 	 * 
 	 * @param id
 	 */

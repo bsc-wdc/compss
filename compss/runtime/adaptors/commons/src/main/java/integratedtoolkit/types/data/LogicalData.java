@@ -35,33 +35,33 @@ import storage.StorageItf;
 
 
 public class LogicalData {
-	
+
 	// Logger
 	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
-	
-    // Tracing
-    private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-	
+
+	// Tracing
+	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+
 	// Logical data name
 	private final String name;
 	// Value in memory, null if value in disk
 	private Object value;
 	// Id if PSCO, null otherwise
 	private String id;
-	
+
 	// List of existing copies
 	private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
 	// In progress
 	private final LinkedList<CopyInProgress> inProgress = new LinkedList<CopyInProgress>();
-	
+
 	// Indicates if object is also in storage
 	private boolean onStorage;
 	// Indicates if LogicalData has been ordered to save before
 	private boolean isBeingSaved;
 	// Locks the host while LogicalData is being copied
 	private final Semaphore lockHostRemoval = new Semaphore(1);
-	
+
 
 	/*
 	 * Constructors
@@ -75,7 +75,7 @@ public class LogicalData {
 		this.name = name;
 		this.value = null;
 		this.id = null;
-		
+
 		this.onStorage = false;
 		this.isBeingSaved = false;
 	}
@@ -92,7 +92,7 @@ public class LogicalData {
 		// No need to sync because it cannot be modified
 		return this.name;
 	}
-	
+
 	/**
 	 * Returns the PSCO id. Null if its not a PSCO
 	 * 
@@ -111,7 +111,7 @@ public class LogicalData {
 		HashSet<Resource> list = new HashSet<Resource>();
 		for (DataLocation loc : this.locations) {
 			list.addAll(loc.getHosts());
-		}		
+		}
 		return list;
 	}
 
@@ -127,7 +127,7 @@ public class LogicalData {
 		}
 		return list;
 	}
-	
+
 	public synchronized TreeSet<DataLocation> getLocations() {
 		return this.locations;
 	}
@@ -147,7 +147,8 @@ public class LogicalData {
 	 * @return
 	 */
 	public boolean isOnStorage() {
-		// WARN: The data can be in memory and on storage (disk / persistent storage) at the same time
+		// WARN: The data can be in memory and on storage (disk / persistent
+		// storage) at the same time
 		return this.onStorage;
 	}
 
@@ -159,7 +160,6 @@ public class LogicalData {
 	public synchronized Object getValue() {
 		return this.value;
 	}
-
 
 	/*
 	 * Setters
@@ -173,7 +173,7 @@ public class LogicalData {
 		this.isBeingSaved = false;
 		this.locations.add(loc);
 		for (Resource r : loc.getHosts()) {
-			switch(loc.getType()) {
+			switch (loc.getType()) {
 				case PRIVATE:
 					r.addLogicalData(this);
 					break;
@@ -204,7 +204,8 @@ public class LogicalData {
 
 		Object val = this.value;
 		this.value = null;
-		// Removes only the memory location (no need to check private, shared, persistent)
+		// Removes only the memory location (no need to check private, shared,
+		// persistent)
 		this.locations.remove(loc);
 
 		return val;
@@ -230,17 +231,17 @@ public class LogicalData {
 			// Nothing to do
 			// If the PSCO is not persisted we treat it as a normal object
 		} else {
-			// The object must be written to file		
+			// The object must be written to file
 			String targetPath = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkingDirectory() + this.name;
 			SimpleURI uri = new SimpleURI(targetPath);
 			DataLocation loc = DataLocation.createLocation(Comm.appHost, uri);
-	
+
 			Serializer.serialize(value, targetPath);
-			
+
 			this.isBeingSaved = false;
 			this.locations.add(loc);
 			for (Resource r : loc.getHosts()) {
-				switch(loc.getType()) {
+				switch (loc.getType()) {
 					case PRIVATE:
 						r.addLogicalData(this);
 						break;
@@ -254,7 +255,7 @@ public class LogicalData {
 			}
 		}
 	}
-	
+
 	/**
 	 * Loads the value of the LogicalData from a file
 	 * 
@@ -267,7 +268,7 @@ public class LogicalData {
 		}
 
 		for (DataLocation loc : this.locations) {
-			switch(loc.getType()) {
+			switch (loc.getType()) {
 				case PRIVATE:
 				case SHARED:
 					// Get URI and deserialize object if possible
@@ -278,7 +279,7 @@ public class LogicalData {
 					String path = u.getPath();
 					if (path.startsWith(File.separator)) {
 						this.value = Serializer.deserialize(path);
-						
+
 						String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
 						SimpleURI uri = new SimpleURI(targetPath);
 						DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
@@ -300,12 +301,12 @@ public class LogicalData {
 							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
 						}
 					}
-					
+
 					String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
 					SimpleURI uri = new SimpleURI(targetPath);
 					DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
 					addLocation(tgtLoc);
-					
+
 					return;
 			}
 		}
@@ -315,23 +316,26 @@ public class LogicalData {
 	}
 
 	/**
-	 * Removes all the locations assigned to a given host and
-	 * returns a valid location if the file is unique
+	 * Removes all the locations assigned to a given host and returns a valid
+	 * location if the file is unique
 	 * 
 	 * @param host
 	 * @param sharedMountPoints
 	 * @return a valid location if the file is unique
 	 */
 	public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
-		// If the file is being saved means that this function has already been executed
-		// for the same LogicalData. Thus, all the host locations are already removed
+		// If the file is being saved means that this function has already been
+		// executed
+		// for the same LogicalData. Thus, all the host locations are already
+		// removed
 		// and there is no unique file to save
 		if (isBeingSaved) {
 			return null;
 		}
-		
+
 		// Otherwise, we must remove all the host locations and store a unique
-		// location if needed. We only store the "best" location if any (by choosing
+		// location if needed. We only store the "best" location if any (by
+		// choosing
 		// any private location found or the first shared location)
 		lockHostRemoval_private();
 		DataLocation uniqueHostLocation = null;
@@ -347,8 +351,10 @@ public class LogicalData {
 					}
 					break;
 				case SHARED:
-					// When calling this function the host inside the SharedDiskManager has been removed
-					// If there are no remaining hosts it means it was the last host thus, the location
+					// When calling this function the host inside the
+					// SharedDiskManager has been removed
+					// If there are no remaining hosts it means it was the last
+					// host thus, the location
 					// is unique and must be saved
 					if (loc.getHosts().isEmpty()) {
 						String sharedDisk = loc.getSharedDisk();
@@ -357,10 +363,10 @@ public class LogicalData {
 							if (mountPoint != null) {
 								if (uniqueHostLocation == null) {
 									this.isBeingSaved = true;
-									
+
 									String targetPath = Protocol.FILE_URI.getSchema() + loc.getPath();
 									try {
-										SimpleURI uri = new SimpleURI(targetPath);									
+										SimpleURI uri = new SimpleURI(targetPath);
 										uniqueHostLocation = DataLocation.createLocation(host, uri);
 									} catch (Exception e) {
 										ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
@@ -375,7 +381,7 @@ public class LogicalData {
 					break;
 			}
 		}
-		
+
 		releaseHostRemoval_private();
 		return uniqueHostLocation;
 	}
@@ -390,7 +396,7 @@ public class LogicalData {
 		for (CopyInProgress cp : this.inProgress) {
 			copies.add(cp.getCopy());
 		}
-		
+
 		return copies;
 	}
 
@@ -422,7 +428,7 @@ public class LogicalData {
 				return cip.getCopy();
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -437,7 +443,7 @@ public class LogicalData {
 	}
 
 	/**
-	 * Marks the end of a copy. Returns the location of the finished copy or 
+	 * Marks the end of a copy. Returns the location of the finished copy or
 	 * null if not found
 	 * 
 	 * @param c
@@ -445,7 +451,7 @@ public class LogicalData {
 	 */
 	public synchronized DataLocation finishedCopy(Copy c) {
 		DataLocation loc = null;
-		
+
 		Iterator<CopyInProgress> it = this.inProgress.iterator();
 		while (it.hasNext()) {
 			CopyInProgress cip = it.next();
@@ -455,7 +461,7 @@ public class LogicalData {
 				break;
 			}
 		}
-		
+
 		return loc;
 	}
 
@@ -518,6 +524,7 @@ public class LogicalData {
 		lockHostRemoval.release();
 	}
 
+
 	/*
 	 * Copy in progress class to extend external copy
 	 */
@@ -525,6 +532,7 @@ public class LogicalData {
 
 		private final Copy c;
 		private final DataLocation loc;
+
 
 		public CopyInProgress(Copy c, DataLocation loc) {
 			this.c = c;

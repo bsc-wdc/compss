@@ -1,18 +1,19 @@
 package integratedtoolkit.types.data;
 
-
 public class ObjectInfo extends DataInfo {
-    // Hash code of the object
 
-    private int code;
+	// Hash code of the object
 
-    public ObjectInfo(int code) {
-        super();
-        this.code = code;
-    }
+	private int code;
 
-    public int getCode() {
-        return code;
-    }
+
+	public ObjectInfo(int code) {
+		super();
+		this.code = code;
+	}
+
+	public int getCode() {
+		return code;
+	}
 
 }

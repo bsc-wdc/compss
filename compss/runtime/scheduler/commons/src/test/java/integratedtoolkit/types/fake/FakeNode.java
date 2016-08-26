@@ -17,55 +17,55 @@ import integratedtoolkit.types.uri.SimpleURI;
 
 public class FakeNode extends COMPSsNode {
 
-    @Override
-    public String getName() {
-        return "a";
-    }
+	@Override
+	public String getName() {
+		return "a";
+	}
 
-    @Override
-    public void setInternalURI(MultiURI uri) {
+	@Override
+	public void setInternalURI(MultiURI uri) {
 
-    }
+	}
 
-    @Override
-    public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
-    }
+	@Override
+	public void sendData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
+	}
 
-    @Override
-    public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
-    }
+	@Override
+	public void obtainData(LogicalData ld, DataLocation dl, DataLocation dl1, LogicalData ld1, Transferable t, EventListener el) {
+	}
 
-    @Override
-    public Job<?> newJob(int i, TaskParams tp, Implementation<?> i1, Resource rsrc, Job.JobListener jl) {
-        return null;
-    }
+	@Override
+	public Job<?> newJob(int i, TaskParams tp, Implementation<?> i1, Resource rsrc, Job.JobListener jl) {
+		return null;
+	}
 
-    @Override
-    public void start() {
-    }
+	@Override
+	public void start() {
+	}
 
-    @Override
-    public void stop(ShutdownListener sl) {
-    }
+	@Override
+	public void stop(ShutdownListener sl) {
+	}
 
-    @Override
-    public SimpleURI getCompletePath(DataType pt, String string) {
-        return new SimpleURI("");
-    }
+	@Override
+	public SimpleURI getCompletePath(DataType pt, String string) {
+		return new SimpleURI("");
+	}
 
-    @Override
-    public void deleteTemporary() {
+	@Override
+	public void deleteTemporary() {
 
-    }
+	}
 
-    @Override
-    public void generatePackage() {
+	@Override
+	public void generatePackage() {
 
-    }
+	}
 
-    @Override
-    public void generateWorkersDebugInfo() {
+	@Override
+	public void generateWorkersDebugInfo() {
 
-    }
+	}
 
 }

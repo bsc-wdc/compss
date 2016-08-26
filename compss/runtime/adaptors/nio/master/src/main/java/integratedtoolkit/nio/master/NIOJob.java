@@ -21,123 +21,112 @@ import integratedtoolkit.types.resources.Resource;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
-     
-    public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        super(taskId, taskParams, impl, res, listener);
-    }
 
-    @Override
-    public String getHostName() {
-        return worker.getName();
-    }
+	public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+		super(taskId, taskParams, impl, res, listener);
+	}
 
-    @Override
-    public String toString() {
-        MethodImplementation method = (MethodImplementation) this.impl;
+	@Override
+	public String getHostName() {
+		return worker.getName();
+	}
 
-        String className = method.getDeclaringClass();
-        String methodName = taskParams.getName();
+	@Override
+	public String toString() {
+		MethodImplementation method = (MethodImplementation) this.impl;
 
-        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
-    }
+		String className = method.getDeclaringClass();
+		String methodName = taskParams.getName();
 
-    @Override
-    public void submit() throws Exception {
-        // Prepare the job
-        logger.info("Submit NIOJob with ID " + jobId);
+		return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+	}
 
-        NIOAdaptor.submitTask(this);
-    }
+	@Override
+	public void submit() throws Exception {
+		// Prepare the job
+		logger.info("Submit NIOJob with ID " + jobId);
 
-    public NIOTask prepareJob() {
-        MethodImplementation method = (MethodImplementation) this.impl;
+		NIOAdaptor.submitTask(this);
+	}
 
-        String className = method.getDeclaringClass();
-        String methodName = taskParams.getName();
-        boolean hasTarget = taskParams.hasTargetObject();
+	public NIOTask prepareJob() {
+		MethodImplementation method = (MethodImplementation) this.impl;
 
-        LinkedList<NIOParam> params = addParams();
+		String className = method.getDeclaringClass();
+		String methodName = taskParams.getName();
+		boolean hasTarget = taskParams.hasTargetObject();
 
-        int numParams = params.size();
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
+		LinkedList<NIOParam> params = addParams();
 
-        // Create NIOTask
-        NIOTask nt = new NIOTask(lang, 
-        						debug, 
-        						className, 
-        						methodName, 
-        						hasTarget, 
-        						params, 
-        						numParams, 
-        						taskId, 
-        						this.taskParams.getId(), 
-        						jobId, 
-        						history, 
-        						transferId
-        					);
+		int numParams = params.size();
+		if (taskParams.hasReturnValue()) {
+			numParams--;
+		}
 
-        return nt;
-    }
+		// Create NIOTask
+		NIOTask nt = new NIOTask(lang, debug, className, methodName, hasTarget, params, numParams, taskId, this.taskParams.getId(), jobId,
+				history, transferId);
 
-    private LinkedList<NIOParam> addParams() {
-        LinkedList<NIOParam> params = new LinkedList<NIOParam>();
-        for (Parameter param : taskParams.getParameters()) {
-            DataType type = param.getType();
-            NIOParam np;
-            switch (type) {
-                case FILE_T:
-                case OBJECT_T:
-                case PSCO_T:
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    Object value = dPar.getDataTarget();
-                    boolean preserveSourceData = true;
-                    if (dAccId instanceof RAccessId) {
-                        // Parameter is a R, has sources
-                        preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
-                    } else if (dAccId instanceof RWAccessId) {
-                        // Parameter is a RW, has sources
-                        preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
-                    } else {
-                        // Parameter is a W, it has no sources
-                        preserveSourceData = false;
-                    }
+		return nt;
+	}
 
-                    boolean writeFinalValue = !(dAccId instanceof RAccessId);	// Only store W and RW	                
-                    np = new NIOParam(type, preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
-                    break;
-                    
-                default:
-                    BasicTypeParameter btParB = (BasicTypeParameter) param;
-                    value = btParB.getValue();
-                    preserveSourceData = false;	// Basic parameters are not preserved on Worker
-                    writeFinalValue = false;	// Basic parameters are not stored on Worker	                
-                    np = new NIOParam(type, preserveSourceData, writeFinalValue, value, null);
-                    break;
-            }
+	private LinkedList<NIOParam> addParams() {
+		LinkedList<NIOParam> params = new LinkedList<NIOParam>();
+		for (Parameter param : taskParams.getParameters()) {
+			DataType type = param.getType();
+			NIOParam np;
+			switch (type) {
+				case FILE_T:
+				case OBJECT_T:
+				case PSCO_T:
+					DependencyParameter dPar = (DependencyParameter) param;
+					DataAccessId dAccId = dPar.getDataAccessId();
+					Object value = dPar.getDataTarget();
+					boolean preserveSourceData = true;
+					if (dAccId instanceof RAccessId) {
+						// Parameter is a R, has sources
+						preserveSourceData = ((RAccessId) dAccId).isPreserveSourceData();
+					} else if (dAccId instanceof RWAccessId) {
+						// Parameter is a RW, has sources
+						preserveSourceData = ((RWAccessId) dAccId).isPreserveSourceData();
+					} else {
+						// Parameter is a W, it has no sources
+						preserveSourceData = false;
+					}
 
-            params.add(np);
-        }
-        return params;
-    }
+					boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
+					np = new NIOParam(type, preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
+					break;
 
-    public JobKind getKind() {
-        return JobKind.METHOD;
-    }
+				default:
+					BasicTypeParameter btParB = (BasicTypeParameter) param;
+					value = btParB.getValue();
+					preserveSourceData = false; // Basic parameters are not preserved on Worker
+					writeFinalValue = false; // Basic parameters are not stored on Worker
+					np = new NIOParam(type, preserveSourceData, writeFinalValue, value, null);
+					break;
+			}
 
-    public void taskFinished(boolean successful) {
-        if (successful) {
-            listener.jobCompleted(this);
-        } else {
-            listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
-        }
-    }
+			params.add(np);
+		}
+		return params;
+	}
 
-    @Override
-    public void stop() throws Exception {
-        //Do nothing
-    }
-    
+	public JobKind getKind() {
+		return JobKind.METHOD;
+	}
+
+	public void taskFinished(boolean successful) {
+		if (successful) {
+			listener.jobCompleted(this);
+		} else {
+			listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
+		}
+	}
+
+	@Override
+	public void stop() throws Exception {
+		// Do nothing
+	}
+
 }

@@ -19,34 +19,34 @@ public @interface Service {
 	 * 
 	 * @return the namespace of the Service
 	 */
-    String namespace();
+	String namespace();
 
-    /**
-     * Returns the name of the Service
-     * 
-     * @return the name of the Service
-     */
-    String name();
+	/**
+	 * Returns the name of the Service
+	 * 
+	 * @return the name of the Service
+	 */
+	String name();
 
-    /**
-     * Returns the port of the Service
-     * 
-     * @return the port of the Service
-     */
-    String port();
+	/**
+	 * Returns the port of the Service
+	 * 
+	 * @return the port of the Service
+	 */
+	String port();
 
-    /**
-     * Returns the operation name of the Service
-     * 
-     * @return the operation name of the Service
-     */
-    String operation() default Constants.UNASSIGNED_STR;
+	/**
+	 * Returns the operation name of the Service
+	 * 
+	 * @return the operation name of the Service
+	 */
+	String operation() default Constants.UNASSIGNED_STR;
 
-    /**
-     * Returns if the method has priority or not
-     * 
-     * @return if the method has priority or not
-     */
-    boolean priority() default false;
+	/**
+	 * Returns if the method has priority or not
+	 * 
+	 * @return if the method has priority or not
+	 */
+	boolean priority() default false;
 
 }

@@ -1,13 +1,12 @@
 package testMPI.types;
 
-
 public class MPIExecutionResult {
 
 	private int exitValue;
 	private String errorMessage;
 	private String outputMessage;
 
-	
+
 	public MPIExecutionResult() {
 		this.exitValue = -1;
 		this.errorMessage = "";
@@ -25,7 +24,7 @@ public class MPIExecutionResult {
 	public String getOutputMessage() {
 		return outputMessage;
 	}
-	
+
 	public String getValueFromOutput() {
 		String[] lines = outputMessage.split("\n");
 		String value = lines[lines.length - 1];

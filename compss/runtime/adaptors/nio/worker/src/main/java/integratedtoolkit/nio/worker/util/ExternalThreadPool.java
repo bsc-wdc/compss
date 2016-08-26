@@ -15,42 +15,40 @@ import integratedtoolkit.util.Tracer;
 
 
 /**
- * Handles the bash piper script and its Gobblers
- * The processes opened by each Thread inside the pool are managed by their finish() method
+ * Handles the bash piper script and its Gobblers The processes opened by each Thread inside the pool are managed by
+ * their finish() method
  * 
  */
 public abstract class ExternalThreadPool extends JobsThreadPool {
-	
+
 	// Logger messages
 	private static final String ERROR_PB = "Error starting ProcessBuilder";
-	
+
 	// Constants for environment
 	private static final String IT_WORKING_DIR = "IT_WORKING_DIR";
 	private static final String IT_APP_DIR = "IT_APP_DIR";
 
 	// Piper paths
-	protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime"
-			+ File.separator + "scripts" + File.separator + "system"
-			+ File.separator + "adaptors" + File.separator + "nio"
-			+ File.separator + "pipers" + File.separator;
+	protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
+			+ File.separator + "adaptors" + File.separator + "nio" + File.separator + "pipers" + File.separator;
 	private static final String PIPE_SCRIPT_NAME = "bindings_piper.sh";
 	private static final String PIPE_FILE_BASENAME = "pipe_";
-	private static final int PIPE_CREATION_TIME = 50;	// ms 
+	private static final int PIPE_CREATION_TIME = 50; // ms
 
 	// Piper process handlers
-	protected final String installDir;			// InstallDir
-	private final String piperScript; 			// Piper bash script
-	protected final String[] writePipeFiles; 	// Pipe for sending executions
-	protected final String[] readPipeFiles; 	// Pipe to read results
+	protected final String installDir; // InstallDir
+	private final String piperScript; // Piper bash script
+	protected final String[] writePipeFiles; // Pipe for sending executions
+	protected final String[] readPipeFiles; // Pipe to read results
 	protected TaskResultReader[] taskResultReader;
 	private Process piper;
 	private StreamGobbler outputGobbler;
 	private StreamGobbler errorGobbler;
-	
+
 
 	public ExternalThreadPool(NIOWorker nw, int size) {
 		super(nw, size);
-		
+
 		// Prepare bash piper for bindings
 		installDir = nw.getInstallDir();
 		String workingDir = nw.getWorkingDir();
@@ -63,10 +61,10 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 			writePipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
 			readPipeFiles[i] = workingDir + PIPE_FILE_BASENAME + UUID.randomUUID().hashCode();
 		}
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("PIPE Script: " + piperScript);
-			
+
 			StringBuilder writes = new StringBuilder();
 			writes.append("WRITE PIPE Files: ");
 			for (int i = 0; i < writePipeFiles.length; ++i) {
@@ -74,7 +72,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 			}
 			writes.append("\n");
 			logger.debug(writes.toString());
-			
+
 			StringBuilder reads = new StringBuilder();
 			reads.append("READ PIPE Files: ");
 			for (int i = 0; i < readPipeFiles.length; ++i) {
@@ -83,7 +81,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 			reads.append("\n");
 			logger.debug(reads.toString());
 		}
-		
+
 		// Init main ProcessBuilder
 		init();
 
@@ -92,31 +90,31 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 		for (int i = 0; i < size; ++i) {
 			taskResultReader[i] = new TaskResultReader(readPipeFiles[i]);
 		}
-		
+
 		// Add Shutdown Hook to ensure all sub-processes are closed
 		logger.debug("Add ExternalExecutor shutdown hook");
 		Runtime.getRuntime().addShutdownHook(new Ender(this));
 	}
-	
+
 	private String constructGeneralArgs() {
 		// General Args are of the form: NUM_THREADS 2 pipeW1 pipeW2 2 pipeR1 pipeR2
 		StringBuilder cmd = new StringBuilder();
-		
+
 		cmd.append(size).append(ExternalExecutor.TOKEN_SEP);
-		
+
 		cmd.append(writePipeFiles.length).append(ExternalExecutor.TOKEN_SEP);
 		for (int i = 0; i < writePipeFiles.length; ++i) {
 			cmd.append(writePipeFiles[i]).append(ExternalExecutor.TOKEN_SEP);
 		}
-		
+
 		cmd.append(readPipeFiles.length).append(ExternalExecutor.TOKEN_SEP);
 		for (int i = 0; i < readPipeFiles.length; ++i) {
 			cmd.append(readPipeFiles[i]).append(ExternalExecutor.TOKEN_SEP);
 		}
-		
+
 		return cmd.toString();
 	}
-	
+
 	private void init() {
 		// Init PB to launch commands to bindings
 		// Command of the form: bindings_piper.sh NUM_THREADS 2 pipeW1 pipeW2 2 pipeR1 pipeR2 binding args
@@ -127,55 +125,54 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 		try {
 			// Set NW environment
 			Map<String, String> env = getEnvironment(nw);
-	        addEnvironment(env, nw);
+			addEnvironment(env, nw);
 			pb.directory(new File(nw.getWorkingDir()));
-	        pb.environment().putAll(env);
-	        pb.environment().remove(Tracer.LD_PRELOAD);
-	        
+			pb.environment().putAll(env);
+			pb.environment().remove(Tracer.LD_PRELOAD);
+
 			piper = pb.start();
-			
+
 			logger.debug("Starting stdout/stderr gobblers ...");
 			try {
-                piper.getOutputStream().close();
-            } catch (IOException e) {
-                // Stream closed
-            }
-            PrintStream out = ((ThreadPrintStream) System.out).getStream();
-            PrintStream err = ((ThreadPrintStream) System.err).getStream();
-            outputGobbler = new StreamGobbler(piper.getInputStream(), out);
-            errorGobbler = new StreamGobbler(piper.getErrorStream(), err);
-            outputGobbler.start();
-            errorGobbler.start();
+				piper.getOutputStream().close();
+			} catch (IOException e) {
+				// Stream closed
+			}
+			PrintStream out = ((ThreadPrintStream) System.out).getStream();
+			PrintStream err = ((ThreadPrintStream) System.err).getStream();
+			outputGobbler = new StreamGobbler(piper.getInputStream(), out);
+			errorGobbler = new StreamGobbler(piper.getErrorStream(), err);
+			outputGobbler.start();
+			errorGobbler.start();
 		} catch (IOException e) {
 			ErrorManager.error(ERROR_PB, e);
 		}
-		
+
 		// The ProcessBuilder is non-blocking but we block the thread for a short period of time to allow the
 		// bash script to create the needed environment (pipes)
 		try {
-			Thread.sleep(PIPE_CREATION_TIME*size);
+			Thread.sleep(PIPE_CREATION_TIME * size);
 		} catch (InterruptedException e) {
 			// No need to catch such exceptions
 		}
 	}
-	
+
 	private void addEnvironment(Map<String, String> env, NIOWorker nw) {
-        env.put(IT_WORKING_DIR, nw.getWorkingDir());
-        env.put(IT_APP_DIR, nw.getAppDir());
-    }
-	
+		env.put(IT_WORKING_DIR, nw.getWorkingDir());
+		env.put(IT_APP_DIR, nw.getAppDir());
+	}
+
 	/**
-	 * Stops specific language components. 
-	 * It is executed after all the threads in the pool have been stopped
+	 * Stops specific language components. It is executed after all the threads in the pool have been stopped
 	 * 
 	 */
-	protected void specificStop() {		
+	protected void specificStop() {
 		// Wait for piper process builder to end
 		// Check out end status and close gobblers
 		try {
 			int exitCode = piper.waitFor();
 			outputGobbler.join();
-            errorGobbler.join();
+			errorGobbler.join();
 			if (exitCode != 0) {
 				ErrorManager.error("ExternalExecutor piper ended with " + exitCode + " status");
 			}
@@ -183,27 +180,27 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 			// No need to handle such exception
 		} finally {
 			if (piper != null) {
-                if (piper.getInputStream() != null) {
-                    try {
-                    	piper.getInputStream().close();
-                    } catch (IOException e) {
-                    	// No need to handle such exception
-                    }
-                }
-                if (piper.getErrorStream() != null) {
-                    try {
-                    	piper.getErrorStream().close();
-                    } catch (IOException e) {
-                    	// No need to handle such exception
-                    }
-                }
-            }
+				if (piper.getInputStream() != null) {
+					try {
+						piper.getInputStream().close();
+					} catch (IOException e) {
+						// No need to handle such exception
+					}
+				}
+				if (piper.getErrorStream() != null) {
+					try {
+						piper.getErrorStream().close();
+					} catch (IOException e) {
+						// No need to handle such exception
+					}
+				}
+			}
 		}
-		
-		//---------------------------------------------------------------------------
+
+		// ---------------------------------------------------------------------------
 		logger.info("ExternalThreadPool finished");
 	}
-	
+
 	/**
 	 * Ensures that the bash process and its pipes are killed
 	 * 
@@ -213,23 +210,23 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 		logger.info("Starting ExternalThreadPool ender");
 		// Destroys the bash process
 		etp.piper.destroy();
-		
+
 		// Pipes destroyed by bash TRAP on script
 	}
-	
+
 	/**
 	 * Starts the threads of the pool
 	 * 
 	 */
 	public abstract void startThreads();
-	
+
 	/**
 	 * Returns the launch command for every binding
 	 * 
 	 * @return
 	 */
 	public abstract String getLaunchCommand();
-	
+
 	/**
 	 * Returns the specific environment variables of each binding
 	 * 

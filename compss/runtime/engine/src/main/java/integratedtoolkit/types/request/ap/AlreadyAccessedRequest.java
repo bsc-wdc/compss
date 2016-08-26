@@ -10,47 +10,48 @@ import java.util.concurrent.Semaphore;
 
 public class AlreadyAccessedRequest extends APRequest {
 
-    private DataLocation loc;
+	private DataLocation loc;
 
-    private Semaphore sem;
+	private Semaphore sem;
 
-    private boolean response;
+	private boolean response;
 
-    public AlreadyAccessedRequest(DataLocation loc, Semaphore sem) {
-        this.loc = loc;
-        this.sem = sem;
-    }
 
-    public DataLocation getLocation() {
-        return loc;
-    }
+	public AlreadyAccessedRequest(DataLocation loc, Semaphore sem) {
+		this.loc = loc;
+		this.sem = sem;
+	}
 
-    public Semaphore getSemaphore() {
-        return sem;
-    }
+	public DataLocation getLocation() {
+		return loc;
+	}
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
+	public Semaphore getSemaphore() {
+		return sem;
+	}
 
-    public boolean getResponse() {
-        return response;
-    }
+	public void setSemaphore(Semaphore sem) {
+		this.sem = sem;
+	}
 
-    public void setResponse(boolean response) {
-        this.response = response;
-    }
+	public boolean getResponse() {
+		return response;
+	}
 
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) {
-        boolean aa = dip.alreadyAccessed(this.loc);
-        this.response = aa;
-        sem.release();
-    }
+	public void setResponse(boolean response) {
+		this.response = response;
+	}
 
-    @Override
-    public APRequestType getRequestType() {
-        return APRequestType.ALREADY_ACCESSED;
-    }
+	@Override
+	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+		boolean aa = dip.alreadyAccessed(this.loc);
+		this.response = aa;
+		sem.release();
+	}
+
+	@Override
+	public APRequestType getRequestType() {
+		return APRequestType.ALREADY_ACCESSED;
+	}
 
 }

@@ -35,228 +35,229 @@ import org.apache.logging.log4j.Logger;
 
 public class Comm {
 
-    private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
-    private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
-    
-    // Tracing
-    protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-    protected static final int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
+	private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
+	private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
 
-    private static final HashMap<String, CommAdaptor> adaptors = new HashMap<String, CommAdaptor>();
+	// Tracing
+	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+	protected static final int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
 
-    // Log and debug
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    private static final boolean debug = logger.isDebugEnabled();
+	private static final HashMap<String, CommAdaptor> adaptors = new HashMap<String, CommAdaptor>();
 
-    // Logical data
-    private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
+	// Log and debug
+	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+	private static final boolean debug = logger.isDebugEnabled();
 
-    // Master information
-    public static MasterResource appHost;
+	// Logical data
+	private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
 
-    // Communications initializer
-    public static synchronized void init() {
-        appHost = new MasterResource();
-        try {
-        	if ( STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null") ) {
-                logger.warn("No storage configuration file passed");
-            } else {
-            	logger.debug("Initializing Storage with: " + STORAGE_CONF);
-                StorageItf.init(STORAGE_CONF);
-            }
-        } catch (StorageException e) {
-            logger.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
-            System.exit(1);
-        }
+	// Master information
+	public static MasterResource appHost;
 
-        loadAdaptorsJars();
 
-        if (tracing) {
-            Tracer.init(tracing_level);
-            Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
-        }
-    }
+	// Communications initializer
+	public static synchronized void init() {
+		appHost = new MasterResource();
+		try {
+			if (STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null")) {
+				logger.warn("No storage configuration file passed");
+			} else {
+				logger.debug("Initializing Storage with: " + STORAGE_CONF);
+				StorageItf.init(STORAGE_CONF);
+			}
+		} catch (StorageException e) {
+			logger.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
+			System.exit(1);
+		}
 
-    public static synchronized Configuration constructConfiguration(String adaptorName,
-            Object project_properties, Object resources_properties) throws Exception {
+		loadAdaptorsJars();
 
-        // Init adaptor
-        CommAdaptor adaptor = adaptors.get(adaptorName);
-        if (adaptor == null) {
-            Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
-            adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            adaptor.init();
-            adaptors.put(adaptorName, adaptor);
-        }
+		if (tracing) {
+			Tracer.init(tracing_level);
+			Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
+		}
+	}
 
-        if (debug) {
-            logger.debug("Adaptor Name: " + adaptorName);
-        }
+	public static synchronized Configuration constructConfiguration(String adaptorName, Object project_properties,
+			Object resources_properties) throws Exception {
 
-        // Construct properties
-        return adaptor.constructConfiguration(project_properties, resources_properties);
-    }
+		// Init adaptor
+		CommAdaptor adaptor = adaptors.get(adaptorName);
+		if (adaptor == null) {
+			Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
+			adaptor = (CommAdaptor) constrAdaptor.newInstance();
+			adaptor.init();
+			adaptors.put(adaptorName, adaptor);
+		}
 
-    public static synchronized COMPSsWorker initWorker(String name, Configuration config) {
-        String adaptorName = config.getAdaptorName();
-        CommAdaptor adaptor = adaptors.get(adaptorName);
-        return adaptor.initWorker(name, config);
-    }
+		if (debug) {
+			logger.debug("Adaptor Name: " + adaptorName);
+		}
 
-    // Clean FTM, Job, {GATJob, NIOJob} and WSJob
-    public static synchronized void stop() {
-        appHost.deleteIntermediate();
-        for (CommAdaptor adaptor : adaptors.values()) {
-            adaptor.stop();
-        }
+		// Construct properties
+		return adaptor.constructConfiguration(project_properties, resources_properties);
+	}
 
-        // Stop Storage interface
-        if ( STORAGE_CONF != null && !STORAGE_CONF.equals("") && !STORAGE_CONF.equals("null") ) {
-            try {
-                logger.debug("Stopping Storage...");
-                StorageItf.finish();
-            } catch (StorageException e) {
-                logger.error("Error releasing storage library: " + e.getMessage());
-            }
-        }
+	public static synchronized COMPSsWorker initWorker(String name, Configuration config) {
+		String adaptorName = config.getAdaptorName();
+		CommAdaptor adaptor = adaptors.get(adaptorName);
+		return adaptor.initWorker(name, config);
+	}
 
-        // Stop tracing system
-        if (tracing) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-            Tracer.fini();
-        }
-    }
+	// Clean FTM, Job, {GATJob, NIOJob} and WSJob
+	public static synchronized void stop() {
+		appHost.deleteIntermediate();
+		for (CommAdaptor adaptor : adaptors.values()) {
+			adaptor.stop();
+		}
 
-    public static synchronized LogicalData registerData(String dataId) {
-        logger.debug("Register new data " + dataId);
-        LogicalData logicalData = new LogicalData(dataId);
-        data.put(dataId, logicalData);
-        return logicalData;
-    }
+		// Stop Storage interface
+		if (STORAGE_CONF != null && !STORAGE_CONF.equals("") && !STORAGE_CONF.equals("null")) {
+			try {
+				logger.debug("Stopping Storage...");
+				StorageItf.finish();
+			} catch (StorageException e) {
+				logger.error("Error releasing storage library: " + e.getMessage());
+			}
+		}
 
-    public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
-        logger.debug("Registering new Location for data " + dataId + ":");
-        logger.debug("  * Location: " + location);
-        LogicalData logicalData = data.get(dataId);
-        logicalData.addLocation(location);
-        return logicalData;
-    }
+		// Stop tracing system
+		if (tracing) {
+			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+			Tracer.fini();
+		}
+	}
 
-    public static synchronized LogicalData registerValue(String dataId, Object value) {
-    	logger.debug("Register value " + value + " for data " + dataId);
-    	
-        String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
-        DataLocation location = null;
+	public static synchronized LogicalData registerData(String dataId) {
+		logger.debug("Register new data " + dataId);
+		LogicalData logicalData = new LogicalData(dataId);
+		data.put(dataId, logicalData);
+		return logicalData;
+	}
+
+	public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
+		logger.debug("Registering new Location for data " + dataId + ":");
+		logger.debug("  * Location: " + location);
+		LogicalData logicalData = data.get(dataId);
+		logicalData.addLocation(location);
+		return logicalData;
+	}
+
+	public static synchronized LogicalData registerValue(String dataId, Object value) {
+		logger.debug("Register value " + value + " for data " + dataId);
+
+		String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
+		DataLocation location = null;
 		try {
 			SimpleURI uri = new SimpleURI(targetPath);
 			location = DataLocation.createLocation(appHost, uri);
 		} catch (Exception e) {
 			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
 		}
-        
-        LogicalData logicalData = data.get(dataId);
-        logicalData.addLocation(location);
-        logicalData.setValue(value);
 
-        return logicalData;
-    }
-    
-    public static synchronized LogicalData registerPSCO(String dataId, String id) {
-        String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;        
-        DataLocation location = null;
+		LogicalData logicalData = data.get(dataId);
+		logicalData.addLocation(location);
+		logicalData.setValue(value);
+
+		return logicalData;
+	}
+
+	public static synchronized LogicalData registerPSCO(String dataId, String id) {
+		String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
+		DataLocation location = null;
 		try {
 			SimpleURI uri = new SimpleURI(targetPath);
 			location = DataLocation.createLocation(appHost, uri);
 		} catch (Exception e) {
 			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
 		}
-        
-        LogicalData logicalData = data.get(dataId);
-        logicalData.addLocation(location);
 
-        return logicalData;
-    }
+		LogicalData logicalData = data.get(dataId);
+		logicalData.addLocation(location);
 
-    public static synchronized Object clearValue(String dataId) {
-    	logger.debug("Clear value of data " + dataId);
-        LogicalData logicalData = data.get(dataId);
+		return logicalData;
+	}
 
-        return logicalData.removeValue();
-    }
+	public static synchronized Object clearValue(String dataId) {
+		logger.debug("Clear value of data " + dataId);
+		LogicalData logicalData = data.get(dataId);
 
-    public static synchronized boolean existsData(String renaming) {
-        return (data.get(renaming) != null);
-    }
+		return logicalData.removeValue();
+	}
 
-    public static synchronized LogicalData getData(String dataId) {
-    	if (logger.isDebugEnabled()) {
-    		logger.debug("Get data " + data.get(dataId));
-    	}
-    	
-        return data.get(dataId);
-    }
+	public static synchronized boolean existsData(String renaming) {
+		return (data.get(renaming) != null);
+	}
 
-    public static synchronized String dataDump() {
-        StringBuilder sb = new StringBuilder("DATA DUMP\n");
-        for (Map.Entry<String, LogicalData> lde : data.entrySet()) {
-            sb.append("\t *").append(lde.getKey()).append(":\n");
-            LogicalData ld = lde.getValue();
-            for (MultiURI u : ld.getURIs()) {
-                sb.append("\t\t + ").append(u.toString()).append("\n");
-                for (String adaptor : adaptors.keySet()) {
+	public static synchronized LogicalData getData(String dataId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Get data " + data.get(dataId));
+		}
 
-                    Object internal = null;
-                    try {
-                        internal = u.getInternalURI(adaptor);
-                        if (internal != null) {
-                            sb.append("\t\t\t - ").append(internal.toString()).append("\n");
-                        }
-                    } catch (UnstartedNodeException une) {
-                        //Node was not started. Cannot print internal object.
-                    }
-                }
-            }
-        }
-        return sb.toString();
-    }
+		return data.get(dataId);
+	}
 
-    public static synchronized HashSet<LogicalData> getAllData(Resource host) {
-        // logger.debug("Get all data from host: " + host.getName());
-    	return host.getAllDataFromHost();
-    }
+	public static synchronized String dataDump() {
+		StringBuilder sb = new StringBuilder("DATA DUMP\n");
+		for (Map.Entry<String, LogicalData> lde : data.entrySet()) {
+			sb.append("\t *").append(lde.getKey()).append(":\n");
+			LogicalData ld = lde.getValue();
+			for (MultiURI u : ld.getURIs()) {
+				sb.append("\t\t + ").append(u.toString()).append("\n");
+				for (String adaptor : adaptors.keySet()) {
 
-    public static synchronized void removeData(String renaming) {
-        logger.debug("Remove data " + renaming);
+					Object internal = null;
+					try {
+						internal = u.getInternalURI(adaptor);
+						if (internal != null) {
+							sb.append("\t\t\t - ").append(internal.toString()).append("\n");
+						}
+					} catch (UnstartedNodeException une) {
+						// Node was not started. Cannot print internal object.
+					}
+				}
+			}
+		}
+		return sb.toString();
+	}
 
-        LogicalData ld = data.remove(renaming);
-        ld.isObsolete();
-    }
+	public static synchronized HashSet<LogicalData> getAllData(Resource host) {
+		// logger.debug("Get all data from host: " + host.getName());
+		return host.getAllDataFromHost();
+	}
 
-    public static synchronized HashMap<String, CommAdaptor> getAdaptors() {
-        return adaptors;
-    }
+	public static synchronized void removeData(String renaming) {
+		logger.debug("Remove data " + renaming);
 
-    public static synchronized void stopSubmittedjobs() {
-        for (CommAdaptor adaptor : adaptors.values()) {
-            adaptor.stopSubmittedJobs();
-        }
-    }
+		LogicalData ld = data.remove(renaming);
+		ld.isObsolete();
+	}
 
-    private static void loadAdaptorsJars() {
-        logger.info("Loading Adaptors...");
-        String itHome = System.getenv(ITConstants.IT_HOME);
+	public static synchronized HashMap<String, CommAdaptor> getAdaptors() {
+		return adaptors;
+	}
 
-        if (itHome == null || itHome.isEmpty()) {
-            logger.warn("WARN: IT_HOME not defined, no adaptors loaded.");
-            return;
-        }
+	public static synchronized void stopSubmittedjobs() {
+		for (CommAdaptor adaptor : adaptors.values()) {
+			adaptor.stopSubmittedJobs();
+		}
+	}
 
-        try {
-            Classpath.loadPath(itHome + ADAPTORS_REL_PATH, logger);
-        } catch (FileNotFoundException ex) {
-            logger.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
-        }
-    }
-    
+	private static void loadAdaptorsJars() {
+		logger.info("Loading Adaptors...");
+		String itHome = System.getenv(ITConstants.IT_HOME);
+
+		if (itHome == null || itHome.isEmpty()) {
+			logger.warn("WARN: IT_HOME not defined, no adaptors loaded.");
+			return;
+		}
+
+		try {
+			Classpath.loadPath(itHome + ADAPTORS_REL_PATH, logger);
+		} catch (FileNotFoundException ex) {
+			logger.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
+		}
+	}
+
 }

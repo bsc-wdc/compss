@@ -2,18 +2,20 @@ package integratedtoolkit.types.uri;
 
 import java.io.PrintStream;
 
+
 public class SimpleURI {
-	
+
 	private static final String SCHEMA_SEPARATOR = "://";
 	private static final String HOSTNAME_SEPARATOR = "@";
-	
+
 	private final String schema;
 	private final String hostname;
 	private final String path;
-	
+
+
 	public SimpleURI(String fullPath) {
 		int parsedIndex = 0;
-		
+
 		// Get schema
 		if (fullPath.contains(SCHEMA_SEPARATOR)) {
 			int endSchema = fullPath.indexOf(SCHEMA_SEPARATOR);
@@ -22,7 +24,7 @@ public class SimpleURI {
 		} else {
 			this.schema = "";
 		}
-		
+
 		// Get hostname
 		if (fullPath.contains(HOSTNAME_SEPARATOR)) {
 			int endHostname = fullPath.indexOf(HOSTNAME_SEPARATOR);
@@ -31,40 +33,40 @@ public class SimpleURI {
 		} else {
 			this.hostname = "";
 		}
-		
+
 		// Get hostname
-		this.path = fullPath.substring(parsedIndex);		
+		this.path = fullPath.substring(parsedIndex);
 	}
-	
+
 	public String getSchema() {
-		return ( this.schema.isEmpty() ? "" : this.schema + SCHEMA_SEPARATOR );
+		return (this.schema.isEmpty() ? "" : this.schema + SCHEMA_SEPARATOR);
 	}
-	
+
 	public String getHost() {
 		return this.hostname;
 	}
-	
+
 	public String getPath() {
 		return this.path;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		
+
 		if (!this.schema.isEmpty()) {
 			sb.append(this.schema).append(SCHEMA_SEPARATOR);
 		}
-		
+
 		if (!this.hostname.isEmpty()) {
 			sb.append(this.hostname).append(HOSTNAME_SEPARATOR);
 		}
-		
+
 		sb.append(this.path);
-		
+
 		return sb.toString();
 	}
-	
+
 	public void debugPrint(PrintStream ps) {
 		ps.println("------------------ URI ----------------------------");
 		ps.println("SCHEMA:   " + this.schema);

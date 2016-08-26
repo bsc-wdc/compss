@@ -4,15 +4,15 @@ import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
 
 public class WSConfiguration extends ServiceConfiguration {
-	
+
 	private String serviceName;
 	private String namespace;
 	private String port;
-	
-    private int priceUnitTime;
-    private float pricePerUnitTime;
-		
-    
+
+	private int priceUnitTime;
+	private float pricePerUnitTime;
+
+
 	public WSConfiguration(String adaptorName, String wsdl) {
 		super(adaptorName, wsdl);
 	}
@@ -56,5 +56,5 @@ public class WSConfiguration extends ServiceConfiguration {
 	public void setPricePerUnitTime(float pricePerUnitTime) {
 		this.pricePerUnitTime = pricePerUnitTime;
 	}
-	
+
 }

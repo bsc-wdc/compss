@@ -5,11 +5,12 @@ import org.apache.logging.log4j.Logger;
 
 
 public class StorageObject implements StubItf {
-	
+
 	// Logger: According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
+	private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
 
 	private String id = null;
+
 
 	/**
 	 * Returns the persistent object ID
@@ -44,11 +45,12 @@ public class StorageObject implements StubItf {
 		StorageItf.removeById(this.id);
 		this.id = null;
 	}
-	
+
 	/**
 	 * Sets the ID (only used by this implementation)
 	 */
 	protected void setID(String id) {
 		this.id = id;
 	}
+	
 }

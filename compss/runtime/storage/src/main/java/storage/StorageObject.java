@@ -1,6 +1,5 @@
 package storage;
 
-
 public class StorageObject implements StubItf {
 
 	/**

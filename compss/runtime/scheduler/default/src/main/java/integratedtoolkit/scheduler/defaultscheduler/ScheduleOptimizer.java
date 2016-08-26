@@ -22,232 +22,237 @@ import java.util.concurrent.Semaphore;
 
 public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescription> extends Thread {
 
-    private static final long OPTIMIZATION_THRESHOLD = 5_000;
-    
-    private DefaultScheduler<?, ?> scheduler;
-    private boolean stop = false;
-    private Semaphore sem = new Semaphore(0);
-    
-    private DefaultScore<P,T> dummyScore = new DefaultScore<P,T>(0, 0, 0, 0);
+	private static final long OPTIMIZATION_THRESHOLD = 5_000;
 
-    
-    public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
-        this.setName("ScheduleOptimizer");
-        this.scheduler = scheduler;
-    }
+	private DefaultScheduler<?, ?> scheduler;
+	private boolean stop = false;
+	private Semaphore sem = new Semaphore(0);
 
-    public void run() {
-        long lastUpdate = System.currentTimeMillis();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException ie) {
-            //Do nothing
-        }
-        while (!stop) {
-            long optimizationTS = System.currentTimeMillis();
-            ResourceScheduler<?, ?>[] workers = scheduler.getWorkers();
-            globalOptimization(optimizationTS, workers);
-            waitForNextIteration(lastUpdate);
-            lastUpdate = optimizationTS;
-        }
-        sem.release();
-    }
+	private DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0);
 
-    public void shutdown() throws InterruptedException {
-        stop = true;
-        this.interrupt();
-        sem.acquire();
-    }
 
-    private void waitForNextIteration(long lastUpdate) {
-        long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
-        if (difference > 0) {
-            try {
-                Thread.sleep(difference);
-            } catch (InterruptedException ie) {
-                //Do nothing. Wake up in case of shutdown received
-            }
-        }
-    }
+	public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
+		this.setName("ScheduleOptimizer");
+		this.scheduler = scheduler;
+	}
 
-    /*--------------------------------------------------
-     ---------------------------------------------------
-     --------------- Local  optimization ---------------
-     ---------------------------------------------------
-     --------------------------------------------------*/
-    public void globalOptimization(long optimizationTS, ResourceScheduler<?, ?>[] workers) {
-        int workersCount = workers.length;
-        if (workersCount == 0) {
-            return;
-        }
-        OptimizationWorker[] optimizedWorkers = new OptimizationWorker[workersCount];
-        LinkedList<OptimizationWorker> receivers = new LinkedList<OptimizationWorker>();
+	@Override
+	public void run() {
+		long lastUpdate = System.currentTimeMillis();
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException ie) {
+			// Do nothing
+		}
+		while (!stop) {
+			long optimizationTS = System.currentTimeMillis();
+			ResourceScheduler<?, ?>[] workers = scheduler.getWorkers();
+			globalOptimization(optimizationTS, workers);
+			waitForNextIteration(lastUpdate);
+			lastUpdate = optimizationTS;
+		}
+		sem.release();
+	}
 
-        for (int i = 0; i < workersCount; i++) {
-            optimizedWorkers[i] = new OptimizationWorker((DefaultResourceScheduler<?,?>) workers[i]);
-        }
+	public void shutdown() throws InterruptedException {
+		stop = true;
+		this.interrupt();
+		sem.acquire();
+	}
 
-        boolean hasDonated = true;
-        while (hasDonated) {
-            optimizationTS = System.currentTimeMillis();
-            hasDonated = false;
+	private void waitForNextIteration(long lastUpdate) {
+		long difference = OPTIMIZATION_THRESHOLD - (System.currentTimeMillis() - lastUpdate);
+		if (difference > 0) {
+			try {
+				Thread.sleep(difference);
+			} catch (InterruptedException ie) {
+				// Do nothing. Wake up in case of shutdown received
+			}
+		}
+	}
 
-            //Perform local optimizations
-            for (int i = 0; i < workersCount; i++) {
-                optimizedWorkers[i].localOptimization(optimizationTS);
-            }
+	/*--------------------------------------------------
+	 ---------------------------------------------------
+	 --------------- Local  optimization ---------------
+	 ---------------------------------------------------
+	 --------------------------------------------------*/
+	public void globalOptimization(long optimizationTS, ResourceScheduler<?, ?>[] workers) {
+		int workersCount = workers.length;
+		if (workersCount == 0) {
+			return;
+		}
+		OptimizationWorker[] optimizedWorkers = new OptimizationWorker[workersCount];
+		LinkedList<OptimizationWorker> receivers = new LinkedList<OptimizationWorker>();
 
-            OptimizationWorker donor = determineDonorAndReceivers(optimizedWorkers, receivers);
+		for (int i = 0; i < workersCount; i++) {
+			optimizedWorkers[i] = new OptimizationWorker((DefaultResourceScheduler<?, ?>) workers[i]);
+		}
 
-            while (!hasDonated) {
-                AllocatableAction<P,T> candidate = donor.pollDonorAction();
-                if (candidate == null) {
-                    break;
-                }
-                Iterator<OptimizationWorker> recIt = receivers.iterator();
-                while (recIt.hasNext()) {
-                    OptimizationWorker receiver = recIt.next();
-                    if (move(candidate, donor, receiver)) {
-                        hasDonated = true;
-                    }
-                }
-            }
+		boolean hasDonated = true;
+		while (hasDonated) {
+			optimizationTS = System.currentTimeMillis();
+			hasDonated = false;
 
-        }
-    }
+			// Perform local optimizations
+			for (int i = 0; i < workersCount; i++) {
+				optimizedWorkers[i].localOptimization(optimizationTS);
+			}
 
-    public static OptimizationWorker determineDonorAndReceivers(OptimizationWorker[] workers, LinkedList<OptimizationWorker> receivers) {
-    	
-        receivers.clear();
-        PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
-        long topIndicator = Long.MIN_VALUE;
-        OptimizationWorker top = null;
+			OptimizationWorker donor = determineDonorAndReceivers(optimizedWorkers, receivers);
 
-        for (OptimizationWorker ow : workers) {
-            long indicator = ow.getDonationIndicator();
-            if (topIndicator > indicator) {
-                receiversPQ.add(ow);
-            } else {
-                topIndicator = indicator;
-                if (top != null) {
-                    receiversPQ.add(top);
-                }
-                top = ow;
-            }
-        }
-        OptimizationWorker ow;
-        while ((ow = receiversPQ.poll()) != null) {
-            receivers.add(ow);
-        }
-        return top;
-    }
+			while (!hasDonated) {
+				AllocatableAction<P, T> candidate = donor.pollDonorAction();
+				if (candidate == null) {
+					break;
+				}
+				Iterator<OptimizationWorker> recIt = receivers.iterator();
+				while (recIt.hasNext()) {
+					OptimizationWorker receiver = recIt.next();
+					if (move(candidate, donor, receiver)) {
+						hasDonated = true;
+					}
+				}
+			}
 
-    /*--------------------------------------------------
-     ---------------------------------------------------
-     ----------- Comparators  optimization -------------
-     ---------------------------------------------------
-     --------------------------------------------------*/
-    public static Comparator<AllocatableAction<?,?>> getSelectionComparator() {
-        return new Comparator<AllocatableAction<?,?>>() {
-            @Override
-            public int compare(AllocatableAction<?,?> action1, AllocatableAction<?,?> action2) {
-                int priority = Integer.compare(action1.getPriority(), action2.getPriority());
-                if (priority == 0) {
-                    return Long.compare(action1.getId(), action2.getId());
-                } else {
-                    return -priority;
-                }
-            }
-        };
-    }
+		}
+	}
 
-    public static Comparator<AllocatableAction<?,?>> getDonationComparator() {
-        return new Comparator<AllocatableAction<?,?>>() {
-            @Override
-            public int compare(AllocatableAction<?,?> action1, AllocatableAction<?,?> action2) {
-                DefaultSchedulingInformation<?,?> action1DSI = (DefaultSchedulingInformation<?,?>) action1.getSchedulingInfo();
-                DefaultSchedulingInformation<?,?> action2DSI = (DefaultSchedulingInformation<?,?>) action2.getSchedulingInfo();
-                int priority = Long.compare(action2DSI.getExpectedEnd(), action1DSI.getExpectedEnd());
-                if (priority == 0) {
-                    return Long.compare(action1.getId(), action2.getId());
-                } else {
-                    return priority;
-                }
-            }
-        };
-    }
+	public static OptimizationWorker determineDonorAndReceivers(OptimizationWorker[] workers, LinkedList<OptimizationWorker> receivers) {
 
-    public static final Comparator<OptimizationWorker> getReceptionComparator() {
-        return new Comparator<OptimizationWorker>() {
-            @Override
-            public int compare(OptimizationWorker worker1, OptimizationWorker worker2) {
-                return Long.compare(worker1.getDonationIndicator(), worker2.getDonationIndicator());
-            }
-        };
-    }
+		receivers.clear();
+		PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
+		long topIndicator = Long.MIN_VALUE;
+		OptimizationWorker top = null;
 
-    private boolean move(AllocatableAction<P,T> action, OptimizationWorker donor, OptimizationWorker receiver) {
-        LinkedList<AllocatableAction<P,T>> dataPreds = action.getDataPredecessors();
-        long dataAvailable = 0;
-        try {
-            for (AllocatableAction<?,?> dataPred : dataPreds) {
-                DefaultSchedulingInformation<?,?> dsi = (DefaultSchedulingInformation<?,?>) dataPred.getSchedulingInfo();
-                dataAvailable = Math.max(dataAvailable, dsi.getExpectedEnd());
-            }
-        } catch (ConcurrentModificationException cme) {
-            dataAvailable = 0;
-            dataPreds = action.getDataPredecessors();
-        }
+		for (OptimizationWorker ow : workers) {
+			long indicator = ow.getDonationIndicator();
+			if (topIndicator > indicator) {
+				receiversPQ.add(ow);
+			} else {
+				topIndicator = indicator;
+				if (top != null) {
+					receiversPQ.add(top);
+				}
+				top = ow;
+			}
+		}
+		OptimizationWorker ow;
+		while ((ow = receiversPQ.poll()) != null) {
+			receivers.add(ow);
+		}
+		return top;
+	}
 
-        Implementation<T> bestImpl = null;
-        long bestTime = Long.MAX_VALUE;
+	/*--------------------------------------------------
+	 ---------------------------------------------------
+	 ----------- Comparators  optimization -------------
+	 ---------------------------------------------------
+	 --------------------------------------------------*/
+	public static Comparator<AllocatableAction<?, ?>> getSelectionComparator() {
+		return new Comparator<AllocatableAction<?, ?>>() {
 
-        LinkedList<Implementation<T>> impls = action.getCompatibleImplementations(receiver.getResource());
-        for (Implementation<T> impl : impls) {
-            Profile p = receiver.getResource().getProfile(impl);
-            long avgTime = p.getAverageExecutionTime();
-            if (avgTime < bestTime) {
-                bestTime = avgTime;
-                bestImpl = impl;
-            }
-        }
+			@Override
+			public int compare(AllocatableAction<?, ?> action1, AllocatableAction<?, ?> action2) {
+				int priority = Integer.compare(action1.getPriority(), action2.getPriority());
+				if (priority == 0) {
+					return Long.compare(action1.getId(), action2.getId());
+				} else {
+					return -priority;
+				}
+			}
+		};
+	}
 
-        DefaultSchedulingInformation<P,T> dsi = (DefaultSchedulingInformation<P,T>) action.getSchedulingInfo();
-        long currentEnd = dsi.getExpectedEnd();
+	public static Comparator<AllocatableAction<?, ?>> getDonationComparator() {
+		return new Comparator<AllocatableAction<?, ?>>() {
 
-        if (bestImpl != null && currentEnd > receiver.getResource().getLastGapExpectedStart() + bestTime) {
-            unschedule(action);
-            schedule(action, bestImpl, receiver);
-            return true;
-        }
-        return false;
-    }
+			@Override
+			public int compare(AllocatableAction<?, ?> action1, AllocatableAction<?, ?> action2) {
+				DefaultSchedulingInformation<?, ?> action1DSI = (DefaultSchedulingInformation<?, ?>) action1.getSchedulingInfo();
+				DefaultSchedulingInformation<?, ?> action2DSI = (DefaultSchedulingInformation<?, ?>) action2.getSchedulingInfo();
+				int priority = Long.compare(action2DSI.getExpectedEnd(), action1DSI.getExpectedEnd());
+				if (priority == 0) {
+					return Long.compare(action1.getId(), action2.getId());
+				} else {
+					return priority;
+				}
+			}
+		};
+	}
 
-    public void schedule(AllocatableAction<P,T> action, Implementation<T> impl, OptimizationWorker ow) {
-        try {
-            action.schedule(ow.getResource(), impl);
-            action.tryToLaunch();
-        } catch (InvalidSchedulingException ise) {
-            try {
-                long actionScore = DefaultScore.getActionScore(action);
-                long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new DefaultScore<P,T>(actionScore, dataTime, 0, 0);
-                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
-                try {
-                    action.tryToLaunch();
-                } catch (InvalidSchedulingException ise2) {
-                    //Impossible exception. 
-                }
-            } catch (BlockedActionException | UnassignedActionException be) {
-                //Can not happen since there was an original source
-            }
-        } catch (BlockedActionException | UnassignedActionException be) {
-            //Can not happen since there was an original source
-        }
-    }
+	public static final Comparator<OptimizationWorker> getReceptionComparator() {
+		return new Comparator<OptimizationWorker>() {
 
-    public void unschedule(AllocatableAction<P,T> action) {
-        DefaultResourceScheduler<P,T> resource = (DefaultResourceScheduler<P,T>) action.getAssignedResource();
-        resource.unscheduleAction(action);
-    }
+			@Override
+			public int compare(OptimizationWorker worker1, OptimizationWorker worker2) {
+				return Long.compare(worker1.getDonationIndicator(), worker2.getDonationIndicator());
+			}
+		};
+	}
+
+	private boolean move(AllocatableAction<P, T> action, OptimizationWorker donor, OptimizationWorker receiver) {
+		LinkedList<AllocatableAction<P, T>> dataPreds = action.getDataPredecessors();
+		long dataAvailable = 0;
+		try {
+			for (AllocatableAction<?, ?> dataPred : dataPreds) {
+				DefaultSchedulingInformation<?, ?> dsi = (DefaultSchedulingInformation<?, ?>) dataPred.getSchedulingInfo();
+				dataAvailable = Math.max(dataAvailable, dsi.getExpectedEnd());
+			}
+		} catch (ConcurrentModificationException cme) {
+			dataAvailable = 0;
+			dataPreds = action.getDataPredecessors();
+		}
+
+		Implementation<T> bestImpl = null;
+		long bestTime = Long.MAX_VALUE;
+
+		LinkedList<Implementation<T>> impls = action.getCompatibleImplementations(receiver.getResource());
+		for (Implementation<T> impl : impls) {
+			Profile p = receiver.getResource().getProfile(impl);
+			long avgTime = p.getAverageExecutionTime();
+			if (avgTime < bestTime) {
+				bestTime = avgTime;
+				bestImpl = impl;
+			}
+		}
+
+		DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
+		long currentEnd = dsi.getExpectedEnd();
+
+		if (bestImpl != null && currentEnd > receiver.getResource().getLastGapExpectedStart() + bestTime) {
+			unschedule(action);
+			schedule(action, bestImpl, receiver);
+			return true;
+		}
+		return false;
+	}
+
+	public void schedule(AllocatableAction<P, T> action, Implementation<T> impl, OptimizationWorker ow) {
+		try {
+			action.schedule(ow.getResource(), impl);
+			action.tryToLaunch();
+		} catch (InvalidSchedulingException ise) {
+			try {
+				long actionScore = DefaultScore.getActionScore(action);
+				long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
+				Score aScore = new DefaultScore<P, T>(actionScore, dataTime, 0, 0);
+				action.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
+				try {
+					action.tryToLaunch();
+				} catch (InvalidSchedulingException ise2) {
+					// Impossible exception.
+				}
+			} catch (BlockedActionException | UnassignedActionException be) {
+				// Can not happen since there was an original source
+			}
+		} catch (BlockedActionException | UnassignedActionException be) {
+			// Can not happen since there was an original source
+		}
+	}
+
+	public void unschedule(AllocatableAction<P, T> action) {
+		DefaultResourceScheduler<P, T> resource = (DefaultResourceScheduler<P, T>) action.getAssignedResource();
+		resource.unscheduleAction(action);
+	}
+	
 }

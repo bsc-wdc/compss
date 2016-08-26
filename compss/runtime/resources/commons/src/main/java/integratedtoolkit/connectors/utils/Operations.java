@@ -9,33 +9,92 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 public interface Operations {
 
-    public static final Object knownHosts = new Object();
+	public static final Object knownHosts = new Object();
 
-    //Power on a new Machine
-    public Object poweron(String name, CloudMethodResourceDescription rd)
-            throws ConnectorException;
 
-    public void destroy(Object envId) throws ConnectorException;
+	/**
+	 * Power on a machine
+	 * 
+	 * @param name
+	 * @param rd
+	 * @return
+	 * @throws ConnectorException
+	 */
+	public Object poweron(String name, CloudMethodResourceDescription rd) throws ConnectorException;
 
-    public VM waitCreation(Object envId, CloudMethodResourceDescription request) throws ConnectorException;
+	/**
+	 * Destroy a machine
+	 * 
+	 * @param envId
+	 * @throws ConnectorException
+	 */
+	public void destroy(Object envId) throws ConnectorException;
 
-    //Allow access from master and between VM
-    public void configureAccess(String IP, String user, String password) throws ConnectorException;
+	/**
+	 * Wait for creation completion
+	 * 
+	 * @param envId
+	 * @param request
+	 * @return
+	 * @throws ConnectorException
+	 */
+	public VM waitCreation(Object envId, CloudMethodResourceDescription request) throws ConnectorException;
 
-    //Prepare Machine to run tasks
-    public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException;
+	/**
+	 * Allow access from master and between VM
+	 * 
+	 * @param IP
+	 * @param user
+	 * @param password
+	 * @throws ConnectorException
+	 */
+	public void configureAccess(String IP, String user, String password) throws ConnectorException;
 
-    //Notification that the vm is available and fully operative
-    public void vmReady(VM vm) throws ConnectorException;
+	/**
+	 * Prepare Machine to run tasks
+	 * 
+	 * @param IP
+	 * @param cid
+	 * @throws ConnectorException
+	 */
+	public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException;
 
-    //Shutdown an existing machine
-    public void poweroff(VM rd) throws ConnectorException;
+	/**
+	 * Notification that the vm is available and fully operative
+	 * 
+	 * @param vm
+	 * @throws ConnectorException
+	 */
+	public void vmReady(VM vm) throws ConnectorException;
 
-    public VM pause(CloudMethodWorker worker);
+	/**
+	 * Shutdown an existing machine
+	 * 
+	 * @param rd
+	 * @throws ConnectorException
+	 */
+	public void poweroff(VM rd) throws ConnectorException;
 
-    //Data needed to check if vm are useful
-    public boolean getTerminate();
+	/**
+	 * Pause an existing machine
+	 * 
+	 * @param worker
+	 * @return
+	 */
+	public VM pause(CloudMethodWorker worker);
 
-    public boolean getCheck();
+	/**
+	 * Data needed to check if VM is useful
+	 * 
+	 * @return
+	 */
+	public boolean getTerminate();
+
+	/**
+	 * Data needed to check if VM is useful
+	 * 
+	 * @return
+	 */
+	public boolean getCheck();
 
 }

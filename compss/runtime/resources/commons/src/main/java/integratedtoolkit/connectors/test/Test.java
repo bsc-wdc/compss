@@ -9,79 +9,83 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * Dummy connector for testing purposes
- * Needs to be inside main package (not test) because it is tested on execution time (constraintsTest)
+ * Dummy connector for testing purposes Needs to be inside main package (not test) because it is tested on execution
+ * time (constraintsTest)
  * 
  */
 public class Test extends AbstractConnector {
 
-    private static AtomicInteger nextId = new AtomicInteger(100);
+	private static AtomicInteger nextId = new AtomicInteger(100);
 
-    public Test(String providerName, HashMap<String, String> props) {
-        super(providerName, props);
-    }
 
-    @Override
-    public Object create(String name, CloudMethodResourceDescription rd) throws ConnectorException {
-        TestEnvId envId = new TestEnvId();
-        System.out.println("Es demana la creació de la màquina " + rd + "que correspon a " + envId);
-        return envId;
-    }
+	public Test(String providerName, HashMap<String, String> props) {
+		super(providerName, props);
+	}
 
-    @Override
-    public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
-        try {
-            Thread.sleep(15000);
-        } catch(Exception e) {
-        	// No need to handle such exception
-        }
-        
-        System.out.println("Waiting for VM creation " + vm);
-        CloudMethodResourceDescription granted = new CloudMethodResourceDescription(requested);
-        granted.setName("127.0.0." + nextId.getAndIncrement());
-        granted.setOperatingSystemType(requested.getImage().getOperatingSystemType());
-        
-        return granted;
-    }
+	@Override
+	public Object create(String name, CloudMethodResourceDescription rd) throws ConnectorException {
+		TestEnvId envId = new TestEnvId();
+		System.out.println("Es demana la creació de la màquina " + rd + "que correspon a " + envId);
+		return envId;
+	}
 
-    @Override
-    public float getMachineCostPerTimeSlot(CloudMethodResourceDescription rd) {
-        return 0.0f;
-    }
+	@Override
+	public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
+		try {
+			Thread.sleep(15000);
+		} catch (Exception e) {
+			// No need to handle such exception
+		}
 
-    @Override
-    public long getTimeSlot() {
-        return ONE_HOUR;
-    }
+		System.out.println("Waiting for VM creation " + vm);
+		CloudMethodResourceDescription granted = new CloudMethodResourceDescription(requested);
+		granted.setName("127.0.0." + nextId.getAndIncrement());
+		granted.setOperatingSystemType(requested.getImage().getOperatingSystemType());
 
-    @Override
-    public void destroy(Object envId) throws ConnectorException {
-        System.out.println("S'esta destruint " + envId);
-    }
+		return granted;
+	}
 
-    @Override
-    public void configureAccess(String IP, String user, String password) throws ConnectorException {
-        System.out.println("Otorgant accés al master a la màquina "+IP);
-    }
+	@Override
+	public float getMachineCostPerTimeSlot(CloudMethodResourceDescription rd) {
+		return 0.0f;
+	}
 
-    @Override
-    public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException {
-        System.out.println("Copiant tota la informació necessaria a "+IP);
-    }
+	@Override
+	public long getTimeSlot() {
+		return ONE_HOUR;
+	}
 
-    private static class TestEnvId {
+	@Override
+	public void destroy(Object envId) throws ConnectorException {
+		System.out.println("S'esta destruint " + envId);
+	}
 
-        private static AtomicInteger nextId = new AtomicInteger(0);
-        private int id = nextId.getAndIncrement();
+	@Override
+	public void configureAccess(String IP, String user, String password) throws ConnectorException {
+		System.out.println("Otorgant accés al master a la màquina " + IP);
+	}
 
-        public String toString() {
-            return "TestEventId:" + id;
-        }
-    }
+	@Override
+	public void prepareMachine(String IP, CloudImageDescription cid) throws ConnectorException {
+		System.out.println("Copiant tota la informació necessaria a " + IP);
+	}
+
+
+	private static class TestEnvId {
+
+		private static AtomicInteger nextId = new AtomicInteger(0);
+		private int id = nextId.getAndIncrement();
+
+
+		public String toString() {
+			return "TestEventId:" + id;
+		}
+	}
+
 
 	@Override
 	protected void close() {
 		// Nothing to do
 	}
-	
+
 }

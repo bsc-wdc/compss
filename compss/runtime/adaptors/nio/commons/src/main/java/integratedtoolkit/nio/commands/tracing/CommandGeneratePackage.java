@@ -18,7 +18,7 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		
+
 	}
 
 	@Override
@@ -35,10 +35,10 @@ public class CommandGeneratePackage extends Command implements Externalizable {
 	public void handle(Connection c) {
 		agent.generatePackage(c);
 	}
-	
-    @Override
-    public String toString() {
-        return "GenerateTraceCommand";
-    }
+
+	@Override
+	public String toString() {
+		return "GenerateTraceCommand";
+	}
 
 }

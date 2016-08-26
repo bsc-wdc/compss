@@ -10,41 +10,45 @@ import java.util.LinkedList;
 
 import es.bsc.comm.Connection;
 
+
 public class CommandShutdown extends Command implements Externalizable {
 
-    // List of files to send to the master before shutting down
-    LinkedList<Data> filesToSend;
+	// List of files to send to the master before shutting down
+	LinkedList<Data> filesToSend;
 
-    public CommandShutdown() {
-    }
 
-    public CommandShutdown(NIOAgent agent, LinkedList<Data> l) {
-        super(agent);
-        this.filesToSend = l;
-    }
+	public CommandShutdown() {
+	}
 
-    @Override
-    public CommandType getType() {
-        return CommandType.STOP_WORKER;
-    }
+	public CommandShutdown(NIOAgent agent, LinkedList<Data> l) {
+		super(agent);
+		this.filesToSend = l;
+	}
 
-    @Override
-    public void handle(Connection c) {
-        agent.receivedShutdown(c, filesToSend);
-    }
+	@Override
+	public CommandType getType() {
+		return CommandType.STOP_WORKER;
+	}
 
-    @SuppressWarnings("unchecked")
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        filesToSend = (LinkedList<Data>) in.readObject();
-    }
+	@Override
+	public void handle(Connection c) {
+		agent.receivedShutdown(c, filesToSend);
+	}
 
-    public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(filesToSend);
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		filesToSend = (LinkedList<Data>) in.readObject();
+	}
 
-    @Override
-    public String toString() {
-        return "Shutdown";
-    }
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(filesToSend);
+	}
+
+	@Override
+	public String toString() {
+		return "Shutdown";
+	}
 
 }

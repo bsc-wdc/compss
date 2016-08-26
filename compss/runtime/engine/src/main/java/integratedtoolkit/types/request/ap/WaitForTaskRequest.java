@@ -7,46 +7,48 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import java.util.concurrent.Semaphore;
 
+
 public class WaitForTaskRequest extends APRequest {
 
-    private int dataId;
-    private AccessMode am;
-    private Semaphore sem;
+	private int dataId;
+	private AccessMode am;
+	private Semaphore sem;
 
-    public WaitForTaskRequest(int dataId, AccessMode mode, Semaphore sem) {
-        this.dataId = dataId;
-        this.am = mode;
-        this.sem = sem;
-    }
 
-    public Semaphore getSemaphore() {
-        return sem;
-    }
+	public WaitForTaskRequest(int dataId, AccessMode mode, Semaphore sem) {
+		this.dataId = dataId;
+		this.am = mode;
+		this.sem = sem;
+	}
 
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
+	public Semaphore getSemaphore() {
+		return sem;
+	}
 
-    public int getDataId() {
-        return dataId;
-    }
+	public void setSemaphore(Semaphore sem) {
+		this.sem = sem;
+	}
 
-    public AccessMode getAccessMode() {
-        return am;
-    }
+	public int getDataId() {
+		return dataId;
+	}
 
-    public void setDataId(int dataId) {
-        this.dataId = dataId;
-    }
+	public AccessMode getAccessMode() {
+		return am;
+	}
 
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) {
-        ta.findWaitedTask(this);
-    }
+	public void setDataId(int dataId) {
+		this.dataId = dataId;
+	}
 
-    @Override
-    public APRequestType getRequestType() {
-        return APRequestType.WAIT_FOR_TASK;
-    }
+	@Override
+	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+		ta.findWaitedTask(this);
+	}
+
+	@Override
+	public APRequestType getRequestType() {
+		return APRequestType.WAIT_FOR_TASK;
+	}
 
 }

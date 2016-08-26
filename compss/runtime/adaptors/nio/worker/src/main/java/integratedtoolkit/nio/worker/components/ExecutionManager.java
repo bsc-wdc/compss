@@ -14,13 +14,13 @@ import integratedtoolkit.nio.worker.util.PythonThreadPool;
 
 
 public class ExecutionManager {
-	
+
 	private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
 	private JobsThreadPool pool;
-	
-	
-	public ExecutionManager(NIOWorker nw, int numThreads) {		
+
+
+	public ExecutionManager(NIOWorker nw, int numThreads) {
 		logger.info("Instantiate Execution Manager");
 		// Instantiate the language dependent thread pool
 		String lang = nw.getLang();
@@ -41,16 +41,16 @@ public class ExecutionManager {
 		}
 
 	}
-	
+
 	public void init() throws Exception {
 		logger.info("Init Execution Manager");
 		this.pool.startThreads();
 	}
-	
+
 	public void enqueue(NIOTask nt) {
 		this.pool.enqueue(nt);
 	}
-	
+
 	public void stop() {
 		logger.info("Stop Execution Manager");
 		// Stop the job threads

@@ -18,9 +18,9 @@ import java.util.concurrent.Semaphore;
 
 
 public abstract class ExternalExecutor extends Executor {
-	
-	private static final String ERROR_PIPE_CLOSE 	= "Error on closing pipe ";
-	private static final String ERROR_PIPE_QUIT 	= "Error sending quit to pipe ";
+
+	private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
+	private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
 
 	// Piper script properties
 	public static final int MAX_RETRIES = 3;
@@ -29,14 +29,15 @@ public abstract class ExternalExecutor extends Executor {
 	public static final String END_TASK_TAG 		= "endTask";
 	public static final String QUIT_TAG 			= "quit";
 	private static final String EXECUTE_TASK_TAG 	= "task";
-	
-	private final String writePipe;				// Pipe for sending executions
-	private TaskResultReader taskResultReader;	// Process result reader (initialized by PoolManager, started/stopped by us)
-	
-	
-	public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader	resultReader) {
+
+	private final String writePipe; // Pipe for sending executions
+	private TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by
+												// us)
+
+
+	public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
 		super(nw, pool, queue);
-		
+
 		this.writePipe = writePipe;
 		this.taskResultReader = resultReader;
 
@@ -45,35 +46,34 @@ public abstract class ExternalExecutor extends Executor {
 		}
 		// Start task Reader
 		this.taskResultReader.start();
-		if (tracing){
+		if (tracing) {
 			NIOTracer.enablePThreads();
 		}
 	}
-	
+
 	@Override
 	public void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
 		// TODO: Add environment variables for MPI or Ompss tasks executed with bindings
 	}
 
-    @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception {
-        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir());
-        addArguments(args, nt, nw);
-        String externalCommand = getArgumentsAsString(args);
-        
-        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP
-        		+ outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
-				+ externalCommand;
+	@Override
+	public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception {
+		ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir());
+		addArguments(args, nt, nw);
+		String externalCommand = getArgumentsAsString(args);
 
-        executeExternal(nt.getJobId(), command, nt);
-    }
-    
-    @Override
-    public void finish() {
-    	logger.info("Finishing ExternalExecutor");
-    	
-    	// Send quit tag to pipe
-    	logger.debug("Send quit tag to pipe " + writePipe);
+		String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename 
+				+ NIOWorker.SUFFIX_ERR + TOKEN_SEP + externalCommand;
+
+		executeExternal(nt.getJobId(), command, nt);
+	}
+
+	@Override
+	public void finish() {
+		logger.info("Finishing ExternalExecutor");
+
+		// Send quit tag to pipe
+		logger.debug("Send quit tag to pipe " + writePipe);
 		boolean done = false;
 		int retries = 0;
 		while (!done && retries < MAX_RETRIES) {
@@ -111,86 +111,85 @@ public abstract class ExternalExecutor extends Executor {
 		} catch (InterruptedException e) {
 			// No need to handle such exceptions
 		}
-		
+
 		logger.info("End Finishing ExternalExecutor");
-    }
-    
-    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox);
+	}
 
-    private String getArgumentsAsString(ArrayList<String> args) {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (String c : args) {
-            if (!first) {
-                sb.append(" ");
-            } else {
-                first = false;
-            }
-            sb.append(c);
-        }
-        return sb.toString();
-    }
+	public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox);
 
-    private static void addArguments(ArrayList<String> lArgs, NIOTask nt,  NIOWorker nw) throws JobExecutionException, SerializedObjectException {
-        lArgs.add(Boolean.toString(tracing));
-        lArgs.add(Integer.toString(nt.getTaskId()));
-        lArgs.add(Boolean.toString(nt.isWorkerDebug()));
-        lArgs.add(nt.getClassName());
-        lArgs.add(nt.getMethodName());
-        lArgs.add(Boolean.toString(nt.isHasTarget()));
-        lArgs.add(Integer.toString(nt.getNumParams()));
-        for (NIOParam np : nt.getParams()) {
-            DataType type = np.getType();
-            lArgs.add(Integer.toString(type.ordinal()));
-            switch (type) {
-            case FILE_T:
-            	lArgs.add(np.getValue().toString());
-            	break;
-            case PSCO_T:           	
-            case OBJECT_T:
-                lArgs.add(np.getValue().toString());
-                lArgs.add(np.isWriteFinalValue() ? "W" : "R");                
-                break;
-            case STRING_T:
-                String value = np.getValue().toString();
-                String[] vals = value.split(" ");
-                int numSubStrings = vals.length;
-                lArgs.add(Integer.toString(numSubStrings));
-                for (String v : vals) {
-                    lArgs.add(v);
-                }
-                break;
-            default:
-                lArgs.add(np.getValue().toString());
-            }
-        }
-    }
+	private String getArgumentsAsString(ArrayList<String> args) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (String c : args) {
+			if (!first) {
+				sb.append(" ");
+			} else {
+				first = false;
+			}
+			sb.append(c);
+		}
+		return sb.toString();
+	}
 
-    private void executeExternal(int jobId, String command, NIOTask nt) throws JobExecutionException {        
-        // Emit start task trace
-    	int taskType = nt.getTaskType() + 1;  // +1 Because Task ID can't be 0 (0 signals end task)
-        int taskId = nt.getTaskId();
-        if (tracing) {
-            emitStartTask(taskId, taskType);
-        }
-        
-        logger.debug("Starting job process ...");
-        // Send executeTask tag to pipe
+	private static void addArguments(ArrayList<String> lArgs, NIOTask nt, NIOWorker nw) throws JobExecutionException,
+			SerializedObjectException {
+		
+		lArgs.add(Boolean.toString(tracing));
+		lArgs.add(Integer.toString(nt.getTaskId()));
+		lArgs.add(Boolean.toString(nt.isWorkerDebug()));
+		lArgs.add(nt.getClassName());
+		lArgs.add(nt.getMethodName());
+		lArgs.add(Boolean.toString(nt.isHasTarget()));
+		lArgs.add(Integer.toString(nt.getNumParams()));
+		for (NIOParam np : nt.getParams()) {
+			DataType type = np.getType();
+			lArgs.add(Integer.toString(type.ordinal()));
+			switch (type) {
+				case FILE_T:
+					lArgs.add(np.getValue().toString());
+					break;
+				case PSCO_T:
+				case OBJECT_T:
+					lArgs.add(np.getValue().toString());
+					lArgs.add(np.isWriteFinalValue() ? "W" : "R");
+					break;
+				case STRING_T:
+					String value = np.getValue().toString();
+					String[] vals = value.split(" ");
+					int numSubStrings = vals.length;
+					lArgs.add(Integer.toString(numSubStrings));
+					for (String v : vals) {
+						lArgs.add(v);
+					}
+					break;
+				default:
+					lArgs.add(np.getValue().toString());
+			}
+		}
+	}
+
+	private void executeExternal(int jobId, String command, NIOTask nt) throws JobExecutionException {
+		// Emit start task trace
+		int taskType = nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
+		int taskId = nt.getTaskId();
+		if (tracing) {
+			emitStartTask(taskId, taskType);
+		}
+
+		logger.debug("Starting job process ...");
+		// Send executeTask tag to pipe
 		boolean done = false;
 		int retries = 0;
 		while (!done && retries < MAX_RETRIES) {
 			FileOutputStream output = null;
 			try {
 				// Send to pipe : task tID command(jobOut jobErr externalCMD) \n
-				String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP 
-						+ jobId + TOKEN_SEP
-						+ command + TOKEN_NEW_LINE;
-				
+				String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP + jobId + TOKEN_SEP + command + TOKEN_NEW_LINE;
 
-		        if (logger.isDebugEnabled()) {
-		        	logger.debug("EXECUTOR COMMAND: " + taskCMD);
-		        }
-				
+				if (logger.isDebugEnabled()) {
+					logger.debug("EXECUTOR COMMAND: " + taskCMD);
+				}
+
 				output = new FileOutputStream(writePipe, true);
 				output.write(taskCMD.getBytes());
 				output.flush();
@@ -217,7 +216,7 @@ public abstract class ExternalExecutor extends Executor {
 			}
 			throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
 		}
-        
+
 		// Retrieving job result
 		Semaphore sem = new Semaphore(0);
 		taskResultReader.askForTaskEnd(jobId, sem);
@@ -232,27 +231,27 @@ public abstract class ExternalExecutor extends Executor {
 		if (tracing) {
 			emitEndTask(taskId);
 		}
-        
-        logger.debug("Task finished");
-        if (exitValue != 0) {
-            throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
-        } else {
-            logger.debug("Job " + jobId + " has finished with exit value 0");
-        }
-    }
-    
-    private void emitStartTask(int taskId, int taskType) {
-    	NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
-        NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
-        NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-        //NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
-    }
-    
-    private void emitEndTask(int taskId) {
-    	NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-        //NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
-        NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
-        NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
-    }
-    
+
+		logger.debug("Task finished");
+		if (exitValue != 0) {
+			throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
+		} else {
+			logger.debug("Job " + jobId + " has finished with exit value 0");
+		}
+	}
+
+	private void emitStartTask(int taskId, int taskType) {
+		NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
+		NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
+		NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+		// NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
+	}
+
+	private void emitEndTask(int taskId) {
+		NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
+		// NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
+		NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
+		NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
+	}
+
 }

@@ -9,7 +9,7 @@ public class MasterDataRequest extends DataRequest {
 
 	private final DataOperation fOp;
 
-	
+
 	public MasterDataRequest(DataOperation fOp, DataType type, Data source, String target) {
 		super(type, source, target);
 		this.fOp = fOp;

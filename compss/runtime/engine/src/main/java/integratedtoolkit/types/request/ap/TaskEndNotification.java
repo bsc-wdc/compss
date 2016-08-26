@@ -9,28 +9,29 @@ import integratedtoolkit.types.Task;
 
 public class TaskEndNotification extends APRequest {
 
-    private Task task;
+	private Task task;
 
-    public TaskEndNotification(Task task) {
-        this.task = task;
-    }
 
-    public Task getTask() {
-        return task;
-    }
+	public TaskEndNotification(Task task) {
+		this.task = task;
+	}
 
-    public void setTask(Task task) {
-        this.task = task;
-    }
+	public Task getTask() {
+		return task;
+	}
 
-    @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?,?> td) {
-        ta.endTask(task);
-    }
+	public void setTask(Task task) {
+		this.task = task;
+	}
 
-    @Override
-    public APRequestType getRequestType() {
-        return APRequestType.UPDATE_GRAPH;
-    }
+	@Override
+	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+		ta.endTask(task);
+	}
+
+	@Override
+	public APRequestType getRequestType() {
+		return APRequestType.UPDATE_GRAPH;
+	}
 
 }

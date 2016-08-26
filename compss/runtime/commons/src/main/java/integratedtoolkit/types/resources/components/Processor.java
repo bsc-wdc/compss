@@ -2,40 +2,42 @@ package integratedtoolkit.types.resources.components;
 
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
+
 public class Processor {
-	
+
 	private String name = MethodResourceDescription.UNASSIGNED_STR;
 	private int computingUnits = MethodResourceDescription.ZERO_INT;
 	private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;
 	private String architecture = MethodResourceDescription.UNASSIGNED_STR;
 	private String propName = MethodResourceDescription.UNASSIGNED_STR;
 	private String propValue = MethodResourceDescription.UNASSIGNED_STR;
-	
+
+
 	public Processor() {
 	}
-	
+
 	public Processor(String name) {
 		this.setName(name);
 	}
-	
+
 	public Processor(String name, int cu) {
 		this.setName(name);
 		this.setComputingUnits(cu);
 	}
-	
+
 	public Processor(String name, int cu, float speed) {
 		this.setName(name);
 		this.setComputingUnits(cu);
 		this.setSpeed(speed);
 	}
-	
+
 	public Processor(String name, int cu, float speed, String arch) {
 		this.setName(name);
 		this.setComputingUnits(cu);
 		this.setSpeed(speed);
 		this.setArchitecture(arch);
 	}
-	
+
 	public Processor(String name, int cu, float speed, String arch, String propName, String propValue) {
 		this.setName(name);
 		this.setComputingUnits(cu);
@@ -44,14 +46,14 @@ public class Processor {
 		this.setPropName(propName);
 		this.setPropValue(propValue);
 	}
-	
+
 	public Processor(String name, int cu, String propName, String propValue) {
 		this.setName(name);
 		this.setComputingUnits(cu);
 		this.setPropName(propName);
 		this.setPropValue(propValue);
 	}
-	
+
 	public Processor(Processor p) {
 		this.setName(p.getName());
 		this.setComputingUnits(p.getComputingUnits());
@@ -76,17 +78,17 @@ public class Processor {
 	public void setComputingUnits(int computingUnits) {
 		this.computingUnits = computingUnits;
 	}
-	
+
 	public void addComputingUnits(int cu) {
 		this.computingUnits = this.computingUnits + cu;
 	}
-	
+
 	public void removeComputingUnits(int cu) {
 		this.computingUnits = this.computingUnits - cu;
 	}
-	
+
 	public void multiply(int amount) {
-		this.computingUnits = this.computingUnits*amount;
+		this.computingUnits = this.computingUnits * amount;
 	}
 
 	public float getSpeed() {
@@ -96,7 +98,7 @@ public class Processor {
 	public void setSpeed(float speed) {
 		this.speed = speed;
 	}
-	
+
 	public String getArchitecture() {
 		return architecture;
 	}

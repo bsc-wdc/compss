@@ -6,10 +6,10 @@ import java.io.IOException;
 
 
 public class DataLocalityImpl {
-	
-    public static void task (int id, String fileName) {
+
+	public static void task(int id, String fileName) {
 		try {
-			FileOutputStream fos = new FileOutputStream (fileName, true);
+			FileOutputStream fos = new FileOutputStream(fileName, true);
 			String value = String.valueOf(id) + "\n";
 			fos.write(value.getBytes());
 			fos.close();
@@ -20,6 +20,6 @@ public class DataLocalityImpl {
 			ioe.printStackTrace();
 			System.exit(-1);
 		}
-    }
+	}
 
 }

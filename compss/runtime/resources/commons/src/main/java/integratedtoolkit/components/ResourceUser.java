@@ -2,147 +2,150 @@ package integratedtoolkit.components;
 
 import integratedtoolkit.types.resources.Worker;
 
+
 public interface ResourceUser {
 
-    public void updatedResource(Worker<?> r);
+	public void updatedResource(Worker<?> r);
 
-    public WorkloadStatus getWorkload();
+	public WorkloadStatus getWorkload();
 
-    public class WorkloadStatus {
 
-        //Core Information
-        private int coreCount;
-        private long[] coreMinTime;
-        private long[] coreMeanTime;
-        private long[] coreMaxTime;
+	public class WorkloadStatus {
 
-        //Action counters
-        private int noResourceCount;
-        private int[] noResourceCounts;
-        private int readyCount;
-        private int[] readyCounts;
+		// Core Information
+		private int coreCount;
+		private long[] coreMinTime;
+		private long[] coreMeanTime;
+		private long[] coreMaxTime;
 
-        //Running Tasks
-        private int[] runningCounts;
-        private int runningCount;
-        private long[] runningCoreMeanTime;
+		// Action counters
+		private int noResourceCount;
+		private int[] noResourceCounts;
+		private int readyCount;
+		private int[] readyCounts;
 
-        public WorkloadStatus(int coreCount) {
-            this.coreCount = coreCount;
-            coreMinTime = new long[coreCount];
-            coreMeanTime = new long[coreCount];
-            coreMaxTime = new long[coreCount];
+		// Running Tasks
+		private int[] runningCounts;
+		private int runningCount;
+		private long[] runningCoreMeanTime;
 
-            noResourceCounts = new int[coreCount];
-            readyCounts = new int[coreCount];
 
-            runningCounts = new int[coreCount];
-            runningCoreMeanTime = new long[coreCount];
-        }
+		public WorkloadStatus(int coreCount) {
+			this.coreCount = coreCount;
+			coreMinTime = new long[coreCount];
+			coreMeanTime = new long[coreCount];
+			coreMaxTime = new long[coreCount];
 
-        /*--------------------------------------------
-         ------------- CORE INFORMATION --------------
-         ---------------------------------------------*/
-        public int getCoreCount() {
-            return coreCount;
-        }
+			noResourceCounts = new int[coreCount];
+			readyCounts = new int[coreCount];
 
-        public void registerTimes(int coreId, long minTime, long avgTime, long maxTime) {
-            if (coreId < coreCount) {
-                coreMinTime[coreId] = minTime;
-                coreMeanTime[coreId] = avgTime;
-                coreMaxTime[coreId] = maxTime;
-            }
-        }
+			runningCounts = new int[coreCount];
+			runningCoreMeanTime = new long[coreCount];
+		}
 
-        public long getCoreMeanTime(int coreId) {
-            return coreMeanTime[coreId];
-        }
+		/*--------------------------------------------
+		 ------------- CORE INFORMATION --------------
+		 ---------------------------------------------*/
+		public int getCoreCount() {
+			return coreCount;
+		}
 
-        public long getCoreMaxTime(int coreId) {
-            return coreMaxTime[coreId];
-        }
+		public void registerTimes(int coreId, long minTime, long avgTime, long maxTime) {
+			if (coreId < coreCount) {
+				coreMinTime[coreId] = minTime;
+				coreMeanTime[coreId] = avgTime;
+				coreMaxTime[coreId] = maxTime;
+			}
+		}
 
-        public long getCoreMinTime(int coreId) {
-            return coreMinTime[coreId];
-        }
+		public long getCoreMeanTime(int coreId) {
+			return coreMeanTime[coreId];
+		}
 
-        /*--------------------------------------------
-         -------------- ACTION INFORMATION -----------
-         ---------------------------------------------*/
-        public int getNoResourceCount() {
-            return noResourceCount;
-        }
+		public long getCoreMaxTime(int coreId) {
+			return coreMaxTime[coreId];
+		}
 
-        public int[] getNoResourceCounts() {
-            return noResourceCounts;
-        }
+		public long getCoreMinTime(int coreId) {
+			return coreMinTime[coreId];
+		}
 
-        public int getReadyCount() {
-            return readyCount;
-        }
+		/*--------------------------------------------
+		 -------------- ACTION INFORMATION -----------
+		 ---------------------------------------------*/
+		public int getNoResourceCount() {
+			return noResourceCount;
+		}
 
-        public int[] getReadyCounts() {
-            return readyCounts;
-        }
+		public int[] getNoResourceCounts() {
+			return noResourceCounts;
+		}
 
-        public void registerNoResources(int coreId, int count) {
-            this.noResourceCount -= this.noResourceCounts[coreId];
-            this.noResourceCounts[coreId] = count;
-            this.noResourceCount += this.noResourceCounts[coreId];
-        }
+		public int getReadyCount() {
+			return readyCount;
+		}
 
-        public void registerReady(int coreId, int count) {
-            this.readyCount -= this.readyCounts[coreId];
-            this.readyCounts[coreId] = count;
-            this.readyCount += this.readyCounts[coreId];
-        }
+		public int[] getReadyCounts() {
+			return readyCounts;
+		}
 
-        /*--------------------------------------------
-         --------- RUNNING ACTION INFORMATION --------
-         ---------------------------------------------*/
-        public long getRunningCoreMeanTime(int coreId) {
-            return runningCoreMeanTime[coreId];
-        }
+		public void registerNoResources(int coreId, int count) {
+			this.noResourceCount -= this.noResourceCounts[coreId];
+			this.noResourceCounts[coreId] = count;
+			this.noResourceCount += this.noResourceCounts[coreId];
+		}
 
-        public int[] getRunningTaskCounts() {
-            return this.runningCounts;
-        }
+		public void registerReady(int coreId, int count) {
+			this.readyCount -= this.readyCounts[coreId];
+			this.readyCounts[coreId] = count;
+			this.readyCount += this.readyCounts[coreId];
+		}
 
-        public int getRunningTaskCount() {
-            return this.runningCount;
-        }
+		/*--------------------------------------------
+		 --------- RUNNING ACTION INFORMATION --------
+		 ---------------------------------------------*/
+		public long getRunningCoreMeanTime(int coreId) {
+			return runningCoreMeanTime[coreId];
+		}
 
-        public void registerRunning(int coreId, long executedTime) {
-            runningCoreMeanTime[coreId] = (runningCoreMeanTime[coreId] + executedTime) / (runningCounts[coreId] + 1);
-            runningCounts[coreId]++;
-            runningCount++;
-        }
+		public int[] getRunningTaskCounts() {
+			return this.runningCounts;
+		}
 
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            //Time Stamp
-            sb.append("TIMESTAMP = ").append(String.valueOf(System.currentTimeMillis())).append("\n");
+		public int getRunningTaskCount() {
+			return this.runningCount;
+		}
 
-            //Load Information
-            sb.append("LOAD_INFO = [").append("\n");
-            for (int coreId = 0; coreId < coreCount; coreId++) {
-                sb.append("\t").append("CORE_INFO = [").append("\n");
-                sb.append("\t").append("\t").append("COREID = ").append(coreId).append("\n");
-                sb.append("\t").append("\t").append("NO_RESOURCE = ").append(noResourceCounts[coreId]).append("\n");
-                sb.append("\t").append("\t").append("READY = ").append(readyCounts[coreId]).append("\n");
-                sb.append("\t").append("\t").append("RUNNING = ").append(runningCounts[coreId]).append("\n");
-                sb.append("\t").append("\t").append("MIN = ").append(coreMinTime[coreId]).append("\n");
-                sb.append("\t").append("\t").append("MEAN = ").append(coreMeanTime[coreId]).append("\n");
-                sb.append("\t").append("\t").append("MAX = ").append(coreMaxTime[coreId]).append("\n");
-                sb.append("\t").append("\t").append("RUNNING_MEAN = ").append(runningCoreMeanTime[coreId]).append("\n");
-                sb.append("\t").append("]").append("\n");
-            }
-            sb.append("]").append("\n");
+		public void registerRunning(int coreId, long executedTime) {
+			runningCoreMeanTime[coreId] = (runningCoreMeanTime[coreId] + executedTime) / (runningCounts[coreId] + 1);
+			runningCounts[coreId]++;
+			runningCount++;
+		}
 
-            return sb.toString();
-        }
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			// Time Stamp
+			sb.append("TIMESTAMP = ").append(String.valueOf(System.currentTimeMillis())).append("\n");
 
-    }
+			// Load Information
+			sb.append("LOAD_INFO = [").append("\n");
+			for (int coreId = 0; coreId < coreCount; coreId++) {
+				sb.append("\t").append("CORE_INFO = [").append("\n");
+				sb.append("\t").append("\t").append("COREID = ").append(coreId).append("\n");
+				sb.append("\t").append("\t").append("NO_RESOURCE = ").append(noResourceCounts[coreId]).append("\n");
+				sb.append("\t").append("\t").append("READY = ").append(readyCounts[coreId]).append("\n");
+				sb.append("\t").append("\t").append("RUNNING = ").append(runningCounts[coreId]).append("\n");
+				sb.append("\t").append("\t").append("MIN = ").append(coreMinTime[coreId]).append("\n");
+				sb.append("\t").append("\t").append("MEAN = ").append(coreMeanTime[coreId]).append("\n");
+				sb.append("\t").append("\t").append("MAX = ").append(coreMaxTime[coreId]).append("\n");
+				sb.append("\t").append("\t").append("RUNNING_MEAN = ").append(runningCoreMeanTime[coreId]).append("\n");
+				sb.append("\t").append("]").append("\n");
+			}
+			sb.append("]").append("\n");
+
+			return sb.toString();
+		}
+
+	}
 
 }

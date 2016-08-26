@@ -5,8 +5,8 @@ import java.io.Externalizable;
 
 import integratedtoolkit.nio.NIOAgent;
 
-public abstract class Command implements Externalizable {
 
+public abstract class Command implements Externalizable {
 	
     public enum CommandType {
         NEW_TASK, 					// Send a new task to a node with a list of the files and its locations
@@ -27,6 +27,7 @@ public abstract class Command implements Externalizable {
 
     public NIOAgent agent;
 
+    
     public Command() {
     }
 

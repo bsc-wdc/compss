@@ -16,17 +16,16 @@ public class PythonExecutor extends ExternalExecutor {
 
 	public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 
-	private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH
-			+ File.separator + "pycompss" + File.separator + "worker" + File.separator + "worker.py";
+	private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator + "pycompss" + File.separator
+			+ "worker" + File.separator + "worker.py";
 
 	public static final boolean pythonPersistentWorker = false;
 
-	
 	private static final String EXTRAE_RELATIVE_PATH = File.separator + "Dependencies" + File.separator + "extrae";
 	private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";
 	private static final String LIB_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "lib";
 
-	
+
 	public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
 		super(nw, pool, queue, writePipe, resultReader);
 	}

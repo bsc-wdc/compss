@@ -44,6 +44,10 @@ public class Person extends StorageObject implements Serializable {
 	public int getAge() {
 		return this.age;
 	}
+	
+	public LinkedList<Computer> getComputers() {
+		return this.computers;
+	}
 
 	public int getNumComputers() {
 		return this.computers.size();
@@ -94,6 +98,31 @@ public class Person extends StorageObject implements Serializable {
 		
 		// Persist
 		this.makePersistent(id);
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(this);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+	}
+	
+	// Task
+	public void taskPSCOTargetWithParams(String newName, Person p) {
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
+
+		this.setName(newName);
+		this.setAge(10);
+		Computer c = new Computer("DELL", "Latitude", name + "_" + age, age);
+		this.addComputer(c);
+		
+		// Merge person p computers
+		for (Computer computer : p.getComputers()) {
+			this.addComputer(computer);
+		}
+
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
 		
 		// Manually persist object to storage
 		try {

@@ -87,16 +87,15 @@ public final class StorageItf {
 	 * Executes the task into persistent storage
 	 * 
 	 * @param id
-	 * @param descriptor
+	 * @param method
 	 * @param values
 	 * @param hostName
 	 * @param callback
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(Object target, Method method, Object[] values, String hostName, CallbackHandler callback)
+	public static String executeTask(String id, Method method, Object[] values, String hostName, CallbackHandler callback)
 			throws StorageException {
-
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
 	}
 
@@ -110,5 +109,15 @@ public final class StorageItf {
 		// Nothing to do
 		return null;
 	}
-
+	
+	/**
+	 * Consolidates all intermediate versions to the final id
+	 * 
+	 * @param idFinal
+	 * @throws StorageException
+	 */
+	public static void consolidateVersion(String idFinal) throws StorageException {
+		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
+	}
+	
 }

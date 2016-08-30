@@ -1,11 +1,11 @@
-package testPSCO;
+package testPSCOInternal;
 
 import java.util.UUID;
 
 import model.Person;
 
 
-public class Main {
+public class Internal {
 
 	public static void main(String[] args) {
 		// ------------------------------------------------------------------------
@@ -43,7 +43,7 @@ public class Main {
 		Person p = new Person("PName1", 1, 1);
 		p.makePersistent(id);
 
-		MainImpl.taskPSCOIn(p);
+		InternalImpl.taskPSCOIn(p);
 	}
 
 	private static void testPSCOInOut() {
@@ -52,7 +52,7 @@ public class Main {
 		Person p = new Person("PName2", 2, 2);
 		p.makePersistent(id);
 
-		MainImpl.taskPSCOInOut(p);
+		InternalImpl.taskPSCOInOut(p);
 
 		String name = p.getName();
 		int age = p.getAge();
@@ -64,7 +64,7 @@ public class Main {
 	private static void testPSCOInOutTaskPersisted() {
 		Person p = new Person("PName2", 2, 2);
 
-		String id = MainImpl.taskPSCOInOutTaskPersisted(p);
+		String id = InternalImpl.taskPSCOInOutTaskPersisted(p);
 
 		String name = p.getName();
 		int age = p.getAge();
@@ -75,7 +75,7 @@ public class Main {
 
 	private static void testPSCOReturn() {
 		String id = "person_" + UUID.randomUUID().toString();
-		Person p = MainImpl.taskPSCOReturn("PName3", 3, 3, id);
+		Person p = InternalImpl.taskPSCOReturn("PName3", 3, 3, id);
 
 		String name = p.getName();
 		int age = p.getAge();
@@ -85,7 +85,7 @@ public class Main {
 	}
 
 	private static void testPSCOReturnNoTaskPersisted() {
-		Person p = MainImpl.taskPSCOReturnNoTaskPersisted("PName3", 3, 3);
+		Person p = InternalImpl.taskPSCOReturnNoTaskPersisted("PName3", 3, 3);
 
 		String name = p.getName();
 		int age = p.getAge();

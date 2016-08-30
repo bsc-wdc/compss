@@ -36,6 +36,7 @@ public class JavaExecutor extends Executor {
 	private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
 	private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task '";
 	private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
+	private static final String ERROR_EXTERNAL_NO_PSCO = "ERROR: External ExecuteTask can only be used with target PSCOs";
 	private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
 	private final boolean debug;
@@ -333,16 +334,34 @@ public class JavaExecutor extends Executor {
 
 	private Object externalExecution(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {
 		// Invoke the requested method from the external platform
+		
+		// WARN: ExternalExecution is only supported for methods with PSCO as target object
+		
+		// Check and retrieve target PSCO Id
+		String id = null;
+		try {
+			id = ((StubItf) target.getValue()).getID();
+		} catch (Exception e) {
+			throw new JobExecutionException(ERROR_EXTERNAL_NO_PSCO, e);
+		}
+		if (id == null) {
+			throw new JobExecutionException(ERROR_EXTERNAL_NO_PSCO);
+		}
 
 		// Call Storage executeTask
-		logger.info("executeTask " + method.getName() + " with " + target.getClass() + " in " + nw.getHostName());
+		if (logger.isDebugEnabled()) {
+			logger.info("External ExecuteTask " + method.getName() + " with target PSCO Id " + id + " in " + nw.getHostName());
+		} else {
+			logger.info("External ExecuteTask " + method.getName());
+		}
+
 		if (tracing) {
 			NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
 		}
 
 		PSCOCallbackHandler callback = new PSCOCallbackHandler();
 		try {
-			String call_result = StorageItf.executeTask(target.getValue(), method, values, nw.getHostName(), callback);
+			String call_result = StorageItf.executeTask(id, method, values, nw.getHostName(), callback);
 
 			logger.debug(call_result);
 

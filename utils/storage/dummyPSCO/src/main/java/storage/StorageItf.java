@@ -40,6 +40,7 @@ public final class StorageItf {
 	private static final String ERROR_METHOD_NOT_FOUND = "ERROR: ExecuteTask Method not found with descriptor ";
 	private static final String ERROR_GET_BY_ID = "ERROR: Cannot find target by id on executeTask";
 	private static final String ERROR_REFLECTION = "ERROR: Cannot invoke method by reflection in executeTask";
+	private static final String ERROR_RETRIEVE_ID = "ERROR: Cannot retrieve PSCO for executeTask with id ";
 
 	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
@@ -270,7 +271,7 @@ public final class StorageItf {
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(Object target, Method method, Object[] values, String hostName, CallbackHandler callback)
+	public static String executeTask(String id, Method method, Object[] values, String hostName, CallbackHandler callback)
 			throws StorageException {
 
 		logger.info("EXECUTE TASK: " + method + " on host " + hostName);
@@ -282,19 +283,21 @@ public final class StorageItf {
 			@Override
 			public void run() {
 				try {
-					// Check target
-					// If null, the method has no target.
-					// Otherwise it is a persistent (instaceof stubItf) or a normal object but we don't care
-					if (target != null) { 
-						if (target instanceof StubItf) {
-							String id = ((StubItf) target).getID();
-							logger.info("- Target object is PSCO with id = " + id);
-						} else {
-							logger.info("- Target object is Object of class " + target.getClass());
-						}
-					} else {
-						logger.info("- No Target object specified");
+					// The ID refers to a valid PSCO
+					Object obj = null;
+					
+					try {
+						obj = StorageItf.getByID(id);
+					} catch (StorageException se) {
+						throw new StorageException(ERROR_RETRIEVE_ID + id, se);
 					}
+
+					if (obj == null) {
+						throw new StorageException(ERROR_RETRIEVE_ID + id);
+					} else {
+						logger.info("- Target object is PSCO with class " + obj.getClass() + " with id = " + id);
+					}
+
 
 					// Prepare for task execution
 					if (method == null) {
@@ -302,7 +305,7 @@ public final class StorageItf {
 					}
 
 					// Invoke user task
-					Object retValue = method.invoke(target, values);
+					Object retValue = method.invoke(obj, values);
 
 					// Retrieve result
 					callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.SUCCESS, retValue));

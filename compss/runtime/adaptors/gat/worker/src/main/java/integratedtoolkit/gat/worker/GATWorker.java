@@ -1,11 +1,16 @@
 package integratedtoolkit.gat.worker;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
+import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.lang.reflect.Method;
+
+import storage.StorageException;
+import storage.StorageItf;
 
 
 /**
@@ -15,6 +20,9 @@ import java.lang.reflect.Method;
 public class GATWorker {
 
 	protected static final int NUM_HEADER_PARS = 5;
+	
+	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0 ? true : false;
 
 	private static final String WARN_UNSUPPORTED_TYPE = "WARNING: Unsupported data type";
 
@@ -81,8 +89,10 @@ public class GATWorker {
 					values[i] = args[pos + 1];
 					break;
 				case OBJECT_T:
-					String renaming = renamings[i] = (String) args[pos + 1];
+					renamings[i] = (String) args[pos + 1];
 					mustWrite[i] = ((String) args[pos + 2]).equals("W");
+					
+					String renaming = renamings[i];
 					Object o = null;
 					try {
 						o = Serializer.deserialize(renaming);
@@ -90,20 +100,53 @@ public class GATWorker {
 						ErrorManager.error("Error deserializing object parameter " + i + " with renaming " + renaming + ", method "
 								+ methodName + ", class " + className);
 					}
-					if (hasTarget && i == numParams - 1) {// last parameter is
-															// the target object
-						if (o == null) {
-							ErrorManager.error("Target object with renaming " + renaming + ", method " + methodName + ", class "
-									+ className + " is null!");
-						}
+					
+					// Check retrieved object
+					if (o == null) {
+						ErrorManager.error("Object with renaming " + renaming + ", method " 
+										+ methodName + ", class " + className + " is null!");
+					}
+					
+					// Store retrieved object
+					if (hasTarget && i == numParams - 1) { // last parameter is the target object
 						target = o;
 					} else {
-						if (o == null) {
-							ErrorManager.error("Object parameter " + i + " with renaming " + renaming + ", method " + methodName
-									+ ", class " + className + " is null!");
-						}
 						types[i] = o.getClass();
 						values[i] = o;
+					}
+					pos++;
+					break;
+				case PSCO_T:
+					renamings[i] = (String) args[pos + 1];
+					mustWrite[i] = ((String) args[pos + 2]).equals("W");
+					
+					String id = renamings[i];
+					Object obj = null;
+					if (tracing) {
+						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+					}
+					try {
+						obj = StorageItf.getByID(id);
+					} catch (StorageException e) {
+						ErrorManager.error("Cannot getByID parameter " + i + "with PSCOId " + id + ", method "
+								+ methodName + ", class " + className, e);
+					} finally {
+						if (tracing) {
+							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+						}
+					}
+
+					// Check retrieved object
+					if (obj == null) {
+						ErrorManager.error("PSCO with id " + id + ", method " + methodName + ", class " + className + " is null!");
+					}
+					
+					// Store retrieved object
+					if (hasTarget && i == numParams - 1) { // last parameter is the target object
+						target = obj;
+					} else {
+						types[i] = obj.getClass();
+						values[i] = obj;
 					}
 					pos++;
 					break;

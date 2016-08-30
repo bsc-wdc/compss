@@ -1,4 +1,4 @@
-package testPSCO;
+package testPSCOInternal;
 
 import java.util.UUID;
 
@@ -8,7 +8,7 @@ import model.Computer;
 import model.Person;
 
 
-public class MainImpl {
+public class InternalImpl {
 
 	private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
 

@@ -67,11 +67,14 @@ if [ $? -ne 0 ]; then
   echo "Building binding failed, please check errors above!"
   exit 1
 fi
-if [ $WITH_OMPSS == 1 ]; then
-        export CC="mcc"
-        export CFLAGS="--ompss"
-        export CXX="mcxx"
-        export CXXFLAGS="--ompss"
+if [ "${WITH_OMPSS}" != "" ]; then
+  # Flag is defined, check value
+  if [ $WITH_OMPSS == 1 ]; then
+    export CC="mcc"
+    export CFLAGS="--ompss"
+    export CXX="mcxx"
+    export CXXFLAGS="--ompss"
+  fi
 fi
 $GS_HOME/bin/gsbuild build worker $@
 if [ $? -ne 0 ]; then

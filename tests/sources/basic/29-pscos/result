@@ -31,7 +31,7 @@
   inout_got=$(grep "\[PSCO\_INOUT\]" ${output_file} | head -n 1)
   inout_expected="[LOG][PSCO_INOUT] Person Another with age 10 has 3 computers"
   if [ "${inout_got}" != "${inout_expected}" ]; then
-    echo "ERROR: INOUT PSCO is not correctly trasfered to master"
+    echo "ERROR: INOUT PSCO is not correctly transfered to master"
     echo "GOT:      ${inout_got}"
     echo "EXPECTED: ${inout_expected}"
     exit 1
@@ -47,7 +47,7 @@
   return_got=$(grep "\[PSCO\_RETURN\]" ${output_file} | head -n 1)
   return_expected="[LOG][PSCO_RETURN] Person PName3 with age 3 has 3 computers"
   if [ "${return_got}" != "${return_expected}" ]; then
-    echo "ERROR: Return PSCO is not correctly trasfered to master"
+    echo "ERROR: Return PSCO is not correctly transfered to master"
     echo "GOT:      ${return_got}"
     echo "EXPECTED: ${return_expected}"
     exit 1
@@ -65,7 +65,7 @@
   inouttp_got=$(grep "\[PSCO\_INOUT\_TP\]" ${output_file} | head -n 1)
   inouttp_expected="[LOG][PSCO_INOUT_TP] Person Another with age 10 has 3 computers"
   if [ "${inouttp_got}" != "${inouttp_expected}" ]; then
-    echo "ERROR: INOUT TP PSCO is not correctly trasfered to master"
+    echo "ERROR: INOUT TP PSCO is not correctly transfered to master"
     echo "GOT:      ${inouttp_got}"
     echo "EXPECTED: ${inouttp_expected}"
     exit 1
@@ -83,7 +83,7 @@
   returnntp_got=$(grep "\[PSCO\_RETURN\_NTP\]" ${output_file} | head -n 1)
   returnntp_expected="[LOG][PSCO_RETURN_NTP] Person PName3 with age 3 has 3 computers"
   if [ "${returnntp_got}" != "${returnntp_expected}" ]; then
-    echo "ERROR: RETURN NTP PSCO is not correctly trasfered to master"
+    echo "ERROR: RETURN NTP PSCO is not correctly transfered to master"
     echo "GOT:      ${returnntp_got}"
     echo "EXPECTED: ${returnntp_expected}"
     exit 1
@@ -94,6 +94,42 @@
     echo "ERROR: RETURN NTP PSCO does not preserve PSCO ID"
     echo "GOT ID: ${returnntp_pscoid2}"
     echo "EXPECTED ID: ${returnntp_pscoid1}"
+    exit 1
+  fi
+  
+  
+  target_got=$(grep "\[PSCO\_TARGET\]" ${output_file} | head -n 1)
+  target_expected="[LOG][PSCO_TARGET] Person Another with age 10 has 2 computers"
+  if [ "${target_got}" != "${target_expected}" ]; then
+    echo "ERROR: TARGET PSCO is not correctly transfered to master"
+    echo "GOT:      ${target_got}"
+    echo "EXPECTED: ${target_expected}"
+    exit 1
+  fi
+  target_pscoid1=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
+  target_pscoid2=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
+  if [ "${target_pscoid1}" == "${target_pscoid2}" ]; then
+    echo "ERROR: TARGET PSCO preserves PSCOId instead of new Version"
+    echo "GOT ID: ${target_pscoid1}"
+    echo "EXPECTED ID: ${target_pscoid2}"
+    exit 1
+  fi
+  
+  
+  targettp_got=$(grep "\[PSCO\_TARGET\_TP\]" ${output_file} | head -n 1)
+  targettp_expected="[LOG][PSCO_TARGET_TP] Person Another with age 10 has 2 computers"
+  if [ "${targettp_got}" != "${targettp_expected}" ]; then
+    echo "ERROR: TARGET PSCO is not correctly transfered to master"
+    echo "GOT:      ${targettp_got}"
+    echo "EXPECTED: ${targettp_expected}"
+    exit 1
+  fi
+  targettp_pscoid1=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
+  targettp_pscoid2=$(grep "\[PSCO\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $5 '})
+  if [ "${targettp_pscoid1}" == "${targettp_pscoid2}" ]; then
+    echo "ERROR: TARGET PSCO is not persisted in task"
+    echo "GOT ID: ${targettp_pscoid1}"
+    echo "EXPECTED ID: ${targettp_pscoid2}"
     exit 1
   fi
   

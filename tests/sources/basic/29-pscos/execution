@@ -30,11 +30,13 @@ EOF
   storageImplPath=${base_app_dir}/jars/compss-dummyPSCO.jar
   
   #----------------------------------------------------------------------------------
-  # Run application 1 - Java PSCOs
+  # Run application 1 - Java PSCOs internalExecution
   echo
-  echo "*** RUNNING JAVA APPLICATION PSCOs"
-  output_log="${target_log_folder}/testPSCO.outputlog"
-  error_log="${target_log_folder}/testPSCO.errorlog"
+  echo "*** RUNNING JAVA APPLICATION PSCOs internalExecution"
+  log_folder="${target_log_folder}/internalExecution"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/testPSCO_internalExecution.outputlog"
+  error_log="${log_folder}/testPSCO_internalExecution.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -52,21 +54,73 @@ EOF
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCO.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCO.Main_01/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
+     ev1=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCO.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCO.Main_01/* ${log_folder}
   
      #Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} 
-     exitValue=$?
+     ${base_app_dir}/result ${output_log} ${log_folder} 
+     ev1=$?
   fi
   
+  #----------------------------------------------------------------------------------
+  # Sleep between applications
+  sleep 1s 
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Run application 2 - Java PSCOs externalExecution
+  echo
+  echo "*** RUNNING JAVA APPLICATION PSCOs externalExecution"
+  log_folder="${target_log_folder}/externalExecution"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/testPSCO_externalExecution.outputlog"
+  error_log="${log_folder}/testPSCO_externalExecution.errorlog"
+  expectedTime=60s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --storage_conf=${storageConf} \
+     --jvm_workers_opts="-Dit.worker.removeWD=true" \
+     --task_execution=external \
+     --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
+     testPSCO.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testPSCO.Main_02/* ${log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev2=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/testPSCO.Main_02/* ${log_folder}
+  
+     #Check result
+     ${base_app_dir}/result ${output_log} ${log_folder} 
+     ev2=$?
+  fi
   
   #----------------------------------------------------------------------------------
   #Return execution status
+  if [ $ev1 -ne 0 ]; then
+     exitValue=$ev1
+  else
+     exitValue=$ev2
+  fi
   exit $exitValue

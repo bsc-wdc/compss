@@ -38,5 +38,14 @@ public interface MainItf {
 		@Parameter () int age, 
 		@Parameter () int numC
 	);
+	
+	@Method(declaringClass = "model.Person")
+	public void taskPSCOTarget(
+	);
+	
+	@Method(declaringClass = "model.Person")
+	public void taskPSCOTargetTaskPersisted(
+		@Parameter (type = Type.STRING, direction = Direction.IN) String id
+	);
 
 }

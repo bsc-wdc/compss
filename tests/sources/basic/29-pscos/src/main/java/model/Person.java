@@ -2,7 +2,10 @@ package model;
 
 import java.io.Serializable;
 import java.util.LinkedList;
+
+import storage.StorageException;
 import storage.StorageObject;
+import storageManager.StorageManager;
 
 
 public class Person extends StorageObject implements Serializable {
@@ -11,6 +14,8 @@ public class Person extends StorageObject implements Serializable {
 	 * Serial ID for Objects outside the runtime
 	 */
 	private static final long serialVersionUID = 3L;
+	
+	private static final String ERROR_PERSIST = "[ERROR] Cannot persist object";
 
 	private String name;
 	private int age;
@@ -54,6 +59,49 @@ public class Person extends StorageObject implements Serializable {
 
 	public void addComputer(Computer c) {
 		this.computers.add(c);
+	}
+	
+	// Task
+	public void taskPSCOTarget() {
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
+
+		this.setName("Another");
+		this.setAge(10);
+		Computer c = new Computer("DELL", "Latitude", name + "_" + age, age);
+		this.addComputer(c);
+
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(this);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+	}
+	
+	// Task
+	public void taskPSCOTargetTaskPersisted(String id) {
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
+
+		this.setName("Another");
+		this.setAge(10);
+		Computer c = new Computer("DELL", "Latitude", name + "_" + age, age);
+		this.addComputer(c);
+
+		System.out.println("[LOG] Person " + name + " with age " + age + " has " + computers.size() + " computers");
+		
+		// Persist
+		this.makePersistent(id);
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(this);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -35,6 +37,9 @@ public final class StorageItf {
 	private static final String ERROR_NEW_VERSION = "ERROR: Cannot create new version of PSCO with id=";
 	private static final String ERROR_DESERIALIZE = "ERROR: Cannot deserialize object with id=";
 	private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
+	private static final String ERROR_METHOD_NOT_FOUND = "ERROR: ExecuteTask Method not found with descriptor ";
+	private static final String ERROR_GET_BY_ID = "ERROR: Cannot find target by id on executeTask";
+	private static final String ERROR_REFLECTION = "ERROR: Cannot invoke method by reflection in executeTask";
 
 	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
@@ -265,10 +270,56 @@ public final class StorageItf {
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
+	public static String executeTask(Object target, Method method, Object[] values, String hostName, CallbackHandler callback)
 			throws StorageException {
 
-		throw new UnsupportedOperationException();
+		logger.info("EXECUTE TASK: " + method + " on host " + hostName);
+		
+		String localUUID = UUID.randomUUID().toString();
+
+		new Thread(localUUID) {
+
+			@Override
+			public void run() {
+				try {
+					// Check target
+					// If null, the method has no target.
+					// Otherwise it is a persistent (instaceof stubItf) or a normal object but we don't care
+					if (target != null) { 
+						if (target instanceof StubItf) {
+							String id = ((StubItf) target).getID();
+							logger.info("- Target object is PSCO with id = " + id);
+						} else {
+							logger.info("- Target object is Object of class " + target.getClass());
+						}
+					} else {
+						logger.info("- No Target object specified");
+					}
+
+					// Prepare for task execution
+					if (method == null) {
+						throw new Exception(ERROR_METHOD_NOT_FOUND + method);
+					}
+
+					// Invoke user task
+					Object retValue = method.invoke(target, values);
+
+					// Retrieve result
+					callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.SUCCESS, retValue));
+				} catch (StorageException se) {
+					logger.error(ERROR_GET_BY_ID, se);
+					callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, se.getMessage()));
+				} catch (InvocationTargetException | IllegalAccessException e) {
+					logger.error(ERROR_REFLECTION, e);
+					callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, e.getMessage()));
+				} catch (Exception e) {
+					logger.error("EXCEPTION ON ExecuteTask", e);
+					callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, e.getMessage()));
+				}
+			}
+		}.start();
+
+		return localUUID;
 	}
 
 	/**
@@ -277,9 +328,13 @@ public final class StorageItf {
 	 * @param event
 	 * @return
 	 */
-	public static Object getResult(CallbackEvent event) {
-		// Nothing to do since executeTask is not supported
-		return null;
+	public static Object getResult(CallbackEvent event) throws StorageException {
+		logger.info("Get result");
+		try {
+			return event.getContent();
+		} catch (Exception e) {
+			throw new StorageException(e);
+		}
 	}
 
 	/* ************************************************

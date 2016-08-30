@@ -1,6 +1,23 @@
 package storage;
 
 public class StorageObject implements StubItf {
+	
+	/**
+	 * Constructor
+	 * 
+	 */
+	public StorageObject() {
+		
+	}
+	
+	/**
+	 * Constructor by alias
+	 * 
+	 * @param alias
+	 */
+	public StorageObject(String alias) {
+		
+	}
 
 	/**
 	 * Returns the persistent object ID

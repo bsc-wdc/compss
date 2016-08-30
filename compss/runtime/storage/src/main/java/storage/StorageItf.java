@@ -1,5 +1,6 @@
 package storage;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 
@@ -93,7 +94,7 @@ public final class StorageItf {
 	 * @return
 	 * @throws StorageException
 	 */
-	public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
+	public static String executeTask(Object target, Method method, Object[] values, String hostName, CallbackHandler callback)
 			throws StorageException {
 
 		throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
@@ -105,7 +106,7 @@ public final class StorageItf {
 	 * @param event
 	 * @return
 	 */
-	public static Object getResult(CallbackEvent event) {
+	public static Object getResult(CallbackEvent event) throws StorageException {
 		// Nothing to do
 		return null;
 	}

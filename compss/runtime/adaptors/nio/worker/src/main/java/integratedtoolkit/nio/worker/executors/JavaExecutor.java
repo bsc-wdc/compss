@@ -16,11 +16,8 @@ import integratedtoolkit.util.Tracer;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.concurrent.Semaphore;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.bytecode.Descriptor;
 import storage.CallbackEvent;
 import storage.CallbackHandler;
 import storage.StorageException;
@@ -33,12 +30,12 @@ public class JavaExecutor extends Executor {
 	private static final String ERROR_CLASS_REFLECTION = "Cannot get class by reflection";
 	private static final String ERROR_METHOD_REFLECTION = "Cannot get method by reflection";
 	private static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
-	private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Class not found on external call";
 	private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
 	private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
 	private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
 	private static final String ERROR_STORAGE_CALL = "ERROR: External executeTask call failed";
 	private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task '";
+	private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
 	private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
 	private final boolean debug;
@@ -336,40 +333,21 @@ public class JavaExecutor extends Executor {
 
 	private Object externalExecution(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {
 		// Invoke the requested method from the external platform
-		int n = method.getParameterAnnotations().length;
-		ClassPool pool = ClassPool.getDefault();
-		Class<?>[] cParams = method.getParameterTypes();
-		CtClass[] ctParams = new CtClass[n];
-		for (int i = 0; i < n; i++) {
-			try {
-				ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
-			} catch (NotFoundException e) {
-				throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + cParams[i].getName(), e);
-			}
-		}
-
-		String descriptor;
-		try {
-			descriptor = method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
-		} catch (NotFoundException e) {
-			throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
-		}
 
 		// Call Storage executeTask
-		String targetId = ((StubItf) target.getValue()).getID();
-		logger.info("executeTask " + descriptor + " with " + targetId + " in " + nw.getHostName());
+		logger.info("executeTask " + method.getName() + " with " + target.getClass() + " in " + nw.getHostName());
 		if (tracing) {
 			NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
 		}
 
 		PSCOCallbackHandler callback = new PSCOCallbackHandler();
 		try {
-			String call_result = StorageItf.executeTask(targetId, descriptor, values, nw.getHostName(), callback);
+			String call_result = StorageItf.executeTask(target.getValue(), method, values, nw.getHostName(), callback);
 
 			logger.debug(call_result);
 
 			// Wait for execution
-			callback.wait();
+			callback.waitForCompletion();
 		} catch (StorageException e) {
 			throw new JobExecutionException(ERROR_STORAGE_CALL, e);
 		} catch (InterruptedException e) {
@@ -378,6 +356,12 @@ public class JavaExecutor extends Executor {
 			if (tracing) {
 				NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_EXECUTETASK.getType());
 			}
+		}
+		
+		// Process the return status
+		CallbackEvent.EventType callStatus = callback.getStatus();
+		if (!callStatus.equals(CallbackEvent.EventType.SUCCESS)) {
+			throw new JobExecutionException(ERROR_EXTERNAL_EXECUTION);
 		}
 
 		// Process return value
@@ -512,7 +496,11 @@ public class JavaExecutor extends Executor {
 	private class PSCOCallbackHandler extends CallbackHandler {
 
 		private CallbackEvent event;
-
+		private Semaphore sem;
+		
+		public PSCOCallbackHandler() {
+			this.sem = new Semaphore(0);
+		}
 
 		@Override
 		protected void eventListener(CallbackEvent e) {
@@ -522,6 +510,15 @@ public class JavaExecutor extends Executor {
 			synchronized (this) {
 				this.notifyAll();
 			}
+			this.sem.release();
+		}
+		
+		public void waitForCompletion() throws InterruptedException{
+			this.sem.acquire();
+		}
+		
+		public CallbackEvent.EventType getStatus() {
+			return this.event.getType();
 		}
 
 		public Object getResult() throws StorageException {

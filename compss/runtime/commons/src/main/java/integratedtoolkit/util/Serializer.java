@@ -11,10 +11,8 @@ import java.io.NotSerializableException;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 
 
@@ -31,33 +29,17 @@ public class Serializer {
 	 * Serializes an objects and leaves it in a file
 	 *
 	 * @param o
-	 *            object to be serailized
+	 *            object to be serialized
 	 * @param file
 	 *            file where the serialized object will be stored
 	 * @throws IOException
-	 *             Error writting the file
+	 *             Error writing the file
 	 */
 	public static void serialize(Object o, String file) throws IOException {
 		try {
 			serializeBinary(o, file);
 		} catch (NotSerializableException e) {
 			serializeXML(o, file);
-		}
-	}
-
-	/**
-	 * Serializes an objects
-	 *
-	 * @param o
-	 *            object to be serailized
-	 * @throws IOException
-	 *             Error writting the file
-	 */
-	public static byte[] serialize(Object o) throws IOException {
-		try {
-			return serializeBinary(o);
-		} catch (NotSerializableException e) {
-			return serializeXML(o);
 		}
 	}
 
@@ -113,38 +95,6 @@ public class Serializer {
 	}
 
 	/**
-	 * Serializes an objects using the default java serializer
-	 *
-	 * @param o
-	 *            object to be serialized
-	 * @throws IOException
-	 *             Error writting the byte stream
-	 */
-	private static byte[] serializeBinary(Object o) throws IOException {
-
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ObjectOutput out = null;
-		try {
-			out = new ObjectOutputStream(bos);
-			out.writeObject(o);
-			return bos.toByteArray();
-		} finally {
-			try {
-				if (out != null) {
-					out.close();
-				}
-			} catch (IOException ex) {
-				// No need to handle such exception
-			}
-			try {
-				bos.close();
-			} catch (IOException ex) {
-				// No need to handle such exception
-			}
-		}
-	}
-
-	/**
 	 * Reads a binary-serialized object from a file
 	 *
 	 * @param file
@@ -193,7 +143,7 @@ public class Serializer {
 	}
 
 	/**
-	 * Serializes an objects usign the XML Encoder and leaves it in a file
+	 * Serializes an objects using the XML Encoder and leaves it in a file
 	 *
 	 * @param o
 	 *            object to be serialized
@@ -207,33 +157,6 @@ public class Serializer {
 		XMLEncoder e = new XMLEncoder(new BufferedOutputStream(fout));
 		e.writeObject(o);
 		e.close();
-	}
-
-	/**
-	 * Serializes an objects using the XML Encoder
-	 *
-	 * @param o
-	 *            object to be serialized
-	 * @throws IOException
-	 *             Error writting the byte stream
-	 */
-	private static byte[] serializeXML(Object o) throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		XMLEncoder e = null;
-		try {
-			e = new XMLEncoder(new BufferedOutputStream(bos));
-			e.writeObject(o);
-		} finally {
-			if (e != null) {
-				e.close();
-			}
-			try {
-				bos.close();
-			} catch (IOException ex) {
-				// ignore close exception
-			}
-		}
-		return bos.toByteArray();
 	}
 
 	/**

@@ -34,12 +34,10 @@ public abstract class ImmediateCopy extends Copy {
 				if ((copyInProgress = srcData.alreadyCopying(tgtLoc)) != null) {
 					String path = copyInProgress.tgtLoc.getURIInHost(targetHost).getPath();
 					setFinalTarget(path);
-					// The same operation is already in progress - no need to
-					// repeat it
+					// The same operation is already in progress - no need to repeat it
 					end(DataOperation.OpEndState.OP_IN_PROGRESS);
 
-					// This group must be notified as well when the operation
-					// finishes
+					// This group must be notified as well when the operation finishes
 					synchronized (copyInProgress.getEventListeners()) {
 						copyInProgress.addEventListeners(getEventListeners());
 					}
@@ -50,9 +48,9 @@ public abstract class ImmediateCopy extends Copy {
 			}
 			srcData.startCopy(this, tgtLoc);
 		}
+		
 		try {
 			specificCopy();
-			// ld.replicate(targetURI);
 		} catch (Exception e) {
 			logger.error("Exception", e);
 			end(DataOperation.OpEndState.OP_FAILED, e);
@@ -68,6 +66,7 @@ public abstract class ImmediateCopy extends Copy {
 				}
 			}
 		}
+		
 		String path = tgtLoc.getURIInHost(targetHost).getPath();
 		setFinalTarget(path);
 		synchronized (srcData) {

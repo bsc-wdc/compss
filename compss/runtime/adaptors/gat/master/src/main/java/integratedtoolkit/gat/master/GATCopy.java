@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.LinkedList;
 
 import org.gridlab.gat.GATInvocationException;
+import org.gridlab.gat.URI;
 import org.gridlab.gat.io.FileInterface;
 
 
@@ -48,51 +49,53 @@ public class GATCopy extends ImmediateCopy {
 
 	@Override
 	public void specificCopy() throws Exception {
+		logger.debug("Performing GAT Specific Copy");
+		
 		// Fetch valid destination URIs
 		LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
-		LinkedList<org.gridlab.gat.URI> gatTargetUris = new LinkedList<org.gridlab.gat.URI>();
+		LinkedList<URI> selectedTargetURIs = new LinkedList<URI>();
 		for (MultiURI uri : targetURIs) {
-			org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
+			URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
 			if (internalURI != null) {
-				gatTargetUris.add(internalURI);
+				selectedTargetURIs.add(internalURI);
 			}
 		}
 
-		if (gatTargetUris.isEmpty()) {
+		if (selectedTargetURIs.isEmpty()) {
 			throw new GATCopyException(ERR_NO_TGT_URI);
 		}
 
 		// Fetch valid source URIs
 		LinkedList<MultiURI> sourceURIs;
-		LinkedList<org.gridlab.gat.URI> gatSrcUris = new LinkedList<org.gridlab.gat.URI>();
+		LinkedList<URI> selectedSourceURIs = new LinkedList<URI>();
 		synchronized (srcData) {
 			if (srcLoc != null) {
 				sourceURIs = srcLoc.getURIs();
 				for (MultiURI uri : sourceURIs) {
-					org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
+					URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
 					if (internalURI != null) {
-						gatSrcUris.add(internalURI);
+						selectedSourceURIs.add(internalURI);
 					}
 				}
 			}
 
 			sourceURIs = srcData.getURIs();
 			for (MultiURI uri : sourceURIs) {
-				org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
+				URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
 				if (internalURI != null) {
-					gatSrcUris.add(internalURI);
+					selectedSourceURIs.add(internalURI);
 				}
 			}
 
-			if (gatSrcUris.isEmpty()) {
+			if (selectedSourceURIs.isEmpty()) {
 				if (srcData.isInMemory()) {
 					try {
 						srcData.writeToStorage();
 						sourceURIs = srcData.getURIs();
 						for (MultiURI uri : sourceURIs) {
-							org.gridlab.gat.URI internalURI = (org.gridlab.gat.URI) uri.getInternalURI(GATAdaptor.ID);
+							URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
 							if (internalURI != null) {
-								gatSrcUris.add(internalURI);
+								selectedSourceURIs.add(internalURI);
 							}
 						}
 					} catch (Exception e) {
@@ -106,10 +109,17 @@ public class GATCopy extends ImmediateCopy {
 		}
 
 		GATInvocationException exception = new GATInvocationException("default logical file");
-		for (org.gridlab.gat.URI src : gatSrcUris) {
-			for (org.gridlab.gat.URI tgt : gatTargetUris) {
+		for (URI src : selectedSourceURIs) {
+			for (URI tgt : selectedTargetURIs) {
+				// Source and target URIs contain Runtime information (schema)
+				// Convert it to GAT format
+				URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + src.getPath());
+				URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgt.getPath());
 				try {
-					doCopy(src, tgt);
+					if (logger.isDebugEnabled()) {
+						logger.debug("GATCopy From: " + gatSrc + " to " + gatTgt);
+					}
+					doCopy(gatSrc, gatTgt);
 					// Try to copy from each location until successful
 				} catch (Exception e) {
 					exception.add("default logical file", e);
@@ -118,6 +128,7 @@ public class GATCopy extends ImmediateCopy {
 				return;
 			}
 		}
+		
 		throw exception;
 	}
 

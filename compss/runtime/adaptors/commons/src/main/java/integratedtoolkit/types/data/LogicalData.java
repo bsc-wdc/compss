@@ -232,11 +232,12 @@ public class LogicalData {
 			// If the PSCO is not persisted we treat it as a normal object
 		} else {
 			// The object must be written to file
-			String targetPath = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkingDirectory() + this.name;
-			SimpleURI uri = new SimpleURI(targetPath);
-			DataLocation loc = DataLocation.createLocation(Comm.appHost, uri);
-
+			String targetPath = Comm.appHost.getWorkingDirectory() + this.name;
 			Serializer.serialize(value, targetPath);
+			
+			String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
+			SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
+			DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
 
 			this.isBeingSaved = false;
 			this.locations.add(loc);

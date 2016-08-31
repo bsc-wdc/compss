@@ -290,7 +290,7 @@ public class OptimizationTest {
 	}
 
 	public void printAction(AllocatableAction action) {
-		System.out.println(action + ":");
+		System.out.println(action + " Core Element " + action.getCoreId() + " Implementation " + action.getAssignedImplementation().getImplementationId() + " (" + action.getAssignedImplementation() + ")");
 		DefaultSchedulingInformation dsi = (DefaultSchedulingInformation) action.getSchedulingInfo();
 		System.out.println("\t Optimization:" + dsi.isOnOptimization());
 		System.out.println("\t StartTime:" + dsi.getExpectedStart());
@@ -502,54 +502,66 @@ public class OptimizationTest {
 		long updateId = System.currentTimeMillis();
 
 		((DefaultSchedulingInformation) action1.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action1.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action1.getSchedulingInfo()).setExpectedStart(0);
 		((DefaultSchedulingInformation) action1.getSchedulingInfo()).lock();
 		runningActions.add(action1);
 
 		((DefaultSchedulingInformation) action2.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action2.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action2.getSchedulingInfo()).setExpectedStart(0);
 		((DefaultSchedulingInformation) action2.getSchedulingInfo()).lock();
 		runningActions.add(action2);
 
 		((DefaultSchedulingInformation) action3.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action3.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action3.getSchedulingInfo()).setExpectedStart(90);
 		readyActions.offer(action3);
 
 		((DefaultSchedulingInformation) action4.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action4.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action4.getSchedulingInfo()).setExpectedStart(0);
 		selectableActions.offer(action4);
 
 		((DefaultSchedulingInformation) action5.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action5.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action5.getSchedulingInfo()).setExpectedStart(0);
 		((DefaultSchedulingInformation) action5.getSchedulingInfo()).optimizingSuccessor(action12);
 		((DefaultSchedulingInformation) action5.getSchedulingInfo()).optimizingSuccessor(action10);
 		selectableActions.offer(action5);
 
 		((DefaultSchedulingInformation) action6.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action6.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action6.getSchedulingInfo()).setExpectedStart(0);
 		((DefaultSchedulingInformation) action6.getSchedulingInfo()).optimizingSuccessor(action12);
 		((DefaultSchedulingInformation) action6.getSchedulingInfo()).optimizingSuccessor(action11);
 		selectableActions.offer(action6);
 
 		((DefaultSchedulingInformation) action7.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action7.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action7.getSchedulingInfo()).setExpectedStart(10);
 		readyActions.offer(action7);
 
 		((DefaultSchedulingInformation) action8.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action8.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action8.getSchedulingInfo()).setExpectedStart(20);
 		readyActions.offer(action8);
 
 		((DefaultSchedulingInformation) action9.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action9.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action9.getSchedulingInfo()).setExpectedStart(90);
 		readyActions.offer(action9);
 
 		((DefaultSchedulingInformation) action10.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action10.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action10.getSchedulingInfo()).setExpectedStart(0);
-
+		
 		((DefaultSchedulingInformation) action11.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action11.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action11.getSchedulingInfo()).setExpectedStart(0);
 
 		((DefaultSchedulingInformation) action12.getSchedulingInfo()).setOnOptimization(true);
+		((DefaultSchedulingInformation) action12.getSchedulingInfo()).setToReschedule(true);
 		((DefaultSchedulingInformation) action12.getSchedulingInfo()).setExpectedStart(0);
 
 		PriorityQueue<AllocatableAction> donationActions = new PriorityQueue(1, ScheduleOptimizer.getDonationComparator());
@@ -646,8 +658,7 @@ public class OptimizationTest {
 		addSchedulingDependency(action12, action13);
 		action13.addDataPredecessor(action15);
 
-		// debugActions(action1, action2, action3, action4, action5, action6, action7, action8, action9, action10,
-		// action11, action12, action13 );
+		// debugActions(action1, action2, action3, action4, action5, action6, action7, action8, action9, action10, action11, action12, action13 );
 		LinkedList<Gap> gaps = new LinkedList<Gap>();
 		LinkedList<AllocatableAction>[] actions = new LinkedList[CoreManager.getCoreCount()];
 		for (int i = 0; i < actions.length; i++) {

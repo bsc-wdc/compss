@@ -3,6 +3,7 @@ package integratedtoolkit.scheduler.defaultscheduler;
 import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
+import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.fake.FakeAllocatableAction;
 import integratedtoolkit.types.fake.FakeImplementation;

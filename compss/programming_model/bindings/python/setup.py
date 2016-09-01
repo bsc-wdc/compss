@@ -15,7 +15,7 @@ compssmodule = Extension('compss',
         sources = ['src/ext/compssmodule.c'])
 
 setup (name='pycompss',
-	version='1.4.rc08',
+	version='1.4.rc09',
 	description='Python Binding for COMP Superscalar Runtime',
 	long_description=open('README.txt').read(),
 	author='Javier Conejero',

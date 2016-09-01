@@ -222,7 +222,8 @@ public class WorkerStarter {
 		}
 
 		/* ********************************************************
-		 * BUILD COMMAND *******************************************************
+		 * BUILD COMMAND 
+		 * *******************************************************
 		 */
 		String[] cmd = new String[NUM_PARAMS_CMD + jvmFlags.length];
 

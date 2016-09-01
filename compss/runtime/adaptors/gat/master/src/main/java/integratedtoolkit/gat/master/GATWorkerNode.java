@@ -21,6 +21,7 @@ import integratedtoolkit.util.SSHManager;
 
 import org.gridlab.gat.GATContext;
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
@@ -131,7 +132,6 @@ public class GATWorkerNode extends COMPSsWorker {
 
 	@Override
 	public void stop(ShutdownListener sl) {
-
 		try {
 			File workingDirRoot = new File(this.config.getWorkingDir());
 			for (File c : workingDirRoot.listFiles()) {
@@ -161,6 +161,7 @@ public class GATWorkerNode extends COMPSsWorker {
 	@Override
 	public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
 			EventListener listener) {
+				
 		Copy c = new GATCopy(srcData, source, target, tgtData, reason, listener);
 		GATAdaptor.enqueueCopy(c);
 	}
@@ -168,6 +169,7 @@ public class GATWorkerNode extends COMPSsWorker {
 	@Override
 	public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
 			EventListener listener) {
+		
 		Copy c = new GATCopy(ld, source, target, tgtData, reason, listener);
 		GATAdaptor.enqueueCopy(c);
 	}
@@ -211,8 +213,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
 	@Override
 	public void deleteTemporary() {
-		// TODO GATWorkerNode hauria d'eliminar " + workingDir + " a " +
-		// getName());
+		// TODO GATWorkerNode should erase " + workingDir + " a " + getName());
 	}
 
 	@Override

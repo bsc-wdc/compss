@@ -19,14 +19,15 @@
     cp=$2
     pythonpath=$3
     debug=$4
-    app=$5
-    method=$6
-    has_target=$7
-    nparams=$8
+    storageConf=$5
+    app=$6
+    method=$7
+    has_target=$8
+    nparams=$9
 
     # Shit all parameters except method ones
     shiftSizeForApp=3
-    shiftSizeForTaskParams=8
+    shiftSizeForTaskParams=9
     shift $shiftSizeForTaskParams
    
     # Get method parameters

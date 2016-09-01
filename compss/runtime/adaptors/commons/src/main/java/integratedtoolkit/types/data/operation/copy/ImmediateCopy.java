@@ -20,7 +20,8 @@ public abstract class ImmediateCopy extends Copy {
 	public void perform() {
 		Resource targetHost = tgtLoc.getHosts().getFirst();
 		logger.debug("THREAD " + Thread.currentThread().getName() + " - Copy file " + getName() + " to " + tgtLoc);
-		synchronized (srcData) {
+				
+		synchronized (srcData) {					
 			if (tgtData != null) {
 				MultiURI u;
 				if ((u = srcData.alreadyAvailable(targetHost)) != null) {

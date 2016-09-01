@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 
 import storage.StorageException;
 import storage.StorageItf;
+import storage.StubItf;
 
 
 /**
@@ -19,7 +20,7 @@ import storage.StorageItf;
  */
 public class GATWorker {
 
-	protected static final int NUM_HEADER_PARS = 5;
+	protected static final int NUM_HEADER_PARS = 6;
 	
 	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
 			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0 ? true : false;
@@ -47,15 +48,28 @@ public class GATWorker {
 	 */
 	public static void main(String args[]) {
 		boolean debug = Boolean.valueOf(args[0]);
-		String className = args[1];
-		String methodName = args[2];
-		boolean hasTarget = Boolean.parseBoolean(args[3]);
-		int numParams = Integer.parseInt(args[4]);
+		String storageConf = args[1];
+		String className = args[2];
+		String methodName = args[3];
+		boolean hasTarget = Boolean.parseBoolean(args[4]);
+		int numParams = Integer.parseInt(args[5]);
 
+		// Check received arguments
 		if (args.length < 2 * numParams + NUM_HEADER_PARS) {
 			ErrorManager.error("Incorrect number of parameters");
 		}
-
+		
+		// Check if we must enable the storage
+		System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
+		if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+			try {
+				StorageItf.init(storageConf);
+			} catch (StorageException e) {
+				ErrorManager.fatal("Error loading storage configuration file: " + storageConf, e);
+			}
+		}
+		
+		// Variables
 		Class<?> types[];
 		Object values[];
 		if (hasTarget) {
@@ -120,7 +134,21 @@ public class GATWorker {
 					renamings[i] = (String) args[pos + 1];
 					mustWrite[i] = ((String) args[pos + 2]).equals("W");
 					
-					String id = renamings[i];
+					renaming = renamings[i];
+					String id = null;
+					try {
+						id = (String) Serializer.deserialize(renaming);
+					} catch (Exception e) {
+						ErrorManager.error("Error deserializing PSCO id parameter " + i + " with renaming " + renaming + ", method "
+								+ methodName + ", class " + className);
+					}
+					
+					// Check retrieved id
+					if (id == null) {
+						ErrorManager.error("PSCO Id with renaming " + renaming + ", method " 
+										+ methodName + ", class " + className + " is null!");
+					}
+					
 					Object obj = null;
 					if (tracing) {
 						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
@@ -128,7 +156,7 @@ public class GATWorker {
 					try {
 						obj = StorageItf.getByID(id);
 					} catch (StorageException e) {
-						ErrorManager.error("Cannot getByID parameter " + i + "with PSCOId " + id + ", method "
+						ErrorManager.error("Cannot getByID parameter " + i + " with PSCOId " + id + ", method "
 								+ methodName + ", class " + className, e);
 					} finally {
 						if (tracing) {
@@ -266,11 +294,24 @@ public class GATWorker {
 		for (int i = 0; i < numParams; i++) {
 			if (mustWrite[i]) {
 				try {
+					// Check if we must serialize a parameter or the target object
+					Object toSerialize = null;
 					if (hasTarget && i == numParams - 1) {
-						Serializer.serialize(target, renamings[i]);
+						toSerialize = target;
 					} else {
-						Serializer.serialize(values[i], renamings[i]);
+						toSerialize = values[i];
 					}
+					
+					// Check if its a PSCO and it's persisted
+					if (toSerialize instanceof StubItf) {
+						String id = ((StubItf) toSerialize).getID();
+						if (id != null) {
+							toSerialize = id;
+						}
+					}
+					
+					// Serialize
+					Serializer.serialize(toSerialize, renamings[i]);
 				} catch (Exception e) {
 					ErrorManager.error("Error serializing object parameter " + i + " with renaming " + renamings[i] + ", method "
 							+ methodName + ", class " + className);
@@ -280,6 +321,16 @@ public class GATWorker {
 
 		// Serialize the return value if existing
 		if (retValue != null) {
+			// If the retValue is a PSCO and it is persisted, we only send the ID
+			// Otherwise we treat the PSCO as a normal object
+			if (retValue instanceof StubItf) {
+				String id = ((StubItf) retValue).getID();
+				if (id != null) {
+					retValue = id;
+				}
+			}
+
+			// Serialize return value to its location
 			String renaming = (String) args[pos + 1];
 			try {
 				Serializer.serialize(retValue, renaming);
@@ -292,6 +343,16 @@ public class GATWorker {
 		if (!allOutFilesCreated) {
 			ErrorManager.error("ERROR: One or more OUT files have not been created by task '" + methodName + "'");
 		}
+		
+		// Stop the storage if needed
+		// WARN: Currently the master does and its no needed
+		/*if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+			try {
+				StorageItf.finish();
+			} catch (StorageException e) {
+				ErrorManager.fatal("Error releasing storage library: " + e.getMessage());
+			}
+		}*/		
 	}
 	
 }

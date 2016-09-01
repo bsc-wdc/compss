@@ -140,7 +140,7 @@ void generate_prolog()
   fprintf(workerFile, "\n");
   fprintf(workerFile, "int main(int argc, char **argv) {\n");
   fprintf(workerFile, "\n");
-  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, className, methodName, hasTarget, numAppParams
+  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, className, methodName, hasTarget, numAppParams
   fprintf(workerFile, "\tprintf(\"Total number of parameters: %%d\\n\", argc);\n");
   fprintf(workerFile, "\tif (argc < NUM_INTERNAL_ARGS) {\n");
   fprintf(workerFile, "\t\tprintf(\"ERROR: Incorrect number of COMPSs internal parameters\\n\");\n");
@@ -153,10 +153,11 @@ void generate_prolog()
   fprintf(workerFile, "\tprintf(\"Tracing: %%s\\n\", argv[1]);\n");
   fprintf(workerFile, "\tprintf(\"Task Id: %%s\\n\", argv[2]);\n");
   fprintf(workerFile, "\tprintf(\"Worker Debug: %%s\\n\", argv[3]);\n");
-  fprintf(workerFile, "\tprintf(\"ClassName: %%s\\n\", argv[4]);\n");
-  fprintf(workerFile, "\tprintf(\"MethodName: %%s\\n\", argv[5]);\n");
-  fprintf(workerFile, "\tprintf(\"HasTarget: %%s\\n\", argv[6]);\n");
-  fprintf(workerFile, "\tprintf(\"Num App Params: %%s\\n\", argv[7]);\n");
+  fprintf(workerFile, "\tprintf(\"StorageConf: %%s\\n\", argv[4]);\n");
+  fprintf(workerFile, "\tprintf(\"ClassName: %%s\\n\", argv[5]);\n");
+  fprintf(workerFile, "\tprintf(\"MethodName: %%s\\n\", argv[6]);\n");
+  fprintf(workerFile, "\tprintf(\"HasTarget: %%s\\n\", argv[7]);\n");
+  fprintf(workerFile, "\tprintf(\"Num App Params: %%s\\n\", argv[8]);\n");
   fprintf(workerFile, "\tprintf(\"Application Arguments:\\n\");\n");
   fprintf(workerFile, "\tfor(int i = NUM_INTERNAL_ARGS; i < argc; i++)\n");
   fprintf(workerFile, "\t\tprintf(\"\\t%%s\\n\",argv[i]);\n");
@@ -306,8 +307,8 @@ static void generate_enum(FILE *outFile, function *first_function)
 
   // Add constants (according to COMPSs Runtime)
   fprintf(outFile, "static const int N_OPS=%d;\n", n);
-  fprintf(outFile, "static const int NUM_INTERNAL_ARGS = 8;\n");
-  fprintf(outFile, "static const int METHOD_NAME_POS = 5;\n");
+  fprintf(outFile, "static const int NUM_INTERNAL_ARGS = 9;\n");
+  fprintf(outFile, "static const int METHOD_NAME_POS = 6;\n");
   fprintf(outFile ,"\n");
 }
 

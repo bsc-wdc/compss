@@ -50,7 +50,7 @@ public class GATCopy extends ImmediateCopy {
 	@Override
 	public void specificCopy() throws Exception {
 		logger.debug("Performing GAT Specific Copy");
-		
+				
 		// Fetch valid destination URIs
 		LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
 		LinkedList<URI> selectedTargetURIs = new LinkedList<URI>();
@@ -68,7 +68,7 @@ public class GATCopy extends ImmediateCopy {
 		// Fetch valid source URIs
 		LinkedList<MultiURI> sourceURIs;
 		LinkedList<URI> selectedSourceURIs = new LinkedList<URI>();
-		synchronized (srcData) {
+		synchronized (srcData) {			
 			if (srcLoc != null) {
 				sourceURIs = srcLoc.getURIs();
 				for (MultiURI uri : sourceURIs) {
@@ -107,15 +107,19 @@ public class GATCopy extends ImmediateCopy {
 				}
 			}
 		}
-
+		
 		GATInvocationException exception = new GATInvocationException("default logical file");
 		for (URI src : selectedSourceURIs) {
 			for (URI tgt : selectedTargetURIs) {
-				// Source and target URIs contain Runtime information (schema)
-				// Convert it to GAT format
-				URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + src.getPath());
-				URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgt.getPath());
 				try {
+					if (logger.isDebugEnabled()) {
+						logger.debug("GATCopy From: " + src + " to " + tgt);
+					}
+					// Source and target URIs contain Runtime information (schema)
+					// Convert it to GAT format
+					URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + src.getPath());
+					URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgt.getPath());
+					
 					if (logger.isDebugEnabled()) {
 						logger.debug("GATCopy From: " + gatSrc + " to " + gatTgt);
 					}

@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-cloud</artifactId>
-<version>1.4.rc08</version>
+<version>1.4.rc09</version>
 		<relativePath>..</relativePath>
 	</parent>
 

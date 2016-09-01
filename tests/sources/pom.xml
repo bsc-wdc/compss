@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-trunk</artifactId>
-<version>1.4.rc08</version>
+<version>1.4.rc09</version>
 		<relativePath>../../</relativePath>
 	</parent>
 	

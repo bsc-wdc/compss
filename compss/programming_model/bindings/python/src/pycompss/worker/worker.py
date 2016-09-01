@@ -58,7 +58,7 @@ def compss_worker():
 
     logger.debug("Starting Worker")
 
-    args = sys.argv[1:]
+    args = sys.argv[2:]
 
     # verbose = args[0]
     path = args[1]

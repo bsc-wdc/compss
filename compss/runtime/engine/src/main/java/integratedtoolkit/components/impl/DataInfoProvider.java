@@ -1,7 +1,9 @@
 package integratedtoolkit.components.impl;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.PersistentLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +23,13 @@ import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.request.ap.TransferObjectRequest;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.util.Tracer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import storage.StorageException;
+import storage.StorageItf;
 import storage.StubItf;
 
 
@@ -46,6 +51,9 @@ public class DataInfoProvider {
 	// Component logger - No need to configure, ProActive does
 	private static final Logger logger = LogManager.getLogger(Loggers.DIP_COMP);
 	private static final boolean debug = logger.isDebugEnabled();
+	
+	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0 ? true : false;
 
 
 	public DataInfoProvider() {
@@ -365,7 +373,28 @@ public class DataInfoProvider {
 				logger.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming() + " nor any of its previous versions");
 				return null;
 			}
+			
+			// Check if data is a PSCO and must be consolidated
+			for (DataLocation loc : Comm.getData(renaming).getLocations()) {
+				if (loc instanceof PersistentLocation) {
+					String pscoId = ((PersistentLocation) loc).getId();
+					if (tracing) {
+						Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(), Tracer.Event.STORAGE_CONSOLIDATE.getType());
+					}
+					try {
+						StorageItf.consolidateVersion(pscoId);
+					} catch (StorageException e) {
+						logger.error("Cannot consolidate PSCO " + pscoId, e);
+					} finally {
+						if (tracing) {
+							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
+						}
+					}
+				}
+				return rf;
+			}
 
+			// If no PSCO location is found, perform normal getData
 			listener.addOperation();
 			Comm.appHost.getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
 			return rf;

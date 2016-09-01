@@ -32,7 +32,7 @@ public final class StorageItf {
 	private static final String ERROR_ERASE_WD = "ERROR: Cannot erase WD";
 	private static final String ERROR_CONFIGURATION_NOT_FOUND = "ERROR: Configuration file not found";
 	private static final String ERROR_CONFIGURATION_CANNOT_OPEN = "ERROR: Cannot open configuration file";
-	private static final String ERROR_NO_PSCO = "ERROR: Cannot found PSCO in master with id=";
+	private static final String ERROR_NO_PSCO = "ERROR: Cannot find PSCO in master with id=";
 	private static final String ERROR_NEW_REPLICA = "ERROR: Cannot create new replica of PSCO with id=";
 	private static final String ERROR_NEW_VERSION = "ERROR: Cannot create new version of PSCO with id=";
 	private static final String ERROR_DESERIALIZE = "ERROR: Cannot deserialize object with id=";
@@ -338,6 +338,18 @@ public final class StorageItf {
 		} catch (Exception e) {
 			throw new StorageException(e);
 		}
+	}
+	
+	/**
+	 * Consolidates all intermediate versions to the final id
+	 * 
+	 * @param idFinal
+	 * @throws StorageException
+	 */
+	public static void consolidateVersion(String idFinal) throws StorageException {
+		logger.info("Consolidating version for " + idFinal);
+		
+		// Nothing to do in this dummy implementation
 	}
 
 	/* ************************************************

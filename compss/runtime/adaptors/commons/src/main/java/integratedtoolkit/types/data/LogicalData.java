@@ -219,6 +219,15 @@ public class LogicalData {
 	public synchronized void setValue(Object o) {
 		this.value = o;
 	}
+	
+	/**
+	 * Sets the PSCO Id value (null if it is not PSCO)
+	 * 
+	 * @param id
+	 */
+	public synchronized void setId(String id) {
+		this.id = id;
+	}
 
 	/**
 	 * Writes memory value to file

@@ -67,6 +67,12 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 	private static final String WORKER_SCRIPT_NAME = "worker.sh";
 
 	public static LinkedList<GATJob> runningJobs = new LinkedList<GATJob>();
+	
+	// Storage Conf
+	private static final boolean IS_STORAGE_ENABLED = System.getProperty(ITConstants.IT_STORAGE_CONF) != null
+			&& !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("")
+			&& !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("null");
+	private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(ITConstants.IT_STORAGE_CONF) : "null";
 
 
 	public GATJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
@@ -105,8 +111,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 			runningJobs.add(this);
 		} catch (Exception e) {
 			if (tracing) {
-				Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(), (Integer) jobDescr.getSoftwareDescription().getAttributes()
-						.get("slot"));
+				Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(), 
+						(Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
 			}
 			throw e;
 		}
@@ -264,6 +270,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 		lArgs.add(getClasspath());
 		lArgs.add(getPythonpath());
 		lArgs.add(String.valueOf(debug));
+		lArgs.add(STORAGE_CONF);
 		lArgs.add(method.getDeclaringClass());
 		lArgs.add(methodName);
 		lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
@@ -275,31 +282,40 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 		for (Parameter param : taskParams.getParameters()) {
 			DataType type = param.getType();
 			lArgs.add(Integer.toString(type.ordinal()));
-			if (type == DataType.FILE_T || type == DataType.OBJECT_T) {
-				DependencyParameter dPar = (DependencyParameter) param;
-				DataAccessId dAccId = dPar.getDataAccessId();
-				lArgs.add(dPar.getDataTarget());
-				if (type == DataType.OBJECT_T) {
+			
+			switch(type) {
+				case FILE_T:
+					DependencyParameter dFilePar = (DependencyParameter) param;
+					lArgs.add(dFilePar.getDataTarget());
+					break;
+				case PSCO_T:
+					logger.error("GAT Adaptor does not support PSCO Types");
+					listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
+					break;
+				case OBJECT_T:
+					DependencyParameter dPar = (DependencyParameter) param;
+					DataAccessId dAccId = dPar.getDataAccessId();
+					lArgs.add(dPar.getDataTarget());
 					if (dAccId instanceof RAccessId) {
 						lArgs.add("R");
 					} else {
-						lArgs.add("W"); // for the worker to know it must write
-										// the object to disk
+						lArgs.add("W"); // for the worker to know it must write the object to disk
 					}
-				}
-
-			} else if (type == DataType.STRING_T) {
-				BasicTypeParameter btParS = (BasicTypeParameter) param;
-				// Check spaces
-				String value = btParS.getValue().toString();
-				int numSubStrings = value.split(" ").length;
-				lArgs.add(Integer.toString(numSubStrings));
-				lArgs.add(value);
-			} else { // Basic types
-				BasicTypeParameter btParB = (BasicTypeParameter) param;
-				lArgs.add(btParB.getValue().toString());
+					break;
+				case STRING_T:
+					BasicTypeParameter btParS = (BasicTypeParameter) param;
+					// Check spaces
+					String value = btParS.getValue().toString();
+					int numSubStrings = value.split(" ").length;
+					lArgs.add(Integer.toString(numSubStrings));
+					lArgs.add(value);
+					break;
+				default:
+					// Basic Types
+					BasicTypeParameter btParB = (BasicTypeParameter) param;
+					lArgs.add(btParB.getValue().toString());
+					break;
 			}
-
 		}
 
 		// Conversion vector -> array
@@ -323,18 +339,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 						if (dAccId instanceof RAccessId) {
 							sb.append("\t Direction: " + "R").append("\n");
 						} else {
-							sb.append("\t Direction: " + "W").append("\n"); // for
-																			// the
-																			// worker
-																			// to
-																			// know
-																			// it
-																			// must
-																			// write
-																			// the
-																			// object
-																			// to
-																			// disk
+							sb.append("\t Direction: " + "W").append("\n"); // for the worker to know it must write the object to disk
 						}
 					}
 				} else if (type == DataType.STRING_T) {
@@ -375,13 +380,13 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 		 * "false");
 		 */
 		if (debug) { // Set standard output file for job
-			File outFile = GAT.createFile(context, "any:///" + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".out");
+			File outFile = GAT.createFile(context, ANY_PROT + "/" + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".out");
 			sd.setStdout(outFile);
 		}
 
 		if (debug || usingGlobus) {
 			// Set standard error file for job
-			File errFile = GAT.createFile(context, "any:///" + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".err");
+			File errFile = GAT.createFile(context, ANY_PROT + "/" + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".err");
 			sd.setStderr(errFile);
 		}
 

@@ -10,6 +10,21 @@ public class StorageObject implements StubItf {
 	private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
 
 	private String id = null;
+	
+	/**
+	 * Constructor
+	 * 
+	 */
+	public StorageObject() {
+	}
+	
+	/**
+	 * Constructor by alias
+	 * 
+	 * @param alias
+	 */
+	public StorageObject(String alias) {
+	}
 
 
 	/**

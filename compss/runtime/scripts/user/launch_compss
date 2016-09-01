@@ -777,6 +777,9 @@ launch() {
       $WCMD&
       hostid=$((hostid+1))
     done
+
+    # Sleep a little before launching master
+    sleep 1s
   fi
 
   # Launch master

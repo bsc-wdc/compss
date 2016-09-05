@@ -10,8 +10,6 @@
 
   # Load parameters --------------------------------------------------
   load_parameters $@
-  # Shift the parameters consumed only by the script
-  shift ${paramsToShift}
 
   # Trap to clean environment
   trap clean_env EXIT
@@ -30,7 +28,7 @@
       echo "Cmd: $cmd $*"
   fi
   
-  $cmd $* 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
+  $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err
   exitValue=$?
 
   post_launch

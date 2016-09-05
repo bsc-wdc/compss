@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
@@ -21,6 +22,13 @@ public abstract class ExternalExecutor extends Executor {
 
 	private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
 	private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
+	
+	// Storage properties
+	// Storage Conf
+	private static final boolean IS_STORAGE_ENABLED = System.getProperty(ITConstants.IT_STORAGE_CONF) != null
+			&& !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("")
+			&& !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("null");
+	private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(ITConstants.IT_STORAGE_CONF) : "null";
 
 	// Piper script properties
 	public static final int MAX_RETRIES = 3;
@@ -31,8 +39,7 @@ public abstract class ExternalExecutor extends Executor {
 	private static final String EXECUTE_TASK_TAG 	= "task";
 
 	private final String writePipe; // Pipe for sending executions
-	private TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by
-												// us)
+	private TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by us)
 
 
 	public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
@@ -139,6 +146,7 @@ public abstract class ExternalExecutor extends Executor {
 		lArgs.add(Boolean.toString(NIOTracer.isActivated()));
 		lArgs.add(Integer.toString(nt.getTaskId()));
 		lArgs.add(Boolean.toString(nt.isWorkerDebug()));
+		lArgs.add(STORAGE_CONF);
 		lArgs.add(nt.getClassName());
 		lArgs.add(nt.getMethodName());
 		lArgs.add(Boolean.toString(nt.isHasTarget()));

@@ -111,9 +111,10 @@ public class GraphGenerator {
 	public GraphGenerator() {
 	}
 
-	/* ******************************************************************
-	 * PUBLIC STATIC METHODS 
-	 * ******************************************************************/
+	/*
+	 * ****************************************************************** 
+	 * PUBLIC STATIC METHODS
+	 ******************************************************************/
 
 	/**
 	 * Returns whether the graph generator is enabled or not
@@ -133,9 +134,10 @@ public class GraphGenerator {
 		return monitorDirPath;
 	}
 
-	/* ******************************************************************
-	 * PUBLIC METHODS 
-	 * ******************************************************************/
+	/*
+	 * ****************************************************************** 
+	 * PUBLIC METHODS
+	 ******************************************************************/
 	/**
 	 * Opens and initializes the current graph buffer file
 	 * 
@@ -174,16 +176,14 @@ public class GraphGenerator {
 			// Move dependence graph content to final location
 			full_graph.close();
 
-			FileChannel sourceChannel = null;
-			FileChannel destChannel = null;
-			try {
-				sourceChannel = new FileInputStream(COMPLETE_GRAPH_TMP_FILE).getChannel();
-				destChannel = new FileOutputStream(COMPLETE_GRAPH_FILE).getChannel();
+			try (FileInputStream sourceStream = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
+					FileOutputStream destStream = new FileOutputStream(COMPLETE_GRAPH_FILE);
+					FileChannel sourceChannel = sourceStream.getChannel();
+					FileChannel destChannel = destStream.getChannel()) {
+				
 				destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-			} finally {
-				sourceChannel.close();
-				destChannel.close();
 			}
+
 			full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE, true));
 
 			// Close graph section
@@ -194,14 +194,13 @@ public class GraphGenerator {
 			openLegend(finalGraph);
 
 			legend.close();
-			try {
-				sourceChannel = new FileInputStream(COMPLETE_LEGEND_TMP_FILE).getChannel();
-				destChannel = new FileOutputStream(COMPLETE_GRAPH_FILE, true).getChannel();
+			try (FileInputStream sourceStream = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
+					FileOutputStream destStream = new FileOutputStream(COMPLETE_GRAPH_FILE);
+					FileChannel sourceChannel = sourceStream.getChannel();
+					FileChannel destChannel = destStream.getChannel()) {
+				
 				destChannel.position(destChannel.size());
 				sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
-			} finally {
-				sourceChannel.close();
-				destChannel.close();
 			}
 			legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE, true));
 
@@ -223,8 +222,8 @@ public class GraphGenerator {
 	public void addSynchroToGraph(int synchId) {
 		try {
 			full_graph.newLine();
-			full_graph.write("Synchro" + synchId
-					+ "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+			full_graph.write(
+					"Synchro" + synchId + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
 		} catch (Exception e) {
 			logger.error(ERROR_ADDING_DATA, e);
 		}
@@ -274,9 +273,9 @@ public class GraphGenerator {
 		new File(COMPLETE_LEGEND_TMP_FILE).delete();
 	}
 
-	/* ******************************************************************
-	 * PRIVATE STATIC METHODS 
-	 * ******************************************************************/
+	/*
+	 * ****************************************************************** PRIVATE STATIC METHODS
+	 ******************************************************************/
 	private static void emptyFullGraph() throws IOException {
 		openGraphFile(full_graph);
 		openDependenceGraph(full_graph);

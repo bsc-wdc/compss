@@ -52,422 +52,411 @@ import storage.StubItf;
 
 public class NIOWorkerNode extends COMPSsWorker {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
-    private NIONode node;
-    private final NIOConfiguration config;
-    private final NIOAdaptor commManager;
-
-
-    @Override
-    public String getName() {
-        return config.getHost();
-    }
-
-    public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
-        super(name, config);
-        this.config = config;
-        this.commManager = adaptor;
-    }
-
-    @Override
-    public void start() throws Exception {
-        NIONode n = null;
-        try {
-            n = new WorkerStarter(this).startWorker();
-        } catch (Exception e) {
-            ErrorManager.warn("There was an error when initiating worker " + getName() + ".", e);
-            throw e;
-        }
-        this.node = n;
+	private NIONode node;
+	private final NIOConfiguration config;
+	private final NIOAdaptor commManager;
 
 
-        if (NIOTracer.isActivated()) {
-            logger.debug("Initializing NIO tracer " + this.getName());
-            NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
-        }
-    }
+	@Override
+	public String getName() {
+		return config.getHost();
+	}
 
-    @Override
-    public String getUser() {
-        return config.getUser();
-    }
+	public NIOWorkerNode(String name, NIOConfiguration config, NIOAdaptor adaptor) {
+		super(name, config);
+		this.config = config;
+		this.commManager = adaptor;
+	}
 
-    public String getHost() {
-        return config.getHost();
-    }
+	@Override
+	public void start() throws Exception {
+		NIONode n = null;
+		try {
+			n = new WorkerStarter(this).startWorker();
+		} catch (Exception e) {
+			ErrorManager.warn("There was an error when initiating worker " + getName() + ".", e);
+			throw e;
+		}
+		this.node = n;
 
-    public String getInstallDir() {
-        return config.getInstallDir();
-    }
+		if (NIOTracer.isActivated()) {
+			logger.debug("Initializing NIO tracer " + this.getName());
+			NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
+		}
+	}
 
-    public String getBaseWorkingDir() {
-        return config.getWorkingDir();
-    }
+	@Override
+	public String getUser() {
+		return config.getUser();
+	}
 
-    public String getWorkingDir() {
-        return config.getSandboxWorkingDir();
-    }
+	public String getHost() {
+		return config.getHost();
+	}
 
-    public String getAppDir() {
-        return config.getAppDir();
-    }
+	public String getInstallDir() {
+		return config.getInstallDir();
+	}
 
-    public String getLibPath() {
-        return config.getLibraryPath();
-    }
+	public String getBaseWorkingDir() {
+		return config.getWorkingDir();
+	}
 
-    @Override
-    public String getClasspath() {
-        return config.getClasspath();
-    }
+	public String getWorkingDir() {
+		return config.getSandboxWorkingDir();
+	}
 
-    @Override
-    public String getPythonpath() {
-        return config.getPythonpath();
-    }
+	public String getAppDir() {
+		return config.getAppDir();
+	}
 
-    public int getLimitOfTasks() {
-        return config.getLimitOfTasks();
-    }
+	public String getLibPath() {
+		return config.getLibraryPath();
+	}
 
-    public int getTotalComputingUnits() {
-        return config.getTotalComputingUnits();
-    }
+	@Override
+	public String getClasspath() {
+		return config.getClasspath();
+	}
 
-    public NIOConfiguration getConfiguration() {
-        return this.config;
-    }
+	@Override
+	public String getPythonpath() {
+		return config.getPythonpath();
+	}
 
-    @Override
-    public void setInternalURI(MultiURI uri) throws UnstartedNodeException {
-        if (node == null) {
-            throw new UnstartedNodeException();
-        }
-        NIOURI nio = new NIOURI(node, uri.getPath());
-        uri.setInternalURI(NIOAdaptor.ID, nio);
-    }
+	public int getLimitOfTasks() {
+		return config.getLimitOfTasks();
+	}
 
-    @Override
-    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        return new NIOJob(taskId, taskParams, impl, res, listener);
-    }
+	public int getTotalComputingUnits() {
+		return config.getTotalComputingUnits();
+	}
 
-    @Override
-    public void stop(ShutdownListener sl) {
-        logger.debug("Shutting down " + this.getName());
-        if (node == null) {
-            sl.notifyFailure(new UnstartedNodeException());
-            logger.error("Shutdown has failed");
-        }
-        Connection c = NIOAgent.tm.startConnection(node);
-        commManager.shuttingDown(this, c, sl);
-        CommandShutdown cmd = new CommandShutdown(null, null);
-        c.sendCommand(cmd);
+	public NIOConfiguration getConfiguration() {
+		return this.config;
+	}
 
-        c.receive();
-        c.finishConnection();
-    }
+	@Override
+	public void setInternalURI(MultiURI uri) throws UnstartedNodeException {
+		if (node == null) {
+			throw new UnstartedNodeException();
+		}
+		NIOURI nio = new NIOURI(node, uri.getPath());
+		uri.setInternalURI(NIOAdaptor.ID, nio);
+	}
 
-    @Override
-    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-                         EventListener listener) {
+	@Override
+	public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+		return new NIOJob(taskId, taskParams, impl, res, listener);
+	}
 
-        if (target.getHosts().contains(Comm.appHost)) {
-            // Request to master
+	@Override
+	public void stop(ShutdownListener sl) {
+		logger.debug("Shutting down " + this.getName());
+		if (node == null) {
+			sl.notifyFailure(new UnstartedNodeException());
+			logger.error("Shutdown has failed");
+		}
+		Connection c = NIOAgent.tm.startConnection(node);
+		commManager.shuttingDown(this, c, sl);
+		CommandShutdown cmd = new CommandShutdown(null, null);
+		c.sendCommand(cmd);
 
-            // Order petition directly
-            if (tgtData != null) {
-                MultiURI u = ld.alreadyAvailable(Comm.appHost);
-                if (u != null) { // Already present at the master
-                    reason.setDataTarget(u.getPath());
-                    listener.notifyEnd(null);
-                    return;
-                }
-            }
+		c.receive();
+		c.finishConnection();
+	}
 
-            Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
-            Data d = new Data(ld);
-            if (source != null) {
-                for (MultiURI uri : source.getURIs()) {
-                    try {
-                        NIOURI nURI = (NIOURI) uri.getInternalURI(NIOAdaptor.ID);
-                        if (nURI != null) {
-                            d.getSources().add(nURI);
-                        }
-                    } catch (UnstartedNodeException une) {
-                        // Ignore internal URI.
-                    }
-                }
-            }
-            String path = target.getURIInHost(Comm.appHost).getPath();
-            ld.startCopy(c, c.getTargetLoc());
-            DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
-            commManager.addTransferRequest(dr);
-            commManager.requestTransfers();
-        } else {
-            // Request to any other
-            orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
-        }
-    }
+	@Override
+	public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+			EventListener listener) {
 
-    @Override
-    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-                           EventListener listener) {
+		if (target.getHosts().contains(Comm.appHost)) {
+			// Request to master
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Obtain Data " + ld.getName() + " as " + target);
-        }
+			// Order petition directly
+			if (tgtData != null) {
+				MultiURI u = ld.alreadyAvailable(Comm.appHost);
+				if (u != null) { // Already present at the master
+					reason.setDataTarget(u.getPath());
+					listener.notifyEnd(null);
+					return;
+				}
+			}
 
-        // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
-        for (DataLocation d : ld.getLocations()) {
-            if (d.getType().equals(DataLocation.Type.PERSISTENT)) {
-                orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
-                return;
-            }
-        }
+			Copy c = new DeferredCopy(ld, null, target, tgtData, reason, listener);
+			Data d = new Data(ld);
+			if (source != null) {
+				for (MultiURI uri : source.getURIs()) {
+					try {
+						NIOURI nURI = (NIOURI) uri.getInternalURI(NIOAdaptor.ID);
+						if (nURI != null) {
+							d.getSources().add(nURI);
+						}
+					} catch (UnstartedNodeException une) {
+						// Ignore internal URI.
+					}
+				}
+			}
+			String path = target.getURIInHost(Comm.appHost).getPath();
+			ld.startCopy(c, c.getTargetLoc());
+			DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
+			commManager.addTransferRequest(dr);
+			commManager.requestTransfers();
+		} else {
+			// Request to any other
+			orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
+		}
+	}
 
-        orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
-    }
+	@Override
+	public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+			EventListener listener) {
 
-    private void orderStorageCopy(StorageCopy sc) {
-        logger.info("Order PSCO Copy for " + sc.getSourceData().getName());
-        if (logger.isDebugEnabled()) {
-            logger.debug("LD Target " + sc.getTargetData());
-            logger.debug("FROM: " + sc.getPreferredSource());
-            logger.debug("TO: " + sc.getTargetLoc());
-        }
+		if (logger.isDebugEnabled()) {
+			logger.debug("Obtain Data " + ld.getName() + " as " + target);
+		}
 
-        LogicalData source = sc.getSourceData();
-        LogicalData target = sc.getTargetData();
-        if (target != null) {
-            if (target.getName().equals(source.getName())) {
-                // The source and target are the same --> IN
-                // TODO: Is new replica necessary?
-                newReplica(sc);
-            } else {
-                // The source and target are different --> OUT
-                newVersion(sc);
-            }
-        } else {
-            // Target doesn't exist yet --> INOUT
-            newVersion(sc);
-        }
-    }
+		// If it has a PSCO location, it is a PSCO -> Order new StorageCopy
+		for (DataLocation d : ld.getLocations()) {
+			if (d.getType().equals(DataLocation.Type.PERSISTENT)) {
+				orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
+				return;
+			}
+		}
 
-    private void newReplica(StorageCopy sc) {
-        String targetHostname = this.getName();
-        LogicalData srcLD = sc.getSourceData();
+		orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
+	}
 
-        logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
+	private void orderStorageCopy(StorageCopy sc) {
+		logger.info("Order PSCO Copy for " + sc.getSourceData().getName());
+		if (logger.isDebugEnabled()) {
+			logger.debug("LD Target " + sc.getTargetData());
+			logger.debug("FROM: " + sc.getPreferredSource());
+			logger.debug("TO: " + sc.getTargetLoc());
+		}
 
-        // Get the PSCO to replicate
-        Object value = srcLD.getValue();
-        if (value == null || !(value instanceof StubItf)) {
-            try {
-                srcLD.loadFromStorage();
-            } catch (Exception e) {
-                // Cannot load value
-                sc.end(OpEndState.OP_FAILED, e);
-                return;
-            }
-            value = srcLD.getValue();
-        }
-        String pscoId = ((StubItf) value).getID();
+		LogicalData source = sc.getSourceData();
+		LogicalData target = sc.getTargetData();
+		if (target != null) {
+			if (target.getName().equals(source.getName())) {
+				// The source and target are the same --> IN
+				// TODO: Is new replica necessary?
+				newReplica(sc);
+			} else {
+				// The source and target are different --> OUT
+				newVersion(sc);
+			}
+		} else {
+			// Target doesn't exist yet --> INOUT
+			newVersion(sc);
+		}
+	}
 
-        // Get the current locations
-        List<String> currentLocations = new LinkedList<String>();
-        try {
-            currentLocations = StorageItf.getLocations(pscoId);
-        } catch (StorageException se) {
-            // Cannot obtain current locations from back-end
-            sc.end(OpEndState.OP_FAILED, se);
-            return;
-        }
+	private void newReplica(StorageCopy sc) {
+		String targetHostname = this.getName();
+		LogicalData srcLD = sc.getSourceData();
 
-        if (!currentLocations.contains(targetHostname)) {
-            // Perform replica
-            logger.debug("Performing new replica for PSCO " + pscoId);
+		logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
-            }
-            try {
-                StorageItf.newReplica(pscoId, targetHostname);
-            } catch (StorageException se) {
-                sc.end(OpEndState.OP_FAILED, se);
-                return;
-            } finally {
+		// Get the PSCO to replicate
+		Object value = srcLD.getValue();
+		if (value == null || !(value instanceof StubItf)) {
+			try {
+				srcLD.loadFromStorage();
+			} catch (Exception e) {
+				// Cannot load value
+				sc.end(OpEndState.OP_FAILED, e);
+				return;
+			}
+			value = srcLD.getValue();
+		}
+		String pscoId = ((StubItf) value).getID();
 
-                if (NIOTracer.isActivated()) {
-                    NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWREPLICA.getType());
-                }
-            }
-        } else {
-            logger.debug("PSCO " + pscoId + " already present. Skip replica.");
-        }
+		// Get the current locations
+		List<String> currentLocations = new LinkedList<String>();
+		try {
+			currentLocations = StorageItf.getLocations(pscoId);
+		} catch (StorageException se) {
+			// Cannot obtain current locations from back-end
+			sc.end(OpEndState.OP_FAILED, se);
+			return;
+		}
 
-        // Notify successful end
-        sc.setFinalTarget(sc.getTargetLoc().getPath());
-        sc.end(OpEndState.OP_OK);
-    }
+		if (!currentLocations.contains(targetHostname)) {
+			// Perform replica
+			logger.debug("Performing new replica for PSCO " + pscoId);
+			if (NIOTracer.isActivated()) {
+				NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+			}
+			try {
+				StorageItf.newReplica(pscoId, targetHostname);
+			} catch (StorageException se) {
+				sc.end(OpEndState.OP_FAILED, se);
+				return;
+			} finally {
+				if (NIOTracer.isActivated()) {
+					NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWREPLICA.getType());
+				}
+			}
+		} else {
+			logger.debug("PSCO " + pscoId + " already present. Skip replica.");
+		}
 
-    private void newVersion(StorageCopy sc) {
-        String targetHostname = this.getName();
-        LogicalData srcLD = sc.getSourceData();
+		// Notify successful end
+		sc.setFinalTarget(sc.getTargetLoc().getPath());
+		sc.end(OpEndState.OP_OK);
+	}
 
-        logger.debug("Ask for new Version of " + srcLD.getName() + " to " + targetHostname);
+	private void newVersion(StorageCopy sc) {
+		String targetHostname = this.getName();
+		LogicalData srcLD = sc.getSourceData();
+		LogicalData targetLD = sc.getTargetData();
 
-        // Get the PSCO to replicate
-        Object value = srcLD.getValue();
-        if (value == null || !(value instanceof StubItf)) {
-            try {
-                srcLD.loadFromStorage();
-            } catch (Exception e) {
-                // Cannot load value
-                sc.end(OpEndState.OP_FAILED, e);
-                return;
-            }
-            value = srcLD.getValue();
-        }
-        String pscoId = ((StubItf) value).getID();
+		logger.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname);
 
-        // Perform version
-        logger.debug("Performing new version for PSCO " + pscoId);
-        if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
-        }
-        try {
-            String newId = StorageItf.newVersion(pscoId, Comm.appHost.getName());
-            logger.debug("Register new new version of " + pscoId + " as " + newId);
-            sc.setFinalTarget(newId);
-        } catch (Exception e) {
-            sc.end(OpEndState.OP_FAILED, e);
-            return;
-        } finally {
+		// Get the PSCOId to replicate
+		String pscoId = srcLD.getId();
 
-            if (NIOTracer.isActivated()) {
-                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWVERSION.getType());
-            }
-        }
+		// Perform version
+		logger.debug("Performing new version for PSCO " + pscoId);
+		if (NIOTracer.isActivated()) {
+			NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
+		}
+		try {
+			String newId = StorageItf.newVersion(pscoId, Comm.appHost.getName());
+			logger.debug("Register new new version of " + pscoId + " as " + newId);
+			sc.setFinalTarget(newId);
+			if (targetLD != null) {
+				targetLD.setId(newId);
+			}
+		} catch (Exception e) {
+			sc.end(OpEndState.OP_FAILED, e);
+			return;
+		} finally {
+			if (NIOTracer.isActivated()) {
+				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWVERSION.getType());
+			}
+		}
 
-        // Notify successful end
-        sc.end(OpEndState.OP_OK);
-    }
+		// Notify successful end
+		sc.end(OpEndState.OP_OK);
+	}
 
-    private void orderCopy(DeferredCopy c) {
-        logger.info("Order Copy for " + c.getSourceData());
+	private void orderCopy(DeferredCopy c) {
+		logger.info("Order Copy for " + c.getSourceData());
 
-        Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
-        LogicalData ld = c.getSourceData();
-        String path;
-        synchronized (ld) {
-            if (c.getTargetData() != null) {
-                MultiURI u = ld.alreadyAvailable(tgtRes);
-                if (u != null) {
-                    path = u.getPath();
-                } else {
-                    path = c.getTargetLoc().getPath();
-                }
-            } else {
-                path = c.getTargetLoc().getPath();
-            }
+		Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
+		LogicalData ld = c.getSourceData();
+		String path;
+		synchronized (ld) {
+			if (c.getTargetData() != null) {
+				MultiURI u = ld.alreadyAvailable(tgtRes);
+				if (u != null) {
+					path = u.getPath();
+				} else {
+					path = c.getTargetLoc().getPath();
+				}
+			} else {
+				path = c.getTargetLoc().getPath();
+			}
 
-            // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
-            ld.startCopy(c, c.getTargetLoc());
-            commManager.registerCopy(c);
-        }
-        c.setProposedSource(new Data(ld));
-        c.setFinalTarget(path);
-        c.end(DataOperation.OpEndState.OP_OK);
-    }
+			// TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
+			ld.startCopy(c, c.getTargetLoc());
+			commManager.registerCopy(c);
+		}
+		c.setProposedSource(new Data(ld));
+		c.setFinalTarget(path);
+		c.end(DataOperation.OpEndState.OP_OK);
+	}
 
-    @Override
-    public void updateTaskCount(int processorCoreCount) {
-    }
+	@Override
+	public void updateTaskCount(int processorCoreCount) {
+	}
 
-    @Override
-    public void announceDestruction() {
-        // No need to do nothing
-    }
+	@Override
+	public void announceDestruction() {
+		// No need to do nothing
+	}
 
-    @Override
-    public void announceCreation() {
-        // No need to do nothing
-    }
+	@Override
+	public void announceCreation() {
+		// No need to do nothing
+	}
 
-    @Override
-    public SimpleURI getCompletePath(DataType type, String name) {
-        String path = null;
-        switch (type) {
-            case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + config.getSandboxWorkingDir() + name;
-                break;
-            case OBJECT_T:
-                path = Protocol.OBJECT_URI.getSchema() + name;
-                break;
-            case PSCO_T:
-                // Search for the PSCO id
-                String id = Comm.getData(name).getId();
-                path = Protocol.PERSISTENT_URI.getSchema() + id;
-                break;
-            default:
-                return null;
-        }
+	@Override
+	public SimpleURI getCompletePath(DataType type, String name) {
+		String path = null;
+		switch (type) {
+			case FILE_T:
+				path = Protocol.FILE_URI.getSchema() + config.getSandboxWorkingDir() + name;
+				break;
+			case OBJECT_T:
+				path = Protocol.OBJECT_URI.getSchema() + name;
+				break;
+			case PSCO_T:
+				// Search for the PSCO id
+				String id = Comm.getData(name).getId();
+				path = Protocol.PERSISTENT_URI.getSchema() + id;
+				break;
+			default:
+				return null;
+		}
 
-        // Switch path to URI
-        return new SimpleURI(path);
-    }
+		// Switch path to URI
+		return new SimpleURI(path);
+	}
 
-    @Override
-    public void deleteTemporary() {
-        // This is only used to clean the master
-        // Nothing to do
-    }
+	@Override
+	public void deleteTemporary() {
+		// This is only used to clean the master
+		// Nothing to do
+	}
 
-    @Override
-    public void generatePackage() {
-        logger.debug("Sending command to generated tracing package for " + this.getHost());
-        if (node == null) {
-            logger.error("Package generation has failed.");
-        }
+	@Override
+	public void generatePackage() {
+		logger.debug("Sending command to generated tracing package for " + this.getHost());
+		if (node == null) {
+			logger.error("Package generation has failed.");
+		}
 
-        Connection c = NIOAgent.tm.startConnection(node);
-        CommandGeneratePackage cmd = new CommandGeneratePackage();
-        c.sendCommand(cmd);
-        c.receive();
-        c.finishConnection();
+		Connection c = NIOAgent.tm.startConnection(node);
+		CommandGeneratePackage cmd = new CommandGeneratePackage();
+		c.sendCommand(cmd);
+		c.receive();
+		c.finishConnection();
 
-        commManager.waitUntilTracingPackageGenerated();
-        logger.debug("Tracing Package generated");
-    }
+		commManager.waitUntilTracingPackageGenerated();
+		logger.debug("Tracing Package generated");
+	}
 
-    @Override
-    public void generateWorkersDebugInfo() {
-        logger.debug("Sending command to generate worker debug files for " + this.getHost());
-        if (node == null) {
-            logger.error("Worker debug files generation has failed.");
-        }
-        Connection c = NIOAgent.tm.startConnection(node);
-        CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
-        c.sendCommand(cmd);
+	@Override
+	public void generateWorkersDebugInfo() {
+		logger.debug("Sending command to generate worker debug files for " + this.getHost());
+		if (node == null) {
+			logger.error("Worker debug files generation has failed.");
+		}
+		Connection c = NIOAgent.tm.startConnection(node);
+		CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
+		c.sendCommand(cmd);
 
-        c.receive();
-        c.finishConnection();
+		c.receive();
+		c.finishConnection();
 
-        commManager.waitUntilWorkersDebugInfoGenerated();
-        logger.debug("Worker debug files generated");
-    }
+		commManager.waitUntilWorkersDebugInfoGenerated();
+		logger.debug("Worker debug files generated");
+	}
 
-    public void submitTask(NIOJob job, LinkedList<String> obsolete) throws UnstartedNodeException {
-        if (node == null) {
-            throw new UnstartedNodeException();
-        }
-        NIOTask t = job.prepareJob();
-        CommandNewTask cmd = new CommandNewTask(t, obsolete);
-        Connection c = NIOAgent.tm.startConnection(node);
-        c.sendCommand(cmd);
-        c.finishConnection();
-    }
+	public void submitTask(NIOJob job, LinkedList<String> obsolete) throws UnstartedNodeException {
+		if (node == null) {
+			throw new UnstartedNodeException();
+		}
+		NIOTask t = job.prepareJob();
+		CommandNewTask cmd = new CommandNewTask(t, obsolete);
+		Connection c = NIOAgent.tm.startConnection(node);
+		c.sendCommand(cmd);
+		c.finishConnection();
+	}
 
 }

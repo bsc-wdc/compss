@@ -5,6 +5,9 @@ import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.resources.components.Processor;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -1012,6 +1015,57 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
 		return common;
 	}
+    
+    
+    
+    
+    /* *******************************************
+     * EXTERNALIZATION
+     * *******************************************/
+     
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+
+        processors = (List<Processor>) in.readObject();
+        totalComputingUnits = in.readInt();
+        memorySize = in.readFloat();
+        memoryType = (String) in.readObject();
+        storageSize = in.readFloat();
+        storageType = (String) in.readObject();
+        operatingSystemType = (String) in.readObject();
+        operatingSystemDistribution = (String) in.readObject();
+        operatingSystemVersion = (String) in.readObject();
+        appSoftware = (List<String>) in.readObject();
+        hostQueues = (List<String>) in.readObject();
+        priceTimeUnit = in.readInt();
+        pricePerUnit = in.readFloat();
+        wallClockLimit = in.readInt();
+        value = in.readFloat();
+               
+    }
+
+    public void writeExternal(ObjectOutput out) throws IOException {   
+        out.writeObject(processors);
+        out.writeInt(totalComputingUnits);
+        out.writeFloat(memorySize);
+        out.writeObject(memoryType);
+        out.writeFloat(storageSize);
+        out.writeObject(storageType);
+        out.writeObject(operatingSystemType);
+        out.writeObject(operatingSystemDistribution);
+        out.writeObject(operatingSystemVersion);
+        out.writeObject(appSoftware);
+        out.writeObject(hostQueues);
+        out.writeInt(priceTimeUnit);
+        out.writeFloat(pricePerUnit);
+        out.writeInt(wallClockLimit);
+        out.writeFloat(value);        
+    }
+    
+    
+
+    /* *******************************************
+     * LOGGERS
+     * *******************************************/
 
 	private Processor getDynamicCommonsProcessor(Processor pThis, Processor p) {
 		// Copy the assignable processor (no the requested)

@@ -1,5 +1,9 @@
 package integratedtoolkit.types.fake;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -77,8 +81,20 @@ public class FakeResourceDescription extends WorkerResourceDescription {
 		return coreCount + " cores";
 	}
 
+
+    
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    	
+    }
+    
+    public void writeExternal(ObjectOutput out) throws IOException {
+    	
+    }
+    
+
 	public boolean checkEquals(FakeResourceDescription fakeResourceDescription) {
 		return coreCount == fakeResourceDescription.coreCount;
 	}
+
 
 }

@@ -10,6 +10,7 @@ import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 
@@ -61,7 +62,7 @@ public abstract class ExternalExecutor extends Executor {
 	}
 
 	@Override
-	public void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
+	public void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs) {
 		// TODO: Add environment variables for MPI or Ompss tasks executed with bindings
 	}
 

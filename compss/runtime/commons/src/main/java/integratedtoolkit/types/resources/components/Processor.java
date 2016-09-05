@@ -1,9 +1,11 @@
 package integratedtoolkit.types.resources.components;
 
+import java.io.Serializable;
+
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
-public class Processor {
+public class Processor implements Serializable {
 
 	private String name = MethodResourceDescription.UNASSIGNED_STR;
 	private int computingUnits = MethodResourceDescription.ZERO_INT;

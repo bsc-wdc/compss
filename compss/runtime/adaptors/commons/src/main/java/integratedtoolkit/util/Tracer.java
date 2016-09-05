@@ -298,16 +298,15 @@ public abstract class Tracer {
             defineEvents();
 
             Wrapper.SetOptions(Wrapper.EXTRAE_ENABLE_ALL_OPTIONS & ~Wrapper.EXTRAE_PTHREAD_OPTION);
-
             Wrapper.Fini();
-
             Wrapper.SetOptions(Wrapper.EXTRAE_DISABLE_ALL_OPTIONS);
+
+            generateMasterPackage();
+            transferMasterPackage();
+            generateTrace();
+            cleanMasterPackage();
         }
 
-        generateMasterPackage();
-        transferMasterPackage();
-        generateTrace();
-        cleanMasterPackage();
     }
 
     private static int getSizeByEventType(int type) {

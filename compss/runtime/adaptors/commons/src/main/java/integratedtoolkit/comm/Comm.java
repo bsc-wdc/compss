@@ -123,7 +123,6 @@ public class Comm {
 		}
 
 		// Stop tracing system
-
 		if (Tracer.isActivated()){
 			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 			Tracer.fini();

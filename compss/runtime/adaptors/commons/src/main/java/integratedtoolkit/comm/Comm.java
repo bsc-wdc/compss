@@ -67,8 +67,13 @@ public class Comm {
 		}
 
 		loadAdaptorsJars();
-
-		if (Tracer.isActivated()){
+        /*
+        * Initializes the Tracer activation value to enable querying Tracer.isActivated()
+        */
+		if (System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0) {
+			logger.debug("Tracing is activated");
+			int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
+			Tracer.init(tracing_level);
 			Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
 		}
 

@@ -94,22 +94,19 @@ public abstract class DataLocation implements Comparable<DataLocation> {
 				break;
 			case SHARED_URI:
 				// Shared file
-				String sharedDisk = uri.getHost(); // The shared Disk name is
-													// stored as host in the URI
+				String sharedDisk = uri.getHost(); // The shared Disk name is stored as host in the URI
 				String path = uri.getPath();
 				logger.debug("Creating new SharedLocation: " + protocol.getSchema() + host.getName() + "@" + sharedDisk + path);
 				loc = new SharedLocation(Protocol.SHARED_URI, sharedDisk, path);
 				break;
 			case OBJECT_URI:
 				// Object
-				String objectName = uri.getPath(); // The Object name is stored
-													// as host in the URI
+				String objectName = uri.getPath(); // The Object name is stored as path in the URI
 				logger.debug("Creating new ObjectLocation: " + protocol.getSchema() + host.getName() + "@" + objectName);
 				loc = createLocation(Protocol.OBJECT_URI, host, objectName);
 				break;
 			case PERSISTENT_URI:
-				String id = uri.getPath(); // The PSCO Id is stored as host in
-											// the URI
+				String id = uri.getPath(); // The PSCO Id is stored as path in the URI
 				logger.debug("Creating new PersistentLocation: " + id);
 				loc = new PersistentLocation(id);
 				break;

@@ -653,6 +653,14 @@ set_variables() {
     node_memory=$(( node_memory / 1024 - 4))
   fi
 
+  if [ "${worker_in_master_memory}" == "disabled" ]; then
+    # Default value
+    worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
+  else
+    # Change from MB to GB
+    worker_in_master_memory=$(( worker_in_master_memory / 1024 - 4))
+  fi
+
   # Load tracing and debug only for NIO
   if [ "${comm/NIO}" != "${comm}" ]; then
     # Adapting tracing flag to worker tracing level
@@ -839,9 +847,11 @@ cleanup() {
   # Cleanup
   echo "Cleanup Worker TMP files"
   for node in ${worker_nodes}; do
-    ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}$node "rm -rf ${worker_working_dir}"
+    local sandboxWD=${worker_working_dir}/${uuid}
+    echo "- Removing ${sandboxWD}"
+    ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}$node "rm -rf ${sandboxWD}"
   done
-  
+
   echo "Cleanup TMP files"
   rm -f ${PROJECT_FILE}
   rm -f ${RESOURCES_FILE}

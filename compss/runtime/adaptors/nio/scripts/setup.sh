@@ -29,16 +29,14 @@
 
     jvmFlags=""
     for i in $(seq 1 $numJvmFlags); do
-      pos=$((4+i))
+      pos=$((4 + i))
       jvmFlags="${jvmFlags} ${!pos}"
     done
   
     # Shift parameters for script and leave only the NIOWorker parameters
-    paramsToShift=$((4+numJvmFlags))
+    paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
-    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    #!!!! REMEMBER TO SHIFT THEM IN THE CALLER CODE 
-    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    paramsToCOMPSsWorker=$*
  
     # Catch some NIOWorker parameters
     debug=$1
@@ -152,5 +150,6 @@
   }
 
   clean_env() {
+    echo "[persistent_worker.sh] Clean WD ${workingDir}"
     rm -rf ${workingDir}
   }

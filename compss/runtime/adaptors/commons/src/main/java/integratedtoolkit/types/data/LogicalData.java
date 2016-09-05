@@ -221,14 +221,14 @@ public class LogicalData {
 	}
 	
 	/**
-	 * Sets the PSCO Id value (null if it is not PSCO)
+	 * Sets the LD id
 	 * 
 	 * @param id
 	 */
 	public synchronized void setId(String id) {
 		this.id = id;
 	}
-
+	
 	/**
 	 * Writes memory value to file
 	 * 
@@ -305,6 +305,7 @@ public class LogicalData {
 					}
 					try {
 						this.value = StorageItf.getByID(pLoc.getId());
+						this.id = pLoc.getId();
 					} catch (StorageException se) {
 						throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
 					} finally {

@@ -10,8 +10,6 @@
 
   # Load parameters --------------------------------------------------
   load_parameters $@
-  # Shift the parameters consumed only by the script
-  shift ${paramsToShift}
 
   # BLAUNCH start ----------------------------------------------------
   # Check that the current machine has not already awaken any WORKER in PORT and for app UUID
@@ -39,7 +37,7 @@
       echo "Cmd: $cmd $*"
   fi
 
-  nohup $cmd $* 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err | echo $! &
+  nohup $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err | echo $! &
   endCode=$?
 
   post_launch

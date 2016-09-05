@@ -20,10 +20,6 @@ public abstract class Executor implements Runnable {
 	protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
 	protected static final boolean workerDebug = logger.isDebugEnabled();
 
-	// Tracing
-	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-
 	// Attached component NIOWorker
 	private final NIOWorker nw;
 	// Attached component Jobs thread Pool
@@ -94,7 +90,8 @@ public abstract class Executor implements Runnable {
 	}
 
 	public final boolean execute(NIOTask nt, NIOWorker nw) {
-		if (tracing) {
+
+		if (NIOTracer.isActivated()) {
 			NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId(), NIOTracer.Event.TASK_RUNNING.getType());
 		}
 
@@ -114,7 +111,8 @@ public abstract class Executor implements Runnable {
 			logger.error(e.getMessage(), e);
 			return false;
 		} finally {
-			if (tracing) {
+
+			if (NIOTracer.isActivated()) {
 				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
 			}
 		}

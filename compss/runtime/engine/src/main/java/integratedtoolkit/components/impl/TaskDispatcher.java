@@ -100,27 +100,27 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 		while (keepGoing) {
 			try {
 				TDRequest<P, T> request = requestQueue.take();
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
 				}
 				request.process(scheduler);
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
 			} catch (InterruptedException ie) {
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
 				continue;
 			} catch (ShutdownException se) {
 				logger.debug("Exiting dispatcher because of shutting down");
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
 				break;
 			} catch (Exception e) {
 				logger.error("RequestError", e);
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
 				continue;

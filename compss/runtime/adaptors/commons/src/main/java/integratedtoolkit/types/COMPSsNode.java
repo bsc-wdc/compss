@@ -25,10 +25,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
 	public static final boolean debug = logger.isDebugEnabled();
 
-	// Tracing
-	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-
 	protected static final String ANY_PROT = "any://";
 
 	protected static final String DELETE_ERR = "Error deleting intermediate files";

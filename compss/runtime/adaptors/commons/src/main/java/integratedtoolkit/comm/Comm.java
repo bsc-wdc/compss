@@ -38,11 +38,6 @@ public class Comm {
 	private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
 	private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
 
-	// Tracing
-	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-	protected static final int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
-
 	private static final HashMap<String, CommAdaptor> adaptors = new HashMap<String, CommAdaptor>();
 
 	// Log and debug
@@ -73,10 +68,10 @@ public class Comm {
 
 		loadAdaptorsJars();
 
-		if (tracing) {
-			Tracer.init(tracing_level);
+		if (Tracer.isActivated()){
 			Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
 		}
+
 	}
 
 	public static synchronized Configuration constructConfiguration(String adaptorName, Object project_properties,
@@ -123,7 +118,8 @@ public class Comm {
 		}
 
 		// Stop tracing system
-		if (tracing) {
+
+		if (Tracer.isActivated()){
 			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 			Tracer.fini();
 		}

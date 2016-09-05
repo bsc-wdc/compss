@@ -11,7 +11,6 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.util.RequestQueue;
-import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -138,7 +137,7 @@ public class JavaExecutor extends Executor {
 
 		/* Invoke the requested method ****************************** */
 		// TRACING: Emit start task
-		if (tracing) {
+		if (NIOTracer.isActivated()) {
 			NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
 			NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
 		}
@@ -149,10 +148,10 @@ public class JavaExecutor extends Executor {
 			throw jee;
 		} finally {
 			// TRACING: Emit end task
-			if (tracing) {
+			if (NIOTracer.isActivated()){
 				NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
 				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
-			}
+			 }
 		}
 
 		/* Check SCO persistence for return and target ************** */
@@ -314,8 +313,8 @@ public class JavaExecutor extends Executor {
 	private Object internalExecution(NIOWorker nw, Method method, TargetParam target, Object[] values) throws JobExecutionException {
 		Object retValue = null;
 
-		if (tracing) {
-			NIOTracer.emitEvent(Tracer.Event.STORAGE_INVOKE.getId(), Tracer.Event.STORAGE_INVOKE.getType());
+		if (NIOTracer.isActivated()) {
+			NIOTracer.emitEvent(NIOTracer.Event.STORAGE_INVOKE.getId(), NIOTracer.Event.STORAGE_INVOKE.getType());
 		}
 
 		try {
@@ -324,8 +323,8 @@ public class JavaExecutor extends Executor {
 		} catch (Exception e) {
 			throw new JobExecutionException(ERROR_TASK_EXECUTION, e);
 		} finally {
-			if (tracing) {
-				NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_INVOKE.getType());
+			if (NIOTracer.isActivated()) {
+				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_INVOKE.getType());
 			}
 		}
 
@@ -355,8 +354,8 @@ public class JavaExecutor extends Executor {
 			logger.info("External ExecuteTask " + method.getName());
 		}
 
-		if (tracing) {
-			NIOTracer.emitEvent(Tracer.Event.STORAGE_EXECUTETASK.getId(), Tracer.Event.STORAGE_EXECUTETASK.getType());
+		if (NIOTracer.isActivated()) {
+			NIOTracer.emitEvent(NIOTracer.Event.STORAGE_EXECUTETASK.getId(), NIOTracer.Event.STORAGE_EXECUTETASK.getType());
 		}
 
 		PSCOCallbackHandler callback = new PSCOCallbackHandler();
@@ -372,8 +371,8 @@ public class JavaExecutor extends Executor {
 		} catch (InterruptedException e) {
 			throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
 		} finally {
-			if (tracing) {
-				NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_EXECUTETASK.getType());
+			if (NIOTracer.isActivated()){
+				NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_EXECUTETASK.getType());
 			}
 		}
 		

@@ -299,7 +299,8 @@ public class LogicalData {
 				case PERSISTENT:
 					PersistentLocation pLoc = (PersistentLocation) loc;
 
-					if (tracing) {
+
+					if (Tracer.isActivated()){
 						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
 					}
 					try {
@@ -307,7 +308,8 @@ public class LogicalData {
 					} catch (StorageException se) {
 						throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
 					} finally {
-						if (tracing) {
+
+						if (Tracer.isActivated()) {
 							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
 						}
 					}

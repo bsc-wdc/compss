@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
+import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,11 +46,6 @@ public abstract class Resource implements Comparable<Resource> {
 		WORKER, 
 		SERVICE
 	}
-
-
-	// Tracing
-	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
 	// Log and debug
 	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
@@ -122,7 +118,7 @@ public abstract class Resource implements Comparable<Resource> {
 	/**
 	 * Returns all the LogicalData stored in the host
 	 * 
-	 * @param host
+	 * @param
 	 * @return
 	 */
 	public HashSet<LogicalData> getAllDataFromHost() {
@@ -308,7 +304,8 @@ public abstract class Resource implements Comparable<Resource> {
 		}
 
 		if (this.getType() != Type.SERVICE) {
-			if (tracing) {
+
+			if (Tracer.isActivated()){
 				node.generatePackage();
 				getTracingPackageToMaster();
 				if (debug) {

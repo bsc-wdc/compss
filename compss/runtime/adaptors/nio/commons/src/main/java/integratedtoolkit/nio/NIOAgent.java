@@ -32,463 +32,469 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class NIOAgent {
 
-	protected static final String NIOEventManagerClass = NIOEventManager.class.getCanonicalName();
-	public static final String ID = NIOAgent.class.getCanonicalName();
+    protected static final String NIOEventManagerClass = NIOEventManager.class.getCanonicalName();
+    public static final String ID = NIOAgent.class.getCanonicalName();
 
-	private int sendTransfers;
-	private final int MAX_SEND_TRANSFERS;
-	private final Connection[] trasmittingConnections;
-	private int receiveTransfers;
-	private final int MAX_RECEIVE_TRANSFERS;
+    private int sendTransfers;
+    private final int MAX_SEND_TRANSFERS;
+    private final Connection[] trasmittingConnections;
+    private int receiveTransfers;
+    private final int MAX_RECEIVE_TRANSFERS;
 
-	private boolean finish;
-	private Connection closingConnection = null;
+    private boolean finish;
+    private Connection closingConnection = null;
 
-	// Requests related to a DataId
-	protected final HashMap<String, LinkedList<DataRequest>> dataToRequests;
-	// Data requests that will be transferred
-	private final LinkedList<DataRequest> pendingRequests;
-	// Ongoing transfers
-	private final HashMap<Connection, String> ongoingTransfers;
+    // Requests related to a DataId
+    protected final HashMap<String, LinkedList<DataRequest>> dataToRequests;
+    // Data requests that will be transferred
+    private final LinkedList<DataRequest> pendingRequests;
+    // Ongoing transfers
+    private final HashMap<Connection, String> ongoingTransfers;
 
-	// Transfers to send as soon as there is a slot available
-	// TODO
-	// private LinkedList<Data> prioritaryData;
-	// IP of the master node
-	protected String masterIP;
-	protected static int masterPort;
-	protected NIONode masterNode;
+    // Transfers to send as soon as there is a slot available
+    // TODO
+    // private LinkedList<Data> prioritaryData;
+    // IP of the master node
+    protected String masterIP;
+    protected static int masterPort;
+    protected NIONode masterNode;
 
-	// Transfer Manager instance
-	public static final TransferManager tm = new TransferManager();
+    // Transfer Manager instance
+    public static final TransferManager tm = new TransferManager();
 
-	// Logging
-	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    // Logging
+    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
-	// Tracing
-	protected static boolean tracing;
-	protected static int tracing_level;
-	protected static int tracingID = 0; // unless NIOWorker sets this value; 0
-										// -> master (NIOAdaptor)
-	protected static HashMap<Connection, Integer> connection2Partner;
+    // Tracing
+    protected static boolean tracing;
+    protected static int tracing_level;
+    protected static int tracingID = 0; // unless NIOWorker sets this value; 0
+    // -> master (NIOAdaptor)
+    protected static HashMap<Connection, Integer> connection2Partner;
 
 
-	/**
-	 * Constructor
-	 * 
-	 * @param snd
-	 * @param rcv
-	 * @param port
-	 */
-	public NIOAgent(int snd, int rcv, int port) {
-		sendTransfers = 0;
-		MAX_SEND_TRANSFERS = snd;
-		trasmittingConnections = new Connection[MAX_SEND_TRANSFERS];
-		receiveTransfers = 0;
-		MAX_RECEIVE_TRANSFERS = rcv;
-		masterPort = port;
-		ongoingTransfers = new HashMap<Connection, String>();
-		pendingRequests = new LinkedList<DataRequest>();
-		dataToRequests = new HashMap<String, LinkedList<DataRequest>>();
-		connection2Partner = new HashMap<Connection, Integer>();
-		finish = false;
-	}
+    /**
+     * Constructor
+     *
+     * @param snd
+     * @param rcv
+     * @param port
+     */
+    public NIOAgent(int snd, int rcv, int port) {
+        sendTransfers = 0;
+        MAX_SEND_TRANSFERS = snd;
+        trasmittingConnections = new Connection[MAX_SEND_TRANSFERS];
+        receiveTransfers = 0;
+        MAX_RECEIVE_TRANSFERS = rcv;
+        masterPort = port;
+        ongoingTransfers = new HashMap<Connection, String>();
+        pendingRequests = new LinkedList<DataRequest>();
+        dataToRequests = new HashMap<String, LinkedList<DataRequest>>();
+        connection2Partner = new HashMap<Connection, Integer>();
+        finish = false;
+    }
 
-	/**
-	 * Returns the master node
-	 * 
-	 * @return
-	 */
-	public NIONode getMaster() {
-		return masterNode;
-	}
+    /**
+     * Returns the master node
+     *
+     * @return
+     */
+    public NIONode getMaster() {
+        return masterNode;
+    }
 
-	/**
-	 * Adds connection and partner
-	 * 
-	 * @param c
-	 * @param partner
-	 * @param tag
-	 */
-	public void addConnectionAndPartner(Connection c, int partner, int tag) {
-		connection2Partner.put(c, partner);
-	}
+    /**
+     * Adds connection and partner
+     *
+     * @param c
+     * @param partner
+     * @param tag
+     */
+    public void addConnectionAndPartner(Connection c, int partner, int tag) {
+        connection2Partner.put(c, partner);
+    }
 
-	/**
-	 * Returns DataRequests of a given dataId
-	 * 
-	 * @param dataId
-	 * @return
-	 */
-	protected LinkedList<DataRequest> getDataRequests(String dataId) {
-		return dataToRequests.get(dataId);
-	}
+    /**
+     * Returns DataRequests of a given dataId
+     *
+     * @param dataId
+     * @return
+     */
+    protected LinkedList<DataRequest> getDataRequests(String dataId) {
+        return dataToRequests.get(dataId);
+    }
 
-	/**
-	 * Returns if there are pending transfers or not
-	 * 
-	 * @return
-	 */
-	public boolean hasPendingTransfers() {
-		return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
-	}
+    /**
+     * Returns if there are pending transfers or not
+     *
+     * @return
+     */
+    public boolean hasPendingTransfers() {
+        return !pendingRequests.isEmpty() || sendTransfers != 0 || receiveTransfers != 0;
+    }
 
-	/**
-	 * Check if receive slots available
-	 */
-	public void requestTransfers() {
-		DataRequest dr = null;
-		synchronized (pendingRequests) {
-			if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-				dr = pendingRequests.remove();
-			}
-		}
-		while (dr != null) {
-			Data source = dr.getSource();
-			NIOURI uri = source.getFirstURI();
+    /**
+     * Check if receive slots available
+     */
+    public void requestTransfers() {
+        DataRequest dr = null;
+        synchronized (pendingRequests) {
+            if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                dr = pendingRequests.remove();
+            }
+        }
+        while (dr != null) {
+            Data source = dr.getSource();
+            NIOURI uri = source.getFirstURI();
 
-			if (tracing) {
-				NIOTracer.emitDataTransferEvent(source.getName());
-			}
-			NIONode nn = uri.getHost();
-			if (nn.getIp() == null) {
-				nn = masterNode;
-			}
-			Connection c = null;
 
-			try {
-				c = tm.startConnection(nn);
-				logger.debug("Connection " + c.hashCode() + " will be used to acquire data " + dr.getTarget() + " stored in " + nn
-						+ " with name " + dr.getSource().getName());
-				Data remoteData = new Data(source.getName(), uri);
-				CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
-				ongoingTransfers.put(c, dr.getSource().getName());
-				c.sendCommand(cdd);
-				if (tracing) {
-					c.receive();
-				}
-				if (dr.getType() == DataType.FILE_T) {
-					c.receiveDataFile(dr.getTarget());
-				} else {
-					c.receiveDataObject();
-				}
+            if (NIOTracer.isActivated()) {
+                NIOTracer.emitDataTransferEvent(source.getName());
+            }
+            NIONode nn = uri.getHost();
+            if (nn.getIp() == null) {
+                nn = masterNode;
+            }
+            Connection c = null;
 
-			} catch (Exception e) {
-				e.printStackTrace(System.err);
-			} finally {
-				if (c != null) {
-					c.finishConnection();
-				}
-			}
-			synchronized (pendingRequests) {
-				if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
-					dr = pendingRequests.remove();
-				} else {
-					dr = null;
-				}
-			}
-			if (tracing) {
-				NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
-			}
-		}
-	}
+            try {
+                c = tm.startConnection(nn);
+                logger.debug("Connection " + c.hashCode() + " will be used to acquire data " + dr.getTarget() + " stored in " + nn
+                        + " with name " + dr.getSource().getName());
+                Data remoteData = new Data(source.getName(), uri);
+                CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
+                ongoingTransfers.put(c, dr.getSource().getName());
+                c.sendCommand(cdd);
 
-	/**
-	 * Adds a new Data Transfer Request
-	 * 
-	 * @param dr
-	 */
-	public void addTransferRequest(DataRequest dr) {
-		LinkedList<DataRequest> list = dataToRequests.get(dr.getSource().getName());
-		if (list == null) {
-			list = new LinkedList<DataRequest>();
-			dataToRequests.put(dr.getSource().getName(), list);
-			synchronized (pendingRequests) {
-				pendingRequests.add(dr);
-			}
-		}
-		list.add(dr);
-	}
+                if (NIOTracer.isActivated()) {
+                    c.receive();
+                }
+                if (dr.getType() == DataType.FILE_T) {
+                    c.receiveDataFile(dr.getTarget());
+                } else {
+                    c.receiveDataObject();
+                }
 
-	/**
-	 * Reply the data
-	 * 
-	 * @param c
-	 * @param d
-	 * @param receiverID
-	 */
-	public void sendData(Connection c, Data d, int receiverID) {
-		if (tracing) {
-			int tag = abs(d.getName().hashCode());
-			CommandTracingID cmd = new CommandTracingID(tracingID, tag);
-			c.sendCommand(cmd);
-			NIOTracer.emitDataTransferEvent(d.getName());
-			NIOTracer.emitCommEvent(true, receiverID, tag);
-		}
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+            } finally {
+                if (c != null) {
+                    c.finishConnection();
+                }
+            }
+            synchronized (pendingRequests) {
+                if (!pendingRequests.isEmpty() && tryAcquireReceiveSlot()) {
+                    dr = pendingRequests.remove();
+                } else {
+                    dr = null;
+                }
+            }
 
-		String path = d.getFirstURI().getPath();
+            if (NIOTracer.isActivated()) {
+                NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+            }
+        }
+    }
 
-		if (path.startsWith(File.separator)) {
-			File f = new File(path);
-			if (f.exists()) {
-				logger.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
-				c.sendDataFile(path);
-			} else {
-				ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
-				handleDataToSendNotAvailable(c, d);
-			}
-		} else {
-			try {
-				Object o = getObject(path);
-				logger.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
-				c.sendDataObject(o);
-			} catch (SerializedObjectException soe) {
-				// Exception has been raised because object has been serialized
-				String newLocation = getObjectAsFile(path);
-				logger.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
-				c.sendDataFile(newLocation);
-			}
+    /**
+     * Adds a new Data Transfer Request
+     *
+     * @param dr
+     */
+    public void addTransferRequest(DataRequest dr) {
+        LinkedList<DataRequest> list = dataToRequests.get(dr.getSource().getName());
+        if (list == null) {
+            list = new LinkedList<DataRequest>();
+            dataToRequests.put(dr.getSource().getName(), list);
+            synchronized (pendingRequests) {
+                pendingRequests.add(dr);
+            }
+        }
+        list.add(dr);
+    }
 
-		}
-		if (tracing) {
-			NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
-		}
-		c.finishConnection();
-	}
+    /**
+     * Reply the data
+     *
+     * @param c
+     * @param d
+     * @param receiverID
+     */
+    public void sendData(Connection c, Data d, int receiverID) {
 
-	/**
-	 * Received Data
-	 * 
-	 * @param c
-	 * @param t
-	 */
-	public void receivedData(Connection c, Transfer t) {
-		String dataId = ongoingTransfers.remove(c);
-		if (dataId == null) { // It has received the output and error of a job
-								// execution
-			return;
-		}
-		releaseReceiveSlot();
-		LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
-		HashMap<String, LinkedList<DataRequest>> byTarget = new HashMap<String, LinkedList<DataRequest>>();
-		for (DataRequest req : requests) {
-			LinkedList<DataRequest> sameTarget = byTarget.get(req.getTarget());
-			if (sameTarget == null) {
-				sameTarget = new LinkedList<DataRequest>();
-				byTarget.put(req.getTarget(), sameTarget);
-			}
-			sameTarget.add(req);
-		}
+        if (NIOTracer.isActivated()) {
+            int tag = abs(d.getName().hashCode());
+            CommandTracingID cmd = new CommandTracingID(tracingID, tag);
+            c.sendCommand(cmd);
+            NIOTracer.emitDataTransferEvent(d.getName());
+            NIOTracer.emitCommEvent(true, receiverID, tag);
+        }
 
-		if (tracing) {
-			int tag = abs(dataId.hashCode());
-			NIOTracer.emitDataTransferEvent(dataId);
+        String path = d.getFirstURI().getPath();
 
-			NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
-			connection2Partner.remove(c);
-		}
+        if (path.startsWith(File.separator)) {
+            File f = new File(path);
+            if (f.exists()) {
+                logger.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
+                c.sendDataFile(path);
+            } else {
+                ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
+                handleDataToSendNotAvailable(c, d);
+            }
+        } else {
+            try {
+                Object o = getObject(path);
+                logger.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
+                c.sendDataObject(o);
+            } catch (SerializedObjectException soe) {
+                // Exception has been raised because object has been serialized
+                String newLocation = getObjectAsFile(path);
+                logger.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
+                c.sendDataFile(newLocation);
+            }
 
-		if (byTarget.size() == 1) {
-			String targetName = requests.getFirst().getTarget();
-			receivedValue(t.getDestination(), targetName, t.getObject(), requests);
-		} else {
-			if (t.isFile()) {
-				receivedValue(t.getDestination(), t.getFileName(), t.getObject(), byTarget.remove(t.getFileName()));
-			} else {
-				receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
-			}
-			for (java.util.Map.Entry<String, LinkedList<DataRequest>> entry : byTarget.entrySet()) {
-				String targetName = entry.getKey();
-				LinkedList<DataRequest> reqs = entry.getValue();
-				try {
-					if (t.isFile()) {
-						Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
-						receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
-					} else {
-						Object o = Serializer.deserialize(t.getArray());
-						receivedValue(t.getDestination(), targetName, o, reqs);
-					}
-				} catch (Exception e) {
-					System.err.println("Can not replicate received Data");
-					e.printStackTrace(System.err);
-				}
+        }
 
-			}
-		}
-		requestTransfers();
+        if (NIOTracer.isActivated()) {
+            NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
+        }
+        c.finishConnection();
+    }
 
-		// Check if shutdown and ready
-		if (finish == true && !hasPendingTransfers()) {
-			shutdown(closingConnection);
-		}
+    /**
+     * Received Data
+     *
+     * @param c
+     * @param t
+     */
+    public void receivedData(Connection c, Transfer t) {
+        String dataId = ongoingTransfers.remove(c);
+        if (dataId == null) { // It has received the output and error of a job
+            // execution
+            return;
+        }
+        releaseReceiveSlot();
+        LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
+        HashMap<String, LinkedList<DataRequest>> byTarget = new HashMap<String, LinkedList<DataRequest>>();
+        for (DataRequest req : requests) {
+            LinkedList<DataRequest> sameTarget = byTarget.get(req.getTarget());
+            if (sameTarget == null) {
+                sameTarget = new LinkedList<DataRequest>();
+                byTarget.put(req.getTarget(), sameTarget);
+            }
+            sameTarget.add(req);
+        }
 
-	}
 
-	/**
-	 * Receives the Shutdown
-	 * 
-	 * @param requester
-	 * @param filesToSend
-	 */
-	public void receivedShutdown(Connection requester, LinkedList<Data> filesToSend) {
-		logger.debug("Command for shutdown received. Preparing for shutdown...");
-		closingConnection = requester;
-		finish = true;
+        if (NIOTracer.isActivated()) {
+            int tag = abs(dataId.hashCode());
+            NIOTracer.emitDataTransferEvent(dataId);
 
-		// Order copies of filesToSend?
-		if (!hasPendingTransfers()) {
-			shutdown(closingConnection);
-		}
-	}
+            NIOTracer.emitCommEvent(false, connection2Partner.get(c), tag, t.getSize());
+            connection2Partner.remove(c);
+        }
 
-	/**
-	 * Check if there is a transfer slot available
-	 * 
-	 * @return
-	 */
-	private boolean tryAcquireReceiveSlot() {
-		boolean b = false;
-		synchronized (this) {
-			if (receiveTransfers < MAX_RECEIVE_TRANSFERS) {
-				receiveTransfers++;
-				b = true;
-			}
-		}
-		return b;
-	}
+        if (byTarget.size() == 1) {
+            String targetName = requests.getFirst().getTarget();
+            receivedValue(t.getDestination(), targetName, t.getObject(), requests);
+        } else {
+            if (t.isFile()) {
+                receivedValue(t.getDestination(), t.getFileName(), t.getObject(), byTarget.remove(t.getFileName()));
+            } else {
+                receivedValue(t.getDestination(), dataId, t.getObject(), byTarget.remove(dataId));
+            }
+            for (java.util.Map.Entry<String, LinkedList<DataRequest>> entry : byTarget.entrySet()) {
+                String targetName = entry.getKey();
+                LinkedList<DataRequest> reqs = entry.getValue();
+                try {
+                    if (t.isFile()) {
+                        Files.copy((new File(t.getFileName())).toPath(), (new File(targetName)).toPath());
+                        receivedValue(t.getDestination(), targetName, t.getObject(), byTarget.remove(targetName));
+                    } else {
+                        Object o = Serializer.deserialize(t.getArray());
+                        receivedValue(t.getDestination(), targetName, o, reqs);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Can not replicate received Data");
+                    e.printStackTrace(System.err);
+                }
 
-	/**
-	 * Release Receive slot
-	 */
-	private void releaseReceiveSlot() {
-		synchronized (this) {
-			receiveTransfers--;
-		}
-	}
+            }
+        }
+        requestTransfers();
 
-	/**
-	 * Check if there is a transfer slot available
-	 * 
-	 * @param c
-	 * @return
-	 */
-	public boolean tryAcquireSendSlot(Connection c) {
-		boolean b = false;
-		if (sendTransfers < MAX_SEND_TRANSFERS) {
-			sendTransfers++;
+        // Check if shutdown and ready
+        if (finish == true && !hasPendingTransfers()) {
+            shutdown(closingConnection);
+        }
 
-			b = true;
-			for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-				if (trasmittingConnections[i] == null) {
-					trasmittingConnections[i] = c;
-					break;
-				}
-			}
-		}
-		return b;
-	}
+    }
 
-	/**
-	 * Release send slot
-	 * 
-	 * @param c
-	 */
-	public void releaseSendSlot(Connection c) {
-		synchronized (this) {
-			for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
-				if (trasmittingConnections[i] == c) {
-					trasmittingConnections[i] = null;
-					sendTransfers--;
-					if (finish) {
-						if (!hasPendingTransfers()) {
-							shutdown(closingConnection);
-						}
-					}
-					break;
-				}
-			}
+    /**
+     * Receives the Shutdown
+     *
+     * @param requester
+     * @param filesToSend
+     */
+    public void receivedShutdown(Connection requester, LinkedList<Data> filesToSend) {
+        logger.debug("Command for shutdown received. Preparing for shutdown...");
+        closingConnection = requester;
+        finish = true;
 
-		}
-	}
+        // Order copies of filesToSend?
+        if (!hasPendingTransfers()) {
+            shutdown(closingConnection);
+        }
+    }
 
-	/**
-	 * Receive notification data not available
-	 * 
-	 * @param c
-	 * @param t
-	 */
-	public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
-		String dataId = ongoingTransfers.remove(c);
-		if (dataId == null) { // It has received the output and error of a job
-								// execution
-			return;
-		}
+    /**
+     * Check if there is a transfer slot available
+     *
+     * @return
+     */
+    private boolean tryAcquireReceiveSlot() {
+        boolean b = false;
+        synchronized (this) {
+            if (receiveTransfers < MAX_RECEIVE_TRANSFERS) {
+                receiveTransfers++;
+                b = true;
+            }
+        }
+        return b;
+    }
 
-		releaseReceiveSlot();
-		LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
-		handleRequestedDataNotAvailableError(requests, dataId);
-		requestTransfers();
+    /**
+     * Release Receive slot
+     */
+    private void releaseReceiveSlot() {
+        synchronized (this) {
+            receiveTransfers--;
+        }
+    }
 
-		// Check if shutdown and ready
-		if (finish == true && !hasPendingTransfers()) {
-			shutdown(closingConnection);
-		}
-	}
+    /**
+     * Check if there is a transfer slot available
+     *
+     * @param c
+     * @return
+     */
+    public boolean tryAcquireSendSlot(Connection c) {
+        boolean b = false;
+        if (sendTransfers < MAX_SEND_TRANSFERS) {
+            sendTransfers++;
 
-	/**
-	 * Generate Tracing package
-	 * 
-	 * @param c
-	 */
-	public void generatePackage(Connection c) {
-		NIOTracer.generatePackage();
-		c.sendCommand(new CommandGenerateDone());
-		c.finishConnection();
-	}
+            b = true;
+            for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
+                if (trasmittingConnections[i] == null) {
+                    trasmittingConnections[i] = c;
+                    break;
+                }
+            }
+        }
+        return b;
+    }
 
-	// Must be implemented on both sides (Master will do anything)
-	public abstract void setMaster(NIONode master);
+    /**
+     * Release send slot
+     *
+     * @param c
+     */
+    public void releaseSendSlot(Connection c) {
+        synchronized (this) {
+            for (int i = 0; i < MAX_SEND_TRANSFERS; i++) {
+                if (trasmittingConnections[i] == c) {
+                    trasmittingConnections[i] = null;
+                    sendTransfers--;
+                    if (finish) {
+                        if (!hasPendingTransfers()) {
+                            shutdown(closingConnection);
+                        }
+                    }
+                    break;
+                }
+            }
 
-	public abstract boolean isMyUuid(String uuid);
+        }
+    }
 
-	// This will use the TreeMap to set the corresponding worker starter as
-	// ready
-	public abstract void setWorkerIsReady(String nodeName);
+    /**
+     * Receive notification data not available
+     *
+     * @param c
+     * @param t
+     */
+    public void receivedRequestedDataNotAvailableError(Connection c, Transfer t) {
+        String dataId = ongoingTransfers.remove(c);
+        if (dataId == null) { // It has received the output and error of a job
+            // execution
+            return;
+        }
 
-	public abstract String getWorkingDir();
+        releaseReceiveSlot();
+        LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
+        handleRequestedDataNotAvailableError(requests, dataId);
+        requestTransfers();
 
-	public abstract void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles);
+        // Check if shutdown and ready
+        if (finish == true && !hasPendingTransfers()) {
+            shutdown(closingConnection);
+        }
+    }
 
-	public abstract Object getObject(String s) throws SerializedObjectException;
+    /**
+     * Generate Tracing package
+     *
+     * @param c
+     */
+    public void generatePackage(Connection c) {
+        NIOTracer.generatePackage();
+        c.sendCommand(new CommandGenerateDone());
+        c.finishConnection();
+    }
 
-	public abstract String getObjectAsFile(String name);
+    // Must be implemented on both sides (Master will do anything)
+    public abstract void setMaster(NIONode master);
 
-	// Called when a value couldn't be SENT because, for example, the file to be
-	// sent it didnt exist
-	protected abstract void handleDataToSendNotAvailable(Connection c, Data d);
+    public abstract boolean isMyUuid(String uuid);
 
-	// Called when a value couldn't be RETRIEVED because, for example, the file
-	// to be retrieved it didnt exist in the sender
-	public abstract void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId);
+    // This will use the TreeMap to set the corresponding worker starter as
+    // ready
+    public abstract void setWorkerIsReady(String nodeName);
 
-	public abstract void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests);
+    public abstract String getWorkingDir();
 
-	public abstract void copiedData(int transfergroupID);
+    public abstract void receivedNewTask(NIONode master, NIOTask t, LinkedList<String> obsoleteFiles);
 
-	public abstract void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful);
+    public abstract Object getObject(String s) throws SerializedObjectException;
 
-	public abstract void shutdownNotification(Connection c);
+    public abstract String getObjectAsFile(String name);
 
-	public abstract void shutdown(Connection closingConnection);
+    // Called when a value couldn't be SENT because, for example, the file to be
+    // sent it didnt exist
+    protected abstract void handleDataToSendNotAvailable(Connection c, Data d);
 
-	public abstract void waitUntilTracingPackageGenerated();
+    // Called when a value couldn't be RETRIEVED because, for example, the file
+    // to be retrieved it didnt exist in the sender
+    public abstract void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId);
 
-	public abstract void notifyTracingPackageGeneration();
+    public abstract void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests);
 
-	public abstract void generateWorkersDebugInfo(Connection c);
+    public abstract void copiedData(int transfergroupID);
 
-	public abstract void waitUntilWorkersDebugInfoGenerated();
+    public abstract void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful);
 
-	public abstract void notifyWorkersDebugInfoGeneration();
+    public abstract void shutdownNotification(Connection c);
+
+    public abstract void shutdown(Connection closingConnection);
+
+    public abstract void waitUntilTracingPackageGenerated();
+
+    public abstract void notifyTracingPackageGeneration();
+
+    public abstract void generateWorkersDebugInfo(Connection c);
+
+    public abstract void waitUntilWorkersDebugInfoGenerated();
+
+    public abstract void notifyWorkersDebugInfoGeneration();
 
 }

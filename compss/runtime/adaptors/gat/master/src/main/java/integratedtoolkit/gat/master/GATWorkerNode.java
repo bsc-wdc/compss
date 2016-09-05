@@ -19,6 +19,7 @@ import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SSHManager;
 
+import integratedtoolkit.util.Tracer;
 import org.gridlab.gat.GATContext;
 
 
@@ -45,7 +46,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
 	@Override
 	public void start() throws Exception {
-		if (tracing) {
+		if (GATTracer.isActivated()) {
 			logger.debug("Starting GAT tracer " + this.getName());
 			tracingJob = GATTracer.startTracing(this);
 			waitForTracingReady();
@@ -102,7 +103,7 @@ public class GATWorkerNode extends COMPSsWorker {
 	}
 
 	private void waitForTracingReady() {
-		if (!tracing) {
+		if (!GATTracer.isActivated()) {
 			return;
 		}
 		GATTracer.waitForTracing(tracingJob);
@@ -176,7 +177,7 @@ public class GATWorkerNode extends COMPSsWorker {
 
 	@Override
 	public void updateTaskCount(int processorCoreCount) {
-		if (tracing) {
+		if (GATTracer.isActivated()) {
 			System.err.println("Tracing system and Cloud do not work together");
 		}
 	}

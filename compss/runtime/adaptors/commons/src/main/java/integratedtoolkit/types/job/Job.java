@@ -18,9 +18,6 @@ public abstract class Job<T extends COMPSsWorker> {
 	protected static int nextJobId = FIRST_JOB_ID;
 	// Language
 	protected static final String lang = System.getProperty(ITConstants.IT_LANG);
-	// Tracing
-	protected static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
 	// Environment variables for job execution
 	private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null && !System.getProperty(

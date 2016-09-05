@@ -51,7 +51,7 @@ public class NIOWorker extends NIOAgent {
 
 	// Logger
 	private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
-	private static final boolean loggerDebug = wLogger.isDebugEnabled();
+	private static final boolean wLoggerDebug = wLogger.isDebugEnabled();
 	private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
 	private static final String DATA_MANAGER_ERROR = "Error starting DataManager";
 	private static final String ERROR_INCORRECT_NUM_PARAMS = "Error: Incorrect number of parameters";
@@ -169,7 +169,7 @@ public class NIOWorker extends NIOAgent {
 	}
 
 	public static boolean isTracingEnabled() {
-		return tracing;
+		return NIOTracer.isActivated();
 	}
 
 	public String getLang() {
@@ -205,7 +205,7 @@ public class NIOWorker extends NIOAgent {
 	public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
 		wLogger.info("Received Job " + task);
 
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(NIOTracer.Event.RECEIVED_NEW_TASK.getId(), NIOTracer.Event.RECEIVED_NEW_TASK.getType());
 		}
 
@@ -240,7 +240,7 @@ public class NIOWorker extends NIOAgent {
 							wLogger.debug("   - Retrieving psco " + pscoId + " from Storage");
 							// Get Object from its ID
 							Object obj = null;
-							if (tracing) {
+							if (NIOTracer.isActivated())  {
 								NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
 							}
 							try {
@@ -248,7 +248,7 @@ public class NIOWorker extends NIOAgent {
 							} catch (StorageException e) {
 								wLogger.error("Cannot getByID PSCO " + pscoId, e);
 							} finally {
-								if (tracing) {
+								if (NIOTracer.isActivated())  {
 									NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
 								}
 							}
@@ -441,18 +441,18 @@ public class NIOWorker extends NIOAgent {
 		}
 
 		// Request the transfers
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(tt.getTask().getTaskId(), NIOTracer.getTaskTransfersType());
 		}
 		requestTransfers();
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskTransfersType());
 		}
 
 		if (tt.getParams() == 0) {
 			executeTask(tt.getTask());
 		}
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
 		}
 	}
@@ -530,7 +530,7 @@ public class NIOWorker extends NIOAgent {
 		for (DataRequest dr : achievedRequests) {
 			WorkerDataRequest wdr = (WorkerDataRequest) dr;
 			wdr.getTransferringTask().decreaseParams();
-			if (tracing) {
+			if (NIOTracer.isActivated())  {
 				NIOTracer.emitDataTransferEvent(NIOTracer.TRANSFER_END);
 			}
 			if (wdr.getTransferringTask().getParams() == 0) {
@@ -716,7 +716,7 @@ public class NIOWorker extends NIOAgent {
 
 		// If there was any problem on transfer, try to get it now by id from
 		// any other host (done by storage getById)
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
 		}
 
@@ -727,7 +727,7 @@ public class NIOWorker extends NIOAgent {
 		} catch (StorageException e) {
 			throw e;
 		} finally {
-			if (tracing) {
+			if (NIOTracer.isActivated())  {
 				NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
 			}
 		}
@@ -873,7 +873,7 @@ public class NIOWorker extends NIOAgent {
 		 * Get arguments 
 		 * **************************************/
 		if (args.length != 19) {
-			if (loggerDebug) {
+			if (wLoggerDebug) {
 				wLogger.debug("Received parameters: ");
 				for (int i = 0; i < args.length; ++i) {
 					wLogger.debug("Param " + i + ":  " + args[i]);
@@ -954,13 +954,12 @@ public class NIOWorker extends NIOAgent {
 		/* **************************************
 		 * Configure tracing 
 		 * **************************************/
-		System.setProperty(ITConstants.IT_TRACING, trace);
-		tracing = Integer.parseInt(trace) > 0;
 		tracing_level = Integer.parseInt(trace);
 
 		// Initialize tracing system
-		if (tracing) {
-			NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
+		if (tracing_level > 0) {
+            NIOTracer.init(tracing_level);
+            NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
 
 			try {
 				tracingID = Integer.parseInt(host);
@@ -1000,7 +999,7 @@ public class NIOWorker extends NIOAgent {
 			return;
 		}
 
-		if (tracing) {
+		if (NIOTracer.isActivated())  {
 			NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.START.getType());
 		}
 

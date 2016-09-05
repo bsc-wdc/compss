@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.nio.NIOTask;
+import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
@@ -60,7 +61,8 @@ public class PythonExecutor extends ExternalExecutor {
 		}
 
 		// Add pyextrae to PYTHONPATH if tracing
-		if (tracing) {
+
+		if (NIOTracer.isActivated()) {
 			String libexec_extrae_path = nw.getInstallDir() + LIBEXEC_EXTRAE_RELATIVE_PATH;
 			String lib_extrae_path = nw.getInstallDir() + LIB_EXTRAE_RELATIVE_PATH;
 			pythonPath += ":" + libexec_extrae_path + ":" + lib_extrae_path;

@@ -41,12 +41,14 @@ public abstract class ExternalExecutor extends Executor {
 		this.writePipe = writePipe;
 		this.taskResultReader = resultReader;
 
-		if (tracing) {
+
+		if (NIOTracer.isActivated()){
 			NIOTracer.disablePThreads();
 		}
 		// Start task Reader
 		this.taskResultReader.start();
-		if (tracing) {
+
+		if (NIOTracer.isActivated()){
 			NIOTracer.enablePThreads();
 		}
 	}
@@ -134,7 +136,7 @@ public abstract class ExternalExecutor extends Executor {
 	private static void addArguments(ArrayList<String> lArgs, NIOTask nt, NIOWorker nw) throws JobExecutionException,
 			SerializedObjectException {
 		
-		lArgs.add(Boolean.toString(tracing));
+		lArgs.add(Boolean.toString(NIOTracer.isActivated()));
 		lArgs.add(Integer.toString(nt.getTaskId()));
 		lArgs.add(Boolean.toString(nt.isWorkerDebug()));
 		lArgs.add(nt.getClassName());
@@ -172,7 +174,8 @@ public abstract class ExternalExecutor extends Executor {
 		// Emit start task trace
 		int taskType = nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
 		int taskId = nt.getTaskId();
-		if (tracing) {
+
+		if (NIOTracer.isActivated()) {
 			emitStartTask(taskId, taskType);
 		}
 
@@ -201,7 +204,8 @@ public abstract class ExternalExecutor extends Executor {
 					try {
 						output.close();
 					} catch (Exception e) {
-						if (tracing) {
+
+						if (NIOTracer.isActivated()){
 							emitEndTask(taskId);
 						}
 						throw new JobExecutionException("Job " + jobId + " has failed. Cannot close pipe");
@@ -211,7 +215,8 @@ public abstract class ExternalExecutor extends Executor {
 			done = true;
 		}
 		if (!done) {
-			if (tracing) {
+
+			if (NIOTracer.isActivated()){
 				emitEndTask(taskId);
 			}
 			throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
@@ -228,7 +233,8 @@ public abstract class ExternalExecutor extends Executor {
 		int exitValue = taskResultReader.getExitValue(jobId);
 
 		// Emit end task trace
-		if (tracing) {
+
+		if (NIOTracer.isActivated()){
 			emitEndTask(taskId);
 		}
 

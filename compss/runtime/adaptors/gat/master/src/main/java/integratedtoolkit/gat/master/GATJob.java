@@ -110,7 +110,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 			job = broker.submitJob(jobDescr, this, JOB_STATUS);
 			runningJobs.add(this);
 		} catch (Exception e) {
-			if (tracing) {
+			if (Tracer.isActivated()) {
 				Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(), 
 						(Integer) jobDescr.getSoftwareDescription().getAttributes().get("slot"));
 			}
@@ -154,7 +154,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 		 * error. We don't care about other state transitions
 		 */
 		if (newJobState == JobState.STOPPED) {
-			if (tracing) {
+
+			if (Tracer.isActivated()) {
 				Integer slot = (Integer) sd.getAttributes().get("slot");
 				String host = getResourceNode().getHost();
 				Tracer.freeSlot(host, slot);
@@ -195,7 +196,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 				ErrorManager.fatal(CALLBACK_PROCESSING_ERR + ": " + this, e);
 			}
 		} else if (newJobState == JobState.SUBMISSION_ERROR) {
-			if (tracing) {
+
+			if (Tracer.isActivated()) {
 				Integer slot = (Integer) sd.getAttributes().get("slot");
 				String host = getResourceNode().getHost();
 				Tracer.freeSlot(host, slot);
@@ -250,12 +252,13 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 		} else {
 			lArgs.add("0");
 		}
-		lArgs.add(Boolean.toString(tracing));
+		lArgs.add(Boolean.toString(Tracer.isActivated()));
 		lArgs.add(getHostName());
 		if (debug) {
 			logger.debug("hostName " + getHostName());
 		}
-		if (tracing) {
+
+		if (Tracer.isActivated()) {
 			lArgs.add(String.valueOf(Tracer.getTaskEventsType())); // event type
 			lArgs.add(String.valueOf(this.taskParams.getId() + 1)); // task id
 			int slot = Tracer.getNextSlot(targetHost);

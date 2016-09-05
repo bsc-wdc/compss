@@ -108,7 +108,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 			try {
 				request = requestQueue.take();
 
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(), Tracer.getRuntimeEventsType());
 				}
 				request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
@@ -118,7 +118,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 			} catch (Exception e) {
 				logger.error("Exception", e);
 			} finally {
-				if (tracing) {
+				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
 			}

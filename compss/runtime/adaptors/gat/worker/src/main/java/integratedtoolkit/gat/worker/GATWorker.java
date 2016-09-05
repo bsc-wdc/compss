@@ -150,7 +150,7 @@ public class GATWorker {
 					}
 					
 					Object obj = null;
-					if (tracing) {
+					if (Tracer.isActivated()) {
 						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
 					}
 					try {
@@ -159,7 +159,7 @@ public class GATWorker {
 						ErrorManager.error("Cannot getByID parameter " + i + " with PSCOId " + id + ", method "
 								+ methodName + ", class " + className, e);
 					} finally {
-						if (tracing) {
+						if (Tracer.isActivated()) {
 							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
 						}
 					}

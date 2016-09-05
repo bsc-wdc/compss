@@ -37,646 +37,636 @@ import org.apache.logging.log4j.Logger;
 
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
-	// Exception constants definition
-	protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
-	protected static final String WARN_LOG4J_FILE_NOT_READ = "WARNING: Log4j Properties file could not be read.\nNo logging in files will be available";
-	protected static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
-	protected static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
-	protected static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
-	protected static final String ERROR_OBJECT_SERIALIZE = "ERROR: Cannot serialize object to file";
-	protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
-	protected static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
+    // Exception constants definition
+    protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
+    protected static final String WARN_LOG4J_FILE_NOT_READ = "WARNING: Log4j Properties file could not be read.\nNo logging in files will be available";
+    protected static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
+    protected static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
+    protected static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
+    protected static final String ERROR_OBJECT_SERIALIZE = "ERROR: Cannot serialize object to file";
+    protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
+    protected static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
 
-	// COMPSs Version and buildnumber attributes
-	protected static String COMPSs_VERSION = null;
-	protected static String COMPSs_BUILDNUMBER = null;
+    // COMPSs Version and buildnumber attributes
+    protected static String COMPSs_VERSION = null;
+    protected static String COMPSs_BUILDNUMBER = null;
 
-	// Components
-	protected static AccessProcessor ap;
-	protected static TaskDispatcher<?, ?> td;
+    // Components
+    protected static AccessProcessor ap;
+    protected static TaskDispatcher<?, ?> td;
 
-	// Application attributes and directories
-	public static String appName;
+    // Application attributes and directories
+    public static String appName;
 
-	public static boolean initialized = false;
+    public static boolean initialized = false;
 
-	// Object registry
-	protected static ObjectRegistry oReg;
+    // Object registry
+    protected static ObjectRegistry oReg;
 
-	// Monitor
-	protected static GraphGenerator graphMonitor;
-	protected static RuntimeMonitor runtimeMonitor;
+    // Monitor
+    protected static GraphGenerator graphMonitor;
+    protected static RuntimeMonitor runtimeMonitor;
 
-	// Logger
-	protected static final Logger logger = LogManager.getLogger(Loggers.API);
+    // Logger
+    protected static final Logger logger = LogManager.getLogger(Loggers.API);
 
-	// Tracing
-	protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-
-	static {
-		// Load Runtime configuration parameters
-		String properties_loc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
-		if (properties_loc == null) {
-			InputStream stream = findPropertiesConfigFile();
-			if (stream != null) {
-				try {
-					setPropertiesFromRuntime(new RuntimeConfigManager(stream));
-				} catch (Exception e) {
-					System.err.println(WARN_IT_FILE_NOT_READ);
-					e.printStackTrace();
-				}
-			} else {
-				setDefaultProperties();
-			}
-		} else {
-			try {
-				setPropertiesFromRuntime(new RuntimeConfigManager(properties_loc));
-			} catch (Exception e) {
-				System.err.println(WARN_IT_FILE_NOT_READ);
-				e.printStackTrace();
-			}
-		}
+    static {
+        // Load Runtime configuration parameters
+        String properties_loc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
+        if (properties_loc == null) {
+            InputStream stream = findPropertiesConfigFile();
+            if (stream != null) {
+                try {
+                    setPropertiesFromRuntime(new RuntimeConfigManager(stream));
+                } catch (Exception e) {
+                    System.err.println(WARN_IT_FILE_NOT_READ);
+                    e.printStackTrace();
+                }
+            } else {
+                setDefaultProperties();
+            }
+        } else {
+            try {
+                setPropertiesFromRuntime(new RuntimeConfigManager(properties_loc));
+            } catch (Exception e) {
+                System.err.println(WARN_IT_FILE_NOT_READ);
+                e.printStackTrace();
+            }
+        }
 
 		/*
-		 * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
+         * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
 		 */
-		Comm.init();
-	}
+        Comm.init();
+    }
 
 
-	// Code Added to support configuration files
-	private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
-		try {
-			if (manager != null) {
-				if (manager.getDeploymentId() != null && System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null) {
-					System.setProperty(ITConstants.IT_DEPLOYMENT_ID, manager.getDeploymentId());
-				}
-				if (manager.getMasterPort() != null && System.getProperty(ITConstants.IT_MASTER_PORT) == null) {
-					System.setProperty(ITConstants.IT_MASTER_PORT, manager.getMasterPort());
-				}
-				if (manager.getAppName() != null && System.getProperty(ITConstants.IT_APP_NAME) == null) {
-					System.setProperty(ITConstants.IT_APP_NAME, manager.getAppName());
-				}
-				if (manager.getCOMPSsBaseLogDir() != null && System.getProperty(ITConstants.IT_BASE_LOG_DIR) == null) {
-					System.setProperty(ITConstants.IT_BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
-				}
-				if (manager.getSpecificLogDir() != null && System.getProperty(ITConstants.IT_SPECIFIC_LOG_DIR) == null) {
-					System.setProperty(ITConstants.IT_SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
-				}
-				if (manager.getLog4jConfiguration() != null && System.getProperty(ITConstants.LOG4J) == null) {
-					System.setProperty(ITConstants.LOG4J, manager.getLog4jConfiguration());
-				}
-				if (manager.getResourcesFile() != null && System.getProperty(ITConstants.IT_RES_FILE) == null) {
-					System.setProperty(ITConstants.IT_RES_FILE, manager.getResourcesFile());
-				}
-				if (manager.getResourcesSchema() != null && System.getProperty(ITConstants.IT_RES_SCHEMA) == null) {
-					System.setProperty(ITConstants.IT_RES_SCHEMA, manager.getResourcesSchema());
-				}
-				if (manager.getProjectFile() != null && System.getProperty(ITConstants.IT_PROJ_FILE) == null) {
-					System.setProperty(ITConstants.IT_PROJ_FILE, manager.getProjectFile());
-				}
-				if (manager.getProjectSchema() != null && System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null) {
-					System.setProperty(ITConstants.IT_PROJ_SCHEMA, manager.getProjectSchema());
-				}
+    // Code Added to support configuration files
+    private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
+        try {
+            if (manager != null) {
+                if (manager.getDeploymentId() != null && System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null) {
+                    System.setProperty(ITConstants.IT_DEPLOYMENT_ID, manager.getDeploymentId());
+                }
+                if (manager.getMasterPort() != null && System.getProperty(ITConstants.IT_MASTER_PORT) == null) {
+                    System.setProperty(ITConstants.IT_MASTER_PORT, manager.getMasterPort());
+                }
+                if (manager.getAppName() != null && System.getProperty(ITConstants.IT_APP_NAME) == null) {
+                    System.setProperty(ITConstants.IT_APP_NAME, manager.getAppName());
+                }
+                if (manager.getCOMPSsBaseLogDir() != null && System.getProperty(ITConstants.IT_BASE_LOG_DIR) == null) {
+                    System.setProperty(ITConstants.IT_BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
+                }
+                if (manager.getSpecificLogDir() != null && System.getProperty(ITConstants.IT_SPECIFIC_LOG_DIR) == null) {
+                    System.setProperty(ITConstants.IT_SPECIFIC_LOG_DIR, manager.getSpecificLogDir());
+                }
+                if (manager.getLog4jConfiguration() != null && System.getProperty(ITConstants.LOG4J) == null) {
+                    System.setProperty(ITConstants.LOG4J, manager.getLog4jConfiguration());
+                }
+                if (manager.getResourcesFile() != null && System.getProperty(ITConstants.IT_RES_FILE) == null) {
+                    System.setProperty(ITConstants.IT_RES_FILE, manager.getResourcesFile());
+                }
+                if (manager.getResourcesSchema() != null && System.getProperty(ITConstants.IT_RES_SCHEMA) == null) {
+                    System.setProperty(ITConstants.IT_RES_SCHEMA, manager.getResourcesSchema());
+                }
+                if (manager.getProjectFile() != null && System.getProperty(ITConstants.IT_PROJ_FILE) == null) {
+                    System.setProperty(ITConstants.IT_PROJ_FILE, manager.getProjectFile());
+                }
+                if (manager.getProjectSchema() != null && System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null) {
+                    System.setProperty(ITConstants.IT_PROJ_SCHEMA, manager.getProjectSchema());
+                }
 
-				if (manager.getScheduler() != null && System.getProperty(ITConstants.IT_SCHEDULER) == null) {
-					System.setProperty(ITConstants.IT_SCHEDULER, manager.getScheduler());
-				}
-				if (manager.getMonitorInterval() > 0 && System.getProperty(ITConstants.IT_MONITOR) == null) {
-					System.setProperty(ITConstants.IT_MONITOR, Long.toString(manager.getMonitorInterval()));
-				}
-				if (manager.getGATAdaptor() != null && System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null) {
-					System.setProperty(ITConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
-				}
-				if (manager.getGATBrokerAdaptor() != null && System.getProperty(ITConstants.GAT_BROKER_ADAPTOR) == null) {
-					System.setProperty(ITConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
-				}
-				if (manager.getGATFileAdaptor() != null && System.getProperty(ITConstants.GAT_FILE_ADAPTOR) == null) {
-					System.setProperty(ITConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
-				}
-				if (manager.getWorkerCP() != null && System.getProperty(ITConstants.IT_WORKER_CP) == null) {
-					System.setProperty(ITConstants.IT_WORKER_CP, manager.getWorkerCP());
-				}
-				if (manager.getServiceName() != null && System.getProperty(ITConstants.IT_SERVICE_NAME) == null) {
-					System.setProperty(ITConstants.IT_SERVICE_NAME, manager.getServiceName());
-				}
-				if (System.getProperty(ITConstants.COMM_ADAPTOR) == null) {
-					if (manager.getCommAdaptor() != null) {
-						System.setProperty(ITConstants.COMM_ADAPTOR, manager.getCommAdaptor());
-					} else {
-						System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
-					}
-				}
-				if (System.getProperty(ITConstants.GAT_DEBUG) == null) {
-					System.setProperty(ITConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
-				}
-				if (System.getProperty(ITConstants.IT_LANG) == null) {
-					System.setProperty(ITConstants.IT_LANG, manager.getLang());
-				}
-				if (System.getProperty(ITConstants.IT_GRAPH) == null) {
-					System.setProperty(ITConstants.IT_GRAPH, Boolean.toString(manager.isGraph()));
-				}
-				if (System.getProperty(ITConstants.IT_TRACING) == null) {
-					System.setProperty(ITConstants.IT_TRACING, String.valueOf(manager.getTracing()));
-				}
-				if (System.getProperty(ITConstants.IT_PRESCHED) == null) {
-					System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
-				}
-				if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null
-						|| System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
-					System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
-				}
+                if (manager.getScheduler() != null && System.getProperty(ITConstants.IT_SCHEDULER) == null) {
+                    System.setProperty(ITConstants.IT_SCHEDULER, manager.getScheduler());
+                }
+                if (manager.getMonitorInterval() > 0 && System.getProperty(ITConstants.IT_MONITOR) == null) {
+                    System.setProperty(ITConstants.IT_MONITOR, Long.toString(manager.getMonitorInterval()));
+                }
+                if (manager.getGATAdaptor() != null && System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null) {
+                    System.setProperty(ITConstants.GAT_ADAPTOR_PATH, manager.getGATAdaptor());
+                }
+                if (manager.getGATBrokerAdaptor() != null && System.getProperty(ITConstants.GAT_BROKER_ADAPTOR) == null) {
+                    System.setProperty(ITConstants.GAT_BROKER_ADAPTOR, manager.getGATBrokerAdaptor());
+                }
+                if (manager.getGATFileAdaptor() != null && System.getProperty(ITConstants.GAT_FILE_ADAPTOR) == null) {
+                    System.setProperty(ITConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
+                }
+                if (manager.getWorkerCP() != null && System.getProperty(ITConstants.IT_WORKER_CP) == null) {
+                    System.setProperty(ITConstants.IT_WORKER_CP, manager.getWorkerCP());
+                }
+                if (manager.getServiceName() != null && System.getProperty(ITConstants.IT_SERVICE_NAME) == null) {
+                    System.setProperty(ITConstants.IT_SERVICE_NAME, manager.getServiceName());
+                }
+                if (System.getProperty(ITConstants.COMM_ADAPTOR) == null) {
+                    if (manager.getCommAdaptor() != null) {
+                        System.setProperty(ITConstants.COMM_ADAPTOR, manager.getCommAdaptor());
+                    } else {
+                        System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
+                    }
+                }
+                if (System.getProperty(ITConstants.GAT_DEBUG) == null) {
+                    System.setProperty(ITConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
+                }
+                if (System.getProperty(ITConstants.IT_LANG) == null) {
+                    System.setProperty(ITConstants.IT_LANG, manager.getLang());
+                }
+                if (System.getProperty(ITConstants.IT_GRAPH) == null) {
+                    System.setProperty(ITConstants.IT_GRAPH, Boolean.toString(manager.isGraph()));
+                }
+                if (System.getProperty(ITConstants.IT_TRACING) == null) {
+                    System.setProperty(ITConstants.IT_TRACING, String.valueOf(manager.getTracing()));
+                }
+                if (System.getProperty(ITConstants.IT_PRESCHED) == null) {
+                    System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
+                }
+                if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null
+                        || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
+                    System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
+                }
 
-				if (manager.getContext() != null) {
-					System.setProperty(ITConstants.IT_CONTEXT, manager.getContext());
-				}
-				System.setProperty(ITConstants.IT_TO_FILE, Boolean.toString(manager.isToFile()));
-			} else {
-				setDefaultProperties();
-			}
-		} catch (Exception e) {
-			System.err.println(WARN_IT_FILE_NOT_READ);
-			e.printStackTrace();
-		}
-	}
+                if (manager.getContext() != null) {
+                    System.setProperty(ITConstants.IT_CONTEXT, manager.getContext());
+                }
+                System.setProperty(ITConstants.IT_TO_FILE, Boolean.toString(manager.isToFile()));
+            } else {
+                setDefaultProperties();
+            }
+        } catch (Exception e) {
+            System.err.println(WARN_IT_FILE_NOT_READ);
+            e.printStackTrace();
+        }
+    }
 
-	private static void setDefaultProperties() {
-		System.err.println(WARN_FILE_EMPTY_DEFAULT);
-		if (System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null || System.getProperty(ITConstants.IT_DEPLOYMENT_ID).equals("")) {
-			System.setProperty(ITConstants.IT_DEPLOYMENT_ID, ITConstants.DEFAULT_DEPLOYMENT_ID);
-		}
-		if (System.getProperty(ITConstants.IT_RES_SCHEMA) == null || System.getProperty(ITConstants.IT_RES_SCHEMA).equals("")) {
-			System.setProperty(ITConstants.IT_RES_SCHEMA, ITConstants.DEFAULT_RES_SCHEMA);
-		}
-		if (System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null || System.getProperty(ITConstants.IT_PROJ_SCHEMA).equals("")) {
-			System.setProperty(ITConstants.IT_PROJ_SCHEMA, ITConstants.DEFAULT_PROJECT_SCHEMA);
-		}
-		if (System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(ITConstants.GAT_ADAPTOR_PATH).equals("")) {
-			System.setProperty(ITConstants.GAT_ADAPTOR_PATH, ITConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
-		}
-		if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
-			System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
-		}
-		if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
-			System.setProperty(ITConstants.IT_SCHEDULER, ITConstants.DEFAULT_SCHEDULER);
-		}
-		if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
-			System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
-		}
-		if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
-			System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
-		}
-	}
+    private static void setDefaultProperties() {
+        System.err.println(WARN_FILE_EMPTY_DEFAULT);
+        if (System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null || System.getProperty(ITConstants.IT_DEPLOYMENT_ID).equals("")) {
+            System.setProperty(ITConstants.IT_DEPLOYMENT_ID, ITConstants.DEFAULT_DEPLOYMENT_ID);
+        }
+        if (System.getProperty(ITConstants.IT_RES_SCHEMA) == null || System.getProperty(ITConstants.IT_RES_SCHEMA).equals("")) {
+            System.setProperty(ITConstants.IT_RES_SCHEMA, ITConstants.DEFAULT_RES_SCHEMA);
+        }
+        if (System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null || System.getProperty(ITConstants.IT_PROJ_SCHEMA).equals("")) {
+            System.setProperty(ITConstants.IT_PROJ_SCHEMA, ITConstants.DEFAULT_PROJECT_SCHEMA);
+        }
+        if (System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(ITConstants.GAT_ADAPTOR_PATH).equals("")) {
+            System.setProperty(ITConstants.GAT_ADAPTOR_PATH, ITConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
+        }
+        if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
+            System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
+        }
+        if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
+            System.setProperty(ITConstants.IT_SCHEDULER, ITConstants.DEFAULT_SCHEDULER);
+        }
+        if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
+            System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
+        }
+        if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
+            System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
+        }
+    }
 
-	private static InputStream findPropertiesConfigFile() {
-		InputStream stream = COMPSsRuntimeImpl.class.getResourceAsStream(ITConstants.IT_CONFIG);
-		if (stream != null) {
-			return stream;
-		} else {
-			stream = COMPSsRuntimeImpl.class.getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
-			if (stream != null) {
-				return stream;
-			} else {
-				// System.err.println("IT properties file not defined. Looking at classLoader ...");
-				stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(ITConstants.IT_CONFIG);
-				if (stream != null) {
-					return stream;
-				} else {
-					stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
-					if (stream != null) {
-						return stream;
-					} else {
-						// System.err.println("IT properties file not found in classloader. Looking at system resource ...");
-						stream = ClassLoader.getSystemResourceAsStream(ITConstants.IT_CONFIG);
-						if (stream != null) {
-							return stream;
-						} else {
-							stream = ClassLoader.getSystemResourceAsStream(File.separator + ITConstants.IT_CONFIG);
-							if (stream != null) {
-								return stream;
-							} else {
-								// System.err.println("IT properties file not found. Looking at parent ClassLoader");
-								stream = COMPSsRuntimeImpl.class.getClassLoader().getParent().getResourceAsStream(ITConstants.IT_CONFIG);
-								if (stream != null) {
-									return stream;
-								} else {
-									stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
-											.getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
-									if (stream != null) {
-										return stream;
-									} else {
-										// System.err.println("IT properties file not found");
-										return null;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+    private static InputStream findPropertiesConfigFile() {
+        InputStream stream = COMPSsRuntimeImpl.class.getResourceAsStream(ITConstants.IT_CONFIG);
+        if (stream != null) {
+            return stream;
+        } else {
+            stream = COMPSsRuntimeImpl.class.getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+            if (stream != null) {
+                return stream;
+            } else {
+                // System.err.println("IT properties file not defined. Looking at classLoader ...");
+                stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(ITConstants.IT_CONFIG);
+                if (stream != null) {
+                    return stream;
+                } else {
+                    stream = COMPSsRuntimeImpl.class.getClassLoader().getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+                    if (stream != null) {
+                        return stream;
+                    } else {
+                        // System.err.println("IT properties file not found in classloader. Looking at system resource ...");
+                        stream = ClassLoader.getSystemResourceAsStream(ITConstants.IT_CONFIG);
+                        if (stream != null) {
+                            return stream;
+                        } else {
+                            stream = ClassLoader.getSystemResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+                            if (stream != null) {
+                                return stream;
+                            } else {
+                                // System.err.println("IT properties file not found. Looking at parent ClassLoader");
+                                stream = COMPSsRuntimeImpl.class.getClassLoader().getParent().getResourceAsStream(ITConstants.IT_CONFIG);
+                                if (stream != null) {
+                                    return stream;
+                                } else {
+                                    stream = COMPSsRuntimeImpl.class.getClassLoader().getParent()
+                                            .getResourceAsStream(File.separator + ITConstants.IT_CONFIG);
+                                    if (stream != null) {
+                                        return stream;
+                                    } else {
+                                        // System.err.println("IT properties file not found");
+                                        return null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	/* ****************************************************
-	 * CONSTRUCTOR 
-	 * ****************************************************/
-	public COMPSsRuntimeImpl() {
-		// Load COMPSs version and buildNumber
-		try {
-			Properties props = new Properties();
-			props.load(this.getClass().getResourceAsStream("/version.properties"));
-			COMPSs_VERSION = props.getProperty("compss.version");
-			COMPSs_BUILDNUMBER = props.getProperty("compss.build");
-		} catch (Exception e) {
-			logger.warn(WARN_VERSION_PROPERTIES);
-		}
+    /* ****************************************************
+     * CONSTRUCTOR
+     * ****************************************************/
+    public COMPSsRuntimeImpl() {
+        // Load COMPSs version and buildNumber
+        try {
+            Properties props = new Properties();
+            props.load(this.getClass().getResourceAsStream("/version.properties"));
+            COMPSs_VERSION = props.getProperty("compss.version");
+            COMPSs_BUILDNUMBER = props.getProperty("compss.build");
+        } catch (Exception e) {
+            logger.warn(WARN_VERSION_PROPERTIES);
+        }
 
-		if (COMPSs_VERSION == null) {
-			logger.info("Deploying COMPSs Runtime");
-		} else if (COMPSs_BUILDNUMBER == null) {
-			logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION);
-		} else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-			COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-			logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-		} else {
-			logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-		}
+        if (COMPSs_VERSION == null) {
+            logger.info("Deploying COMPSs Runtime");
+        } else if (COMPSs_BUILDNUMBER == null) {
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION);
+        } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
+            COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        } else {
+            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        }
 
-		if (System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0) {
-			logger.debug("Tracing is activated");
-		}
+        if (System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0) {
+            int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
+            Tracer.init(tracing_level);
+            logger.debug("Tracing is activated");
+        }
 
-		ErrorManager.init(this);
-	}
+        ErrorManager.init(this);
+    }
 
-	/* ****************************************************
-	 * COMPSsRuntime INTERFACE IMPLEMENTATION 
-	 * ****************************************************/
-	@SuppressWarnings("rawtypes")
-	/**
-	 * Starts the COMPSs Runtime
-	 * 
-	 */
-	@Override
-	public synchronized void startIT() {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-			Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
-		}
+    /* ****************************************************
+     * COMPSsRuntime INTERFACE IMPLEMENTATION
+     * ****************************************************/
+    @SuppressWarnings("rawtypes")
+    /**
+     * Starts the COMPSs Runtime
+     *
+     */
+    @Override
+    public synchronized void startIT() {
 
-		// Console Log
-		Thread.currentThread().setName("APPLICATION");
-		if (COMPSs_VERSION == null) {
-			logger.info("Starting COMPSs Runtime");
-		} else if (COMPSs_BUILDNUMBER == null) {
-			logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION);
-		} else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
-			COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-			logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-		} else {
-			logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
+        }
 
-		// Init Runtime
-		if (!initialized) {
-			// Application
-			synchronized (this) {
-				logger.debug("Initializing components");
+        // Console Log
+        Thread.currentThread().setName("APPLICATION");
+        if (COMPSs_VERSION == null) {
+            logger.info("Starting COMPSs Runtime");
+        } else if (COMPSs_BUILDNUMBER == null) {
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION);
+        } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
+            COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        } else {
+            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+        }
 
-				td = new TaskDispatcher();
-				ap = new AccessProcessor(td);
+        // Init Runtime
+        if (!initialized) {
+            // Application
+            synchronized (this) {
+                logger.debug("Initializing components");
 
-				if (GraphGenerator.isEnabled()) {
-					graphMonitor = new GraphGenerator();
-					ap.setGM(graphMonitor);
-				}
-				if (RuntimeMonitor.isEnabled()) {
-					runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
-				}
+                td = new TaskDispatcher();
+                ap = new AccessProcessor(td);
 
-				initialized = true;
-				logger.debug("Ready to process tasks");
-			}
-		} else {
-			// Service
-			String className = Thread.currentThread().getStackTrace()[2].getClassName();
-			logger.debug("Initializing " + className + "Itf");
-			try {
-				td.addInterface(Class.forName(className + "Itf"));
-			} catch (Exception e) {
-				ErrorManager.fatal("Error adding interface " + className + "Itf");
-			}
-		}
+                if (GraphGenerator.isEnabled()) {
+                    graphMonitor = new GraphGenerator();
+                    ap.setGM(graphMonitor);
+                }
+                if (RuntimeMonitor.isEnabled()) {
+                    runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
+                }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+                initialized = true;
+                logger.debug("Ready to process tasks");
+            }
+        } else {
+            // Service
+            String className = Thread.currentThread().getStackTrace()[2].getClassName();
+            logger.debug("Initializing " + className + "Itf");
+            try {
+                td.addInterface(Class.forName(className + "Itf"));
+            } catch (Exception e) {
+                ErrorManager.fatal("Error adding interface " + className + "Itf");
+            }
+        }
 
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/**
-	 * Stops the COMPSsRuntime
-	 * 
-	 */
-	@Override
-	public void stopIT(boolean terminate) {
-		synchronized (this) {
-			if (tracing) {
-				Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
-			}
+    }
 
-			// Stop monitor components
-			logger.debug("Stop IT reached");
-			if (GraphGenerator.isEnabled()) {
-				logger.debug("Stopping Graph generation...");
-				// Graph commited by noMoreTasks, nothing to do
-			}
-			if (RuntimeMonitor.isEnabled()) {
-				logger.debug("Stopping Monitor...");
-				runtimeMonitor.shutdown();
-			}
+    /**
+     * Stops the COMPSsRuntime
+     */
+    @Override
+    public void stopIT(boolean terminate) {
+        synchronized (this) {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
+            }
 
-			// Stop runtime components
-			logger.debug("Stopping AP...");
-			if (ap != null) {
-				ap.shutdown();
-			} else {
-				logger.debug("AP was not initialized...");
-			}
+            // Stop monitor components
+            logger.debug("Stop IT reached");
+            if (GraphGenerator.isEnabled()) {
+                logger.debug("Stopping Graph generation...");
+                // Graph commited by noMoreTasks, nothing to do
+            }
+            if (RuntimeMonitor.isEnabled()) {
+                logger.debug("Stopping Monitor...");
+                runtimeMonitor.shutdown();
+            }
 
-			logger.debug("Stopping TD...");
-			if (td != null) {
-				td.shutdown();
-			} else {
-				logger.debug("TD was not initialized...");
-			}
+            // Stop runtime components
+            logger.debug("Stopping AP...");
+            if (ap != null) {
+                ap.shutdown();
+            } else {
+                logger.debug("AP was not initialized...");
+            }
 
-			logger.debug("Stopping Comm...");
-			Comm.stop();
-			logger.debug("Runtime stopped");
+            logger.debug("Stopping TD...");
+            if (td != null) {
+                td.shutdown();
+            } else {
+                logger.debug("TD was not initialized...");
+            }
 
-		}
-		logger.info("Execution Finished");
-	}
+            logger.debug("Stopping Comm...");
+            Comm.stop();
+            logger.debug("Runtime stopped");
 
-	/**
-	 * Returns the Application Directory
-	 * 
-	 */
-	@Override
-	public String getApplicationDirectory() {
-		return Comm.appHost.getAppLogDirPath();
-	}
+        }
+        logger.info("Execution Finished");
+    }
 
-	/**
-	 * Registers a new CoreElement in the COMPSs Runtime
-	 */
-	@Override
-	public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
-			int parameterCount, Object... parameters) {
+    /**
+     * Returns the Application Directory
+     */
+    @Override
+    public String getApplicationDirectory() {
+        return Comm.appHost.getAppLogDirPath();
+    }
 
-		logger.debug("\nRegister CE parameters:");
-		logger.debug("\tMethodClass: " + methodClass);
-		logger.debug("\tMethodName: " + methodName);
-		logger.debug("\tHasTarget: " + hasTarget);
-		logger.debug("\tHasReturn: " + hasReturn);
-		logger.debug("\tConstraints: " + constraints);
-		logger.debug("\tParameters:");
-		for (Object o : parameters) {
-			logger.debug("\t: " + o.toString());
-		}
+    /**
+     * Registers a new CoreElement in the COMPSs Runtime
+     */
+    @Override
+    public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
+                           int parameterCount, Object... parameters) {
 
-		MethodResourceDescription mrd = new MethodResourceDescription(constraints);
-		Parameter[] params = processParameters(parameterCount, parameters);
+        logger.debug("\nRegister CE parameters:");
+        logger.debug("\tMethodClass: " + methodClass);
+        logger.debug("\tMethodName: " + methodName);
+        logger.debug("\tHasTarget: " + hasTarget);
+        logger.debug("\tHasReturn: " + hasReturn);
+        logger.debug("\tConstraints: " + constraints);
+        logger.debug("\tParameters:");
+        for (Object o : parameters) {
+            logger.debug("\t: " + o.toString());
+        }
 
-		String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, params);
+        MethodResourceDescription mrd = new MethodResourceDescription(constraints);
+        Parameter[] params = processParameters(parameterCount, parameters);
 
-		td.registerCEI(signature, methodClass, mrd);
-	}
+        String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, params);
 
-	/**
-	 * Execute task: methods
-	 * 
-	 */
-	@Override
-	public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
-			Object... parameters) {
+        td.registerCEI(signature, methodClass, mrd);
+    }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
-		}
+    /**
+     * Execute task: methods
+     */
+    @Override
+    public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
+                           Object... parameters) {
 
-		logger.info("Creating task from method " + methodName + " in " + methodClass);
-		if (logger.isDebugEnabled()) {
-			logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+        }
 
-		Parameter[] pars = processParameters(parameterCount, parameters);
-		int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
+        logger.info("Creating task from method " + methodName + " in " + methodClass);
+        if (logger.isDebugEnabled()) {
+            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        Parameter[] pars = processParameters(parameterCount, parameters);
+        int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
 
-		return task;
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/**
-	 * Execute task: services
-	 * 
-	 */
-	@Override
-	public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority,
-			boolean hasTarget, int parameterCount, Object... parameters) {
+        return task;
+    }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
-		}
+    /**
+     * Execute task: services
+     */
+    @Override
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority,
+                           boolean hasTarget, int parameterCount, Object... parameters) {
 
-		logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
-		if (logger.isDebugEnabled()) {
-			logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+        }
 
-		Parameter[] pars = processParameters(parameterCount, parameters);
-		int task = ap.newTask(appId, namespace, service, port, operation, priority, hasTarget, pars);
+        logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
+        if (logger.isDebugEnabled()) {
+            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        Parameter[] pars = processParameters(parameterCount, parameters);
+        int task = ap.newTask(appId, namespace, service, port, operation, priority, hasTarget, pars);
 
-		return task;
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/**
-	 * Notifies the Runtime that there are no more tasks created by the current appId
-	 * 
-	 */
-	@Override
-	public void noMoreTasks(Long appId, boolean terminate) {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
-		}
+        return task;
+    }
 
-		logger.info("No more tasks for app " + appId);
-		// Wait until all tasks have finished
-		ap.noMoreTasks(appId);
-		// Retrieve result files
-		logger.info("Getting Result Files " + appId);
-		ap.getResultFiles(appId);
+    /**
+     * Notifies the Runtime that there are no more tasks created by the current appId
+     */
+    @Override
+    public void noMoreTasks(Long appId, boolean terminate) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.NO_MORE_TASKS.getId(), Tracer.Event.NO_MORE_TASKS.getType());
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
-	}
+        logger.info("No more tasks for app " + appId);
+        // Wait until all tasks have finished
+        ap.noMoreTasks(appId);
+        // Retrieve result files
+        logger.info("Getting Result Files " + appId);
+        ap.getResultFiles(appId);
 
-	/**
-	 * Freezes the task generation until all previous tasks have been executed
-	 * 
-	 */
-	@Override
-	public void waitForAllTasks(Long appId) {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+    }
 
-		// Wait until all tasks have finished
-		logger.info("Barrier for app " + appId);
-		ap.waitForAllTasks(appId);
+    /**
+     * Freezes the task generation until all previous tasks have been executed
+     */
+    @Override
+    public void waitForAllTasks(Long appId) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
-		}
-	}
+        // Wait until all tasks have finished
+        logger.info("Barrier for app " + appId);
+        ap.waitForAllTasks(appId);
 
-	/**
-	 * Deletes the specified version of a file
-	 * 
-	 */
-	@Override
-	public boolean deleteFile(String fileName) {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
+        }
+    }
 
-		// Parse the file name and translate the access mode
-		DataLocation loc = null;
-		try {
-			loc = createLocation(fileName);
-		} catch (Exception e) {
-			ErrorManager.fatal(ERROR_FILE_NAME, e);
-		}
-		ap.markForDeletion(loc);
+    /**
+     * Deletes the specified version of a file
+     */
+    @Override
+    public boolean deleteFile(String fileName) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        // Parse the file name and translate the access mode
+        DataLocation loc = null;
+        try {
+            loc = createLocation(fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        }
+        ap.markForDeletion(loc);
 
-		return true;
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/**
-	 * Emit a tracing event (for bindings)
-	 * 
-	 */
-	@Override
-	public void emitEvent(int type, long id) {
-		Tracer.emitEvent(id, type);
-	}
+        return true;
+    }
+
+    /**
+     * Emit a tracing event (for bindings)
+     */
+    @Override
+    public void emitEvent(int type, long id) {
+        Tracer.emitEvent(id, type);
+    }
 
 	/* ****************************************************
-	 * LoaderAPI INTERFACE IMPLEMENTATION 
+     * LoaderAPI INTERFACE IMPLEMENTATION
 	 * ****************************************************/
-	/**
-	 * Returns a copy of the last file version
-	 * 
-	 */
-	@Override
-	public String getFile(String fileName, String destDir) {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
-		}
 
-		if (!destDir.endsWith(File.separator)) {
-			destDir += File.separator;
-		}
-		// Parse the file name
-		DataLocation sourceLocation = null;
-		try {
-			sourceLocation = createLocation(fileName);
-		} catch (Exception e) {
-			ErrorManager.fatal(ERROR_FILE_NAME, e);
-		}
-		FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
-		DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
-		String path;
-		if (targetLocation == null) {
-			MultiURI u = sourceLocation.getURIInHost(Comm.appHost);
-			if (u != null) {
-				path = u.getPath();
-			} else {
-				path = fileName;
-			}
-		} else {
-			// Return the name of the file (a renaming) on which the stream will be opened
-			path = targetLocation.getPath();
-		}
+    /**
+     * Returns a copy of the last file version
+     */
+    @Override
+    public String getFile(String fileName, String destDir) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        if (!destDir.endsWith(File.separator)) {
+            destDir += File.separator;
+        }
+        // Parse the file name
+        DataLocation sourceLocation = null;
+        try {
+            sourceLocation = createLocation(fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        }
+        FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
+        DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
+        String path;
+        if (targetLocation == null) {
+            MultiURI u = sourceLocation.getURIInHost(Comm.appHost);
+            if (u != null) {
+                path = u.getPath();
+            } else {
+                path = fileName;
+            }
+        } else {
+            // Return the name of the file (a renaming) on which the stream will be opened
+            path = targetLocation.getPath();
+        }
 
-		return path;
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/**
-	 * Returns a copy of the last object version
-	 * 
-	 */
-	@Override
-	public Object getObject(Object o, int hashCode, String destDir) {
-		/*
+        return path;
+    }
+
+    /**
+     * Returns a copy of the last object version
+     */
+    @Override
+    public Object getObject(Object o, int hashCode, String destDir) {
+        /*
 		 * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
 		 * it and this method would not have been called.
 		 */
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
+        }
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Getting object with hash code " + hashCode);
-		}
-		boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
-		if (validValue) {
-			// Main code is still performing the same modification. No need to
-			// register it as a new version.
-			if (tracing) {
-				Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-			}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Getting object with hash code " + hashCode);
+        }
+        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        if (validValue) {
+            // Main code is still performing the same modification. No need to
+            // register it as a new version.
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
+        Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Object obtained " + oUpdated);
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug("Object obtained " + oUpdated);
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-		return oUpdated;
+        return oUpdated;
 
-	}
+    }
 
-	/**
-	 * Serializes a given object
-	 */
-	@Override
-	public void serializeObject(Object o, int hashCode, String destDir) {
+    /**
+     * Serializes a given object
+     */
+    @Override
+    public void serializeObject(Object o, int hashCode, String destDir) {
 		/*
 		 * System.out.println("IT: Serializing object"); String rename = TP.getLastRenaming(hashCode);
 		 * 
@@ -684,154 +674,153 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 		 * destDir + rename); Comm.registerLocation(rename, loc); } catch (Exception e) {
 		 * logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e); System.exit(1); }
 		 */
-		// throw new NotImplementedException();
-	}
+        // throw new NotImplementedException();
+    }
 
-	/**
-	 * Sets the Object Registry
-	 */
-	@Override
-	public void setObjectRegistry(ObjectRegistry oReg) {
-		COMPSsRuntimeImpl.oReg = oReg;
-	}
+    /**
+     * Sets the Object Registry
+     */
+    @Override
+    public void setObjectRegistry(ObjectRegistry oReg) {
+        COMPSsRuntimeImpl.oReg = oReg;
+    }
 
-	/**
-	 * Returns the tmp dir configured by the Runtime
-	 * 
-	 */
-	@Override
-	public String getTempDir() {
-		return Comm.appHost.getTempDirPath();
-	}
+    /**
+     * Returns the tmp dir configured by the Runtime
+     */
+    @Override
+    public String getTempDir() {
+        return Comm.appHost.getTempDirPath();
+    }
 
 	/* ****************************************************
 	 * COMMON IN BOTH APIs 
 	 * ****************************************************/
-	/**
-	 * Returns the renaming of the file version opened
-	 * 
-	 */
-	@Override
-	public String openFile(String fileName, DataDirection mode) {
-		if (tracing) {
-			Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
-		}
 
-		logger.info("Opening file " + fileName + " in mode " + mode);
+    /**
+     * Returns the renaming of the file version opened
+     */
+    @Override
+    public String openFile(String fileName, DataDirection mode) {
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
+        }
 
-		DataLocation loc = null;
-		try {
-			loc = createLocation(fileName);
-		} catch (Exception e) {
-			ErrorManager.fatal(ERROR_FILE_NAME, e);
-		}
+        logger.info("Opening file " + fileName + " in mode " + mode);
 
-		AccessMode am = null;
-		switch (mode) {
-			case IN:
-				am = AccessMode.R;
-				break;
-			case OUT:
-				am = AccessMode.W;
-				break;
-			case INOUT:
-				am = AccessMode.RW;
-				break;
-		}
+        DataLocation loc = null;
+        try {
+            loc = createLocation(fileName);
+        } catch (Exception e) {
+            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        }
 
-		// Tell the DM that the application wants to access a file.
-		// logger.debug("Requesting mainAccess");
-		FileAccessParams fap = new FileAccessParams(am, loc);
-		DataLocation targetLocation = ap.mainAccessToFile(loc, fap, null);
+        AccessMode am = null;
+        switch (mode) {
+            case IN:
+                am = AccessMode.R;
+                break;
+            case OUT:
+                am = AccessMode.W;
+                break;
+            case INOUT:
+                am = AccessMode.RW;
+                break;
+        }
 
-		String path = (targetLocation == null) ? fileName : targetLocation.getPath();
-		DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
-		String finalPath;
-		MultiURI u = finalLocation.getURIInHost(Comm.appHost);
-		if (u != null) {
-			finalPath = u.getPath();
-		} else {
-			finalPath = path;
-		}
+        // Tell the DM that the application wants to access a file.
+        // logger.debug("Requesting mainAccess");
+        FileAccessParams fap = new FileAccessParams(am, loc);
+        DataLocation targetLocation = ap.mainAccessToFile(loc, fap, null);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("File target Location: " + finalPath);
-		}
+        String path = (targetLocation == null) ? fileName : targetLocation.getPath();
+        DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
+        String finalPath;
+        MultiURI u = finalLocation.getURIInHost(Comm.appHost);
+        if (u != null) {
+            finalPath = u.getPath();
+        } else {
+            finalPath = path;
+        }
 
-		if (tracing) {
-			Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-		}
+        if (logger.isDebugEnabled()) {
+            logger.debug("File target Location: " + finalPath);
+        }
 
-		return finalPath;
-	}
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
 
-	/* ****************************************************
-	 * PRIVATE HELPER METHODS 
-	 * ****************************************************/
-	private Parameter[] processParameters(int parameterCount, Object[] parameters) {
-		Parameter[] pars = new Parameter[parameterCount];
-		// Parameter parsing needed, object is not serializable
-		int i = 0;
-		for (int npar = 0; npar < parameterCount; npar++) {
-			DataType type = (DataType) parameters[i + 1];
-			DataDirection direction = (DataDirection) parameters[i + 2];
+        return finalPath;
+    }
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
-			}
+    /* ****************************************************
+     * PRIVATE HELPER METHODS
+     * ****************************************************/
+    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
+        Parameter[] pars = new Parameter[parameterCount];
+        // Parameter parsing needed, object is not serializable
+        int i = 0;
+        for (int npar = 0; npar < parameterCount; npar++) {
+            DataType type = (DataType) parameters[i + 1];
+            DataDirection direction = (DataDirection) parameters[i + 2];
 
-			switch (type) {
-				case FILE_T:
-					DataLocation location = null;
-					try {
-						location = createLocation((String) parameters[i]);
-					} catch (Exception e) {
-						logger.error(ERROR_FILE_NAME, e);
-						ErrorManager.fatal(ERROR_FILE_NAME, e);
-					}
-					pars[npar] = new FileParameter(direction, location);
-					break;
+            if (logger.isDebugEnabled()) {
+                logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
+            }
 
-				case PSCO_T:
-				case OBJECT_T:
-					pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
-					break;
+            switch (type) {
+                case FILE_T:
+                    DataLocation location = null;
+                    try {
+                        location = createLocation((String) parameters[i]);
+                    } catch (Exception e) {
+                        logger.error(ERROR_FILE_NAME, e);
+                        ErrorManager.fatal(ERROR_FILE_NAME, e);
+                    }
+                    pars[npar] = new FileParameter(direction, location);
+                    break;
 
-				default:
+                case PSCO_T:
+                case OBJECT_T:
+                    pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
+                    break;
+
+                default:
 					/*
 					 * Basic types (including String). The only possible direction is IN, warn otherwise
 					 */
-					if (direction != DataDirection.IN) {
-						logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar
-								+ " has a basic type, therefore it must have INPUT direction");
-					}
-					pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
-					break;
-			}
-			i += 3;
-		}
+                    if (direction != DataDirection.IN) {
+                        logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar
+                                + " has a basic type, therefore it must have INPUT direction");
+                    }
+                    pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
+                    break;
+            }
+            i += 3;
+        }
 
-		return pars;
-	}
+        return pars;
+    }
 
-	private DataLocation createLocation(String fileName) throws Exception {
-		// Check if fileName contains schema
-		SimpleURI uri = new SimpleURI(fileName);
-		if (uri.getSchema().isEmpty()) {
-			// Add default File scheme and wrap local paths
-			String canonicalPath = new File(fileName).getCanonicalPath();
-			uri = new SimpleURI(Protocol.FILE_URI.getSchema() + canonicalPath);
-		}
+    private DataLocation createLocation(String fileName) throws Exception {
+        // Check if fileName contains schema
+        SimpleURI uri = new SimpleURI(fileName);
+        if (uri.getSchema().isEmpty()) {
+            // Add default File scheme and wrap local paths
+            String canonicalPath = new File(fileName).getCanonicalPath();
+            uri = new SimpleURI(Protocol.FILE_URI.getSchema() + canonicalPath);
+        }
 
-		// Check host
-		Resource host = Comm.appHost;
-		String hostName = uri.getHost();
-		if (hostName != null && !hostName.isEmpty()) {
-			host = Resource.getResource(hostName);
-		}
+        // Check host
+        Resource host = Comm.appHost;
+        String hostName = uri.getHost();
+        if (hostName != null && !hostName.isEmpty()) {
+            host = Resource.getResource(hostName);
+        }
 
-		// Create location
-		return DataLocation.createLocation(host, uri);
-	}
+        // Create location
+        return DataLocation.createLocation(host, uri);
+    }
 
 }

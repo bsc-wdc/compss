@@ -17,6 +17,7 @@ import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 
 
@@ -45,9 +46,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
 	public void submit() throws Exception {
 		// Prepare the job
 		logger.info("Submit NIOJob with ID " + jobId);
-
 		NIOAdaptor.submitTask(this);
 	}
+
 
 	public NIOTask prepareJob() {
 		MethodImplementation method = (MethodImplementation) this.impl;
@@ -58,14 +59,28 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
 		LinkedList<NIOParam> params = addParams();
 
+        MethodResourceDescription reqs = method.getRequirements();
+           
 		int numParams = params.size();
 		if (taskParams.hasReturnValue()) {
 			numParams--;
 		}
-
+		
 		// Create NIOTask
-		NIOTask nt = new NIOTask(lang, debug, className, methodName, hasTarget, params, numParams, taskId, this.taskParams.getId(), jobId,
-				history, transferId);
+        NIOTask nt = new NIOTask(lang, 
+        						debug, 
+        						className, 
+        						methodName, 
+        						hasTarget, 
+        						params, 
+        						numParams, 
+        						reqs,
+        						taskId, 
+        						this.taskParams.getId(), 
+        						jobId, 
+        						history, 
+        						transferId
+        					);
 
 		return nt;
 	}

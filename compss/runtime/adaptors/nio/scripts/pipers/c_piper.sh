@@ -68,7 +68,7 @@
     echo "[C PIPER]   - CMD: $@ 1>> $jobOut 2>> $jobErr" >> $jobOut
 
     # Real task execution
-    $@ 1>> $jobOut 2>> $jobErr
+    eval $@ 1>> $jobOut 2>> $jobErr
     local exitValue=$?
 
     # Log the task end

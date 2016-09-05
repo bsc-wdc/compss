@@ -13,6 +13,7 @@ import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.util.RequestQueue;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
 public abstract class Executor implements Runnable {
@@ -100,9 +101,9 @@ public abstract class Executor implements Runnable {
 		// Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
 		String outputsBasename = workingDir + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
 
-		// Sets the process environment variables (just in case its a MPI or Ompss task)
-		// TODO: Add real values
-		setEnvironmentVariables(nw.getHostName(), 1, 1);
+                // Sets the process environment variables (just in case its a MPI or Ompss task)
+                // TODO: Add real values
+                setEnvironmentVariables(nw.getHostName(), 1, 1, nt.getResourceDescription());
 
 		// Execute task
 		try {
@@ -120,7 +121,7 @@ public abstract class Executor implements Runnable {
 		return true;
 	}
 
-	public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus);
+        public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs);
 
 	public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception;
 

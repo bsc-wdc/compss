@@ -10,9 +10,11 @@ import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.types.annotations.Constants;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.RequestQueue;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.concurrent.Semaphore;
@@ -48,10 +50,11 @@ public class JavaExecutor extends Executor {
 	}
 
 	@Override
-	public void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
+	public void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs){
 		System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames);
 		System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
-		System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
+		System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));		
+		
 	}
 
 	@Override

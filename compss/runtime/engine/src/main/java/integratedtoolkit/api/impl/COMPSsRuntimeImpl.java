@@ -299,12 +299,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
-        if (System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0) {
-            int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
-            Tracer.init(tracing_level);
-            logger.debug("Tracing is activated");
-        }
-
         ErrorManager.init(this);
     }
 

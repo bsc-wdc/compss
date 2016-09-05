@@ -61,8 +61,8 @@ public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescript
 		WorkloadStatus status = new WorkloadStatus(CoreManager.getCoreCount());
 		ts.getWorkloadState(status);
 		ResourceManager.stopNodes(status);
-		semaphore.release();
-		throw new ShutdownException();
+		// The semaphore is released after emitting the end event to prevent race conditions
+		throw new ShutdownException(semaphore);
 	}
 
 	@Override

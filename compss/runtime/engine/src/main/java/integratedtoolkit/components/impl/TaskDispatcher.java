@@ -117,6 +117,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 				if (Tracer.isActivated()){
 					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
 				}
+				se.getSemaphore().release();
 				break;
 			} catch (Exception e) {
 				logger.error("RequestError", e);

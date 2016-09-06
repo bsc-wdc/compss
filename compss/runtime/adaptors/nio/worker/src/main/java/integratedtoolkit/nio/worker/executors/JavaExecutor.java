@@ -14,7 +14,6 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.RequestQueue;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.concurrent.Semaphore;

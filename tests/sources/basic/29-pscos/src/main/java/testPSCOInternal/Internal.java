@@ -1,5 +1,6 @@
 package testPSCOInternal;
 
+import java.util.LinkedList;
 import java.util.UUID;
 
 import model.Person;
@@ -35,6 +36,10 @@ public class Internal {
 		// ------------------------------------------------------------------------
 		System.out.println("[LOG] Test PSCO TARGET TASK PERSISTED");
 		testPSCOTargetTaskPersisted();
+		
+		// ------------------------------------------------------------------------
+		System.out.println("[LOG] Test PSCO TARGET TASK PERSISTED");
+		testMergeReduce();
 	}
 
 	private static void testPSCOIn() {
@@ -119,6 +124,46 @@ public class Internal {
 		int numC = p.getNumComputers();
 		System.out.println("[LOG][PSCO_TARGET_TP] Person " + name + " with age " + age + " has " + numC + " computers");
 		System.out.println("[LOG][PSCO_TARGET_TP] BeginId = null EndId = " + p.getID());
+	}
+	
+	public static void testMergeReduce() {
+		// Init
+		Person[] people = new Person[4];
+		for (int i = 0; i < people.length; ++i) {
+			String id = "person_" + UUID.randomUUID().toString();
+			System.out.println("[LOG][PSCO_TARGET_TP] Person " + i + " BeginId = " + id);
+			people[i] = new Person("PName" + i, i, i);
+			people[i].makePersistent(id);
+		}
+		
+		// Map
+		for (int i = 0; i < people.length; ++i) {
+			people[i] = InternalImpl.taskMap("NewName" + i, people[i]);
+		}
+
+		// Reduce
+		LinkedList<Integer> q = new LinkedList<Integer>();
+		for (int i = 0; i < people.length; i++) {
+			q.add(i);
+		}
+		int x = 0;
+		while (!q.isEmpty()) {
+			x = q.poll();
+			int y;
+			if (!q.isEmpty()) {
+				y = q.poll();
+				people[x] = InternalImpl.taskReduce(people[x], people[y]);
+				q.add(x);
+			}
+		}
+		
+		// Get (sync) and write result
+		Person p1 = people[0];
+		String name = p1.getName();
+		int age = p1.getAge();
+		int numC = p1.getNumComputers();
+		System.out.println("[LOG][PSCO_MR] Person " + name + " with age " + age + " has " + numC + " computers");
+		System.out.println("[LOG][PSCO_MR] EndId = " + p1.getID());
 	}
 
 }

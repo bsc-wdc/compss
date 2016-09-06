@@ -7,6 +7,11 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 
 public class Processor implements Serializable {
 
+	/**
+	 * Runtime Objects have serialization ID 1L
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private String name = MethodResourceDescription.UNASSIGNED_STR;
 	private int computingUnits = MethodResourceDescription.ZERO_INT;
 	private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;

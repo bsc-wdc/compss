@@ -60,6 +60,7 @@ public class PersistentLocation extends DataLocation {
 		LinkedList<Resource> hosts = new LinkedList<Resource>();
 
 		// Retrieve URIs from Storage Back-end
+		logger.debug("Get PSCO locations for " + this.id);
 		try {
 			for (String hostName : StorageItf.getLocations(this.id)) {
 				Resource host = Resource.getResource(hostName);

@@ -1,6 +1,5 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.data.listener.EventListener;

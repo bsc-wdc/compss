@@ -97,5 +97,54 @@ public class InternalImpl {
 		Person p = new Person(name, age, numC);
 		return p;
 	}
+	
+	public static Person taskMap(String newName, Person p) {
+		Person pNew = new Person();
+		pNew.setName(newName);
+		pNew.setAge(p.getAge());
+		for (Computer c : p.getComputers()) {
+			pNew.addComputer(c);
+		}
+		
+		String id = "person_" + UUID.randomUUID().toString();
+		pNew.makePersistent(id);
+	
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+				
+		return p;
+	}
+	
+	public static Person taskReduce(Person p1, Person p2) {
+		Person p = new Person();
+		p.setName(p1.getName() + "," + p2.getName());
+		p.setAge(p1.getAge() + p2.getAge());
+		
+		for (Computer c : p1.getComputers()) {
+			p.addComputer(c);
+		}
+		
+		for (Computer c : p2.getComputers()) {
+			p.addComputer(c);
+		}
+		
+		String id = "person_" + UUID.randomUUID().toString();
+		p.makePersistent(id);
+		
+		// Manually persist object to storage
+		try {
+			StorageManager.persist(p);
+		} catch (StorageException e) {
+			System.err.println(ERROR_PERSIST);
+			e.printStackTrace();
+		}
+		
+		return p;
+	}
 
 }

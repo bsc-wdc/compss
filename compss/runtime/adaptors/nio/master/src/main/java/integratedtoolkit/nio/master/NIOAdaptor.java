@@ -31,6 +31,7 @@ import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job.JobHistory;
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.uri.MultiURI;
+import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.util.concurrent.Semaphore;
@@ -296,11 +298,29 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         for (int i = 0; i < tr.getParamTypes().size(); ++i) {
             DataType d = tr.getParamTypes().get(i);
             if (d.equals(DataType.PSCO_T)) {
-                String pscoId = (String) tr.getParamValue(i);
-
-                DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
-                dp.setType(DataType.PSCO_T);
-                dp.setDataTarget(pscoId);
+            	String pscoId = (String) tr.getParamValue(i);
+            	DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+            	if (dp.getType().equals(DataType.PSCO_T)) {
+            		// The parameter was already a PSCO, we only update the information just in case
+            		dp.setDataTarget(pscoId);
+            	} else {
+            		// The parameter was a OBJECT, we change its type and value and register its new location
+	                String renaming = dp.getDataTarget();
+	                
+	                // Update COMM information
+	                String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
+	                SimpleURI targetURI = new SimpleURI(targetPath);
+					try {
+						DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
+						Comm.registerLocation(renaming, loc);
+					} catch (Exception e) {
+						ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
+					}
+					
+	                // Update Task information
+	                dp.setType(DataType.PSCO_T);
+	                dp.setDataTarget(pscoId);
+            	}
             }
         }
 

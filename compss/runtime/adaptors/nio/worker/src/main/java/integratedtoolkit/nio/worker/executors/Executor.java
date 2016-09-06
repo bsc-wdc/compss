@@ -5,7 +5,6 @@ import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;

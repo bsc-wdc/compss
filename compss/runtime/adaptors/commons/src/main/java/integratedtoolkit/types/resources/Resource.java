@@ -1,6 +1,5 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.UnstartedNodeException;

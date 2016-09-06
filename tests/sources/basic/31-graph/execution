@@ -12,7 +12,7 @@
   
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
-  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_sparseLU.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
   
   #----------------------------------------------------------------------------------
   # Create all working dir folders
@@ -23,7 +23,7 @@
   echo
   echo "*** RUNNING JAVA APPLICATION GRAPH"
   output_log="${target_log_folder}/graph.outputlog"
-  error_log="${taget_log_folder}/graph.errorlog"
+  error_log="${target_log_folder}/graph.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout="${base_app_dir}/java_sparseLU_A.out"

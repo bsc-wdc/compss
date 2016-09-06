@@ -175,15 +175,22 @@ public class GraphGenerator {
 		try {
 			// Move dependence graph content to final location
 			full_graph.close();
-
-			try (FileInputStream sourceStream = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
-					FileOutputStream destStream = new FileOutputStream(COMPLETE_GRAPH_FILE);
-					FileChannel sourceChannel = sourceStream.getChannel();
-					FileChannel destChannel = destStream.getChannel()) {
-				
+			FileInputStream sourceFIS = null;
+			FileOutputStream destFOS = null;
+			FileChannel sourceChannel = null;
+			FileChannel destChannel = null;
+			try {
+				sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
+				destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE);
+				sourceChannel = sourceFIS.getChannel();
+				destChannel = destFOS.getChannel();
 				destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+			} finally {
+				sourceChannel.close();
+				sourceFIS.close();
+				destChannel.close();
+				destFOS.close();
 			}
-
 			full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE, true));
 
 			// Close graph section
@@ -194,13 +201,18 @@ public class GraphGenerator {
 			openLegend(finalGraph);
 
 			legend.close();
-			try (FileInputStream sourceStream = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
-					FileOutputStream destStream = new FileOutputStream(COMPLETE_GRAPH_FILE);
-					FileChannel sourceChannel = sourceStream.getChannel();
-					FileChannel destChannel = destStream.getChannel()) {
-				
+			try {
+				sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
+				sourceChannel = sourceFIS.getChannel();
+				destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true);
+				destChannel = destFOS.getChannel();
 				destChannel.position(destChannel.size());
 				sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+			} finally {
+				sourceChannel.close();
+				sourceFIS.close();
+				destChannel.close();
+				destFOS.close();
 			}
 			legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE, true));
 

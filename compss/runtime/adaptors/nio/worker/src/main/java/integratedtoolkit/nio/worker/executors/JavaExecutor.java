@@ -221,24 +221,43 @@ public class JavaExecutor extends Executor {
 				Object obj;
 				try {
 					obj = nw.getObject(renamings[i]);
-				} catch (SerializedObjectException e) {
-					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, e);
+				} catch (SerializedObjectException soe) {
+					throw new JobExecutionException(ERROR_SERIALIZED_OBJ, soe);
+				}
+				
+				// Check if object is null
+				if (obj == null) {
+					// Try if renaming refers to a PSCOId that is not catched
+					// This happens when 2 tasks have an INOUT PSCO that is persisted within the 1st task
+					try {
+						obj = nw.getPersistentObject(renamings[i]);
+					} catch (StorageException se) {
+						throw new JobExecutionException(ERROR_SERIALIZED_OBJ, se);
+					}
+				}
+				
+				// Check if object is still null
+				if (obj == null) {
+					StringBuilder sb = new StringBuilder();
+					if (hasTarget && i == numParams - 1) {
+						sb.append("Target object with renaming ");
+					} else {
+						sb.append("Object parameter ").append(i).append(" with renaming ");
+					}
+					sb.append(renamings[i]);
+					sb.append(", method ").append(methodName);
+					sb.append(", class ").append(className);
+					sb.append(" is null!").append("\n");
+					
+					throw new JobExecutionException(sb.toString());
 				}
 
 				// Store information as target or as normal parameter
 				if (hasTarget && i == numParams - 1) {
 					// Last parameter is the target object
-					if (obj == null) {
-						throw new JobExecutionException("Target object with renaming " + renamings[i] + ", method " + methodName
-								+ ", class " + className + " is null!" + "\n");
-					}
 					target.setValue(obj);
 				} else {
 					// Any other parameter
-					if (obj == null) {
-						throw new JobExecutionException("Object parameter " + i + " with renaming " + renamings[i] + ", method "
-								+ methodName + ", class " + className + " is null!" + "\n");
-					}
 					types[i] = obj.getClass();
 					values[i] = obj;
 				}
@@ -256,21 +275,29 @@ public class JavaExecutor extends Executor {
 				} catch (StorageException e) {
 					throw new JobExecutionException(ERROR_PERSISTENT_OBJ + " with id " + id, e);
 				}
+				
+				// Check if object is null
+				if (obj == null) {
+					StringBuilder sb = new StringBuilder();
+					if (hasTarget && i == numParams - 1) {
+						sb.append("Target PSCO with renaming ");
+					} else {
+						sb.append("PSCO parameter ").append(i).append(" with renaming ");
+					}
+					sb.append(renamings[i]);
+					sb.append(", method ").append(methodName);
+					sb.append(", class ").append(className);
+					sb.append(" is null!").append("\n");
+					
+					throw new JobExecutionException(sb.toString());
+				}
 
 				// Store information as target or as normal parameter
 				if (hasTarget && i == numParams - 1) {
 					// Last parameter is the target object
-					if (obj == null) {
-						throw new JobExecutionException("Target PSCO with renaming " + renamings[i] + ", method " + methodName + ", class "
-								+ className + " is null!" + "\n");
-					}
 					target.setValue(obj);
 				} else {
 					// Any other parameter
-					if (obj == null) {
-						throw new JobExecutionException("Object parameter " + i + " with renaming " + renamings[i] + ", method "
-								+ methodName + ", class " + className + " is null!" + "\n");
-					}
 					types[i] = obj.getClass();
 					values[i] = obj;
 				}

@@ -22,6 +22,8 @@ DEFAULT_BINDINGS=true
 DEFAULT_TRACING=true
 DEFAULT_USER=false
 DEFAULT_TARGET_DIR=/opt/COMPSs
+DEFAULT_MVN_TESTS=""
+MVN_SKIP_TESTS_OPT="-Dmaven.test.skip=true"
 
 INCORRECT_PARAMETER="Error: No such parameter"
 NO_MONITOR="Warning: No monitor specified. Loading default value"
@@ -68,6 +70,9 @@ show_opts() {
     --user-exec=<str>   Enables a specific user execution for maven compilation
                         When used the maven install is not cleaned.
 			Default: ${DEFAULT_USER}
+
+    --skip-tests        Disables MVN unit tests
+                        Default: ${DEFAULT_MVN_TESTS}
 
 * Parameters:
     targetDir		COMPSs installation directory
@@ -172,6 +177,10 @@ get_args() {
             # Enables specific user mvn execution
             user_exec=$(echo $OPTARG | sed -e 's/user-exec=//g')
             ;;
+          skip-tests)
+            # Disable mvn unit tests
+            mvnTests=${MVN_SKIP_TESTS_OPT}
+            ;;
           *)
           # Flag didn't match any patern. End of COMPSs flags
           display_error "${INCORRECT_PARAMETER}"
@@ -215,6 +224,10 @@ check_args() {
     user_exec=${DEFAULT_USER}
   fi
 
+  if [ -z "${mvnTests}" ]; then
+    mvnTests=${DEFAULT_MVN_TESTS}
+  fi
+
   if [ -z "$targetDir" ]; then
     display_warning "${NO_TARGET_DIR}" 
     targetDir=${DEFAULT_TARGET_DIR} 
@@ -244,9 +257,9 @@ install() {
   echo "- Compile sources"
   cd ${sourcesDir}/compss/
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
-    mvn -U clean package
+    mvn -U clean package ${mvnTests}
   else 
-    sudo -E -u ${user_exec} mvn clean install
+    sudo -E -u ${user_exec} mvn clean install ${mvnTests}
   fi
   cd ${scriptDir}
 

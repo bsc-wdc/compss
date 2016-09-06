@@ -506,7 +506,11 @@ check_args() {
   if [ -z "${tasks_per_node}" ]; then
     tasks_per_node=${DEFAULT_TASKS_PER_NODE}
   fi
-  
+
+  if [ -z "${node_memory}" ]; then
+    node_memory=${DEFAULT_NODE_MEMORY}
+  fi 
+ 
   if [ -z "${worker_in_master_tasks}" ]; then
     worker_in_master_tasks=${DEFAULT_WORKER_IN_MASTER_TASKS}
   fi
@@ -645,7 +649,7 @@ set_variables() {
   fi
 
   # Memory variables
-  if [ "${node_memory}" == "disabled" ]; then
+  if [ "${node_memory}" == "${DEFAULT_NODE_MEMORY}" ]; then
     # Default value
     node_memory=${DEFAULT_NODE_MEMORY_SIZE}
   else
@@ -653,7 +657,7 @@ set_variables() {
     node_memory=$(( node_memory / 1024 - 4))
   fi
 
-  if [ "${worker_in_master_memory}" == "disabled" ]; then
+  if [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
     # Default value
     worker_in_master_memory=${DEFAULT_NODE_MEMORY_SIZE}
   else

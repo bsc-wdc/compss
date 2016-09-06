@@ -99,15 +99,7 @@ public class InternalImpl {
 	}
 	
 	public static Person taskMap(String newName, Person p) {
-		Person pNew = new Person();
-		pNew.setName(newName);
-		pNew.setAge(p.getAge());
-		for (Computer c : p.getComputers()) {
-			pNew.addComputer(c);
-		}
-		
-		String id = "person_" + UUID.randomUUID().toString();
-		pNew.makePersistent(id);
+		p.setName(newName);
 	
 		// Manually persist object to storage
 		try {
@@ -121,30 +113,21 @@ public class InternalImpl {
 	}
 	
 	public static Person taskReduce(Person p1, Person p2) {
-		Person p = new Person();
-		p.setName(p1.getName() + "," + p2.getName());
-		p.setAge(p1.getAge() + p2.getAge());
-		
-		for (Computer c : p1.getComputers()) {
-			p.addComputer(c);
-		}
-		
+		p1.setName(p1.getName() + "," + p2.getName());
+		p1.setAge(p1.getAge() + p2.getAge());	
 		for (Computer c : p2.getComputers()) {
-			p.addComputer(c);
+			p1.addComputer(c);
 		}
-		
-		String id = "person_" + UUID.randomUUID().toString();
-		p.makePersistent(id);
 		
 		// Manually persist object to storage
 		try {
-			StorageManager.persist(p);
+			StorageManager.persist(p1);
 		} catch (StorageException e) {
 			System.err.println(ERROR_PERSIST);
 			e.printStackTrace();
 		}
 		
-		return p;
+		return p1;
 	}
 
 }

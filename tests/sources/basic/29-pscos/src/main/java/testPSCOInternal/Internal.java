@@ -131,7 +131,7 @@ public class Internal {
 		Person[] people = new Person[4];
 		for (int i = 0; i < people.length; ++i) {
 			String id = "person_" + UUID.randomUUID().toString();
-			System.out.println("[LOG][PSCO_TARGET_TP] Person " + i + " BeginId = " + id);
+			System.out.println("[LOG][PSCO_MR] Person " + i + " BeginId = " + id);
 			people[i] = new Person("PName" + i, i, i);
 			people[i].makePersistent(id);
 		}

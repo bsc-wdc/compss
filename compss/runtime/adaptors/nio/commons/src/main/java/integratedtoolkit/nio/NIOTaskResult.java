@@ -65,9 +65,9 @@ public class NIOTaskResult implements Externalizable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("[TASK_RESULT ");
 		sb.append("[TASK ID= ").append(taskId).append("]");
-		sb.append("[PARAM_TYPES ");
+		sb.append("[PARAM_TYPES");
 		for (DataType param : paramTypes) {
-			sb.append(param);
+			sb.append(" ").append(param);
 		}
 		sb.append("]");
 		sb.append("[PARAM_VALUES");

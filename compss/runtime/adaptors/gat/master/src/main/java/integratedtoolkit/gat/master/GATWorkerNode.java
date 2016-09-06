@@ -19,9 +19,7 @@ import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SSHManager;
 
-import integratedtoolkit.util.Tracer;
 import org.gridlab.gat.GATContext;
-
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -21,9 +21,6 @@ import storage.StubItf;
 public class GATWorker {
 
 	protected static final int NUM_HEADER_PARS = 6;
-	
-	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0 ? true : false;
 
 	private static final String WARN_UNSUPPORTED_TYPE = "WARNING: Unsupported data type";
 

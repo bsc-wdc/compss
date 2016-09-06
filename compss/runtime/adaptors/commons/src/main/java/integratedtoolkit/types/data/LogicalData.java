@@ -1,6 +1,5 @@
 package integratedtoolkit.types.data;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
 
@@ -38,10 +37,6 @@ public class LogicalData {
 
 	// Logger
 	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
-
-	// Tracing
-	private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
 	// Logical data name
 	private final String name;

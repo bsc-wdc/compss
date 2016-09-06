@@ -47,7 +47,6 @@ import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
-import storage.StubItf;
 
 
 public class NIOWorkerNode extends COMPSsWorker {
@@ -261,18 +260,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 		logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
 		// Get the PSCO to replicate
-		Object value = srcLD.getValue();
-		if (value == null || !(value instanceof StubItf)) {
-			try {
-				srcLD.loadFromStorage();
-			} catch (Exception e) {
-				// Cannot load value
-				sc.end(OpEndState.OP_FAILED, e);
-				return;
-			}
-			value = srcLD.getValue();
-		}
-		String pscoId = ((StubItf) value).getID();
+		String pscoId = srcLD.getId();
 
 		// Get the current locations
 		List<String> currentLocations = new LinkedList<String>();
@@ -305,7 +293,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 		}
 
 		// Notify successful end
-		sc.setFinalTarget(sc.getTargetLoc().getPath());
+		sc.setFinalTarget(pscoId);
 		sc.end(OpEndState.OP_OK);
 	}
 

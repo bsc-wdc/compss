@@ -1016,15 +1016,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 		return common;
 	}
     
-    
-    
-    
+	
     /* *******************************************
      * EXTERNALIZATION
      * *******************************************/
-     
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
+    @SuppressWarnings("unchecked")
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         processors = (List<Processor>) in.readObject();
         totalComputingUnits = in.readInt();
         memorySize = in.readFloat();
@@ -1062,11 +1059,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
     
     
-
     /* *******************************************
      * LOGGERS
      * *******************************************/
-
 	private Processor getDynamicCommonsProcessor(Processor pThis, Processor p) {
 		// Copy the assignable processor (no the requested)
 		Processor common = new Processor(pThis);

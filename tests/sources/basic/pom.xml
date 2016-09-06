@@ -61,6 +61,7 @@
 		<!-- Module 28 is 28-simple_c -->
 		<module>29-pscos</module>
 		<module>30-mpi</module>
+		<module>31-graph</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

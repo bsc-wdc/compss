@@ -1,0 +1,61 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  # Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_sparseLU.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Run application 1 - Sparselu Objects
+  echo
+  echo "*** RUNNING JAVA APPLICATION GRAPH"
+  output_log="${target_log_folder}/graph.outputlog"
+  error_log="${taget_log_folder}/graph.errorlog"
+  expectedTime=1200s
+  path_ain="${base_app_dir}/java_sparseLU_A.in"
+  path_aout="${base_app_dir}/java_sparseLU_A.out"
+  final_graph_expected="${base_app_dir}/final_graph.dot"
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --lang=java \
+     --classpath=${base_app_dir}/graph.jar \
+     -g \
+     --debug \
+     --comm=$comm \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     graph.objects.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/graph.objects.SparseLU_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/graph.objects.SparseLU_01/* ${target_log_folder}
+    
+     #Check result
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${final_graph_expected}
+     exitValue=$?
+  fi
+
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit $exitValue

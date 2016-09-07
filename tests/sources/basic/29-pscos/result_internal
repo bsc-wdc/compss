@@ -99,7 +99,7 @@
   
   
   target_got=$(grep "\[PSCO\_TARGET\]" ${output_file} | head -n 1)
-  target_expected="[LOG][PSCO_TARGET] Person Another with age 10 has 2 computers"
+  target_expected="[LOG][PSCO_TARGET] Person Another with age 10 has 3 computers"
   if [ "${target_got}" != "${target_expected}" ]; then
     echo "ERROR: TARGET PSCO is not correctly transfered to master"
     echo "GOT:      ${target_got}"
@@ -134,22 +134,41 @@
   fi
 
   
-  targetmr_got=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 2 | head -n 1)
-  targetmr_expected="[LOG][PSCO_MR] Person NewName0,NewName1,NewName2,NewName3 with age 6 has 6 computers"
+  mr_got=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 2 | head -n 1)
+  mr_expected="[LOG][PSCO_MR] Person NewName0,NewName1,NewName2,NewName3 with age 6 has 6 computers"
+  if [ "${mr_got}" != "${mr_expected}" ]; then
+    echo "ERROR: MR PSCO is not correctly transfered to master"
+    echo "GOT:      ${mr_got}"
+    echo "EXPECTED: ${mr_expected}"
+    exit 1
+  fi
+  mr_pscoid1=$(grep "\[PSCO\_MR\]" ${output_file} | head -n 1 | tr "=" "\t" | awk {' print $3 '})
+  mr_pscoid2=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
+  if [ "${mr_pscoid1}" == "${mr_pscoid2}" ]; then
+    echo "ERROR: MR PSCO is not persisted in task"
+    echo "GOT ID: ${mr_pscoid1}"
+    echo "EXPECTED ID: ${mr_pscoid2}"
+    exit 1
+  fi
+  
+  
+  targetmr_got=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | tail -n 2 | head -n 1)
+  targetmr_expected="[LOG][PSCO_MR_TARGET] Person NewName0,NewName1,NewName2,NewName3 with age 6 has 6 computers"
   if [ "${targetmr_got}" != "${targetmr_expected}" ]; then
-    echo "ERROR: TARGET PSCO is not correctly transfered to master"
+    echo "ERROR: TARGET MR PSCO is not correctly transfered to master"
     echo "GOT:      ${targetmr_got}"
     echo "EXPECTED: ${targetmr_expected}"
     exit 1
   fi
-  targetmr_pscoid1=$(grep "\[PSCO\_MR\]" ${output_file} | head -n 1 | tr "=" "\t" | awk {' print $3 '})
-  targetmr_pscoid2=$(grep "\[PSCO\_MR\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
+  targetmr_pscoid1=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | head -n 1 | tr "=" "\t" | awk {' print $3 '})
+  targetmr_pscoid2=$(grep "\[PSCO\_MR\_TARGET\]" ${output_file} | tail -n 1 | tr "=" "\t" | awk {' print $3 '})
   if [ "${targetmr_pscoid1}" == "${targetmr_pscoid2}" ]; then
-    echo "ERROR: TARGET PSCO is not persisted in task"
+    echo "ERROR: TARGET MR PSCO is not persisted in task"
     echo "GOT ID: ${targetmr_pscoid1}"
     echo "EXPECTED ID: ${targetmr_pscoid2}"
     exit 1
   fi
+
   
   #---------------------------------------------------------------------------------- 
   # ALL OK. Report result status

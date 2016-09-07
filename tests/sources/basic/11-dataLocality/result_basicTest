@@ -51,11 +51,10 @@
 		echo "GOT COMPSsWorker02:      $score_got_w2" | tee -a $output_file
 		exitValue=2
 	fi
- 
   elif [ "$target_got" == "$target_expected2" ]; then
 	if [ "$score_got_w1" != "$score_expected_useless" ] || [ "$score_got_w2" != "$score_expected_useful" ]; then
 		echo "ERROR: Scores are not computed correctly" | tee -a $output_file
-		echo "EXPECTED COMPSsWorker01: $score_expected_useles" | tee -a $output_file
+		echo "EXPECTED COMPSsWorker01: $score_expected_useless" | tee -a $output_file
 		echo "GOT COMPSsWorker01:      $score_got_w1" | tee -a $output_file
 		echo "EXPECTED COMPSsWorker02: $score_expected_useful" | tee -a  $output_file
 		echo "GOT COMPSsWorker02:      $score_got_w2" | tee -a $output_file

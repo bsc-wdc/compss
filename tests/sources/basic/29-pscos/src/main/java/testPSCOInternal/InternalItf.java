@@ -59,4 +59,14 @@ public interface InternalItf {
 		@Parameter (type = Type.OBJECT, direction = Direction.IN) Person p1, 
 		@Parameter (type = Type.OBJECT, direction = Direction.IN) Person p2
 	);
+	
+	@Method(declaringClass = "model.Person")
+    public void taskMap(
+        @Parameter (type = Type.STRING, direction = Direction.IN) String newName
+    );
+
+	@Method(declaringClass = "model.Person")
+    public void taskReduce(
+        @Parameter (type = Type.OBJECT, direction = Direction.IN) Person p2
+    );
 }

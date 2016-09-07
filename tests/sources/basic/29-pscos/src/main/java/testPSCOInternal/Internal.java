@@ -38,8 +38,12 @@ public class Internal {
         testPSCOTargetTaskPersisted();
 
         // ------------------------------------------------------------------------
-        System.out.println("[LOG] Test PSCO TARGET TASK PERSISTED");
+        System.out.println("[LOG] Test PSCO MERGE-REDUCE");
         testMergeReduce();
+        
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test PSCO MERGE-REDUCE WITH TARGET");
+        testMergeReduceTarget();
     }
 
     private static void testPSCOIn() {
@@ -104,6 +108,8 @@ public class Internal {
         Person p = new Person("PName1", 1, 1);
         p.makePersistent(id);
 
+        // Invoke 2 times to check if parameter is well returned from worker
+        p.taskPSCOTarget();
         p.taskPSCOTarget();
 
         String name = p.getName();
@@ -164,6 +170,46 @@ public class Internal {
         int numC = p1.getNumComputers();
         System.out.println("[LOG][PSCO_MR] Person " + name + " with age " + age + " has " + numC + " computers");
         System.out.println("[LOG][PSCO_MR] EndId = " + p1.getID());
+    }
+    
+    public static void testMergeReduceTarget() {
+        // Init
+        Person[] people = new Person[4];
+        for (int i = 0; i < people.length; ++i) {
+            String id = "person_" + UUID.randomUUID().toString();
+            System.out.println("[LOG][PSCO_MR_TARGET] Person " + i + " BeginId = " + id);
+            people[i] = new Person("PName" + i, i, i);
+            people[i].makePersistent(id);
+        }
+
+        // Map
+        for (int i = 0; i < people.length; ++i) {
+            people[i].taskMap("NewName" + i);
+        }
+
+        // Reduce
+        LinkedList<Integer> q = new LinkedList<Integer>();
+        for (int i = 0; i < people.length; i++) {
+            q.add(i);
+        }
+        int x = 0;
+        while (!q.isEmpty()) {
+            x = q.poll();
+            int y;
+            if (!q.isEmpty()) {
+                y = q.poll();
+                people[x].taskReduce(people[y]);
+                q.add(x);
+            }
+        }
+
+        // Get (sync) and write result
+        Person p1 = people[0];
+        String name = p1.getName();
+        int age = p1.getAge();
+        int numC = p1.getNumComputers();
+        System.out.println("[LOG][PSCO_MR_TARGET] Person " + name + " with age " + age + " has " + numC + " computers");
+        System.out.println("[LOG][PSCO_MR_TARGET] EndId = " + p1.getID());
     }
 
 }

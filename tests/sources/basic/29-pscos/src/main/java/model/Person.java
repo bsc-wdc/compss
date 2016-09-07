@@ -132,5 +132,35 @@ public class Person extends StorageObject implements Serializable {
             e.printStackTrace();
         }
     }
+    
+    // Task
+    public void taskMap(String newName) {
+        this.setName(newName);
+
+        // Manually persist object to storage
+        try {
+            StorageManager.persist(this);
+        } catch (StorageException e) {
+            System.err.println(ERROR_PERSIST);
+            e.printStackTrace();
+        }
+    }
+
+    // Task
+    public void taskReduce(Person p2) {
+        this.setName(this.getName() + "," + p2.getName());
+        this.setAge(this.getAge() + p2.getAge());
+        for (Computer c : p2.getComputers()) {
+            this.addComputer(c);
+        }
+
+        // Manually persist object to storage
+        try {
+            StorageManager.persist(this);
+        } catch (StorageException e) {
+            System.err.println(ERROR_PERSIST);
+            e.printStackTrace();
+        }
+    }
 
 }

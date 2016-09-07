@@ -12,7 +12,7 @@
 
   # Refresh and install
   yum --enablerepo=compss clean all
-  yum update
+  yum update -y
   yum install -y compss-framework
 
   # Exit with status from last command

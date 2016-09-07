@@ -94,16 +94,14 @@ public class JavaExecutor extends Executor {
         int numParams = nt.getNumParams();
 
         /* Parameters information ********************************** */
-        int totalNumberOfParams = hasTarget ? numParams - 1 : numParams; // Don't count target if needed (i.e.
-                                                                         // obj.func())
+        int totalNumberOfParams = hasTarget ? numParams - 1 : numParams; // Don't count target if needed (i.e. obj.func())
         Class<?>[] types = new Class[totalNumberOfParams];
         Object[] values = new Object[totalNumberOfParams];
         String[] renamings = new String[numParams];
         boolean[] isFile = new boolean[numParams];
         boolean[] canBePSCO = new boolean[numParams];
         boolean[] writeFinalValue = new boolean[numParams]; // By default the boolean initializer is in false
-                                                            // False because basic types aren't nor written nor
-                                                            // preserved
+                                                            // False because basic types aren't nor written nor preserved
         TargetParam target = new TargetParam();
 
         /* Parse the parameters ************************************ */
@@ -462,6 +460,9 @@ public class JavaExecutor extends Executor {
                     }
                     nt.getParams().get(i).setType(DataType.PSCO_T);
                     nt.getParams().get(i).setValue(id);
+                    
+                    // We set it as non writable because we have already stored it
+                    writeFinalValue[i] = false;
                 }
             }
         }
@@ -522,7 +523,8 @@ public class JavaExecutor extends Executor {
                 Object res = (hasTarget && i == numParams - 1) ? target.getValue() : values[i];
                 // Update task params for TaskResult command
                 nt.getParams().get(i).setValue(res);
-                // The parameter is a file, an object or PSCO Id that MUST be stored
+                
+                // The parameter is a file, an object that MUST be stored
                 nw.storeObject(renamings[i], res);
             }
         }

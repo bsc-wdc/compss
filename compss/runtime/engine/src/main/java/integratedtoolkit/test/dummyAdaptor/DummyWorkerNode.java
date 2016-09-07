@@ -19,88 +19,88 @@ import integratedtoolkit.types.uri.SimpleURI;
 
 public class DummyWorkerNode extends COMPSsWorker {
 
-	private final String name;
+    private final String name;
 
 
-	public DummyWorkerNode(String name, MethodConfiguration config) {
-		super(name, config);
-		this.name = name;
-	}
+    public DummyWorkerNode(String name, MethodConfiguration config) {
+        super(name, config);
+        this.name = name;
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public void start() throws Exception {
-	}
+    @Override
+    public void start() throws Exception {
+    }
 
-	@Override
-	public String getUser() {
-		return this.name;
-	}
+    @Override
+    public String getUser() {
+        return this.name;
+    }
 
-	@Override
-	public String getClasspath() {
-		return this.name;
-	}
+    @Override
+    public String getClasspath() {
+        return this.name;
+    }
 
-	@Override
-	public String getPythonpath() {
-		return this.name;
-	}
+    @Override
+    public String getPythonpath() {
+        return this.name;
+    }
 
-	@Override
-	public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-		return null;
-	}
+    @Override
+    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+        return null;
+    }
 
-	@Override
-	public void setInternalURI(MultiURI uri) {
-	}
+    @Override
+    public void setInternalURI(MultiURI uri) {
+    }
 
-	@Override
-	public void stop(ShutdownListener sl) {
-	}
+    @Override
+    public void stop(ShutdownListener sl) {
+    }
 
-	@Override
-	public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-			EventListener listener) {
-	}
+    @Override
+    public void sendData(LogicalData srcData, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+    }
 
-	@Override
-	public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-			EventListener listener) {
-	}
+    @Override
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+    }
 
-	@Override
-	public void updateTaskCount(int processorCoreCount) {
-	}
+    @Override
+    public void updateTaskCount(int processorCoreCount) {
+    }
 
-	@Override
-	public void announceCreation() throws Exception {
-	}
+    @Override
+    public void announceCreation() throws Exception {
+    }
 
-	@Override
-	public void announceDestruction() throws Exception {
-	}
+    @Override
+    public void announceDestruction() throws Exception {
+    }
 
-	@Override
-	public SimpleURI getCompletePath(DataType type, String name) {
-		return null;
-	}
+    @Override
+    public SimpleURI getCompletePath(DataType type, String name) {
+        return null;
+    }
 
-	@Override
-	public void deleteTemporary() {
-	}
+    @Override
+    public void deleteTemporary() {
+    }
 
-	@Override
-	public void generatePackage() {
-	}
+    @Override
+    public void generatePackage() {
+    }
 
-	@Override
-	public void generateWorkersDebugInfo() {
-	}
+    @Override
+    public void generateWorkersDebugInfo() {
+    }
 
 }

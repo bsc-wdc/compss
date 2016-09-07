@@ -8,12 +8,11 @@ import integratedtoolkit.types.annotations.Parameter.Type;
 
 
 public interface SimpleItf {
-	
-	@Constraints(computingUnits = 1)
-	@Method(declaringClass = "simple.SimpleImpl")
-	void increment(
-		@Parameter(type = Type.FILE, direction = Direction.INOUT)
-		String file
-	);
+
+    @Constraints(computingUnits = 1)
+    @Method(declaringClass = "simple.SimpleImpl")
+    void increment(
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
+    );
 
 }

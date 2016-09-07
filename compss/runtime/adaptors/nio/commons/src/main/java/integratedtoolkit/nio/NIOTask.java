@@ -12,8 +12,8 @@ import java.util.LinkedList;
 
 public class NIOTask implements Externalizable {
 
-	private String lang;
-	private boolean workerDebug;
+    private String lang;
+    private boolean workerDebug;
     private String className;
     private String methodName;
     private boolean hasTarget;
@@ -25,17 +25,15 @@ public class NIOTask implements Externalizable {
     private JobHistory hist;
     private int transferGroupId;
     private int numParams;
+    
 
-    //private int[] test;
-    //private int test;
-    
     public NIOTask() {
-    	
+
     }
-    
-    public NIOTask(String lang, boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params, 
-    		int numParams, MethodResourceDescription reqs,  int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
-    	
+
+    public NIOTask(String lang, boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params,
+            int numParams, MethodResourceDescription reqs, int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
+
         this.lang = lang;
         this.workerDebug = workerDebug;
         this.className = className;
@@ -49,66 +47,62 @@ public class NIOTask implements Externalizable {
         this.hist = hist;
         this.numParams = numParams;
         this.transferGroupId = transferGroupId;
-        
-        //this.test = new int[] {10,20,30,40,50,60,71,80,90,91};
-        //this.test = 2;
     }
 
+    public String getLang() {
+        return lang;
+    }
 
-	public String getLang() {
-		return lang;
-	}
+    public boolean isWorkerDebug() {
+        return workerDebug;
+    }
 
-	public boolean isWorkerDebug() {
-		return workerDebug;
-	}
+    public String getClassName() {
+        return className;
+    }
 
-	public String getClassName() {
-		return className;
-	}
+    public String getMethodName() {
+        return methodName;
+    }
 
-	public String getMethodName() {
-		return methodName;
-	}
+    public boolean isHasTarget() {
+        return hasTarget;
+    }
 
-	public boolean isHasTarget() {
-		return hasTarget;
-	}
+    public LinkedList<NIOParam> getParams() {
+        return params;
+    }
 
-	public LinkedList<NIOParam> getParams() {
-		return params;
-	}
+    public int getTaskId() {
+        return taskId;
+    }
 
-	public int getTaskId() {
-		return taskId;
-	}
+    public int getTaskType() {
+        return taskType;
+    }
 
-	public int getTaskType() {
-		return taskType;
-	}
+    public int getJobId() {
+        return jobId;
+    }
 
-	public int getJobId() {
-		return jobId;
-	}
+    public JobHistory getHist() {
+        return hist;
+    }
 
-	public JobHistory getHist() {
-		return hist;
-	}
+    public int getTransferGroupId() {
+        return transferGroupId;
+    }
 
-	public int getTransferGroupId() {
-		return transferGroupId;
-	}
-	
-	public MethodResourceDescription getResourceDescription(){
-		return reqs;
-	}
+    public MethodResourceDescription getResourceDescription() {
+        return reqs;
+    }
 
-	public int getNumParams() {
-		return numParams;
-	}
-	
+    public int getNumParams() {
+        return numParams;
+    }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         lang = (String) in.readObject();
         workerDebug = in.readBoolean();
@@ -125,8 +119,7 @@ public class NIOTask implements Externalizable {
         transferGroupId = in.readInt();
     }
 
-
-
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(lang);
         out.writeBoolean(workerDebug);
@@ -143,6 +136,7 @@ public class NIOTask implements Externalizable {
         out.writeInt(transferGroupId);
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[TASK ");
         sb.append("[LANG= ").append(lang).append("]");
@@ -161,6 +155,5 @@ public class NIOTask implements Externalizable {
         sb.append("]");
         return sb.toString();
     }
- 
-}
 
+}

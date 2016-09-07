@@ -3,12 +3,12 @@ package matmul.files;
 @SuppressWarnings("serial")
 public class MatmulAppException extends Exception {
 
-	public MatmulAppException() {
-		super("unknown");
-	}
+    public MatmulAppException() {
+        super("unknown");
+    }
 
-	public MatmulAppException(String _s) {
-		super(_s);
-	}
+    public MatmulAppException(String _s) {
+        super(_s);
+    }
 
 }

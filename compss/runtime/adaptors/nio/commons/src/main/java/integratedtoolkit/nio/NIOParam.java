@@ -11,91 +11,91 @@ import java.io.ObjectOutput;
 
 public class NIOParam implements Externalizable {
 
-	private DataType type;
-	private boolean preserveSourceData;
-	private boolean writeFinalValue;
+    private DataType type;
+    private boolean preserveSourceData;
+    private boolean writeFinalValue;
 
-	private Object value;
-	private Data data;
+    private Object value;
+    private Data data;
 
 
-	public NIOParam() {
+    public NIOParam() {
 
-	}
+    }
 
-	public NIOParam(DataType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
-		this.type = type;
-		this.value = value;
-		this.preserveSourceData = preserveSourceData;
-		this.writeFinalValue = writeFinalValue;
-		this.data = data;
-	}
+    public NIOParam(DataType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
+        this.type = type;
+        this.value = value;
+        this.preserveSourceData = preserveSourceData;
+        this.writeFinalValue = writeFinalValue;
+        this.data = data;
+    }
 
-	public DataType getType() {
-		return type;
-	}
+    public DataType getType() {
+        return type;
+    }
 
-	public void setType(DataType type) {
-		this.type = type;
-	}
+    public void setType(DataType type) {
+        this.type = type;
+    }
 
-	public boolean isPreserveSourceData() {
-		return preserveSourceData;
-	}
+    public boolean isPreserveSourceData() {
+        return preserveSourceData;
+    }
 
-	public boolean isWriteFinalValue() {
-		return writeFinalValue;
-	}
+    public boolean isWriteFinalValue() {
+        return writeFinalValue;
+    }
 
-	public Object getValue() {
-		return value;
-	}
+    public Object getValue() {
+        return value;
+    }
 
-	public void setValue(Object o) {
-		value = o;
-	}
+    public void setValue(Object o) {
+        value = o;
+    }
 
-	public Data getData() {
-		return data;
-	}
+    public Data getData() {
+        return data;
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		type = (DataType) in.readObject();
-		preserveSourceData = in.readBoolean();
-		writeFinalValue = in.readBoolean();
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        type = (DataType) in.readObject();
+        preserveSourceData = in.readBoolean();
+        writeFinalValue = in.readBoolean();
 
-		value = in.readObject();
-		try {
-			data = (Data) in.readObject();
-		} catch (java.io.OptionalDataException e) {
-			data = null;
-		}
-	}
+        value = in.readObject();
+        try {
+            data = (Data) in.readObject();
+        } catch (java.io.OptionalDataException e) {
+            data = null;
+        }
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(type);
-		out.writeBoolean(preserveSourceData);
-		out.writeBoolean(writeFinalValue);
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(type);
+        out.writeBoolean(preserveSourceData);
+        out.writeBoolean(writeFinalValue);
 
-		out.writeObject(value);
-		if (data != null) {
-			out.writeObject(data);
-		}
-	}
+        out.writeObject(value);
+        if (data != null) {
+            out.writeObject(data);
+        }
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("[PARAM");
-		sb.append("[TYPE = ").append(type).append("]");
-		sb.append("[PRESERVE SOURCE DATA = ").append(preserveSourceData).append("]");
-		sb.append("[WRITE FINAL VALUE = ").append(writeFinalValue).append("]");
-		sb.append("[VALUE = ").append(value).append("]");
-		sb.append("[DATA ").append(data).append("]");
-		sb.append("]");
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[PARAM");
+        sb.append("[TYPE = ").append(type).append("]");
+        sb.append("[PRESERVE SOURCE DATA = ").append(preserveSourceData).append("]");
+        sb.append("[WRITE FINAL VALUE = ").append(writeFinalValue).append("]");
+        sb.append("[VALUE = ").append(value).append("]");
+        sb.append("[DATA ").append(data).append("]");
+        sb.append("]");
 
-		return sb.toString();
-	}
-	
+        return sb.toString();
+    }
+
 }

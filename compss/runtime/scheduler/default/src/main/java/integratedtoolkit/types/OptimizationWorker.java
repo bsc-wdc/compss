@@ -9,35 +9,34 @@ import java.util.PriorityQueue;
 
 public class OptimizationWorker {
 
-	private DefaultResourceScheduler resource;
-	private PriorityQueue<AllocatableAction> donorActions;
+    private DefaultResourceScheduler resource;
+    private PriorityQueue<AllocatableAction> donorActions;
 
 
-	public OptimizationWorker(DefaultResourceScheduler resource) {
-		this.resource = resource;
-	}
+    public OptimizationWorker(DefaultResourceScheduler resource) {
+        this.resource = resource;
+    }
 
-	public void localOptimization(long optimizationTS) {
-		donorActions = resource.localOptimization(optimizationTS, 
-									ScheduleOptimizer.getSelectionComparator(),
-									ScheduleOptimizer.getDonationComparator()
-						);
-	}
+    public void localOptimization(long optimizationTS) {
+        donorActions = resource.localOptimization(optimizationTS, 
+                ScheduleOptimizer.getSelectionComparator(),
+                ScheduleOptimizer.getDonationComparator());
+    }
 
-	public AllocatableAction pollDonorAction() {
-		return donorActions.poll();
-	}
+    public AllocatableAction pollDonorAction() {
+        return donorActions.poll();
+    }
 
-	public long getDonationIndicator() {
-		return resource.getLastGapExpectedStart();
-	}
+    public long getDonationIndicator() {
+        return resource.getLastGapExpectedStart();
+    }
 
-	public String getName() {
-		return resource.getName();
-	}
+    public String getName() {
+        return resource.getName();
+    }
 
-	public DefaultResourceScheduler getResource() {
-		return resource;
-	}
+    public DefaultResourceScheduler getResource() {
+        return resource;
+    }
 
 }

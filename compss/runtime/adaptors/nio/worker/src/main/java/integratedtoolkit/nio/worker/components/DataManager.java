@@ -10,54 +10,58 @@ import org.apache.logging.log4j.Logger;
 
 public class DataManager {
 
-	// Logger
-	private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
-	// Cache
-	private final HashMap<String, Object> objectCache;
+    // Logger
+    private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
+    // Cache
+    private final HashMap<String, Object> objectCache;
 
 
-	public DataManager() {
-		objectCache = new HashMap<String, Object>();
-	}
+    public DataManager() {
+        objectCache = new HashMap<String, Object>();
+    }
 
-	public void init() throws Exception {
+    public void init() throws Exception {
 
-	}
+    }
 
-	public void stop() {
+    public void stop() {
 
-	}
+    }
 
-	/* ************************************
-	 * STORE METHODS 
-	 * ************************************/
-	public synchronized void storeObject(String name, Object value) {
-		try {
-			objectCache.put(name, value);
-		} catch (NullPointerException e) {
-			wLogger.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
-		}
-	}
+    /*
+     * ************************************ 
+     * STORE METHODS
+     ************************************/
+    public synchronized void storeObject(String name, Object value) {
+        try {
+            objectCache.put(name, value);
+        } catch (NullPointerException e) {
+            wLogger.error("Object Cache " + objectCache + " dataId " + name + " object " + value);
+        }
+    }
 
-	/* ************************************
-	 * GET METHODS 
-	 * ************************************/
-	public synchronized Object getObject(String name) {
-		return objectCache.get(name);
-	}
+    /*
+     * ************************************ 
+     * GET METHODS
+     ************************************/
+    public synchronized Object getObject(String name) {
+        return objectCache.get(name);
+    }
 
-	/* ************************************
-	 * REMOVE METHODS 
-	 * ************************************/
-	public synchronized void remove(String name) {
-		objectCache.remove(name);
-	}
+    /*
+     * ************************************ 
+     * REMOVE METHODS
+     ************************************/
+    public synchronized void remove(String name) {
+        objectCache.remove(name);
+    }
 
-	/* ************************************
-	 * CHECKER METHODS 
-	 * ************************************/
-	public synchronized boolean checkPresence(String name) {
-		return objectCache.containsKey(name);
-	}
+    /*
+     * ************************************ 
+     * CHECKER METHODS
+     ************************************/
+    public synchronized boolean checkPresence(String name) {
+        return objectCache.containsKey(name);
+    }
 
 }

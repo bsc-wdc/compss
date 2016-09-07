@@ -4,10 +4,11 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.data.Transferable;
 
 
-public class TracingCopyTransferable  implements Transferable {
+public class TracingCopyTransferable implements Transferable {
 
     private Object dataSource;
     private String dataTarget;
+
 
     @Override
     public Object getDataSource() {

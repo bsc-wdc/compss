@@ -11,42 +11,42 @@ import integratedtoolkit.nio.NIOAgent;
 
 public class CommandDataReceived extends Command implements Externalizable {
 
-	public int transfergroupID;
+    private int transfergroupID;
 
 
-	public CommandDataReceived() {
-	}
+    public CommandDataReceived() {
+    }
 
-	public CommandDataReceived(NIOAgent ng, int transfergroupID) {
-		super(ng);
-		this.transfergroupID = transfergroupID;
-	}
+    public CommandDataReceived(NIOAgent ng, int transfergroupID) {
+        super(ng);
+        this.transfergroupID = transfergroupID;
+    }
 
-	@Override
-	public CommandType getType() {
-		return CommandType.DATA_RECEIVED;
-	}
+    @Override
+    public CommandType getType() {
+        return CommandType.DATA_RECEIVED;
+    }
 
-	@Override
-	public void handle(Connection c) {
-		c.finishConnection();
-		NIOAgent nm = (NIOAgent) agent;
-		nm.copiedData(transfergroupID);
-	}
+    @Override
+    public void handle(Connection c) {
+        c.finishConnection();
+        NIOAgent nm = (NIOAgent) agent;
+        nm.copiedData(transfergroupID);
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		transfergroupID = in.readInt();
-	}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        transfergroupID = in.readInt();
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeInt(transfergroupID);
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeInt(transfergroupID);
+    }
 
-	@Override
-	public String toString() {
-		return "Data for transfer group" + transfergroupID + "has been received in the remote worker";
-	}
-	
+    @Override
+    public String toString() {
+        return "Data for transfer group" + transfergroupID + "has been received in the remote worker";
+    }
+
 }

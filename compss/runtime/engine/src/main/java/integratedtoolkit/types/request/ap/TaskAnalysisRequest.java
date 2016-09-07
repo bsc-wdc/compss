@@ -9,30 +9,30 @@ import integratedtoolkit.types.Task;
 
 public class TaskAnalysisRequest extends APRequest {
 
-	private Task task;
+    private Task task;
 
 
-	public TaskAnalysisRequest(Task task) {
-		this.task = task;
-	}
+    public TaskAnalysisRequest(Task task) {
+        this.task = task;
+    }
 
-	public Task getTask() {
-		return task;
-	}
+    public Task getTask() {
+        return task;
+    }
 
-	public void setTask(Task task) {
-		this.task = task;
-	}
+    public void setTask(Task task) {
+        this.task = task;
+    }
 
-	@Override
-	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
-		ta.processTask(task);
-		td.executeTask(ap, task);
-	}
+    @Override
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+        ta.processTask(task);
+        td.executeTask(ap, task);
+    }
 
-	@Override
-	public APRequestType getRequestType() {
-		return APRequestType.ANALYSE_TASK;
-	}
+    @Override
+    public APRequestType getRequestType() {
+        return APRequestType.ANALYSE_TASK;
+    }
 
 }

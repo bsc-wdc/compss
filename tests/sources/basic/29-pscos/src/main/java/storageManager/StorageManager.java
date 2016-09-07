@@ -15,23 +15,23 @@ import storage.StubItf;
  */
 public class StorageManager {
 
-	private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
-	private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
+    private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
+    private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
 
-	public static void persist(StubItf o) throws StorageException {
-		String id = o.getID();
-		if (id != null) {
-			List<String> hostnames = StorageItf.getLocations(id);
-			for (String h : hostnames) {
-				String path = BASE_WORKING_DIR + h + File.separator + id;
-				try {
-					Serializer.serialize(o, path);
-				} catch (IOException e) {
-					throw new StorageException(ERROR_SERIALIZE + id, e);
-				}
-			}
-		}
-	}
+    public static void persist(StubItf o) throws StorageException {
+        String id = o.getID();
+        if (id != null) {
+            List<String> hostnames = StorageItf.getLocations(id);
+            for (String h : hostnames) {
+                String path = BASE_WORKING_DIR + h + File.separator + id;
+                try {
+                    Serializer.serialize(o, path);
+                } catch (IOException e) {
+                    throw new StorageException(ERROR_SERIALIZE + id, e);
+                }
+            }
+        }
+    }
 
 }

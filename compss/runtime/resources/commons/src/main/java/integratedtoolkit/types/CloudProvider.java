@@ -22,306 +22,306 @@ import org.apache.logging.log4j.Logger;
 
 public class CloudProvider {
 
-	private final String name;
-	private final Integer limitOfVMs;
-	private int currentVMCount;
+    private final String name;
+    private final Integer limitOfVMs;
+    private int currentVMCount;
 
-	private CloudImageManager imgManager;
-	private CloudTypeManager typeManager;
+    private CloudImageManager imgManager;
+    private CloudTypeManager typeManager;
 
-	private Connector connector;
-	private Cost cost;
+    private Connector connector;
+    private Cost cost;
 
-	// Loggers
-	private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
-	private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
-	private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
-	private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
+    // Loggers
+    private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
+    private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
+    private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
+    private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
 
 
-	public CloudProvider(String connectorPath, Integer limitOfVMs, HashMap<String, String> connectorProperties, String name)
-			throws Exception {
+    public CloudProvider(String connectorPath, Integer limitOfVMs, HashMap<String, String> connectorProperties, String name)
+            throws Exception {
 
-		this.name = name;
-		this.limitOfVMs = limitOfVMs;
-		this.currentVMCount = 0;
+        this.name = name;
+        this.limitOfVMs = limitOfVMs;
+        this.currentVMCount = 0;
 
-		this.imgManager = new CloudImageManager();
-		this.typeManager = new CloudTypeManager();
+        this.imgManager = new CloudImageManager();
+        this.typeManager = new CloudTypeManager();
 
-		Class<?> conClass = Class.forName(connectorPath);
-		Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
-		Object conector = ctor.newInstance(name, connectorProperties);
-		connector = (Connector) conector;
-		cost = (Cost) conector;
-	}
+        Class<?> conClass = Class.forName(connectorPath);
+        Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
+        Object conector = ctor.newInstance(name, connectorProperties);
+        connector = (Connector) conector;
+        cost = (Cost) conector;
+    }
 
-	/*
-	 * ---------------------------------------- 
-	 * ------- Cloud Provider Builders --------
-	 * ----------------------------------------
-	 */
-	public void addCloudImage(CloudImageDescription cid) {
-		imgManager.add(cid);
-	}
+    /*
+     * ---------------------------------------- 
+     * ------- Cloud Provider Builders --------
+     * ----------------------------------------
+     */
+    public void addCloudImage(CloudImageDescription cid) {
+        imgManager.add(cid);
+    }
 
-	public void addInstanceType(CloudMethodResourceDescription rd) {
-		typeManager.add(rd);
-	}
+    public void addInstanceType(CloudMethodResourceDescription rd) {
+        typeManager.add(rd);
+    }
 
-	public void newCoreElementsDetected(LinkedList<Integer> newCores) {
-		typeManager.newCoreElementsDetected(newCores);
-	}
+    public void newCoreElementsDetected(LinkedList<Integer> newCores) {
+        typeManager.newCoreElementsDetected(newCores);
+    }
 
-	/*
-	 * ----------------------------------------- 
-	 * ------------- Basic Queries -------------
-	 * ----------------------------------------
-	 */
-	public String getName() {
-		return name;
-	}
+    /*
+     * ----------------------------------------- 
+     * ------------- Basic Queries -------------
+     * ----------------------------------------
+     */
+    public String getName() {
+        return name;
+    }
 
-	public float getCurrentCostPerHour() {
-		return cost.currentCostPerHour();
-	}
+    public float getCurrentCostPerHour() {
+        return cost.currentCostPerHour();
+    }
 
-	public float getTotalCost() {
-		return cost.getTotalCost();
-	}
+    public float getTotalCost() {
+        return cost.getTotalCost();
+    }
 
-	public Set<String> getAllImageNames() {
-		return imgManager.getAllImageNames();
-	}
+    public Set<String> getAllImageNames() {
+        return imgManager.getAllImageNames();
+    }
 
-	public Set<String> getAllInstanceTypeNames() {
-		return typeManager.getAllInstanceTypeNames();
-	}
+    public Set<String> getAllInstanceTypeNames() {
+        return typeManager.getAllInstanceTypeNames();
+    }
 
-	public int[][] getSimultaneousImpls(String type) {
-		return typeManager.getSimultaneousImpls(type);
-	}
+    public int[][] getSimultaneousImpls(String type) {
+        return typeManager.getSimultaneousImpls(type);
+    }
 
-	public long getNextCreationTime() throws Exception {
-		return connector.getNextCreationTime();
-	}
+    public long getNextCreationTime() throws Exception {
+        return connector.getNextCreationTime();
+    }
 
-	public long getTimeSlot() throws Exception {
-		return connector.getTimeSlot();
-	}
+    public long getTimeSlot() throws Exception {
+        return connector.getTimeSlot();
+    }
 
-	public HashMap<CloudMethodResourceDescription, Integer> getVMComposition(String name) {
-		return typeManager.getComposition(name);
-	}
+    public HashMap<CloudMethodResourceDescription, Integer> getVMComposition(String name) {
+        return typeManager.getComposition(name);
+    }
 
-	/*
-	 * ----------------------------------------- 
-	 * ------------- State Changes -------------
-	 * -----------------------------------------
-	 */
-	public void stopReached() {
-		connector.stopReached();
-	}
+    /*
+     * ----------------------------------------- 
+     * ------------- State Changes -------------
+     * -----------------------------------------
+     */
+    public void stopReached() {
+        connector.stopReached();
+    }
 
-	public boolean turnON(ResourceCreationRequest rcr) {
-		currentVMCount++;
-		return connector.turnON("compss" + UUID.randomUUID().toString(), rcr);
-	}
+    public boolean turnON(ResourceCreationRequest rcr) {
+        currentVMCount++;
+        return connector.turnON("compss" + UUID.randomUUID().toString(), rcr);
+    }
 
-	public void createdVM(String resourceName, CloudMethodResourceDescription rd) {
-		typeManager.createdVM(resourceName, rd.getType());
-	}
+    public void createdVM(String resourceName, CloudMethodResourceDescription rd) {
+        typeManager.createdVM(resourceName, rd.getType());
+    }
 
-	public void refusedWorker(CloudMethodResourceDescription rd) {
-		currentVMCount--;
-	}
+    public void refusedWorker(CloudMethodResourceDescription rd) {
+        currentVMCount--;
+    }
 
-	public void turnOff(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
-		typeManager.reduceVM(name, reduction.getType());
-		connector.terminate(worker, reduction);
-		currentVMCount--;
-	}
+    public void turnOff(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+        typeManager.reduceVM(name, reduction.getType());
+        connector.terminate(worker, reduction);
+        currentVMCount--;
+    }
 
-	public int getCurrentVMCount() {
-		return currentVMCount;
-	}
+    public int getCurrentVMCount() {
+        return currentVMCount;
+    }
 
-	/*
-	 * ------------------------------------------ 
-	 * -------- Recommendation Queries ----------
-	 * ------------------------------------------
-	 */
-	public CloudMethodResourceDescription getBestIncrease(Integer amount, MethodResourceDescription constraints, boolean contained) {
-		// Check Cloud capabilities
-		if (limitOfVMs != null && limitOfVMs != -1 && currentVMCount >= limitOfVMs) {
-			return null;
-		}
+    /*
+     * ------------------------------------------ 
+     * -------- Recommendation Queries ----------
+     * ------------------------------------------
+     */
+    public CloudMethodResourceDescription getBestIncrease(Integer amount, MethodResourceDescription constraints, boolean contained) {
+        // Check Cloud capabilities
+        if (limitOfVMs != null && limitOfVMs != -1 && currentVMCount >= limitOfVMs) {
+            return null;
+        }
 
-		// Select all the compatible types
-		LinkedList<CloudMethodResourceDescription> instances = typeManager.getCompatibleTypes(constraints);
-		if (instances.isEmpty()) {
-			logger.warn(WARN_NO_COMPATIBLE_TYPE);
-			return null;
-		}
+        // Select all the compatible types
+        LinkedList<CloudMethodResourceDescription> instances = typeManager.getCompatibleTypes(constraints);
+        if (instances.isEmpty()) {
+            logger.warn(WARN_NO_COMPATIBLE_TYPE);
+            return null;
+        }
 
-		CloudMethodResourceDescription result = null;
-		if (contained) {
-			result = selectContainedInstance(instances, constraints, amount);
-		} else {
-			result = selectContainingInstance(instances, constraints, amount);
-		}
+        CloudMethodResourceDescription result = null;
+        if (contained) {
+            result = selectContainedInstance(instances, constraints, amount);
+        } else {
+            result = selectContainingInstance(instances, constraints, amount);
+        }
 
-		// Pick an image to be loaded in the Type (or return null)
-		if (result != null) {
-			// Select all the compatible images
-			LinkedList<CloudImageDescription> images = imgManager.getCompatibleImages(constraints);
-			if (images.isEmpty()) {
-				logger.warn(WARN_NO_COMPATIBLE_IMAGE);
-				return null;
-			}
-			result.setProviderName(images.get(0).getProviderName());
-			result.setImage(images.get(0));
-			result.setValue(cost.getMachineCostPerHour(result));
-		} else {
-			logger.warn(WARN_NO_VALID_INSTANCE);
-		}
+        // Pick an image to be loaded in the Type (or return null)
+        if (result != null) {
+            // Select all the compatible images
+            LinkedList<CloudImageDescription> images = imgManager.getCompatibleImages(constraints);
+            if (images.isEmpty()) {
+                logger.warn(WARN_NO_COMPATIBLE_IMAGE);
+                return null;
+            }
+            result.setProviderName(images.get(0).getProviderName());
+            result.setImage(images.get(0));
+            result.setValue(cost.getMachineCostPerHour(result));
+        } else {
+            logger.warn(WARN_NO_VALID_INSTANCE);
+        }
 
-		return result;
-	}
+        return result;
+    }
 
-	private CloudMethodResourceDescription selectContainingInstance(LinkedList<CloudMethodResourceDescription> instances,
-			MethodResourceDescription constraints, int amount) {
+    private CloudMethodResourceDescription selectContainingInstance(LinkedList<CloudMethodResourceDescription> instances,
+            MethodResourceDescription constraints, int amount) {
 
-		CloudMethodResourceDescription result = null;
-		float bestDistance = Integer.MIN_VALUE;
+        CloudMethodResourceDescription result = null;
+        float bestDistance = Integer.MIN_VALUE;
 
-		for (CloudMethodResourceDescription rd : instances) {
-			int slots = rd.canHostSimultaneously(constraints);
-			float distance = slots - amount;
-			logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = "
-					+ bestDistance);
-			if (distance > 0.0) {
-				continue;
-			}
+        for (CloudMethodResourceDescription rd : instances) {
+            int slots = rd.canHostSimultaneously(constraints);
+            float distance = slots - amount;
+            logger.debug(
+                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            if (distance > 0.0) {
+                continue;
+            }
 
-			if (distance > bestDistance) {
-				result = rd;
-				bestDistance = distance;
-			} else if (distance == bestDistance && result != null) {
-				if (result.getValue() != null && rd.getValue() != null && result.getValue() > rd.getValue()) {
-					// Evaluate optimal candidate
-					result = rd;
-					bestDistance = distance;
-				}
-			}
-		}
+            if (distance > bestDistance) {
+                result = rd;
+                bestDistance = distance;
+            } else if (distance == bestDistance && result != null) {
+                if (result.getValue() != null && rd.getValue() != null && result.getValue() > rd.getValue()) {
+                    // Evaluate optimal candidate
+                    result = rd;
+                    bestDistance = distance;
+                }
+            }
+        }
 
-		if (result == null) {
-			return null;
-		}
-		return new CloudMethodResourceDescription(result);
-	}
+        if (result == null) {
+            return null;
+        }
+        return new CloudMethodResourceDescription(result);
+    }
 
-	private CloudMethodResourceDescription selectContainedInstance(LinkedList<CloudMethodResourceDescription> instances,
-			MethodResourceDescription constraints, int amount) {
-		CloudMethodResourceDescription result = null;
-		float bestDistance = Integer.MAX_VALUE;
+    private CloudMethodResourceDescription selectContainedInstance(LinkedList<CloudMethodResourceDescription> instances,
+            MethodResourceDescription constraints, int amount) {
+        CloudMethodResourceDescription result = null;
+        float bestDistance = Integer.MAX_VALUE;
 
-		for (CloudMethodResourceDescription rd : instances) {
-			int slots = rd.canHostSimultaneously(constraints);
-			float distance = slots - amount;
-			logger.debug("Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = "
-					+ bestDistance);
-			if (distance < 0.0) {
-				continue;
-			}
+        for (CloudMethodResourceDescription rd : instances) {
+            int slots = rd.canHostSimultaneously(constraints);
+            float distance = slots - amount;
+            logger.debug(
+                    "Can host: slots = " + slots + " amount = " + amount + " distance = " + distance + " bestDistance = " + bestDistance);
+            if (distance < 0.0) {
+                continue;
+            }
 
-			if (distance < bestDistance) {
-				result = rd;
-				bestDistance = distance;
-			} else if (distance == bestDistance && result != null) {
-				if (result.getValue() != null && rd.getValue() != null && result.getValue() > rd.getValue()) {
-					// Evaluate optimal candidate
-					result = rd;
-					bestDistance = distance;
-				}
-			}
+            if (distance < bestDistance) {
+                result = rd;
+                bestDistance = distance;
+            } else if (distance == bestDistance && result != null) {
+                if (result.getValue() != null && rd.getValue() != null && result.getValue() > rd.getValue()) {
+                    // Evaluate optimal candidate
+                    result = rd;
+                    bestDistance = distance;
+                }
+            }
 
-		}
+        }
 
-		if (result == null) {
-			return null;
-		}
-		return new CloudMethodResourceDescription(result);
-	}
+        if (result == null) {
+            return null;
+        }
+        return new CloudMethodResourceDescription(result);
+    }
 
-	// TypeName -> [[# modified CE that weren't requested,
-	// #slots removed that weren't requested,
-	// #slots removed that were requested],
-	// Type description]
-	public HashMap<String, Object[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
-		HashMap<String, Object[]> reductions = new HashMap<String, Object[]>();
-		HashMap<String, Object[]> types = typeManager.getPossibleReductions(res.getName());
+    // TypeName -> [[# modified CE that weren't requested,
+    // #slots removed that weren't requested,
+    // #slots removed that were requested],
+    // Type description]
+    public HashMap<String, Object[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
+        HashMap<String, Object[]> reductions = new HashMap<String, Object[]>();
+        HashMap<String, Object[]> types = typeManager.getPossibleReductions(res.getName());
 
-		for (java.util.Map.Entry<String, Object[]> type : types.entrySet()) {
-			String typeName = type.getKey();
-			Object[] description = type.getValue();
-			int[] reducedSlots = (int[]) description[0];
-			float[] values = new float[3];
-			for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-				if (res.canRun(coreId)) {
-					if (recommendedSlots[coreId] < 1 && reducedSlots[coreId] > 0) {
-						values[0]++; // Adding a desired CE whose slots will be
-						// destroyed
-						values[1] += reducedSlots[coreId]; // all reduced slots
-						// weren't requested
-					} else {
-						float dif = (float) reducedSlots[coreId] - recommendedSlots[coreId];
-						if (dif < 0) {
-							values[2] += reducedSlots[coreId];
-						} else {
-							values[2] += recommendedSlots[coreId];
-							values[1] += dif;
-						}
-					}
-				}
-			}
-			description[0] = values;
-			reductions.put(typeName, description);
-		}
-		return reductions;
-	}
+        for (java.util.Map.Entry<String, Object[]> type : types.entrySet()) {
+            String typeName = type.getKey();
+            Object[] description = type.getValue();
+            int[] reducedSlots = (int[]) description[0];
+            float[] values = new float[3];
+            for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
+                if (res.canRun(coreId)) {
+                    if (recommendedSlots[coreId] < 1 && reducedSlots[coreId] > 0) {
+                        values[0]++; // Adding a desired CE whose slots will be
+                        // destroyed
+                        values[1] += reducedSlots[coreId]; // all reduced slots
+                        // weren't requested
+                    } else {
+                        float dif = (float) reducedSlots[coreId] - recommendedSlots[coreId];
+                        if (dif < 0) {
+                            values[2] += reducedSlots[coreId];
+                        } else {
+                            values[2] += recommendedSlots[coreId];
+                            values[1] += dif;
+                        }
+                    }
+                }
+            }
+            description[0] = values;
+            reductions.put(typeName, description);
+        }
+        return reductions;
+    }
 
-	/*
-	 * ----------------------------------------- 
-	 * ------------- Debug Queries -------------
-	 * ----------------------------------------
-	 */
-	public String getCurrentState(String prefix) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(prefix).append("PROVIDER = [").append("\n");
-		sb.append(prefix).append("\t").append("NAME = ").append(name).append("\n");
-		sb.append(prefix).append("\t").append("CURRENT_VM = ").append(currentVMCount).append("\n");
-		sb.append(prefix).append("\t").append("LIMIT_VM = ").append(limitOfVMs).append("\n");
-		sb.append(imgManager.getCurrentState(prefix + "\t"));
-		sb.append(typeManager.getCurrentState(prefix + "\t"));
-		sb.append(prefix).append("]").append("\n");
+    /*
+     * ----------------------------------------- 
+     * ------------- Debug Queries -------------
+     * ----------------------------------------
+     */
+    public String getCurrentState(String prefix) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix).append("PROVIDER = [").append("\n");
+        sb.append(prefix).append("\t").append("NAME = ").append(name).append("\n");
+        sb.append(prefix).append("\t").append("CURRENT_VM = ").append(currentVMCount).append("\n");
+        sb.append(prefix).append("\t").append("LIMIT_VM = ").append(limitOfVMs).append("\n");
+        sb.append(imgManager.getCurrentState(prefix + "\t"));
+        sb.append(typeManager.getCurrentState(prefix + "\t"));
+        sb.append(prefix).append("]").append("\n");
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public CloudImageManager getCloudImageManager() {
-		return imgManager;
-	}
+    public CloudImageManager getCloudImageManager() {
+        return imgManager;
+    }
 
-	public CloudTypeManager getCloudTypeManager() {
-		return typeManager;
-	}
+    public CloudTypeManager getCloudTypeManager() {
+        return typeManager;
+    }
 
-	public void terminateAll() {
-		this.currentVMCount = 0;
-		typeManager.clearAll();
-		connector.terminateAll();
-	}
+    public void terminateAll() {
+        this.currentVMCount = 0;
+        typeManager.clearAll();
+        connector.terminateAll();
+    }
 
 }

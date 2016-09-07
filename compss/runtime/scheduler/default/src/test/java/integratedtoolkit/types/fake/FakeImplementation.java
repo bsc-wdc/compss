@@ -6,18 +6,18 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 public class FakeImplementation<T extends WorkerResourceDescription> extends Implementation<T> {
 
-	public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
-		super(coreId, implementationId, (T) annot);
-	}
+    public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
+        super(coreId, implementationId, (T) annot);
+    }
 
-	@Override
-	public Type getType() {
-		return null;
-	}
+    @Override
+    public Type getType() {
+        return null;
+    }
 
-	@Override
-	public String toString() {
-		return " fakeImplementation that requires " + getRequirements();
-	}
+    @Override
+    public String toString() {
+        return " fakeImplementation that requires " + getRequirements();
+    }
 
 }

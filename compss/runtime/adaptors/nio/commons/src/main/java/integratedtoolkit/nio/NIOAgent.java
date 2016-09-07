@@ -147,7 +147,6 @@ public abstract class NIOAgent {
             Data source = dr.getSource();
             NIOURI uri = source.getFirstURI();
 
-
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitDataTransferEvent(source.getName());
             }
@@ -221,7 +220,6 @@ public abstract class NIOAgent {
      * @param receiverID
      */
     public void sendData(Connection c, Data d, int receiverID) {
-
         if (NIOTracer.isActivated()) {
             int tag = abs(d.getName().hashCode());
             CommandTracingID cmd = new CommandTracingID(tracingID, tag);
@@ -284,7 +282,6 @@ public abstract class NIOAgent {
             }
             sameTarget.add(req);
         }
-
 
         if (NIOTracer.isActivated()) {
             int tag = abs(dataId.hashCode());
@@ -457,8 +454,7 @@ public abstract class NIOAgent {
 
     public abstract boolean isMyUuid(String uuid);
 
-    // This will use the TreeMap to set the corresponding worker starter as
-    // ready
+    // This will use the TreeMap to set the corresponding worker starter as ready
     public abstract void setWorkerIsReady(String nodeName);
 
     public abstract String getWorkingDir();
@@ -469,12 +465,11 @@ public abstract class NIOAgent {
 
     public abstract String getObjectAsFile(String name);
 
-    // Called when a value couldn't be SENT because, for example, the file to be
-    // sent it didnt exist
+    // Called when a value couldn't be SENT because, for example, the file to be sent it didn't exist
     protected abstract void handleDataToSendNotAvailable(Connection c, Data d);
 
     // Called when a value couldn't be RETRIEVED because, for example, the file
-    // to be retrieved it didnt exist in the sender
+    // to be retrieved it didn't exist in the sender
     public abstract void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId);
 
     public abstract void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests);

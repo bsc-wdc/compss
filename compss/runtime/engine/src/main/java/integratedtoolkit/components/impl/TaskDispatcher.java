@@ -32,260 +32,260 @@ import org.apache.logging.log4j.Logger;
 
 public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescription> implements Runnable, ResourceUser, ActionOrchestrator {
 
-	public interface TaskProducer {
+    public interface TaskProducer {
 
-		public void notifyTaskEnd(Task task);
-	}
-
-
-	// Schedulers jars path
-	private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
-
-	// Subcomponents
-	protected TaskScheduler<P, T> scheduler;
-	protected LinkedBlockingDeque<TDRequest<P, T>> requestQueue;
-
-	// Scheduler thread
-	protected Thread dispatcher;
-	protected boolean keepGoing;
-
-	// Logging
-	protected static final Logger logger = LogManager.getLogger(Loggers.TD_COMP);
-	protected static final boolean debug = logger.isDebugEnabled();
-
-	private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
-
-	// Tracing
-	protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+        public void notifyTaskEnd(Task task);
+    }
 
 
-	public TaskDispatcher() {
-		requestQueue = new LinkedBlockingDeque<TDRequest<P, T>>();
-		dispatcher = new Thread(this);
-		dispatcher.setName("Task Dispatcher");
+    // Schedulers jars path
+    private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
-		// Load scheduler jars
-		loadSchedulerJars();
+    // Subcomponents
+    protected TaskScheduler<P, T> scheduler;
+    protected LinkedBlockingDeque<TDRequest<P, T>> requestQueue;
 
-		// Parse interface
-		CEIParser.parse();
+    // Scheduler thread
+    protected Thread dispatcher;
+    protected boolean keepGoing;
 
-		// Load resources
-		ResourceManager.load(this);
+    // Logging
+    protected static final Logger logger = LogManager.getLogger(Loggers.TD_COMP);
+    protected static final boolean debug = logger.isDebugEnabled();
 
-		// Initialize structures
-		scheduler = constructScheduler();
-		keepGoing = true;
+    private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
 
-		if (Tracer.basicModeEnabled()) {
-			Tracer.enablePThreads();
-		}
-		dispatcher.start();
-		if (Tracer.basicModeEnabled()) {
-			Tracer.disablePThreads();
-		}
+    // Tracing
+    protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
-		AllocatableAction.orchestrator = this;
 
-		// Insert workers
-		for (Worker w : ResourceManager.getAllWorkers()) {
-			scheduler.updatedWorker(w);
-		}
-		logger.info("Initialization finished");
-	}
+    public TaskDispatcher() {
+        requestQueue = new LinkedBlockingDeque<TDRequest<P, T>>();
+        dispatcher = new Thread(this);
+        dispatcher.setName("Task Dispatcher");
 
-	// Dispatcher thread
-	public void run() {
-		while (keepGoing) {
-			try {
-				TDRequest<P, T> request = requestQueue.take();
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
-				}
-				request.process(scheduler);
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-			} catch (InterruptedException ie) {
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-				continue;
-			} catch (ShutdownException se) {
-				logger.debug("Exiting dispatcher because of shutting down");
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-				se.getSemaphore().release();
-				break;
-			} catch (Exception e) {
-				logger.error("RequestError", e);
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-				continue;
-			}
-		}
-	}
+        // Load scheduler jars
+        loadSchedulerJars();
 
-	private void addRequest(TDRequest<P, T> request) {
-		requestQueue.offer(request);
-	}
+        // Parse interface
+        CEIParser.parse();
 
-	private void addPrioritaryRequest(TDRequest<P, T> request) {
-		requestQueue.offerFirst(request);
-	}
+        // Load resources
+        ResourceManager.load(this);
 
-	// TP (TA)
-	public void executeTask(TaskProducer producer, Task task) {
-		if (debug) {
-			StringBuilder sb = new StringBuilder("Schedule tasks: ");
-			sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
-			logger.debug(sb);
-		}
-		ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest(producer, task);
-		addRequest(request);
-	}
+        // Initialize structures
+        scheduler = constructScheduler();
+        keepGoing = true;
 
-	// Notification thread
-	@Override
-	public void actionCompletion(AllocatableAction<?, ?> action) {
-		ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
-		addRequest(request);
-	}
+        if (Tracer.basicModeEnabled()) {
+            Tracer.enablePThreads();
+        }
+        dispatcher.start();
+        if (Tracer.basicModeEnabled()) {
+            Tracer.disablePThreads();
+        }
 
-	// Notification thread
-	@Override
-	public void actionError(AllocatableAction<?, ?> action) {
-		ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
-		addRequest(request);
-	}
+        AllocatableAction.orchestrator = this;
 
-	// Scheduling optimizer thread
-	@Override
-	public WorkloadStatus getWorkload() {
-		Semaphore sem = new Semaphore(0);
-		GetCurrentScheduleRequest<P, T> request = new GetCurrentScheduleRequest(sem);
-		addPrioritaryRequest(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-		}
+        // Insert workers
+        for (Worker w : ResourceManager.getAllWorkers()) {
+            scheduler.updatedWorker(w);
+        }
+        logger.info("Initialization finished");
+    }
 
-		return request.getResponse();
-	}
+    // Dispatcher thread
+    public void run() {
+        while (keepGoing) {
+            try {
+                TDRequest<P, T> request = requestQueue.take();
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
+                }
+                request.process(scheduler);
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+            } catch (InterruptedException ie) {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+                continue;
+            } catch (ShutdownException se) {
+                logger.debug("Exiting dispatcher because of shutting down");
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+                se.getSemaphore().release();
+                break;
+            } catch (Exception e) {
+                logger.error("RequestError", e);
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+                continue;
+            }
+        }
+    }
 
-	/**
-	 * Returs a string with the description of the tasks in the graph
-	 *
-	 * @return description of the current tasks in the graph
-	 */
-	public String getCurrentMonitoringData() {
-		Semaphore sem = new Semaphore(0);
-		MonitoringDataRequest<P, T> request = new MonitoringDataRequest(sem);
-		addRequest(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-		}
-		return (String) request.getResponse();
-	}
+    private void addRequest(TDRequest<P, T> request) {
+        requestQueue.offer(request);
+    }
 
-	public void printCurrentGraph(BufferedWriter graph) {
-		Semaphore sem = new Semaphore(0);
-		PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest(sem, graph);
-		addRequest(request);
+    private void addPrioritaryRequest(TDRequest<P, T> request) {
+        requestQueue.offerFirst(request);
+    }
 
-		// Synchronize until request has been processed
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-		}
-	}
+    // TP (TA)
+    public void executeTask(TaskProducer producer, Task task) {
+        if (debug) {
+            StringBuilder sb = new StringBuilder("Schedule tasks: ");
+            sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
+            logger.debug(sb);
+        }
+        ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest(producer, task);
+        addRequest(request);
+    }
 
-	@Override
-	public void updatedResource(Worker<?> r) {
-		WorkerUpdateRequest<P, T> request = new WorkerUpdateRequest(r);
-		addPrioritaryRequest(request);
-	}
+    // Notification thread
+    @Override
+    public void actionCompletion(AllocatableAction<?, ?> action) {
+        ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
+        addRequest(request);
+    }
 
-	public void addInterface(Class<?> forName) {
-		if (debug) {
-			logger.debug("Updating CEI " + forName.getName());
-		}
-		Semaphore sem = new Semaphore(0);
-		UpdateLocalCEIRequest<P, T> request = new UpdateLocalCEIRequest(forName, sem);
-		addRequest(request);
+    // Notification thread
+    @Override
+    public void actionError(AllocatableAction<?, ?> action) {
+        ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
+        addRequest(request);
+    }
 
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-		}
+    // Scheduling optimizer thread
+    @Override
+    public WorkloadStatus getWorkload() {
+        Semaphore sem = new Semaphore(0);
+        GetCurrentScheduleRequest<P, T> request = new GetCurrentScheduleRequest(sem);
+        addPrioritaryRequest(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
 
-		if (debug) {
-			logger.debug("Updated CEI " + forName.getName());
-		}
-	}
+        return request.getResponse();
+    }
 
-	public void registerCEI(String signature, String declaringClass, MethodResourceDescription constraints) {
-		if (debug) {
-			logger.debug("Registering CEI");
-		}
-		Semaphore sem = new Semaphore(0);
-		CERegistration<P, T> request = new CERegistration(signature, declaringClass, constraints, sem);
-		addRequest(request);
+    /**
+     * Returs a string with the description of the tasks in the graph
+     *
+     * @return description of the current tasks in the graph
+     */
+    public String getCurrentMonitoringData() {
+        Semaphore sem = new Semaphore(0);
+        MonitoringDataRequest<P, T> request = new MonitoringDataRequest(sem);
+        addRequest(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
+        return (String) request.getResponse();
+    }
 
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-		}
+    public void printCurrentGraph(BufferedWriter graph) {
+        Semaphore sem = new Semaphore(0);
+        PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest(sem, graph);
+        addRequest(request);
 
-		if (debug) {
-			logger.debug("Registered CEI");
-		}
-	}
+        // Synchronize until request has been processed
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
+    }
 
-	// TP (TA)
-	public void shutdown() {
-		Semaphore sem = new Semaphore(0);
-		ShutdownRequest<P, T> request = new ShutdownRequest(sem);
-		addRequest(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-	}
+    @Override
+    public void updatedResource(Worker<?> r) {
+        WorkerUpdateRequest<P, T> request = new WorkerUpdateRequest(r);
+        addPrioritaryRequest(request);
+    }
 
-	private static void loadSchedulerJars() {
-		logger.info("Loading schedulers...");
-		String itHome = System.getenv(ITConstants.IT_HOME);
+    public void addInterface(Class<?> forName) {
+        if (debug) {
+            logger.debug("Updating CEI " + forName.getName());
+        }
+        Semaphore sem = new Semaphore(0);
+        UpdateLocalCEIRequest<P, T> request = new UpdateLocalCEIRequest(forName, sem);
+        addRequest(request);
 
-		if (itHome == null || itHome.isEmpty()) {
-			logger.warn("WARN: IT_HOME not defined, no schedulers loaded.");
-			return;
-		}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
 
-		try {
-			Classpath.loadPath(itHome + SCHEDULERS_REL_PATH, logger);
-		} catch (FileNotFoundException ex) {
-			logger.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
-		}
-	}
+        if (debug) {
+            logger.debug("Updated CEI " + forName.getName());
+        }
+    }
 
-	@SuppressWarnings("unchecked")
-	private TaskScheduler<P, T> constructScheduler() {
-		TaskScheduler<P, T> scheduler = null;
-		try {
-			String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
-			Class<?> schedClass = Class.forName(schedFQN);
-			Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
-			scheduler = (TaskScheduler<P, T>) schedCnstr.newInstance();
-		} catch (Exception e) {
-			ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
-		}
-		return scheduler;
-	}
+    public void registerCEI(String signature, String declaringClass, MethodResourceDescription constraints) {
+        if (debug) {
+            logger.debug("Registering CEI");
+        }
+        Semaphore sem = new Semaphore(0);
+        CERegistration<P, T> request = new CERegistration(signature, declaringClass, constraints, sem);
+        addRequest(request);
+
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
+
+        if (debug) {
+            logger.debug("Registered CEI");
+        }
+    }
+
+    // TP (TA)
+    public void shutdown() {
+        Semaphore sem = new Semaphore(0);
+        ShutdownRequest<P, T> request = new ShutdownRequest(sem);
+        addRequest(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+    }
+
+    private static void loadSchedulerJars() {
+        logger.info("Loading schedulers...");
+        String itHome = System.getenv(ITConstants.IT_HOME);
+
+        if (itHome == null || itHome.isEmpty()) {
+            logger.warn("WARN: IT_HOME not defined, no schedulers loaded.");
+            return;
+        }
+
+        try {
+            Classpath.loadPath(itHome + SCHEDULERS_REL_PATH, logger);
+        } catch (FileNotFoundException ex) {
+            logger.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private TaskScheduler<P, T> constructScheduler() {
+        TaskScheduler<P, T> scheduler = null;
+        try {
+            String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
+            Class<?> schedClass = Class.forName(schedFQN);
+            Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
+            scheduler = (TaskScheduler<P, T>) schedCnstr.newInstance();
+        } catch (Exception e) {
+            ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
+        }
+        return scheduler;
+    }
 
 }

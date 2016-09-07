@@ -5,39 +5,39 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 
 public interface Transferable {
 
-	/**
-	 * Returns the source data
-	 * 
-	 * @return
-	 */
-	public Object getDataSource();
+    /**
+     * Returns the source data
+     * 
+     * @return
+     */
+    public Object getDataSource();
 
-	/**
-	 * Sets the source data
-	 * 
-	 * @param dataSource
-	 */
-	public void setDataSource(Object dataSource);
+    /**
+     * Sets the source data
+     * 
+     * @param dataSource
+     */
+    public void setDataSource(Object dataSource);
 
-	/**
-	 * Returns the target data
-	 * 
-	 * @return
-	 */
-	public String getDataTarget();
+    /**
+     * Returns the target data
+     * 
+     * @return
+     */
+    public String getDataTarget();
 
-	/**
-	 * Sets the target data
-	 * 
-	 * @param target
-	 */
-	public void setDataTarget(String target);
+    /**
+     * Sets the target data
+     * 
+     * @param target
+     */
+    public void setDataTarget(String target);
 
-	/**
-	 * Returns the data Transfer type
-	 * 
-	 * @return
-	 */
-	public DataType getType();
+    /**
+     * Returns the data Transfer type
+     * 
+     * @return
+     */
+    public DataType getType();
 
 }

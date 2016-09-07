@@ -23,44 +23,47 @@ import integratedtoolkit.util.CoreManager;
 public class Test {
 
     // Interface data
-	private static int coreCountItf;
-	private static String[][] declaringClassesItf;
-	private static Constraints[][] constraintsItf;
-	private static Constraints[] generalConstraintsItf;
+    private static int coreCountItf;
+    private static String[][] declaringClassesItf;
+    private static Constraints[][] constraintsItf;
+    private static Constraints[] generalConstraintsItf;
 
     // CoreManagerData
-	private static String[] coreToName;
-	private static java.util.Map<String, Integer> signatureToId;
-	private static LinkedList<String>[] idToSignatures;
+    private static String[] coreToName;
+    private static java.util.Map<String, Integer> signatureToId;
+    private static LinkedList<String>[] idToSignatures;
 
-    
-    /* ***************************************
-     *    MAIN IMPLEMENTATION 
-     * *************************************** */
+
+    /*
+     * *************************************** MAIN IMPLEMENTATION ***************************************
+     */
     public static void main(String[] args) {
-    	// Wait for Runtime to be loaded
-    	System.out.println("[LOG] Waiting for Runtime to be loaded");
+        // Wait for Runtime to be loaded
+        System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
             Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
-        	// No need to handle such exceptions
+            // No need to handle such exceptions
         }
-        
-        //Run Constraint Manager Test
+
+        // Run Constraint Manager Test
         System.out.println("[LOG] Running ConstraintManager Test");
         constraintManagerTest();
     }
 
-    /* ***************************************
-     * CONSTRAINT MANAGER TEST IMPLEMENTATION 
-     * *************************************** */
+    /*
+     * *************************************** 
+     * CONSTRAINT MANAGER TEST IMPLEMENTATION
+     * ***************************************
+     */
     @SuppressWarnings("unchecked")
-	private static void constraintManagerTest() {
+    private static void constraintManagerTest() {
         // Check if the number of tasks from ITF and core is the same
         java.lang.reflect.Method[] declaredMethodsItf = TestItf.class.getDeclaredMethods();
         coreCountItf = declaredMethodsItf.length;
         if (CoreManager.getCoreCount() != coreCountItf) {
-            System.out.println("[ERROR]" + CoreManager.getCoreCount() + " CE registered in the runtime and  " + coreCountItf + " declared in the CEI");
+            System.out.println(
+                    "[ERROR]" + CoreManager.getCoreCount() + " CE registered in the runtime and  " + coreCountItf + " declared in the CEI");
             System.exit(-1);
         }
 
@@ -75,7 +78,7 @@ public class Test {
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);
         }
-        
+
         // Loading Information from the interface
         declaringClassesItf = new String[coreCountItf][];
         constraintsItf = new Constraints[coreCountItf][];
@@ -89,15 +92,15 @@ public class Test {
             java.lang.reflect.Method m = null;
             try {
                 if (params.equals("(")) {
-                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[]{});
+                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[] {});
                 } else {
-                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[]{String.class});
+                    m = TestItf.class.getDeclaredMethod(coreToName[i], new Class[] { String.class });
                 }
             } catch (NoSuchMethodException nsme) {
                 System.out.println("[ERROR] Method " + coreToName[i] + "not found.");
                 System.exit(-1);
             }
-            
+
             declaringClassesItf[i] = m.getAnnotation(Method.class).declaringClass();
             if (m.isAnnotationPresent(MultiConstraints.class)) {
                 constraintsItf[i] = m.getAnnotation(MultiConstraints.class).value();
@@ -123,14 +126,16 @@ public class Test {
         System.out.println("[LOG] \t Has " + idToSignatures[coreId].size() + " signatures registered");
 
         if (declaringClassesItf[coreId].length != idToSignatures[coreId].size()) {
-            System.out.println(coreToName[coreId] + " has " + idToSignatures[coreId].size() + " registered signatures and there are " + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
+            System.out.println(coreToName[coreId] + " has " + idToSignatures[coreId].size() + " registered signatures and there are "
+                    + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
         }
 
         Implementation<?>[] implementations = CoreManager.getCoreImplementations(coreId);
         System.out.println("[LOG] \t Has " + implementations.length + " implementations registered");
         if (declaringClassesItf[coreId].length != implementations.length) {
-            System.out.println(coreToName[coreId] + " has " + implementations.length + " registered implementations and there are " + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
+            System.out.println(coreToName[coreId] + " has " + implementations.length + " registered implementations and there are "
+                    + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
         }
 
@@ -139,12 +144,14 @@ public class Test {
             MethodImplementation m = ((MethodImplementation) implementations[impl]);
             System.out.println("[LOG] \t" + declaringClassesItf[coreId][impl]);
             if (declaringClassesItf[coreId][impl].compareTo(m.getDeclaringClass()) != 0) {
-                System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl] + " is not included registered in the system");
+                System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl]
+                        + " is not included registered in the system");
                 System.exit(-1);
             }
             String constraint = checkConstraints(generalConstraintsItf[coreId], constraintsItf[coreId][impl], m.getRequirements());
             if (constraint != null) {
-                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl] + " does not meet the annotations (" + constraint + ")");
+                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl]
+                        + " does not meet the annotations (" + constraint + ")");
                 System.exit(-1);
             }
         }
@@ -152,313 +159,318 @@ public class Test {
 
     private static String checkConstraints(Constraints general, Constraints specific, MethodResourceDescription registered) {
         boolean ret = true;
-        
-        /* *****************************************
-         *  ComputingUnits
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * ComputingUnits
+         *****************************************/
         if (general == null || general.computingUnits() == Constants.UNASSIGNED_INT) {
-        	if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
-        		// Default value
-        		ret = (registered.getTotalComputingUnits() == MethodResourceDescription.ONE_INT);
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getTotalComputingUnits() == specific.computingUnits());
-        	}
+            if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
+                // Default value
+                ret = (registered.getTotalComputingUnits() == MethodResourceDescription.ONE_INT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getTotalComputingUnits() == specific.computingUnits());
+            }
         } else {
-        	if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
-        		// General constraint value
-        		ret = (registered.getTotalComputingUnits() == general.computingUnits());
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getTotalComputingUnits() == specific.computingUnits());
-        	}
+            if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
+                // General constraint value
+                ret = (registered.getTotalComputingUnits() == general.computingUnits());
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getTotalComputingUnits() == specific.computingUnits());
+            }
         }
         if (!ret) {
-        	if (general != null) {
-        		System.out.println("GEN: " + general.computingUnits());
-        	}
-        	if (specific != null) {
-        		System.out.println("SPC: " + specific.computingUnits());
-        	}
-        	System.out.println("REG: " + registered.getTotalComputingUnits());
+            if (general != null) {
+                System.out.println("GEN: " + general.computingUnits());
+            }
+            if (specific != null) {
+                System.out.println("SPC: " + specific.computingUnits());
+            }
+            System.out.println("REG: " + registered.getTotalComputingUnits());
             return "computingUnits";
         }
-        
-        /* *****************************************
-         *  Processor   
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * Processor
+         *****************************************/
         // !!! When checking constraints the limits are always on Processor 0
         if (general == null || general.processorName().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getProcessors().get(0).getName().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getProcessors().get(0).getName().equals(specific.processorName()));
-        	}
+            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getProcessors().get(0).getName().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getProcessors().get(0).getName().equals(specific.processorName()));
+            }
         } else {
-        	if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getProcessors().get(0).getName().equals(general.processorName()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getProcessors().get(0).getName().equals(specific.processorName()));
-        	}
+            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getProcessors().get(0).getName().equals(general.processorName()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getProcessors().get(0).getName().equals(specific.processorName()));
+            }
         }
         if (!ret) {
             return "processorName";
         }
-        
+
         if (general == null || general.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
-        	if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
-        		// Default value
-        		ret = (registered.getProcessors().get(0).getSpeed() == MethodResourceDescription.UNASSIGNED_FLOAT);
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
-        	}
+            if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
+                // Default value
+                ret = (registered.getProcessors().get(0).getSpeed() == MethodResourceDescription.UNASSIGNED_FLOAT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
+            }
         } else {
-        	if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
-        		// General constraint value
-        		ret = (registered.getProcessors().get(0).getSpeed() == general.processorSpeed());
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
-        	}
+            if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
+                // General constraint value
+                ret = (registered.getProcessors().get(0).getSpeed() == general.processorSpeed());
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
+            }
         }
         if (!ret) {
             return "processorSpeed";
         }
-        
+
         if (general == null || general.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getProcessors().get(0).getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
-        	}
+            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getProcessors().get(0).getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
+            }
         } else {
-        	if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getProcessors().get(0).getArchitecture().equals(general.processorArchitecture()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
-        	}
+            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getProcessors().get(0).getArchitecture().equals(general.processorArchitecture()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
+            }
         }
         if (!ret) {
             return "processorArchitecture";
         }
-        
+
         if (general == null || general.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getProcessors().get(0).getPropName().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
-        	}
+            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getProcessors().get(0).getPropName().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
+            }
         } else {
-        	if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getProcessors().get(0).getPropName().equals(general.processorPropertyName()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
-        	}
+            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getProcessors().get(0).getPropName().equals(general.processorPropertyName()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
+            }
         }
         if (!ret) {
             return "processorPropertyName";
         }
-        
+
         if (general == null || general.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getProcessors().get(0).getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));
-        	}
+            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getProcessors().get(0).getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));
+            }
         } else {
-        	if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getProcessors().get(0).getPropValue().equals(general.processorPropertyValue()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));
-        	}
+            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getProcessors().get(0).getPropValue().equals(general.processorPropertyValue()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));
+            }
         }
         if (!ret) {
             return "processorPropertyValue";
         }
-        
-        
-        /* *****************************************
-         *  Memory
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * Memory
+         *****************************************/
         if (general == null || general.memorySize() == Constants.UNASSIGNED_FLOAT) {
-        	if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
-        		// Default value
-        		ret = (registered.getMemorySize() == MethodResourceDescription.UNASSIGNED_FLOAT);
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getMemorySize() == specific.memorySize());
-        	}
+            if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
+                // Default value
+                ret = (registered.getMemorySize() == MethodResourceDescription.UNASSIGNED_FLOAT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getMemorySize() == specific.memorySize());
+            }
         } else {
-        	if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
-        		// General constraint value
-        		ret = (registered.getMemorySize() == general.memorySize());
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getMemorySize() == specific.memorySize());
-        	}
+            if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
+                // General constraint value
+                ret = (registered.getMemorySize() == general.memorySize());
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getMemorySize() == specific.memorySize());
+            }
         }
         if (!ret) {
             return "memorySize";
         }
-        
+
         if (general == null || general.memoryType().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getMemoryType().equals(specific.memoryType()));
-        	}
+            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getMemoryType().equals(specific.memoryType()));
+            }
         } else {
-        	if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getMemoryType().equals(general.memoryType()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getMemoryType().equals(specific.memoryType()));
-        	}
+            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getMemoryType().equals(general.memoryType()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getMemoryType().equals(specific.memoryType()));
+            }
         }
         if (!ret) {
             return "memoryType";
         }
-        
-        /* *****************************************
-         *  Storage
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * Storage
+         *****************************************/
         if (general == null || general.storageSize() == Constants.UNASSIGNED_FLOAT) {
-        	if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
-        		// Default value
-        		ret = (registered.getStorageSize() == MethodResourceDescription.UNASSIGNED_FLOAT);
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getStorageSize() == specific.storageSize());
-        	}
+            if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
+                // Default value
+                ret = (registered.getStorageSize() == MethodResourceDescription.UNASSIGNED_FLOAT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getStorageSize() == specific.storageSize());
+            }
         } else {
-        	if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
-        		// General constraint value
-        		ret = (registered.getStorageSize() == general.storageSize());
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getStorageSize() == specific.storageSize());
-        	}
+            if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
+                // General constraint value
+                ret = (registered.getStorageSize() == general.storageSize());
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getStorageSize() == specific.storageSize());
+            }
         }
         if (!ret) {
             return "storageSize";
         }
-        
+
         if (general == null || general.storageType().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getStorageType().equals(specific.storageType()));
-        	}
+            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getStorageType().equals(specific.storageType()));
+            }
         } else {
-        	if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getStorageType().equals(general.storageType()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getStorageType().equals(specific.storageType()));
-        	}
+            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getStorageType().equals(general.storageType()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getStorageType().equals(specific.storageType()));
+            }
         }
         if (!ret) {
             return "storageType";
         }
-        
-        /* *****************************************
-         *  Operating System
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * Operating System
+         *****************************************/
         if (general == null || general.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getOperatingSystemType().equals(specific.operatingSystemType()));
-        	}
+            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getOperatingSystemType().equals(specific.operatingSystemType()));
+            }
         } else {
-        	if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getOperatingSystemType().equals(general.operatingSystemType()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getOperatingSystemType().equals(specific.operatingSystemType()));
-        	}
+            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getOperatingSystemType().equals(general.operatingSystemType()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getOperatingSystemType().equals(specific.operatingSystemType()));
+            }
         }
         if (!ret) {
             return "operatingSystemType";
         }
-        
+
         if (general == null || general.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getOperatingSystemDistribution().equals(specific.operatingSystemDistribution()));
-        	}
+            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getOperatingSystemDistribution().equals(specific.operatingSystemDistribution()));
+            }
         } else {
-        	if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getOperatingSystemDistribution().equals(general.operatingSystemDistribution()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getOperatingSystemDistribution().equals(specific.operatingSystemDistribution()));
-        	}
+            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getOperatingSystemDistribution().equals(general.operatingSystemDistribution()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getOperatingSystemDistribution().equals(specific.operatingSystemDistribution()));
+            }
         }
         if (!ret) {
             return "operatingSystemDistribution";
         }
-        
+
         if (general == null || general.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
-        	if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
-        		// Default value
-        		ret = (registered.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR));
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getOperatingSystemVersion().equals(specific.operatingSystemVersion()));
-        	}
+            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
+                // Default value
+                ret = (registered.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR));
+            } else {
+                // Specific constraint value
+                ret = (registered.getOperatingSystemVersion().equals(specific.operatingSystemVersion()));
+            }
         } else {
-        	if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
-        		// General constraint value
-        		ret = (registered.getOperatingSystemVersion().equals(general.operatingSystemVersion()));
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getOperatingSystemVersion().equals(specific.operatingSystemVersion()));
-        	}
+            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
+                // General constraint value
+                ret = (registered.getOperatingSystemVersion().equals(general.operatingSystemVersion()));
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getOperatingSystemVersion().equals(specific.operatingSystemVersion()));
+            }
         }
         if (!ret) {
             return "operatingSystemVersion";
         }
-        
-        /* *****************************************
-         *  Application Software
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * Application Software
+         *****************************************/
         if (general == null || general.appSoftware().equals(Constants.UNASSIGNED_STR)) {
             if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED_STR)) {
-            	// Default value
+                // Default value
                 ret = registered.getAppSoftware().isEmpty();
             } else {
-            	// Specific constraint value
+                // Specific constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : specific.appSoftware().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -469,7 +481,7 @@ public class Test {
             }
         } else {
             if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED_STR)) {
-            	// General constraint value
+                // General constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.appSoftware().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -478,7 +490,7 @@ public class Test {
                 }
                 ret = registered.getAppSoftware().containsAll(values);
             } else {
-            	// Specific constraint value merged with general value
+                // Specific constraint value merged with general value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.appSoftware().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -497,15 +509,16 @@ public class Test {
             return "applicationSoftware";
         }
 
-        /* *****************************************
-         *  Host Queues
-         * *****************************************/
+        /*
+         * ***************************************** 
+         * Host Queues
+         *****************************************/
         if (general == null || general.hostQueues().equals(Constants.UNASSIGNED_STR)) {
             if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED_STR)) {
-            	// Default value
+                // Default value
                 ret = registered.getHostQueues().isEmpty();
             } else {
-            	// Specific constraint value
+                // Specific constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : specific.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -516,7 +529,7 @@ public class Test {
             }
         } else {
             if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED_STR)) {
-            	// General constraint value
+                // General constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -525,7 +538,7 @@ public class Test {
                 }
                 ret = registered.getHostQueues().containsAll(values);
             } else {
-            	// Specific constraint value merged with general value
+                // Specific constraint value merged with general value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.hostQueues().split(",")) {
                     if (s.compareTo(",") != 0) {
@@ -543,34 +556,36 @@ public class Test {
         if (!ret) {
             return "hostQueues";
         }
-        
-        /* *****************************************
-         *  WallClockLimit
-         * *****************************************/
+
+        /*
+         * ***************************************** 
+         * WallClockLimit
+         *****************************************/
         if (general == null || general.wallClockLimit() == Constants.UNASSIGNED_INT) {
-        	if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
-        		// Default value
-        		ret = (registered.getWallClockLimit() == MethodResourceDescription.UNASSIGNED_INT);
-        	} else {
-        		// Specific constraint value
-        		ret = (registered.getWallClockLimit() == specific.wallClockLimit());
-        	}
+            if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
+                // Default value
+                ret = (registered.getWallClockLimit() == MethodResourceDescription.UNASSIGNED_INT);
+            } else {
+                // Specific constraint value
+                ret = (registered.getWallClockLimit() == specific.wallClockLimit());
+            }
         } else {
-        	if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
-        		// General constraint value
-        		ret = (registered.getWallClockLimit() == general.wallClockLimit());
-        	} else {
-        		// Specific constraint value (general is overwritten)
-        		ret = (registered.getWallClockLimit() == specific.wallClockLimit());
-        	}
+            if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
+                // General constraint value
+                ret = (registered.getWallClockLimit() == general.wallClockLimit());
+            } else {
+                // Specific constraint value (general is overwritten)
+                ret = (registered.getWallClockLimit() == specific.wallClockLimit());
+            }
         }
         if (!ret) {
             return "wallClockLimit";
         }
 
-        /* *****************************************
-         *  ALL CONSTRAINT VALUES OK
-         * *****************************************/
+        /*
+         * ***************************************** 
+         * ALL CONSTRAINT VALUES OK
+         *****************************************/
         return null;
     }
 

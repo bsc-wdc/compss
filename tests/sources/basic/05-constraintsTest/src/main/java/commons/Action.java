@@ -20,120 +20,120 @@ import integratedtoolkit.util.ResourceScheduler;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class Action<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
-	final int coreId;
+    final int coreId;
 
 
-	public Action(int coreId) {
-		super(new SchedulingInformation());
-		this.coreId = coreId;
-	}
+    public Action(int coreId) {
+        super(new SchedulingInformation());
+        this.coreId = coreId;
+    }
 
-	@Override
-	protected boolean areEnoughResources() {
-		Worker r = selectedMainResource.getResource();
-		return r.canRunNow(selectedImpl.getRequirements());
-	}
+    @Override
+    protected boolean areEnoughResources() {
+        Worker r = selectedMainResource.getResource();
+        return r.canRunNow(selectedImpl.getRequirements());
+    }
 
-	@Override
-	protected void reserveResources() {
-		Worker r = selectedMainResource.getResource();
-		r.runTask(selectedImpl.getRequirements());
-	}
+    @Override
+    protected void reserveResources() {
+        Worker r = selectedMainResource.getResource();
+        r.runTask(selectedImpl.getRequirements());
+    }
 
-	@Override
-	protected void releaseResources() {
-		Worker r = selectedMainResource.getResource();
-		r.endTask(selectedImpl.getRequirements());
-	}
+    @Override
+    protected void releaseResources() {
+        Worker r = selectedMainResource.getResource();
+        r.endTask(selectedImpl.getRequirements());
+    }
 
-	@Override
-	public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
-		return getCoreElementExecutors(coreId);
-	}
+    @Override
+    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+        return getCoreElementExecutors(coreId);
+    }
 
-	@Override
-	public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-		return r.getExecutableImpls(coreId);
-	}
+    @Override
+    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
+        return r.getExecutableImpls(coreId);
+    }
 
-	@Override
-	public Implementation<T>[] getImplementations() {
-		return (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
-	}
+    @Override
+    public Implementation<T>[] getImplementations() {
+        return (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
+    }
 
-	@Override
-	public boolean isCompatible(Worker<T> r) {
-		return r.canRun(coreId);
-	}
+    @Override
+    public boolean isCompatible(Worker<T> r) {
+        return r.canRun(coreId);
+    }
 
-	@Override
-	protected void doAction() {
+    @Override
+    protected void doAction() {
 
-	}
+    }
 
-	@Override
-	protected void doCompleted() {
+    @Override
+    protected void doCompleted() {
 
-	}
+    }
 
-	@Override
-	protected void doError() throws FailedActionException {
+    @Override
+    protected void doError() throws FailedActionException {
 
-	}
+    }
 
-	@Override
-	protected void doFailed() {
+    @Override
+    protected void doFailed() {
 
-	}
+    }
 
-	@Override
-	public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-		return new Score(0, 0, 0);
-	}
+    @Override
+    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+        return new Score(0, 0, 0);
+    }
 
-	@Override
-	public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
+    @Override
+    public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
 
-	}
+    }
 
-	@Override
-	public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    @Override
+    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
 
-	}
+    }
 
-	@Override
-	public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) throws BlockedActionException,
-			UnassignedActionException {
+    @Override
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
+            throws BlockedActionException, UnassignedActionException {
 
-	}
+    }
 
-	public HashMap<Worker<T>, LinkedList<Implementation<T>>> findAvailableWorkers() {
-		HashMap<Worker<T>, LinkedList<Implementation<T>>> m = new HashMap<Worker<T>, LinkedList<Implementation<T>>>();
+    public HashMap<Worker<T>, LinkedList<Implementation<T>>> findAvailableWorkers() {
+        HashMap<Worker<T>, LinkedList<Implementation<T>>> m = new HashMap<Worker<T>, LinkedList<Implementation<T>>>();
 
-		LinkedList<ResourceScheduler<?, ?>> compatibleWorkers = getCoreElementExecutors(coreId);
-		for (ResourceScheduler<?, ?> ui : compatibleWorkers) {
-			Worker<T> r = (Worker<T>) ui.getResource();
-			LinkedList<Implementation<T>> compatibleImpls = r.getExecutableImpls(coreId);
-			LinkedList<Implementation<T>> runnableImpls = new LinkedList<Implementation<T>>();
-			for (Implementation<?> impl : compatibleImpls) {
-				if (r.canRunNow((T) impl.getRequirements())) {
-					runnableImpls.add((Implementation<T>) impl);
-				}
-			}
-			if (runnableImpls.size() > 0) {
-				m.put(r, runnableImpls);
-			}
-		}
-		return m;
-	}
+        LinkedList<ResourceScheduler<?, ?>> compatibleWorkers = getCoreElementExecutors(coreId);
+        for (ResourceScheduler<?, ?> ui : compatibleWorkers) {
+            Worker<T> r = (Worker<T>) ui.getResource();
+            LinkedList<Implementation<T>> compatibleImpls = r.getExecutableImpls(coreId);
+            LinkedList<Implementation<T>> runnableImpls = new LinkedList<Implementation<T>>();
+            for (Implementation<?> impl : compatibleImpls) {
+                if (r.canRunNow((T) impl.getRequirements())) {
+                    runnableImpls.add((Implementation<T>) impl);
+                }
+            }
+            if (runnableImpls.size() > 0) {
+                m.put(r, runnableImpls);
+            }
+        }
+        return m;
+    }
 
-	@Override
-	public Integer getCoreId() {
-		return coreId;
-	}
+    @Override
+    public Integer getCoreId() {
+        return coreId;
+    }
 
-	@Override
-	public int getPriority() {
-		return 0;
-	}
+    @Override
+    public int getPriority() {
+        return 0;
+    }
 }

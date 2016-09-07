@@ -11,33 +11,33 @@ import integratedtoolkit.nio.commands.Command;
 
 public class CommandGenerateDone extends Command implements Externalizable {
 
-	public CommandGenerateDone() {
-		super();
-	}
+    public CommandGenerateDone() {
+        super();
+    }
 
-	@Override
-	public CommandType getType() {
-		return CommandType.GEN_TRACE_PACKAGE_DONE;
-	}
+    @Override
+    public CommandType getType() {
+        return CommandType.GEN_TRACE_PACKAGE_DONE;
+    }
 
-	@Override
-	public void handle(Connection c) {
-		agent.notifyTracingPackageGeneration();
-	}
+    @Override
+    public void handle(Connection c) {
+        agent.notifyTracingPackageGeneration();
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        // Nothing to write
+    }
 
-	}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        // Nothing to read
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
-	}
-
-	@Override
-	public String toString() {
-		return "GeneratingTraceCommandDone";
-	}
+    @Override
+    public String toString() {
+        return "GeneratingTraceCommandDone";
+    }
 
 }

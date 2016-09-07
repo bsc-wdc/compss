@@ -53,403 +53,403 @@ import integratedtoolkit.util.Tracer;
 
 public class AccessProcessor implements Runnable, TaskProducer {
 
-	protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
+    protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
 
-	// Other super-components
-	protected TaskDispatcher<?, ?> taskDispatcher;
-	// Subcomponents
-	protected TaskAnalyser taskAnalyser;
-	protected DataInfoProvider dataInfoProvider;
-	// Processor thread
-	private static Thread processor;
-	private static boolean keepGoing;
-	// Tasks to be processed
-	protected LinkedBlockingQueue<APRequest> requestQueue;
-	// Component logger
-	private static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
-	private static int CHANGES = 1;
-	int changes = CHANGES;
+    // Other super-components
+    protected TaskDispatcher<?, ?> taskDispatcher;
+    // Subcomponents
+    protected TaskAnalyser taskAnalyser;
+    protected DataInfoProvider dataInfoProvider;
+    // Processor thread
+    private static Thread processor;
+    private static boolean keepGoing;
+    // Tasks to be processed
+    protected LinkedBlockingQueue<APRequest> requestQueue;
+    // Component logger
+    private static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
+    private static int CHANGES = 1;
+    int changes = CHANGES;
 
-	// Tracing
-	protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-			&& Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
+    // Tracing
+    protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
+            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
 
-	public AccessProcessor(TaskDispatcher<?, ?> td) {
-		taskDispatcher = td;
+    public AccessProcessor(TaskDispatcher<?, ?> td) {
+        taskDispatcher = td;
 
-		// Start Subcomponents
-		taskAnalyser = new TaskAnalyser();
-		dataInfoProvider = new DataInfoProvider();
+        // Start Subcomponents
+        taskAnalyser = new TaskAnalyser();
+        dataInfoProvider = new DataInfoProvider();
 
-		taskAnalyser.setCoWorkers(dataInfoProvider);
-		requestQueue = new LinkedBlockingQueue<APRequest>();
+        taskAnalyser.setCoWorkers(dataInfoProvider);
+        requestQueue = new LinkedBlockingQueue<APRequest>();
 
-		keepGoing = true;
-		processor = new Thread(this);
-		processor.setName("Access Processor");
-		if (Tracer.basicModeEnabled()) {
-			Tracer.enablePThreads();
-		}
-		processor.start();
-		if (Tracer.basicModeEnabled()) {
-			Tracer.disablePThreads();
-		}
-	}
+        keepGoing = true;
+        processor = new Thread(this);
+        processor.setName("Access Processor");
+        if (Tracer.basicModeEnabled()) {
+            Tracer.enablePThreads();
+        }
+        processor.start();
+        if (Tracer.basicModeEnabled()) {
+            Tracer.disablePThreads();
+        }
+    }
 
-	public void setGM(GraphGenerator gm) {
-		this.taskAnalyser.setGM(gm);
-	}
+    public void setGM(GraphGenerator gm) {
+        this.taskAnalyser.setGM(gm);
+    }
 
-	@Override
-	public void run() {
-		while (keepGoing) {
-			APRequest request = null;
-			try {
-				request = requestQueue.take();
+    @Override
+    public void run() {
+        while (keepGoing) {
+            APRequest request = null;
+            try {
+                request = requestQueue.take();
 
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(), Tracer.getRuntimeEventsType());
-				}
-				request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.getAPRequestEvent(request.getRequestType().name()).getId(), Tracer.getRuntimeEventsType());
+                }
+                request.process(this, taskAnalyser, dataInfoProvider, taskDispatcher);
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
 
-			} catch (ShutdownException se) {
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-				se.getSemaphore().release();
-				break;
-			} catch (Exception e) {
-				logger.error("Exception", e);
-				if (Tracer.isActivated()){
-					Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-				}
-			}
-		}
+            } catch (ShutdownException se) {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+                se.getSemaphore().release();
+                break;
+            } catch (Exception e) {
+                logger.error("Exception", e);
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+                }
+            }
+        }
 
-		logger.info("AccessProcessor shutdown");
-	}
+        logger.info("AccessProcessor shutdown");
+    }
 
-	// App
-	public int newTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
-		Task currentTask = new Task(appId, methodClass, methodName, priority, hasTarget, parameters);
+    // App
+    public int newTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
+        Task currentTask = new Task(appId, methodClass, methodName, priority, hasTarget, parameters);
 
-		requestQueue.offer(new TaskAnalysisRequest(currentTask));
-		return currentTask.getId();
-	}
+        requestQueue.offer(new TaskAnalysisRequest(currentTask));
+        return currentTask.getId();
+    }
 
-	// App
-	public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-			Parameter[] parameters) {
+    // App
+    public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+            Parameter[] parameters) {
 
-		Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, parameters);
+        Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, parameters);
 
-		requestQueue.offer(new TaskAnalysisRequest(currentTask));
-		return currentTask.getId();
-	}
+        requestQueue.offer(new TaskAnalysisRequest(currentTask));
+        return currentTask.getId();
+    }
 
-	// Notification thread (JM)
-	@Override
-	public void notifyTaskEnd(Task task) {
-		requestQueue.offer(new TaskEndNotification(task));
-	}
+    // Notification thread (JM)
+    @Override
+    public void notifyTaskEnd(Task task) {
+        requestQueue.offer(new TaskEndNotification(task));
+    }
 
-	public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
-		boolean alreadyAccessed = alreadyAccessed(sourceLocation);
+    public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
+        boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
-		if (!alreadyAccessed) {
-			logger.debug("File not accessed before, returning the same location");
-			return sourceLocation;
-		}
+        if (!alreadyAccessed) {
+            logger.debug("File not accessed before, returning the same location");
+            return sourceLocation;
+        }
 
-		// Tell the DM that the application wants to access a file.
-		DataAccessId faId = registerDataAccess(fap);
-		DataLocation tgtLocation = sourceLocation;
+        // Tell the DM that the application wants to access a file.
+        DataAccessId faId = registerDataAccess(fap);
+        DataLocation tgtLocation = sourceLocation;
 
-		if (fap.getMode() != AccessMode.W) {
-			// Wait until the last writer task for the file has finished
-			logger.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
-			waitForTask(faId.getDataId(), AccessMode.R);
-			if (destDir == null) {
-				tgtLocation = transferFileOpen(faId);
-			} else {
-				DataInstanceId daId;
-				if (fap.getMode() == AccessMode.R) {
-					RAccessId ra = (RAccessId) faId;
-					daId = ra.getReadDataInstance();
-				} else {
-					RWAccessId ra = (RWAccessId) faId;
-					daId = ra.getReadDataInstance();
-				}
+        if (fap.getMode() != AccessMode.W) {
+            // Wait until the last writer task for the file has finished
+            logger.debug("File " + faId.getDataId() + " mode contains R, waiting until the last writer has finished");
+            waitForTask(faId.getDataId(), AccessMode.R);
+            if (destDir == null) {
+                tgtLocation = transferFileOpen(faId);
+            } else {
+                DataInstanceId daId;
+                if (fap.getMode() == AccessMode.R) {
+                    RAccessId ra = (RAccessId) faId;
+                    daId = ra.getReadDataInstance();
+                } else {
+                    RWAccessId ra = (RWAccessId) faId;
+                    daId = ra.getReadDataInstance();
+                }
 
-				String rename = daId.getRenaming();
-				String path = DataLocation.Protocol.FILE_URI.getSchema() + destDir + rename;
-				try {
-					SimpleURI uri = new SimpleURI(path);
-					tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
-				} catch (Exception e) {
-					ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-				}
+                String rename = daId.getRenaming();
+                String path = DataLocation.Protocol.FILE_URI.getSchema() + destDir + rename;
+                try {
+                    SimpleURI uri = new SimpleURI(path);
+                    tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+                }
 
-				transferFileRaw(faId, tgtLocation);
-			}
-		}
+                transferFileRaw(faId, tgtLocation);
+            }
+        }
 
-		if (fap.getMode() != AccessMode.R) {
-			// Mode contains W
-			logger.debug("File " + faId.getDataId() + " mode contains W, register new writer");
-			DataInstanceId daId;
-			if (fap.getMode() == AccessMode.RW) {
-				RWAccessId ra = (RWAccessId) faId;
-				daId = ra.getWrittenDataInstance();
-			} else {
-				WAccessId ra = (WAccessId) faId;
-				daId = ra.getWrittenDataInstance();
-			}
-			String rename = daId.getRenaming();
-			Comm.registerLocation(rename, tgtLocation);
-		}
+        if (fap.getMode() != AccessMode.R) {
+            // Mode contains W
+            logger.debug("File " + faId.getDataId() + " mode contains W, register new writer");
+            DataInstanceId daId;
+            if (fap.getMode() == AccessMode.RW) {
+                RWAccessId ra = (RWAccessId) faId;
+                daId = ra.getWrittenDataInstance();
+            } else {
+                WAccessId ra = (WAccessId) faId;
+                daId = ra.getWrittenDataInstance();
+            }
+            String rename = daId.getRenaming();
+            Comm.registerLocation(rename, tgtLocation);
+        }
 
-		logger.debug("File " + faId.getDataId() + " located on " + tgtLocation.toString());
-		return tgtLocation;
-	}
+        logger.debug("File " + faId.getDataId() + " located on " + tgtLocation.toString());
+        return tgtLocation;
+    }
 
-	public boolean isCurrentRegisterValueValid(int hashCode) {
-		Semaphore sem = new Semaphore(0);
-		IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
-		requestQueue.offer(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
+    public boolean isCurrentRegisterValueValid(int hashCode) {
+        Semaphore sem = new Semaphore(0);
+        IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
+        requestQueue.offer(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
 
-		return request.getResponse();
-	}
+        return request.getResponse();
+    }
 
-	public Object mainAcessToObject(Object o, int hashCode, String destDir) {
-		// Tell the DIP that the application wants to access an object
-		AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);
-		DataAccessId oaId = registerDataAccess(oap);
-		DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
-		String wRename = wId.getRenaming();
+    public Object mainAcessToObject(Object o, int hashCode, String destDir) {
+        // Tell the DIP that the application wants to access an object
+        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);
+        DataAccessId oaId = registerDataAccess(oap);
+        DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
+        String wRename = wId.getRenaming();
 
-		// Wait until the last writer task for the object has finished
-		waitForTask(oaId.getDataId(), AccessMode.RW);
-		logger.debug("Task creator of object with hash code " + hashCode + " is finished");
+        // Wait until the last writer task for the object has finished
+        waitForTask(oaId.getDataId(), AccessMode.RW);
+        logger.debug("Task creator of object with hash code " + hashCode + " is finished");
 
-		// TODO: Check if the object was already piggybacked in the task notification
-		// Ask for the object
-		Object oUpdated = obtainObject(oaId);
+        // TODO: Check if the object was already piggybacked in the task notification
+        // Ask for the object
+        Object oUpdated = obtainObject(oaId);
 
-		setObjectVersionValue(wRename, oUpdated);
-		return oUpdated;
-	}
+        setObjectVersionValue(wRename, oUpdated);
+        return oUpdated;
+    }
 
-	// App
-	public void noMoreTasks(Long appId) {
-		Semaphore sem = new Semaphore(0);
-		requestQueue.offer(new EndOfAppRequest(appId, sem));
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		logger.info("All tasks finished");
-	}
+    // App
+    public void noMoreTasks(Long appId) {
+        Semaphore sem = new Semaphore(0);
+        requestQueue.offer(new EndOfAppRequest(appId, sem));
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        logger.info("All tasks finished");
+    }
 
-	// App
-	private boolean alreadyAccessed(DataLocation loc) {
-		Semaphore sem = new Semaphore(0);
-		AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
-		requestQueue.offer(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		return request.getResponse();
-	}
+    // App
+    private boolean alreadyAccessed(DataLocation loc) {
+        Semaphore sem = new Semaphore(0);
+        AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
+        requestQueue.offer(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        return request.getResponse();
+    }
 
-	// App
-	public void waitForAllTasks(Long appId) {
-		Semaphore sem = new Semaphore(0);
-		requestQueue.offer(new WaitForAllTasksRequest(appId, sem));
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		logger.info("Barrier: End of waited all tasks");
-	}
+    // App
+    public void waitForAllTasks(Long appId) {
+        Semaphore sem = new Semaphore(0);
+        requestQueue.offer(new WaitForAllTasksRequest(appId, sem));
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        logger.info("Barrier: End of waited all tasks");
+    }
 
-	// App
-	private void waitForTask(int dataId, AccessMode mode) {
-		Semaphore sem = new Semaphore(0);
-		requestQueue.offer(new WaitForTaskRequest(dataId, mode, sem));
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		logger.info("End of waited task for data " + dataId);
-	}
+    // App
+    private void waitForTask(int dataId, AccessMode mode) {
+        Semaphore sem = new Semaphore(0);
+        requestQueue.offer(new WaitForTaskRequest(dataId, mode, sem));
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        logger.info("End of waited task for data " + dataId);
+    }
 
-	// App
-	private DataAccessId registerDataAccess(AccessParams access) {
-		Semaphore sem = new Semaphore(0);
-		RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, sem);
-		requestQueue.offer(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		return request.getResponse();
-	}
+    // App
+    private DataAccessId registerDataAccess(AccessParams access) {
+        Semaphore sem = new Semaphore(0);
+        RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, sem);
+        requestQueue.offer(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        return request.getResponse();
+    }
 
-	// App
-	public void newVersionSameValue(String rRenaming, String wRenaming) {
-		NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
-		requestQueue.offer(request);
-	}
+    // App
+    public void newVersionSameValue(String rRenaming, String wRenaming) {
+        NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
+        requestQueue.offer(request);
+    }
 
-	// App
-	public void setObjectVersionValue(String renaming, Object value) {
-		SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
-		requestQueue.offer(request);
-	}
+    // App
+    public void setObjectVersionValue(String renaming, Object value) {
+        SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
+        requestQueue.offer(request);
+    }
 
-	// App
-	public String getLastRenaming(int code) {
-		Semaphore sem = new Semaphore(0);
-		GetLastRenamingRequest request = new GetLastRenamingRequest(code, sem);
-		requestQueue.offer(request);
+    // App
+    public String getLastRenaming(int code) {
+        Semaphore sem = new Semaphore(0);
+        GetLastRenamingRequest request = new GetLastRenamingRequest(code, sem);
+        requestQueue.offer(request);
 
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		return request.getResponse();
-	}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        return request.getResponse();
+    }
 
-	// App
-	public void unblockResultFiles(List<ResultFile> resFiles) {
-		UnblockResultFilesRequest request = new UnblockResultFilesRequest(resFiles);
-		requestQueue.offer(request);
-	}
+    // App
+    public void unblockResultFiles(List<ResultFile> resFiles) {
+        UnblockResultFilesRequest request = new UnblockResultFilesRequest(resFiles);
+        requestQueue.offer(request);
+    }
 
-	// App / Shutdown thread
-	public void shutdown() {
-		Semaphore sem = new Semaphore(0);
-		requestQueue.offer(new ShutdownRequest(sem));
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-	}
+    // App / Shutdown thread
+    public void shutdown() {
+        Semaphore sem = new Semaphore(0);
+        requestQueue.offer(new ShutdownRequest(sem));
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+    }
 
-	/**
-	 * Returns a string with the description of the tasks in the graph
-	 *
-	 * @return description of the current tasks in the graph
-	 */
-	public String getCurrentTaskState() {
-		Semaphore sem = new Semaphore(0);
-		TasksStateRequest request = new TasksStateRequest(sem);
-		requestQueue.offer(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		return (String) request.getResponse();
-	}
+    /**
+     * Returns a string with the description of the tasks in the graph
+     *
+     * @return description of the current tasks in the graph
+     */
+    public String getCurrentTaskState() {
+        Semaphore sem = new Semaphore(0);
+        TasksStateRequest request = new TasksStateRequest(sem);
+        requestQueue.offer(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        return (String) request.getResponse();
+    }
 
-	public void markForDeletion(DataLocation loc) {
-		requestQueue.offer(new DeleteFileRequest(loc));
-	}
+    public void markForDeletion(DataLocation loc) {
+        requestQueue.offer(new DeleteFileRequest(loc));
+    }
 
-	// App
-	private void transferFileRaw(DataAccessId faId, DataLocation location) {
-		Semaphore sem = new Semaphore(0);
-		TransferRawFileRequest request = new TransferRawFileRequest((RAccessId) faId, location, sem);
-		requestQueue.offer(request);
+    // App
+    private void transferFileRaw(DataAccessId faId, DataLocation location) {
+        Semaphore sem = new Semaphore(0);
+        TransferRawFileRequest request = new TransferRawFileRequest((RAccessId) faId, location, sem);
+        requestQueue.offer(request);
 
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
 
-		logger.debug("Raw file transferred");
-	}
+        logger.debug("Raw file transferred");
+    }
 
-	// App
-	private DataLocation transferFileOpen(DataAccessId faId) {
-		Semaphore sem = new Semaphore(0);
-		TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
-		requestQueue.offer(request);
+    // App
+    private DataLocation transferFileOpen(DataAccessId faId) {
+        Semaphore sem = new Semaphore(0);
+        TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
+        requestQueue.offer(request);
 
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
 
-		logger.debug("Open file transferred");
-		return request.getLocation();
-	}
+        logger.debug("Open file transferred");
+        return request.getLocation();
+    }
 
-	private Object obtainObject(DataAccessId oaId) {
-		// Ask for the object
-		Semaphore sem = new Semaphore(0);
-		TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
-		requestQueue.offer(tor);
+    private Object obtainObject(DataAccessId oaId) {
+        // Ask for the object
+        Semaphore sem = new Semaphore(0);
+        TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
+        requestQueue.offer(tor);
 
-		// Wait for completion
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
+        // Wait for completion
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
 
-		// Get response
-		Object oUpdated = tor.getResponse();
-		if (oUpdated == null) {
-			/*
-			 * The Object didn't come from a WS but was transferred from a worker, we load it from its storage (file or
-			 * persistent)
-			 */
-			LogicalData ld = tor.getLogicalDataTarget();
-			try {
-				ld.loadFromStorage();
-				oUpdated = ld.getValue();
-			} catch (Exception e) {
-				logger.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
-				ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
-			}
-		}
+        // Get response
+        Object oUpdated = tor.getResponse();
+        if (oUpdated == null) {
+            /*
+             * The Object didn't come from a WS but was transferred from a worker, we load it from its storage (file or
+             * persistent)
+             */
+            LogicalData ld = tor.getLogicalDataTarget();
+            try {
+                ld.loadFromStorage();
+                oUpdated = ld.getValue();
+            } catch (Exception e) {
+                logger.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
+                ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
+            }
+        }
 
-		return oUpdated;
-	}
+        return oUpdated;
+    }
 
-	public void getResultFiles(Long appId) {
-		Semaphore sem = new Semaphore(0);
-		GetResultFilesRequest request = new GetResultFilesRequest(appId, sem);
-		requestQueue.offer(request);
-		try {
-			sem.acquire();
-		} catch (InterruptedException e) {
-			// Nothing to do
-		}
-		UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
-		requestQueue.offer(urfr);
-	}
+    public void getResultFiles(Long appId) {
+        Semaphore sem = new Semaphore(0);
+        GetResultFilesRequest request = new GetResultFilesRequest(appId, sem);
+        requestQueue.offer(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+            // Nothing to do
+        }
+        UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
+        requestQueue.offer(urfr);
+    }
 
 }

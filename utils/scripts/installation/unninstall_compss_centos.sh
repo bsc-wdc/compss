@@ -9,7 +9,7 @@
   yum clean all
 
   # Update DB
-  yum update
+  yum update -y
 
   # Exit with status from last command
   exit

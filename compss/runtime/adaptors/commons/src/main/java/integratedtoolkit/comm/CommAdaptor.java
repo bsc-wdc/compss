@@ -10,52 +10,52 @@ import integratedtoolkit.types.uri.MultiURI;
 
 public interface CommAdaptor {
 
-	/**
-	 * Initializes the Communication Adaptor
-	 */
-	public void init();
+    /**
+     * Initializes the Communication Adaptor
+     */
+    public void init();
 
-	/**
-	 * Creates a configuration instance for the specific adaptor
-	 * 
-	 * @param project_properties
-	 * @param resources_properties
-	 * @return
-	 * @throws Exception
-	 */
-	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
+    /**
+     * Creates a configuration instance for the specific adaptor
+     * 
+     * @param project_properties
+     * @param resources_properties
+     * @return
+     * @throws Exception
+     */
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
 
-	/**
-	 * Initializes a worker through an adaptor
-	 * 
-	 * @param workerName
-	 * @param config
-	 * @return
-	 */
-	public COMPSsWorker initWorker(String workerName, Configuration config);
+    /**
+     * Initializes a worker through an adaptor
+     * 
+     * @param workerName
+     * @param config
+     * @return
+     */
+    public COMPSsWorker initWorker(String workerName, Configuration config);
 
-	/**
-	 * Stops the Communicatio Adaptor
-	 */
-	public void stop();
+    /**
+     * Stops the Communicatio Adaptor
+     */
+    public void stop();
 
-	/**
-	 * Retrieves all the pending operations
-	 * 
-	 * @return
-	 */
-	public LinkedList<DataOperation> getPending();
+    /**
+     * Retrieves all the pending operations
+     * 
+     * @return
+     */
+    public LinkedList<DataOperation> getPending();
 
-	/**
-	 * Returns the complete Master URI
-	 * 
-	 * @param u
-	 */
-	public void completeMasterURI(MultiURI u);
+    /**
+     * Returns the complete Master URI
+     * 
+     * @param u
+     */
+    public void completeMasterURI(MultiURI u);
 
-	/**
-	 * Stops all the pending jobs inside the Communication Adaptor
-	 */
-	public void stopSubmittedJobs();
+    /**
+     * Stops all the pending jobs inside the Communication Adaptor
+     */
+    public void stopSubmittedJobs();
 
 }

@@ -25,53 +25,55 @@ import commons.ConstantValues;
  * Checks the mapping between ITF CoreElement and runnable resources (static constraint check)
  */
 public class TestCompatible {
-	
-    //Interface data
+
+    // Interface data
     private static int coreCount;
 
-	
-	/* ***************************************
-     *    MAIN IMPLEMENTATION 
-     * *************************************** */
+
+    /*
+     * *************************************** MAIN IMPLEMENTATION ***************************************
+     */
     public static void main(String[] args) {
-    	// Wait for Runtime to be loaded
-    	System.out.println("[LOG] Waiting for Runtime to be loaded");
+        // Wait for Runtime to be loaded
+        System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
             Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
         } catch (Exception e) {
-        	// No need to handle such exceptions
+            // No need to handle such exceptions
         }
-        
+
         // Run Compatible Resource Manager Test
         System.out.println("[LOG] Running Compatible Resource Manager Test");
         resourceManagerTest();
     }
-    
-    /* **************************************
-     * RESOURCE MANAGER TEST IMPLEMENTATION 
-     * ************************************** */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+
+    /*
+     * ************************************** 
+     * RESOURCE MANAGER TEST IMPLEMENTATION
+     * **************************************
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static void resourceManagerTest() {
-    	coreCount = CoreManager.getCoreCount();
-    	
+        coreCount = CoreManager.getCoreCount();
+
         // Check for each implementation the correctness of its resources
         System.out.println("[LOG] Number of cores = " + coreCount);
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
-            
-			Action a = new Action(coreId);
-			HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
-            
+
+            Action a = new Action(coreId);
+            HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
+
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
-            	System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
-            	Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
-            	for (Implementation<?> impl : impls) {
-            		System.out.println("-- Impl: " + impl.getRequirements().toString());
-            	}
-            	System.exit(-1);
+                System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
+                Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
+                for (Implementation<?> impl : impls) {
+                    System.out.println("-- Impl: " + impl.getRequirements().toString());
+                }
+                System.exit(-1);
             }
-            
+
             // Check that all assigned resources are really valid
             checkCoreResources(coreId, m);
         }
@@ -79,7 +81,7 @@ public class TestCompatible {
     }
 
     private static void checkCoreResources(int coreId, HashMap<Worker<?>, LinkedList<Implementation<?>>> hm) {
-        //Revert Map
+        // Revert Map
         HashMap<Implementation<?>, LinkedList<Worker<?>>> hm_reverted = new HashMap<Implementation<?>, LinkedList<Worker<?>>>();
         for (Entry<Worker<?>, LinkedList<Implementation<?>>> entry_hm : hm.entrySet()) {
             for (Implementation<?> impl : entry_hm.getValue()) {
@@ -91,8 +93,8 @@ public class TestCompatible {
                 hm_reverted.put(impl, aux);
             }
         }
-        
-        //Check Resources assigned to each implementation
+
+        // Check Resources assigned to each implementation
         for (java.util.Map.Entry<Implementation<?>, LinkedList<Worker<?>>> entry : hm_reverted.entrySet()) {
             System.out.println("[LOG] ** Checking Implementation " + entry.getKey());
             System.out.println("[LOG] **** Number of resources = " + entry.getValue().size());
@@ -100,8 +102,8 @@ public class TestCompatible {
                 System.out.println("[LOG] **** Checking Resource " + resource.getName());
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
-                    String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId() 
-                    		+ " and Resource " + resource.getName() + ". ";
+                    String error = "Implementation: Core " + coreId + " Impl " + entry.getKey().getImplementationId() + " and Resource "
+                            + resource.getName() + ". ";
                     error = error.concat("Implementation and resource not matching on: " + res);
                     System.out.println(error);
                     System.exit(-1);
@@ -122,136 +124,138 @@ public class TestCompatible {
             MethodResourceDescription iDescription = mImpl.getRequirements();
             MethodWorker worker = (MethodWorker) resource;
             MethodResourceDescription wDescription = (MethodResourceDescription) worker.getDescription();
-            
-            //System.out.println("-- Impl Details:   " + iDescription);
-            //System.out.println("-- Worker Details: " + wDescription);
-            
-            /* ***********************************************
+
+            // System.out.println("-- Impl Details: " + iDescription);
+            // System.out.println("-- Worker Details: " + wDescription);
+
+            /*
+             * *********************************************** 
              * COMPUTING UNITS
-             * ***********************************************/
-            if ( (iDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-            		&& (wDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-            		&& (wDescription.getTotalComputingUnits() < iDescription.getTotalComputingUnits()) ) {
-            	return "computingUnits";
-            }
-            
-            /* ***********************************************
-             * PROCESSOR
-             * ***********************************************/
-            for (Processor ip : iDescription.getProcessors()) {
-            	// Check if processor can be executed in worker
-            	boolean canBeHosted = false;
-            	for (Processor wp : wDescription.getProcessors()) {
-            		// Static checks
-            		if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-            				&& !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
-            				&& !wp.getName().equals(ip.getName())) {
-            			//System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
-            			continue;
-            		}
-            		if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-            				&& wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
-            				&& wp.getSpeed() < ip.getSpeed() ) {
-            			//System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
-            			continue;
-            		}
-            		if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR) 
-            				&& !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
-            			    && !wp.getArchitecture().equals(ip.getArchitecture())) {
-            			//System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
-            			continue;
-            		}
-            		if ( (!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-            				&& (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
-            				&& (!ip.getPropName().equals(wp.getPropName())) ) {
-            			//System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
-            			continue;
-            		}
-            		if ( (!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-            				&& (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
-            				&& (!ip.getPropValue().equals(wp.getPropValue())) ) {
-            			//System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
-            			continue;
-            		}
-            		
-            		// Dynamic checks
-            		if (wp.getComputingUnits() >= ip.getComputingUnits()) {
-            			canBeHosted = true;
-            			break;
-            		} else {
-            			//System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
-            		}
-            	}
-            	if (!canBeHosted) {
-            		return "processor";
-            	}
+             ***********************************************/
+            if ((iDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
+                    && (wDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
+                    && (wDescription.getTotalComputingUnits() < iDescription.getTotalComputingUnits())) {
+                return "computingUnits";
             }
 
-            
-            /* ***********************************************
+            /*
+             * *********************************************** 
+             * PROCESSOR
+             ***********************************************/
+            for (Processor ip : iDescription.getProcessors()) {
+                // Check if processor can be executed in worker
+                boolean canBeHosted = false;
+                for (Processor wp : wDescription.getProcessors()) {
+                    // Static checks
+                    if (!ip.getName().equals(MethodResourceDescription.UNASSIGNED_STR)
+                            && !wp.getName().equals(MethodResourceDescription.UNASSIGNED_STR) && !wp.getName().equals(ip.getName())) {
+                        // System.out.println("DUE TO: " + ip.getName() + " != " + wp.getName());
+                        continue;
+                    }
+                    if (ip.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT
+                            && wp.getSpeed() != MethodResourceDescription.UNASSIGNED_FLOAT && wp.getSpeed() < ip.getSpeed()) {
+                        // System.out.println("DUE TO: " + ip.getSpeed() + " != " + wp.getSpeed());
+                        continue;
+                    }
+                    if (!ip.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+                            && !wp.getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR)
+                            && !wp.getArchitecture().equals(ip.getArchitecture())) {
+                        // System.out.println("DUE TO: " + ip.getArchitecture() + " != " + wp.getArchitecture());
+                        continue;
+                    }
+                    if ((!ip.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+                            && (!wp.getPropName().equals(MethodResourceDescription.UNASSIGNED_STR))
+                            && (!ip.getPropName().equals(wp.getPropName()))) {
+                        // System.out.println("DUE TO: " + ip.getPropName() + " != " + wp.getPropName());
+                        continue;
+                    }
+                    if ((!ip.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+                            && (!wp.getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR))
+                            && (!ip.getPropValue().equals(wp.getPropValue()))) {
+                        // System.out.println("DUE TO: " + ip.getPropValue() + " != " + wp.getPropValue());
+                        continue;
+                    }
+
+                    // Dynamic checks
+                    if (wp.getComputingUnits() >= ip.getComputingUnits()) {
+                        canBeHosted = true;
+                        break;
+                    } else {
+                        // System.out.println("DUE TO: " + ip.getComputingUnits() + " != " + wp.getComputingUnits());
+                    }
+                }
+                if (!canBeHosted) {
+                    return "processor";
+                }
+            }
+
+            /*
+             * ***********************************************
              * MEMORY
-             * ***********************************************/
-            if ( (iDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-            		&& (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-            		&& (wDescription.getMemorySize() < iDescription.getMemorySize()) ) {
-            	return "memorySize";
+             ***********************************************/
+            if ((iDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                    && (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                    && (wDescription.getMemorySize() < iDescription.getMemorySize())) {
+                return "memorySize";
             }
-            
-            if ( (!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!wDescription.getMemoryType().equals(iDescription.getMemoryType())) ) {
-            	return "memoryType";
+
+            if ((!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!iDescription.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!wDescription.getMemoryType().equals(iDescription.getMemoryType()))) {
+                return "memoryType";
             }
-            
-            /* ***********************************************
+
+            /*
+             * *********************************************** 
              * STORAGE
-             * ***********************************************/
-            if ( (iDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-            		&& (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
-            		&& (wDescription.getStorageSize() < iDescription.getStorageSize()) ) {
-            	return "storageSize";
+             ***********************************************/
+            if ((iDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                    && (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
+                    && (wDescription.getStorageSize() < iDescription.getStorageSize())) {
+                return "storageSize";
             }
-            
-            if ( (!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!wDescription.getStorageType().equals(iDescription.getStorageType())) ) {
-            	return "storageType";
+
+            if ((!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!iDescription.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!wDescription.getStorageType().equals(iDescription.getStorageType()))) {
+                return "storageType";
             }
-            
-            /* ***********************************************
+
+            /*
+             * *********************************************** 
              * OPERATING SYSTEM
-             * ***********************************************/
-            if ( (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!wDescription.getOperatingSystemType().equals(iDescription.getOperatingSystemType())) ) {
-            	return "operatingSystemType";
+             ***********************************************/
+            if ((!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!wDescription.getOperatingSystemType().equals(iDescription.getOperatingSystemType()))) {
+                return "operatingSystemType";
             }
-            
-            if ( (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!wDescription.getOperatingSystemDistribution().equals(iDescription.getOperatingSystemDistribution())) ) {
-            	return "operatingSystemDistribution";
+
+            if ((!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!iDescription.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!wDescription.getOperatingSystemDistribution().equals(iDescription.getOperatingSystemDistribution()))) {
+                return "operatingSystemDistribution";
             }
-    
-            if ( (!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
-            		&& (!wDescription.getOperatingSystemVersion().equals(iDescription.getOperatingSystemVersion())) ) {
-            	return "operatingSystemVersion";
+
+            if ((!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!iDescription.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR))
+                    && (!wDescription.getOperatingSystemVersion().equals(iDescription.getOperatingSystemVersion()))) {
+                return "operatingSystemVersion";
             }
-            
-            /* ***********************************************
+
+            /*
+             * *********************************************** 
              * APPLICATION SOFTWARE
-             * ***********************************************/
-            if (!(iDescription.getAppSoftware().isEmpty())
-                    && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
+             ***********************************************/
+            if (!(iDescription.getAppSoftware().isEmpty()) && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
                 return "appSoftware";
             }
-            
-            /* ***********************************************
+
+            /*
+             * *********************************************** 
              * HOST QUEUE
-             * ***********************************************/
-            if (!(iDescription.getHostQueues().isEmpty())
-                    && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
+             ***********************************************/
+            if (!(iDescription.getHostQueues().isEmpty()) && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
                 return "hostQueues";
             }
 
@@ -274,11 +278,11 @@ public class TestCompatible {
             return "Unknown resource type";
         }
 
-        
-        /* ***********************************************
+        /*
+         * *********************************************** 
          * ALL CONSTAINT VALUES OK
-         * ***********************************************/
+         ***********************************************/
         return null;
     }
-    
+
 }

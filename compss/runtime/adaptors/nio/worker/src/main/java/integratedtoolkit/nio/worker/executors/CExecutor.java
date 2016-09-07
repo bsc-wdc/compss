@@ -14,52 +14,50 @@ import java.util.Map;
 
 public class CExecutor extends ExternalExecutor {
 
-	private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
-	private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + "Bindings" 
-			+ File.separator + "commons" + File.separator + "lib";
-	private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
+    private static final String C_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "c" + File.separator + "lib";
+    private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "commons" + File.separator
+            + "lib";
+    private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
 
 
-	public CExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
-		super(nw, pool, queue, writePipe, resultReader);
-	}
+    public CExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
+        super(nw, pool, queue, writePipe, resultReader);
+    }
 
-	@Override
-	public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
-		ArrayList<String> lArgs = new ArrayList<String>();
-		
-		//NX_ARGS string built from the Resource Description
-		StringBuilder reqs = new StringBuilder();
-		reqs.append("NX_ARGS='--smp-cpus=").append(nt.getResourceDescription().getTotalComputingUnits());
+    @Override
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
+        ArrayList<String> lArgs = new ArrayList<String>();
 
-		//Debug mode on
-		if (workerDebug) reqs.append(" --summary");
-		reqs.append("' ");
+        // NX_ARGS string built from the Resource Description
+        StringBuilder reqs = new StringBuilder();
+        reqs.append("NX_ARGS='--smp-cpus=").append(nt.getResourceDescription().getTotalComputingUnits());
 
+        // Debug mode on
+        if (workerDebug) {
+            reqs.append(" --summary");
+        }
+        reqs.append("' ");
 
-		lArgs.add(reqs.toString() + nw.getAppDir() + WORKER_C_RELATIVE_PATH);
-		
-		return lArgs;
-	}
+        lArgs.add(reqs.toString() + nw.getAppDir() + WORKER_C_RELATIVE_PATH);
 
-	public static Map<String, String> getEnvironment(NIOWorker nw) {
-		// export
-		// LD_LIBRARY_PATH=$scriptDir/../../bindings/c/lib:$scriptDir/../../bindings/bindings-common/lib:$LD_LIBRARY_PATH
+        return lArgs;
+    }
 
-		Map<String, String> env = new HashMap<String, String>();
-		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
-		if (ldLibraryPath == null) {
-			ldLibraryPath = nw.getLibPath();
-		} else {
-			ldLibraryPath = ldLibraryPath.concat(":" + nw.getLibPath());
-		}
+    public static Map<String, String> getEnvironment(NIOWorker nw) {
+        Map<String, String> env = new HashMap<String, String>();
+        String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
+        if (ldLibraryPath == null) {
+            ldLibraryPath = nw.getLibPath();
+        } else {
+            ldLibraryPath = ldLibraryPath.concat(":" + nw.getLibPath());
+        }
 
-		// Add C and commons libs
-		ldLibraryPath.concat(":" + nw.getInstallDir() + C_LIB_RELATIVE_PATH);
-		ldLibraryPath.concat(":" + nw.getInstallDir() + COMMONS_LIB_RELATIVE_PATH);
+        // Add C and commons libs
+        ldLibraryPath.concat(":" + nw.getInstallDir() + C_LIB_RELATIVE_PATH);
+        ldLibraryPath.concat(":" + nw.getInstallDir() + COMMONS_LIB_RELATIVE_PATH);
 
-		env.put("LD_LIBRARY_PATH", ldLibraryPath);
-		return env;
-	}
+        env.put("LD_LIBRARY_PATH", ldLibraryPath);
+        return env;
+    }
 
 }

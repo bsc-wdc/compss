@@ -5,187 +5,187 @@ import java.io.Serializable;
 
 public abstract class DataAccessId implements Serializable {
 
-	/**
-	 * Serializable objects Version UID are 1L in all Runtime
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * Serializable objects Version UID are 1L in all Runtime
+     */
+    private static final long serialVersionUID = 1L;
 
 
-	public static enum Direction {
-		R,
-		RW,
-		W
-	}
+    public static enum Direction {
+        R,
+        RW,
+        W
+    }
 
 
-	public abstract int getDataId();
+    public abstract int getDataId();
 
-	public abstract Direction getDirection();
-
-
-	// Read access
-	public static class RAccessId extends DataAccessId {
-
-		/**
-		 * Serializable objects Version UID are 1L in all Runtime
-		 */
-		private static final long serialVersionUID = 1L;
-
-		// File version read
-		private DataInstanceId readDataInstance;
-		// Source data preservation flag
-		private boolean preserveSourceData = true;
+    public abstract Direction getDirection();
 
 
-		public RAccessId() {
-		}
+    // Read access
+    public static class RAccessId extends DataAccessId {
 
-		public RAccessId(int dataId, int rVersionId) {
-			this.readDataInstance = new DataInstanceId(dataId, rVersionId);
-		}
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
 
-		public RAccessId(DataInstanceId rdi) {
-			this.readDataInstance = rdi;
-		}
-
-		@Override
-		public Direction getDirection() {
-			return Direction.R;
-		}
-
-		@Override
-		public int getDataId() {
-			return readDataInstance.getDataId();
-		}
-
-		public int getRVersionId() {
-			return readDataInstance.getVersionId();
-		}
-
-		public DataInstanceId getReadDataInstance() {
-			return readDataInstance;
-		}
-
-		public boolean isPreserveSourceData() {
-			return preserveSourceData;
-		}
-
-		@Override
-		public String toString() {
-			return "Read data: " + readDataInstance + (preserveSourceData ? ", Preserved" : ", Erased");
-		}
-
-	}
-
-	// Write access
-	public static class WAccessId extends DataAccessId {
-
-		/**
-		 * Serializable objects Version UID are 1L in all Runtime
-		 */
-		private static final long serialVersionUID = 1L;
-
-		// File version written
-		private DataInstanceId writtenDataInstance;
+        // File version read
+        private DataInstanceId readDataInstance;
+        // Source data preservation flag
+        private boolean preserveSourceData = true;
 
 
-		public WAccessId() {
-		}
+        public RAccessId() {
+        }
 
-		public WAccessId(int dataId, int wVersionId) {
-			this.writtenDataInstance = new DataInstanceId(dataId, wVersionId);
-		}
+        public RAccessId(int dataId, int rVersionId) {
+            this.readDataInstance = new DataInstanceId(dataId, rVersionId);
+        }
 
-		public WAccessId(DataInstanceId wdi) {
-			this.writtenDataInstance = wdi;
-		}
+        public RAccessId(DataInstanceId rdi) {
+            this.readDataInstance = rdi;
+        }
 
-		@Override
-		public Direction getDirection() {
-			return Direction.W;
-		}
+        @Override
+        public Direction getDirection() {
+            return Direction.R;
+        }
 
-		@Override
-		public int getDataId() {
-			return writtenDataInstance.getDataId();
-		}
+        @Override
+        public int getDataId() {
+            return readDataInstance.getDataId();
+        }
 
-		public int getWVersionId() {
-			return writtenDataInstance.getVersionId();
-		}
+        public int getRVersionId() {
+            return readDataInstance.getVersionId();
+        }
 
-		public DataInstanceId getWrittenDataInstance() {
-			return writtenDataInstance;
-		}
+        public DataInstanceId getReadDataInstance() {
+            return readDataInstance;
+        }
 
-		@Override
-		public String toString() {
-			return "Written data: " + writtenDataInstance;
-		}
+        public boolean isPreserveSourceData() {
+            return preserveSourceData;
+        }
 
-	}
+        @Override
+        public String toString() {
+            return "Read data: " + readDataInstance + (preserveSourceData ? ", Preserved" : ", Erased");
+        }
 
-	// Read-Write access
-	public static class RWAccessId extends DataAccessId {
+    }
 
-		/**
-		 * Serializable objects Version UID are 1L in all Runtime
-		 */
-		private static final long serialVersionUID = 1L;
+    // Write access
+    public static class WAccessId extends DataAccessId {
 
-		// File version read
-		private DataInstanceId readDataInstance;
-		// File version written
-		private DataInstanceId writtenDataInstance;
-		// Source data preservation flag
-		private boolean preserveSourceData = false;
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
+
+        // File version written
+        private DataInstanceId writtenDataInstance;
 
 
-		public RWAccessId() {
-		}
+        public WAccessId() {
+        }
 
-		public RWAccessId(DataInstanceId rdi, DataInstanceId wdi, boolean preserveSourceData) {
-			this.readDataInstance = rdi;
-			this.writtenDataInstance = wdi;
-			this.preserveSourceData = preserveSourceData;
-		}
+        public WAccessId(int dataId, int wVersionId) {
+            this.writtenDataInstance = new DataInstanceId(dataId, wVersionId);
+        }
 
-		@Override
-		public Direction getDirection() {
-			return Direction.RW;
-		}
+        public WAccessId(DataInstanceId wdi) {
+            this.writtenDataInstance = wdi;
+        }
 
-		@Override
-		public int getDataId() {
-			return readDataInstance.getDataId();
-		}
+        @Override
+        public Direction getDirection() {
+            return Direction.W;
+        }
 
-		public int getRVersionId() {
-			return readDataInstance.getVersionId();
-		}
+        @Override
+        public int getDataId() {
+            return writtenDataInstance.getDataId();
+        }
 
-		public int getWVersionId() {
-			return writtenDataInstance.getVersionId();
-		}
+        public int getWVersionId() {
+            return writtenDataInstance.getVersionId();
+        }
 
-		public DataInstanceId getReadDataInstance() {
-			return readDataInstance;
-		}
+        public DataInstanceId getWrittenDataInstance() {
+            return writtenDataInstance;
+        }
 
-		public DataInstanceId getWrittenDataInstance() {
-			return writtenDataInstance;
-		}
+        @Override
+        public String toString() {
+            return "Written data: " + writtenDataInstance;
+        }
 
-		public boolean isPreserveSourceData() {
-			return preserveSourceData;
-		}
+    }
 
-		@Override
-		public String toString() {
-			return "Read data: " + readDataInstance + ", Written data: " + writtenDataInstance
-					+ (preserveSourceData ? ", Preserved" : ", Erased");
-		}
+    // Read-Write access
+    public static class RWAccessId extends DataAccessId {
 
-	}
+        /**
+         * Serializable objects Version UID are 1L in all Runtime
+         */
+        private static final long serialVersionUID = 1L;
+
+        // File version read
+        private DataInstanceId readDataInstance;
+        // File version written
+        private DataInstanceId writtenDataInstance;
+        // Source data preservation flag
+        private boolean preserveSourceData = false;
+
+
+        public RWAccessId() {
+        }
+
+        public RWAccessId(DataInstanceId rdi, DataInstanceId wdi, boolean preserveSourceData) {
+            this.readDataInstance = rdi;
+            this.writtenDataInstance = wdi;
+            this.preserveSourceData = preserveSourceData;
+        }
+
+        @Override
+        public Direction getDirection() {
+            return Direction.RW;
+        }
+
+        @Override
+        public int getDataId() {
+            return readDataInstance.getDataId();
+        }
+
+        public int getRVersionId() {
+            return readDataInstance.getVersionId();
+        }
+
+        public int getWVersionId() {
+            return writtenDataInstance.getVersionId();
+        }
+
+        public DataInstanceId getReadDataInstance() {
+            return readDataInstance;
+        }
+
+        public DataInstanceId getWrittenDataInstance() {
+            return writtenDataInstance;
+        }
+
+        public boolean isPreserveSourceData() {
+            return preserveSourceData;
+        }
+
+        @Override
+        public String toString() {
+            return "Read data: " + readDataInstance + ", Written data: " + writtenDataInstance
+                    + (preserveSourceData ? ", Preserved" : ", Erased");
+        }
+
+    }
 
 }

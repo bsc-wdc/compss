@@ -20,69 +20,69 @@ import com.bsc.compss.ui.auth.UserCredential;
 
 public class ApplicationsViewModel {
 
-	private List<Application> applications;
-	private static final Logger logger = LogManager.getLogger("compssMonitor.ApplicationsVM");
+    private List<Application> applications;
+    private static final Logger logger = LogManager.getLogger("compssMonitor.ApplicationsVM");
 
 
-	@Init
-	public void init() {
-		applications = new LinkedList<Application>();
-		update();
-	}
+    @Init
+    public void init() {
+        applications = new LinkedList<Application>();
+        update();
+    }
 
-	public List<Application> getApplications() {
-		return new ListModelList<Application>(this.applications);
-	}
+    public List<Application> getApplications() {
+        return new ListModelList<Application>(this.applications);
+    }
 
-	@Command
-	@NotifyChange("applications")
-	public void update() {
-		logger.debug("Updating Applications ViewModel...");
-		// Erase all current applications
-		applications.clear();
-		setSelectedApp("");
+    @Command
+    @NotifyChange("applications")
+    public void update() {
+        logger.debug("Updating Applications ViewModel...");
+        // Erase all current applications
+        applications.clear();
+        setSelectedApp("");
 
-		// Import new resources
-		String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).getCOMPSs_BASE_LOG();
-		File COMPSs_LOG_DIR = new File(appsLocation);
-		if (COMPSs_LOG_DIR.exists()) {
-			for (File f : COMPSs_LOG_DIR.listFiles()) {
-				Application app = new Application(f.getName(), appsLocation + File.separator + f.getName());
-				applications.add(app);
-			}
-		}
+        // Import new resources
+        String appsLocation = ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).getCOMPSs_BASE_LOG();
+        File COMPSs_LOG_DIR = new File(appsLocation);
+        if (COMPSs_LOG_DIR.exists()) {
+            for (File f : COMPSs_LOG_DIR.listFiles()) {
+                Application app = new Application(f.getName(), appsLocation + File.separator + f.getName());
+                applications.add(app);
+            }
+        }
 
-		if (Properties.SORT_APPLICATIONS) {
-			Collections.sort(applications, new ApplicationComparator());
-		}
+        if (Properties.SORT_APPLICATIONS) {
+            Collections.sort(applications, new ApplicationComparator());
+        }
 
-		logger.debug("Applications ViewModel updated");
-	}
+        logger.debug("Applications ViewModel updated");
+    }
 
-	@Command
-	public void setSelectedApp(@BindingParam("appName") String appName) {
-		logger.debug("Updating Selected Application...");
-		Application selectedApp = new Application();
-		for (Application app : applications) {
-			if (app.getName().equals(appName)) {
-				selectedApp = new Application(app);
-				break;
-			}
-		}
-		// Set global variables to selected app
-		Properties.BASE_PATH = selectedApp.getPath();
-		((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).setMonitoredApp(selectedApp);
-		logger.debug("Selected application updated");
-	}
+    @Command
+    public void setSelectedApp(@BindingParam("appName") String appName) {
+        logger.debug("Updating Selected Application...");
+        Application selectedApp = new Application();
+        for (Application app : applications) {
+            if (app.getName().equals(appName)) {
+                selectedApp = new Application(app);
+                break;
+            }
+        }
+        // Set global variables to selected app
+        Properties.BASE_PATH = selectedApp.getPath();
+        ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).setMonitoredApp(selectedApp);
+        logger.debug("Selected application updated");
+    }
 
 
-	private class ApplicationComparator implements Comparator<Application> {
+    private class ApplicationComparator implements Comparator<Application> {
 
-		@Override
-		public int compare(Application app1, Application app2) {
-			return app1.getName().compareTo(app2.getName());
-		}
+        @Override
+        public int compare(Application app1, Application app2) {
+            return app1.getName().compareTo(app2.getName());
+        }
 
-	}
+    }
 
 }

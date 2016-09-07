@@ -94,9 +94,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             }
         }
 
-		/*
+        /*
          * Initializes the COMM library and the MasterResource (Master reconfigures the logger)
-		 */
+         */
         Comm.init();
     }
 
@@ -243,7 +243,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     if (stream != null) {
                         return stream;
                     } else {
-                        // System.err.println("IT properties file not found in classloader. Looking at system resource ...");
+                        // System.err.println("IT properties file not found in classloader. Looking at system resource
+                        // ...");
                         stream = ClassLoader.getSystemResourceAsStream(ITConstants.IT_CONFIG);
                         if (stream != null) {
                             return stream;
@@ -274,9 +275,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
     }
 
-    /* ****************************************************
+    /*
+     * ****************************************************
      * CONSTRUCTOR
-     * ****************************************************/
+     ****************************************************/
     public COMPSsRuntimeImpl() {
         // Load COMPSs version and buildNumber
         try {
@@ -302,9 +304,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         ErrorManager.init(this);
     }
 
-    /* ****************************************************
+    /*
+     * **************************************************** 
      * COMPSsRuntime INTERFACE IMPLEMENTATION
-     * ****************************************************/
+     ****************************************************/
     @SuppressWarnings("rawtypes")
     /**
      * Starts the COMPSs Runtime
@@ -425,7 +428,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,
-                           int parameterCount, Object... parameters) {
+            int parameterCount, Object... parameters) {
 
         logger.debug("\nRegister CE parameters:");
         logger.debug("\tMethodClass: " + methodClass);
@@ -451,7 +454,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
-                           Object... parameters) {
+            Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -459,7 +462,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         logger.info("Creating task from method " + methodName + " in " + methodClass);
         if (logger.isDebugEnabled()) {
-            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug(
+                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -476,8 +480,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute task: services
      */
     @Override
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority,
-                           boolean hasTarget, int parameterCount, Object... parameters) {
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+            int parameterCount, Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
@@ -485,7 +489,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
         if (logger.isDebugEnabled()) {
-            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug(
+                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -570,9 +575,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Tracer.emitEvent(id, type);
     }
 
-	/* ****************************************************
+    /*
+     * **************************************************** 
      * LoaderAPI INTERFACE IMPLEMENTATION
-	 * ****************************************************/
+     ****************************************************/
 
     /**
      * Returns a copy of the last file version
@@ -621,9 +627,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public Object getObject(Object o, int hashCode, String destDir) {
         /*
-		 * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
-		 * it and this method would not have been called.
-		 */
+         * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
+         * it and this method would not have been called.
+         */
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.GET_OBJECT.getId(), Tracer.Event.GET_OBJECT.getType());
         }
@@ -661,13 +667,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void serializeObject(Object o, int hashCode, String destDir) {
-		/*
-		 * System.out.println("IT: Serializing object"); String rename = TP.getLastRenaming(hashCode);
-		 * 
-		 * try { DataLocation loc = DataLocation.getLocation(Comm.appHost, destDir + rename); Serializer.serialize(o,
-		 * destDir + rename); Comm.registerLocation(rename, loc); } catch (Exception e) {
-		 * logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e); System.exit(1); }
-		 */
+        /*
+         * System.out.println("IT: Serializing object"); String rename = TP.getLastRenaming(hashCode);
+         * 
+         * try { DataLocation loc = DataLocation.getLocation(Comm.appHost, destDir + rename); Serializer.serialize(o,
+         * destDir + rename); Comm.registerLocation(rename, loc); } catch (Exception e) {
+         * logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e); System.exit(1); }
+         */
         // throw new NotImplementedException();
     }
 
@@ -687,9 +693,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return Comm.appHost.getTempDirPath();
     }
 
-	/* ****************************************************
-	 * COMMON IN BOTH APIs 
-	 * ****************************************************/
+    /*
+     * **************************************************** 
+     * COMMON IN BOTH APIs
+     ****************************************************/
 
     /**
      * Returns the renaming of the file version opened
@@ -748,9 +755,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return finalPath;
     }
 
-    /* ****************************************************
+    /*
+     * **************************************************** 
      * PRIVATE HELPER METHODS
-     * ****************************************************/
+     ****************************************************/
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
@@ -781,12 +789,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     break;
 
                 default:
-					/*
-					 * Basic types (including String). The only possible direction is IN, warn otherwise
-					 */
+                    /*
+                     * Basic types (including String). The only possible direction is IN, warn otherwise
+                     */
                     if (direction != DataDirection.IN) {
-                        logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar
-                                + " has a basic type, therefore it must have INPUT direction");
+                        logger.warn(
+                                WARN_WRONG_DIRECTION + "Parameter " + npar + " has a basic type, therefore it must have INPUT direction");
                     }
                     pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
                     break;

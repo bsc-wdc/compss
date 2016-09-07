@@ -17,57 +17,57 @@ import java.util.concurrent.Semaphore;
  */
 public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
 
-	/**
-	 * Semaphore where to synchronize until the operation is done
-	 */
-	private Semaphore semaphore;
+    /**
+     * Semaphore where to synchronize until the operation is done
+     */
+    private Semaphore semaphore;
 
 
-	/**
-	 * Constructs a new ShutdownRequest
-	 *
-	 */
-	public ShutdownRequest(Semaphore sem) {
-		this.semaphore = sem;
-	}
+    /**
+     * Constructs a new ShutdownRequest
+     *
+     */
+    public ShutdownRequest(Semaphore sem) {
+        this.semaphore = sem;
+    }
 
-	/**
-	 * Returns the semaphore where to synchronize until the object can be read
-	 *
-	 * @return the semaphore where to synchronize until the object can be read
-	 */
-	public Semaphore getSemaphore() {
-		return semaphore;
-	}
+    /**
+     * Returns the semaphore where to synchronize until the object can be read
+     *
+     * @return the semaphore where to synchronize until the object can be read
+     */
+    public Semaphore getSemaphore() {
+        return semaphore;
+    }
 
-	/**
-	 * Sets the semaphore where to synchronize until the requested object can be read
-	 *
-	 * @param sem
-	 *            the semaphore where to synchronize until the requested object can be read
-	 */
-	public void setSemaphore(Semaphore sem) {
-		this.semaphore = sem;
-	}
+    /**
+     * Sets the semaphore where to synchronize until the requested object can be read
+     *
+     * @param sem
+     *            the semaphore where to synchronize until the requested object can be read
+     */
+    public void setSemaphore(Semaphore sem) {
+        this.semaphore = sem;
+    }
 
-	@Override
-	public void process(TaskScheduler<P, T> ts) throws ShutdownException {
-		// ts.shutdown();
-		logger.debug("Processing ShutdownRequest request...");
-		SingleExecution.shutdown();
-		ts.shutdown();
+    @Override
+    public void process(TaskScheduler<P, T> ts) throws ShutdownException {
+        // ts.shutdown();
+        logger.debug("Processing ShutdownRequest request...");
+        SingleExecution.shutdown();
+        ts.shutdown();
 
-		// Print core state
-		WorkloadStatus status = new WorkloadStatus(CoreManager.getCoreCount());
-		ts.getWorkloadState(status);
-		ResourceManager.stopNodes(status);
-		// The semaphore is released after emitting the end event to prevent race conditions
-		throw new ShutdownException(semaphore);
-	}
+        // Print core state
+        WorkloadStatus status = new WorkloadStatus(CoreManager.getCoreCount());
+        ts.getWorkloadState(status);
+        ResourceManager.stopNodes(status);
+        // The semaphore is released after emitting the end event to prevent race conditions
+        throw new ShutdownException(semaphore);
+    }
 
-	@Override
-	public TDRequestType getType() {
-		return TDRequestType.TD_SHUTDOWN;
-	}
-	
+    @Override
+    public TDRequestType getType() {
+        return TDRequestType.TD_SHUTDOWN;
+    }
+
 }

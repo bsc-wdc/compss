@@ -7,39 +7,39 @@ import java.io.PrintStream;
 
 public class StreamGobbler extends Thread {
 
-	private final InputStream in;
-	private final PrintStream out;
+    private final InputStream in;
+    private final PrintStream out;
 
 
-	public StreamGobbler(InputStream in, PrintStream out) {
-		this.setName("Stream Gobbler");
+    public StreamGobbler(InputStream in, PrintStream out) {
+        this.setName("Stream Gobbler");
 
-		this.in = in;
-		this.out = out;
-	}
+        this.in = in;
+        this.out = out;
+    }
 
-	public void run() {
-		try {
-			int nRead;
-			byte[] buffer = new byte[4096];
-			while ((nRead = in.read(buffer, 0, buffer.length)) != -1) {
-				byte[] readData = new byte[nRead];
-				System.arraycopy(buffer, 0, readData, 0, nRead);
-				out.print(new String(readData));
-			}
-		} catch (IOException ioe) {
-			System.err.println("Exception during reading/writing in output Stream");
-			ioe.printStackTrace(System.err);
-		} finally {
-			out.flush();
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					e.printStackTrace(System.err);
-				}
-			}
-		}
-	}
+    public void run() {
+        try {
+            int nRead;
+            byte[] buffer = new byte[4096];
+            while ((nRead = in.read(buffer, 0, buffer.length)) != -1) {
+                byte[] readData = new byte[nRead];
+                System.arraycopy(buffer, 0, readData, 0, nRead);
+                out.print(new String(readData));
+            }
+        } catch (IOException ioe) {
+            System.err.println("Exception during reading/writing in output Stream");
+            ioe.printStackTrace(System.err);
+        } finally {
+            out.flush();
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace(System.err);
+                }
+            }
+        }
+    }
 
 }

@@ -20,6 +20,7 @@ public class NIOTracer extends Tracer {
 
     public static final String TRANSFER_END = "0";
 
+
     public static void init(int level) {
         if (debug) {
             logger.debug("Initializing NIO tracing");
@@ -52,8 +53,8 @@ public class NIOTracer extends Tracer {
         }
 
         if (debug) {
-            logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " + NIOTracer.workingDir + ", "
-                    + NIOTracer.nodeName);
+            logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " 
+                            + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
         }
     }
 
@@ -77,7 +78,6 @@ public class NIOTracer extends Tracer {
     }
 
     public static void emitCommEvent(boolean send, int partnerID, int tag, long size) {
-
         synchronized (Tracer.class) {
             Wrapper.Comm(send, tag, (int) size, partnerID, ID);
         }

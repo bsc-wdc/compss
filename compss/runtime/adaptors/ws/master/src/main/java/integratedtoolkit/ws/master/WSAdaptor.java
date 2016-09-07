@@ -17,83 +17,83 @@ import org.apache.logging.log4j.Logger;
 
 public class WSAdaptor implements CommAdaptor {
 
-	// Logging
-	public static final Logger logger = LogManager.getLogger(Loggers.COMM);
-	public static final boolean debug = logger.isDebugEnabled();
+    // Logging
+    public static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    public static final boolean debug = logger.isDebugEnabled();
 
-	// Tracing
-	protected static boolean tracing;
+    // Tracing
+    protected static boolean tracing;
 
 
-	@Override
-	public void init() {
-		try {
-			WSJob.init();
-		} catch (Exception e) {
-			logger.error("Can not initialize WS Adaptor");
-		}
-	}
+    @Override
+    public void init() {
+        try {
+            WSJob.init();
+        } catch (Exception e) {
+            logger.error("Can not initialize WS Adaptor");
+        }
+    }
 
-	@Override
-	public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
-		integratedtoolkit.types.project.jaxb.ServiceType s_project = (integratedtoolkit.types.project.jaxb.ServiceType) project_properties;
-		integratedtoolkit.types.resources.jaxb.ServiceType s_resources = (integratedtoolkit.types.resources.jaxb.ServiceType) resources_properties;
+    @Override
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+        integratedtoolkit.types.project.jaxb.ServiceType s_project = (integratedtoolkit.types.project.jaxb.ServiceType) project_properties;
+        integratedtoolkit.types.resources.jaxb.ServiceType s_resources = (integratedtoolkit.types.resources.jaxb.ServiceType) resources_properties;
 
-		String wsdl = null;
-		if (s_project != null) {
-			wsdl = s_project.getWsdl();
-		} else if (s_resources != null) {
-			wsdl = s_resources.getWsdl();
-		} else {
-			// No wsdl (service unique key), throw exception
-			throw new Exception("Cannot configure service because no WSDL provided");
-		}
+        String wsdl = null;
+        if (s_project != null) {
+            wsdl = s_project.getWsdl();
+        } else if (s_resources != null) {
+            wsdl = s_resources.getWsdl();
+        } else {
+            // No wsdl (service unique key), throw exception
+            throw new Exception("Cannot configure service because no WSDL provided");
+        }
 
-		WSConfiguration config = new WSConfiguration(this.getClass().getName(), wsdl);
-		if (s_project != null) {
-			config.setLimitOfTasks(s_project.getLimitOfTasks());
-		}
+        WSConfiguration config = new WSConfiguration(this.getClass().getName(), wsdl);
+        if (s_project != null) {
+            config.setLimitOfTasks(s_project.getLimitOfTasks());
+        }
 
-		if (s_resources != null) {
-			config.setServiceName(s_resources.getName());
-			config.setNamespace(s_resources.getNamespace());
-			String servicePort = s_resources.getPort();
-			if (servicePort != null && !servicePort.isEmpty()) {
-				config.setPort(s_resources.getPort());
-			}
-			PriceType p = s_resources.getPrice();
-			if (p != null) {
-				config.setPricePerUnitTime(p.getPricePerUnit());
-				config.setPriceUnitTime(p.getTimeUnit());
-			}
-		}
+        if (s_resources != null) {
+            config.setServiceName(s_resources.getName());
+            config.setNamespace(s_resources.getNamespace());
+            String servicePort = s_resources.getPort();
+            if (servicePort != null && !servicePort.isEmpty()) {
+                config.setPort(s_resources.getPort());
+            }
+            PriceType p = s_resources.getPrice();
+            if (p != null) {
+                config.setPricePerUnitTime(p.getPricePerUnit());
+                config.setPriceUnitTime(p.getTimeUnit());
+            }
+        }
 
-		return config;
-	}
+        return config;
+    }
 
-	@Override
-	public COMPSsWorker initWorker(String workerName, Configuration config) {
-		return new ServiceInstance(workerName, (WSConfiguration) config);
-	}
+    @Override
+    public COMPSsWorker initWorker(String workerName, Configuration config) {
+        return new ServiceInstance(workerName, (WSConfiguration) config);
+    }
 
-	@Override
-	public void stop() {
-		WSJob.end();
-	}
+    @Override
+    public void stop() {
+        WSJob.end();
+    }
 
-	@Override
-	public LinkedList<DataOperation> getPending() {
-		return null;
-	}
+    @Override
+    public LinkedList<DataOperation> getPending() {
+        return null;
+    }
 
-	@Override
-	public void stopSubmittedJobs() {
+    @Override
+    public void stopSubmittedJobs() {
 
-	}
+    }
 
-	@Override
-	public void completeMasterURI(MultiURI u) {
-		// No need to do nothing
-	}
+    @Override
+    public void completeMasterURI(MultiURI u) {
+        // No need to do nothing
+    }
 
 }

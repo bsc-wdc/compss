@@ -12,33 +12,33 @@ import es.bsc.comm.Connection;
 
 public class CommandGeneratePackage extends Command implements Externalizable {
 
-	public CommandGeneratePackage() {
-		super();
-	}
+    public CommandGeneratePackage() {
+        super();
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        // Nothing to write
+    }
 
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        // Nothing to read
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+    @Override
+    public CommandType getType() {
+        return CommandType.GEN_TRACE_PACKAGE;
+    }
 
-	}
+    @Override
+    public void handle(Connection c) {
+        agent.generatePackage(c);
+    }
 
-	@Override
-	public CommandType getType() {
-		return CommandType.GEN_TRACE_PACKAGE;
-	}
-
-	@Override
-	public void handle(Connection c) {
-		agent.generatePackage(c);
-	}
-
-	@Override
-	public String toString() {
-		return "GenerateTraceCommand";
-	}
+    @Override
+    public String toString() {
+        return "GenerateTraceCommand";
+    }
 
 }

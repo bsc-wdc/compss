@@ -23,155 +23,156 @@ import integratedtoolkit.ws.master.configuration.WSConfiguration;
 
 public class ServiceInstance extends COMPSsWorker {
 
-	private WSConfiguration config;
+    private WSConfiguration config;
 
 
-	public ServiceInstance(String name, WSConfiguration config) {
-		super(name, config);
-		this.config = config;
-	}
+    public ServiceInstance(String name, WSConfiguration config) {
+        super(name, config);
+        this.config = config;
+    }
 
-	@Override
-	public void start() throws Exception {
-		// Do nothing
-	}
+    @Override
+    public void start() throws Exception {
+        // Do nothing
+    }
 
-	public String getWsdl() {
-		return this.config.getWsdl();
-	}
+    public String getWsdl() {
+        return this.config.getWsdl();
+    }
 
-	public void setServiceName(String serviceName) {
-		this.config.setServiceName(serviceName);
-	}
+    public void setServiceName(String serviceName) {
+        this.config.setServiceName(serviceName);
+    }
 
-	public String getServiceName() {
-		return this.config.getServiceName();
-	}
+    public String getServiceName() {
+        return this.config.getServiceName();
+    }
 
-	public void setNamespace(String namespace) {
-		this.config.setNamespace(namespace);
-	}
+    public void setNamespace(String namespace) {
+        this.config.setNamespace(namespace);
+    }
 
-	public String getNamespace() {
-		return this.config.getNamespace();
-	}
+    public String getNamespace() {
+        return this.config.getNamespace();
+    }
 
-	public void setPort(String port) {
-		this.config.setPort(port);
-	}
+    public void setPort(String port) {
+        this.config.setPort(port);
+    }
 
-	public String getPort() {
-		return this.config.getPort();
-	}
+    public String getPort() {
+        return this.config.getPort();
+    }
 
-	@Override
-	public String getName() {
-		return this.config.getWsdl();
-	}
+    @Override
+    public String getName() {
+        return this.config.getWsdl();
+    }
 
-	@Override
-	public void setInternalURI(MultiURI uri) {
+    @Override
+    public void setInternalURI(MultiURI uri) {
 
-	}
+    }
 
-	@Override
-	public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-		return new WSJob<COMPSsWorker>(taskId, taskParams, impl, res, listener);
-	}
+    @Override
+    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+        return new WSJob<COMPSsWorker>(taskId, taskParams, impl, res, listener);
+    }
 
-	@Override
-	public void stop(ShutdownListener sl) {
-		// No need to do anything
-		sl.notifyEnd();
-	}
+    @Override
+    public void stop(ShutdownListener sl) {
+        // No need to do anything
+        sl.notifyEnd();
+    }
 
-	@Override
-	public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-			EventListener listener) {
-		// Never sends Data
-	}
+    @Override
+    public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+        // Never sends Data
+    }
 
-	@Override
-	public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
-			EventListener listener) {
-		// Delegate on the master to obtain the data value
-		String path = target.getProtocol().getSchema() + target.getPath();
-		DataLocation tgtLoc = null;
-		try {
-			SimpleURI uri = new SimpleURI(path);
-			tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
-		} catch (Exception e) {
-			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
-		}
+    @Override
+    public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+        
+        // Delegate on the master to obtain the data value
+        String path = target.getProtocol().getSchema() + target.getPath();
+        DataLocation tgtLoc = null;
+        try {
+            SimpleURI uri = new SimpleURI(path);
+            tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+        }
 
-		COMPSsNode node = Comm.appHost.getNode();
-		node.obtainData(ld, source, tgtLoc, tgtData, reason, listener);
-	}
+        COMPSsNode node = Comm.appHost.getNode();
+        node.obtainData(ld, source, tgtLoc, tgtData, reason, listener);
+    }
 
-	@Override
-	public void updateTaskCount(int processorCoreCount) {
-		// No need to do anything
-	}
+    @Override
+    public void updateTaskCount(int processorCoreCount) {
+        // No need to do anything
+    }
 
-	@Override
-	public void announceDestruction() {
-		// No need to do anything
-	}
+    @Override
+    public void announceDestruction() {
+        // No need to do anything
+    }
 
-	@Override
-	public void announceCreation() {
-		// No need to do anything
-	}
+    @Override
+    public void announceCreation() {
+        // No need to do anything
+    }
 
-	@Override
-	public String getUser() {
-		return "";
-	}
+    @Override
+    public String getUser() {
+        return "";
+    }
 
-	@Override
-	public SimpleURI getCompletePath(DataType type, String name) {
-		// The path of the data is the same than in the master
-		String path = null;
-		switch (type) {
-			case FILE_T:
-				path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
-				break;
-			case OBJECT_T:
-				path = Protocol.OBJECT_URI.getSchema() + name;
-				break;
-			case PSCO_T:
-				path = Protocol.PERSISTENT_URI.getSchema() + name;
-				break;
-			default:
-				return null;
-		}
+    @Override
+    public SimpleURI getCompletePath(DataType type, String name) {
+        // The path of the data is the same than in the master
+        String path = null;
+        switch (type) {
+            case FILE_T:
+                path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
+                break;
+            case OBJECT_T:
+                path = Protocol.OBJECT_URI.getSchema() + name;
+                break;
+            case PSCO_T:
+                path = Protocol.PERSISTENT_URI.getSchema() + name;
+                break;
+            default:
+                return null;
+        }
 
-		// Switch path to URI
-		return new SimpleURI(path);
-	}
+        // Switch path to URI
+        return new SimpleURI(path);
+    }
 
-	@Override
-	public void deleteTemporary() {
-	}
+    @Override
+    public void deleteTemporary() {
+    }
 
-	@Override
-	public void generatePackage() {
-	}
+    @Override
+    public void generatePackage() {
+    }
 
-	@Override
-	public void generateWorkersDebugInfo() {
-	}
+    @Override
+    public void generateWorkersDebugInfo() {
+    }
 
-	@Override
-	public String getClasspath() {
-		// No classpath for services
-		return "";
-	}
+    @Override
+    public String getClasspath() {
+        // No classpath for services
+        return "";
+    }
 
-	@Override
-	public String getPythonpath() {
-		// No pythonpath for services
-		return "";
-	}
+    @Override
+    public String getPythonpath() {
+        // No pythonpath for services
+        return "";
+    }
 
 }

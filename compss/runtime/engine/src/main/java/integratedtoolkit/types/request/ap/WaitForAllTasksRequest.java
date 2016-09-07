@@ -10,35 +10,35 @@ import java.util.concurrent.Semaphore;
 
 public class WaitForAllTasksRequest extends APRequest {
 
-	private Semaphore sem;
-	private Long appId;
+    private Semaphore sem;
+    private Long appId;
 
 
-	public WaitForAllTasksRequest(Long appId, Semaphore sem) {
-		this.appId = appId;
-		this.sem = sem;
-	}
+    public WaitForAllTasksRequest(Long appId, Semaphore sem) {
+        this.appId = appId;
+        this.sem = sem;
+    }
 
-	public Long getAppId() {
-		return this.appId;
-	}
+    public Long getAppId() {
+        return this.appId;
+    }
 
-	public Semaphore getSemaphore() {
-		return this.sem;
-	}
+    public Semaphore getSemaphore() {
+        return this.sem;
+    }
 
-	public void setSemaphore(Semaphore sem) {
-		this.sem = sem;
-	}
+    public void setSemaphore(Semaphore sem) {
+        this.sem = sem;
+    }
 
-	@Override
-	public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
-		ta.waitForAllTasks(this);
-	}
+    @Override
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+        ta.waitForAllTasks(this);
+    }
 
-	@Override
-	public APRequestType getRequestType() {
-		return APRequestType.WAIT_FOR_ALL_TASKS;
-	}
+    @Override
+    public APRequestType getRequestType() {
+        return APRequestType.WAIT_FOR_ALL_TASKS;
+    }
 
 }

@@ -35,531 +35,528 @@ import storage.StorageItf;
 
 public class LogicalData {
 
-	// Logger
-	private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    // Logger
+    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
-	// Logical data name
-	private final String name;
-	// Value in memory, null if value in disk
-	private Object value;
-	// Id if PSCO, null otherwise
-	private String id;
+    // Logical data name
+    private final String name;
+    // Value in memory, null if value in disk
+    private Object value;
+    // Id if PSCO, null otherwise
+    private String id;
 
-	// List of existing copies
-	private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
-	// In progress
-	private final LinkedList<CopyInProgress> inProgress = new LinkedList<CopyInProgress>();
+    // List of existing copies
+    private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
+    // In progress
+    private final LinkedList<CopyInProgress> inProgress = new LinkedList<CopyInProgress>();
 
-	// Indicates if object is also in storage
-	private boolean onStorage;
-	// Indicates if LogicalData has been ordered to save before
-	private boolean isBeingSaved;
-	// Locks the host while LogicalData is being copied
-	private final Semaphore lockHostRemoval = new Semaphore(1);
-
-
-	/*
-	 * Constructors
-	 */
-	/**
-	 * Constructs a LogicalData for a given data version
-	 * 
-	 * @param name
-	 */
-	public LogicalData(String name) {
-		this.name = name;
-		this.value = null;
-		this.id = null;
-
-		this.onStorage = false;
-		this.isBeingSaved = false;
-	}
-
-	/*
-	 * Getters
-	 */
-	/**
-	 * Returns the data version name
-	 * 
-	 * @return
-	 */
-	public String getName() {
-		// No need to sync because it cannot be modified
-		return this.name;
-	}
-
-	/**
-	 * Returns the PSCO id. Null if its not a PSCO
-	 * 
-	 * @return
-	 */
-	public String getId() {
-		return this.id;
-	}
-
-	/**
-	 * Returns all the hosts that contain a data location
-	 * 
-	 * @return
-	 */
-	public synchronized HashSet<Resource> getAllHosts() {
-		HashSet<Resource> list = new HashSet<Resource>();
-		for (DataLocation loc : this.locations) {
-			list.addAll(loc.getHosts());
-		}
-		return list;
-	}
-
-	/**
-	 * Obtain the all the URIs
-	 * 
-	 * @return
-	 */
-	public synchronized LinkedList<MultiURI> getURIs() {
-		LinkedList<MultiURI> list = new LinkedList<MultiURI>();
-		for (DataLocation loc : this.locations) {
-			list.addAll(loc.getURIs());
-		}
-		return list;
-	}
-
-	public synchronized TreeSet<DataLocation> getLocations() {
-		return this.locations;
-	}
-
-	/**
-	 * Returns if the data value is stored in memory or not
-	 * 
-	 * @return
-	 */
-	public synchronized boolean isInMemory() {
-		return (this.value != null);
-	}
-
-	/**
-	 * Returns if the data is on storage or not
-	 * 
-	 * @return
-	 */
-	public boolean isOnStorage() {
-		// WARN: The data can be in memory and on storage (disk / persistent
-		// storage) at the same time
-		return this.onStorage;
-	}
-
-	/**
-	 * Returns the value stored in memory
-	 * 
-	 * @return
-	 */
-	public synchronized Object getValue() {
-		return this.value;
-	}
-
-	/*
-	 * Setters
-	 */
-	/**
-	 * Adds a new location
-	 * 
-	 * @param loc
-	 */
-	public synchronized void addLocation(DataLocation loc) {
-		this.isBeingSaved = false;
-		this.locations.add(loc);
-		for (Resource r : loc.getHosts()) {
-			switch (loc.getType()) {
-				case PRIVATE:
-					r.addLogicalData(this);
-					break;
-				case SHARED:
-					SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
-					break;
-				case PERSISTENT:
-					this.id = ((PersistentLocation) loc).getId();
-					break;
-			}
-		}
-	}
-
-	/**
-	 * Removes the object from master main memory and removes its location
-	 * 
-	 * @return
-	 */
-	public synchronized Object removeValue() {
-		DataLocation loc = null;
-		String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
-		try {
-			SimpleURI uri = new SimpleURI(targetPath);
-			loc = DataLocation.createLocation(Comm.appHost, uri);
-		} catch (Exception e) {
-			ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
-		}
-
-		Object val = this.value;
-		this.value = null;
-		// Removes only the memory location (no need to check private, shared,
-		// persistent)
-		this.locations.remove(loc);
-
-		return val;
-	}
-
-	/**
-	 * Sets the memory value
-	 * 
-	 * @param o
-	 */
-	public synchronized void setValue(Object o) {
-		this.value = o;
-	}
-	
-	/**
-	 * Sets the LD id
-	 * 
-	 * @param id
-	 */
-	public synchronized void setId(String id) {
-		this.id = id;
-	}
-	
-	/**
-	 * Writes memory value to file
-	 * 
-	 * @throws Exception
-	 */
-	public synchronized void writeToStorage() throws Exception {
-		if (this.id != null) {
-			// It is a persistent object that is already persisted
-			// Nothing to do
-			// If the PSCO is not persisted we treat it as a normal object
-		} else {
-			// The object must be written to file
-			String targetPath = Comm.appHost.getWorkingDirectory() + this.name;
-			Serializer.serialize(value, targetPath);
-			
-			String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
-			SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
-			DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
-
-			this.isBeingSaved = false;
-			this.locations.add(loc);
-			for (Resource r : loc.getHosts()) {
-				switch (loc.getType()) {
-					case PRIVATE:
-						r.addLogicalData(this);
-						break;
-					case SHARED:
-						SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
-						break;
-					case PERSISTENT:
-						// Nothing to do
-						break;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Loads the value of the LogicalData from a file
-	 * 
-	 * @throws Exception
-	 */
-	public synchronized void loadFromStorage() throws Exception {
-		if (value != null) {
-			// Value is already loaded in memory
-			return;
-		}
-
-		for (DataLocation loc : this.locations) {
-			switch (loc.getType()) {
-				case PRIVATE:
-				case SHARED:
-					// Get URI and deserialize object if possible
-					MultiURI u = loc.getURIInHost(Comm.appHost);
-					if (u == null) {
-						continue;
-					}
-					String path = u.getPath();
-					if (path.startsWith(File.separator)) {
-						this.value = Serializer.deserialize(path);
-
-						String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
-						SimpleURI uri = new SimpleURI(targetPath);
-						DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
-						addLocation(tgtLoc);
-					}
-					return;
-				case PERSISTENT:
-					PersistentLocation pLoc = (PersistentLocation) loc;
+    // Indicates if object is also in storage
+    private boolean onStorage;
+    // Indicates if LogicalData has been ordered to save before
+    private boolean isBeingSaved;
+    // Locks the host while LogicalData is being copied
+    private final Semaphore lockHostRemoval = new Semaphore(1);
 
 
-					if (Tracer.isActivated()){
-						Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-					}
-					try {
-						this.value = StorageItf.getByID(pLoc.getId());
-						this.id = pLoc.getId();
-					} catch (StorageException se) {
-						throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
-					} finally {
+    /*
+     * Constructors
+     */
+    /**
+     * Constructs a LogicalData for a given data version
+     * 
+     * @param name
+     */
+    public LogicalData(String name) {
+        this.name = name;
+        this.value = null;
+        this.id = null;
 
-						if (Tracer.isActivated()) {
-							Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-						}
-					}
+        this.onStorage = false;
+        this.isBeingSaved = false;
+    }
 
-					String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
-					SimpleURI uri = new SimpleURI(targetPath);
-					DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
-					addLocation(tgtLoc);
+    /*
+     * Getters
+     */
+    /**
+     * Returns the data version name
+     * 
+     * @return
+     */
+    public String getName() {
+        // No need to sync because it cannot be modified
+        return this.name;
+    }
 
-					return;
-			}
-		}
+    /**
+     * Returns the PSCO id. Null if its not a PSCO
+     * 
+     * @return
+     */
+    public String getId() {
+        return this.id;
+    }
 
-		// Any location has been able to load the value
-		throw new Exception("Object has not any valid location available in the master");
-	}
+    /**
+     * Returns all the hosts that contain a data location
+     * 
+     * @return
+     */
+    public synchronized HashSet<Resource> getAllHosts() {
+        HashSet<Resource> list = new HashSet<Resource>();
+        for (DataLocation loc : this.locations) {
+            list.addAll(loc.getHosts());
+        }
+        return list;
+    }
 
-	/**
-	 * Removes all the locations assigned to a given host and returns a valid
-	 * location if the file is unique
-	 * 
-	 * @param host
-	 * @param sharedMountPoints
-	 * @return a valid location if the file is unique
-	 */
-	public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
-		// If the file is being saved means that this function has already been
-		// executed
-		// for the same LogicalData. Thus, all the host locations are already
-		// removed
-		// and there is no unique file to save
-		if (isBeingSaved) {
-			return null;
-		}
+    /**
+     * Obtain the all the URIs
+     * 
+     * @return
+     */
+    public synchronized LinkedList<MultiURI> getURIs() {
+        LinkedList<MultiURI> list = new LinkedList<MultiURI>();
+        for (DataLocation loc : this.locations) {
+            list.addAll(loc.getURIs());
+        }
+        return list;
+    }
 
-		// Otherwise, we must remove all the host locations and store a unique
-		// location if needed. We only store the "best" location if any (by
-		// choosing
-		// any private location found or the first shared location)
-		lockHostRemoval_private();
-		DataLocation uniqueHostLocation = null;
-		Iterator<DataLocation> it = this.locations.iterator();
-		while (it.hasNext()) {
-			DataLocation loc = it.next();
-			switch (loc.getType()) {
-				case PRIVATE:
-					if (loc.getURIInHost(host) != null) {
-						this.isBeingSaved = true;
-						uniqueHostLocation = loc;
-						it.remove();
-					}
-					break;
-				case SHARED:
-					// When calling this function the host inside the
-					// SharedDiskManager has been removed
-					// If there are no remaining hosts it means it was the last
-					// host thus, the location
-					// is unique and must be saved
-					if (loc.getHosts().isEmpty()) {
-						String sharedDisk = loc.getSharedDisk();
-						if (sharedDisk != null) {
-							String mountPoint = sharedMountPoints.get(sharedDisk);
-							if (mountPoint != null) {
-								if (uniqueHostLocation == null) {
-									this.isBeingSaved = true;
+    public synchronized TreeSet<DataLocation> getLocations() {
+        return this.locations;
+    }
 
-									String targetPath = Protocol.FILE_URI.getSchema() + loc.getPath();
-									try {
-										SimpleURI uri = new SimpleURI(targetPath);
-										uniqueHostLocation = DataLocation.createLocation(host, uri);
-									} catch (Exception e) {
-										ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
-									}
-								}
-							}
-						}
-					}
-					break;
-				case PERSISTENT:
-					// Persistent location must never be saved
-					break;
-			}
-		}
+    /**
+     * Returns if the data value is stored in memory or not
+     * 
+     * @return
+     */
+    public synchronized boolean isInMemory() {
+        return (this.value != null);
+    }
 
-		releaseHostRemoval_private();
-		return uniqueHostLocation;
-	}
+    /**
+     * Returns if the data is on storage or not
+     * 
+     * @return
+     */
+    public boolean isOnStorage() {
+        // WARN: The data can be in memory and on storage (disk / persistent
+        // storage) at the same time
+        return this.onStorage;
+    }
 
-	/**
-	 * Returns the copies in progress
-	 * 
-	 * @return
-	 */
-	public synchronized Collection<Copy> getCopiesInProgress() {
-		LinkedList<Copy> copies = new LinkedList<Copy>();
-		for (CopyInProgress cp : this.inProgress) {
-			copies.add(cp.getCopy());
-		}
+    /**
+     * Returns the value stored in memory
+     * 
+     * @return
+     */
+    public synchronized Object getValue() {
+        return this.value;
+    }
 
-		return copies;
-	}
+    /*
+     * Setters
+     */
+    /**
+     * Adds a new location
+     * 
+     * @param loc
+     */
+    public synchronized void addLocation(DataLocation loc) {
+        this.isBeingSaved = false;
+        this.locations.add(loc);
+        for (Resource r : loc.getHosts()) {
+            switch (loc.getType()) {
+                case PRIVATE:
+                    r.addLogicalData(this);
+                    break;
+                case SHARED:
+                    SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                    break;
+                case PERSISTENT:
+                    this.id = ((PersistentLocation) loc).getId();
+                    break;
+            }
+        }
+    }
 
-	/**
-	 * Returns if the data is already available in a given targetHost
-	 * 
-	 * @param targetHost
-	 * @return
-	 */
-	public synchronized MultiURI alreadyAvailable(Resource targetHost) {
-		for (DataLocation loc : locations) {
-			MultiURI u = loc.getURIInHost(targetHost);
-			if (u != null) {
-				return u;
-			}
-		}
-		return null;
-	}
+    /**
+     * Removes the object from master main memory and removes its location
+     * 
+     * @return
+     */
+    public synchronized Object removeValue() {
+        DataLocation loc = null;
+        String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+        try {
+            SimpleURI uri = new SimpleURI(targetPath);
+            loc = DataLocation.createLocation(Comm.appHost, uri);
+        } catch (Exception e) {
+            ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+        }
 
-	/**
-	 * Returns if a copy of the LogicalData is being performed to a target host
-	 * 
-	 * @param target
-	 * @return the copy in progress or null if none
-	 */
-	public synchronized Copy alreadyCopying(DataLocation target) {
-		for (CopyInProgress cip : this.inProgress) {
-			if (cip.hasTarget(target)) {
-				return cip.getCopy();
-			}
-		}
+        Object val = this.value;
+        this.value = null;
+        // Removes only the memory location (no need to check private, shared,
+        // persistent)
+        this.locations.remove(loc);
 
-		return null;
-	}
+        return val;
+    }
 
-	/**
-	 * Begins a copy of the LogicalData to a target host
-	 * 
-	 * @param c
-	 * @param target
-	 */
-	public synchronized void startCopy(Copy c, DataLocation target) {
-		this.inProgress.add(new CopyInProgress(c, target));
-	}
+    /**
+     * Sets the memory value
+     * 
+     * @param o
+     */
+    public synchronized void setValue(Object o) {
+        this.value = o;
+    }
 
-	/**
-	 * Marks the end of a copy. Returns the location of the finished copy or
-	 * null if not found
-	 * 
-	 * @param c
-	 * @return
-	 */
-	public synchronized DataLocation finishedCopy(Copy c) {
-		DataLocation loc = null;
+    /**
+     * Sets the LD id
+     * 
+     * @param id
+     */
+    public synchronized void setId(String id) {
+        this.id = id;
+    }
 
-		Iterator<CopyInProgress> it = this.inProgress.iterator();
-		while (it.hasNext()) {
-			CopyInProgress cip = it.next();
-			if (cip.c == c) {
-				it.remove();
-				loc = cip.loc;
-				break;
-			}
-		}
+    /**
+     * Writes memory value to file
+     * 
+     * @throws Exception
+     */
+    public synchronized void writeToStorage() throws Exception {
+        if (this.id != null) {
+            // It is a persistent object that is already persisted
+            // Nothing to do
+            // If the PSCO is not persisted we treat it as a normal object
+        } else {
+            // The object must be written to file
+            String targetPath = Comm.appHost.getWorkingDirectory() + this.name;
+            Serializer.serialize(value, targetPath);
 
-		return loc;
-	}
+            String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
+            SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
+            DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
 
-	/**
-	 * Adds a listener to the inProgress copies
-	 * 
-	 * @param listener
-	 */
-	public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
-		for (CopyInProgress cip : this.inProgress) {
-			listener.addOperation();
-			cip.c.addEventListener(listener);
-		}
-	}
+            this.isBeingSaved = false;
+            this.locations.add(loc);
+            for (Resource r : loc.getHosts()) {
+                switch (loc.getType()) {
+                    case PRIVATE:
+                        r.addLogicalData(this);
+                        break;
+                    case SHARED:
+                        SharedDiskManager.addLogicalData(loc.getSharedDisk(), this);
+                        break;
+                    case PERSISTENT:
+                        // Nothing to do
+                        break;
+                }
+            }
+        }
+    }
 
-	/**
-	 * Sets the LogicalData as obsolete
-	 * 
-	 */
-	public synchronized void isObsolete() {
-		for (Resource res : this.getAllHosts()) {
-			res.addObsolete(this);
-		}
-	}
+    /**
+     * Loads the value of the LogicalData from a file
+     * 
+     * @throws Exception
+     */
+    public synchronized void loadFromStorage() throws Exception {
+        if (value != null) {
+            // Value is already loaded in memory
+            return;
+        }
 
-	public synchronized void lockHostRemoval() {
-		lockHostRemoval_private();
-	}
+        for (DataLocation loc : this.locations) {
+            switch (loc.getType()) {
+                case PRIVATE:
+                case SHARED:
+                    // Get URI and deserialize object if possible
+                    MultiURI u = loc.getURIInHost(Comm.appHost);
+                    if (u == null) {
+                        continue;
+                    }
+                    String path = u.getPath();
+                    if (path.startsWith(File.separator)) {
+                        this.value = Serializer.deserialize(path);
 
-	public synchronized void releaseHostRemoval() {
-		releaseHostRemoval_private();
-	}
+                        String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+                        SimpleURI uri = new SimpleURI(targetPath);
+                        DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+                        addLocation(tgtLoc);
+                    }
+                    return;
+                case PERSISTENT:
+                    PersistentLocation pLoc = (PersistentLocation) loc;
 
-	@Override
-	public synchronized String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Logical Data name: ").append(this.name).append("\n");
-		sb.append("\t Value: ").append(value).append("\n");
-		sb.append("\t Locations:\n");
-		synchronized (locations) {
-			for (DataLocation dl : locations) {
-				sb.append("\t\t * ").append(dl).append("\n");
-			}
-		}
-		return sb.toString();
-	}
+                    if (Tracer.isActivated()) {
+                        Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+                    }
+                    try {
+                        this.value = StorageItf.getByID(pLoc.getId());
+                        this.id = pLoc.getId();
+                    } catch (StorageException se) {
+                        throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
+                    } finally {
 
-	/*
-	 * PRIVATE HELPER METHODS
-	 */
-	private void lockHostRemoval_private() {
-		try {
-			lockHostRemoval.acquire();
-		} catch (InterruptedException e) {
-			logger.error("Exception", e);
-		}
-	}
+                        if (Tracer.isActivated()) {
+                            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+                        }
+                    }
 
-	private void releaseHostRemoval_private() {
-		lockHostRemoval.release();
-	}
+                    String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
+                    SimpleURI uri = new SimpleURI(targetPath);
+                    DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+                    addLocation(tgtLoc);
+
+                    return;
+            }
+        }
+
+        // Any location has been able to load the value
+        throw new Exception("Object has not any valid location available in the master");
+    }
+
+    /**
+     * Removes all the locations assigned to a given host and returns a valid location if the file is unique
+     * 
+     * @param host
+     * @param sharedMountPoints
+     * @return a valid location if the file is unique
+     */
+    public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
+        // If the file is being saved means that this function has already been
+        // executed
+        // for the same LogicalData. Thus, all the host locations are already
+        // removed
+        // and there is no unique file to save
+        if (isBeingSaved) {
+            return null;
+        }
+
+        // Otherwise, we must remove all the host locations and store a unique
+        // location if needed. We only store the "best" location if any (by
+        // choosing
+        // any private location found or the first shared location)
+        lockHostRemoval_private();
+        DataLocation uniqueHostLocation = null;
+        Iterator<DataLocation> it = this.locations.iterator();
+        while (it.hasNext()) {
+            DataLocation loc = it.next();
+            switch (loc.getType()) {
+                case PRIVATE:
+                    if (loc.getURIInHost(host) != null) {
+                        this.isBeingSaved = true;
+                        uniqueHostLocation = loc;
+                        it.remove();
+                    }
+                    break;
+                case SHARED:
+                    // When calling this function the host inside the
+                    // SharedDiskManager has been removed
+                    // If there are no remaining hosts it means it was the last
+                    // host thus, the location
+                    // is unique and must be saved
+                    if (loc.getHosts().isEmpty()) {
+                        String sharedDisk = loc.getSharedDisk();
+                        if (sharedDisk != null) {
+                            String mountPoint = sharedMountPoints.get(sharedDisk);
+                            if (mountPoint != null) {
+                                if (uniqueHostLocation == null) {
+                                    this.isBeingSaved = true;
+
+                                    String targetPath = Protocol.FILE_URI.getSchema() + loc.getPath();
+                                    try {
+                                        SimpleURI uri = new SimpleURI(targetPath);
+                                        uniqueHostLocation = DataLocation.createLocation(host, uri);
+                                    } catch (Exception e) {
+                                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case PERSISTENT:
+                    // Persistent location must never be saved
+                    break;
+            }
+        }
+
+        releaseHostRemoval_private();
+        return uniqueHostLocation;
+    }
+
+    /**
+     * Returns the copies in progress
+     * 
+     * @return
+     */
+    public synchronized Collection<Copy> getCopiesInProgress() {
+        LinkedList<Copy> copies = new LinkedList<Copy>();
+        for (CopyInProgress cp : this.inProgress) {
+            copies.add(cp.getCopy());
+        }
+
+        return copies;
+    }
+
+    /**
+     * Returns if the data is already available in a given targetHost
+     * 
+     * @param targetHost
+     * @return
+     */
+    public synchronized MultiURI alreadyAvailable(Resource targetHost) {
+        for (DataLocation loc : locations) {
+            MultiURI u = loc.getURIInHost(targetHost);
+            if (u != null) {
+                return u;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns if a copy of the LogicalData is being performed to a target host
+     * 
+     * @param target
+     * @return the copy in progress or null if none
+     */
+    public synchronized Copy alreadyCopying(DataLocation target) {
+        for (CopyInProgress cip : this.inProgress) {
+            if (cip.hasTarget(target)) {
+                return cip.getCopy();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Begins a copy of the LogicalData to a target host
+     * 
+     * @param c
+     * @param target
+     */
+    public synchronized void startCopy(Copy c, DataLocation target) {
+        this.inProgress.add(new CopyInProgress(c, target));
+    }
+
+    /**
+     * Marks the end of a copy. Returns the location of the finished copy or null if not found
+     * 
+     * @param c
+     * @return
+     */
+    public synchronized DataLocation finishedCopy(Copy c) {
+        DataLocation loc = null;
+
+        Iterator<CopyInProgress> it = this.inProgress.iterator();
+        while (it.hasNext()) {
+            CopyInProgress cip = it.next();
+            if (cip.c == c) {
+                it.remove();
+                loc = cip.loc;
+                break;
+            }
+        }
+
+        return loc;
+    }
+
+    /**
+     * Adds a listener to the inProgress copies
+     * 
+     * @param listener
+     */
+    public synchronized void notifyToInProgressCopiesEnd(SafeCopyListener listener) {
+        for (CopyInProgress cip : this.inProgress) {
+            listener.addOperation();
+            cip.c.addEventListener(listener);
+        }
+    }
+
+    /**
+     * Sets the LogicalData as obsolete
+     * 
+     */
+    public synchronized void isObsolete() {
+        for (Resource res : this.getAllHosts()) {
+            res.addObsolete(this);
+        }
+    }
+
+    public synchronized void lockHostRemoval() {
+        lockHostRemoval_private();
+    }
+
+    public synchronized void releaseHostRemoval() {
+        releaseHostRemoval_private();
+    }
+
+    @Override
+    public synchronized String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Logical Data name: ").append(this.name).append("\n");
+        sb.append("\t Value: ").append(value).append("\n");
+        sb.append("\t Locations:\n");
+        synchronized (locations) {
+            for (DataLocation dl : locations) {
+                sb.append("\t\t * ").append(dl).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    /*
+     * PRIVATE HELPER METHODS
+     */
+    private void lockHostRemoval_private() {
+        try {
+            lockHostRemoval.acquire();
+        } catch (InterruptedException e) {
+            logger.error("Exception", e);
+        }
+    }
+
+    private void releaseHostRemoval_private() {
+        lockHostRemoval.release();
+    }
 
 
-	/*
-	 * Copy in progress class to extend external copy
-	 */
-	private static class CopyInProgress {
+    /*
+     * Copy in progress class to extend external copy
+     */
+    private static class CopyInProgress {
 
-		private final Copy c;
-		private final DataLocation loc;
+        private final Copy c;
+        private final DataLocation loc;
 
 
-		public CopyInProgress(Copy c, DataLocation loc) {
-			this.c = c;
-			this.loc = loc;
-		}
+        public CopyInProgress(Copy c, DataLocation loc) {
+            this.c = c;
+            this.loc = loc;
+        }
 
-		public Copy getCopy() {
-			return this.c;
-		}
+        public Copy getCopy() {
+            return this.c;
+        }
 
-		private boolean hasTarget(DataLocation target) {
-			return loc.isTarget(target);
-		}
+        private boolean hasTarget(DataLocation target) {
+            return loc.isTarget(target);
+        }
 
-		@Override
-		public String toString() {
-			return c.getName() + " to " + loc.toString();
-		}
+        @Override
+        public String toString() {
+            return c.getName() + " to " + loc.toString();
+        }
 
-	}
+    }
 
 }

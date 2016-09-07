@@ -12,185 +12,185 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Task implements Comparable<Task> {
 
-	// Task ID management
-	private static final int FIRST_TASK_ID = 1;
-	private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
+    // Task ID management
+    private static final int FIRST_TASK_ID = 1;
+    private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
 
-	// Task states
-	public enum TaskState {
-		TO_ANALYSE, 
-		TO_EXECUTE, 
-		FINISHED, 
-		FAILED
-	}
+    // Task states
+    public enum TaskState {
+        TO_ANALYSE, 
+        TO_EXECUTE, 
+        FINISHED, 
+        FAILED
+    }
 
 
-	// Task fields
-	private final long appId;
-	private final int taskId;
-	private TaskState status;
-	private final TaskParams taskParams;
+    // Task fields
+    private final long appId;
+    private final int taskId;
+    private TaskState status;
+    private final TaskParams taskParams;
 
-	// Data Dependencies
-	private final LinkedList<Task> predecessors;
-	private final LinkedList<Task> successors;
+    // Data Dependencies
+    private final LinkedList<Task> predecessors;
+    private final LinkedList<Task> successors;
 
-	// Scheduling info
-	private Task enforcingTask;
-	private ExecutionAction<?, ?> execution;
+    // Scheduling info
+    private Task enforcingTask;
+    private ExecutionAction<?, ?> execution;
 
 
-	public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
-		this.appId = appId;
-		this.taskId = nextTaskId.getAndIncrement();
-		this.status = TaskState.TO_ANALYSE;
-		this.taskParams = new TaskParams(methodClass, methodName, priority, hasTarget, parameters);
-		this.predecessors = new LinkedList<Task>();
-		this.successors = new LinkedList<Task>();
-	}
+    public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
+        this.appId = appId;
+        this.taskId = nextTaskId.getAndIncrement();
+        this.status = TaskState.TO_ANALYSE;
+        this.taskParams = new TaskParams(methodClass, methodName, priority, hasTarget, parameters);
+        this.predecessors = new LinkedList<Task>();
+        this.successors = new LinkedList<Task>();
+    }
 
-	public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-			Parameter[] parameters) {
-		
-		this.appId = appId;
-		this.taskId = nextTaskId.getAndIncrement();
-		this.status = TaskState.TO_ANALYSE;
-		this.taskParams = new TaskParams(namespace, service, port, operation, priority, hasTarget, parameters);
-		this.predecessors = new LinkedList<Task>();
-		this.successors = new LinkedList<Task>();
-	}
+    public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+            Parameter[] parameters) {
 
-	public static int getCurrentTaskCount() {
-		return nextTaskId.get();
-	}
+        this.appId = appId;
+        this.taskId = nextTaskId.getAndIncrement();
+        this.status = TaskState.TO_ANALYSE;
+        this.taskParams = new TaskParams(namespace, service, port, operation, priority, hasTarget, parameters);
+        this.predecessors = new LinkedList<Task>();
+        this.successors = new LinkedList<Task>();
+    }
 
-	public void addDataDependency(Task producer) {
-		producer.successors.add(this);
-		this.predecessors.add(producer);
-	}
+    public static int getCurrentTaskCount() {
+        return nextTaskId.get();
+    }
 
-	public void releaseDataDependents() {
-		for (Task t : this.successors) {
-			t.predecessors.remove(this);
-		}
-		this.successors.clear();
-	}
+    public void addDataDependency(Task producer) {
+        producer.successors.add(this);
+        this.predecessors.add(producer);
+    }
 
-	public LinkedList<Task> getSuccessors() {
-		return successors;
-	}
+    public void releaseDataDependents() {
+        for (Task t : this.successors) {
+            t.predecessors.remove(this);
+        }
+        this.successors.clear();
+    }
 
-	public LinkedList<Task> getPredecessors() {
-		return predecessors;
-	}
+    public LinkedList<Task> getSuccessors() {
+        return successors;
+    }
 
-	public long getAppId() {
-		return appId;
-	}
+    public LinkedList<Task> getPredecessors() {
+        return predecessors;
+    }
 
-	public int getId() {
-		return taskId;
-	}
+    public long getAppId() {
+        return appId;
+    }
 
-	public TaskState getStatus() {
-		return status;
-	}
+    public int getId() {
+        return taskId;
+    }
 
-	public void setStatus(TaskState status) {
-		this.status = status;
-	}
+    public TaskState getStatus() {
+        return status;
+    }
 
-	public void setEnforcingTask(Task task) {
-		this.enforcingTask = task;
-	}
+    public void setStatus(TaskState status) {
+        this.status = status;
+    }
 
-	public TaskParams getTaskParams() {
-		return taskParams;
-	}
+    public void setEnforcingTask(Task task) {
+        this.enforcingTask = task;
+    }
 
-	public boolean isSchedulingForced() {
-		return this.enforcingTask != null;
-	}
+    public TaskParams getTaskParams() {
+        return taskParams;
+    }
 
-	public Task getEnforcingTask() {
-		return this.enforcingTask;
-	}
+    public boolean isSchedulingForced() {
+        return this.enforcingTask != null;
+    }
 
-	public String getDotDescription() {
-		int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
-		ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
+    public Task getEnforcingTask() {
+        return this.enforcingTask;
+    }
 
-		String shape;
-		if (taskParams.getType() == Type.METHOD) {
-			shape = "circle";
-		} else { // Service
-			shape = "diamond";
-		}
-		// TODO: Future Shapes "triangle" "square" "pentagon"
+    public String getDotDescription() {
+        int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
+        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
-		return getId() + "[shape=" + shape + ", " + "style=filled fillcolor=\"" + color.getFillColor() + "\" fontcolor=\""
-				+ color.getFontColor() + "\"];";
-	}
+        String shape;
+        if (taskParams.getType() == Type.METHOD) {
+            shape = "circle";
+        } else { // Service
+            shape = "diamond";
+        }
+        // TODO: Future Shapes "triangle" "square" "pentagon"
 
-	public String getLegendDescription() {
-		StringBuilder information = new StringBuilder();
-		information.append("<tr>").append("\n");
-		information.append("<td align=\"right\">").append(this.getMethodName()).append("</td>").append("\n");
-		information.append("<td bgcolor=\"").append(this.getColor()).append("\">&nbsp;</td>").append("\n");
-		information.append("</tr>").append("\n");
+        return getId() + "[shape=" + shape + ", " + "style=filled fillcolor=\"" + color.getFillColor() + "\" fontcolor=\""
+                + color.getFontColor() + "\"];";
+    }
 
-		return information.toString();
-	}
+    public String getLegendDescription() {
+        StringBuilder information = new StringBuilder();
+        information.append("<tr>").append("\n");
+        information.append("<td align=\"right\">").append(this.getMethodName()).append("</td>").append("\n");
+        information.append("<td bgcolor=\"").append(this.getColor()).append("\">&nbsp;</td>").append("\n");
+        information.append("</tr>").append("\n");
 
-	public String getMethodName() {
-		String methodName = taskParams.getName();
-		return methodName;
-	}
+        return information.toString();
+    }
 
-	public String getColor() {
-		int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
-		ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
-		return color.getFillColor();
-	}
+    public String getMethodName() {
+        String methodName = taskParams.getName();
+        return methodName;
+    }
 
-	public void setExecution(ExecutionAction<?, ?> execution) {
-		this.execution = execution;
-	}
+    public String getColor() {
+        int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
+        ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
+        return color.getFillColor();
+    }
 
-	public ExecutionAction<?, ?> getExecution() {
-		return execution;
-	}
+    public void setExecution(ExecutionAction<?, ?> execution) {
+        this.execution = execution;
+    }
 
-	// Comparable interface implementation
-	@Override
-	public int compareTo(Task task) {
-		if (task == null) {
-			throw new NullPointerException();
-		}
+    public ExecutionAction<?, ?> getExecution() {
+        return execution;
+    }
 
-		return this.getId() - task.getId();
-	}
+    // Comparable interface implementation
+    @Override
+    public int compareTo(Task task) {
+        if (task == null) {
+            throw new NullPointerException();
+        }
 
-	@Override
-	public boolean equals(Object o) {
-		return (o instanceof Task) && (this.taskId == ((Task) o).taskId);
-	}
+        return this.getId() - task.getId();
+    }
 
-	@Override
-	public int hashCode() {
-		return super.hashCode();
-	}
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof Task) && (this.taskId == ((Task) o).taskId);
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder buffer = new StringBuilder();
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 
-		buffer.append("[[Task id: ").append(getId()).append("]");
-		buffer.append(", [Status: ").append(getStatus()).append("]");
-		buffer.append(", ").append(getTaskParams().toString()).append("]");
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
 
-		return buffer.toString();
-	}
+        buffer.append("[[Task id: ").append(getId()).append("]");
+        buffer.append(", [Status: ").append(getStatus()).append("]");
+        buffer.append(", ").append(getTaskParams().toString()).append("]");
+
+        return buffer.toString();
+    }
 
 }

@@ -12,49 +12,49 @@ import java.io.ObjectOutput;
 
 public class NIOURI implements Externalizable {
 
-	private NIONode host;
-	private String path;
+    private NIONode host;
+    private String path;
 
 
-	public NIOURI() {
-	}
+    public NIOURI() {
+    }
 
-	public NIOURI(NIONode host, String path) {
-		this.host = host;
-		this.path = path;
-	}
+    public NIOURI(NIONode host, String path) {
+        this.host = host;
+        this.path = path;
+    }
 
-	public String getInternalURI() {
-		return toString();
-	}
+    public String getInternalURI() {
+        return toString();
+    }
 
-	public NIONode getHost() {
-		return host;
-	}
+    public NIONode getHost() {
+        return host;
+    }
 
-	public String getPath() {
-		return path;
-	}
+    public String getPath() {
+        return path;
+    }
 
-	public String getScheme() {
-		return Protocol.ANY_URI.getSchema();
-	}
+    public String getScheme() {
+        return Protocol.ANY_URI.getSchema();
+    }
 
-	@Override
-	public String toString() {
-		return Protocol.ANY_URI.getSchema() + host + File.separator + path;
-	}
+    @Override
+    public String toString() {
+        return Protocol.ANY_URI.getSchema() + host + File.separator + path;
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(host);
-		out.writeUTF(path);
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeObject(host);
+        out.writeUTF(path);
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		host = (NIONode) in.readObject();
-		path = in.readUTF();
-	}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        host = (NIONode) in.readObject();
+        path = in.readUTF();
+    }
 
 }

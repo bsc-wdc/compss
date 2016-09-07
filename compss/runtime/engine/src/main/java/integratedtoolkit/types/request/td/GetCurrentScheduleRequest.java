@@ -16,68 +16,68 @@ import java.util.concurrent.Semaphore;
  */
 public class GetCurrentScheduleRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
 
-	/**
-	 * Current Schedule representation
-	 */
-	private WorkloadStatus response;
-	/**
-	 * Semaphore to synchronize until the representation is constructed
-	 */
-	private Semaphore sem;
+    /**
+     * Current Schedule representation
+     */
+    private WorkloadStatus response;
+    /**
+     * Semaphore to synchronize until the representation is constructed
+     */
+    private Semaphore sem;
 
 
-	/**
-	 * Constructs a GetCurrentScheduleRequest
-	 *
-	 * @param sem
-	 *            Semaphore to synchronize until the representation is constructed
-	 *
-	 */
-	public GetCurrentScheduleRequest(Semaphore sem) {
-		this.sem = sem;
-	}
+    /**
+     * Constructs a GetCurrentScheduleRequest
+     *
+     * @param sem
+     *            Semaphore to synchronize until the representation is constructed
+     *
+     */
+    public GetCurrentScheduleRequest(Semaphore sem) {
+        this.sem = sem;
+    }
 
-	/**
-	 * Returns the current schedule representation
-	 *
-	 * @result current schedule representation
-	 *
-	 */
-	public WorkloadStatus getResponse() {
-		return response;
-	}
+    /**
+     * Returns the current schedule representation
+     *
+     * @result current schedule representation
+     *
+     */
+    public WorkloadStatus getResponse() {
+        return response;
+    }
 
-	/**
-	 * Returns the semaphore to synchronize until the representation is constructed
-	 *
-	 * @result Semaphore to synchronize until the representation is constructed
-	 *
-	 */
-	public Semaphore getSemaphore() {
-		return sem;
-	}
+    /**
+     * Returns the semaphore to synchronize until the representation is constructed
+     *
+     * @result Semaphore to synchronize until the representation is constructed
+     *
+     */
+    public Semaphore getSemaphore() {
+        return sem;
+    }
 
-	/**
-	 * Changes the semaphore to synchronize until the representation is constructed
-	 *
-	 * @param sem
-	 *            New semaphore to synchronize until the representation is constructed
-	 *
-	 */
-	public void setSemaphore(Semaphore sem) {
-		this.sem = sem;
-	}
+    /**
+     * Changes the semaphore to synchronize until the representation is constructed
+     *
+     * @param sem
+     *            New semaphore to synchronize until the representation is constructed
+     *
+     */
+    public void setSemaphore(Semaphore sem) {
+        this.sem = sem;
+    }
 
-	@Override
-	public void process(TaskScheduler<P, T> ts) throws ShutdownException {
-		response = new WorkloadStatus(CoreManager.getCoreCount());
-		ts.getWorkloadState(response);
-		sem.release();
-	}
+    @Override
+    public void process(TaskScheduler<P, T> ts) throws ShutdownException {
+        response = new WorkloadStatus(CoreManager.getCoreCount());
+        ts.getWorkloadState(response);
+        sem.release();
+    }
 
-	@Override
-	public TDRequestType getType() {
-		return TDRequestType.GET_CURRENT_SCHEDULE;
-	}
+    @Override
+    public TDRequestType getType() {
+        return TDRequestType.GET_CURRENT_SCHEDULE;
+    }
 
 }

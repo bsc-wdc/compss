@@ -8,16 +8,16 @@ import java.io.File;
 
 public class Delete extends DataOperation {
 
-	protected File file;
+    protected File file;
 
 
-	public Delete(File file, EventListener listener) {
-		super(null, listener);
-		this.file = file;
-	}
+    public Delete(File file, EventListener listener) {
+        super(null, listener);
+        this.file = file;
+    }
 
-	public File getFile() {
-		return file;
-	}
+    public File getFile() {
+        return file;
+    }
 
 }

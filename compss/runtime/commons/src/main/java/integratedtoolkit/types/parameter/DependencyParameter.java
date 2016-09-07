@@ -8,46 +8,46 @@ import integratedtoolkit.types.data.Transferable;
 
 public class DependencyParameter extends Parameter implements Transferable {
 
-	/**
-	 * Serializable objects Version UID are 1L in all Runtime
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     * Serializable objects Version UID are 1L in all Runtime
+     */
+    private static final long serialVersionUID = 1L;
 
-	private DataAccessId daId;
-	private Object dataSource;
-	private String dataTarget; // Full path with PROTOCOL
+    private DataAccessId daId;
+    private Object dataSource;
+    private String dataTarget; // Full path with PROTOCOL
 
 
-	public DependencyParameter(DataType type, DataDirection direction) {
-		super(type, direction);
-	}
+    public DependencyParameter(DataType type, DataDirection direction) {
+        super(type, direction);
+    }
 
-	public DataAccessId getDataAccessId() {
-		return daId;
-	}
+    public DataAccessId getDataAccessId() {
+        return daId;
+    }
 
-	public void setDataAccessId(DataAccessId daId) {
-		this.daId = daId;
-	}
+    public void setDataAccessId(DataAccessId daId) {
+        this.daId = daId;
+    }
 
-	@Override
-	public Object getDataSource() {
-		return dataSource;
-	}
+    @Override
+    public Object getDataSource() {
+        return dataSource;
+    }
 
-	@Override
-	public void setDataSource(Object dataSource) {
-		this.dataSource = dataSource;
-	}
+    @Override
+    public void setDataSource(Object dataSource) {
+        this.dataSource = dataSource;
+    }
 
-	@Override
-	public String getDataTarget() {
-		return this.dataTarget;
-	}
+    @Override
+    public String getDataTarget() {
+        return this.dataTarget;
+    }
 
-	@Override
-	public void setDataTarget(String target) {
-		this.dataTarget = target;
-	}
-	
+    @Override
+    public void setDataTarget(String target) {
+        this.dataTarget = target;
+    }
+
 }

@@ -15,18 +15,18 @@ public class StorageCopy extends DataOperation {
     private DataLocation tgtLoc;
     private Transferable reason;
 
-    
-    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, 
-    		Transferable reason, EventListener listener) {
-    	
+
+    public StorageCopy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
+            EventListener listener) {
+
         super(srcData, listener);
         this.srcData = srcData;
         this.srcLoc = prefSrc;
         this.tgtData = tgtData;
         this.tgtLoc = prefTgt;
         this.reason = reason;
-        if (debug){
-        	logger.debug("Created replica "+ this.getName() + " (id: " + this.getId() + ")");
+        if (debug) {
+            logger.debug("Created replica " + this.getName() + " (id: " + this.getId() + ")");
         }
     }
 
@@ -45,12 +45,12 @@ public class StorageCopy extends DataOperation {
     public LogicalData getTargetData() {
         return tgtData;
     }
-    
+
     public void setFinalTarget(String targetAbsolutePath) {
-    	if (debug){
-    		logger.debug(" Setting StorageCopy final target to : "+ targetAbsolutePath );
-    	}
-    	reason.setDataTarget(targetAbsolutePath);
+        if (debug) {
+            logger.debug(" Setting StorageCopy final target to : " + targetAbsolutePath);
+        }
+        reason.setDataTarget(targetAbsolutePath);
     }
 
     public boolean isRegistered() {

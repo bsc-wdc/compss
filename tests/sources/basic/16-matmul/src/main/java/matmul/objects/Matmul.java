@@ -10,124 +10,124 @@ import java.util.StringTokenizer;
 
 public class Matmul {
 
-	private static final int MSIZE = 8;
-	private static final int BSIZE = 2;
+    private static final int MSIZE = 8;
+    private static final int BSIZE = 2;
 
-	private Block[][] A;
-	private Block[][] B;
-	private Block[][] C;
+    private Block[][] A;
+    private Block[][] B;
+    private Block[][] C;
 
 
-	public static void main(String args[]) {
-		// Get parameters
-		if (args.length != 3) {
-			System.out.println("[ERROR] Usage: matmul <Ain> <Bin> <Cout>");
-			System.exit(-1);
-		}
-		String fA = args[0];
-		String fB = args[1];
-		String fC = args[2];
-		System.out.println("[LOG] MSIZE parameter value = " + MSIZE);
-		System.out.println("[LOG] BSIZE parameter value = " + BSIZE);
+    public static void main(String args[]) {
+        // Get parameters
+        if (args.length != 3) {
+            System.out.println("[ERROR] Usage: matmul <Ain> <Bin> <Cout>");
+            System.exit(-1);
+        }
+        String fA = args[0];
+        String fB = args[1];
+        String fC = args[2];
+        System.out.println("[LOG] MSIZE parameter value = " + MSIZE);
+        System.out.println("[LOG] BSIZE parameter value = " + BSIZE);
 
-		// Run matmul app
-		Matmul matmul = new Matmul();
-		matmul.Run(fA, fB);
+        // Run matmul app
+        Matmul matmul = new Matmul();
+        matmul.Run(fA, fB);
 
-		// Check result
-		System.out.println("[LOG] Storing C matrix obtained");
-		matmul.storeMatrix(fC);
-		System.out.println("[LOG] Main program finished. Result needs to be checked (result script)");
-	}
+        // Check result
+        System.out.println("[LOG] Storing C matrix obtained");
+        matmul.storeMatrix(fC);
+        System.out.println("[LOG] Main program finished. Result needs to be checked (result script)");
+    }
 
-	private void Run(String fileA, String fileB) {
-		// Load Matrices
-		System.out.println("[LOG] Allocating A/B/C matrix space");
-		A = new Block[MSIZE][MSIZE];
-		B = new Block[MSIZE][MSIZE];
-		C = new Block[MSIZE][MSIZE];
-		System.out.println("[LOG] Loading A Matrix from file");
-		loadMatrix(A, fileA);
-		System.out.println("[LOG] Loading B Matrix from file");
-		loadMatrix(B, fileB);
+    private void Run(String fileA, String fileB) {
+        // Load Matrices
+        System.out.println("[LOG] Allocating A/B/C matrix space");
+        A = new Block[MSIZE][MSIZE];
+        B = new Block[MSIZE][MSIZE];
+        C = new Block[MSIZE][MSIZE];
+        System.out.println("[LOG] Loading A Matrix from file");
+        loadMatrix(A, fileA);
+        System.out.println("[LOG] Loading B Matrix from file");
+        loadMatrix(B, fileB);
 
-		// Compute result
-		System.out.println("[LOG] Computing Result");
-		for (int i = 0; i < MSIZE; i++) {
-			for (int j = 0; j < MSIZE; j++) {
-				C[i][j] = new Block(BSIZE);
-				for (int k = 0; k < MSIZE; k++) {
-					C[i][j].multiplyAccumulative(A[i][k], B[k][j]);
-				}
-			}
-		}
-	}
+        // Compute result
+        System.out.println("[LOG] Computing Result");
+        for (int i = 0; i < MSIZE; i++) {
+            for (int j = 0; j < MSIZE; j++) {
+                C[i][j] = new Block(BSIZE);
+                for (int k = 0; k < MSIZE; k++) {
+                    C[i][j].multiplyAccumulative(A[i][k], B[k][j]);
+                }
+            }
+        }
+    }
 
-	private void loadMatrix(Block[][] matrix, String fileName) {
-		try {
-			FileReader filereader = new FileReader(fileName);
-			BufferedReader br = new BufferedReader(filereader);
-			StringTokenizer tokens;
-			String nextLine;
-			for (int i = 0; i < MSIZE; ++i) {
-				for (int j = 0; j < MSIZE; ++j) {
-					nextLine = br.readLine();
-					tokens = new StringTokenizer(nextLine);
-					double[][] aux = new double[BSIZE][BSIZE];
-					for (int iblock = 0; iblock < BSIZE && tokens.hasMoreTokens(); ++iblock) {
-						for (int jblock = 0; jblock < BSIZE && tokens.hasMoreTokens(); ++jblock) {
-							String value = tokens.nextToken();
-							aux[iblock][jblock] = Double.parseDouble(value);
-						}
-					}
-					matrix[i][j] = new Block(BSIZE);
-					matrix[i][j].setData(aux);
-				}
-				nextLine = br.readLine();
-			}
-			br.close();
-			filereader.close();
-		} catch (FileNotFoundException fnfe) {
-			fnfe.printStackTrace();
-			System.exit(-1);
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			System.exit(-1);
-		}
-	}
+    private void loadMatrix(Block[][] matrix, String fileName) {
+        try {
+            FileReader filereader = new FileReader(fileName);
+            BufferedReader br = new BufferedReader(filereader);
+            StringTokenizer tokens;
+            String nextLine;
+            for (int i = 0; i < MSIZE; ++i) {
+                for (int j = 0; j < MSIZE; ++j) {
+                    nextLine = br.readLine();
+                    tokens = new StringTokenizer(nextLine);
+                    double[][] aux = new double[BSIZE][BSIZE];
+                    for (int iblock = 0; iblock < BSIZE && tokens.hasMoreTokens(); ++iblock) {
+                        for (int jblock = 0; jblock < BSIZE && tokens.hasMoreTokens(); ++jblock) {
+                            String value = tokens.nextToken();
+                            aux[iblock][jblock] = Double.parseDouble(value);
+                        }
+                    }
+                    matrix[i][j] = new Block(BSIZE);
+                    matrix[i][j].setData(aux);
+                }
+                nextLine = br.readLine();
+            }
+            br.close();
+            filereader.close();
+        } catch (FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+            System.exit(-1);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
-	private void storeMatrix(String fileName) {
-		try {
-			FileOutputStream fos = new FileOutputStream(fileName);
-			for (int i = 0; i < MSIZE; ++i) {
-				for (int j = 0; j < MSIZE; ++j) {
-					double[][] aux = C[i][j].getData();
-					for (int iblock = 0; iblock < BSIZE; ++iblock) {
-						for (int jblock = 0; jblock < BSIZE; ++jblock) {
-							String value = String.valueOf(aux[iblock][jblock]) + " ";
-							fos.write(value.getBytes());
-						}
-					}
-					fos.write("\n".getBytes());
-				}
-				fos.write("\n".getBytes());
-			}
-			fos.close();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-			System.exit(-1);
-		}
-	}
+    private void storeMatrix(String fileName) {
+        try {
+            FileOutputStream fos = new FileOutputStream(fileName);
+            for (int i = 0; i < MSIZE; ++i) {
+                for (int j = 0; j < MSIZE; ++j) {
+                    double[][] aux = C[i][j].getData();
+                    for (int iblock = 0; iblock < BSIZE; ++iblock) {
+                        for (int jblock = 0; jblock < BSIZE; ++jblock) {
+                            String value = String.valueOf(aux[iblock][jblock]) + " ";
+                            fos.write(value.getBytes());
+                        }
+                    }
+                    fos.write("\n".getBytes());
+                }
+                fos.write("\n".getBytes());
+            }
+            fos.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            System.exit(-1);
+        }
+    }
 
-	@SuppressWarnings("unused")
-	private void printMatrix(Block[][] matrix, String name) {
-		System.out.println("MATRIX " + name);
-		for (int i = 0; i < MSIZE; i++) {
-			for (int j = 0; j < MSIZE; j++) {
-				matrix[i][j].printBlock();
-			}
-			System.out.println("");
-		}
-	}
+    @SuppressWarnings("unused")
+    private void printMatrix(Block[][] matrix, String name) {
+        System.out.println("MATRIX " + name);
+        for (int i = 0; i < MSIZE; i++) {
+            for (int j = 0; j < MSIZE; j++) {
+                matrix[i][j].printBlock();
+            }
+            System.out.println("");
+        }
+    }
 
 }

@@ -55,8 +55,8 @@ import org.apache.logging.log4j.Logger;
 
 public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
-    public static final int MAX_SEND = 1000;
-    public static final int MAX_RECEIVE = 1000;
+    public static final int MAX_SEND = 1_000;
+    public static final int MAX_RECEIVE = 1_000;
 
     public static final int MAX_SEND_WORKER = 5;
     public static final int MAX_RECEIVE_WORKER = 5;
@@ -65,17 +65,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     /*
-     * The master port can be: 1. Given by the IT_MASTER_PORT property 2. A
-     * BASE_MASTER_PORT plus a random number
+     * The master port can be: 
+     * 1. Given by the IT_MASTER_PORT property 
+     * 2. A BASE_MASTER_PORT plus a random number
      */
     public static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
-    private static final int BASE_MASTER_PORT = 43000;
-    private static final int MAX_RANDOM_VALUE = 1000;
+    private static final int BASE_MASTER_PORT = 43_000;
+    private static final int MAX_RANDOM_VALUE = 1_000;
     private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);
     private static final int MASTER_PORT_CALCULATED = BASE_MASTER_PORT + RANDOM_VALUE;
     private static final String MASTER_PORT_PROPERTY = System.getProperty(ITConstants.IT_MASTER_PORT);
-    public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty()) ?
-            Integer.valueOf(MASTER_PORT_PROPERTY) : MASTER_PORT_CALCULATED;
+    public static final int MASTER_PORT = (MASTER_PORT_PROPERTY != null && !MASTER_PORT_PROPERTY.isEmpty())
+            ? Integer.valueOf(MASTER_PORT_PROPERTY) : MASTER_PORT_CALCULATED;
 
     // Final jobs log directory
     private static final String JOBS_DIR = System.getProperty(ITConstants.IT_APP_LOG_DIR) + "jobs" + File.separator;
@@ -125,7 +126,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             ErrorManager.error(errMsg, ce);
         }
 
-		/* Init tracing values */
+        /* Init tracing values */
         tracing = System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
         tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
 
@@ -298,29 +299,29 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         for (int i = 0; i < tr.getParamTypes().size(); ++i) {
             DataType d = tr.getParamTypes().get(i);
             if (d.equals(DataType.PSCO_T)) {
-            	String pscoId = (String) tr.getParamValue(i);
-            	DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
-            	if (dp.getType().equals(DataType.PSCO_T)) {
-            		// The parameter was already a PSCO, we only update the information just in case
-            		dp.setDataTarget(pscoId);
-            	} else {
-            		// The parameter was a OBJECT, we change its type and value and register its new location
-	                String renaming = dp.getDataTarget();
-	                
-	                // Update COMM information
-	                String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
-	                SimpleURI targetURI = new SimpleURI(targetPath);
-					try {
-						DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
-						Comm.registerLocation(renaming, loc);
-					} catch (Exception e) {
-						ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
-					}
-					
-	                // Update Task information
-	                dp.setType(DataType.PSCO_T);
-	                dp.setDataTarget(pscoId);
-            	}
+                String pscoId = (String) tr.getParamValue(i);
+                DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+                if (dp.getType().equals(DataType.PSCO_T)) {
+                    // The parameter was already a PSCO, we only update the information just in case
+                    dp.setDataTarget(pscoId);
+                } else {
+                    // The parameter was a OBJECT, we change its type and value and register its new location
+                    String renaming = dp.getDataTarget();
+
+                    // Update COMM information
+                    String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
+                    SimpleURI targetURI = new SimpleURI(targetPath);
+                    try {
+                        DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
+                        Comm.registerLocation(renaming, loc);
+                    } catch (Exception e) {
+                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
+                    }
+
+                    // Update Task information
+                    dp.setType(DataType.PSCO_T);
+                    dp.setDataTarget(pscoId);
+                }
             }
         }
 
@@ -368,8 +369,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             MasterDataRequest mdr = (MasterDataRequest) dr;
             Copy c = (Copy) mdr.getOperation();
             c.getSourceData().finishedCopy(c);
-            c.end(DataOperation.OpEndState.OP_FAILED); // Notify the copy has
-            // failed
+            c.end(DataOperation.OpEndState.OP_FAILED); // Notify the copy has failed
         }
     }
 
@@ -437,8 +437,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         }
     }
 
-    // Return the data that a worker should be obtaining
-    // and has not yet confirmed
+    // Return the data that a worker should be obtaining and has not yet confirmed
     @Override
     public LinkedList<DataOperation> getPending() {
         return new LinkedList<DataOperation>();
@@ -447,11 +446,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public boolean checkData(Data d) {
         boolean data = false;
         /*
-		 * for (Entry<String, LogicalData> e :
-		 * Comm.DC.nameToLogicalData.entrySet()) { if
-		 * (d.getSourceName().equals(e.getValue().getName())) { data = true;
-		 * break; } }
-		 */
+         * for (Entry<String, LogicalData> e : Comm.DC.nameToLogicalData.entrySet()) { if
+         * (d.getSourceName().equals(e.getValue().getName())) { data = true; break; } }
+         */
         return data;
     }
 
@@ -464,8 +461,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (o == null) {
             for (MultiURI loc : ld.getURIs()) {
                 if (loc.getHost().getName().equals(Comm.appHost.getName())) {
-                    // The object is null because it has been serialized by the
-                    // master, raise exception
+                    // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
                 }
             }

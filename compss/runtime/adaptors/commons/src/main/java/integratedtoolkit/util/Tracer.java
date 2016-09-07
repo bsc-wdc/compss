@@ -24,101 +24,103 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Tracer {
 
-	private static final String taskDesc = "Task";
-	private static final String apiDesc = "Runtime";
-	private static final String taskIdDesc = "Task IDs";
-	private static final String dataTransfersDesc = "Data Transfers";
-	private static final String tasksTransfersDesc = "Task Transfers Request";
-	private static final String storageDesc = "Storage API";
-	private static final String insideTaskDesc = "Events inside tasks";
+    private static final String taskDesc = "Task";
+    private static final String apiDesc = "Runtime";
+    private static final String taskIdDesc = "Task IDs";
+    private static final String dataTransfersDesc = "Data Transfers";
+    private static final String tasksTransfersDesc = "Task Transfers Request";
+    private static final String storageDesc = "Storage API";
+    private static final String insideTaskDesc = "Events inside tasks";
 
-	protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator
-			+ "scripts" + File.separator + "system" + File.separator + "trace.sh";
-	protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
-	protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
+    protected static final String TRACE_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
+            + File.separator + "trace.sh";
+    protected static final String traceOutRelativePath = File.separator + "trace" + File.separator + "tracer.out";
+    protected static final String traceErrRelativePath = File.separator + "trace" + File.separator + "tracer.err";
 
-	protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
-	protected static final boolean debug = logger.isDebugEnabled();
-	protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
+    protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
+    protected static final boolean debug = logger.isDebugEnabled();
+    protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-	private static final int TASKS_FUNC_TYPE 	= 8_000_000;
-	private static final int RUNTIME_EVENTS 	= 8_000_001;
-	private static final int TASKS_ID_TYPE 		= 8_000_002;
-	private static final int TASK_TRANSFERS 	= 8_000_003;
-	private static final int DATA_TRANSFERS 	= 8_000_004;
-	private static final int STORAGE_TYPE 		= 8_000_005;
-	private static final int INSIDE_TASKS_TYPE 	= 8_000_010;
-	private static final int SYNC_TYPE 			= 8_000_666;
+    private static final int TASKS_FUNC_TYPE    = 8_000_000;
+    private static final int RUNTIME_EVENTS     = 8_000_001;
+    private static final int TASKS_ID_TYPE      = 8_000_002;
+    private static final int TASK_TRANSFERS     = 8_000_003;
+    private static final int DATA_TRANSFERS     = 8_000_004;
+    private static final int STORAGE_TYPE       = 8_000_005;
+    private static final int INSIDE_TASKS_TYPE  = 8_000_010;
+    private static final int SYNC_TYPE          = 8_000_666;
 
-	public static final int EVENT_END = 0;
+    public static final int EVENT_END = 0;
 
-	public static final int BASIC_MODE = 1;
+    public static final int BASIC_MODE = 1;
 
-	public static final String LD_PRELOAD = "LD_PRELOAD";
+    public static final String LD_PRELOAD = "LD_PRELOAD";
 
-	protected static int tracing_level = 0;
+    protected static int tracing_level = 0;
 
 
-	public enum Event {
-		STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"),
-		START(2, RUNTIME_EVENTS, "Start"),
-		STOP(3, RUNTIME_EVENTS, "Stop"),
-		TASK(4, RUNTIME_EVENTS, "Execute Task"),
-		NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"),
-		WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"),
-		OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"),
-		GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"),
-		GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"),
-		TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
-		DELETE(12, RUNTIME_EVENTS, "Delete File"),
-		// Access Processor Events
-		DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
-		ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
-		UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"),
-		WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"),
-		END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"),
-		ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"),
-		REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"),
-		TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"),
-		TRANSFER_RAW_FILE(25, RUNTIME_EVENTS,"Access Processor: Transfer raw file"),
-		TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"),
-		NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS, "Access Processor: New version same value"),
-		IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"),
-		SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"),
-		GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"),
-		BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS, "Access Processor: Block and get result files"),
-		UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS, "Access Processor: Unblock result files"),
-		SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"),
-		GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
-		TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
-		DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
-		// Storage Events
-		STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"),
-		STORAGE_NEWREPLICA(38, STORAGE_TYPE, "newReplica"), 
-		STORAGE_NEWVERSION(39, STORAGE_TYPE, "newVersion"), 
-		STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"), 
-		STORAGE_EXECUTETASK(41, STORAGE_TYPE, "executeTask"), 
-		STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"), 
-		STORAGE_CONSOLIDATE(43, STORAGE_TYPE, "consolidateVersion"),
-		RECEIVED_NEW_TASK(44, RUNTIME_EVENTS, "Received new task"),
-		// Task Dispatcher Events
-		ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), 
-		CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), 
-		EXECUTE_TASKS(47, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"), 
-		GET_CURRENT_SCHEDULE(48, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"), 
-		PRINT_CURRENT_GRAPH(49, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"), 
-		MONITORING_DATA(50, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"), 
-		TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
-		UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
-		WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
-		// Task Events
-		PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),
-		WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"),
-		PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"),
-		LOGGING(104, INSIDE_TASKS_TYPE, "Logging"),
-		TASK_EXECUTION(105, INSIDE_TASKS_TYPE, "User Method Execution"),
-		WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"),
-		PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction");
+    public enum Event {
+        STATIC_IT(1, RUNTIME_EVENTS, "Loading Runtime"), 
+        START(2, RUNTIME_EVENTS, "Start"), 
+        STOP(3, RUNTIME_EVENTS, "Stop"), 
+        TASK(4, RUNTIME_EVENTS, "Execute Task"), 
+        NO_MORE_TASKS(5, RUNTIME_EVENTS, "Waiting for tasks end"), 
+        WAIT_FOR_ALL_TASKS(6, RUNTIME_EVENTS, "Barrier"), 
+        OPEN_FILE(7, RUNTIME_EVENTS, "Waiting for open file"), 
+        GET_FILE(8, RUNTIME_EVENTS, "Waiting for get file"), 
+        GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"), 
+        TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
+        DELETE(12, RUNTIME_EVENTS, "Delete File"),
+        
+        // Access Processor Events
+        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"), 
+        ANALYSE_TASK(18, RUNTIME_EVENTS,
+                "Access Processor: Analyse task"), 
+        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"), 
+        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"), 
+        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"), 
+        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"), 
+        REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"),
+        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"), 
+        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"), 
+        TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"),
+        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS,"Access Processor: New version same value"), 
+        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"), 
+        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"), 
+        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"), 
+        BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS,"Access Processor: Block and get result files"),
+        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS,"Access Processor: Unblock result files"), 
+        SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"),
+        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"), 
+        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"), 
+        DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
+        // Storage Events
+        STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"), 
+        STORAGE_NEWREPLICA(38, STORAGE_TYPE, "newReplica"), 
+        STORAGE_NEWVERSION(39,STORAGE_TYPE, "newVersion"), 
+        STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"), 
+        STORAGE_EXECUTETASK(41, STORAGE_TYPE,"executeTask"), 
+        STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"), 
+        STORAGE_CONSOLIDATE(43, STORAGE_TYPE, "consolidateVersion"), 
+        RECEIVED_NEW_TASK(44, RUNTIME_EVENTS, "Received new task"),
+        // Task Dispatcher Events
+        ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), 
+        CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), 
+        EXECUTE_TASKS(47, RUNTIME_EVENTS, "Task Dispatcher: Execute tasks"), 
+        GET_CURRENT_SCHEDULE(48, RUNTIME_EVENTS, "Task Dispatcher: Get current schedule"), 
+        PRINT_CURRENT_GRAPH(49, RUNTIME_EVENTS, "Task Dispatcher: Print current graph"),
+        MONITORING_DATA(50, RUNTIME_EVENTS, "Task Dispatcher: Monitoring data"), 
+        TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
+        UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
+        WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
+        // Task Events
+        PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"), 
+        WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"), 
+        PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"), 
+        LOGGING(104, INSIDE_TASKS_TYPE, "Logging"), 
+        TASK_EXECUTION(105, INSIDE_TASKS_TYPE, "User Method Execution"), 
+        WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"), 
+        PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction");
 
         private final int id;
         private final int type;
@@ -364,8 +366,8 @@ public abstract class Tracer {
             String methodName = signature.substring(0, signature.indexOf('('));
             descriptionValues[i] = methodName;
             if (debug) {
-                logger.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i]
-                        + ", Desc: " + descriptionValues[i]);
+                logger.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i] + ", Desc: "
+                        + descriptionValues[i]);
             }
             i++;
         }

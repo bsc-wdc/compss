@@ -10,45 +10,45 @@ import es.bsc.comm.Connection;
 
 public class CommandCheckWorkerACK extends Command implements Externalizable {
 
-	private String uuid;
-	private String nodeName;
+    private String uuid;
+    private String nodeName;
 
 
-	public CommandCheckWorkerACK() {
-		super();
-	}
+    public CommandCheckWorkerACK() {
+        super();
+    }
 
-	public CommandCheckWorkerACK(String uuid, String nodeName) {
-		super();
-		this.uuid = uuid;
-		this.nodeName = nodeName;
-	}
+    public CommandCheckWorkerACK(String uuid, String nodeName) {
+        super();
+        this.uuid = uuid;
+        this.nodeName = nodeName;
+    }
 
-	@Override
-	public CommandType getType() {
-		return CommandType.CHECK_WORKER_ACK;
-	}
+    @Override
+    public CommandType getType() {
+        return CommandType.CHECK_WORKER_ACK;
+    }
 
-	@Override
-	public void handle(Connection c) {
-		agent.setWorkerIsReady(nodeName);
-	}
+    @Override
+    public void handle(Connection c) {
+        agent.setWorkerIsReady(nodeName);
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		uuid = (String) in.readUTF();
-		nodeName = (String) in.readUTF();
-	}
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        uuid = (String) in.readUTF();
+        nodeName = (String) in.readUTF();
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeUTF(uuid);
-		out.writeUTF(nodeName);
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeUTF(uuid);
+        out.writeUTF(nodeName);
+    }
 
-	@Override
-	public String toString() {
-		return "CommandCheckWorkerACK for deployment ID " + uuid;
-	}
-	
+    @Override
+    public String toString() {
+        return "CommandCheckWorkerACK for deployment ID " + uuid;
+    }
+
 }

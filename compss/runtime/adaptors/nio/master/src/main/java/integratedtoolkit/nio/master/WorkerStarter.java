@@ -25,14 +25,14 @@ public class WorkerStarter {
 
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
-    private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null &&
-            !System.getProperty(ITConstants.IT_WORKER_CP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_CP) : "";
+    private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null
+            && !System.getProperty(ITConstants.IT_WORKER_CP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_CP) : "";
 
-    private static final String pythonpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_PP) != null &&
-            !System.getProperty(ITConstants.IT_WORKER_PP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_PP) : "";
+    private static final String pythonpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_PP) != null
+            && !System.getProperty(ITConstants.IT_WORKER_PP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_PP) : "";
 
-    private static final String libPathFromEnvironment = (System.getenv(ITConstants.LD_LIBRARY_PATH) != null &&
-            !System.getenv(ITConstants.LD_LIBRARY_PATH).equals("")) ? System.getenv(ITConstants.LD_LIBRARY_PATH) : "";
+    private static final String libPathFromEnvironment = (System.getenv(ITConstants.LD_LIBRARY_PATH) != null
+            && !System.getenv(ITConstants.LD_LIBRARY_PATH).equals("")) ? System.getenv(ITConstants.LD_LIBRARY_PATH) : "";
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
@@ -216,16 +216,17 @@ public class WorkerStarter {
             logger.warn("No executionType passed");
         }
 
-		/* ********************************************************
-		 * BUILD COMMAND
-		 * *******************************************************
-		 */
+        /*
+         * ******************************************************** 
+         * BUILD COMMAND
+         * *******************************************************
+         */
         String[] cmd = new String[NUM_PARAMS_CMD + jvmFlags.length];
 
-		/* SCRIPT ************************************************ */
+        /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
 
-		/* Values ONLY for persistent_worker.sh ****************** */
+        /* Values ONLY for persistent_worker.sh ****************** */
         cmd[1] = workerLibPath.isEmpty() ? "null" : workerLibPath;
         cmd[2] = appDir.isEmpty() ? "null" : appDir;
         cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
@@ -234,7 +235,7 @@ public class WorkerStarter {
             cmd[5 + i] = jvmFlags[i];
         }
 
-		/* Values for NIOWorker ********************************** */
+        /* Values for NIOWorker ********************************** */
         int nextPosition = 5 + jvmFlags.length;
         cmd[nextPosition++] = workerDebug;
 

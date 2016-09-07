@@ -71,6 +71,7 @@ public class TaskAnalyser {
 
     private static int synchronizationId;
 
+
     public TaskAnalyser() {
         currentTaskCount = new HashMap<Integer, Integer>();
         writers = new TreeMap<Integer, Task>();
@@ -94,7 +95,8 @@ public class TaskAnalyser {
 
     public void processTask(Task currentTask) {
         TaskParams params = currentTask.getTaskParams();
-        logger.info("New " + (params.getType() == Type.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = " + currentTask.getId());
+        logger.info("New " + (params.getType() == Type.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
+                + currentTask.getId());
         if (drawGraph) {
             this.GM.addTaskToGraph(currentTask);
             if (synchronizationId > 0) {
@@ -125,7 +127,7 @@ public class TaskAnalyser {
         totalTaskCount++;
         appIdToTotalTaskCount.put(appId, totalTaskCount);
 
-        //Check scheduling enforcing data
+        // Check scheduling enforcing data
         int constrainingParam = -1;
         if (params.getType() == Type.SERVICE && params.hasTargetObject()) {
             if (params.hasReturnValue()) {
@@ -168,18 +170,18 @@ public class TaskAnalyser {
                     ObjectParameter op = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
-                    	op.setType(DataType.PSCO_T);
+                        op.setType(DataType.PSCO_T);
                     }
                     daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode(), methodId);
                     break;
                 default:
-                    /* Basic types (including String).
-                     * The only possible access mode is R (already checked by the API)
+                    /*
+                     * Basic types (including String). The only possible access mode is R (already checked by the API)
                      */
                     continue;
             }
 
-            //Add dependencies to the graph and register output values for future dependencies
+            // Add dependencies to the graph and register output values for future dependencies
             DependencyParameter dp = (DependencyParameter) p;
             dp.setDataAccessId(daId);
             switch (am) {
@@ -237,7 +239,8 @@ public class TaskAnalyser {
                         }
                     }
                     if (b) {
-                        this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()), String.valueOf(dp.getDataAccessId().getDataId()));
+                        this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()),
+                                String.valueOf(dp.getDataAccessId().getDataId()));
                     }
                 } catch (Exception e) {
                     logger.error("Error drawing dependency in graph", e);
@@ -254,7 +257,8 @@ public class TaskAnalyser {
         int dataId = dp.getDataAccessId().getDataId();
         Long appId = currentTask.getAppId();
         writers.put(dataId, currentTask); // update global last writer
-        if (dp.getType() == DataType.FILE_T) { // Objects are not checked, their version will be only get if the main access them
+        if (dp.getType() == DataType.FILE_T) { // Objects are not checked, their version will be only get if the main
+                                               // access them
             TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
             if (idsWritten == null) {
                 idsWritten = new TreeSet<Integer>();
@@ -311,7 +315,7 @@ public class TaskAnalyser {
         }
 
         // Add the task to the set of finished tasks
-        //finishedTasks.add(task);
+        // finishedTasks.add(task);
         // Check if the finished task was the last writer of a file, but only if task generation has finished
         if (appIdToSemaphore.get(appId) != null) {
             checkResultFileTransfer(task);
@@ -320,7 +324,8 @@ public class TaskAnalyser {
         task.releaseDataDependents();
     }
 
-    // Private method to check if a finished task is the last writer of its file parameters and eventually order the necessary transfers
+    // Private method to check if a finished task is the last writer of its file parameters and eventually order the
+    // necessary transfers
     private void checkResultFileTransfer(Task t) {
         LinkedList<DataInstanceId> fileIds = new LinkedList<DataInstanceId>();
         for (Parameter p : t.getTaskParams().getParameters()) {
@@ -351,7 +356,7 @@ public class TaskAnalyser {
         // Order the transfer of the result files
         final int numFT = fileIds.size();
         if (numFT > 0) {
-            //List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
+            // List<ResultFile> resFiles = new ArrayList<ResultFile>(numFT);
             for (DataInstanceId fileId : fileIds) {
                 try {
                     int id = fileId.getDataId();
@@ -396,16 +401,16 @@ public class TaskAnalyser {
             list.add(sem);
         }
     }
-    
+
     public void waitForAllTasks(WaitForAllTasksRequest request) {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
-        
+
         // We can draw the graph on a barrier while we wait for tasks
         if (drawGraph) {
             this.GM.commitGraph();
         }
-        
+
         // Release the sem only if all app tasks have finished
         if (count == null || count == 0) {
             request.getSemaphore().release();

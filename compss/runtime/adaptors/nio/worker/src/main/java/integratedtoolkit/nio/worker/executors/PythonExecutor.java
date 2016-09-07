@@ -15,71 +15,71 @@ import java.util.Map;
 
 public class PythonExecutor extends ExternalExecutor {
 
-	public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
+    public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 
-	private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator + "pycompss" + File.separator
-			+ "worker" + File.separator + "worker.py";
+    private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator + "pycompss" + File.separator
+            + "worker" + File.separator + "worker.py";
 
-	public static final boolean pythonPersistentWorker = false;
+    public static final boolean pythonPersistentWorker = false;
 
-	private static final String EXTRAE_RELATIVE_PATH = File.separator + "Dependencies" + File.separator + "extrae";
-	private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";
-	private static final String LIB_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "lib";
+    private static final String EXTRAE_RELATIVE_PATH = File.separator + "Dependencies" + File.separator + "extrae";
+    private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";
+    private static final String LIB_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "lib";
 
 
-	public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
-		super(nw, pool, queue, writePipe, resultReader);
-	}
+    public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
+        super(nw, pool, queue, writePipe, resultReader);
+    }
 
-	@Override
-	public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
-		ArrayList<String> lArgs = new ArrayList<String>();
+    @Override
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
+        ArrayList<String> lArgs = new ArrayList<String>();
 
-		if (pythonPersistentWorker) {
-			// The execution command in python its empty (the handler adds the pre-command and the application args)
-		} else {
-			lArgs.add("python");
-			lArgs.add("-u");
-			lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
-		}
+        if (pythonPersistentWorker) {
+            // The execution command in python its empty (the handler adds the pre-command and the application args)
+        } else {
+            lArgs.add("python");
+            lArgs.add("-u");
+            lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
+        }
 
-		return lArgs;
-	}
+        return lArgs;
+    }
 
-	public static Map<String, String> getEnvironment(NIOWorker nw) {
-		// PyCOMPSs HOME
-		Map<String, String> env = new HashMap<String, String>();
-		String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
-		env.put("PYCOMPSS_HOME", pycompssHome);
+    public static Map<String, String> getEnvironment(NIOWorker nw) {
+        // PyCOMPSs HOME
+        Map<String, String> env = new HashMap<String, String>();
+        String pycompssHome = nw.getInstallDir() + PYCOMPSS_RELATIVE_PATH;
+        env.put("PYCOMPSS_HOME", pycompssHome);
 
-		// PYTHONPATH
-		String pythonPath = System.getenv("PYTHONPATH");
-		if (pythonPath == null) {
-			pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir();
-		} else {
-			pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir() + pythonPath;
-		}
+        // PYTHONPATH
+        String pythonPath = System.getenv("PYTHONPATH");
+        if (pythonPath == null) {
+            pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir();
+        } else {
+            pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir() + pythonPath;
+        }
 
-		// Add pyextrae to PYTHONPATH if tracing
+        // Add pyextrae to PYTHONPATH if tracing
 
-		if (NIOTracer.isActivated()) {
-			String libexec_extrae_path = nw.getInstallDir() + LIBEXEC_EXTRAE_RELATIVE_PATH;
-			String lib_extrae_path = nw.getInstallDir() + LIB_EXTRAE_RELATIVE_PATH;
-			pythonPath += ":" + libexec_extrae_path + ":" + lib_extrae_path;
-		}
+        if (NIOTracer.isActivated()) {
+            String libexec_extrae_path = nw.getInstallDir() + LIBEXEC_EXTRAE_RELATIVE_PATH;
+            String lib_extrae_path = nw.getInstallDir() + LIB_EXTRAE_RELATIVE_PATH;
+            pythonPath += ":" + libexec_extrae_path + ":" + lib_extrae_path;
+        }
 
-		env.put("PYTHONPATH", pythonPath);
+        env.put("PYTHONPATH", pythonPath);
 
-		// LD_LIBRARY_PATH
-		String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
-		if (ldLibraryPath == null) {
-			ldLibraryPath = nw.getLibPath();
-		} else {
-			ldLibraryPath = ldLibraryPath.concat(":" + nw.getLibPath());
-		}
-		env.put("LD_LIBRARY_PATH", ldLibraryPath);
+        // LD_LIBRARY_PATH
+        String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
+        if (ldLibraryPath == null) {
+            ldLibraryPath = nw.getLibPath();
+        } else {
+            ldLibraryPath = ldLibraryPath.concat(":" + nw.getLibPath());
+        }
+        env.put("LD_LIBRARY_PATH", ldLibraryPath);
 
-		return env;
-	}
+        return env;
+    }
 
 }

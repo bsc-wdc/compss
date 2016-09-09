@@ -108,6 +108,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (manager.getDeploymentId() != null && System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null) {
                     System.setProperty(ITConstants.IT_DEPLOYMENT_ID, manager.getDeploymentId());
                 }
+                if (manager.getMasterName() != null && System.getProperty(ITConstants.IT_MASTER_NAME) == null) {
+                    System.setProperty(ITConstants.IT_MASTER_NAME, manager.getMasterName());
+                }
                 if (manager.getMasterPort() != null && System.getProperty(ITConstants.IT_MASTER_PORT) == null) {
                     System.setProperty(ITConstants.IT_MASTER_PORT, manager.getMasterPort());
                 }

@@ -33,6 +33,7 @@ public class ITConstants {
 
     // Dynamic system properties
     public static final String IT_APP_NAME = "it.appName";
+    public static final String IT_MASTER_NAME = "it.masterName";
     public static final String IT_MASTER_PORT = "it.masterPort";
     public static final String IT_DEPLOYMENT_ID = "it.uuid";
     public static final String IT_BASE_LOG_DIR = "it.baseLogDir";

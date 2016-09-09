@@ -460,7 +460,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Check if the object has been serialized meanwhile
         if (o == null) {
             for (MultiURI loc : ld.getURIs()) {
-                if (loc.getHost().getName().equals(Comm.appHost.getName())) {
+                if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
+                        && loc.getHost().equals(Comm.appHost)) {
                     // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
                 }
@@ -479,7 +480,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Get a Master location
         for (MultiURI loc : ld.getURIs()) {
-            if (loc.getHost().getName().equals(Comm.appHost.getName())) {
+            if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
+                    && loc.getHost().equals(Comm.appHost)) {
                 return loc.getPath();
             }
         }

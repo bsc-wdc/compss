@@ -218,8 +218,8 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
 
         // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
-        for (DataLocation d : ld.getLocations()) {
-            if (d.getType().equals(DataLocation.Type.PERSISTENT)) {
+        for (DataLocation loc : ld.getLocations()) {
+            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
                 orderStorageCopy(new StorageCopy(ld, source, target, tgtData, reason, listener));
                 return;
             }
@@ -256,6 +256,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     private void newReplica(StorageCopy sc) {
         String targetHostname = this.getName();
         LogicalData srcLD = sc.getSourceData();
+        LogicalData targetLD = sc.getTargetData();
 
         logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
@@ -292,8 +293,13 @@ public class NIOWorkerNode extends COMPSsWorker {
             logger.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
 
-        // Notify successful end
+        // Update information
         sc.setFinalTarget(pscoId);
+        if (targetLD != null) {
+            targetLD.setId(pscoId);
+        }
+        
+        // Notify successful end
         sc.end(OpEndState.OP_OK);
     }
 

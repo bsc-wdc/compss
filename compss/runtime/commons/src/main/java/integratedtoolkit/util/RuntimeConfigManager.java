@@ -39,6 +39,14 @@ public class RuntimeConfigManager {
     public void setDeploymentId(String uuid) {
         config.setProperty(ITConstants.IT_DEPLOYMENT_ID, uuid);
     }
+    
+    public String getMasterName() {
+        return config.getString(ITConstants.IT_MASTER_NAME);
+    }
+    
+    public void setMasterName(String name) {
+        config.setProperty(ITConstants.IT_MASTER_NAME, name);
+    }
 
     public String getMasterPort() {
         return config.getString(ITConstants.IT_MASTER_PORT);

@@ -30,7 +30,8 @@ DEFAULT_PyOBJECT_SERIALIZE=false
 
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
-DEFAULT_MASTER_PORT=43000
+DEFAULT_MASTER_PORT="[43000,44000]"
+DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
 DEFAULT_SCHEDULER=integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
@@ -101,6 +102,8 @@ show_opts() {
                                             Default: Disabled
     --uuid=<int>                            Preset an application UUID
                                             Default: Automatic random generation
+    --master_name=<string>                  Hostname of the node to run the COMPSs master
+                                            Default: ${DEFAULT_MASTER_NAME}
     --master_port=<int>                     Port to run the COMPSs master communications.
                                             Only for NIO adaptor
                                             Default: ${DEFAULT_MASTER_PORT}
@@ -362,8 +365,12 @@ get_args() {
             # Preset an Application UUID
             uuid=$(echo $OPTARG | sed -e 's/uuid=//g')
             ;;
+          master_name=*)
+            # Preset a Master hostname
+            master_name=$(echo $OPTARG | sed -e 's/master_name=//g')
+            ;;
           master_port=*)
-            # Preset an Application UUID
+            # Preset a Master port
             master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
             ;;
           task_count=*)
@@ -527,6 +534,11 @@ check_args() {
     uuid=$(cat /proc/sys/kernel/random/uuid)
   fi
 
+  # MASTER
+  if [ -z "${master_name}" ]; then
+    master_name=${DEFAULT_MASTER_NAME}
+  fi
+  
   # JVM
   if [ -z "${jvm_master_opts}" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
@@ -547,7 +559,6 @@ check_args() {
   else
     jvm_debugger_opts=""
   fi
-
 
   # Options ONLY for PYTHON
   if [ "$lang" = "python" ]; then
@@ -624,6 +635,7 @@ ${jvm_debugger_opts}
 -Dit.monitor=${monitoring}
 -Dit.tracing=${tracing}
 -Dit.comm=${comm}
+-Dit.masterName=${master_name}
 -Dit.masterPort=${master_port}
 -Dit.scheduler=${scheduler}
 -Dgat.adaptor.path=${GAT_LOCATION}/lib/adaptors

@@ -1,5 +1,6 @@
 package integratedtoolkit.types;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
@@ -31,21 +32,33 @@ import java.util.concurrent.Semaphore;
 public class COMPSsMaster extends COMPSsNode {
 
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
+    
+    private static final String MASTER_NAME_PROPERTY = System.getProperty(ITConstants.IT_MASTER_NAME);
+    private static final String UNDEFINED_MASTER_NAME = "master";
 
     private final String name;
 
 
     public COMPSsMaster() {
         super();
+        
         // Initializing host attributes
         String hostName = "";
-        try {
-            InetAddress localHost = InetAddress.getLocalHost();
-            hostName = localHost.getCanonicalHostName();
-        } catch (UnknownHostException e) {
-            ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
-            hostName = "master";
+        if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
+            // Set the hostname from the defined property
+            hostName = MASTER_NAME_PROPERTY;
+        } else {
+            // The MASTER_NAME_PROPERTY has not been defined, try load from machine
+            try {
+                InetAddress localHost = InetAddress.getLocalHost();
+                hostName = localHost.getCanonicalHostName();
+            } catch (UnknownHostException e) {
+                // Sets a default hsotName value
+                ErrorManager.warn("ERROR_UNKNOWN_HOST: " + e.getLocalizedMessage());
+                hostName = UNDEFINED_MASTER_NAME;
+            }
         }
+
         name = hostName;
     }
 
@@ -74,6 +87,7 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
+        
         for (Resource targetRes : target.getHosts()) {
             COMPSsNode node = targetRes.getNode();
             if (node != this) {
@@ -93,13 +107,14 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
+        
         logger.info("Obtain Data " + ld.getName());
 
         /*
          * PSCO transfers are always available, if any SourceLocation is PSCO, don't transfer
          */
         for (DataLocation loc : ld.getLocations()) {
-            if (loc.getProtocol().equals(DataLocation.Protocol.PERSISTENT_URI)) {
+            if (loc.getProtocol().equals(Protocol.PERSISTENT_URI)) {
                 logger.debug("Object in Persistent Storage. Set dataTarget to " + loc.getPath());
                 reason.setDataTarget(loc.getPath());
                 listener.notifyEnd(null);

@@ -505,6 +505,7 @@ public class LogicalData {
         StringBuilder sb = new StringBuilder();
         sb.append("Logical Data name: ").append(this.name).append("\n");
         sb.append("\t Value: ").append(value).append("\n");
+        sb.append("\t Id: ").append(id).append("\n");
         sb.append("\t Locations:\n");
         synchronized (locations) {
             for (DataLocation dl : locations) {

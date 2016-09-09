@@ -52,7 +52,8 @@ public final class StorageItf {
     static {
         String hostname = null;
         try {
-            hostname = InetAddress.getLocalHost().getHostName();
+            InetAddress localHost = InetAddress.getLocalHost();
+            hostname = localHost.getCanonicalHostName();
         } catch (UnknownHostException e) {
             System.err.println(ERROR_HOSTNAME);
             e.printStackTrace();

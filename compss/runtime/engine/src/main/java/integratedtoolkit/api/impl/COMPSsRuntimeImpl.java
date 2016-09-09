@@ -294,14 +294,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         if (COMPSs_VERSION == null) {
-            logger.info("Deploying COMPSs Runtime");
+            logger.debug("Deploying COMPSs Runtime");
         } else if (COMPSs_BUILDNUMBER == null) {
-            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION);
+            logger.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION);
         } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
             COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         } else {
-            logger.info("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.debug("Deploying COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
         ErrorManager.init(this);
@@ -327,14 +327,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Console Log
         Thread.currentThread().setName("APPLICATION");
         if (COMPSs_VERSION == null) {
-            logger.info("Starting COMPSs Runtime");
+            logger.warn("Starting COMPSs Runtime");
         } else if (COMPSs_BUILDNUMBER == null) {
-            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION);
+            logger.warn("Starting COMPSs Runtime v" + COMPSs_VERSION);
         } else if (COMPSs_BUILDNUMBER.endsWith("rnull")) {
             COMPSs_BUILDNUMBER = COMPSs_BUILDNUMBER.substring(0, COMPSs_BUILDNUMBER.length() - 6);
-            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         } else {
-            logger.info("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
+            logger.warn("Starting COMPSs Runtime v" + COMPSs_VERSION + " (build " + COMPSs_BUILDNUMBER + ")");
         }
 
         // Init Runtime
@@ -383,12 +383,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
+            
+            // Add task summary
+            td.getTaskSummary(logger);
 
             // Stop monitor components
-            logger.debug("Stop IT reached");
+            logger.info("Stop IT reached");
             if (GraphGenerator.isEnabled()) {
                 logger.debug("Stopping Graph generation...");
-                // Graph commited by noMoreTasks, nothing to do
+                // Graph committed by noMoreTasks, nothing to do
             }
             if (RuntimeMonitor.isEnabled()) {
                 logger.debug("Stopping Monitor...");
@@ -415,7 +418,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             logger.debug("Runtime stopped");
 
         }
-        logger.info("Execution Finished");
+        logger.warn("Execution Finished");
     }
 
     /**
@@ -465,8 +468,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         logger.info("Creating task from method " + methodName + " in " + methodClass);
         if (logger.isDebugEnabled()) {
-            logger.debug(
-                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -492,8 +494,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
         if (logger.isDebugEnabled()) {
-            logger.debug(
-                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -519,7 +520,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         // Wait until all tasks have finished
         ap.noMoreTasks(appId);
         // Retrieve result files
-        logger.info("Getting Result Files " + appId);
+        logger.debug("Getting Result Files " + appId);
         ap.getResultFiles(appId);
 
         if (Tracer.isActivated()) {

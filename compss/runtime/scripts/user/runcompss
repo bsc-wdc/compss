@@ -10,6 +10,7 @@ DEFAULT_LOG_LEVEL_ARGUMENT=debug
 LOG_LEVEL_DEBUG=debug
 LOG_LEVEL_INFO=info
 LOG_LEVEL_OFF=off
+DEFAULT_EXTRAE_CONFIG_FILE="disabled"
 
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_GRAPH=false
@@ -85,6 +86,8 @@ show_opts() {
                                             Default: ${DEFAULT_LOG_LEVEL}
 
   Advanced options:
+    --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
+                                            Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
     --comm=<path>                           Class that implements the adaptor for communications
                                             Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
@@ -311,6 +314,10 @@ get_args() {
             # Tracing system
             tracing=${DEFAULT_TRACING_ARGUMENT}
             ;;
+          extrae_config_file=*)
+            # Custom extrae config file
+            extrae_config_file=$(echo $OPTARG | sed -e 's/extrae_config_file=//g')
+            ;;
 	  monitoring=*)
 	    # Value between monitor steps (ms)
 	    monitoring=$(echo $OPTARG | sed -e 's/monitoring=//g')
@@ -452,6 +459,12 @@ check_args() {
     graph=${DEFAULT_GRAPH}
   fi
 
+  # TRACING file option
+  if [ -z "${extrae_config_file}" ]; then
+    extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
+  fi
+ 
+  # Tracing level
   if [ -z "$tracing" ]; then
     tracing=0
   elif [ $tracing == "false" ]; then
@@ -464,14 +477,21 @@ check_args() {
     display_error "${TRACING_ERROR}"
   fi
   if [ $tracing -eq 1 ]; then
-    extraeFile="extrae_basic.xml"
+    extraeFile=${IT_HOME}/Runtime/configuration/xml/tracing/extrae_basic.xml
   elif [ $tracing -eq 2 ]; then
-    extraeFile="extrae_advanced.xml"
+    extraeFile=${IT_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml
   fi
+
+  # Skip out extraeFile if already defined
+  if [ "${extrae_config_file}" != "${DEFAULT_EXTRAE_CONFIG_FILE}" ]; then
+    extraeFile=${extrae_config_file}
+  fi
+
+  # Set tracing env
   if [ $tracing -gt 0 ]; then
     export EXTRAE_HOME=${EXTRAE_HOME}
     export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
-    export EXTRAE_CONFIG_FILE=${IT_HOME}/Runtime/configuration/xml/tracing/${extraeFile}
+    export EXTRAE_CONFIG_FILE=${extraeFile}
   fi
 
   if [ -z "$monitoring" ]; then

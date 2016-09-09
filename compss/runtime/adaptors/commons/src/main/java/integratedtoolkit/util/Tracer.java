@@ -57,6 +57,11 @@ public abstract class Tracer {
     public static final String LD_PRELOAD = "LD_PRELOAD";
 
     protected static int tracing_level = 0;
+    
+    private static final boolean isCustomExtraeFile = (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) != null)
+            && !System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).isEmpty()
+            && !System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).equals("null");
+    private static final String extraeFile = isCustomExtraeFile ? System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) : "null";
 
 
     public enum Event {
@@ -181,6 +186,10 @@ public abstract class Tracer {
 
     public static int getLevel() {
         return tracing_level;
+    }
+    
+    public static String getExtraeFile() {
+        return extraeFile;
     }
 
     public static void enablePThreads() {

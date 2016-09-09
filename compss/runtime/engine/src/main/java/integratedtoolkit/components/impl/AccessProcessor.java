@@ -11,7 +11,6 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.Task;
@@ -69,10 +68,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private static final Logger logger = LogManager.getLogger(Loggers.TP_COMP);
     private static int CHANGES = 1;
     int changes = CHANGES;
-
-    // Tracing
-    protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
 
 
     public AccessProcessor(TaskDispatcher<?, ?> td) {

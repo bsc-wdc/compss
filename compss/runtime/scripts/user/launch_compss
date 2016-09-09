@@ -15,6 +15,7 @@ DEFAULT_LOG_LEVEL_ARG=debug
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 DEFAULT_TRACING=false
 DEFAULT_TRACING_ARG=true
+DEFAULT_CUSTOM_EXTRAE_FILE="null"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
 DEFAULT_TASK_EXECUTION=compss
@@ -226,6 +227,7 @@ worker_cmd() {
             ${cp} \
             ${pythonpath} \
             ${w_tracing} \
+            ${custom_extrae_file} \
             ${nodeId} \
             ${storage_conf} \
             ${taskExecution}"
@@ -370,6 +372,11 @@ get_args() {
           #Keep it for runcompss (to add them to master)
           args_pass="$args_pass --$OPTARG"
           ;;
+        extrae_config_file=*)
+          custom_extrae_file=$(echo $OPTARG | sed -e 's/extrae_config_file=//g')
+          # Keep it for runcompss (to add them to master)
+          args_pass="$args_pass --$OPTARG"
+          ;;
         comm=*)
           comm=$(echo $OPTARG | sed -e 's/comm=//g')
           #Keep it for runcompss (to add them to master)
@@ -421,8 +428,8 @@ get_args() {
           echo "WARNING: master_name is automatically generated. Omitting parameter"
           ;;
         master_port=*)
-          master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
           # Remove from runcompss since launcher will add it
+          master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
           ;;
         *)
           # Flag didn't match any patern. Add to COMPSs 
@@ -581,6 +588,10 @@ check_args() {
 
   if [ -z "${tracing}" ]; then
     tracing=${DEFAULT_TRACING}
+  fi
+
+  if [ -z "${custom_extrae_file}" ]; then
+    custom_extrae_file=${DEFAULT_CUSTOM_EXTRAE_FILE}
   fi
 
   ###############################################################

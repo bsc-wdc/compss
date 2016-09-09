@@ -179,6 +179,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (System.getProperty(ITConstants.IT_TRACING) == null) {
                     System.setProperty(ITConstants.IT_TRACING, String.valueOf(manager.getTracing()));
                 }
+                if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null) {
+                    System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
+                }
                 if (System.getProperty(ITConstants.IT_PRESCHED) == null) {
                     System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
                 }
@@ -222,6 +225,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
         if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
             System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
+        }
+        if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null || System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).equals("")) {
+            System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, ITConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         }
         if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
             System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);

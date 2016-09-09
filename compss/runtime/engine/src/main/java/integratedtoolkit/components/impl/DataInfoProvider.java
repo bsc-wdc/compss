@@ -1,6 +1,5 @@
 package integratedtoolkit.components.impl;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.PersistentLocation;
@@ -51,9 +50,6 @@ public class DataInfoProvider {
     // Component logger - No need to configure, ProActive does
     private static final Logger logger = LogManager.getLogger(Loggers.DIP_COMP);
     private static final boolean debug = logger.isDebugEnabled();
-
-    private static final boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0 ? true : false;
 
 
     public DataInfoProvider() {
@@ -378,7 +374,7 @@ public class DataInfoProvider {
             for (DataLocation loc : Comm.getData(renaming).getLocations()) {
                 if (loc instanceof PersistentLocation) {
                     String pscoId = ((PersistentLocation) loc).getId();
-                    if (tracing) {
+                    if (Tracer.isActivated()) {
                         Tracer.emitEvent(Tracer.Event.STORAGE_CONSOLIDATE.getId(), Tracer.Event.STORAGE_CONSOLIDATE.getType());
                     }
                     try {
@@ -386,7 +382,7 @@ public class DataInfoProvider {
                     } catch (StorageException e) {
                         logger.error("Cannot consolidate PSCO " + pscoId, e);
                     } finally {
-                        if (tracing) {
+                        if (Tracer.isActivated()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
                         }
                     }

@@ -291,6 +291,41 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
 
     }
+    
+    public void getTaskSummary(Logger logger) {        
+        // Get information
+        int coreCount = CoreManager.getCoreCount();
+        Profile[] coreProfile = new Profile[coreCount];
+        for (int coreId = 0; coreId < coreCount; coreId++) {
+            coreProfile[coreId] = new Profile();
+        }
+
+        for (ResourceScheduler<P, T> ui : workers.values()) {
+            if (ui == null) {
+                continue;
+            }
+            LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
+            for (int coreId = 0; coreId < coreCount; coreId++) {
+                for (Implementation<T> impl : impls[coreId]) {
+                    coreProfile[coreId].accumulate(ui.getProfile(impl));
+                }
+            }
+        }
+
+        // Store information in output format
+        logger.warn("------------ COMPSs Task Execution Summary ------------");
+        long totalExecutedTasks = 0;
+        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
+            String signature = entry.getKey();
+            int coreId = entry.getValue();
+            long executionCount = coreProfile[coreId].getExecutionCount();
+            totalExecutedTasks += executionCount;
+            String info = executionCount + " " + signature + " tasks have been executed";
+            logger.warn(info);
+        }
+        logger.warn("Total executed tasks: " + totalExecutedTasks);
+        logger.warn("-------------------------------------------------------");
+    }
 
     public String getRunningActionMonitorData(Worker<T> worker, String prefix) {
         StringBuilder runningActions = new StringBuilder();
@@ -347,7 +382,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             String signature = entry.getKey();
             coresInfo.append(prefix).append("\t").append("<Core id=\"").append(coreId).append("\" signature=\"" + signature + "\">")
                     .append("\n");
-
             coresInfo.append(prefix).append("\t\t").append("<MeanExecutionTime>").append(coreProfile[coreId].getAverageExecutionTime())
                     .append("</MeanExecutionTime>\n");
             coresInfo.append(prefix).append("\t\t").append("<MinExecutionTime>").append(coreProfile[coreId].getMinExecutionTime())

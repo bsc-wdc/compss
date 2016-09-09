@@ -46,8 +46,8 @@
     </Logger>
 
     <!-- RUNTIME API -->
-    <!-- Integratedtoolkit.API: DEFAULT = INFO -->
-    <Logger name="integratedtoolkit.API" additivity="FALSE" level="info">
+    <!-- Integratedtoolkit.API: DEFAULT = WARN -->
+    <Logger name="integratedtoolkit.API" additivity="FALSE" level="warn">
       <AppenderRef ref="Console"/>
     </Logger>
 

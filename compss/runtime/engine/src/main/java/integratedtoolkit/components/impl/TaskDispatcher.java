@@ -144,7 +144,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
             logger.debug(sb);
         }
-        ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest(producer, task);
+        ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest<P, T>(producer, task);
         addRequest(request);
     }
 
@@ -166,7 +166,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     @Override
     public WorkloadStatus getWorkload() {
         Semaphore sem = new Semaphore(0);
-        GetCurrentScheduleRequest<P, T> request = new GetCurrentScheduleRequest(sem);
+        GetCurrentScheduleRequest<P, T> request = new GetCurrentScheduleRequest<P, T>(sem);
         addPrioritaryRequest(request);
         try {
             sem.acquire();
@@ -175,15 +175,25 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
         return request.getResponse();
     }
+    
+    public void getTaskSummary(Logger logger) {
+        Semaphore sem = new Semaphore(0);
+        TaskSummaryRequest<P, T> request = new TaskSummaryRequest<P,T>(logger, sem);
+        addRequest(request);
+        try {
+            sem.acquire();
+        } catch (InterruptedException e) {
+        }
+    }
 
     /**
-     * Returs a string with the description of the tasks in the graph
+     * Returns a string with the description of the tasks in the graph
      *
      * @return description of the current tasks in the graph
      */
     public String getCurrentMonitoringData() {
         Semaphore sem = new Semaphore(0);
-        MonitoringDataRequest<P, T> request = new MonitoringDataRequest(sem);
+        MonitoringDataRequest<P, T> request = new MonitoringDataRequest<P, T>(sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -194,7 +204,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
     public void printCurrentGraph(BufferedWriter graph) {
         Semaphore sem = new Semaphore(0);
-        PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest(sem, graph);
+        PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest<P, T>(sem, graph);
         addRequest(request);
 
         // Synchronize until request has been processed
@@ -215,7 +225,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             logger.debug("Updating CEI " + forName.getName());
         }
         Semaphore sem = new Semaphore(0);
-        UpdateLocalCEIRequest<P, T> request = new UpdateLocalCEIRequest(forName, sem);
+        UpdateLocalCEIRequest<P, T> request = new UpdateLocalCEIRequest<P, T>(forName, sem);
         addRequest(request);
 
         try {
@@ -233,7 +243,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             logger.debug("Registering CEI");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration<P, T> request = new CERegistration(signature, declaringClass, constraints, sem);
+        CERegistration<P, T> request = new CERegistration<P, T>(signature, declaringClass, constraints, sem);
         addRequest(request);
 
         try {
@@ -249,7 +259,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     // TP (TA)
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
-        ShutdownRequest<P, T> request = new ShutdownRequest(sem);
+        ShutdownRequest<P, T> request = new ShutdownRequest<P, T>(sem);
         addRequest(request);
         try {
             sem.acquire();

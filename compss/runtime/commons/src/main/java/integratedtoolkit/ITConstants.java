@@ -46,6 +46,7 @@ public class ITConstants {
     public static final String IT_CONSTR_FILE = "it.constraints.file";
     public static final String IT_SCHEDULER = "it.scheduler";
     public static final String IT_TRACING = "it.tracing";
+    public static final String IT_EXTRAE_CONFIG_FILE = "it.extrae.file";
     public static final String IT_PRESCHED = "it.presched";
     public static final String IT_GRAPH = "it.graph";
     public static final String IT_MONITOR = "it.monitor";
@@ -102,6 +103,7 @@ public class ITConstants {
     public static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
     public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
     public static final String DEFAULT_TRACING = "0";
+    public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";
     public static final String DEFAULT_DEPLOYMENT_ID = UUID.randomUUID().toString();
     public static final String DEFAULT_RES_SCHEMA = System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator + "configuration"
             + File.separator + "xml" + File.separator + "resources" + File.separator + "resource_schema.xsd";

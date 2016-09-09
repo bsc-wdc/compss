@@ -53,6 +53,7 @@ public class ScoresTest {
         CoreManager.resizeStructures(5);
 
         System.setProperty(ITConstants.IT_TRACING, "0");
+        System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, "");
         Comm.init();
 
         ds = new DefaultScheduler();

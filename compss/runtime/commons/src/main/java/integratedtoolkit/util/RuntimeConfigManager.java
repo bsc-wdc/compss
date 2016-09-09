@@ -159,6 +159,14 @@ public class RuntimeConfigManager {
     public int getTracing() {
         return config.getInt(ITConstants.IT_TRACING, 0);
     }
+    
+    public void setCustomExtraeFile(String extraeFilePath) {
+        config.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, extraeFilePath);
+    }
+
+    public String getCustomExtraeFile() {
+        return config.getString(ITConstants.IT_EXTRAE_CONFIG_FILE, ITConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
+    }
 
     public boolean isPresched() {
         return config.getBoolean(ITConstants.IT_PRESCHED, false);

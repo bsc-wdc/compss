@@ -52,7 +52,8 @@
     cpNW=${14}
     pythonpath=${15}
     tracing=${16}
-    hostId=${17}
+    extraeFile=${17}
+    hostId=${18}
     
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -70,6 +71,7 @@
       echo "- Classpath:  $cpNW"
       echo "- Pythonpath: $pythonpath"
       echo "- Tracing:    $tracing"
+      echo "- ExtraeFile: ${extraeFile}"
     fi
 
     # Calculate Log4j file
@@ -129,17 +131,22 @@
   
     # Trace initialization
     if [ $tracing -gt 0 ]; then
-          local extraeFile="extrae_basic.xml"
-          if [ $tracing -gt 1 ]; then
-              extraeFile="extrae_advanced.xml"
-          fi
-          if [ -z "$EXTRAE_HOME" ]; then
-            export EXTRAE_HOME=${scriptDir}/../../../../../Dependencies/extrae/
-          fi
-          export EXTRAE_LIB=${EXTRAE_HOME}/lib
-          export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
-          export EXTRAE_CONFIG_FILE=${scriptDir}/../../../../configuration/xml/tracing/${extraeFile}
-          export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
+      if [ -z "${extraeFile}" ] || [ "${extraeFile}" == "null" ]; then
+        # Only define extraeFile if it is not a custom location
+        extraeFile=${scriptDir}/../../../../configuration/xml/tracing/extrae_basic.xml
+        if [ $tracing -gt 1 ]; then
+          extraeFile=${scriptDir}/../../../../configuration/xml/tracing/extrae_advanced.xml
+        fi
+      fi
+      
+      if [ -z "$EXTRAE_HOME" ]; then
+        export EXTRAE_HOME=${scriptDir}/../../../../../Dependencies/extrae/
+      fi
+      
+      export EXTRAE_LIB=${EXTRAE_HOME}/lib
+      export LD_LIBRARY_PATH=${EXTRAE_LIB}:${LD_LIBRARY_PATH}
+      export EXTRAE_CONFIG_FILE=${extraeFile}
+      export LD_PRELOAD=${EXTRAE_HOME}/lib/libpttrace.so
     fi
   }
   

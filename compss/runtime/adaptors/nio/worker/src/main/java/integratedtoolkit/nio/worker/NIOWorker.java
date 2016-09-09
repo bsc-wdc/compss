@@ -868,7 +868,7 @@ public class NIOWorker extends NIOAgent {
          * **************************************
          * Get arguments
          **************************************/
-        if (args.length != 19) {
+        if (args.length != NUM_PARAMS_NIO_WORKER) {
             if (wLoggerDebug) {
                 wLogger.debug("Received parameters: ");
                 for (int i = 0; i < args.length; ++i) {
@@ -899,10 +899,11 @@ public class NIOWorker extends NIOAgent {
         String pythonpath = args[14];
 
         String trace = args[15];
-        String host = args[16];
+        String extraeFile = args[16];
+        String host = args[17];
 
-        String storageConf = args[17];
-        executionType = args[18];
+        String storageConf = args[18];
+        executionType = args[19];
 
         /*
          * ************************************** 
@@ -922,6 +923,7 @@ public class NIOWorker extends NIOAgent {
             wLogger.debug("Install Dir: " + installDir);
 
             wLogger.debug("Tracing: " + trace);
+            wLogger.debug("Extrae config File: " + extraeFile);
             wLogger.debug("Host: " + host);
 
             wLogger.debug("LibraryPath: " + libPath);
@@ -953,6 +955,7 @@ public class NIOWorker extends NIOAgent {
          * ************************************** 
          * Configure tracing
          **************************************/
+        System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, extraeFile);
         tracing_level = Integer.parseInt(trace);
 
         // Initialize tracing system

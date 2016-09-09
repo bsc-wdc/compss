@@ -1,6 +1,5 @@
 package integratedtoolkit.loader.total;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.log.Loggers;
 
@@ -24,11 +23,7 @@ public class ObjectRegistry {
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
 
-    // Tracing
-    protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && System.getProperty(ITConstants.IT_TRACING).equals("true") ? true : false;
-
-
+    
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
         this.serialDir = api.getTempDir();

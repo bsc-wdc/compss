@@ -34,6 +34,9 @@ public abstract class NIOAgent {
 
     protected static final String NIOEventManagerClass = NIOEventManager.class.getCanonicalName();
     public static final String ID = NIOAgent.class.getCanonicalName();
+    
+    public static final int NUM_PARAMS_PER_WORKER_SH = 5;
+    public static final int NUM_PARAMS_NIO_WORKER = 20;
 
     private int sendTransfers;
     private final int MAX_SEND_TRANSFERS;
@@ -53,8 +56,8 @@ public abstract class NIOAgent {
 
     // Transfers to send as soon as there is a slot available
     // TODO
-    // private LinkedList<Data> prioritaryData;
-    // IP of the master node
+    // private LinkedList<Data> prioritaryData; 
+    //IP of the master node
     protected String masterIP;
     protected static int masterPort;
     protected NIONode masterNode;
@@ -68,8 +71,7 @@ public abstract class NIOAgent {
     // Tracing
     protected static boolean tracing;
     protected static int tracing_level;
-    protected static int tracingID = 0; // unless NIOWorker sets this value; 0
-    // -> master (NIOAdaptor)
+    protected static int tracingID = 0; // unless NIOWorker sets this value; 0 -> master (NIOAdaptor)
     protected static HashMap<Connection, Integer> connection2Partner;
 
 

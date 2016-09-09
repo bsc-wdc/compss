@@ -10,7 +10,7 @@ DEFAULT_LOG_LEVEL_ARGUMENT=debug
 LOG_LEVEL_DEBUG=debug
 LOG_LEVEL_INFO=info
 LOG_LEVEL_OFF=off
-DEFAULT_EXTRAE_CONFIG_FILE="disabled"
+DEFAULT_EXTRAE_CONFIG_FILE="null"
 
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_GRAPH=false
@@ -316,7 +316,7 @@ get_args() {
             ;;
           extrae_config_file=*)
             # Custom extrae config file
-            extrae_config_file=$(echo $OPTARG | sed -e 's/extrae_config_file=//g')
+            custom_extrae_config_file=$(echo $OPTARG | sed -e 's/extrae_config_file=//g')
             ;;
 	  monitoring=*)
 	    # Value between monitor steps (ms)
@@ -460,8 +460,8 @@ check_args() {
   fi
 
   # TRACING file option
-  if [ -z "${extrae_config_file}" ]; then
-    extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
+  if [ -z "${custom_extrae_config_file}" ]; then
+    custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
   fi
  
   # Tracing level
@@ -482,9 +482,9 @@ check_args() {
     extraeFile=${IT_HOME}/Runtime/configuration/xml/tracing/extrae_advanced.xml
   fi
 
-  # Skip out extraeFile if already defined
-  if [ "${extrae_config_file}" != "${DEFAULT_EXTRAE_CONFIG_FILE}" ]; then
-    extraeFile=${extrae_config_file}
+  # Overwrite extraeFile if already defined
+  if [ "${custom_extrae_config_file}" != "${DEFAULT_EXTRAE_CONFIG_FILE}" ]; then
+    extraeFile=${custom_extrae_config_file}
   fi
 
   # Set tracing env
@@ -654,6 +654,7 @@ ${jvm_debugger_opts}
 -Dit.graph=${graph}
 -Dit.monitor=${monitoring}
 -Dit.tracing=${tracing}
+-Dit.extrae.file=${custom_extrae_config_file}
 -Dit.comm=${comm}
 -Dit.masterName=${master_name}
 -Dit.masterPort=${master_port}

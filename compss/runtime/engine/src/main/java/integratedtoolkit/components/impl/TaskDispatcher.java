@@ -55,10 +55,6 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
 
-    // Tracing
-    protected static boolean tracing = System.getProperty(ITConstants.IT_TRACING) != null
-            && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0;
-
 
     public TaskDispatcher() {
         requestQueue = new LinkedBlockingDeque<TDRequest<P, T>>();

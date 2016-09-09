@@ -42,9 +42,6 @@ public class WorkerStarter {
             + "adaptors" + File.separator + "nio" + File.separator;
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
 
-    // NIOWorker call parameters
-    private static final int NUM_PARAMS_CMD = 24;
-
     // Connection related parameters
     private static final long MAX_WAIT_FOR_INIT = 20_000;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
@@ -221,7 +218,7 @@ public class WorkerStarter {
          * BUILD COMMAND
          * *******************************************************
          */
-        String[] cmd = new String[NUM_PARAMS_CMD + jvmFlags.length];
+        String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length];
 
         /* SCRIPT ************************************************ */
         cmd[0] = installDir + (installDir.endsWith(File.separator) ? "" : File.separator) + STARTER_SCRIPT_PATH + STARTER_SCRIPT_NAME;
@@ -268,7 +265,7 @@ public class WorkerStarter {
 
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
-
+        cmd[nextPosition++] = NIOTracer.getExtraeFile();
         if (Tracer.isActivated()) {
             // NumSlots per host is ignored --> 0
             Integer hostId = NIOTracer.registerHost(node.getName(), 0);

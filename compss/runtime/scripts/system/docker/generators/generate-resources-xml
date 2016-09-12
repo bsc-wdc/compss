@@ -1,62 +1,45 @@
 #!/bin/bash
 
 GENERATORS_DIR=$(dirname "$0")
-. $GENERATORS_DIR/echo2-function
-
-if [ -z $1 ]; then
-    echo2 "[  ERROR  ]: Indicate the number of nodes as first parameter."
-    exit -1
-fi
+. $GENERATORS_DIR/aux-functions
 
 NUM_WORKERS=$1
+COMPUTING_UNITS=$2
+MEMORY=$3
 
-echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-echo -e "<ResourceList>"
+echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?> \n"
+echo -e "<ResourcesList> \n"
+
 for i in $(seq 1 $NUM_WORKERS); do  
-    echo -e "\n \
-            <Resource Name=\"worker$i\">\n \
-                        <Capabilities>\n \
-                            <Host>\n \
-                                    <TaskCount>0</TaskCount>\n \
-                                    <Queue>short</Queue>\n \
-                                    <Queue/>\n \
-                            </Host>\n \
-                            <Processor>\n \
-                                    <Architecture>IA32</Architecture>\n \
-                                    <Speed>3.0</Speed>\n \
-                                    <CoreCount>4</CoreCount>\n \
-                            </Processor>\n \
-                            <OS>\n \
-                                    <OSType>Linux</OSType>\n \
-                                    <MaxProcessesPerUser>32</MaxProcessesPerUser>\n \
-                            </OS>\n \
-                            <StorageElement>\n \
-                                    <Size>8</Size>\n \
-                            </StorageElement>\n \
-                            <Memory>\n \
-                                    <PhysicalSize>4</PhysicalSize>\n \
-                                    <VirtualSize>8</VirtualSize>\n \
-                            </Memory>\n \
-                            <ApplicationSoftware>\n \
-                                    <Software>Java</Software>\n \
-                            </ApplicationSoftware>\n \
-                            <Service/>\n \
-                            <VO/>\n \
-                            <Cluster/>\n \
-                            <FileSystem/>\n \
-                            <NetworkAdaptor/>\n \
-                            <JobPolicy/>\n \\n \
-                            <AccessControlPolicy/>\n \\n \
-                    </Capabilities>\n \
-                    <Requirements/>\n \
-                    <Adaptors>\n \
-                        <Adaptor name=\"integratedtoolkit.nio.master.NIOAdaptor\">\n \
-                            <MinPort>$((40000 + 2*($i-1) + 1))</MinPort>\n \
-                            <MaxPort>$((40000 + 2*($i-1) + 2))</MaxPort>\n \
-                        </Adaptor>\n \
-                    </Adaptors>\n \
-            </Resource>\n \
-    "
+    echo -e "\
+    <ComputeNode Name=\"worker$i\"> \n\
+        <Processor Name=\"MainProcessor\"> \n\
+            <ComputingUnits>${COMPUTING_UNITS}</ComputingUnits> \n\
+        </Processor> \n\
+        <Memory> \n\
+            <Size>${MEMORY}</Size> \n\
+        </Memory> \n\
+        <Adaptors> \n\
+            <Adaptor Name=\"integratedtoolkit.nio.master.NIOAdaptor\"> \n\
+                <SubmissionSystem> \n\
+                    <Interactive/> \n\
+                </SubmissionSystem> \n\
+                <Ports> \n\
+                    <MinPort>$((40000 + 2*($i-1) + 1))</MinPort>\n \
+                    <MaxPort>$((40000 + 2*($i-1) + 2))</MaxPort>\n \
+                </Ports> \n\
+            </Adaptor> \n\
+            <Adaptor Name=\"integratedtoolkit.gat.master.GATAdaptor\"> \n\
+                <SubmissionSystem> \n\
+                    <Batch> \n\
+                        <Queue>sequential</Queue> \n\
+                    </Batch> \n\
+                    <Interactive/> \n\
+                </SubmissionSystem> \n\
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor> \n\
+            </Adaptor> \n\
+        </Adaptors> \n\
+    </ComputeNode> \n\
+"
 done
-
-echo "</ResourceList>"
+echo "</ResourcesList>"

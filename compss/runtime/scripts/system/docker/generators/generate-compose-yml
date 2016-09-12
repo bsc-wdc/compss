@@ -1,50 +1,80 @@
 #!/bin/bash
 
 GENERATORS_DIR=$(dirname "$0")
-. $GENERATORS_DIR/echo2-function
+. $GENERATORS_DIR/aux-functions
 
-if [ -z $1 ]; then
-    echo2 "[  ERROR  ]: Indicate the number of nodes as first parameter." ; exit 2
-fi
+NUM_WORKERS=$1                  # Number of container workers
+APP_IMAGE_NAME=$2               # Application image name. With username: 'john123/my-app'
+ABS_CONTEXT=$3                  # Absolute path where the context dir is located. This must be specified by the app-image provider.
+COMPUTING_UNITS=$4
+MEMORY=$5
+shift 5 ; RUNCOMPSS_ARGS=$*     # From here on, the typical runcompss parameters you would use
 
-if [ -z $2 ]; then
-    echo2 "[  ERROR  ]: Indicate the absolute path to the context directory as second parameter." ; exit 2
-fi
+# This will include: creating the xml's inside master container, executing runcompss, and shutting down workers.
+master_command="/bin/bash -c '"  
 
-if [ -z $3 ]; then
-    echo2 "[  ERROR  ]: Indicate the rest of runcompss arguments as third parameter." ; exit 2
-fi
+# Create project and resources
+master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-resources-xml $NUM_WORKERS $COMPUTING_UNITS $MEMORY > $ABS_CONTEXT/resources.xml ; "
+master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-project-xml $NUM_WORKERS > $ABS_CONTEXT/project.xml ; "
 
-NUM_WORKERS=$1
-ABS_CONTEXT=$2
-APP_IMAGE_NAME=$3
-shift 3 ; RUNCOMPSS_ARGS=$*
-
-master_command="/bin/bash -c \""  
-# The command that the master will run includes some network contextualization work
-# (writing to /etc/hosts, and when runcompss is finished, kill the sshd from nodes)
+# Add their path to the runcompss args
+RUNCOMPSS_ARGS=" --resources=\"$ABS_CONTEXT/resources.xml\" $RUNCOMPSS_ARGS"
+RUNCOMPSS_ARGS=" --project=\"$ABS_CONTEXT/project.xml\"  $RUNCOMPSS_ARGS"
 
 # Execute the runcompss command itself, from the context directory
-master_command="${master_command} cd \"$ABS_CONTEXT\"; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; " 
+master_command="${master_command} cd \"${ABS_CONTEXT}\"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; " 
 
-# Shutdown nodes! 
+# After the execution ends, stop all the workers. This is, stop their sshd
 # Concatenating with ; to ALWAYS shutdown nodes even if the above commands fail
-for i in $(seq 1 $NUM_WORKERS); do
-    master_command="${master_command} ssh -o StrictHostKeyChecking=no worker${i} \\\"pkill sshd\\\" ;"
+for i in $(seq 1 $NUM_WORKERS)
+do
+    master_command="${master_command} ssh -o StrictHostKeyChecking=no worker${i} \"pkill sshd\" ;"
 done
 
-master_command="${master_command}\"" # Final quotes huehue
+master_command="${master_command}'" # Final quotes huehue
 
-# MASTER
+# Now, we are going to create the Docker Compose file.
+# One service for the master, and one service for each worker
+
+# GENERAL
 echo -e "\
 version: '2'
 
 networks:
-  test-net:
+  runcompss-docker-net:
     driver: overlay
-    
+
 services:
+"
+#####################
+
+### WORKERS ####
+for i in $(seq 1 $NUM_WORKERS)
+do
+echo -e "\
+  worker$i:
+    image: $APP_IMAGE_NAME
+    
+    expose:
+      - \"43000-43200\"
+      - \"22\"
+      - \"7\"
+
+    command: /bin/bash -c \"/usr/sbin/sshd -D \" 
+
+    mem_limit: ${MEMORY}g
+    cpu_shares: ${COMPUTING_UNITS}
+
+    networks:
+      - runcompss-docker-net
+"
+done
+###################
+
+# MASTER
+echo -e "\
   master:
+
     image: $APP_IMAGE_NAME
     
     expose:
@@ -53,28 +83,6 @@ services:
     command: ${master_command}
     
     networks:
-      - test-net
-
-      
+      - runcompss-docker-net
 "
 ##################
-
-#### WORKERS ####
-for i in $(seq 1 $NUM_WORKERS)
-do
-echo -e "\
-  worker${i}:
-    image: $APP_IMAGE_NAME
-
-    expose:
-      - \"43000-43200\"
-      - \"22\"
-
-    command: /bin/bash -c \"/usr/sbin/sshd -D\"
-    
-    networks:
-      - test-net
-    
-"
-done
-###################

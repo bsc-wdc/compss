@@ -9,6 +9,14 @@ Storage dummy connector
     storage.api code example.
 """
 
+
+def start(config_file_path=None, **kargs):
+    pass
+
+def stop(**kargs):
+    pass
+
+
 def getByID(obj):
     """
     This functions retrieves an object from an external storage technology
@@ -21,9 +29,10 @@ def getByID(obj):
 
 class TaskContext( object ):
     
-    def __init__(self, logger, values, **kwargs):
+    def __init__(self, logger, values, config_file_path=None, **kwargs):
         self.logger = logger
         self.values = values
+        self.config_file_path = config_file_path
     
     def __enter__( self ):
         # Do something prolog

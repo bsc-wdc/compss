@@ -8,19 +8,18 @@ PyCOMPSs Persistent Worker
     This file contains the worker code.
 """
 
-import os
-import sys
-import signal
-import traceback
 import logging
+import os
+import signal
+import sys
+import traceback
+from cPickle import loads, UnpicklingError
+from exceptions import ValueError
 from multiprocessing import Process
 from multiprocessing import Queue
 
-from pycompss.util.logs import init_logging_worker
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
-
-from cPickle import loads, UnpicklingError
-from exceptions import ValueError
+from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666
 
@@ -48,8 +47,8 @@ try:
     from storage.api import TaskContext
 except ImportError:
     # If not present, import dummy functions
-    from dummy.storage import getByID
-    from dummy.storage import TaskContext
+    from pycompss.storage.api import getByID
+    from pycompss.storage.api import TaskContext
 
 
 #####################

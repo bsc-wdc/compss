@@ -9,16 +9,15 @@ PyCOMPSs Worker
     method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
 """
 
+import logging
 import os
 import sys
 import traceback
-import logging
-
-from pycompss.util.logs import init_logging_worker
-from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
-
 from cPickle import loads, UnpicklingError
 from exceptions import ValueError
+
+from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666
 
@@ -43,8 +42,8 @@ try:
     from storage.api import TaskContext
 except ImportError:
     # If not present, import dummy functions
-    from dummy.storage import getByID
-    from dummy.storage import TaskContext
+    from pycompss.storage.api import getByID
+    from pycompss.storage.api import TaskContext
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -80,9 +79,9 @@ def compss_worker():
         ptype = int(args[pos])
         types.append(ptype)
 
-        logger.debug("Parameter : " + str(i) )
+        logger.debug("Parameter : " + str(i))
         logger.debug("\t * Type : " + str(ptype))
-        logger.debug("\t * Value: " + str(args[pos + 1]) )
+        logger.debug("\t * Value: " + str(args[pos + 1]))
 
         if ptype == Type.FILE:
             values.append(args[pos + 1])
@@ -164,7 +163,7 @@ def compss_worker():
             module = __import__(path, globals(), locals(), [path], -1)
             logger.debug("Module successfully loaded (Python version < 2.7")
 
-        with TaskContext(logger, values):
+        with TaskContext(logger, values, config_file_path=storage_conf):
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
                 pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -210,7 +209,7 @@ def compss_worker():
             types.pop()
             types.insert(0, Type.OBJECT)
 
-            with TaskContext(logger, values):
+            with TaskContext(logger, values, config_file_path=storage_conf):
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -225,7 +224,7 @@ def compss_worker():
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)    # class must be first type
 
-            with TaskContext(logger, values):
+            with TaskContext(logger, values, config_file_path=storage_conf):
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -247,6 +246,13 @@ if __name__ == "__main__":
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])
+    # log_level = sys.argv[3]
+    # storage_conf = sys.argv[4]
+    # class_name = sys.argv[5]
+    # method_name = sys.argv[6]
+    # has_target = sys.argv[7] == 'true'
+    # num_params = int(sys.argv[8])
+    # params = sys.argv[9..]
 
     sys.argv = sys.argv[2:]
 
@@ -269,6 +275,8 @@ if __name__ == "__main__":
     else:
         # Default
         init_logging_worker(worker_path + '/../../log/logging.json')
+
+    storage_conf = sys.argv[2]
 
     # Init worker
     compss_worker()

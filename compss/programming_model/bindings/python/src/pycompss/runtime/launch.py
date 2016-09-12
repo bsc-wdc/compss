@@ -14,12 +14,22 @@ from tempfile import mkdtemp
 from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_logPath
 from pycompss.util.logs import init_logging
+from pycompss.util.jvmParser import convertToDict
 from cPickle import PicklingError
 import traceback
 import pycompss.runtime.binding as binding
 
+try:
+    # Import storage libraries if possible
+    from storage.api import start as startStorage
+    from storage.api import start as stopStorage
+except ImportError:
+    # If not present, import dummy functions
+    from pycompss.storage.api import start as startStorage
+    from pycompss.storage.api import start as stopStorage
 
 app_path = None
+
 
 if __name__ == "__main__":
 
@@ -29,7 +39,7 @@ if __name__ == "__main__":
     log_level = sys.argv[1]
 
     # Get object_conversion boolean
-    o_c = sys.argv[2]
+    o_c = sys.argv[3]
     if o_c.lower() == 'true':
         # set cross-module variable
         binding.object_conversion = True
@@ -66,10 +76,18 @@ if __name__ == "__main__":
                      '/Bindings/python/log/logging.json', logPath)
     logger = logging.getLogger("pycompss.runtime.launch")
 
+    jvm_opts = os.environ['JVM_OPTIONS_FILE']
+
+    opts = convertToDict(jvm_opts)
+    storage_conf = opts.get('-Dit.storage.conf')
+
     try:
         logger.debug("--- START ---")
         logger.debug("PyCOMPSs Log path: %s" % logPath)
+        logger.debug("Storage configuration file: %s" % storage_conf)
+        startStorage(config_file_path=storage_conf)
         execfile(app_path)    # MAIN EXECUTION
+        stopStorage()
         logger.debug("--- END ---")
     except PicklingError:
         # If an object that can not be serialized has been used as a parameter.

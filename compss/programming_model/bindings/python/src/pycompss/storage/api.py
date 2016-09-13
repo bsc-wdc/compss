@@ -10,10 +10,10 @@ Storage dummy connector
 """
 
 
-def start(config_file_path=None, **kargs):
+def init(config_file_path=None, **kargs):
     pass
 
-def stop(**kargs):
+def finish(**kargs):
     pass
 
 

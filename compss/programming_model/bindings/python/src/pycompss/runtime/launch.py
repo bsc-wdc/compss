@@ -21,12 +21,12 @@ import pycompss.runtime.binding as binding
 
 try:
     # Import storage libraries if possible
-    from storage.api import start as startStorage
-    from storage.api import start as stopStorage
+    from storage.api import init as initStorage
+    from storage.api import finish as finishStorage
 except ImportError:
     # If not present, import dummy functions
-    from pycompss.storage.api import start as startStorage
-    from pycompss.storage.api import start as stopStorage
+    from pycompss.storage.api import init as initStorage
+    from pycompss.storage.api import finish as finishStorage
 
 app_path = None
 
@@ -85,9 +85,9 @@ if __name__ == "__main__":
         logger.debug("--- START ---")
         logger.debug("PyCOMPSs Log path: %s" % logPath)
         logger.debug("Storage configuration file: %s" % storage_conf)
-        startStorage(config_file_path=storage_conf)
+        initStorage(config_file_path=storage_conf)
         execfile(app_path)    # MAIN EXECUTION
-        stopStorage()
+        finishStorage()
         logger.debug("--- END ---")
     except PicklingError:
         # If an object that can not be serialized has been used as a parameter.

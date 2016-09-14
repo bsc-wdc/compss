@@ -76,8 +76,8 @@ if __name__ == "__main__":
                      '/Bindings/python/log/logging.json', logPath)
     logger = logging.getLogger("pycompss.runtime.launch")
 
+    # Get JVM options
     jvm_opts = os.environ['JVM_OPTIONS_FILE']
-
     opts = convertToDict(jvm_opts)
     storage_conf = opts.get('-Dit.storage.conf')
 

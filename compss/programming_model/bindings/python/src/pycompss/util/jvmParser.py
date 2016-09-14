@@ -11,6 +11,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 def convertToDict(jvm_opt_file):
+    """
+    JVM parameter file converter to dictionary.
+    :param jvm_opt_file: JVM parameters file
+    :return: Dictionary with the parameters specified on the file.
+    """
     logger.debug("Parsing JVM options file: %s" % jvm_opt_file)
     opts = {}
     with open(jvm_opt_file) as fp:
@@ -18,6 +23,7 @@ def convertToDict(jvm_opt_file):
             line = line.strip()
             if line:
                 if(line.startswith("-XX:")):
+                    # These parameters have no value
                     key = line.split(":")[1].replace('\n','')
                     opts[key] = True
                 else:

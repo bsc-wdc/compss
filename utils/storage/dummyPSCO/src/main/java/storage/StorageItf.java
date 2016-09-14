@@ -19,6 +19,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.Descriptor;
 import storage.utils.Serializer;
 
 
@@ -41,6 +45,7 @@ public final class StorageItf {
     private static final String ERROR_GET_BY_ID = "ERROR: Cannot find target by id on executeTask";
     private static final String ERROR_REFLECTION = "ERROR: Cannot invoke method by reflection in executeTask";
     private static final String ERROR_RETRIEVE_ID = "ERROR: Cannot retrieve PSCO for executeTask with id ";
+    private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
 
     private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
@@ -272,10 +277,10 @@ public final class StorageItf {
      * @return
      * @throws StorageException
      */
-    public static String executeTask(String id, Method method, Object[] values, String hostName, CallbackHandler callback)
+    public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
             throws StorageException {
 
-        logger.info("EXECUTE TASK: " + method + " on host " + hostName);
+        logger.info("EXECUTE TASK: " + descriptor + " on host " + hostName);
 
         String localUUID = UUID.randomUUID().toString();
 
@@ -298,14 +303,43 @@ public final class StorageItf {
                     } else {
                         logger.info("- Target object is PSCO with class " + obj.getClass() + " with id = " + id);
                     }
+                    
+                    // Retrieve method from Object and descriptor
+                    ClassPool pool = ClassPool.getDefault();
+                    Method methodToExecute = null;
+                    for (Method methodAvailable : obj.getClass().getDeclaredMethods()) {
+                        int n = methodAvailable.getParameterAnnotations().length;
+                        Class<?>[] cParams = methodAvailable.getParameterTypes();
+                        CtClass[] ctParams = new CtClass[n];
+                        for (int i = 0; i < n; i++) {
+                            try {
+                                ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
+                            } catch (NotFoundException e) {
+                                throw new Exception(ERROR_CLASS_NOT_FOUND + " " + cParams[i].getName(), e);
+                            }
+                        }
+
+                        String methodAvailableDescriptor;
+                        try {
+                            methodAvailableDescriptor = methodAvailable.getName() 
+                                    + Descriptor.ofMethod(pool.getCtClass(methodAvailable.getReturnType().getName()), ctParams);
+                        } catch (NotFoundException e) {
+                            throw new Exception(ERROR_CLASS_NOT_FOUND + " " + methodAvailable.getReturnType().getName(), e);
+                        }
+                        
+                        if (descriptor.equals(methodAvailableDescriptor)) {
+                            methodToExecute = methodAvailable;
+                            break;
+                        }
+                    }
 
                     // Prepare for task execution
-                    if (method == null) {
-                        throw new Exception(ERROR_METHOD_NOT_FOUND + method);
+                    if (methodToExecute == null) {
+                        throw new Exception(ERROR_METHOD_NOT_FOUND + descriptor);
                     }
 
                     // Invoke user task
-                    Object retValue = method.invoke(obj, values);
+                    Object retValue = methodToExecute.invoke(obj, values);
 
                     // Retrieve result
                     callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.SUCCESS, retValue));

@@ -1,6 +1,5 @@
 package storage;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 
@@ -87,14 +86,14 @@ public final class StorageItf {
      * Executes the task into persistent storage
      * 
      * @param id
-     * @param method
+     * @param descriptor
      * @param values
      * @param hostName
      * @param callback
      * @return
      * @throws StorageException
      */
-    public static String executeTask(String id, Method method, Object[] values, String hostName, CallbackHandler callback)
+    public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
             throws StorageException {
         throw new StorageException(STORAGE_NOT_FOUND_MESSAGE);
     }

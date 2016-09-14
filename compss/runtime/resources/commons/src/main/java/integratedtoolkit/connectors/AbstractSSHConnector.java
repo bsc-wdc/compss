@@ -24,9 +24,10 @@ import integratedtoolkit.types.CloudImageDescription;
 public abstract class AbstractSSHConnector extends AbstractConnector {
 
     // Retry properties
-    private static Integer MAX_ALLOWED_ERRORS = 3;
-    private static Integer RETRY_TIME = 10; // Seconds
-    private static int SERVER_TIMEOUT = 30_000; // Milliseconds
+    private static final Integer KNOWN_HOSTS_MAX_ALLOWED_ERRORS = 20;
+    private static final Integer MAX_ALLOWED_ERRORS = 5;
+    private static final Integer RETRY_TIME = 10; // Seconds
+    private static final int SERVER_TIMEOUT = 30_000; // Milliseconds
 
     // XML properties
     private static final String VM_USER = "vm-user";
@@ -245,7 +246,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         String[] cmd = { "/bin/sh", "-c", "ssh-keyscan -t rsa,dsa " + workerIP };
         int errors = 0;
         String errorString = null;
-        while (key.isEmpty() && errors < MAX_ALLOWED_ERRORS) {
+        while (key.isEmpty() && errors < KNOWN_HOSTS_MAX_ALLOWED_ERRORS) {
             InputStream errStream = null;
             InputStream outStream = null;
             try {
@@ -260,10 +261,19 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 errStream = p.getErrorStream();
                 outStream = p.getInputStream();
                 p.waitFor();
+                
+                boolean commandFailed = false;
                 if (p.exitValue() == 0) {
                     key = readInputStream(outStream);
+                    if (key.isEmpty()) {
+                        commandFailed = true;
+                    }
                 } else {
+                    commandFailed = true;
                     errorString = readInputStream(outStream);
+                }
+                
+                if (commandFailed) {
                     errors++;
                     logger.debug("Error scaning key. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
 
@@ -294,7 +304,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             }
             // logger.debug("Key is " + key);
         }
-        if (errors == MAX_ALLOWED_ERRORS) {
+        if (errors == KNOWN_HOSTS_MAX_ALLOWED_ERRORS) {
             logger.error(ERROR_KEYSCAN + errorString);
             throw new ConnectorException(ERROR_KEYSCAN + errorString);
         }

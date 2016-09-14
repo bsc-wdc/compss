@@ -241,7 +241,6 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (target != null) {
             if (target.getName().equals(source.getName())) {
                 // The source and target are the same --> IN
-                // TODO: Is new replica necessary?
                 newReplica(sc);
             } else {
                 // The source and target are different --> OUT
@@ -280,10 +279,8 @@ public class NIOWorkerNode extends COMPSsWorker {
                 NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
             }
             try {
-                StorageItf.newReplica(pscoId, targetHostname);
-            } catch (StorageException se) {
-                sc.end(OpEndState.OP_FAILED, se);
-                return;
+                // TODO: WARN New replica is NOT necessary because we can't prefetch data
+                // StorageItf.newReplica(pscoId, targetHostname);
             } finally {
                 if (NIOTracer.isActivated()) {
                     NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.STORAGE_NEWREPLICA.getType());

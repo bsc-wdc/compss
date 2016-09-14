@@ -12,6 +12,10 @@ import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.RequestQueue;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
+import javassist.bytecode.Descriptor;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -37,6 +41,7 @@ public class JavaExecutor extends Executor {
     private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task '";
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
     private static final String ERROR_EXTERNAL_NO_PSCO = "ERROR: External ExecuteTask can only be used with target PSCOs";
+    private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
 
     private final boolean debug;
@@ -363,6 +368,24 @@ public class JavaExecutor extends Executor {
         // Invoke the requested method from the external platform
 
         // WARN: ExternalExecution is only supported for methods with PSCO as target object
+        int n = method.getParameterAnnotations().length;
+        ClassPool pool = ClassPool.getDefault();
+        Class<?>[] cParams = method.getParameterTypes();
+        CtClass[] ctParams = new CtClass[n];
+        for (int i = 0; i < n; i++) {
+            try {
+                ctParams[i] = pool.getCtClass(((Class<?>) cParams[i]).getName());
+            } catch (NotFoundException e) {
+                throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + cParams[i].getName(), e);
+            }
+        }
+
+        String descriptor;
+        try {
+            descriptor = method.getName() + Descriptor.ofMethod(pool.getCtClass(method.getReturnType().getName()), ctParams);
+        } catch (NotFoundException e) {
+            throw new JobExecutionException(ERROR_CLASS_NOT_FOUND + " " + method.getReturnType().getName(), e);
+        } 
 
         // Check and retrieve target PSCO Id
         String id = null;
@@ -388,7 +411,7 @@ public class JavaExecutor extends Executor {
 
         PSCOCallbackHandler callback = new PSCOCallbackHandler();
         try {
-            String call_result = StorageItf.executeTask(id, method, values, nw.getHostName(), callback);
+            String call_result = StorageItf.executeTask(id, descriptor, values, nw.getHostName(), callback);
 
             logger.debug(call_result);
 

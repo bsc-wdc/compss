@@ -75,7 +75,7 @@ public class JClouds extends AbstractSSHConnector {
 
     @Override
     public void destroy(Object vm) throws ConnectorException {
-        jclouds.destroyNode(((NodeMetadata) vm).getId());
+        jclouds.destroyNode((String) vm);
 
     }
 
@@ -84,7 +84,7 @@ public class JClouds extends AbstractSSHConnector {
         try {
             Template template = generateTemplate(rd);
             Set<? extends NodeMetadata> vms = jclouds.createVMS(name, 1, template);
-            return vms.iterator().next();
+            return vms.iterator().next().getId();
         } catch (RunNodesException e) {
             throw new ConnectorException(e);
         } catch (IOException e) {
@@ -122,7 +122,9 @@ public class JClouds extends AbstractSSHConnector {
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object vm, CloudMethodResourceDescription requested) throws ConnectorException {
         CloudMethodResourceDescription granted = new CloudMethodResourceDescription();
-        NodeMetadata vmd = (NodeMetadata) vm;
+        String vmid = (String)vm;
+        NodeMetadata vmd = jclouds.getNode(vmid);
+        //NodeMetadata vmd = (NodeMetadata) vm;
         try {
             logger.info("VM State is " + vmd.getStatus().toString());
             int tries = 0;
@@ -146,7 +148,7 @@ public class JClouds extends AbstractSSHConnector {
                 } catch (InterruptedException e) {
                     // ignore
                 }
-                vmd = jclouds.getNode(vmd.getId());
+                vmd = jclouds.getNode(vmid);
             }
             String ip = getIp(vmd);
 
@@ -184,7 +186,12 @@ public class JClouds extends AbstractSSHConnector {
     private float getTotalDisk(List<? extends Volume> volumes) {
         float totalDisk = 0;
         for (Volume vol : volumes) {
-            totalDisk = totalDisk + vol.getSize();
+            if (vol != null) {
+                Float size = vol.getSize();
+                if (size != null) {
+                    totalDisk = totalDisk + size;
+                }
+            }
         }
         return totalDisk;
     }

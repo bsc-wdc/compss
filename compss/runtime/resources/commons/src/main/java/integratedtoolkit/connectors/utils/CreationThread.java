@@ -235,8 +235,10 @@ public class CreationThread extends Thread {
             int computingUnits = granted.getTotalComputingUnits();
             if (limitOfTasks < 0 && computingUnits < 0) {
                 mc.setLimitOfTasks(0);
+                mc.setTotalComputingUnits(0);
             } else {
                 mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+                mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
             }
             mc.setHost(granted.getName());
 

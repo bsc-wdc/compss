@@ -254,9 +254,6 @@ public class NIOWorker extends NIOAgent {
 			}
 		}
     }
-    
-    
-    
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {

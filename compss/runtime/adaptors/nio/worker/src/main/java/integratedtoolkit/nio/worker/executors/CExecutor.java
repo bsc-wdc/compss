@@ -25,20 +25,30 @@ public class CExecutor extends ExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits) {
         ArrayList<String> lArgs = new ArrayList<String>();
 
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
-        reqs.append("NX_ARGS='--smp-cpus=").append(nt.getResourceDescription().getTotalComputingUnits());
+        int numCUs = nt.getResourceDescription().getTotalComputingUnits();
+        reqs.append("NX_ARGS='--smp-cpus=").append(numCUs);
 
         // Debug mode on
         if (workerDebug) {
             reqs.append(" --summary");
         }
         reqs.append("' ");
+           
+        // Taskset string to bind the job
+		StringBuilder taskset = new StringBuilder();
+		taskset.append("taskset -c ");
+		for (int i = 0; i < (numCUs - 1); i++){
+			taskset.append(assignedCoreUnits[i]).append(",");
+		}
+		
+		taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
 
-        lArgs.add(reqs.toString() + nw.getAppDir() + WORKER_C_RELATIVE_PATH);
+        lArgs.add(reqs.toString() + taskset.toString() + nw.getAppDir() + WORKER_C_RELATIVE_PATH);
 
         return lArgs;
     }

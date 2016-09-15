@@ -86,6 +86,9 @@ public class NIOWorker extends NIOAgent {
     private static ThreadPrintStream err;
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
+    
+    // Bound CoreUnits
+    private int[] boundCoreUnits;
 
     static {
         try {
@@ -117,6 +120,12 @@ public class NIOWorker extends NIOAgent {
         this.libraryPath = libPath.equals("null") ? "" : libPath;
         this.classpath = classpath.equals("null") ? "" : classpath;
         this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;
+        
+        // Set every CoreUnit assigned job to -1 (no job assigned to that CU)
+        this.boundCoreUnits = new int[numJobThreads];
+        for (int i = 0; i < numJobThreads; i++){
+        	boundCoreUnits[i] = -1;
+        }
 
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
@@ -200,6 +209,54 @@ public class NIOWorker extends NIOAgent {
     public String getPythonpath() {
         return this.pythonpath;
     }
+    
+    // Bind numCUs core units to the job
+    public int[] bindCoreUnits(int jobId, int numCUs){
+    	int assignedCoreUnits[] = new int[numCUs];
+		boolean done = false;
+		int assigned = 0;
+		int i = 0;
+	
+		//Assign free CUs to the job
+		while ((!done) && (i < boundCoreUnits.length)){
+			if (boundCoreUnits[i] == -1){
+				synchronized(boundCoreUnits){	
+					if (boundCoreUnits[i] == -1){
+						boundCoreUnits[i] = jobId;
+	    				assignedCoreUnits[assigned] = i;
+	    				assigned++;
+					}
+				}
+			}
+			i++;
+			done = (assigned == numCUs);
+		}
+		
+		//If the job doesn't have all the CUs it needs, it will run on occupied ones
+		i = 0;
+		while (!done){
+			if (boundCoreUnits[i] != jobId){
+				assignedCoreUnits[assigned] = i;
+				assigned++;
+			}
+			i++;
+			done = (assigned == numCUs);
+		}
+
+		return assignedCoreUnits;
+    }
+    
+    // Release core units occupied by the job
+    public void releaseCoreUnits(int jobId){
+		for (int i = 0; i < boundCoreUnits.length; i++){
+			if (boundCoreUnits[i] == jobId){
+				boundCoreUnits[i] = -1;
+			}
+		}
+    }
+    
+    
+    
 
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {

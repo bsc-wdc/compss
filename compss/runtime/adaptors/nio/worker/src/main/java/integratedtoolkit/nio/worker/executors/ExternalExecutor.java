@@ -68,15 +68,15 @@ public abstract class ExternalExecutor extends Executor {
     }
 
     @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename) throws Exception {
-        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir());
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) throws Exception {
+        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir(), assignedCoreUnits);
         addArguments(args, nt, nw);
         String externalCommand = getArgumentsAsString(args);
 
         String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename 
                 + NIOWorker.SUFFIX_ERR + TOKEN_SEP + externalCommand;
 
-        executeExternal(nt.getJobId(), command, nt);
+        executeExternal(nt.getJobId(), command, nt, nw);
     }
 
     @Override
@@ -126,7 +126,7 @@ public abstract class ExternalExecutor extends Executor {
         logger.info("End Finishing ExternalExecutor");
     }
 
-    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox);
+    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits);
 
     private String getArgumentsAsString(ArrayList<String> args) {
         StringBuilder sb = new StringBuilder();
@@ -180,7 +180,7 @@ public abstract class ExternalExecutor extends Executor {
         }
     }
 
-    private void executeExternal(int jobId, String command, NIOTask nt) throws JobExecutionException {
+    private void executeExternal(int jobId, String command, NIOTask nt, NIOWorker nw) throws JobExecutionException {
         // Emit start task trace
         int taskType = nt.getTaskType() + 1; // +1 Because Task ID can't be 0 (0 signals end task)
         int taskId = nt.getTaskId();

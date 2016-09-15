@@ -32,7 +32,7 @@ public class PythonExecutor extends ExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox) {
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits) {
         ArrayList<String> lArgs = new ArrayList<String>();
 
         if (pythonPersistentWorker) {

@@ -62,6 +62,7 @@
 		<module>29-pscos</module>
 		<module>30-mpi</module>
 		<module>31-graph</module>
+		<module>32-remoteFile</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

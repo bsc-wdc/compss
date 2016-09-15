@@ -24,8 +24,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     public static final boolean debug = logger.isDebugEnabled();
 
-    protected static final String ANY_PROT = "any://";
-
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
 

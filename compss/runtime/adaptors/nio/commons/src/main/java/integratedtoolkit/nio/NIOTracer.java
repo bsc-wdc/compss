@@ -1,10 +1,12 @@
 package integratedtoolkit.nio;
 
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.util.Tracer;
 import integratedtoolkit.util.StreamGobbler;
 import es.bsc.cepbatools.extrae.Wrapper;
 
+import java.io.File;
 import java.io.IOException;
 
 import static java.lang.Math.abs;
@@ -36,8 +38,8 @@ public class NIOTracer extends Tracer {
         }
 
         if (debug) {
-            logger.debug("NIO uri File: " + "any:///" + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
-            logger.debug("any:///" + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+            logger.debug("NIO uri File: " + Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+            logger.debug(Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
         }
     }
 

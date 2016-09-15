@@ -14,5 +14,15 @@ public interface ExternalItf {
 		@Parameter (type = Type.STRING, direction = Direction.IN) String newName, 
 		@Parameter (type = Type.OBJECT, direction = Direction.IN) Person p
 	);
+	
+    @Method(declaringClass = "model.Person")
+    public void taskMap(
+        @Parameter (type = Type.STRING, direction = Direction.IN) String newName
+    );
+    
+    @Method(declaringClass = "model.Person")
+    public void taskReduce(
+        @Parameter (type = Type.OBJECT, direction = Direction.IN) Person p2
+    );
 
 }

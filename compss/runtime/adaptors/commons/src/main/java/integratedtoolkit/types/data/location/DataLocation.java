@@ -92,11 +92,12 @@ public abstract class DataLocation implements Comparable<DataLocation> {
                 loc = createLocation(Protocol.FILE_URI, host, canonicalPath);
                 break;
             case SHARED_URI:
-                // Shared file
-                String sharedDisk = uri.getHost(); // The shared Disk name is stored as host in the URI
-                String path = uri.getPath();
-                logger.debug("Creating new SharedLocation: " + protocol.getSchema() + host.getName() + "@" + sharedDisk + path);
-                loc = new SharedLocation(Protocol.SHARED_URI, sharedDisk, path);
+                // Shared file of the form: shared://sharedDisk/path/file
+                int splitIndex = uri.getPath().indexOf(File.separator); // First slash occurrence
+                String diskName = uri.getPath().substring(0, splitIndex);
+                String path = uri.getPath().substring(splitIndex + 1);
+                logger.debug("Creating new SharedLocation: " + protocol.getSchema() + "@" + diskName + path);
+                loc = new SharedLocation(Protocol.SHARED_URI, diskName, path);
                 break;
             case OBJECT_URI:
                 // Object

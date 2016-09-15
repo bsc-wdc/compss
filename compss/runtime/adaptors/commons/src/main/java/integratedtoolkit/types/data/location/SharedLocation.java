@@ -27,6 +27,10 @@ public class SharedLocation extends DataLocation {
         if (diskPath == null) {
             return null;
         }
+        if (!diskPath.endsWith(File.separator)) {
+            diskPath = diskPath + File.separator;
+        }
+        
         return new MultiURI(this.protocol, host, diskPath + this.path);
     }
 
@@ -45,6 +49,10 @@ public class SharedLocation extends DataLocation {
         LinkedList<MultiURI> uris = new LinkedList<MultiURI>();
         for (Resource host : SharedDiskManager.getAllMachinesfromDisk(diskName)) {
             String diskPath = SharedDiskManager.getMounpoint(host, diskName);
+            if (!diskPath.endsWith(File.separator)) {
+                diskPath = diskPath + File.separator;
+            }
+            
             uris.add(new MultiURI(this.protocol, host, diskPath + path));
         }
         return uris;
@@ -59,7 +67,7 @@ public class SharedLocation extends DataLocation {
     public boolean isTarget(DataLocation target) {
         String targetDisk;
         String targetPath;
-        if (target.getType() == DataLocation.Type.PRIVATE) {
+        if (target.getType().equals(DataLocation.Type.PRIVATE)) {
             PrivateLocation privateLoc = (PrivateLocation) target;
             targetDisk = null; // TODO: extract from URI
             targetPath = privateLoc.getPath();

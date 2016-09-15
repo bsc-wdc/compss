@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.util.List;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
@@ -31,7 +32,6 @@ public class CleanerExecutor {
     /**
      * Constants
      */
-    private static final String ANY_PROT = "any://";
     private static final String THREAD_POOL_START_ERR = "Error starting pool of threads";
     private static final String THREAD_POOL_STOP_ERR = "Error stopping pool of threads";
     private static final String CLEAN_JOB_ERR = "Error running clean job";
@@ -140,7 +140,7 @@ public class CleanerExecutor {
                     user += "@";
                 }
                 SoftwareDescription sd = new SoftwareDescription();
-                sd.addAttribute("uri", ANY_PROT + user + script.getHost());
+                sd.addAttribute("uri", Protocol.ANY_URI + user + script.getHost());
                 sd.setExecutable(script.getPath());
                 sd.setArguments(cleanParam.split(" "));
 
@@ -152,10 +152,10 @@ public class CleanerExecutor {
                 if (debug) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(node.getContext(),
-                                ANY_PROT + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
+                                Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(node.getContext(),
-                                ANY_PROT + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
+                                Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
                     }

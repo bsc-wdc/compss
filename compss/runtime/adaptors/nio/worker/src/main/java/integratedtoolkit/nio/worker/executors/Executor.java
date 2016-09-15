@@ -90,7 +90,6 @@ public abstract class Executor implements Runnable {
     }
 
     public final boolean execute(NIOTask nt, NIOWorker nw) {
-
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.Event.TASK_RUNNING.getId(), NIOTracer.Event.TASK_RUNNING.getType());
         }
@@ -105,13 +104,13 @@ public abstract class Executor implements Runnable {
 
         // Execute task
         try {
-        	int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalComputingUnits());
-        	executeTask(nw, nt, outputsBasename, assignedCoreUnits);
+            int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalComputingUnits());
+            executeTask(nw, nt, outputsBasename, assignedCoreUnits);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return false;
         } finally {
-        	nw.releaseCoreUnits(nt.getJobId());
+            nw.releaseCoreUnits(nt.getJobId());
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
             }

@@ -86,7 +86,7 @@ def worker(queue, process_name, input_pipe, output_pipe):
     stdout = sys.stdout
     stderr = sys.stderr
 
-    print "[PYTHON WORKER] Starting process ", process_name
+    print("[PYTHON WORKER] Starting process ", process_name)
     while alive:
         with open(input_pipe, 'r', 0) as in_pipe:
             for line in in_pipe:
@@ -97,8 +97,8 @@ def worker(queue, process_name, input_pipe, output_pipe):
                         job_id = line[1]
                         job_out = line[2]
                         job_err = line[3]
-                        print "[PYTHON WORKER] Received task at ", process_name
-                        print "[PYTHON WORKER] - TASK CMD: ", line
+                        print("[PYTHON WORKER] Received task at ", process_name)
+                        print("[PYTHON WORKER] - TASK CMD: ", line)
                         try:
                             sys.stdout = open(job_out, 'w')
                             sys.stderr = open(job_err, 'w')
@@ -109,21 +109,21 @@ def worker(queue, process_name, input_pipe, output_pipe):
                             # endTask jobId exitValue
                             message = END_TASK_TAG + " " + str(job_id) \
                                       + " " + str(exitvalue) + "\n"
-                            print "[PYTHON WORKER] - Pipe ", output_pipe, " END TASK MESSAGE: ", message
+                            print("[PYTHON WORKER] - Pipe ", output_pipe, " END TASK MESSAGE: ", message)
                             with open(output_pipe, 'w+') as out_pipe:
                                 out_pipe.write(message)
                         except Exception, e:
-                            print "[PYTHON WORKER] Exception ", e
+                            print("[PYTHON WORKER] Exception ", e)
                             queue.put("EXCEPTION")
                     elif line[0] == QUIT_TAG:
                         # Received quit message -> Suicide
-                        print "[PYTHON WORKER] Received quit at ", process_name
+                        print("[PYTHON WORKER] Received quit at ", process_name)
                         alive = False
 
     # TRACING
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-    print "[PYTHON WORKER] Exiting process ", process_name
+    print("[PYTHON WORKER] Exiting process ", process_name)
 
 
 #####################################
@@ -133,7 +133,7 @@ def execute_task(process_name, params):
     """
     ExecuteTask main method
     """
-    print "[PYTHON WORKER] Begin task execution"
+    print("[PYTHON WORKER] Begin task execution")
     logger = logging.getLogger('pycompss.worker.worker')
     logger.debug("Starting Worker")
 
@@ -202,8 +202,8 @@ def execute_task(process_name, params):
         #    pass
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
-            print "[PYTHON WORKER] Error: Invalid type for parameter" + str(i)
-            print "[PYTHON WORKER] End task execution."
+            print("[PYTHON WORKER] Error: Invalid type for parameter" + str(i))
+            print("[PYTHON WORKER] End task execution.")
             return 1
 
         pos += 2
@@ -252,8 +252,8 @@ def execute_task(process_name, params):
         logger.exception(''.join(line for line in lines))
         logger.exception("Check that all parameters have been defined with " +
                          "an absolute import path (even if in the same file)")
-        print "[PYTHON WORKER] Error: Attribute Error Exception"
-        print "[PYTHON WORKER] End task execution."
+        print("[PYTHON WORKER] Error: Attribute Error Exception")
+        print("[PYTHON WORKER] End task execution.")
         return 1
     # ==========================================================================
     except ImportError, e:
@@ -316,12 +316,12 @@ def execute_task(process_name, params):
         logger.exception("WORKER EXCEPTION")
         logger.exception(''.join(line for line in lines))
 
-        print "[PYTHON WORKER] Error: Worker Exception", e
-        print "[PYTHON WORKER] End task execution."
+        print("[PYTHON WORKER] Error: Worker Exception", e)
+        print("[PYTHON WORKER] End task execution.")
         return 1
 
     # EVERYTHING OK
-    print "[PYTHON WORKER] End task execution. Status: Ok"
+    print("[PYTHON WORKER] End task execution. Status: Ok")
 
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -340,7 +340,7 @@ def shutdown_handler(signal, frame):
 ######################
 
 def compss_persistent_worker():
-    print "[PYTHON WORKER] Piper wake up"
+    print("[PYTHON WORKER] Piper wake up")
 
     # Get args  
     debug = (sys.argv[1] == 'true')
@@ -349,14 +349,14 @@ def compss_persistent_worker():
     in_pipes = sys.argv[4:4 + tasks_x_node]
     out_pipes = sys.argv[4 + tasks_x_node:]
 
-    print "-----------"
-    print "Parameters:"
-    print "-----------"
-    print "Debug          : ", debug
-    print "Tracing        : ", tracing
-    print "Tasks per node : ", tasks_x_node
-    print "In Pipes       : ", in_pipes
-    print "Out Pipes      : ", out_pipes
+    print("-----------")
+    print("Parameters:")
+    print("-----------")
+    print("Debug          : ", debug)
+    print("Tracing        : ", tracing)
+    print("Tasks per node : ", tasks_x_node)
+    print("In Pipes       : ", in_pipes)
+    print("Out Pipes      : ", out_pipes)
 
     if debug:
         assert tasks_x_node == len(in_pipes)
@@ -374,7 +374,7 @@ def compss_persistent_worker():
     # Create new threads
     queues = []
     for i in xrange(0, tasks_x_node):
-        print "[PYTHON WORKER] Launching process ", i
+        print("[PYTHON WORKER] Launching process ", i)
         process_name = 'Process-' + str(i)
         queues.append(Queue())
         processes.append(Process(target=worker, args=(queues[i],
@@ -393,9 +393,9 @@ def compss_persistent_worker():
     # Check if there is any exception message from the threads
     for i in xrange(0, tasks_x_node):
         if not queues[i].empty:
-            print queues[i].get()
+            print(queues[i].get())
 
-    print "[PYTHON WORKER] Finished"
+    print("[PYTHON WORKER] Finished")
 
 
 ############################

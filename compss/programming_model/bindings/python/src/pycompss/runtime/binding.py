@@ -106,13 +106,26 @@ def stop_runtime():
 
 def get_file(file_name, mode):
     """
-    Calls the the external python library (that calls the bindings-common) in order to request a file.
+    Calls the external python library (that calls the bindings-common) in order to request a file.
     :return: The current name of the file requested (that may have been renamed during runtime).
     """
     logger.debug("Getting file %s with mode %s" % (file_name, mode))
     compss_name = compss.get_file(file_name, mode)
     logger.debug("COMPSs file name is %s" % compss_name)
     return compss_name
+
+
+def delete_file(file_name):
+    """
+    Calls the external python library (that calls the bindings-common) in order to request a file removal.
+    :param file_name: File name to remove
+    """
+    logger.debug("Deleting file %s" %(file_name))
+    result = compss.delete(file_name)
+    if result == "true":
+        logger.debug("File %s successfully deleted." % (file_name))
+    else:
+        logger.error("Failed to remove file %s." % (file_name))
 
 
 def get_logPath():

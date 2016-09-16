@@ -198,6 +198,22 @@ get_file(PyObject *self, PyObject *args)
     return Py_BuildValue("s", compss_name);
 }
 
+
+static PyObject *
+delete_file(PyObject *self, PyObject *args)
+{
+    //printf ("####C#### DELETE FILE\n");
+
+    char *file_name = PyString_AsString(PyTuple_GetItem(args, 0));
+    int *result;
+    GS_Delete_File(file_name, &result);
+
+    //printf("####C#### COMPSs delete file name %s with result %i \n", (file_name, result));
+
+    return Py_BuildValue("i", result);
+}
+
+
 static PyObject *
 get_logging_path(PyObject *self, PyObject *args)
 {
@@ -262,6 +278,8 @@ static PyMethodDef CompssMethods[] = {
     { "process_task", process_task, METH_VARARGS, "Process a task call from the application." },
 
     { "get_file", get_file, METH_VARARGS, "Get a file for opening. The file can contain an object." },
+
+    { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
 
 	{ "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
 

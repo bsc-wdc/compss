@@ -9,7 +9,9 @@ PyCOMPSs API
 """
 
 from pycompss.runtime.binding import start_runtime, stop_runtime
-from pycompss.runtime.binding import get_file, synchronize, get_compss_mode
+from pycompss.runtime.binding import get_file, delete_file
+from pycompss.runtime.binding import synchronize, get_compss_mode
+
 from pycompss.runtime.binding import Future
 import types
 
@@ -39,6 +41,14 @@ def compss_open(file_name, mode='r'):
     compss_mode = get_compss_mode(mode)
     compss_name = get_file(file_name, compss_mode)
     return open(compss_name, mode)
+
+
+def compss_delete(file_name):
+    """
+    Delete a file -> Calls runtime.
+    :param file_name: File name.
+    """
+    delete_file(file_name)
 
 
 def compss_wait_on(obj, to_write=True):

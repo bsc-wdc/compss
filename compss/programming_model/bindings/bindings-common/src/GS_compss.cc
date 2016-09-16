@@ -32,6 +32,7 @@ jmethodID midRegisterCE; 	/* ID of the RegisterCE method in the integratedtoolki
 jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
 jmethodID midOpenFile; 		/* ID of the openFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
 jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
 jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
@@ -183,6 +184,13 @@ void init_jni_types() {
   
   // openFile method
   midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Lintegratedtoolkit/api/COMPSsRuntime$DataDirection;)Ljava/lang/String;");
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  
+  // deleteFile method
+  midDeleteFile = env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String)I");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -710,6 +718,17 @@ void GS_Get_File(char *file_name, int mode, char **buf)
   env->ReleaseStringUTFChars(jstr, cstr);
   
   debug_printf("[   BINDING]  -  @GS_Get_File  -  COMPSs filename: %s\n", *buf);
+}
+
+
+void GS_Delete_File(char *file_name, int **buf)
+{
+  env->CallVoidMethod(jobjIT, midDeleteFile, env->NewStringUTF(file_name));
+  if (env->ExceptionOccurred()) {
+      env->ExceptionDescribe();
+      exit(0);
+  }
+  debug_printf("[   BINDING]  -  @GS_Delete_File  -  COMPSs filename: %s\n", *file_name);
 }
 
 void GS_EmitEvent(int type, long id)

@@ -6,9 +6,8 @@ PyCOMPSs Utils - JVM Configuration Parser
     This file contains all methods required to parse the jvm options file.
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
+# import logging
+# logger = logging.getLogger(__name__)
 
 def convertToDict(jvm_opt_file):
     """
@@ -16,7 +15,7 @@ def convertToDict(jvm_opt_file):
     :param jvm_opt_file: JVM parameters file
     :return: Dictionary with the parameters specified on the file.
     """
-    logger.debug("Parsing JVM options file: %s" % jvm_opt_file)
+    # logger.debug("Parsing JVM options file: %s" % jvm_opt_file)
     opts = {}
     with open(jvm_opt_file) as fp:
         for line in fp:

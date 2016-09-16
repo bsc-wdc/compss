@@ -9,7 +9,7 @@
 #include "param_metadata.h"
 
 // Uncomment the following define to get debug information.
-//#define DEBUG_BINDING
+// #define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args)
@@ -143,9 +143,9 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   vm_args.ignoreUnrecognized = false;
   
   int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
-  if (ret < 0)
-    debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM\n");
-  
+  if (ret < 0){
+    debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
+  }
   return env;
 }
 
@@ -190,7 +190,7 @@ void init_jni_types() {
   }
   
   // deleteFile method
-  midDeleteFile = env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String)I");
+  midDeleteFile = env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z"); 
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);

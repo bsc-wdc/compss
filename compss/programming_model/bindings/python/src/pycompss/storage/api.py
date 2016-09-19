@@ -10,10 +10,24 @@ Storage dummy connector
 """
 
 
-def init(config_file_path=None, **kargs):
+def init(config_file_path=None, **kwargs):
+    print "-----------------------------------------------------"
+    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    print "| Call to: init function.                           |"
+    print "| Parameters: config_file_path = " + config_file_path
+    for key in kwargs:
+        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
+    print "-----------------------------------------------------"
     pass
 
-def finish(**kargs):
+
+def finish(**kwargs):
+    print "-----------------------------------------------------"
+    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    print "| Call to: finish function.                         |"
+    for key in kwargs:
+        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
+    print "-----------------------------------------------------"
     pass
 
 
@@ -25,23 +39,32 @@ def getByID(obj):
     @param obj: key/object of the object to be retrieved.
     @return: the real object. 
     """
+    print "-----------------------------------------------------"
+    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    print "| Call to: getByID                                  |"
+    print "|   *********************************************   |"
+    print "|   *** Check that you really want to use the ***   |"
+    print "|   ************* dummy storage api *************   |"
+    print "|   *********************************************   |"
+    print "-----------------------------------------------------"
     return obj
 
-class TaskContext( object ):
+
+class TaskContext(object):
     
     def __init__(self, logger, values, config_file_path=None, **kwargs):
         self.logger = logger
         self.values = values
         self.config_file_path = config_file_path
     
-    def __enter__( self ):
+    def __enter__(self):
         # Do something prolog
     
         # Ready to start the task
         self.logger.info("Prolog finished")
         pass
     
-    def __exit__( self, type, value, traceback ):
+    def __exit__(self, type, value, traceback):
         # Do something epilog
     
         # Finished

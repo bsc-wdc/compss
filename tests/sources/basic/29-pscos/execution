@@ -46,7 +46,7 @@ EOF
      --lang=java \
      --comm=$comm \
      --storage_conf=${storageConf} \
-     --jvm_workers_opts="-Dit.worker.removeWD=false" \
+     --jvm_workers_opts="-Dit.worker.removeWD=true" \
      --classpath=${base_app_dir}/pscos.jar:${storageImplPath} \
      testPSCOInternal.Internal > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

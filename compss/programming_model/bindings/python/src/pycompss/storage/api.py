@@ -11,23 +11,27 @@ Storage dummy connector
 
 
 def init(config_file_path=None, **kwargs):
+    '''
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
     print "| Call to: init function.                           |"
-    print "| Parameters: config_file_path = " + config_file_path
+    print "| Parameters: config_file_path = None"
     for key in kwargs:
         print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
     print "-----------------------------------------------------"
+    '''
     pass
 
 
 def finish(**kwargs):
+    '''
     print "-----------------------------------------------------"
     print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
     print "| Call to: finish function.                         |"
     for key in kwargs:
         print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
     print "-----------------------------------------------------"
+    '''
     pass
 
 

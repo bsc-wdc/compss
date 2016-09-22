@@ -117,6 +117,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (manager.getAppName() != null && System.getProperty(ITConstants.IT_APP_NAME) == null) {
                     System.setProperty(ITConstants.IT_APP_NAME, manager.getAppName());
                 }
+                if (manager.getTaskSummary() != null && System.getProperty(ITConstants.IT_TASK_SUMMARY) == null) {
+                    System.setProperty(ITConstants.IT_TASK_SUMMARY, manager.getTaskSummary());
+                }
                 if (manager.getCOMPSsBaseLogDir() != null && System.getProperty(ITConstants.IT_BASE_LOG_DIR) == null) {
                     System.setProperty(ITConstants.IT_BASE_LOG_DIR, manager.getCOMPSsBaseLogDir());
                 }
@@ -391,7 +394,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             }
             
             // Add task summary
-            td.getTaskSummary(logger);
+            boolean taskSummaryEnabled = System.getProperty(ITConstants.IT_TASK_SUMMARY) != null
+                    && !System.getProperty(ITConstants.IT_TASK_SUMMARY).isEmpty()
+                    && Boolean.valueOf(System.getProperty(ITConstants.IT_TASK_SUMMARY));
+            if (taskSummaryEnabled) {
+                td.getTaskSummary(logger);
+            }
 
             // Stop monitor components
             logger.info("Stop IT reached");

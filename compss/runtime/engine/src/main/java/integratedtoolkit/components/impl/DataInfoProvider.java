@@ -128,13 +128,6 @@ public class DataInfoProvider {
             // Inform the File Transfer Manager about the new file containing the object
             if (mode != AccessMode.W) {
                 Comm.registerValue(renaming, value);
-                // Register PSCO Location if needed it's PSCO and it's persisted
-                if (value instanceof StubItf) {
-                    String id = ((StubItf) value).getID();
-                    if (id != null) {
-                        Comm.registerPSCO(renaming, id);
-                    }
-                }
             }
         } else {
             // The datum has already been accessed

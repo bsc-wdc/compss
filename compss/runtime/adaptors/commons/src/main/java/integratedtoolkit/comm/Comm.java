@@ -10,6 +10,7 @@ import java.lang.reflect.Constructor;
 
 import storage.StorageException;
 import storage.StorageItf;
+import storage.StubItf;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.resources.MasterResource;
@@ -131,16 +132,20 @@ public class Comm {
 
     public static synchronized LogicalData registerData(String dataId) {
         logger.debug("Register new data " + dataId);
+        
         LogicalData logicalData = new LogicalData(dataId);
         data.put(dataId, logicalData);
+        
         return logicalData;
     }
 
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         logger.debug("Registering new Location for data " + dataId + ":");
         logger.debug("  * Location: " + location);
+        
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
+        
         return logicalData;
     }
 
@@ -159,6 +164,14 @@ public class Comm {
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
         logicalData.setValue(value);
+        
+        // Register PSCO Location if needed it's PSCO and it's persisted
+        if (value instanceof StubItf) {
+            String id = ((StubItf) value).getID();
+            if (id != null) {
+                Comm.registerPSCO(dataId, id);
+            }
+        }
 
         return logicalData;
     }

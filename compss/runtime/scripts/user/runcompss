@@ -5,6 +5,8 @@
 #---------------------------------------------------
 DEFAULT_LANGUAGE=java
 
+DEFAULT_SUMMARY=false
+
 DEFAULT_LOG_LEVEL=off
 DEFAULT_LOG_LEVEL_ARGUMENT=debug
 LOG_LEVEL_DEBUG=debug
@@ -82,6 +84,8 @@ show_opts() {
                                             Default: ${DEFAULT_RESOURCES}                                                 
     --lang=<name>                           Language of the application (java/c/python)
                                             Default: ${DEFAULT_LANGUAGE}
+    --summary                               Displays a task execution summary at the end of the application execution
+                                            Default: ${DEFAULT_SUMMARY}
     --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
                                             Default: ${DEFAULT_LOG_LEVEL}
 
@@ -270,18 +274,22 @@ get_args() {
 	    # Custom project file
 	    projFile=$(echo $OPTARG | sed -e 's/project=//g')
 	    if [ ! -f $projFile ]; then
-	    	echo "[ WARNING ]: Project XML file '$projFile' could not be found."
+	      echo "[ WARNING ]: Project XML file '$projFile' could not be found."
 	    fi 
 	    ;;
 	  resources=*)
 	    # Custom resources file
 	    resFile=$(echo $OPTARG | sed -e 's/resources=//g')
 	    if [ ! -f $resFile ]; then
-	    	echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
-	    fi ;;
+	      echo "[ WARNING ]: Resources XML file '$resFile' could not be found."
+	    fi
+            ;;
+          summary)
+            summary=true
+            ;;
 	  storage_conf=*)
-             storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
-             ;;
+            storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
+            ;;
 	  task_execution=*)
 	    # Task execution under COMPSs or Storage 
 	    taskExecution=$(echo $OPTARG | sed -e 's/task_execution=//g')
@@ -302,7 +310,7 @@ get_args() {
 	    # Graph generation at the end of the execution with user option
 	    graph=$(echo $OPTARG | sed -e 's/graph=//g')
 	    ;;
-	  graph*)
+	  graph)
 	    # Graph generation at the end of the execution by default arg
 	    graph=${DEFAULT_GRAPH_ARGUMENT}
 	    ;;
@@ -310,7 +318,7 @@ get_args() {
             # Tracing system
             tracing=$(echo $OPTARG | sed -e 's/tracing=//g')
             ;;
-          tracing*)
+          tracing)
             # Tracing system
             tracing=${DEFAULT_TRACING_ARGUMENT}
             ;;
@@ -322,7 +330,7 @@ get_args() {
 	    # Value between monitor steps (ms)
 	    monitoring=$(echo $OPTARG | sed -e 's/monitoring=//g')
 	    ;;
-	  monitoring*)
+	  monitoring)
 	    # Value between monitor steps (ms)
 	    monitoring=${DEFAULT_MONITORING_INTERVAL_ARGUMENT}
 	    ;;
@@ -355,7 +363,7 @@ get_args() {
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=$(echo $OPTARG | sed -e 's/external-debugger=//g')
             ;;
-          external_debugger*)
+          external_debugger)
             # Enable default external debugger
             external_debugger=${DEFAULT_DEBUGGER_ARGUMENT}
             external_debugger_port=${DEFAULT_DEBUGGER_PORT}
@@ -437,6 +445,10 @@ check_args() {
   if [ -z "$resFile" ]; then
     echo "[  INFO] Using default location for resources file: ${DEFAULT_RESOURCES}"
     resFile=${DEFAULT_RESOURCES}
+  fi
+
+  if [ -z "${summary}" ]; then
+    summary=${DEFAULT_SUMMARY}
   fi
 
   if [ -z "$lang" ]; then
@@ -643,6 +655,7 @@ ${jvm_debugger_opts}
 -Dit.project.schema=${IT_HOME}/Runtime/configuration/xml/projects/project_schema.xsd
 -Dit.resources.schema=${IT_HOME}/Runtime/configuration/xml/resources/resources_schema.xsd
 -Dit.lang=${lang}
+-Dit.summary=${summary}
 -Dit.task.execution=$taskExecution
 -Dit.storage.conf=$storageConf
 -Dit.core.count=${task_count}

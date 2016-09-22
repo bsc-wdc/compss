@@ -30,7 +30,6 @@ public class ITConstants {
         PYTHON
     }
 
-
     // Dynamic system properties
     public static final String IT_APP_NAME = "it.appName";
     public static final String IT_MASTER_NAME = "it.masterName";
@@ -53,6 +52,7 @@ public class ITConstants {
     public static final String IT_SERVICE_NAME = "it.serviceName";
 
     public static final String IT_LANG = "it.lang";
+    public static final String IT_TASK_SUMMARY = "it.summary";
     public static final String IT_WORKER_CP = "it.worker.cp";
     public static final String IT_WORKER_PP = "it.worker.pythonpath";
     public static final String IT_WORKER_JVM_OPTS = "it.worker.jvm_opts";

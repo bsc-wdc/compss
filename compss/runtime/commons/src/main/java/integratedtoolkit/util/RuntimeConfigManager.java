@@ -59,6 +59,18 @@ public class RuntimeConfigManager {
     public String getAppName() {
         return config.getString(ITConstants.IT_APP_NAME);
     }
+    
+    public void setAppName(String name) {
+        config.setProperty(ITConstants.IT_APP_NAME, name);
+    }
+    
+    public String getTaskSummary() {
+        return config.getString(ITConstants.IT_TASK_SUMMARY);
+    }
+    
+    public void setTaskSummary(String value) {
+        config.setProperty(ITConstants.IT_TASK_SUMMARY, value);
+    }
 
     public String getCOMPSsBaseLogDir() {
         return config.getString(ITConstants.IT_BASE_LOG_DIR);
@@ -66,10 +78,6 @@ public class RuntimeConfigManager {
 
     public String getSpecificLogDir() {
         return config.getString(ITConstants.IT_SPECIFIC_LOG_DIR);
-    }
-
-    public void setAppName(String name) {
-        config.setProperty(ITConstants.IT_APP_NAME, name);
     }
 
     public String getProjectFile() {

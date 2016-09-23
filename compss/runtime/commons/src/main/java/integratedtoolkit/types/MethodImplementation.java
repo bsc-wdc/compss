@@ -23,11 +23,14 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
     }
 
     private String declaringClass;
+    //In C implementations could have different method names
+    private String alternativeMethod;
 
 
-    public MethodImplementation(String methodClass, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
+    public MethodImplementation(String methodClass, String altMethodName, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
         super(coreId, implementationId, annot);
         this.declaringClass = methodClass;
+        this.alternativeMethod = altMethodName;
     }
 
     public String getDeclaringClass() {
@@ -72,9 +75,12 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
         return Type.METHOD;
     }
 
+    public String getAlternativeMethodName(){
+    	return alternativeMethod;
+    }
     @Override
     public String toString() {
-        return super.toString() + " Method declared in class " + declaringClass + ": " + requirements.toString();
+        return super.toString() + " Method declared in class " + declaringClass + "." +alternativeMethod+": " + requirements.toString();
     }
 
 }

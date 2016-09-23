@@ -21,10 +21,12 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
     private final String signature;
     private final String declaringClass;
     private final MethodResourceDescription mrd;
+	private String methodName;
 
 
-    public CERegistration(String signature, String declaringClass, MethodResourceDescription mrd, Semaphore sem) {
+    public CERegistration(String signature, String methodName, String declaringClass, MethodResourceDescription mrd, Semaphore sem) {
         this.signature = signature;
+        this.methodName = methodName;
         this.declaringClass = declaringClass;
         this.mrd = mrd;
         this.sem = sem;
@@ -54,8 +56,8 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         int coreId = CoreManager.getCoreId(new String[] { signature });
 
         int implementationId = 0; // python can just have 1 implementation due to lack of interfaces
-
-        MethodImplementation me = new MethodImplementation(declaringClass, coreId, implementationId, mrd);
+        MethodImplementation me = new MethodImplementation(declaringClass, methodName, coreId, implementationId, mrd);
+        logger.debug("Registering Implementation "+me.toString());
         Implementation<?>[] impls = new Implementation[] { me };
 
         CoreManager.registerImplementations(coreId, impls);

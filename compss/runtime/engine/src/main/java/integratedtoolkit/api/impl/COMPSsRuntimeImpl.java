@@ -466,7 +466,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, params);
 
-        td.registerCEI(signature, methodClass, mrd);
+        td.registerCEI(signature, methodName, methodClass, mrd);
     }
 
     /**

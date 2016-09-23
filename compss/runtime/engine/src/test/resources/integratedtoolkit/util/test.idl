@@ -1,4 +1,4 @@
-interface Test {
+﻿interface Test {
         @Constraints(ComputingUnits=2, ProcessorArchitecture=x86_64);
         void Test01(in File fileIn, in char charIn, in wchar wcharIn, 
         	in boolean booleanIn, in short shortIn, in long longIn, 
@@ -9,6 +9,15 @@ interface Test {
         	StorageSize=10);
         # Ignored
         void Test02(out string stringOut);
+
+	  @Constraints(ComputingUnits=2, MemorySize=4);
+	  @Implements(Test02);
+	  void Test02_impl_1(out string stringOut);
+        
+        
+	  @Implements(Test02);
+	  void Test02_impl_2(out string stringOut);
+        
         //Comment
         void Test03(out File fileOut, out char charOut, out wchar wcharOut,
             out boolean booleanOut, out short shortOut, out long longOut, 

@@ -221,7 +221,13 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         // Get the information related to the job
         MethodImplementation method = (MethodImplementation) this.impl;
         TaskParams taskParams = this.taskParams;
+        
+        //JEA: Added for supporting implementations with different method names
+        String methodName = method.getAlternativeMethodName();
+        
+        /*JEA Replaced Old Call. If there is no alternative method defined in constraints, this should have the same content as 
         String methodName = taskParams.getName();
+        */
 
         String targetPath = getResourceNode().getInstallDir();
         String targetHost = getResourceNode().getHost();

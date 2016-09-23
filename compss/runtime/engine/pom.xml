@@ -206,6 +206,15 @@
 					</filesets>
 				</configuration>
 			</plugin>
+			<plugin>
+    				<groupId>org.apache.maven.plugins</groupId>
+    				<artifactId>maven-surefire-plugin</artifactId>
+    				<version>${maven-surefire-plugin.version}</version>
+    				<configuration>
+        				<reuseForks>false</reuseForks>
+        				<forkCount>1</forkCount>
+    				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 </project>

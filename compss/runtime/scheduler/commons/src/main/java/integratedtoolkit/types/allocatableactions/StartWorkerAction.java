@@ -37,7 +37,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
         this.ts = ts;
         if (worker.getResource().getType() == Type.WORKER) {
             MethodWorker mw = (MethodWorker) worker.getResource();
-            impl = (Implementation<T>) new MethodImplementation("", null, null, mw.getDescription());
+            impl = (Implementation<T>) new MethodImplementation("", "", null, null, mw.getDescription());
         } else {
             impl = (Implementation<T>) new ServiceImplementation(null, "", "", "", "");
         }

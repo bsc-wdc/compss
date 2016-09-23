@@ -53,7 +53,17 @@ public class NIOJob extends Job<NIOWorkerNode> {
         MethodImplementation method = (MethodImplementation) this.impl;
 
         String className = method.getDeclaringClass();
+        
+        //JEA: Added for supporting implementations with different method names
+        String methodName = method.getAlternativeMethodName();
+        if (methodName== null || methodName.isEmpty()){
+        	methodName = taskParams.getName();
+        }
+        
+        /*JEA Old Call. If there is no alternative method defined in constraints, this should have the same content as 
         String methodName = taskParams.getName();
+        */
+        
         boolean hasTarget = taskParams.hasTargetObject();
 
         LinkedList<NIOParam> params = addParams();

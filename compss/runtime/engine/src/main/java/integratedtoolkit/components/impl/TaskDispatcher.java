@@ -234,12 +234,12 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         }
     }
 
-    public void registerCEI(String signature, String declaringClass, MethodResourceDescription constraints) {
+    public void registerCEI(String signature, String methodName, String declaringClass, MethodResourceDescription constraints) {
         if (debug) {
             logger.debug("Registering CEI");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration<P, T> request = new CERegistration<P, T>(signature, declaringClass, constraints, sem);
+        CERegistration<P, T> request = new CERegistration<P, T>(signature, methodName, declaringClass, constraints, sem);
         addRequest(request);
 
         try {

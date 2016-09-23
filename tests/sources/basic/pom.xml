@@ -63,6 +63,7 @@
 		<module>30-mpi</module>
 		<module>31-graph</module>
 		<module>32-remoteFile</module>
+		<!-- Module 33 is 33-implementations_c -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

@@ -102,6 +102,21 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters);
+    
+    /**
+     * New Global Spawn Method task
+     * 
+     * @param appId
+     * @param methodClass
+     * @param methodName
+     * @param priority
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeGlobalSpawnTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, 
+            int parameterCount, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId

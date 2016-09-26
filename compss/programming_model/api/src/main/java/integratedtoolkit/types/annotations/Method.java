@@ -36,5 +36,12 @@ public @interface Method {
      * @return if the method has priority or not
      */
     boolean priority() default false;
+    
+    /**
+     * Returns if the method must be executed on each available worker or not
+     * 
+     * @return if the method must be executed on each available worker or not
+     */
+    boolean globalSpawn() default false;
 
 }

@@ -36,8 +36,8 @@
     </Logger>
 
     <!-- RUNTIME LOADER -->
-    <!-- Integratedtoolkit.Loader: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.Loader" additivity="FALSE" level="off">
+    <!-- Integratedtoolkit.Loader: DEFAULT = ERROR -->
+    <Logger name="integratedtoolkit.Loader" additivity="FALSE" level="error">
       <AppenderRef ref="Console"/>
     </Logger>
     <!-- Integratedtoolkit.LoaderUtils: DEFAULT = INFO -->

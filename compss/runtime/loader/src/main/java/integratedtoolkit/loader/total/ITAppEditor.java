@@ -51,7 +51,9 @@ public class ITAppEditor extends ExprEditor {
     private static final String IS_TASK_FILE = ".isTaskFile(";
     private static final String OPEN_FILE = ".openFile(";
     private static final String DELETE_FILE = ".deleteFile(";
-    private static final String EXECUTE_TASK = ".executeTask(";
+    private static final String EXECUTE_METHOD_TASK = ".executeTask(";
+    private static final String EXECUTE_SERVICE_TASK = ".executeTask(";
+    private static final String EXECUTE_GLOBAL_SPAWN_TASK = ".executeGlobalSpawnTask(";
     private static final String PROCEED = "$_ = $proceed(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
@@ -63,6 +65,8 @@ public class ITAppEditor extends ExprEditor {
     // Logger
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
     private static final boolean debug = logger.isDebugEnabled();
+    
+    private static final String ERROR_NO_EMTPY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
 
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
@@ -112,8 +116,8 @@ public class ITAppEditor extends ExprEditor {
                             callPars.append(parId);
                         } else { // Object (also array)
                             if (debug) {
-                                logger.debug(
-                                        "Parameter " + (i - 1) + " of constructor " + ne.getConstructor() + " is an object, adding access");
+                                logger.debug("Parameter " + (i - 1) + " of constructor " + ne.getConstructor() 
+                                                + " is an object, adding access");
                             }
 
                             String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ")";
@@ -184,6 +188,8 @@ public class ITAppEditor extends ExprEditor {
      * 
      */
     public void edit(MethodCall mc) throws CannotCompileException {
+        logger.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
+
         Method declaredMethod = null;
         CtMethod calledMethod = null;
         try {
@@ -192,16 +198,20 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
+        
 
         if (declaredMethod != null) {
             // Current method must be executed remotely, change the call
-            String executeTask = replaceLocalMethodCall(mc.getMethodName(), mc.getClassName(), declaredMethod, calledMethod);
-
             if (debug) {
-                logger.debug("Replacing local method call by: " + executeTask);
+                logger.debug("Replacing task method call " + mc.getMethodName());
             }
-
+            
             // Replace the call to the method by the call to executeTask
+            String executeTask = replaceTaskMethodCall(mc.getMethodName(), mc.getClassName(), declaredMethod, calledMethod);
+            if (debug) {
+                logger.debug("Replacing task method call by " + executeTask);
+            }
+            
             mc.replace(executeTask);
         } else if (LoaderUtils.isStreamClose(mc)) {
             if (debug) {
@@ -211,32 +221,56 @@ public class ITAppEditor extends ExprEditor {
             // Close call on a stream
             // No need to instrument the stream object, assuming it will always be local
             String streamClose = replaceCloseStream();
+            if (debug) {
+                logger.debug("Replacing stream close by " + streamClose);
+            }
+            
             mc.replace(streamClose);
         } else if (LoaderUtils.isFileDelete(mc)) {
+            if (debug) {
+                logger.debug("Replacing delete file");
+            }
+            
             String deleteFile = replaceDeleteFile();
+            if (debug) {
+                logger.debug("Replacing delete file by " + deleteFile);
+            }
+            
             mc.replace(deleteFile);
         } else if (mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_API)) {
             // The method is an API call
-            // boolean isAPICall = mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_API);
+            if (debug) {
+                logger.debug("Replacing API call " + mc.getMethodName());
+            }
+            
             String modifiedAPICall = replaceAPICall(mc.getMethodName(), calledMethod);
             if (debug) {
-                logger.debug("Replacing API Call method call by " + modifiedAPICall);
+                logger.debug("Replacing API call by " + modifiedAPICall);
             }
-
+            
             mc.replace(modifiedAPICall);
         } else if (!LoaderUtils.contains(instrCandidates, calledMethod)) {
             // The method is a black box
-            // boolean isBlackBox = !LoaderUtils.contains(instrCandidates, calledMethod);
+            if (debug) {
+                logger.debug("Replacing regular method call " + mc.getMethodName());
+            }
+            
             String modifiedCall = replaceBlackBox(mc.getMethodName(), mc.getClassName(), calledMethod);
             if (debug) {
                 logger.debug("Replacing regular method call by " + modifiedCall);
             }
-
+            
             mc.replace(modifiedCall);
         } else {
             // The method is an instrumented method
+            if (debug) {
+                logger.debug("Skipping instrumented method " + mc.getMethodName());
+            }
+            
             // Nothing to do
         }
+        
+        logger.debug("---- END EDIT METHOD CALL ----");
     }
 
     /**
@@ -248,7 +282,9 @@ public class ITAppEditor extends ExprEditor {
      * @param calledMethod
      * @return
      */
-    private String replaceLocalMethodCall(String methodName, String className, Method declaredMethod, CtMethod calledMethod) {
+    private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod, CtMethod calledMethod)
+            throws CannotCompileException {
+        
         if (debug) {
             logger.debug("Found call to remote method " + methodName);
         }
@@ -269,17 +305,27 @@ public class ITAppEditor extends ExprEditor {
 
         // Build the executeTask call string
         StringBuilder executeTask = new StringBuilder();
-        executeTask.append(itApiVar).append(EXECUTE_TASK);
-        executeTask.append(itAppIdVar).append(',');
-
+        
         if (isMethod) {
             integratedtoolkit.types.annotations.Method methodAnnot = declaredMethod
                     .getAnnotation(integratedtoolkit.types.annotations.Method.class);
+            
+            if (methodAnnot.globalSpawn()) {
+                // Global spawn method task
+                executeTask.append(itApiVar).append(EXECUTE_GLOBAL_SPAWN_TASK);
+            } else {
+                // Normal method task
+                executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
+            }
+            executeTask.append(itAppIdVar).append(',');
             executeTask.append("\"").append(className).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
             executeTask.append(methodAnnot.priority()).append(',');
         } else { // Service
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
+            
+            executeTask.append(itApiVar).append(EXECUTE_SERVICE_TASK);
+            executeTask.append(itAppIdVar).append(',');
             executeTask.append("\"").append(serviceAnnot.namespace()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.name()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.port()).append("\"").append(',');
@@ -317,7 +363,7 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private CallInformation processParameters(Method declaredMethod, Annotation[][] paramAnnot, Class<?>[] paramTypes, boolean isVoid,
-            boolean isStatic, boolean isMethod, int numParams, Class<?> retType) {
+            boolean isStatic, boolean isMethod, int numParams, Class<?> retType) throws CannotCompileException {
 
         StringBuilder toAppend = new StringBuilder("");
         StringBuilder toPrepend = new StringBuilder("");
@@ -485,7 +531,7 @@ public class ITAppEditor extends ExprEditor {
      * @param retType
      * @return
      */
-    private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType) {
+    private ReturnInformation processReturnParameter(boolean isVoid, int numParams, Class<?> retType) throws CannotCompileException {
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         StringBuilder afterExecute = new StringBuilder("");
@@ -494,11 +540,13 @@ public class ITAppEditor extends ExprEditor {
             if (numParams > 1) {
                 infoToAppend.append(',');
             }
-
+            
             String typeName = retType.getName();
             if (retType.isPrimitive()) {
                 /*
-                 * ********************************* ********************************
+                 * *********************************
+                 * PRIMITIVE
+                 * *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
                 infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT");
@@ -592,6 +640,13 @@ public class ITAppEditor extends ExprEditor {
                     infoToPrepend.insert(0, "$_ = new Double(Double.MIN_VALUE);");
                 } // Object (maybe String): use the no-args constructor
                 else {
+                    // Check that object class has empty constructor
+                    try {
+                        Class.forName(typeName).getConstructor();
+                    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+                        throw new CannotCompileException(ERROR_NO_EMTPY_CONSTRUCTOR + typeName);
+                    }
+                    
                     infoToPrepend.insert(0, "$_ = new " + typeName + "();");
                 }
 
@@ -721,8 +776,8 @@ public class ITAppEditor extends ExprEditor {
                         }
                     } else if (parType.getName().equals(String.class.getName())) { // This is a string
                         if (debug) {
-                            logger.debug(
-                                    "Parameter " + i + " of black-box method " + methodName + " is an String, adding File/object access");
+                            logger.debug("Parameter " + i + " of black-box method " + methodName + 
+                                             " is an String, adding File/object access");
                         }
                         if (isArrayWatch && i == 3) {
                             // Prevent from synchronizing task return objects to be stored in an array position

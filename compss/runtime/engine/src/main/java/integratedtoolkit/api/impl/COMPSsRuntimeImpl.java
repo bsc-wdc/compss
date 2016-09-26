@@ -520,6 +520,32 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return task;
     }
+    
+    /**
+     * Execute globalSpawn tasks
+     */
+    @Override
+    public int executeGlobalSpawnTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
+            Object... parameters) {
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
+        }
+
+        logger.info("Creating task from method " + methodName + " in " + methodClass);
+        if (logger.isDebugEnabled()) {
+            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+        }
+
+        Parameter[] pars = processParameters(parameterCount, parameters);
+        int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
+
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
+        }
+
+        return task;
+    }
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId

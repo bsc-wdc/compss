@@ -64,6 +64,8 @@
 		<module>31-graph</module>
 		<module>32-remoteFile</module>
 		<!-- Module 33 is 33-implementations_c -->
+                <module>34-noEmptyConstructor</module>
+                <module>35-globalSpawnTask</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

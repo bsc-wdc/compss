@@ -128,15 +128,17 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.info("AccessProcessor shutdown");
     }
 
-    // App
-    public int newTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
-        Task currentTask = new Task(appId, methodClass, methodName, priority, hasTarget, parameters);
+    // App : new Method Task
+    public int newTask(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, 
+            Parameter[] parameters) {
+        
+        Task currentTask = new Task(appId, methodClass, methodName, numNodes, priority, hasTarget, parameters);
 
         requestQueue.offer(new TaskAnalysisRequest(currentTask));
         return currentTask.getId();
     }
 
-    // App
+    // App : new Service task
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             Parameter[] parameters) {
 

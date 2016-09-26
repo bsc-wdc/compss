@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
+import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
@@ -34,9 +35,11 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         canRun = w.canRunNow(selectedImpl.getRequirements());
 
         // Check slaves
-        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
-            Worker<T> slave = rs.getResource();
-            canRun = canRun || slave.canRunNow(selectedImpl.getRequirements());
+        if (selectedSlaveResources != null) {
+            for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+                Worker<T> slave = rs.getResource();
+                canRun = canRun || slave.canRunNow(selectedImpl.getRequirements());
+            }
         }
 
         return canRun;
@@ -49,9 +52,11 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         mainResourceConsumption = w.runTask(selectedImpl.getRequirements());
 
         // Reserve slaves
-        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
-            Worker<T> slave = rs.getResource();
-            slave.runTask(selectedImpl.getRequirements());
+        if (selectedSlaveResources != null) {
+            for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+                Worker<T> slave = rs.getResource();
+                slave.runTask(selectedImpl.getRequirements());
+            }
         }
     }
 
@@ -62,9 +67,11 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         w.endTask(mainResourceConsumption);
 
         // Release slaves
-        for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
-            Worker slave = rs.getResource();
-            slave.endTask(slavesResourceConsumption);
+        if (selectedSlaveResources != null) {
+            for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
+                Worker slave = rs.getResource();
+                slave.endTask(slavesResourceConsumption);
+            }
         }
     }
 
@@ -82,7 +89,9 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         LinkedList<ResourceScheduler<?, ?>> candidates;
         if (isSchedulingConstrained()) {
             candidates = new LinkedList<ResourceScheduler<?, ?>>();
-            candidates.add(this.getConstrainingPredecessor().getAssignedResource());
+            for (AllocatableAction<P, T> a : this.getConstrainingPredecessors()) {
+                candidates.add(a.getAssignedResource());
+            }
         } else {
             candidates = getCompatibleWorkers();
         }

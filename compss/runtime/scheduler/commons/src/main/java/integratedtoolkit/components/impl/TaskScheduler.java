@@ -69,11 +69,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             try {
                 action.tryToLaunch();
             } catch (InvalidSchedulingException ise) {
-                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), actionScore);
-                try {
-                    action.tryToLaunch();
-                } catch (InvalidSchedulingException ise2) {
-                    // Impossible exception.
+                boolean keepTrying = true;
+                for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                    AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                    action.schedule(pre.getAssignedResource(), actionScore);
+                    try {
+                        action.tryToLaunch();
+                        keepTrying = false;
+                    } catch (InvalidSchedulingException ise2) {
+                        // Try next predecessor
+                        keepTrying = true;
+                    }
                 }
             }
         } catch (UnassignedActionException ure) {
@@ -126,11 +132,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     a.tryToLaunch();
                 } catch (InvalidSchedulingException ise) {
                     Score aScore = getActionScore(a);
-                    a.schedule(a.getConstrainingPredecessor().getAssignedResource(), aScore);
-                    try {
-                        a.tryToLaunch();
-                    } catch (InvalidSchedulingException ise2) {
-                        // Impossible exception.
+                    boolean keepTrying = true;
+                    for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                        AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                        action.schedule(pre.getAssignedResource(), aScore);
+                        try {
+                            action.tryToLaunch();
+                            keepTrying = false;
+                        } catch (InvalidSchedulingException ise2) {
+                            // Try next predecessor
+                            keepTrying = true;
+                        }
                     }
                 }
 
@@ -164,11 +176,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                 try {
                     action.tryToLaunch();
                 } catch (InvalidSchedulingException ise) {
-                    action.schedule(action.getConstrainingPredecessor().getAssignedResource(), actionScore);
-                    try {
-                        action.tryToLaunch();
-                    } catch (InvalidSchedulingException ise2) {
-                        // Impossible exception.
+                    boolean keepTrying = true;
+                    for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                        AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                        action.schedule(pre.getAssignedResource(), actionScore);
+                        try {
+                            action.tryToLaunch();
+                            keepTrying = false;
+                        } catch (InvalidSchedulingException ise2) {
+                            // Try next predecessor
+                            keepTrying = true;
+                        }
                     }
                 }
 
@@ -202,11 +220,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     a.tryToLaunch();
                 } catch (InvalidSchedulingException ise) {
                     Score aScore = getActionScore(a);
-                    a.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
-                    try {
-                        a.tryToLaunch();
-                    } catch (InvalidSchedulingException ise2) {
-                        // Impossible exception.
+                    boolean keepTrying = true;
+                    for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                        AllocatableAction<P,T> pre = a.getConstrainingPredecessors().get(i);
+                        a.schedule(pre.getAssignedResource(), aScore);
+                        try {
+                            action.tryToLaunch();
+                            keepTrying = false;
+                        } catch (InvalidSchedulingException ise2) {
+                            // Try next predecessor
+                            keepTrying = true;
+                        }
                     }
                 }
             } catch (UnassignedActionException ure) {
@@ -265,11 +289,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     try {
                         action.tryToLaunch();
                     } catch (InvalidSchedulingException ise) {
-                        action.schedule(action.getConstrainingPredecessor().getAssignedResource(), actionScore);
-                        try {
-                            action.tryToLaunch();
-                        } catch (InvalidSchedulingException ise2) {
-                            // Impossible exception.
+                        boolean keepTrying = true;
+                        for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                            AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                            action.schedule(pre.getAssignedResource(), actionScore);
+                            try {
+                                action.tryToLaunch();
+                                keepTrying = false;
+                            } catch (InvalidSchedulingException ise2) {
+                                // Try next predecessor
+                                keepTrying = true;
+                            }
                         }
                     }
                 } catch (UnassignedActionException ure) {

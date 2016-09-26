@@ -53,18 +53,20 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     private LinkedList<Integer> jobs = new LinkedList<Integer>();
 
 
+    @SuppressWarnings("unchecked")
     public ExecutionAction(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
         super(schedulingInformation);
 
         this.producer = producer;
         this.task = task;
-        task.setExecution(this);
+        task.addExecution(this);
 
         // Register data dependencies events
         for (Task predecessor : task.getPredecessors()) {
-            ExecutionAction<P, T> e = (ExecutionAction<P, T>) predecessor.getExecution();
-            if (e != null && e.isPending()) {
-                this.addDataPredecessor(e);
+            for (ExecutionAction<?, ?> e : predecessor.getExecutions()) {
+                if (e != null && e.isPending()) {
+                    this.addDataPredecessor((ExecutionAction<P,T>) e);
+                }
             }
         }
 
@@ -72,8 +74,9 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         // Restricted resource
         Task resourceConstraintTask = task.getEnforcingTask();
         if (resourceConstraintTask != null) {
-            ExecutionAction<P, T> e = (ExecutionAction<P, T>) resourceConstraintTask.getExecution();
-            this.setResourceConstraint(e);
+            for (ExecutionAction<?, ?> e : resourceConstraintTask.getExecutions()) {
+                this.addResourceConstraint((ExecutionAction<P,T>) e);
+            }
         }
     }
 
@@ -319,6 +322,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         return r.getExecutableImpls(task.getTaskParams().getId());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Implementation<T>[] getImplementations() {
         return (Implementation<T>[]) CoreManager.getCoreImplementations(task.getTaskParams().getId());

@@ -25,6 +25,7 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.loader.LoaderConstants;
 import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.Parameter.Direction;
 import integratedtoolkit.types.annotations.Service;
@@ -53,7 +54,7 @@ public class ITAppEditor extends ExprEditor {
     private static final String DELETE_FILE = ".deleteFile(";
     private static final String EXECUTE_METHOD_TASK = ".executeTask(";
     private static final String EXECUTE_SERVICE_TASK = ".executeTask(";
-    private static final String EXECUTE_GLOBAL_SPAWN_TASK = ".executeGlobalSpawnTask(";
+    private static final String EXECUTE_MULTI_NODE_TASK = ".executeMultiNodeTask(";
     private static final String PROCEED = "$_ = $proceed(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
@@ -67,6 +68,7 @@ public class ITAppEditor extends ExprEditor {
     private static final boolean debug = logger.isDebugEnabled();
     
     private static final String ERROR_NO_EMTPY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
+    private static final String ERROR_INVALID_COMPUTING_NODES = "ERROR: Invalid number of computingNodes ";
 
 
     public ITAppEditor(Method[] remoteMethods, CtMethod[] instrCandidates, String itApiVar, String itSRVar, String itORVar,
@@ -307,20 +309,41 @@ public class ITAppEditor extends ExprEditor {
         StringBuilder executeTask = new StringBuilder();
         
         if (isMethod) {
-            integratedtoolkit.types.annotations.Method methodAnnot = declaredMethod
-                    .getAnnotation(integratedtoolkit.types.annotations.Method.class);
+            integratedtoolkit.types.annotations.Method methodAnnot = 
+                    declaredMethod.getAnnotation(integratedtoolkit.types.annotations.Method.class);
             
-            if (methodAnnot.globalSpawn()) {
-                // Global spawn method task
-                executeTask.append(itApiVar).append(EXECUTE_GLOBAL_SPAWN_TASK);
-            } else {
-                // Normal method task
-                executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
+            // Check computingNodes method annotation and raise error if needed
+            String computingNodes = methodAnnot.computingNodes();
+            if ( !computingNodes.equals(Constants.UNASSIGNED_STR)
+                    && !computingNodes.equals(Constants.ALL_NODES)
+                    && (Integer.valueOf(computingNodes) <= 0) ) {
+                throw new CannotCompileException(ERROR_INVALID_COMPUTING_NODES + computingNodes);
             }
-            executeTask.append(itAppIdVar).append(',');
-            executeTask.append("\"").append(className).append("\"").append(',');
-            executeTask.append("\"").append(methodName).append("\"").append(',');
-            executeTask.append(methodAnnot.priority()).append(',');
+            
+            // Arrange computingNodes default value
+            if (computingNodes.equals(Constants.UNASSIGNED_STR)) {
+                computingNodes = String.valueOf(Constants.SINGLE_NODE);
+            }
+            
+            // Instrument for execute task
+            if (computingNodes.equals(Constants.ALL_NODES)
+                    || Integer.valueOf(computingNodes) > Constants.SINGLE_NODE) {
+                // The task uses more than one node
+                executeTask.append(itApiVar).append(EXECUTE_MULTI_NODE_TASK);
+                executeTask.append(itAppIdVar).append(',');
+                executeTask.append("\"").append(className).append("\"").append(',');
+                executeTask.append("\"").append(methodName).append("\"").append(',');
+                executeTask.append("\"").append(computingNodes).append("\"").append(',');
+                executeTask.append(methodAnnot.priority()).append(',');
+            } else {
+                // Single task execution
+                executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
+                executeTask.append(itAppIdVar).append(',');
+                executeTask.append("\"").append(className).append("\"").append(',');
+                executeTask.append("\"").append(methodName).append("\"").append(',');
+                executeTask.append(methodAnnot.priority()).append(',');
+            }
+
         } else { // Service
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
             

@@ -4,9 +4,12 @@ import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
+import integratedtoolkit.types.allocatableactions.MultipleExecution;
 import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
+import integratedtoolkit.util.ResourceScheduler;
 
 
 /**
@@ -50,9 +53,26 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
             logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreID + ")");
         }
         task.setStatus(Task.TaskState.TO_EXECUTE);
-
-        SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
-        ts.newAllocatableAction(e);
+        
+        if (task.getNumNodes().equals(Constants.ALL_NODES)) {
+            // Multiple task execution in all nodes
+            for (ResourceScheduler<P, T> rs : ts.getWorkers()) {
+                SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
+                e.assignResources(rs, null);
+                ts.newAllocatableAction(e); 
+            }
+        } else {
+            int numNodes = Integer.valueOf(task.getNumNodes());
+            if (numNodes == Constants.SINGLE_NODE) {
+                // Single execution
+                SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
+                ts.newAllocatableAction(e);
+            } else {
+                // Multiple execution orchestrated by one node
+                MultipleExecution<P, T> e = new MultipleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
+                ts.newAllocatableAction(e);
+            }
+        }
 
         if (debug) {
             logger.debug("Treated Scheduling request for task " + task.getId() + "(core " + coreID + ")");

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
+import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
@@ -56,7 +57,9 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         LinkedList<ResourceScheduler<?, ?>> candidates;
         if (isSchedulingConstrained()) {
             candidates = new LinkedList<ResourceScheduler<?, ?>>();
-            candidates.add(this.getConstrainingPredecessor().getAssignedResource());
+            for (AllocatableAction<P, T> a : this.getConstrainingPredecessors()) {
+                candidates.add(a.getAssignedResource());
+            }
         } else {
             candidates = getCompatibleWorkers();
         }

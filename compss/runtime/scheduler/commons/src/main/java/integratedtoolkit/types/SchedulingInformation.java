@@ -6,6 +6,7 @@ import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class SchedulingInformation<P extends Profile, T extends WorkerResourceDescription> {
@@ -20,19 +21,19 @@ public class SchedulingInformation<P extends Profile, T extends WorkerResourceDe
     }
 
     // Execution Information
-    private AllocatableAction<P, T> constrainingPredecessor = null;
+    private final List<AllocatableAction<P, T>> constrainingPredecessors;
 
 
     public SchedulingInformation() {
-        constrainingPredecessor = null;
+        constrainingPredecessors = new LinkedList<AllocatableAction<P, T>>();
     }
 
-    public void setResourceConstraint(AllocatableAction<P, T> predecessor) {
-        constrainingPredecessor = predecessor;
+    public void addResourceConstraint(AllocatableAction<P, T> predecessor) {
+        constrainingPredecessors.add(predecessor);
     }
 
-    public AllocatableAction<P, T> getConstrainingPredecessor() {
-        return constrainingPredecessor;
+    public List<AllocatableAction<P, T>> getConstrainingPredecessors() {
+        return constrainingPredecessors;
     }
 
     public static void changesOnWorker(ResourceScheduler<?, ?> ui) {

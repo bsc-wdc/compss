@@ -38,10 +38,10 @@ public @interface Method {
     boolean priority() default false;
     
     /**
-     * Returns if the method must be executed on each available worker or not
+     * Returns the number of computing nodes required to run the Method (int), "unassigned" or "all"
      * 
-     * @return if the method must be executed on each available worker or not
+     * @return the number of computing nodes required to run the Method (int), "unassigned" or "all"
      */
-    boolean globalSpawn() default false;
+    String computingNodes() default Constants.UNASSIGNED_STR;
 
 }

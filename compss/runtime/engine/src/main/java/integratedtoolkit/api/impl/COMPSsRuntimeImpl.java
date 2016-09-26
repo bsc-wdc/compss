@@ -16,6 +16,7 @@ import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.loader.total.ObjectRegistry;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.MethodImplementation;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
@@ -486,7 +487,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
+        int task = ap.newTask(appId, methodClass, methodName, String.valueOf(Constants.SINGLE_NODE), priority, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -525,20 +526,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute globalSpawn tasks
      */
     @Override
-    public int executeGlobalSpawnTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
+    public int executeMultiNodeTask(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
-        logger.info("Creating task from method " + methodName + " in " + methodClass);
+        logger.info("Creating multinode task from method " + methodName + " in " + methodClass);
         if (logger.isDebugEnabled()) {
             logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, priority, hasTarget, pars);
+        int task = ap.newTask(appId, methodClass, methodName, numNodes, priority, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

@@ -5,7 +5,7 @@ import integratedtoolkit.types.annotations.Method;
 
 public interface MainItf {
 
-    @Method(declaringClass = "globalSpawnTask.MainImpl", globalSpawn = true)
+    @Method(declaringClass = "globalSpawnTask.MainImpl", computingNodes = "all")
     void globalTask();
 
 }

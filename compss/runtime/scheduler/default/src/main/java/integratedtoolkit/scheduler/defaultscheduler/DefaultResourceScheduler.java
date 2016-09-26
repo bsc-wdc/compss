@@ -691,14 +691,21 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
             try {
                 long actionScore = DefaultScore.getActionScore(action);
                 long dataTime = (new DefaultScore(0, 0, 0, 0)).getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0);
-                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), aScore);
-                try {
-                    action.tryToLaunch();
-                } catch (InvalidSchedulingException ise2) {
-                    // Impossible exception.
-                    ise2.printStackTrace();
+                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0);                
+                boolean keepTrying = true;
+                for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                    AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                    action.schedule(pre.getAssignedResource(), aScore);
+                    try {
+                        action.tryToLaunch();
+                        keepTrying = false;
+                    } catch (InvalidSchedulingException ise2) {
+                        // Try next predecessor
+                        keepTrying = true;
+                    }
                 }
+                
+                
             } catch (BlockedActionException | UnassignedActionException be) {
                 // Can not happen since there was an original source
                 be.printStackTrace();

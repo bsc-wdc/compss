@@ -9,15 +9,15 @@ import integratedtoolkit.types.annotations.Parameter.Type;
 
 public interface MainItf {
 	
-	@Method(declaringClass = "testMPI.MainImpl")
-	@Constraints(computingUnits = 2, computingNodes = 1)
+	@Method(declaringClass = "testMPI.MainImpl", computingNodes = "1")
+	@Constraints(computingUnits = 2)
 	public int taskSingleMPI(
 		@Parameter(type = Type.STRING, direction = Direction.IN) String binary,
 		@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data
 	);
 	
-	@Method(declaringClass = "testMPI.MainImpl")
-	@Constraints(computingUnits = 2, computingNodes = 2)
+	@Method(declaringClass = "testMPI.MainImpl", computingNodes = "2")
+	@Constraints(computingUnits = 2)
 	public int taskMultipleMPI(
 		@Parameter(type = Type.STRING, direction = Direction.IN) String binary,
 		@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data

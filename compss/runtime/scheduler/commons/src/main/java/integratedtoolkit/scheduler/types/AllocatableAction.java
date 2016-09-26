@@ -15,6 +15,7 @@ import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
@@ -121,8 +122,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return dataPredecessors.size() > 0;
     }
 
-    public void setResourceConstraint(AllocatableAction<P, T> predecessor) {
-        schedulingInfo.setResourceConstraint(predecessor);
+    public void addResourceConstraint(AllocatableAction<P, T> predecessor) {
+        schedulingInfo.addResourceConstraint(predecessor);
     }
 
     /*
@@ -138,7 +139,17 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * @return {@literal true} if the action scheduling is constrained to a certain resource.
      */
     public boolean isSchedulingConstrained() {
-        return schedulingInfo.getConstrainingPredecessor() != null;
+        return !schedulingInfo.getConstrainingPredecessors().isEmpty();
+    }
+    
+    public boolean unrequiredResource() {
+        for (AllocatableAction<P,T> a : this.getConstrainingPredecessors()) {
+            if (a.getAssignedResource() == selectedMainResource) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
@@ -146,8 +157,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      *
      * @return action that constraints the scheduling of the action.
      */
-    public AllocatableAction<P, T> getConstrainingPredecessor() {
-        return schedulingInfo.getConstrainingPredecessor();
+    public List<AllocatableAction<P, T>> getConstrainingPredecessors() {
+        return schedulingInfo.getConstrainingPredecessors();
     }
 
     protected LinkedList<ResourceScheduler<?, ?>> getCoreElementExecutors(int coreId) {
@@ -217,7 +228,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
                 schedulingInfo.isExecutable()) {
 
             // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-            if (isSchedulingConstrained() && this.getConstrainingPredecessor().getAssignedResource() != selectedMainResource) {
+            if (isSchedulingConstrained() && unrequiredResource()) {
                 // Allow other threads to access the action
                 lock.unlock();
                 // Notify invalid scheduling

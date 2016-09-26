@@ -14,9 +14,6 @@ import integratedtoolkit.types.exceptions.LangNotDefinedException;
 import integratedtoolkit.types.exceptions.UndefinedConstraintsSourceException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -30,21 +27,6 @@ public class CEIParser {
 
     private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = logger.isDebugEnabled();
-
-    private static final String CONSTR_LOAD_ERR = "Error loading constraints";
-
-    private static final String CONSTRAINT_IDL = "@Constraints";
-    private static final String IMPLEMENTS_IDL = "@Implements";
-
-
-    private static enum CodeRegion {
-        COMMENT, 
-        TASK, 
-        CONSTRAINT, 
-        FUNCTION,
-        IMPLEMENTATION
-    }
-
 
     static {
         String l = System.getProperty(ITConstants.IT_LANG);
@@ -102,14 +84,11 @@ public class CEIParser {
                 + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
 
         /*
-         * ////////// Uncomment to enable warnings when the type of a parameter is inferred 
-         * String inferredType = inferType(m.getParameterTypes()[i], annotType); 
-         * if (annotType.equals(Parameter.Type.UNSPECIFIED)) { 
-         * //Using inferred type, warn user 
-         * ErrorManager.warn("No type specified for parameter number " + n + " of method '" +
+         * ////////// Uncomment to enable warnings when the type of a parameter is inferred String inferredType =
+         * inferType(m.getParameterTypes()[i], annotType); if (annotType.equals(Parameter.Type.UNSPECIFIED)) { //Using
+         * inferred type, warn user ErrorManager.warn("No type specified for parameter number " + n + " of method '" +
          * m.getName() + "'." + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE + "Using inferred type "
-         * + inferredType + "."); 
-         * }
+         * + inferredType + "."); }
          */
 
         Parameter.Direction annotDirection = par.direction();
@@ -204,7 +183,7 @@ public class CEIParser {
                     }
                 }
                 for (int i = 0; i < implementationCount; i++) {
-                    loadMethodConstraints(methodId,implementationCount, methodName, declaringClasses, implConstraints);
+                    loadMethodConstraints(methodId, implementationCount, methodName, declaringClasses, implConstraints);
                 }
             } else { // Service
                 Service serviceAnnot = m.getAnnotation(Service.class);
@@ -264,14 +243,13 @@ public class CEIParser {
 
         CoreManager.resizeStructures(coreCount);
         for (int i = 0; i < coreCount; i++) {
-        	LinkedList<MethodImplementation> implList = readMethods.get(i);
+            LinkedList<MethodImplementation> implList = readMethods.get(i);
             Implementation<?>[] implementations = implList.toArray(new Implementation[implList.size()]);
             CoreManager.registerImplementations(i, implementations);
         }
         CoreManager.setCoreCount(coreCount);
         return updatedMethods;
     }
-
 
     // Python constructor
     private static LinkedList<Integer> loadPython() {
@@ -346,4 +324,5 @@ public class CEIParser {
             return annotType + "_T";
         }
     }
+    
 }

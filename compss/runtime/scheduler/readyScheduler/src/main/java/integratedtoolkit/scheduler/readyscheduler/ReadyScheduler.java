@@ -49,11 +49,17 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             try {
                 action.tryToLaunch();
             } catch (InvalidSchedulingException ise) {
-                action.schedule(action.getConstrainingPredecessor().getAssignedResource(), actionScore);
-                try {
-                    action.tryToLaunch();
-                } catch (InvalidSchedulingException ise2) {
-                    // Impossible exception.
+                boolean keepTrying = true;
+                for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                    AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                    action.schedule(pre.getAssignedResource(), actionScore);
+                    try {
+                        action.tryToLaunch();
+                        keepTrying = false;
+                    } catch (InvalidSchedulingException ise2) {
+                        // Try next predecessor
+                        keepTrying = true;
+                    }
                 }
             }
         } catch (UnassignedActionException ex) {
@@ -112,11 +118,17 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                 try {
                     selectedAction.tryToLaunch();
                 } catch (InvalidSchedulingException ise) {
-                    selectedAction.schedule(selectedAction.getConstrainingPredecessor().getAssignedResource(), actionScore);
-                    try {
-                        selectedAction.tryToLaunch();
-                    } catch (InvalidSchedulingException ise2) {
-                        // Impossible exception.
+                    boolean keepTrying = true;
+                    for (int i = 0; i < selectedAction.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                        AllocatableAction<P,T> pre = selectedAction.getConstrainingPredecessors().get(i);
+                        selectedAction.schedule(pre.getAssignedResource(), actionScore);
+                        try {
+                            selectedAction.tryToLaunch();
+                            keepTrying = false;
+                        } catch (InvalidSchedulingException ise2) {
+                            // Try next predecessor
+                            keepTrying = true;
+                        }
                     }
                 }
             } catch (UnassignedActionException uae) {

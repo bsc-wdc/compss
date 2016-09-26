@@ -216,6 +216,15 @@ public class ResourceManager {
     public static LinkedList<Worker<?>> getAllWorkers() {
         return pool.findAllResources();
     }
+    
+    /**
+     * Returns the number of available workers
+     * 
+     * @return the number of available workers
+     */
+    public static int getTotalNumberOfWorkers() {
+        return pool.findAllResources().size();
+    }
 
     /**
      * Reconfigures the master node adding its shared disks

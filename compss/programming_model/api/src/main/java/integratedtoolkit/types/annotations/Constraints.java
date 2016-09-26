@@ -22,13 +22,6 @@ public @interface Constraints {
     int computingUnits() default Constants.UNASSIGNED_INT;
 
     /**
-     * Returns the number of computing nodes required to run the CE
-     * 
-     * @return the required computing nodes to run the CE
-     */
-    int computingNodes() default Constants.UNASSIGNED_INT;
-
-    /**
      * Returns the required processor name for the resource to run the CE
      * 
      * @return the required processor name to run the CE

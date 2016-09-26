@@ -3,10 +3,12 @@ package integratedtoolkit.types;
 import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.colors.ColorConfiguration;
 import integratedtoolkit.types.colors.ColorNode;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -30,24 +32,27 @@ public class Task implements Comparable<Task> {
     private final long appId;
     private final int taskId;
     private TaskState status;
+    private final String numNodes;
     private final TaskParams taskParams;
 
     // Data Dependencies
-    private final LinkedList<Task> predecessors;
-    private final LinkedList<Task> successors;
+    private final List<Task> predecessors;
+    private final List<Task> successors;
 
     // Scheduling info
     private Task enforcingTask;
-    private ExecutionAction<?, ?> execution;
+    private final List<ExecutionAction<?, ?>> executions;
 
 
-    public Task(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
+    public Task(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, Parameter[] parameters) {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
+        this.numNodes = numNodes;
         this.taskParams = new TaskParams(methodClass, methodName, priority, hasTarget, parameters);
         this.predecessors = new LinkedList<Task>();
         this.successors = new LinkedList<Task>();
+        this.executions = new LinkedList<ExecutionAction<?, ?>>();
     }
 
     public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
@@ -56,9 +61,11 @@ public class Task implements Comparable<Task> {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
+        this.numNodes = String.valueOf(Constants.SINGLE_NODE);
         this.taskParams = new TaskParams(namespace, service, port, operation, priority, hasTarget, parameters);
         this.predecessors = new LinkedList<Task>();
         this.successors = new LinkedList<Task>();
+        this.executions = new LinkedList<ExecutionAction<?, ?>>();
     }
 
     public static int getCurrentTaskCount() {
@@ -77,11 +84,11 @@ public class Task implements Comparable<Task> {
         this.successors.clear();
     }
 
-    public LinkedList<Task> getSuccessors() {
+    public List<Task> getSuccessors() {
         return successors;
     }
 
-    public LinkedList<Task> getPredecessors() {
+    public List<Task> getPredecessors() {
         return predecessors;
     }
 
@@ -103,6 +110,10 @@ public class Task implements Comparable<Task> {
 
     public void setEnforcingTask(Task task) {
         this.enforcingTask = task;
+    }
+    
+    public String getNumNodes() {
+        return this.numNodes;
     }
 
     public TaskParams getTaskParams() {
@@ -154,12 +165,12 @@ public class Task implements Comparable<Task> {
         return color.getFillColor();
     }
 
-    public void setExecution(ExecutionAction<?, ?> execution) {
-        this.execution = execution;
+    public void addExecution(ExecutionAction<?, ?> execution) {
+        this.executions.add(execution);
     }
 
-    public ExecutionAction<?, ?> getExecution() {
-        return execution;
+    public List<ExecutionAction<?, ?>> getExecutions() {
+        return executions;
     }
 
     // Comparable interface implementation

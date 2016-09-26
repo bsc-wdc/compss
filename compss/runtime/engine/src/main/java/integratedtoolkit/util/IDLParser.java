@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 public class IDLParser {
 	
     private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
-    private static final boolean debug = logger.isDebugEnabled();
 
     private static final String CONSTR_LOAD_ERR = "Error loading constraints";
 

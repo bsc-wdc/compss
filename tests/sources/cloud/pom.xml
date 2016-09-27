@@ -49,6 +49,7 @@
 		<module>2-elasticityOneProvider</module>
 		<module>3-elasticityMultiProvider</module>
 		<module>4-elasticityTracing</module>
+		<module>6-elasticityDocker</module>
 	</modules>
 </project>
  

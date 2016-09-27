@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode />
+	<Cloud>
+		<InitialVMs>1</InitialVMs>
+		<MinimumVMs>1</MinimumVMs>
+		<MaximumVMs>2</MaximumVMs>
+		<CloudProvider Name="Docker">
+			<LimitOfVMs>2</LimitOfVMs>
+			<Properties>
+				
+				<!-- Abstract SSH Connector parameters -->
+				<Property>
+					<Name>vm-user</Name>
+					<Value>compss</Value>
+				</Property>
+				<Property>
+					<Name>vm-keypair-name</Name>
+					<Value>id_rsa</Value>
+				</Property>
+				<Property>
+					<Name>vm-keypair-location</Name>
+					<Value>/home/LOCAL_USER/.ssh</Value>
+				</Property>
+			</Properties>
+			
+			<Images>
+				<Image Name="compss/compss:latest">
+					<InstallDir>/opt/COMPSs</InstallDir>
+					<WorkingDir>/home/compss</WorkingDir>
+					<User>compss</User>
+					<Package>
+						<Source>Simple.tar.gz</Source>
+						<Target>/home/compss</Target>
+					</Package>
+				</Image>
+			</Images>
+			<InstanceTypes>
+				<InstanceType Name="small" />
+				<InstanceType Name="medium" />
+				<InstanceType Name="large" />
+				<InstanceType Name="extra_large" />
+			</InstanceTypes>
+		</CloudProvider>
+	</Cloud>
+</Project>
+

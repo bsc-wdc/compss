@@ -3,7 +3,7 @@ package integratedtoolkit.types.fake;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.listener.EventListener;
@@ -43,7 +43,7 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int i, TaskParams tp, Implementation<?> i1, Resource rsrc, Job.JobListener jl) {
+    public Job<?> newJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, Job.JobListener jl) {
         return null;
     }
 

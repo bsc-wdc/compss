@@ -493,7 +493,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, String.valueOf(Constants.SINGLE_NODE), priority, hasTarget, pars);
+        int task = ap.newTask(appId, methodClass, methodName, !Constants.REPLICATED_TASK, priority, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -532,7 +532,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Execute globalSpawn tasks
      */
     @Override
-    public int executeMultiNodeTask(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, int parameterCount,
+    public int executeReplicatedTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
         if (Tracer.isActivated()) {
@@ -545,7 +545,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, numNodes, priority, hasTarget, pars);
+        int task = ap.newTask(appId, methodClass, methodName, Constants.REPLICATED_TASK, priority, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

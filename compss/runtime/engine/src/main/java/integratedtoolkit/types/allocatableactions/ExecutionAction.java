@@ -8,7 +8,7 @@ import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.SchedulingInformation;
@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class ExecutionAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
+    // Fault tolerance parameters
     private static final int TRANSFER_CHANCES = 2;
     private static final int SUBMISSION_CHANCES = 2;
     private static final int SCHEDULING_CHANCES = 2;
@@ -53,8 +54,17 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     private LinkedList<Integer> jobs = new LinkedList<Integer>();
 
 
+    /**
+     * Creates a new execution action
+     * 
+     * @param schedulingInformation
+     * @param producer
+     * @param task
+     * @param forcedResource
+     */
     @SuppressWarnings("unchecked")
     public ExecutionAction(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
+        
         super(schedulingInformation);
 
         this.producer = producer;
@@ -93,13 +103,13 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     }
 
     private void transferInputData() {
-        TaskParams taskParams = task.getTaskParams();
+        TaskDescription taskDescription = task.getTaskDescription();
         JobTransfersListener listener = new JobTransfersListener(this);
-        for (Parameter p : taskParams.getParameters()) {
+        for (Parameter p : taskDescription.getParameters()) {
             jobLogger.debug("    * " + p);
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
-                if (taskParams.getType() != Type.SERVICE || dp.getDirection() != DataDirection.INOUT) {
+                if (taskDescription.getType() != Type.SERVICE || dp.getDirection() != DataDirection.INOUT) {
                     transferJobData(dp, listener);
                 }
             }
@@ -154,14 +164,14 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         Worker<?> w = selectedMainResource.getResource();
         jobLogger.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
         JobStatusListener listener = new JobStatusListener(this);
-        Job<?> job = w.newJob(task.getId(), task.getTaskParams(), selectedImpl, listener);
+        Job<?> job = w.newJob(task.getId(), task.getTaskDescription(), selectedImpl, listener);
         jobs.add(job.getJobId());
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
         jobLogger.info(
                 (this.executingResources.size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
-        jobLogger.info("  * Method name: " + task.getTaskParams().getName());
+        jobLogger.info("  * Method name: " + task.getTaskDescription().getName());
         jobLogger.info("  * Target host: " + selectedMainResource.getName());
         profile.start();
         JobDispatcher.dispatch(job);
@@ -278,7 +288,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
     @Override
     protected void doFailed() {
-        String taskName = task.getTaskParams().getName();
+        String taskName = task.getTaskDescription().getName();
         StringBuilder sb = new StringBuilder();
         sb.append("Task '").append(taskName).append("' TOTALLY FAILED.\n");
         sb.append("Possible causes:\n");
@@ -314,38 +324,38 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
     @Override
     public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
-        return getCoreElementExecutors(task.getTaskParams().getId());
+        return getCoreElementExecutors(task.getTaskDescription().getId());
     }
 
     @Override
     public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        return r.getExecutableImpls(task.getTaskParams().getId());
+        return r.getExecutableImpls(task.getTaskDescription().getId());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Implementation<T>[] getImplementations() {
-        return (Implementation<T>[]) CoreManager.getCoreImplementations(task.getTaskParams().getId());
+        return (Implementation<T>[]) CoreManager.getCoreImplementations(task.getTaskDescription().getId());
     }
 
     @Override
     public boolean isCompatible(Worker<T> r) {
-        return r.canRun(task.getTaskParams().getId());
+        return r.canRun(task.getTaskDescription().getId());
     }
 
     @Override
     public Integer getCoreId() {
-        return task.getTaskParams().getId();
+        return task.getTaskDescription().getId();
     }
 
     @Override
     public int getPriority() {
-        return task.getTaskParams().hasPriority() ? 1 : 0;
+        return task.getTaskDescription().hasPriority() ? 1 : 0;
     }
 
     @Override
     public String toString() {
-        return "ExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskParams().getName() + ")";
+        return "ExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName() + ")";
     }
 
 }

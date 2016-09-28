@@ -10,7 +10,7 @@ import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;
@@ -75,7 +75,7 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         return new WSJob<COMPSsWorker>(taskId, taskParams, impl, res, listener);
     }
 

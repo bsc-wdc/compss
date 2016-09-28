@@ -4,7 +4,7 @@ import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
@@ -171,13 +171,13 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * ------------------------------------------------
      * ------------------------------------------------
      */
-    public Score getResourceScore(AllocatableAction<P, T> action, TaskParams params, Score actionScore) {
+    public Score getResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
         long resourceScore = Score.getLocalityScore(params, myWorker);
         return new Score(actionScore, resourceScore, 0);
 
     }
 
-    public Score getImplementationScore(AllocatableAction<P, T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
         long implScore = this.getProfile(impl).getAverageExecutionTime();
         return new Score(resourceScore, implScore);
     }

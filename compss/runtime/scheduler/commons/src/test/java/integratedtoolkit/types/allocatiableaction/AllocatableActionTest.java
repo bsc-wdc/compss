@@ -733,12 +733,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         }
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void addResourceDependency(AllocatableAction<?, ?> pred, AllocatableAction<?, ?> succ) {
-        ResourceDependencies dsiPred = (ResourceDependencies) pred.getSchedulingInfo();
-        ResourceDependencies dsiSucc = (ResourceDependencies) succ.getSchedulingInfo();
+        ResourceDependencies<?,?> dsiPred = (ResourceDependencies<?,?>) pred.getSchedulingInfo();
+        ResourceDependencies<?,?> dsiSucc = (ResourceDependencies<?,?>) succ.getSchedulingInfo();
         if (pred.isPending()) {
-            dsiSucc.addPredecessor(pred);
-            dsiPred.addSuccessor(succ);
+            ((ResourceDependencies) dsiSucc).addPredecessor(pred);
+            ((ResourceDependencies) dsiPred).addSuccessor(succ);
         }
     }
 

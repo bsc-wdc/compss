@@ -81,7 +81,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
 
     @Override
     public void workerLoadUpdate(ResourceScheduler<P, T> resource) {
-        Worker worker = resource.getResource();
+        Worker<T> worker = resource.getResource();
         // Resource capabilities had already been taken into account when
         // assigning the actions. No need to change the assignation.
         PriorityQueue<ObjectValue<AllocatableAction<P, T>>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
@@ -149,7 +149,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                 Iterator<Implementation<T>> implIter = fittingImpls[coreId].iterator();
                 while (implIter.hasNext()) {
                     Implementation<?> impl = implIter.next();
-                    if (!worker.canRunNow(impl.getRequirements())) {
+                    if ( !((Worker) worker).canRunNow(impl.getRequirements()) ) {
                         implIter.remove();
                     }
                 }

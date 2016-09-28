@@ -303,6 +303,10 @@ public class DataInfoProvider {
         // String targetName = rwaId.getWrittenDataInstance().getRenaming();
 
         LogicalData ld = Comm.getData(sourceName);
+        
+        if (ld == null) {
+            ErrorManager.error("Unregistered data " + sourceName);
+        }
 
         if (ld.isInMemory()) {
             if (!ld.isOnStorage()) {
@@ -311,7 +315,7 @@ public class DataInfoProvider {
                     ld.writeToStorage();
                     ld.removeValue();
                 } catch (Exception e) {
-                    logger.fatal("Exception writing object to file.", e);
+                    ErrorManager.error("Exception writing object to file.", e);
                 }
             } else {
                 Comm.clearValue(sourceName);

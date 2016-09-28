@@ -3,7 +3,6 @@ package integratedtoolkit.types;
 import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
-import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.colors.ColorConfiguration;
 import integratedtoolkit.types.colors.ColorNode;
 
@@ -32,8 +31,7 @@ public class Task implements Comparable<Task> {
     private final long appId;
     private final int taskId;
     private TaskState status;
-    private final String numNodes;
-    private final TaskParams taskParams;
+    private final TaskDescription taskDescription;
 
     // Data Dependencies
     private final List<Task> predecessors;
@@ -42,17 +40,23 @@ public class Task implements Comparable<Task> {
     // Scheduling info
     private Task enforcingTask;
     private final List<ExecutionAction<?, ?>> executions;
+    
+    // Execution count information
+    private final boolean mustBeReplicated;
+    private int executionCount;
 
 
-    public Task(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, Parameter[] parameters) {
+    public Task(Long appId, String methodClass, String methodName, boolean mustBeReplicated, boolean priority, boolean hasTarget, 
+            Parameter[] parameters) {
+        
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.numNodes = numNodes;
-        this.taskParams = new TaskParams(methodClass, methodName, priority, hasTarget, parameters);
+        this.taskDescription = new TaskDescription(methodClass, methodName, priority, hasTarget, parameters);
         this.predecessors = new LinkedList<Task>();
         this.successors = new LinkedList<Task>();
         this.executions = new LinkedList<ExecutionAction<?, ?>>();
+        this.mustBeReplicated = mustBeReplicated;
     }
 
     public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
@@ -61,11 +65,13 @@ public class Task implements Comparable<Task> {
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.numNodes = String.valueOf(Constants.SINGLE_NODE);
-        this.taskParams = new TaskParams(namespace, service, port, operation, priority, hasTarget, parameters);
+        this.taskDescription = new TaskDescription(namespace, service, port, operation, priority, hasTarget, parameters);
         this.predecessors = new LinkedList<Task>();
         this.successors = new LinkedList<Task>();
         this.executions = new LinkedList<ExecutionAction<?, ?>>();
+        
+        // Services are never replicated
+        this.mustBeReplicated = false;
     }
 
     public static int getCurrentTaskCount() {
@@ -112,12 +118,24 @@ public class Task implements Comparable<Task> {
         this.enforcingTask = task;
     }
     
-    public String getNumNodes() {
-        return this.numNodes;
+    public boolean isReplicatedTask() {
+        return this.mustBeReplicated;
+    }
+    
+    public boolean isFree() {
+        return (this.executionCount == 0);
+    }
+    
+    public void setExecutionCount(int executionCount) {
+        this.executionCount = executionCount;
+    }
+    
+    public void decreaseExecutionCount() {
+        --this.executionCount;
     }
 
-    public TaskParams getTaskParams() {
-        return taskParams;
+    public TaskDescription getTaskDescription() {
+        return taskDescription;
     }
 
     public boolean isSchedulingForced() {
@@ -129,12 +147,16 @@ public class Task implements Comparable<Task> {
     }
 
     public String getDotDescription() {
-        int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
+        int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
-        if (taskParams.getType() == Type.METHOD) {
-            shape = "circle";
+        if (taskDescription.getType() == Type.METHOD) {
+            if (this.mustBeReplicated) {
+                shape = "doublecircle";
+            } else {
+                shape = "circle";
+            }
         } else { // Service
             shape = "diamond";
         }
@@ -155,12 +177,12 @@ public class Task implements Comparable<Task> {
     }
 
     public String getMethodName() {
-        String methodName = taskParams.getName();
+        String methodName = taskDescription.getName();
         return methodName;
     }
 
     public String getColor() {
-        int monitorTaskId = taskParams.getId() + 1; // Coherent with Trace.java
+        int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
@@ -199,7 +221,7 @@ public class Task implements Comparable<Task> {
 
         buffer.append("[[Task id: ").append(getId()).append("]");
         buffer.append(", [Status: ").append(getStatus()).append("]");
-        buffer.append(", ").append(getTaskParams().toString()).append("]");
+        buffer.append(", ").append(getTaskDescription().toString()).append("]");
 
         return buffer.toString();
     }

@@ -104,19 +104,18 @@ public interface COMPSsRuntime {
             int parameterCount, Object... parameters);
     
     /**
-     * New Global Spawn Method task
+     * New Replicated Method task
      * 
      * @param appId
      * @param methodClass
      * @param methodName
-     * @param numNodes
      * @param priority
      * @param hasTarget
      * @param parameterCount
      * @param parameters
      * @return
      */
-    public int executeMultiNodeTask(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, 
+    public int executeReplicatedTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, 
             int parameterCount, Object... parameters);
 
     /**

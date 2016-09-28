@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>35-globalSpawnTask</artifactId>
+	<artifactId>35-replicatedTask</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
@@ -13,9 +13,9 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>GlobalSpawnTask</name>
-	<description>Global Spawn Task application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/globalSpawnTask</url>
+	<name>ReplicatedTask</name>
+	<description>Replicated Task application</description>
+	<url>http://compss.bsc.es/projects/bar/wiki/replicatedTask</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

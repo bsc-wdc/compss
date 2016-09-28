@@ -19,7 +19,6 @@ import com.jcraft.jsch.SftpProgressMonitor;
 import integratedtoolkit.connectors.utils.KeyManager;
 import integratedtoolkit.types.ApplicationPackage;
 import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.util.ErrorManager;
 
 
 public abstract class AbstractSSHConnector extends AbstractConnector {

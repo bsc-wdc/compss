@@ -77,7 +77,7 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-        return targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
+        return targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
     }
 
     @Override
@@ -101,10 +101,10 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
             if (executingResources.contains(w)) {
                 continue;
             }
-            Score resourceScore = worker.getResourceScore(this, task.getTaskParams(), actionScore);
+            Score resourceScore = worker.getResourceScore(this, task.getTaskDescription(), actionScore);
             usefulResources++;
             for (Implementation<T> impl : getCompatibleImplementations(worker)) {
-                Score implScore = worker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
+                Score implScore = worker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
                 debugString.append(" Resource ").append(w.getName()).append(" ").append(" Implementation ")
                         .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
                 if (Score.isBetter(implScore, bestScore)) {
@@ -142,16 +142,16 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         Score bestScore = null;
 
         if ( // Resource is not compatible with the Core
-        !targetWorker.getResource().canRun(task.getTaskParams().getId())
+        !targetWorker.getResource().canRun(task.getTaskDescription().getId())
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
             throw new UnassignedActionException();
         }
-        Score resourceScore = targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
+        Score resourceScore = targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
         debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
 
         for (Implementation<T> impl : getCompatibleImplementations(targetWorker)) {
-            Score implScore = targetWorker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
+            Score implScore = targetWorker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
             debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
             if (Score.isBetter(implScore, bestScore)) {
                 bestWorker = targetWorker;

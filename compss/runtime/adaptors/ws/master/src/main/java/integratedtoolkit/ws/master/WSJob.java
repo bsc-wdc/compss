@@ -13,7 +13,7 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.ServiceImplementation;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.LogicalData;
@@ -80,7 +80,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
         }
     }
 
-    public WSJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public WSJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
         this.returnValue = null;
     }
@@ -141,7 +141,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
                 }
                 try {
                     ArrayList<Object> input = new ArrayList<Object>();
-                    TaskParams taskParams = job.taskParams;
+                    TaskDescription taskParams = job.taskParams;
                     ServiceImplementation service = (ServiceImplementation) job.impl;
                     Parameter[] parameters = taskParams.getParameters();
                     for (int i = 0; i < taskParams.getParameters().length; i++) {

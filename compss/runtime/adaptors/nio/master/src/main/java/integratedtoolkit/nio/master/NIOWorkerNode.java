@@ -25,7 +25,7 @@ import integratedtoolkit.nio.dataRequest.MasterDataRequest;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.DataOperation.OpEndState;
@@ -147,7 +147,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         return new NIOJob(taskId, taskParams, impl, res, listener);
     }
 

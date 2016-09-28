@@ -17,7 +17,7 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation.Type;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
@@ -94,7 +94,7 @@ public class TaskAnalyser {
     }
 
     public void processTask(Task currentTask) {
-        TaskParams params = currentTask.getTaskParams();
+        TaskDescription params = currentTask.getTaskDescription();
         logger.info("New " + (params.getType() == Type.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
         if (drawGraph) {
@@ -286,49 +286,52 @@ public class TaskAnalyser {
         }
 
         // Update app id task count
-        Long appId = task.getAppId();
-        Integer taskCount = appIdToTaskCount.get(appId) - 1;
-        appIdToTaskCount.put(appId, taskCount);
-        if (taskCount == 0) {
-            Semaphore sem = appIdToSemaphore.remove(appId);
-            if (sem != null) { // App has notified that no more tasks are coming
-                appIdToTaskCount.remove(appId);
-                sem.release();
+        task.decreaseExecutionCount();
+        if (task.isFree()) {
+            Long appId = task.getAppId();
+            Integer taskCount = appIdToTaskCount.get(appId) - 1;
+            appIdToTaskCount.put(appId, taskCount);
+            if (taskCount == 0) {
+                Semaphore sem = appIdToSemaphore.remove(appId);
+                if (sem != null) { // App has notified that no more tasks are coming
+                    appIdToTaskCount.remove(appId);
+                    sem.release();
+                }
             }
-        }
 
-        // Check if task is being waited
-        List<Semaphore> sems = waitedTasks.remove(task);
-        if (sems != null) {
-            for (Semaphore sem : sems) {
-                sem.release();
+            // Check if task is being waited
+            List<Semaphore> sems = waitedTasks.remove(task);
+            if (sems != null) {
+                for (Semaphore sem : sems) {
+                    sem.release();
+                }
             }
-        }
-
-        for (Parameter param : task.getTaskParams().getParameters()) {
-            DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
-                DependencyParameter dPar = (DependencyParameter) param;
-                DataAccessId dAccId = dPar.getDataAccessId();
-                DIP.dataHasBeenAccessed(dAccId);
+    
+            for (Parameter param : task.getTaskDescription().getParameters()) {
+                DataType type = param.getType();
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
+                    DependencyParameter dPar = (DependencyParameter) param;
+                    DataAccessId dAccId = dPar.getDataAccessId();
+                    DIP.dataHasBeenAccessed(dAccId);
+                }
             }
+    
+            // Add the task to the set of finished tasks
+            // finishedTasks.add(task);
+            // Check if the finished task was the last writer of a file, but only if task generation has finished
+            if (appIdToSemaphore.get(appId) != null) {
+                checkResultFileTransfer(task);
+            }
+    
+            task.releaseDataDependents();
         }
-
-        // Add the task to the set of finished tasks
-        // finishedTasks.add(task);
-        // Check if the finished task was the last writer of a file, but only if task generation has finished
-        if (appIdToSemaphore.get(appId) != null) {
-            checkResultFileTransfer(task);
-        }
-
-        task.releaseDataDependents();
     }
 
     // Private method to check if a finished task is the last writer of its file parameters and eventually order the
     // necessary transfers
     private void checkResultFileTransfer(Task t) {
         LinkedList<DataInstanceId> fileIds = new LinkedList<DataInstanceId>();
-        for (Parameter p : t.getTaskParams().getParameters()) {
+        for (Parameter p : t.getTaskDescription().getParameters()) {
             switch (p.getType()) {
                 case FILE_T:
                     FileParameter fp = (FileParameter) p;

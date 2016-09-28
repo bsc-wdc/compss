@@ -57,7 +57,7 @@ public class Score {
         return a.isBetter(b);
     }
 
-    public static long getLocalityScore(TaskParams params, Worker<?> w) {
+    public static long getLocalityScore(TaskDescription params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();

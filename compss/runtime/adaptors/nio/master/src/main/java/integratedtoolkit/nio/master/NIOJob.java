@@ -11,7 +11,7 @@ import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.parameter.Parameter;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
@@ -23,7 +23,7 @@ import integratedtoolkit.types.resources.Resource;
 
 public class NIOJob extends Job<NIOWorkerNode> {
 
-    public NIOJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         super(taskId, taskParams, impl, res, listener);
     }
 

@@ -331,7 +331,7 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, Job.JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, Job.JobListener listener) {
         // Cannot run jobs
         return null;
     }

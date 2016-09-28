@@ -38,10 +38,10 @@ public @interface Method {
     boolean priority() default false;
     
     /**
-     * Returns the number of computing nodes required to run the Method (int), "unassigned" or "all"
+     * Returns if the task must be replicated through all workers or not
      * 
-     * @return the number of computing nodes required to run the Method (int), "unassigned" or "all"
+     * @return if the task must be replicated through all workers or not
      */
-    String computingNodes() default Constants.UNASSIGNED_STR;
-
+    boolean isReplicated() default !Constants.REPLICATED_TASK;
+    
 }

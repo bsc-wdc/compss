@@ -25,16 +25,10 @@ public class Constants {
     public static final float UNASSIGNED_FLOAT = (float) -1.0;
     
     /**
-     * Reference to all COMPSs nodes
+     * Replicated task execution
      * 
      */
-    public static final String ALL_NODES = "all";
-    
-    /**
-     * Single node execution
-     * 
-     */
-    public static final int SINGLE_NODE = 1;
+    public static final boolean REPLICATED_TASK = true;
 
     /**
      * Available hostnames for MPI tasks

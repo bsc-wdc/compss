@@ -7,7 +7,6 @@ import java.io.ObjectOutput;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import integratedtoolkit.util.ErrorManager;
 
 
 public class CommandCheckWorker extends Command implements Externalizable {
@@ -34,13 +33,13 @@ public class CommandCheckWorker extends Command implements Externalizable {
     @Override
     public void handle(Connection c) {
         if (agent.isMyUuid(this.uuid)) {
-        	if (agent.getMaster() == null)
-        	{
+        	if (agent.getMaster() == null) {
         		agent.setMaster((NIONode) c.getNode());
         	}
+            CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(uuid, nodeName);
+            c.sendCommand(cmd);
         }
-        CommandCheckWorkerACK cmd = new CommandCheckWorkerACK(uuid, nodeName);
-        c.sendCommand(cmd);
+
         c.finishConnection();
     }
 

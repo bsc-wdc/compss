@@ -9,7 +9,7 @@ import integratedtoolkit.util.CoreManager;
 import java.io.Serializable;
 
 
-public class TaskParams implements Serializable {
+public class TaskDescription implements Serializable {
 
     /**
      * Serializable objects Version UID are 1L in all Runtime
@@ -25,7 +25,7 @@ public class TaskParams implements Serializable {
     private final Type type;
 
 
-    public TaskParams(String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
+    public TaskDescription(String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
         this.methodName = methodName;
         this.priority = priority;
         this.hasTarget = hasTarget;
@@ -41,7 +41,7 @@ public class TaskParams implements Serializable {
         type = Type.METHOD;
     }
 
-    public TaskParams(String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+    public TaskDescription(String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             Parameter[] parameters) {
         this.methodName = operation;
         this.priority = priority;

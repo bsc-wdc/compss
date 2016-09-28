@@ -29,7 +29,7 @@ import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
@@ -75,7 +75,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(ITConstants.IT_STORAGE_CONF) : "null";
 
 
-    public GATJob(int taskId, TaskParams taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
+    public GATJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
             boolean userNeeded, boolean usingGlobus) {
         
         super(taskId, taskParams, impl, res, listener);
@@ -220,7 +220,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
         MethodImplementation method = (MethodImplementation) this.impl;
-        TaskParams taskParams = this.taskParams;
+        TaskDescription taskParams = this.taskParams;
         
         //JEA: Added for supporting implementations with different method names
         String methodName = method.getAlternativeMethodName();

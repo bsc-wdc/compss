@@ -7,7 +7,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.resources.Resource;
 
 
@@ -46,7 +46,7 @@ public abstract class Job<T extends COMPSsWorker> {
     protected int jobId;
 
     protected final int taskId;
-    protected final TaskParams taskParams;
+    protected final TaskDescription taskParams;
     protected final Implementation<?> impl;
     protected final Resource worker;
     protected final JobListener listener;
@@ -58,7 +58,7 @@ public abstract class Job<T extends COMPSsWorker> {
     protected static final boolean debug = logger.isDebugEnabled();
 
 
-    public Job(int taskId, TaskParams task, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job(int taskId, TaskDescription task, Implementation<?> impl, Resource res, JobListener listener) {
         jobId = nextJobId++;
         this.taskId = taskId;
         this.history = JobHistory.NEW;
@@ -104,7 +104,7 @@ public abstract class Job<T extends COMPSsWorker> {
         return jobId;
     }
 
-    public TaskParams getTaskParams() {
+    public TaskDescription getTaskParams() {
         return taskParams;
     }
 

@@ -129,10 +129,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     // App : new Method Task
-    public int newTask(Long appId, String methodClass, String methodName, String numNodes, boolean priority, boolean hasTarget, 
+    public int newTask(Long appId, String methodClass, String methodName, boolean mustBeReplicated, boolean priority, boolean hasTarget, 
             Parameter[] parameters) {
         
-        Task currentTask = new Task(appId, methodClass, methodName, numNodes, priority, hasTarget, parameters);
+        Task currentTask = new Task(appId, methodClass, methodName, mustBeReplicated, priority, hasTarget, parameters);
 
         requestQueue.offer(new TaskAnalysisRequest(currentTask));
         return currentTask.getId();
@@ -428,8 +428,8 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 ld.loadFromStorage();
                 oUpdated = ld.getValue();
             } catch (Exception e) {
-                logger.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
-                ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ld.getName(), e);
+                logger.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
+                ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
             }
         }
 

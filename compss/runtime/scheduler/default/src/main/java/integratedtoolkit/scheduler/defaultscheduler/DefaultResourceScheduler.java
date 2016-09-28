@@ -13,7 +13,7 @@ import integratedtoolkit.types.LocalOptimizationState;
 import integratedtoolkit.types.OptimizationAction;
 import integratedtoolkit.types.PriorityActionSet;
 import integratedtoolkit.types.Score;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -56,7 +56,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
      * @return
      */
     @Override
-    public Score getResourceScore(AllocatableAction<P, T> action, TaskParams params, Score actionScore) {
+    public Score getResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
         long resScore = Score.getLocalityScore(params, myWorker);
         for (AllocatableAction<P, T> pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
@@ -84,7 +84,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
      * @return
      */
     @Override
-    public Score getImplementationScore(AllocatableAction<P, T> action, TaskParams params, Implementation<T> impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
         try {
@@ -204,6 +204,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
         return freeTasks;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public P generateProfileForAllocatable() {
         return (P) new Profile();

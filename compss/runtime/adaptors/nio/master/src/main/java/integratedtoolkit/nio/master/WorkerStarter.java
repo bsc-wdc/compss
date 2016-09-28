@@ -9,7 +9,6 @@ import integratedtoolkit.nio.commands.CommandCheckWorker;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.nio.master.handlers.Ender;
 import integratedtoolkit.nio.master.handlers.ProcessOut;
-import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
 import java.io.BufferedReader;
@@ -107,8 +106,7 @@ public class WorkerStarter {
                 CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
                 while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT)) {
                     Thread.sleep(delay);
-                    if (!workerIsReady)
-                    {
+                    if (!workerIsReady) {
 	                    if (debug) {
 	                        logger.debug("Sending check command to worker " + nodeName);
 	                    }

@@ -6,7 +6,7 @@ import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.TaskParams;
+import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.listener.EventListener;
@@ -197,7 +197,7 @@ public abstract class Resource implements Comparable<Resource> {
         node.setInternalURI(u);
     }
 
-    public Job<?> newJob(int taskId, TaskParams taskParams, Implementation<?> impl, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, JobListener listener) {
         return node.newJob(taskId, taskParams, impl, this, listener);
     }
 

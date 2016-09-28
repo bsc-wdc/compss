@@ -6,7 +6,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import integratedtoolkit.nio.NIOAgent;
-import integratedtoolkit.util.ErrorManager;
 import es.bsc.comm.Connection;
 
 

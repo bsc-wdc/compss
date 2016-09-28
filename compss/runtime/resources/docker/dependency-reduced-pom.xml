@@ -64,40 +64,6 @@
       <artifactId>compss-resources-commons</artifactId>
       <version>1.4.rc09</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>compss-adaptors-commons</artifactId>
-          <groupId>es.bsc.compss</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>compss-resources-schema</artifactId>
-          <groupId>es.bsc.compss</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>compss-project-schema</artifactId>
-          <groupId>es.bsc.compss</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>log4j-core</artifactId>
-          <groupId>org.apache.logging.log4j</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>jsch</artifactId>
-          <groupId>com.jcraft</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>xalan</artifactId>
-          <groupId>xalan</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>xercesImpl</artifactId>
-          <groupId>xerces</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>xml-apis</artifactId>
-          <groupId>xml-apis</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
   <properties>

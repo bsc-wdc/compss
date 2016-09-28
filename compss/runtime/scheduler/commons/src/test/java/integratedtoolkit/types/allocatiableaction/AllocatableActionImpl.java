@@ -66,6 +66,7 @@ public class AllocatableActionImpl<P extends Profile, T extends WorkerResourceDe
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Implementation<T>[] getImplementations() {
         return new Implementation[0];

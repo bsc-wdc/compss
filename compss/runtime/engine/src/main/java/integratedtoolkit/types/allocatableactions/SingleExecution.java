@@ -19,10 +19,14 @@ import integratedtoolkit.util.ResourceScheduler;
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
 
     private WorkerResourceDescription resourceConsumption;
+    private final ResourceScheduler<P,T> forcedResource;
 
 
-    public SingleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
+    public SingleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task, 
+            ResourceScheduler<P,T> forcedResource) {
+        
         super(schedulingInformation, producer, task);
+        this.forcedResource = forcedResource;
     }
 
     @Override
@@ -45,34 +49,42 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-        return targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
+        return targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
     }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        ResourceScheduler<P, T> bestWorker = null;
-        Implementation<T> bestImpl = null;
-        Score bestScore = null;
-        LinkedList<ResourceScheduler<?, ?>> candidates;
-        if (isSchedulingConstrained()) {
-            candidates = new LinkedList<ResourceScheduler<?, ?>>();
+        
+        // COMPUTE RESOURCE CANDIDATES
+        LinkedList<ResourceScheduler<?, ?>> candidates = new LinkedList<ResourceScheduler<?, ?>>();
+        if (this.forcedResource != null) {
+            // The scheduling is forced to a given resource
+            candidates.add(this.forcedResource);
+        } else if (isSchedulingConstrained()) {
+            // The scheduling is constrained by dependencies
             for (AllocatableAction<P, T> a : this.getConstrainingPredecessors()) {
                 candidates.add(a.getAssignedResource());
             }
         } else {
+            // Free scheduling
             candidates = getCompatibleWorkers();
         }
+
+        // COMPUTE BEST IMPLEMENTATIONS
+        ResourceScheduler<P, T> bestWorker = null;
+        Implementation<T> bestImpl = null;
+        Score bestScore = null;
         int usefulResources = 0;
         for (ResourceScheduler<?, ?> w : candidates) {
             ResourceScheduler<P, T> worker = (ResourceScheduler<P, T>) w;
             if (executingResources.contains(w)) {
                 continue;
             }
-            Score resourceScore = worker.getResourceScore(this, task.getTaskParams(), actionScore);
+            Score resourceScore = worker.getResourceScore(this, task.getTaskDescription(), actionScore);
             usefulResources++;
             for (Implementation<T> impl : getCompatibleImplementations(worker)) {
-                Score implScore = worker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
+                Score implScore = worker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
                 debugString.append(" Resource ").append(w.getName()).append(" ").append(" Implementation ")
                         .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
                 if (Score.isBetter(implScore, bestScore)) {
@@ -82,14 +94,15 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
                 }
             }
         }
+        
+        // CHECK SCHEDULING RESULT
         if (bestWorker == null) {
+            logger.debug(debugString.toString());
             if (usefulResources == 0) {
-                logger.debug(debugString.toString());
-                logger.info("No worker can run " + this + "\n");
+                logger.info("No worker can run " + this);
                 throw new BlockedActionException();
             } else {
-                logger.debug(debugString.toString());
-                logger.info("No worker has available resources to run " + this + "\n");
+                logger.info("No worker has available resources to run " + this);
                 throw new UnassignedActionException();
             }
         }
@@ -97,8 +110,8 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         this.assignImplementation(bestImpl);
         this.assignResources(bestWorker, null);
         logger.debug(debugString.toString());
-        logger.info(
-                "Assigning action " + this + " to worker" + bestWorker + " with implementation " + bestImpl.getImplementationId() + "\n");
+        logger.info("Assigning action " + this + " to worker" + bestWorker 
+                + " with implementation " + bestImpl.getImplementationId());
         bestWorker.initialSchedule(this);
     }
 
@@ -110,16 +123,16 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         Score bestScore = null;
 
         if ( // Resource is not compatible with the Core
-        !targetWorker.getResource().canRun(task.getTaskParams().getId())
+                !targetWorker.getResource().canRun(task.getTaskDescription().getId())
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
             throw new UnassignedActionException();
         }
-        Score resourceScore = targetWorker.getResourceScore(this, task.getTaskParams(), actionScore);
+        Score resourceScore = targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
         debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
 
         for (Implementation<T> impl : getCompatibleImplementations(targetWorker)) {
-            Score implScore = targetWorker.getImplementationScore(this, task.getTaskParams(), impl, resourceScore);
+            Score implScore = targetWorker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
             debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
             if (Score.isBetter(implScore, bestScore)) {
                 bestWorker = targetWorker;
@@ -129,13 +142,13 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
         }
 
         if (bestWorker == null) {
-            logger.info("\tWorker " + targetWorker.getName() + "has available resources to run " + this + "\n");
+            logger.info("\tWorker " + targetWorker.getName() + "has available resources to run " + this);
             throw new UnassignedActionException();
         }
 
         this.assignImplementation(bestImpl);
         this.assignResources(bestWorker, null);
-        logger.info("\t Worker" + bestWorker + " Implementation " + bestImpl.getImplementationId() + "\n");
+        logger.info("\t Worker" + bestWorker + " Implementation " + bestImpl.getImplementationId());
         logger.debug(debugString.toString());
         bestWorker.initialSchedule(this);
     }
@@ -143,10 +156,11 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     @Override
     public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
             throws BlockedActionException, UnassignedActionException {
+        
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
 
         if ( // Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
+                !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
             throw new UnassignedActionException();
@@ -154,7 +168,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
 
         this.assignImplementation(impl);
         this.assignResources(targetWorker, null);
-        logger.info("\t Worker" + targetWorker + " Implementation " + impl.getImplementationId() + "\n");
+        logger.info("\t Worker" + targetWorker + " Implementation " + impl.getImplementationId());
         logger.debug(debugString.toString());
         targetWorker.initialSchedule(this);
     }

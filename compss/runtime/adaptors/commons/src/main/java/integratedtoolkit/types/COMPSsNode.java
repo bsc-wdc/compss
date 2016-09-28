@@ -37,7 +37,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void setInternalURI(MultiURI u) throws UnstartedNodeException;
 
-    public abstract Job<?> newJob(int taskId, TaskParams taskparams, Implementation<?> impl, Resource res, JobListener listener);
+    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, JobListener listener);
 
     public abstract void sendData(LogicalData srcData, DataLocation loc, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener);

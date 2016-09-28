@@ -8,6 +8,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
 
+    @SuppressWarnings("unchecked")
     public FakeWorker(WorkerResourceDescription description, int limitOfTasks) {
         super("a", (T) description, new FakeNode(), limitOfTasks, null);
     }

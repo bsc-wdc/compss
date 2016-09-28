@@ -30,7 +30,7 @@ public class TransferObjectRequest extends APRequest {
     private Object response;
 
     /**
-     * LogicalData refering to the final object location
+     * LogicalData referring to the final object location
      */
     private LogicalData target;
 

@@ -137,7 +137,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     public void executeTask(TaskProducer producer, Task task) {
         if (debug) {
             StringBuilder sb = new StringBuilder("Schedule tasks: ");
-            sb.append(task.getTaskParams().getName()).append("(").append(task.getId()).append(") ");
+            sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
             logger.debug(sb);
         }
         ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest<P, T>(producer, task);

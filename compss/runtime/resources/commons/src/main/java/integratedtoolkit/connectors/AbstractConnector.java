@@ -53,11 +53,16 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         vmsToDelete = new TreeSet<VM>();
         vmsAlive = new LinkedList<VM>();
         // ipToConnection = Collections.synchronizedMap(new HashMap<String, Connection>());
-        String creationTimeStr = props.get("estimated-creation-time");
-        if (creationTimeStr != null) {
-            meanCreationTime = Integer.parseInt(creationTimeStr) * 1000;
+        String estCreationTimeStr = props.get("estimated-creation-time");
+        if (estCreationTimeStr != null) {
+            meanCreationTime = Integer.parseInt(estCreationTimeStr) * 1000;
         } else {
-            meanCreationTime = INITIAL_CREATION_TIME;
+        	String maxCreationTimeStr = props.get("MaxCreationTime");
+        	if (maxCreationTimeStr != null) {
+        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * 1000;
+        	}else{
+        		meanCreationTime = INITIAL_CREATION_TIME;
+        	}
         }
 
         logger.debug("Initial mean creation time is" + meanCreationTime);

@@ -59,8 +59,9 @@ public class ITConstants {
     public static final String IT_WORKER_REMOVE_WD = "it.worker.removeWD";
     public static final String IT_CORE_COUNT = "it.core.count";
 
-    public static final String COMM_ADAPTOR = "it.comm";
-
+    public static final String COMM_ADAPTOR 		= "it.comm";
+    public static final String CONNECTOR_JAR_PATHS  = "it.conn";
+    
     // SERVICES
     public static final String SERVICE_ADAPTOR = "integratedtoolkit.ws.master.WSAdaptor";
 
@@ -97,10 +98,16 @@ public class ITConstants {
     public static final String IT_STORAGE_CONF = "it.storage.conf";
     public static final String IT_TASK_EXECUTION = "it.task.execution";
     public static final String EXECUTION_INTERNAL = "compss";
-
+    
     // According to runcompss script default value
     // private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
     public static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
+    
+    // All connector jars except for Docker, which gives dependency conflicts
+    public static final String DEFAULT_CONNECTOR_JAR_PATHS 	= 
+			"compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:" +
+    		"compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar";
+    
     public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
     public static final String DEFAULT_TRACING = "0";
     public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";
@@ -109,6 +116,7 @@ public class ITConstants {
             + File.separator + "xml" + File.separator + "resources" + File.separator + "resource_schema.xsd";
     public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator
             + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
+
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + "/lib/adaptors";
     public static final long DEFAULT_MONITOR_INTERVAL = 0;
 

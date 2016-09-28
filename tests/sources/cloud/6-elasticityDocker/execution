@@ -47,12 +47,15 @@
   output_log="${target_log_folder}/dockerProvider.outputlog"
   error_log="${target_log_folder}/dockerProvider.errorlog"
   
-  expectedTime=120s
+  expectedTime=1000s
   counterVal=1
-  numTasks=1
+  numTasks=35
   minVM=1
-  maxVM=2
-  creationTime=30
+  maxVM=3
+  creationTime=150
+  
+  sed -i "s|MIN_VMS|${minVM}|g" ${base_app_dir}/project_dockerProvider.xml  
+  sed -i "s|MAX_VMS|${maxVM}|g" ${base_app_dir}/project_dockerProvider.xml  
 
   echo "${COMPSs_exec} --project=${base_app_dir}/project_dockerProvider.xml --resources=${base_app_dir}/resources_dockerProvider.xml --debug --comm=$comm --lang=java --classpath=${base_app_dir}/${appName}.jar:${remote_app_dir}/${appName}.jar simple.Simple $counterVal $numTasks $minVM $maxVM $creationTime > >(tee ${output_log}) 2> >(tee ${error_log} >&2)"
 

@@ -48,7 +48,7 @@ public class CloudProvider {
 
         this.imgManager = new CloudImageManager();
         this.typeManager = new CloudTypeManager();
-
+		
         Class<?> conClass = Class.forName(connectorPath);
         Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
         Object conector = ctor.newInstance(name, connectorProperties);

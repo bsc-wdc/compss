@@ -9,6 +9,7 @@ import integratedtoolkit.nio.commands.CommandCheckWorker;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.nio.master.handlers.Ender;
 import integratedtoolkit.nio.master.handlers.ProcessOut;
+import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
 import java.io.BufferedReader;
@@ -93,7 +94,7 @@ public class WorkerStarter {
                 String[] lines = output.split("\n");
                 pid = Integer.parseInt(lines[lines.length - 1]);
 
-                long delay = 30;
+                long delay = 300;
                 long totalWait = 0;
 
                 n = new NIONode(name, port);
@@ -106,16 +107,19 @@ public class WorkerStarter {
                 CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
                 while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT)) {
                     Thread.sleep(delay);
-                    if (debug) {
-                        logger.debug("Sending check command to worker " + nodeName);
+                    if (!workerIsReady)
+                    {
+	                    if (debug) {
+	                        logger.debug("Sending check command to worker " + nodeName);
+	                    }
+	                    Connection c = NIOAdaptor.tm.startConnection(n);
+	                    c.sendCommand(cmd);
+	                    c.receive();
+	                    c.finishConnection();
+	
+	                    totalWait += delay;
+	                    delay = (delay < 1900) ? delay * 2 : 2000;
                     }
-                    Connection c = NIOAdaptor.tm.startConnection(n);
-                    c.sendCommand(cmd);
-                    c.receive();
-                    c.finishConnection();
-
-                    totalWait += delay;
-                    delay = (delay < 1900) ? delay * 2 : 2000;
                 }
             } else {
                 throw new Exception("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user " + user
@@ -124,12 +128,18 @@ public class WorkerStarter {
             if (!workerIsReady) {
                 ++port;
             } else {
-                Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
+            	try {
+            		Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
+            	}
+            	catch (IllegalStateException e) {
+            		logger.warn("Tried to shutdown vm while it was already being shutdown", e);
+            	}
                 return n;
             }
         }
 
         if (!workerIsReady) {
+        	logger.debug("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
             throw new Exception("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
             return n; // should be unreachable statement
@@ -262,7 +272,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = workerLibPath.isEmpty() ? "null" : workerLibPath;
         cmd[nextPosition++] = workerClasspath.isEmpty() ? "null" : workerClasspath;
         cmd[nextPosition++] = workerPythonpath.isEmpty() ? "null" : workerPythonpath;
-
+        
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();

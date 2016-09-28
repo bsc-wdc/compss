@@ -166,7 +166,7 @@ public abstract class NIOAgent {
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
                 ongoingTransfers.put(c, dr.getSource().getName());
                 c.sendCommand(cdd);
-
+            	
                 if (NIOTracer.isActivated()) {
                     c.receive();
                 }
@@ -455,7 +455,7 @@ public abstract class NIOAgent {
     public abstract void setMaster(NIONode master);
 
     public abstract boolean isMyUuid(String uuid);
-
+    
     // This will use the TreeMap to set the corresponding worker starter as ready
     public abstract void setWorkerIsReady(String nodeName);
 

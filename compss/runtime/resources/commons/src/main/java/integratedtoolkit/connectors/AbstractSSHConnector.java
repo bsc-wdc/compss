@@ -19,6 +19,7 @@ import com.jcraft.jsch.SftpProgressMonitor;
 import integratedtoolkit.connectors.utils.KeyManager;
 import integratedtoolkit.types.ApplicationPackage;
 import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.util.ErrorManager;
 
 
 public abstract class AbstractSSHConnector extends AbstractConnector {
@@ -180,15 +181,15 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     }
 
-    private void transferPackages(Session session, List<ApplicationPackage> packages) throws Exception {
-        ChannelSftp client = null;
-        try {
-            client = (ChannelSftp) session.openChannel("sftp");
-            client.connect(SERVER_TIMEOUT);
-            for (ApplicationPackage p : packages) {
-                String[] path = p.getSource().split(File.separator);
-                String name = path[path.length - 1];
-                String target = p.getTarget() + File.separator + name;
+	private void transferPackages(Session session, List<ApplicationPackage> packages) throws Exception {
+		ChannelSftp client = null;
+		try {
+			client = (ChannelSftp) session.openChannel("sftp");
+			client.connect(SERVER_TIMEOUT);
+			for (ApplicationPackage p : packages) {
+				String[] path = p.getSource().split(File.separator);
+				String name = path[path.length - 1];
+				String target = p.getTarget() + File.separator + name;
 
                 // Transfer packages
                 if (client == null) {

@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 
 public class Simple {
 	private static final String counterName = "counter";
-	//private static int EXTRA_WAIT;
 	
 	public static void main(String[] args) {
 		// Check parameters parameters
@@ -88,7 +87,7 @@ public class Simple {
 			System.out.println("[ATTENTION] Elasticity on VM's must be checked on result script");
 			System.out.println("** Application values OK **");
 			long sleepTime = creationTime*2*1000;
-			System.out.println("Waiting "+sleepTime+" ms for the elastic VMs to ve removed");
+			System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to ve removed");
 			Thread.sleep(sleepTime);
 		} catch (Exception ioe) {
 			System.out.println("[ERROR] Exception found");

@@ -57,6 +57,6 @@
 		<module>rocci</module>
 		<module>vmm</module>
 		<module>jclouds</module>
-		<!-- <module>docker</module> -->
+		<module>docker</module>
 	</modules>
 </project>

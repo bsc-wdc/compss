@@ -521,7 +521,7 @@ public class NIOWorker extends NIOAgent {
     // handles this as an error, which treats with its function handleError,
     // and notifies the worker in this case.
     public void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId) {
-
+        
         for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             wdr.getTransferringTask().decreaseParams();
@@ -569,7 +569,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
+    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {   	
         if (type == Transfer.Destination.OBJECT) {
             wLogger.info("Received data " + dataId + " with associated object " + object);
             storeObject(dataId, object);

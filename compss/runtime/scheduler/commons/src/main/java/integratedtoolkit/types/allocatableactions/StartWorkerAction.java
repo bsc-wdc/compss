@@ -64,7 +64,6 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
     @Override
     protected void doAction() {
         (new Thread() {
-
             public void run() {
                 Thread.currentThread().setName(selectedMainResource.getResource().getName() + " starter");
                 try {

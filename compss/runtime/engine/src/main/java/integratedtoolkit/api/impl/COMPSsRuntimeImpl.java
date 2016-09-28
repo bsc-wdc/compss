@@ -171,6 +171,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
                     }
                 }
+                if (System.getProperty(ITConstants.CONNECTOR_JAR_PATHS) == null) {
+                	System.setProperty(ITConstants.CONNECTOR_JAR_PATHS, ITConstants.DEFAULT_CONNECTOR_JAR_PATHS);
+                }
                 if (System.getProperty(ITConstants.GAT_DEBUG) == null) {
                     System.setProperty(ITConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
                 }
@@ -223,6 +226,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
         if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
             System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
+        }
+        if (System.getProperty(ITConstants.CONNECTOR_JAR_PATHS) == null || System.getProperty(ITConstants.CONNECTOR_JAR_PATHS).equals("")) {
+            System.setProperty(ITConstants.CONNECTOR_JAR_PATHS, ITConstants.DEFAULT_CONNECTOR_JAR_PATHS);
         }
         if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
             System.setProperty(ITConstants.IT_SCHEDULER, ITConstants.DEFAULT_SCHEDULER);

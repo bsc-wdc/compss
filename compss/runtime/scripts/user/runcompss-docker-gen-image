@@ -1,5 +1,5 @@
 #!/bin/bash                                                                                                                                                                 
-BASE_IMAGE_NAME="compss:1.4.rc09" # Please put this without the "compss" user before. It is assumed by the script.
+BASE_IMAGE_NAME="compss:latest" # Please put this without the "compss" user before. It is assumed by the script.
 
 GENERATORS_DIR=$(dirname "$0")/../system/docker/generators                                                                                                                                    
 GENERATE_APP_IMAGE=$GENERATORS_DIR/generate-app-image                                                                                                                                         

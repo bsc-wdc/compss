@@ -23,12 +23,13 @@ public class NIOConfiguration extends MethodConfiguration {
         super(adaptorName);
     }
 
-    @Override
-    public void setWorkingDir(String workingDir) {
-        super.setWorkingDir(workingDir);
-        String sandboxWorkingDir = this.getWorkingDir() + NIOAdaptor.DEPLOYMENT_ID + File.separator + this.getHost() + File.separator;
-        this.setSandboxWorkingDir(sandboxWorkingDir);
-    }
+	@Override
+	public void setWorkingDir(String workingDir) {
+		super.setWorkingDir(workingDir);
+		String host = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
+		String sandboxWorkingDir = this.getWorkingDir() + NIOAdaptor.DEPLOYMENT_ID + File.separator + host + File.separator;
+		this.setSandboxWorkingDir(sandboxWorkingDir);
+	}
 
     public String getSandboxWorkingDir() {
         return sandboxWorkingDir;

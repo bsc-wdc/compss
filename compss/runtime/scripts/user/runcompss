@@ -33,6 +33,7 @@ DEFAULT_PyOBJECT_SERIALIZE=false
 
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
+DEFAULT_CONNECTOR_JARS="compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar"
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
@@ -95,6 +96,9 @@ show_opts() {
     --comm=<path>                           Class that implements the adaptor for communications
                                             Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
+    --conn=<path>                           Path of the connector jar/s that should be loaded. You can use multiple by splitting with ':'
+                                            Supported connectors: compss-{CONN}-connector.jar
+					       (where {CONN} can be: "jclouds", "amazon", "docker", "one", "rocci", "vmm", etc.)
     --scheduler=<path>			    Class that implements the Scheduler for COMPSs
                                             Supported schedulers: integratedtoolkit.components.impl.TaskScheduler | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
@@ -338,6 +342,10 @@ get_args() {
 	    # Communication adaptor main class
 	    comm=$(echo $OPTARG | sed -e 's/comm=//g')
 	    ;;
+	  conn=*)
+	    # Communication connector jar directories
+	    conn=$(echo $OPTARG | sed -e 's/conn=//g')
+	    ;;
           scheduler=*)
             # Scheduler main class
             scheduler=$(echo $OPTARG | sed -e 's/scheduler=//g')
@@ -526,6 +534,10 @@ check_args() {
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
 
+  if [ -z "$conn" ]; then
+    conn=${DEFAULT_CONNECTOR_JARS}
+  fi
+
   if [ -z "$scheduler" ]; then
     scheduler=${DEFAULT_SCHEDULER}
   fi
@@ -669,6 +681,7 @@ ${jvm_debugger_opts}
 -Dit.tracing=${tracing}
 -Dit.extrae.file=${custom_extrae_config_file}
 -Dit.comm=${comm}
+-Dit.conn=${conn}
 -Dit.masterName=${master_name}
 -Dit.masterPort=${master_port}
 -Dit.scheduler=${scheduler}

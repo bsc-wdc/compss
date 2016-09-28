@@ -3,10 +3,10 @@
 	<MasterNode />
 	<Cloud>
 		<InitialVMs>1</InitialVMs>
-		<MinimumVMs>1</MinimumVMs>
-		<MaximumVMs>2</MaximumVMs>
+		<MinimumVMs>MIN_VMS</MinimumVMs>
+		<MaximumVMs>MAX_VMS</MaximumVMs>
 		<CloudProvider Name="Docker">
-			<LimitOfVMs>2</LimitOfVMs>
+			<LimitOfVMs>MAX_VMS</LimitOfVMs>
 			<Properties>
 				
 				<!-- Abstract SSH Connector parameters -->

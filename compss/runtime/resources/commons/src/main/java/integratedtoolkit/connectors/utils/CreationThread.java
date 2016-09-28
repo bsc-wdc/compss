@@ -121,14 +121,14 @@ public class CreationThread extends Thread {
                 int limitOfTasks = granted.getDescription().getTotalComputingUnits();
                 r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks,
                         rcr.getRequested().getImage().getSharedDisks());
-                try {
+                /*try {
                     r.start();
                 } catch (Exception e) {
                     runtimeLogger.error(ERROR_REUSING_MACHINE, e);
                     powerOff(granted);
                     notifyFailure();
                     return;
-                }
+                }*/
                 if (debug) {
                     runtimeLogger.debug("Worker for new resource " + granted.getName() + " set.");
                 }
@@ -243,7 +243,7 @@ public class CreationThread extends Thread {
             mc.setHost(granted.getName());
 
             worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
-            worker.start();
+            //worker.start();
         } catch (Exception e) {
             runtimeLogger.error(ERROR_START_WORKER + granted.getName(), e);
             resourceLogger.error(

@@ -119,13 +119,24 @@ public class CloudManager {
             return;
         }
 
-        try {
-            Classpath.loadPath(itHome + CONNECTORS_PATH, runtimeLogger);
-        } catch (FileNotFoundException ex) {
-            resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
-            runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
-        }
-    }
+		String connectorPaths = System.getProperty(ITConstants.CONNECTOR_JAR_PATHS);
+		
+		String[] connPaths = connectorPaths.split(":");
+		for (String connPath : connPaths) {
+			// Prepend connectors path, in case connPath is relative
+			if (!connPath.startsWith("/")) { 
+				connPath = itHome + CloudManager.CONNECTORS_PATH + connPath;
+			}
+			
+			try {
+				Classpath.loadPath(connPath, runtimeLogger);
+			} catch (FileNotFoundException ex) {
+				ErrorManager.warn("Connector jar " + connPath + " not found.");
+				resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
+				runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
+			}
+		}
+	}
 
     /**
      * Check if Cloud is used to dynamically adapt the resource pool

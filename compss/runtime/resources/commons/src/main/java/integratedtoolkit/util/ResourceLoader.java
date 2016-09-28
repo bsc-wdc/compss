@@ -475,7 +475,9 @@ public class ResourceLoader {
                 }
             }
         }
-
+        if (maxCreationTime>0){
+        	properties.put("MaxCreationTime",Integer.toString(maxCreationTime));
+        }
         // Add Cloud Provider to CloudManager *****************************************/
         try {
             CloudManager.newCloudProvider(cpName, limitOfVMs, connectorName, properties);

@@ -1,4 +1,5 @@
 #!/bin/bash -e
+
     sources_dir=$1
     target_dir=$2
     log_dir=$3
@@ -9,27 +10,31 @@
 
     current_loc=$(pwd)
 
-    #Erase current deployment
+    # Erase current deployment
     echo "---- Erasing current deployment"
     rm -rf ${target_dir}
     
-    #Create new deployment structure
+    # Create new deployment structure
     echo "---- Creating new deployment structure"
     mkdir -p ${target_dir}
     mkdir -p ${target_dir}/apps_cloud
     mkdir -p ${log_dir}
  
-    #Deploy scripts
+    # Deploy scripts
     echo "---- Deploying main scripts for execution"
     cp -f ${sources_dir}/../../scripts/execute_cloud_vpn ${target_dir}/execute_cloud_tests
 
-    #Packing COMPSs
+    # Packing COMPSs
     echo "---- Packing COMPSs current installation"
-    cd ${COMPSs_location}/..
-    tar zcf ${target_dir}/COMPSs.tar.gz COMPSs/
+    tmpDir=$(mktemp -d)
+    mkdir ${tmpDir}/COMPSs/
+    cp -r ${COMPSs_location}/* ${tmpDir}/COMPSs/
+    cd ${tmpDir} 
+    tar zcf ${target_dir}/COMPSs.tar.gz COMPSs
+    rm -rf ${tmpDir}
     cd ${current_loc}
    
-    #TEST CLOUD BLOCK APPS
+    # TEST CLOUD BLOCK APPS
     echo "---- Deploying Cloud Block Apps"
     cloud_app_folders=$(ls ${sources_dir})
     counter=1

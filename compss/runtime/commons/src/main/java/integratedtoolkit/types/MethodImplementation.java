@@ -80,7 +80,7 @@ public class MethodImplementation extends Implementation<MethodResourceDescripti
     }
     @Override
     public String toString() {
-        return super.toString() + " Method declared in class " + declaringClass + "." +alternativeMethod+": " + requirements.toString();
+        return super.toString() + " Method declared in class " + declaringClass + "." + alternativeMethod + ": " + requirements.toString();
     }
 
 }

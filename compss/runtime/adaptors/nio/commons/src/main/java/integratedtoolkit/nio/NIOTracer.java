@@ -38,8 +38,8 @@ public class NIOTracer extends Tracer {
         }
 
         if (debug) {
-            logger.debug("NIO uri File: " + Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
-            logger.debug(Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+            logger.debug("NIO uri File: " + Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+            logger.debug(Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
         }
     }
 

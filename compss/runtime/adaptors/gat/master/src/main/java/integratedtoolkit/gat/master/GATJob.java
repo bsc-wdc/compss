@@ -224,10 +224,14 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         
         //JEA: Added for supporting implementations with different method names
         String methodName = method.getAlternativeMethodName();
+        if (methodName == null || methodName.isEmpty()){
+            methodName = taskParams.getName();
+        }
         
-        /*JEA Replaced Old Call. If there is no alternative method defined in constraints, this should have the same content as 
-        String methodName = taskParams.getName();
-        */
+        /* JEA Replaced Old Call
+         * If there is no alternative method defined in constraints, this should have the same content as 
+         * String methodName = taskParams.getName();
+         */
 
         String targetPath = getResourceNode().getInstallDir();
         String targetHost = getResourceNode().getHost();
@@ -386,20 +390,20 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
          * sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDERR, "false");
          */
         if (debug) { // Set standard output file for job
-            File outFile = GAT.createFile(context, Protocol.ANY_URI + File.separator + JOBS_DIR 
+            File outFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR 
                     + "job" + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
         }
 
         if (debug || usingGlobus) {
             // Set standard error file for job
-            File errFile = GAT.createFile(context, Protocol.ANY_URI + File.separator + JOBS_DIR 
+            File errFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR 
                     + "job" + jobId + "_" + this.getHistory() + ".err");
             sd.setStderr(errFile);
         }
 
         Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RES_ATTR, Protocol.ANY_URI + targetUser + targetHost);
+        attributes.put(RES_ATTR, Protocol.ANY_URI.getSchema() + targetUser + targetHost);
         attributes.put("Jobname", "compss_remote_job_" + jobId);
         ResourceDescription rd = new HardwareResourceDescription(attributes);
 

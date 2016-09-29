@@ -33,12 +33,16 @@ public abstract class Job<T extends COMPSsWorker> {
 
     // Job history
     public enum JobHistory {
-        NEW, RESUBMITTED_FILES, RESUBMITTED, FAILED;
+        NEW, 
+        RESUBMITTED_FILES, 
+        RESUBMITTED, 
+        FAILED
     }
 
     // Job kind
     public enum JobKind {
-        METHOD, SERVICE;
+        METHOD, 
+        SERVICE
     }
 
 

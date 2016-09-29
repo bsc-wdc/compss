@@ -140,7 +140,7 @@ public class CleanerExecutor {
                     user += "@";
                 }
                 SoftwareDescription sd = new SoftwareDescription();
-                sd.addAttribute("uri", Protocol.ANY_URI + user + script.getHost());
+                sd.addAttribute("uri", Protocol.ANY_URI.getSchema() + user + script.getHost());
                 sd.setExecutable(script.getPath());
                 sd.setArguments(cleanParam.split(" "));
 
@@ -152,10 +152,10 @@ public class CleanerExecutor {
                 if (debug) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
+                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
+                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
                     }

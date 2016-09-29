@@ -323,33 +323,65 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
     
     public void getTaskSummary(Logger logger) {        
-        // Get information
+        // Structures for global and per worker stats
         int coreCount = CoreManager.getCoreCount();
-        Profile[] coreProfile = new Profile[coreCount];
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            coreProfile[coreId] = new Profile();
+        Profile[] coreGlobalProfiles = new Profile[coreCount];
+        for (int i = 0; i < coreCount; ++i) {
+            coreGlobalProfiles[i] = new Profile();
         }
-
+        HashMap<String, Profile[]> coreProfilesPerWorker = new HashMap<String, Profile[]>();
+        
+        // Retrieve information
         for (ResourceScheduler<P, T> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
+            
+            Profile[] coreProfiles = new Profile[coreCount];
+            for (int i = 0; i < coreCount; ++i) {
+                coreProfiles[i] = new Profile();
+            }
             LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 for (Implementation<T> impl : impls[coreId]) {
-                    coreProfile[coreId].accumulate(ui.getProfile(impl));
+                    coreGlobalProfiles[coreId].accumulate(ui.getProfile(impl));
+                    coreProfiles[coreId].accumulate(ui.getProfile(impl));
                 }
             }
+            coreProfilesPerWorker.put(ui.getName(), coreProfiles);
         }
-
-        // Store information in output format
+        
+        // Process information in output format
+        logger.warn("------- COMPSs Task Execution Summary per Worker ------");
+        for (Entry<String, Profile[]> workerInfo : coreProfilesPerWorker.entrySet()) {
+            String workerName = workerInfo.getKey();
+            Profile[] workerCoreProfiles = workerInfo.getValue();
+            
+            logger.warn("--- Summary for COMPSs Worker " + workerName);
+            
+            long totalExecutedTasksInWorker = 0;
+            for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
+                String signature = entry.getKey();
+                int coreId = entry.getValue();
+                long executionCount = workerCoreProfiles[coreId].getExecutionCount();
+                totalExecutedTasksInWorker += executionCount;
+                
+                String info = executionCount + " " + signature + " tasks have been executed";
+                logger.warn(info);
+            }
+            logger.warn("--- Total executed tasks in COMPSs Worker " + workerName + ": " + totalExecutedTasksInWorker);
+        }
+        logger.warn("-------------------------------------------------------");
+        
+        logger.warn("");
         logger.warn("------------ COMPSs Task Execution Summary ------------");
         long totalExecutedTasks = 0;
         for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
             String signature = entry.getKey();
             int coreId = entry.getValue();
-            long executionCount = coreProfile[coreId].getExecutionCount();
+            long executionCount = coreGlobalProfiles[coreId].getExecutionCount();
             totalExecutedTasks += executionCount;
+            
             String info = executionCount + " " + signature + " tasks have been executed";
             logger.warn(info);
         }

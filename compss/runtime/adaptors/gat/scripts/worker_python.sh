@@ -9,10 +9,11 @@
   set_env
 
   # Execution
-  shift $shiftSizeForApp # appdir, cp, pythonpath
+  shift $shiftSizeForApp # Shift parameters up to executed method
   taskTracing=false # Only available with NIO
   taskId=0 # Not used with GAT
 
+  echo "EXEC CMD: $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $@"
   python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId "$@"
 
   # Exit

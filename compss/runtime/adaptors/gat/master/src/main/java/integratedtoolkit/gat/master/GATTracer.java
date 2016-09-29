@@ -44,7 +44,7 @@ public class GATTracer extends Tracer {
         }
 
         SoftwareDescription sd = new SoftwareDescription();
-        String uriString = Protocol.ANY_URI + user + worker.getHost();
+        String uriString = Protocol.ANY_URI.getSchema() + user + worker.getHost();
         sd.addAttribute("uri", uriString);
         sd.setExecutable(worker.getInstallDir() + Tracer.TRACE_SCRIPT_PATH);
         sd.setArguments(new String[] { "init", worker.getWorkingDir(), String.valueOf(hostId), String.valueOf(numTasks) });
@@ -52,10 +52,10 @@ public class GATTracer extends Tracer {
         if (debug) {
             try {
                 org.gridlab.gat.io.File outFile = GAT.createFile(worker.getContext(),
-                        Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
+                        Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceOutRelativePath);
                 sd.setStdout(outFile);
                 org.gridlab.gat.io.File errFile = GAT.createFile(worker.getContext(),
-                        Protocol.ANY_URI + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceErrRelativePath);
+                        Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + traceErrRelativePath);
                 sd.setStderr(errFile);
             } catch (Exception e) {
                 ErrorManager.warn("Error initializing tracing system in node " + worker.getHost(), e);
@@ -132,7 +132,7 @@ public class GATTracer extends Tracer {
         }
 
         try {
-            traceScripts.add(new URI(Protocol.ANY_URI + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
+            traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
         } catch (URISyntaxException e) {
             logger.error("Error deleting tracing host", e);
         }

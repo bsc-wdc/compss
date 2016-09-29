@@ -56,7 +56,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
         
         //JEA: Added for supporting implementations with different method names
         String methodName = method.getAlternativeMethodName();
-        if (methodName== null || methodName.isEmpty()){
+        if (methodName == null || methodName.isEmpty()){
         	methodName = taskParams.getName();
         }
         

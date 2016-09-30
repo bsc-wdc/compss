@@ -5,7 +5,7 @@
 	<!-- GENERAL INFORMATION -->
 	<groupId>es.bsc.compss</groupId>
 	<artifactId>compss-trunk</artifactId>
-<version>1.4.rc09</version>
+	<version>1.4.rc09</version>
 	<packaging>pom</packaging>
 	
 	<!-- PROJECT INFORMATION -->
@@ -95,6 +95,7 @@
 	<modules>
 		<module>compss</module>
 		<module>tests/sources</module>
+		<module>performance_analysis/auto-cbm</module>
 	</modules>
 </project>
 

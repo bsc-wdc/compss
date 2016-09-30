@@ -52,7 +52,7 @@
   numTasks=35
   minVM=1
   maxVM=3
-  creationTime=150
+  creationTime=160
   
   sed -i "s|MIN_VMS|${minVM}|g" ${base_app_dir}/project_dockerProvider.xml  
   sed -i "s|MAX_VMS|${maxVM}|g" ${base_app_dir}/project_dockerProvider.xml  

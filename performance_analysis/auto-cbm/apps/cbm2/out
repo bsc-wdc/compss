@@ -1,0 +1,189 @@
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.files.Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.files.Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.objects.Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing .Cbm2 --------------------------
+
+
+Error running application
+
+Using default location for project file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/projects/project.xml
+Using default location for resources file: /opt/COMPSs/Runtime/scripts/user/../../configuration/xml/resources/resources.xml
+
+----------------- Executing cbm2.files.Cbm2 --------------------------
+
+[   API]  -  Deploying COMPSs Runtime v1.3 (build 20151112-1504)
+[   API]  -  Starting COMPSs Runtime v1.3 (build 20151112-1504)
+[   API]  -  Initializing components
+[   API]  -  Ready to process tasks
+:::::::::::
+Number of tasks: {{4}}
+Deps graph deepness: {{3}}
+Tasks sleep time: {{16}}
+Transference size in bytes: {{1024}}
+Execution type (INOUT || IN): {{INOUT}}
+Execution type (FILES || OBJECTS): {{FILES}}
+:::::::::::
+
+:::::::::::
+Starting cbm2Files...
+Creating pool of files...
+[   API]  -  Opening file /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task0 in mode WRITE
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task0
+[   API]  -  File target Location: /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task0
+[   API]  -  Opening file /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task1 in mode WRITE
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task1
+[   API]  -  File target Location: /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task1
+[   API]  -  Opening file /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task2 in mode WRITE
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task2
+[   API]  -  File target Location: /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task2
+[   API]  -  Opening file /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task3 in mode WRITE
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task3
+[   API]  -  File target Location: /home/vanton/workspace/java/cbm2/cbm2/dummyFile_Task3
+Pool of files created.
+Time for files to be created: 7.01913 ms
+Starting to measure time from now on...
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+[   API]  -  Creating task from method runTaskInOut in cbm2.files.Cbm2Impl
+[   API]  -  There are 2 parameters
+[   API]  -    Parameter 1 has type INT_T
+[   API]  -    Parameter 2 has type FILE_T
+Started getting files...
+[   API]  -  Opening file dummyFile_Task0 in mode APPEND
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d1v5_1449219483860.IT
+[   API]  -  File target Location: /home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d1v5_1449219483860.IT
+Got file "/home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d1v5_1449219483860.IT"
+[   API]  -  Opening file dummyFile_Task1 in mode APPEND
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d2v5_1449219483860.IT
+[   API]  -  File target Location: /home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d2v5_1449219483860.IT
+Got file "/home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d2v5_1449219483860.IT"
+[   API]  -  Opening file dummyFile_Task2 in mode APPEND
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d3v5_1449219483860.IT
+[   API]  -  File target Location: /home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d3v5_1449219483860.IT
+Got file "/home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d3v5_1449219483860.IT"
+[   API]  -  Opening file dummyFile_Task3 in mode APPEND
+[   API]  -  Requesting mainAccess
+[   API]  -  MainAccess finished
+[   API]  -  File URI: any://localhost//home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d4v5_1449219483860.IT
+[   API]  -  File target Location: /home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d4v5_1449219483860.IT
+Got file "/home/vanton/.COMPSs/cbm2.files.Cbm2_01/tmpFiles/d4v5_1449219483860.IT"
+Finished cbm2Files!!!
+:::::::::::
+
+:::::::::::
+Results:
+Time: 815.486876 ms    ({{815.486876}})
+:::::::::::
+[   API]  -  No more tasks for app 1
+[   API]  -  Getting Result Files 1
+[   API]  -  Stop IT reached
+[   API]  -  Stopping AP...
+[   API]  -  Stopping TD...
+[   API]  -  Stopping Comm...
+[   API]  -  Execution Finished
+
+------------------------------------------------------------

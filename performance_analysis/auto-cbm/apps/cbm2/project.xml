@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	  <Worker Name="COMPSsWorker01">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker01/</WorkingDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+      <Worker Name="COMPSsWorker02">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker02/</WorkingDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+      <Worker Name="COMPSsWorker03">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker03/</WorkingDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+      <Worker Name="COMPSsWorker04">
+            <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+            <WorkingDir>/tmp/COMPSsWorker04/</WorkingDir>
+            <LimitOfTasks>4</LimitOfTasks>
+      </Worker>
+      
+	<Cloud>
+        <InitialVMs>0</InitialVMs>
+        <minVMCount>0</minVMCount>
+        <maxVMCount>3</maxVMCount>
+        <Provider name="BSC">
+            <LimitOfVMs>3</LimitOfVMs>
+            <Property>
+                <Name>auth</Name>
+                <Value>x509</Value>
+            </Property>
+            <Property>
+                <Name>ca-path</Name>
+                <Value>/etc/grid-security/certificates</Value>
+            </Property>
+            <Property>
+                <Name>user-cred</Name>
+                <Value>jenkins-test.pem</Value>
+            </Property>
+            <Property>
+                <Name>password</Name>
+                <Value>jenkins-test2014</Value>
+            </Property>
+            <Property>
+                <Name>owner</Name>
+                <Value>jenkins-test</Value>
+            </Property>
+            <Property>
+                <Name>jobname</Name>
+                <Value>test-constraints</Value>
+            </Property>
+    
+             <!-- Optional connector parameters -->
+            <Property>
+                <Name>max-vm-creation-time</Name>
+				<Value>10</Value> <!-- Minutes -->
+            </Property>
+            <Property>
+                <Name>max-connection-errors</Name>
+                <Value>36</Value>
+            </Property>
+            <Property>
+                <Name>vm-user</Name>
+                <Value>user</Value>
+            </Property>
+
+            <ImageList>
+                <Image name="uuid_test_XX_unstable_XX">
+                    <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+                    <WorkingDir>/home/user/IT/</WorkingDir>
+                    <User>user</User>
+                    <Package>
+                        <Source>constraintsTest.tar.gz</Source>
+                        <Target>/home/user/apps</Target>
+                        <IncludedSoftware><Software>constraintsTest</Software></IncludedSoftware>
+                    </Package>
+                </Image>
+            </ImageList>
+            <InstanceTypes>
+                <Resource name="small"/>
+                <Resource name="medium"/>
+            </InstanceTypes>
+        </Provider>
+    </Cloud>
+     
+    <Worker Name="WorkerDynamic">
+        <InstallDir>/opt/COMPSs/Runtime/scripts/system/</InstallDir>
+        <WorkingDir>/tmp/WorkerDynamic/</WorkingDir>
+        <LimitOfTasks>4</LimitOfTasks>
+    </Worker>
+</Project>
+

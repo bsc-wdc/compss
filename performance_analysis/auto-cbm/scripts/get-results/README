@@ -1,0 +1,7 @@
+This directory contains:
+
+  -get-results.sh: script to retrieve the files from Marenostrum and create plots / CSV's.
+
+  -Directory cbmi: contains all the needed stuff to interpret cbmi files and plot them.
+
+  -Directory others: contains others applications such as KMeans, Matmul, etc.

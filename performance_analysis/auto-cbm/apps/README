@@ -1,0 +1,17 @@
+------------------------------------------------------------
+cbm1:
+Embarrassingly Paralel, 0 dependencies.
+
+--------
+
+cbm2:
+Matmul like. 
+Can specify the transference size(txSize) between tasks.
+
+--------
+
+cbm3:
+Merge graph, we just create the top row objects/files. 
+So COMPSs will reuse them and rename. [ RENAMING ]
+
+--------------------------------------------------------------

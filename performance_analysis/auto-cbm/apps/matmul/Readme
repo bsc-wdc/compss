@@ -1,0 +1,64 @@
+This is the Readme for:
+Matrix Multiplication for MN
+
+[Name]: Matrix Multiplication MN
+[Contact Person]: support-compss@bsc.es
+[Access Level]: public
+[License Agreement]: GPL
+[Platform]: COMPSs
+
+[Body]
+ == Description ==
+Matrix multiplication is a binary operation that takes a pair of matrices and produces another matrix.
+
+If A is an n×m matrix and B is an m×p matrix, the result AB of their multiplication is an n×p matrix defined only if the number of columns m in A is equal to the number of rows m in B. When multiplying A and B, the elements of the rows in A are multiplied with corresponding columns in B.
+
+In this implementation, A and B are square matrices (same number of rows and columns), and so it is the result matrix C. Each matrix is divided in N blocks of M doubles. The multiplication of two blocks is done by a multiply task method with a simple three-nested-loop implementation. When executed with COMPSs, the main program generates N^3^ tasks arranged as N^2^ chains of N tasks in the dependency graph.
+
+
+== Versions ==
+There are three versions of Matrix Multiplication, depending on the data types used to store the blocks and the way the input data is read.
+=== Version 1 ===
+''INPUT files'', where the matrices are read from files and stored internally as files
+=== Version 2 ===
+''Random Generation Objects'', where the matrices are randomly generated at execution time and stored internally as objects
+=== Version 3 ===
+''Random Generation Files'', where the matrices are randomly generated at execution time and stored internally as files
+
+
+== Execution instructions ==
+Usage:
+runcompss matmul.input.files.Matmul <MSIZE> <BSIZE> <PATH_TO_DATASET_FOLDER>
+runcompss matmul.randomGen.objects.Matmul <MSIZE> <BSIZE> <SEED>
+runcompss -d matmul.randomGen.files.Matmul <MSIZE> <BSIZE> <SEED>
+
+where:
+                 * - MSIZE: Number of blocks of the matrix
+                 * - BSIZE: Number of elements per block
+		 * - PATH_TO_DATASET_FOLDER: Absolute path the to base folder where the A and B matrices are stored
+		 * - SEED: Integer for random seed
+
+
+== Execution Example ==
+runcompss matmul.input.files.Matmul 4 2 ~/datasets/matmul/
+runcompss -d matmul.randomGen.objects.Matmul 4 2 1
+runcompss -d matmul.randomGen.files.Matmul 4 2 1
+
+== Dataset generation ==
+The package includes a simple application for dataset generation that can be run by running the following command.
+
+java -cp matmul.jar generation.MatmulGeneration <MSIZE> <BSIZE> <PATH_TO_DATASET_FOLDER> <SEED>
+
+Example: java -cp matmul.jar generation.MatmulGeneration 4 2 /home/cramonco/Downloads/mat/dataset/ 1
+
+
+== Build ==
+=== Option 1: Native java ===
+cd ~/workspace_java/matmul/; 
+javac src/main/java/generation/*.java; javac src/main/java/matmul/input/*/*.java; javac src/main/java/matmul/randomGen/*/*.java;
+cd src/main/java/; jar cf matmul.jar matmul/
+cd ../../../; mv src/main/java/matmul.jar jar/
+
+=== Option 2: Maven ===
+cd ~/workspace_java/matmul/
+mvn clean package

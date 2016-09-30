@@ -1,0 +1,1 @@
+java kmeans_frag.KMeans_frag -c 2 -i 10 -n 20 -d 3 -f 4 -p /home/fconejer/Subversion/tutorial-apps/java/kmeans_frag/src/main/java/data

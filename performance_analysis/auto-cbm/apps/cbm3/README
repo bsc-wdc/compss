@@ -1,0 +1,8 @@
+cbm3
+This benchmark tests mergesort-like COMPSs apps. 
+In this case, we have (files/objects) and (in/inout).
+
+In all cases, the object that's modified is the left one.
+For example, if we have a merge of objects 0 and 4, the 0 will be passed to the next merge round, while the 4 is discarded. 
+
+So the program will only create the top most row objects, and will pass them down using merges.

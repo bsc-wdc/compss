@@ -1,0 +1,12 @@
+-Directory apps: contains all the applications of the auto-cbm.
+
+-Directory scripts: contains all the scripts to launch auto-cbm.
+
+When retrieved the results with scripts/get-results/get-results.sh: 
+
+-Directory results: contains all the results. Inside results we will have:
+	-Directories XXX-debug: contains all the associated .COMPSs debug files for app XXX.
+	-Directories XXX-data:  contains all the raw data retrieved from MN (*.out) for app XXX.
+	-Directories XXX-plots: contains the plots generated for the executions of XXX.
+	-Directories XXX-csv:   contains all the csv's generated for the executions of XXX
+

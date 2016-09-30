@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResourceList>
+	<Resource Name="COMPSsWorker01">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue>q2</Queue>
+            </Host>
+            <Processor>
+                <Architecture>x86</Architecture>
+                <CPUCount>1</CPUCount>
+                <CoreCount>2</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Windows</OSType>
+            </OS>
+            <StorageElement>
+               <Size>1.0</Size>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>2.0</PhysicalSize>
+                <VirtualSize>4.0</VirtualSize>
+            </Memory>
+            <ApplicationSoftware>
+                <Software>Blast</Software>
+            </ApplicationSoftware>
+            <Service/>
+            <VO/>
+            <Cluster/>
+            <FileSystem/>
+            <NetworkAdaptor/>
+            <JobPolicy/>
+            <AccessControlPolicy/>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                <MinPort>43001</MinPort>
+                <MaxPort>43002</MaxPort>
+            </Adaptor>
+        </Adaptors>
+    </Resource>
+
+    <Resource Name="COMPSsWorker02">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue>q1</Queue>
+                <Queue/>
+            </Host>
+            <Processor>
+                <Architecture>amd64</Architecture>
+                <CoreCount>4</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Windows</OSType>
+            </OS>
+            <StorageElement>
+              <Size>1.0</Size>
+              <AccessTime>200.0</AccessTime>
+              <STR>2.0</STR>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>1.0</PhysicalSize>
+                <VirtualSize>2.0</VirtualSize>
+                <AccessTime>200.0</AccessTime>
+                <STR>1</STR>
+            </Memory>
+            <ApplicationSoftware/>
+            <Service/>
+            <VO/>
+            <Cluster/>
+            <FileSystem/>
+            <NetworkAdaptor/>
+            <JobPolicy/>
+            <AccessControlPolicy/>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                <MinPort>43003</MinPort>
+                <MaxPort>43004</MaxPort>
+            </Adaptor>
+        </Adaptors>
+    </Resource> 
+
+    <Resource Name="COMPSsWorker03">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue/>
+            </Host>
+            <Processor>
+                <Speed>2.3</Speed>
+                <CPUCount>2</CPUCount>
+                <CoreCount>2</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Linux</OSType>
+            </OS>
+            <StorageElement>
+              <Size>2.0</Size>
+              <AccessTime>100.0</AccessTime>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>2.0</PhysicalSize>
+                <VirtualSize>4.0</VirtualSize>
+                <STR>2</STR>
+            </Memory>
+            <ApplicationSoftware>
+                <Software>Hmmer</Software>
+            </ApplicationSoftware>
+            <Service/>
+            <VO/>
+            <Cluster/>
+            <FileSystem/>
+            <NetworkAdaptor/>
+            <JobPolicy/>
+            <AccessControlPolicy/>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                <MinPort>43005</MinPort>
+                <MaxPort>43006</MaxPort>
+            </Adaptor>
+        </Adaptors>
+    </Resource>
+
+    <Resource Name="COMPSsWorker04">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue>q2</Queue>
+                <Queue/>
+            </Host>
+            <Processor>
+                <Architecture>x86</Architecture>
+                <CPUCount>2</CPUCount>
+                <CoreCount>4</CoreCount>
+            </Processor>
+            <OS>
+               <OSType>Linux</OSType>
+            </OS>
+            <StorageElement>
+                <Size>2.0</Size>
+                <AccessTime>200.0</AccessTime>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>2.0</PhysicalSize>
+                <VirtualSize>4.0</VirtualSize>
+            </Memory>
+            <ApplicationSoftware>
+                <Software>Hmmer</Software>
+            </ApplicationSoftware>
+            <Service/>
+            <VO/>
+            <Cluster/>
+            <FileSystem/>
+            <NetworkAdaptor/>
+            <JobPolicy/>
+            <AccessControlPolicy/>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                <MinPort>43007</MinPort>
+                <MaxPort>43008</MaxPort>
+            </Adaptor>
+        </Adaptors>
+    </Resource> 
+
+    <Service wsdl="http://localhost:8080/groupService?wsdl">
+       <Name>GroupService</Name>
+       <Namespace>http://groupService</Namespace>
+       <Port>GroupServicePort</Port>
+    </Service>	
+
+    <CloudProvider name="BSC">
+        <Server>https://bscgrid20:11443/</Server>
+        <Connector>integratedtoolkit.connectors.test.Test</Connector>
+        <ImageList>
+            <Image name="uuid_test_XX_unstable_XX">
+                <Architecture>amd64</Architecture>
+                <OSType>Linux</OSType>
+                <ApplicationSoftware><Software>Hmmer</Software></ApplicationSoftware>
+                <Adaptors>
+                    <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                        <MinPort>43100</MinPort>
+                        <MaxPort>43110</MaxPort>
+                    </Adaptor>
+                </Adaptors>
+            </Image>
+        </ImageList>
+        <CreationTime>120</CreationTime> <!-- In seconds -->
+        <InstanceTypes>
+           <Resource Name="small">
+               <Capabilities>
+                   <Processor>
+                       <Architecture>amd64</Architecture>
+                       <CoreCount>1</CoreCount>
+                   </Processor>
+                   <StorageElement>
+                       <Size>10.0</Size>
+                   </StorageElement>
+                   <Memory>
+                       <PhysicalSize>2.0</PhysicalSize>
+                   </Memory>
+               </Capabilities>
+               <Price>0.085</Price>
+           </Resource>
+           <Resource Name="medium">
+               <Capabilities>
+                   <Processor>
+                       <Architecture>amd64</Architecture>
+                       <CoreCount>2</CoreCount>
+                   </Processor>
+                   <StorageElement>
+                       <Size>10.0</Size>
+                   </StorageElement>
+                   <Memory>
+                       <PhysicalSize>3.0</PhysicalSize>
+                   </Memory>
+               </Capabilities>
+               <Price>0.212</Price>
+           </Resource>
+        </InstanceTypes>
+    </CloudProvider>    	  
+
+    <Resource Name="WorkerDynamic">
+        <Capabilities>
+            <Host>
+                <TaskCount>0</TaskCount>
+                <Queue/>
+            </Host>
+            <Processor>
+                <Architecture>amd64</Architecture>
+                <CoreCount>4</CoreCount>
+            </Processor>
+            <OS>
+                <OSType>Windows7</OSType>
+            </OS>
+            <StorageElement>
+                <Size>1.0</Size>
+            </StorageElement>
+            <Memory>
+                <PhysicalSize>4.0</PhysicalSize>
+            </Memory>
+            <ApplicationSoftware/>
+            <Service/>
+            <VO/>
+            <Cluster/>
+            <FileSystem/>
+            <NetworkAdaptor/>
+            <JobPolicy/>
+            <AccessControlPolicy/>
+        </Capabilities>
+        <Requirements/>
+        <Adaptors>
+            <Adaptor name="integratedtoolkit.nio.master.NIOAdaptor">
+                <MinPort>43009</MinPort>
+                <MaxPort>43010</MaxPort>
+            </Adaptor>
+        </Adaptors>
+    </Resource>      
+</ResourceList>
+

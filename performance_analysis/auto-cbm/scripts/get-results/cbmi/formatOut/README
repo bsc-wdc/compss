@@ -1,0 +1,18 @@
+COMPSS-BENCH-MARK FORMAT OUT README
+
+bin  -> contains the scripts to format the data and display it.
+	-If you want to see the different plots, execute plot***.sh files. Look inside them to find out what parameters they need.	
+	
+	For debugging purposes:
+	-show_data_info.sh:  Run it if you want to see information about the executions. It is quite self-explaining :)
+	-formatOut.exe: sorts the out information in a table. The output is stored in data/gnuplotInput.dat
+		-gnuplotInput.dat format:
+			It contains a lot of columns. The meaning of the columns vary for each cbm. 
+			Every row is a bunch of executions with the same parameters, but with the header row parameter changing at every step. The first columns are metadata of the execution (they are labeled). The rest of them are the elapsed times of the executions themselves.
+
+	If you want to get detailed information of the dataset, run "./formatOut v", and check data/gnuplotInput.dat. It will contain all the information about every single execution(.out)
+
+data -> contains the needed data. This directory must contain all the *.out files that marenostrum creates after every execution.
+src  -> contains the cpp and the gnuplot scripts needed to plot everything. You won't need to touch these most of the cases.
+
+

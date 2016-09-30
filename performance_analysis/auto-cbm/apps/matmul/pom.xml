@@ -1,0 +1,75 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  	<modelVersion>4.0.0</modelVersion>
+
+	<parent>		
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>auto-cbm</artifactId>
+  		<version>1.0</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<groupId>es.bsc.compss</groupId>
+	<artifactId>matmul</artifactId>
+	<packaging>jar</packaging>
+
+	<name>Matmul</name>
+	<description>Matrix Multiplication application</description>
+	<url>http://compss.bsc.es/projects/bar/wiki/application_pages/apps/java/matmul</url>
+
+	<dependencies>
+		<dependency>
+			<groupId>es.bsc.compss</groupId>
+			<artifactId>compss-annotations</artifactId>
+		</dependency>
+	</dependencies>
+	<repositories>
+
+            <repository>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+                <id>central</id>
+                <name>Central Repository</name>
+                <url>http://repo1.maven.apache.org/maven2</url>
+           </repository>
+           <repository>
+                <id>grid-repo</id>
+                <name>BSC Grid computing and Clusters group</name>
+                <url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
+           </repository>
+
+        </repositories>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+                                </configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>validate</phase>
+						 <goals> 
+		                                	<goal>copy-dependencies</goal> 
+		                           	 </goals> 
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

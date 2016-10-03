@@ -4,12 +4,11 @@
   <name>auto-cbm</name>
   <groupId>es.bsc.compss</groupId>
   <artifactId>auto-cbm</artifactId>
-  <version>${compss.version}</version>
   <packaging>pom</packaging>
   <parent>
   	<groupId>es.bsc.compss</groupId>
   	<artifactId>compss-trunk</artifactId>
-	<version>${compss.version}</version>
+	<version>1.4.rc09</version>
 	<relativePath>../..</relativePath>
   </parent>
  

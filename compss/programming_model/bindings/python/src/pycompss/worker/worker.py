@@ -31,7 +31,7 @@ LOGGING = 104
 TASK_EXECUTION = 105
 WORKER_END = 106
 PROCESS_DESTRUCTION = 107
-
+MODULES_IMPORT = 108
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -152,6 +152,10 @@ def compss_worker():
                      "\t- # parameters: " + str(num_params) + "\n" +
                      "\t- Values:\n" + values_str +
                      "\t- COMPSs types: " + types_str)
+
+    if tracing:
+        pyextrae.event(TASK_EVENTS, 0)
+        pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
 
     try:
         # Try to import the module (for functions)

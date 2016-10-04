@@ -125,7 +125,8 @@ public abstract class Tracer {
         LOGGING(104, INSIDE_TASKS_TYPE, "Logging"), 
         TASK_EXECUTION(105, INSIDE_TASKS_TYPE, "User Method Execution"), 
         WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"), 
-        PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction");
+        PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction"),
+        MODULES_IMPORT(108, INSIDE_TASKS_TYPE, "Python Modules import");
 
         private final int id;
         private final int type;

@@ -90,15 +90,15 @@ public class CreationThread extends Thread {
             if (debug) {
                 runtimeLogger.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been created ");
             }
-            resourceLogger
-                    .info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID " + granted.getEnvId() + " CREATED\n]");
+            resourceLogger.info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID " 
+                                    + granted.getEnvId() + " CREATED\n]");
         } else {
             granted = reused;
             if (debug) {
                 runtimeLogger.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been reused ");
             }
-            resourceLogger
-                    .info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID " + granted.getEnvId() + " REUSED\n]");
+            resourceLogger.info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID " 
+                                    + granted.getEnvId() + " REUSED\n]");
         }
 
         this.setName("creationThread " + granted.getName());

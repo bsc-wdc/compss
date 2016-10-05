@@ -5,7 +5,6 @@ import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.TaskDescription;
@@ -109,8 +108,17 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
             jobLogger.debug("    * " + p);
             if (p instanceof DependencyParameter) {
                 DependencyParameter dp = (DependencyParameter) p;
-                if (taskDescription.getType() != Type.SERVICE || dp.getDirection() != DataDirection.INOUT) {
-                    transferJobData(dp, listener);
+                switch(taskDescription.getType()) {
+                    case METHOD:
+                        transferJobData(dp, listener);
+                        break;
+                    case SERVICE:
+                        if (dp.getDirection() != DataDirection.INOUT) {
+                            // For services we only transfer IN parameters because the only
+                            // parameter that can be INOUT is the target
+                            transferJobData(dp, listener);
+                        }
+                        break;
                 }
             }
         }
@@ -153,8 +161,8 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
             transferInputData();
         } else {
-            ErrorManager
-                    .warn("Transfers for running task " + task.getId() + " on worker " + selectedMainResource.getName() + " have failed.");
+            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker " 
+                                + selectedMainResource.getName() + " have failed.");
             this.notifyError();
         }
     }
@@ -169,8 +177,8 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
-        jobLogger.info(
-                (this.executingResources.size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
+        jobLogger.info( (this.executingResources.size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() 
+                            + " (Task: " + task.getId() + ")");
         jobLogger.info("  * Method name: " + task.getTaskDescription().getName());
         jobLogger.info("  * Target host: " + selectedMainResource.getName());
         profile.start();

@@ -16,6 +16,7 @@ import integratedtoolkit.util.ResourceScheduler;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,11 +24,6 @@ import org.apache.logging.log4j.Logger;
 
 
 public abstract class AllocatableAction<P extends Profile, T extends WorkerResourceDescription> {
-
-    // Logger
-    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
-    protected static final boolean debug = logger.isDebugEnabled();
-
 
     public static interface ActionOrchestrator {
 
@@ -43,13 +39,19 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         FINISHED, 
         FAILED
     }
+    
+    // Logger
+    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final boolean debug = logger.isDebugEnabled();
 
+    // Orchestrator
+    private static ActionOrchestrator orchestrator;
+    // AllocatableAction Id counter
+    private static AtomicInteger nextId = new AtomicInteger();
 
-    public static ActionOrchestrator orchestrator;
-
-    private static long nextId = 0;
-
+    // Id of the current AllocatableAction
     private final long id;
+    
     // Allocatable actions that the action depends on due data dependencies
     private final LinkedList<AllocatableAction<P, T>> dataPredecessors;
     // Allocatable actions depending on the allocatable action due data dependencies
@@ -70,7 +72,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
 
     public AllocatableAction(SchedulingInformation<P, T> schedulingInformation) {
-        id = nextId++;
+        id = nextId.getAndIncrement();
         state = State.RUNNABLE;
         dataPredecessors = new LinkedList<AllocatableAction<P, T>>();
         dataSuccessors = new LinkedList<AllocatableAction<P, T>>();
@@ -78,6 +80,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         selectedSlaveResources = null;
         executingResources = new LinkedList<ResourceScheduler<P, T>>();
         schedulingInfo = schedulingInformation;
+    }
+    
+    public static void setOrchestrator(ActionOrchestrator orchestrator) {
+        AllocatableAction.orchestrator = orchestrator;
     }
 
     public long getId() {

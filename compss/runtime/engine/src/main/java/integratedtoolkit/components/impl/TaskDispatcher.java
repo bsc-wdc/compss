@@ -82,7 +82,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Tracer.disablePThreads();
         }
 
-        AllocatableAction.orchestrator = this;
+        AllocatableAction.setOrchestrator(this);
 
         // Insert workers
         for (Worker w : ResourceManager.getAllWorkers()) {

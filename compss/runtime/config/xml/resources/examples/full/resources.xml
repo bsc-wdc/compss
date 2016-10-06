@@ -138,6 +138,13 @@
         <Processor Name="P2">
             <ComputingUnits>4</ComputingUnits>
             <Speed>3.0</Speed>
+            <Type>CPU</Type>
+        </Processor>
+        <Processor Name="P3">
+            <ComputingUnits>4</ComputingUnits>
+            <Speed>3.0</Speed>
+            <Type>GPU</Type>
+            <InternalMemorySize>0.01</InternalMemorySize>
         </Processor>
         <Adaptors>
             <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">

@@ -198,6 +198,8 @@
                         <!-- NOT mandatory -->
                         <xsd:element name="Architecture" type="xsd:string" minOccurs="0" maxOccurs="1" />
                         <xsd:element name="Speed" type="xsd:float" minOccurs="0" maxOccurs="1" />		<!-- GHz -->
+                        <xsd:element name="Type" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                        <xsd:element name="InternalMemorySize" type="xsd:float" minOccurs="0" maxOccurs="1" />	<!-- GB -->
                         <xsd:element name="ProcessorProperty" type="ProcessorPropertyType" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>
                 <xsd:attribute name="Name" type="xsd:string" use="required"/>
@@ -210,7 +212,6 @@
                         <xsd:element name="Value" type="xsd:string" minOccurs="1" maxOccurs="1" />
                 </xsd:sequence>
         </xsd:complexType>
-
 
         <!-- MEMORY TYPE -->
         <xsd:complexType name="MemoryType">

@@ -47,7 +47,7 @@ public class ONE extends AbstractSSHConnector {
 
     @Override
     public Object create(String name, CloudMethodResourceDescription requested) throws ConnectorException {
-        Template template = this.classifyMachine(requested.getTotalComputingUnits(), requested.getMemorySize(), requested.getStorageSize());
+        Template template = this.classifyMachine(requested.getTotalCPUComputingUnits(), requested.getMemorySize(), requested.getStorageSize());
 
         try {
             String pubKey = KeyManager.getPublicKey(KeyManager.getKeyPair());

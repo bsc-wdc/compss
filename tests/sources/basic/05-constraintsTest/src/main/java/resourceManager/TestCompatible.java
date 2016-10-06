@@ -132,9 +132,9 @@ public class TestCompatible {
              * *********************************************** 
              * COMPUTING UNITS
              ***********************************************/
-            if ((iDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-                    && (wDescription.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-                    && (wDescription.getTotalComputingUnits() < iDescription.getTotalComputingUnits())) {
+            if ((iDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+                    && (wDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+                    && (wDescription.getTotalCPUComputingUnits() < iDescription.getTotalCPUComputingUnits())) {
                 return "computingUnits";
             }
 

@@ -32,9 +32,10 @@ public class VM implements Comparable<VM> {
 
     public String toString() {
         return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = " + startTime
-                + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName() + ", procs = "
-                + rd.getTotalComputingUnits() + ", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize() + ", to delete = "
-                + toDelete + ")";
+                + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName() + ", procs = CPU: "
+                + rd.getTotalCPUComputingUnits() +", GPU: "+ rd.getTotalGPUComputingUnits()+", FPGA: "+rd.getTotalFPGAComputingUnits()+
+                ", OTHER: "+rd.getTotalOTHERComputingUnits()+", memory = " + rd.getMemorySize() + ", disk = " + rd.getStorageSize() + 
+                ", to delete = " + toDelete + ")";
     }
 
     public Object getEnvId() {

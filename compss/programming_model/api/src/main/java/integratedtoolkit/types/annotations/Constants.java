@@ -23,6 +23,14 @@ public class Constants {
      * 
      */
     public static final float UNASSIGNED_FLOAT = (float) -1.0;
+
+	public static final String CPU_TYPE = "CPU";
+	public static final String GPU_TYPE = "GPU";
+	public static final String FPGA_TYPE = "FPGA";
+	public static final String OTHER_TYPE = "OTHER";
+	
+    public static final String UNASSIGNED_PROCESSOR_TYPE = CPU_TYPE;
+    public static final Processor[] UNASSIGNED_PROCESSORS= new Processor[]{};
     
     /**
      * Replicated task execution

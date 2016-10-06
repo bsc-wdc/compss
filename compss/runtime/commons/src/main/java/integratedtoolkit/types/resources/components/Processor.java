@@ -2,6 +2,7 @@ package integratedtoolkit.types.resources.components;
 
 import java.io.Serializable;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
@@ -11,12 +12,14 @@ public class Processor implements Serializable {
      * Runtime Objects have serialization ID 1L
      */
     private static final long serialVersionUID = 1L;
-
+    
     private String name = MethodResourceDescription.UNASSIGNED_STR;
     private int computingUnits = MethodResourceDescription.ZERO_INT;
     private float speed = MethodResourceDescription.UNASSIGNED_FLOAT;
     private String architecture = MethodResourceDescription.UNASSIGNED_STR;
-    private String propName = MethodResourceDescription.UNASSIGNED_STR;
+    private String type = Constants.CPU_TYPE;
+    private float internalMemory = MethodResourceDescription.UNASSIGNED_FLOAT;
+	private String propName = MethodResourceDescription.UNASSIGNED_STR;
     private String propValue = MethodResourceDescription.UNASSIGNED_STR;
 
 
@@ -45,18 +48,22 @@ public class Processor implements Serializable {
         this.setArchitecture(arch);
     }
 
-    public Processor(String name, int cu, float speed, String arch, String propName, String propValue) {
+    public Processor(String name, int cu, float speed, String arch, String type, float internalMem, String propName, String propValue) {
         this.setName(name);
         this.setComputingUnits(cu);
         this.setSpeed(speed);
         this.setArchitecture(arch);
+        this.setType(type);
+        this.setInternalMemory(internalMem);
         this.setPropName(propName);
         this.setPropValue(propValue);
     }
 
-    public Processor(String name, int cu, String propName, String propValue) {
+    public Processor(String name, int cu, String type, float internalMem, String propName, String propValue) {
         this.setName(name);
         this.setComputingUnits(cu);
+        this.setType(type);
+        this.setInternalMemory(internalMem);
         this.setPropName(propName);
         this.setPropValue(propValue);
     }
@@ -66,6 +73,8 @@ public class Processor implements Serializable {
         this.setComputingUnits(p.getComputingUnits());
         this.setSpeed(p.getSpeed());
         this.setArchitecture(p.getArchitecture());
+        this.setType(p.getType());
+        this.setInternalMemory(p.getInternalMemory());
         this.setPropName(p.getPropName());
         this.setPropValue(p.getPropValue());
     }
@@ -113,6 +122,34 @@ public class Processor implements Serializable {
     public void setArchitecture(String architecture) {
         this.architecture = architecture;
     }
+    
+    /**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the internalMemory
+	 */
+	public float getInternalMemory() {
+		return internalMemory;
+	}
+
+	/**
+	 * @param internalMemory the internalMemory to set
+	 */
+	public void setInternalMemory(float internalMemory) {
+		this.internalMemory = internalMemory;
+	}
 
     public String getPropName() {
         return propName;

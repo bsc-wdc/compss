@@ -101,15 +101,15 @@ public class TestAvailable {
          */
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
 
-        // System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        // System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1)[0]);
+        System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
+        System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1)[0]);
 
         WorkerResourceDescription consumed1 = worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
         WorkerResourceDescription consumed2 = worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
 
-        // System.out.println("CONSUMED: " + consumed1);
-        // System.out.println("CONSUMED: " + consumed2);
-        // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
+        System.out.println("CONSUMED: " + consumed1);
+        System.out.println("CONSUMED: " + consumed2);
+        //System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
 
         Action a = new Action(ce1);
         if (a.findAvailableWorkers().containsKey(worker)) {

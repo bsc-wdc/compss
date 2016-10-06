@@ -376,7 +376,9 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         if (method.getRequirements().getHostQueues().size() > 0) {
             sd.addAttribute(SoftwareDescription.JOB_QUEUE, method.getRequirements().getHostQueues().get(0));
         }
-        sd.addAttribute("coreCount", method.getRequirements().getTotalComputingUnits());
+        sd.addAttribute("coreCount", method.getRequirements().getTotalCPUComputingUnits());
+        sd.addAttribute("gpuCount", method.getRequirements().getTotalGPUComputingUnits());
+        sd.addAttribute("fpgaCount", method.getRequirements().getTotalFPGAComputingUnits());
         sd.addAttribute(SoftwareDescription.MEMORY_MAX, method.getRequirements().getMemorySize());
         // sd.addAttribute(SoftwareDescription.SANDBOX_ROOT, "/tmp/");
 

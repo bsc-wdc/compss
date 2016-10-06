@@ -40,7 +40,7 @@ public class VMMConnector extends AbstractSSHConnector {
     public Object create(String name, CloudMethodResourceDescription requested) throws ConnectorException {
         try {
             logger.debug("Image password:" + requested.getImage().getProperties().get(ITConstants.PASSWORD));
-            String id = client.createVM(name, requested.getImage().getImageName(), requested.getTotalComputingUnits(),
+            String id = client.createVM(name, requested.getImage().getImageName(), requested.getTotalCPUComputingUnits(),
                     (int) (requested.getMemorySize() * 1000), (int) requested.getStorageSize(),
                     System.getProperty(ITConstants.IT_APP_NAME));
             logger.debug("Machine " + id + " created");

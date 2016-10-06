@@ -51,10 +51,7 @@ public class CloudMethodWorker extends MethodWorker {
     public String getMonitoringData(String prefix) {
         // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>")
-                .append("\n");
-        sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
-        sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
+        sb.append(super.getMonitoringData(prefix));
         String providerName = ((CloudMethodResourceDescription) description).getProviderName();
         if (providerName == null) {
             providerName = new String("");
@@ -181,20 +178,10 @@ public class CloudMethodWorker extends MethodWorker {
         }
     }
 
-    @Override
-    public String getResourceLinks(String prefix) {
-        StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
-        sb.append(prefix).append("TYPE = WORKER").append("\n");
-        sb.append(prefix).append("COMPUTING_UNITS = ").append(description.getTotalComputingUnits()).append("\n");
-        sb.append(prefix).append("MEMORY = ").append(description.getMemorySize()).append("\n");
-
-        return sb.toString();
-    }
-
     public boolean shouldBeStopped() {
         synchronized (available) {
             synchronized (toRemove) {
-                return ((available.getTotalComputingUnits() == 0) && (toRemove.getTotalComputingUnits() == 0));
+                return ((available.getTotalCPUComputingUnits() == 0) && (toRemove.getTotalCPUComputingUnits() == 0));
             }
         }
     }

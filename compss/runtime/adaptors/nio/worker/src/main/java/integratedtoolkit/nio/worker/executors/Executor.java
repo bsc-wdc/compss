@@ -104,7 +104,7 @@ public abstract class Executor implements Runnable {
 
         // Execute task
         try {
-            int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalComputingUnits());
+            int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits());
             executeTask(nw, nt, outputsBasename, assignedCoreUnits);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

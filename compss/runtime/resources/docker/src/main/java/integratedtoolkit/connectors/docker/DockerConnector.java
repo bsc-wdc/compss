@@ -131,7 +131,7 @@ public class DockerConnector extends AbstractSSHConnector {
 					dockerClient.createContainer(rd.getImage().getImageName(), 
 												 name, 
 												 exposedPorts,
-												 rd.getTotalComputingUnits(), 
+												 rd.getTotalCPUComputingUnits(), 
 												 rd.getMemorySize(), 
 												 WORKER_CMD);
 			

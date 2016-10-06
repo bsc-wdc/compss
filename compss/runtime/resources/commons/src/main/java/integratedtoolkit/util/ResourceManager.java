@@ -255,7 +255,7 @@ public class ResourceManager {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
-        int computingUnits = rd.getTotalComputingUnits();
+        int computingUnits = rd.getTotalCPUComputingUnits();
         if (limitOfTasks < 0 && computingUnits < 0) {
             taskCount = 0;
         } else {
@@ -546,7 +546,7 @@ public class ResourceManager {
         // Set resources information
         for (Worker<?> resource : pool.findAllResources()) {
             if (resource.getType().equals(Type.WORKER)) {
-                int cores = ((MethodResourceDescription) resource.getDescription()).getTotalComputingUnits();
+                int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
                 float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
                 // Last boolean equals true because this resource is active
                 state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
@@ -576,7 +576,7 @@ public class ResourceManager {
                     }
                     // Last boolean equals false because this resource is pending
                     state.updateHostInfo(rcr.getRequested().getName(), rcr.getRequested().getType(),
-                            rcr.getRequested().getTotalComputingUnits(), rcr.getRequested().getMemorySize(), coreId, coreSlots, false);
+                            rcr.getRequested().getTotalCPUComputingUnits(), rcr.getRequested().getMemorySize(), coreId, coreSlots, false);
                 }
             }
         }
@@ -596,8 +596,14 @@ public class ResourceManager {
         for (ResourceCreationRequest r : rcr) {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
             sb.append(prefix).append("<Resource id=\"" + r.getRequested().getName() + "\">").append("\n");
-            sb.append(prefix + "\t").append("<ComputingUnits>").append(r.getRequested().getTotalComputingUnits())
-                    .append("</ComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+                    .append("</CPUComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            		.append("</GPUComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            		.append("</FPGAComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            	.append("</OTHERComputingUnits>").append("\n");
             sb.append(prefix + "\t").append("<Memory>").append(r.getRequested().getMemorySize()).append("</Memory>").append("\n");
             sb.append(prefix + "\t").append("<Disk>").append(r.getRequested().getStorageSize()).append("</Disk>").append("\n");
             sb.append(prefix + "\t").append("<Provider>").append(r.getProvider()).append("</Provider>").append("\n");

@@ -4,7 +4,7 @@
   # Name: buildMT
   # Description: SCRIPT FOR MinoTauro COMPSs BUILD
   # Parameters: <MT_user> MinoTauro user account. Preferable with ssh keys inserted
-  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTmpPath> Tmp path on Minotauro for deployment
   #             <FullTargetPath> Base Target Installation folder on MinoTauro
   #############################################################
 

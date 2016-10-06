@@ -663,40 +663,58 @@ public class Validator {
         // Names are validated in the parent node
 
         // Validate inner elements
-        List<Object> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
+    	List<JAXBElement<?>> innerElements = processor.getComputingUnitsOrArchitectureOrSpeed();
         if (innerElements != null) {
             boolean cuTagFound = false;
             boolean ArchitectureTagFound = false;
             boolean speedTagFound = false;
+            boolean typeTagFound = false;
+            boolean memTagFound = false;
             boolean processorPropertyTagFound = false;
-            for (Object obj : innerElements) {
-                if (obj instanceof Integer) {
+            for (JAXBElement<?> obj : innerElements) {
+                if (obj.getName().equals(new QName("ComputingUnits"))) {
                     if (cuTagFound) {
                         throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Appears more than once");
                     } else {
                         cuTagFound = true;
-                        int val = (Integer) obj;
+                        int val = (Integer) obj.getValue();
                         if (val <= 0) {
                             throw new InvalidElementException("Processor", "Attribute ComputingUnits", "Must be greater than 0");
                         }
                     }
-                } else if (obj instanceof String) {
+                } else if (obj.getName().equals(new QName("Architecture"))) {
                     if (ArchitectureTagFound) {
                         throw new InvalidElementException("Processor", "Attribute Architecture", "Appears more than once");
                     } else {
                         ArchitectureTagFound = true;
                     }
-                } else if (obj instanceof Float) {
+                } else if (obj.getName().equals(new QName("Speed"))) {
                     if (speedTagFound) {
                         throw new InvalidElementException("Processor", "Attribute Speed", "Appears more than once");
                     } else {
                         speedTagFound = true;
-                        float val = (Float) obj;
+                        float val = (Float) obj.getValue();
                         if (val <= 0.0) {
                             throw new InvalidElementException("Processor", "Attribute Speed", "Must be greater than 0");
                         }
                     }
-                } else if (obj instanceof ProcessorPropertyType) {
+                } else if (obj.getName().equals(new QName("Type"))) {
+                    if (typeTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute Type", "Appears more than once");
+                    } else {
+                        typeTagFound = true;
+                    }
+                } else if (obj.getName().equals(new QName("InternalMemorySize"))) {
+                    if (memTagFound) {
+                        throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Appears more than once");
+                    } else {
+                        memTagFound = true;
+                        float val = (Float) obj.getValue();
+                        if (val <= 0.0) {
+                            throw new InvalidElementException("Processor", "Attribute InternalMemorySize", "Must be greater than 0");
+                        }
+                    }
+                } else if (obj.getName().equals(new QName("ProcessorProperty"))) {
                     if (processorPropertyTagFound) {
                         throw new InvalidElementException("Processor", "Attribute ProcessorProperty", "Appears more than once");
                     } else {

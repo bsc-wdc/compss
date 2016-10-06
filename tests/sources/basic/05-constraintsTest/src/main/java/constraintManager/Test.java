@@ -167,18 +167,18 @@ public class Test {
         if (general == null || general.computingUnits() == Constants.UNASSIGNED_INT) {
             if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
                 // Default value
-                ret = (registered.getTotalComputingUnits() == MethodResourceDescription.ONE_INT);
+                ret = (registered.getTotalCPUComputingUnits() == MethodResourceDescription.ONE_INT);
             } else {
                 // Specific constraint value
-                ret = (registered.getTotalComputingUnits() == specific.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == specific.computingUnits());
             }
         } else {
             if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
                 // General constraint value
-                ret = (registered.getTotalComputingUnits() == general.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == general.computingUnits());
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getTotalComputingUnits() == specific.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == specific.computingUnits());
             }
         }
         if (!ret) {
@@ -188,7 +188,7 @@ public class Test {
             if (specific != null) {
                 System.out.println("SPC: " + specific.computingUnits());
             }
-            System.out.println("REG: " + registered.getTotalComputingUnits());
+            System.out.println("REG: " + registered.getTotalCPUComputingUnits());
             return "computingUnits";
         }
 

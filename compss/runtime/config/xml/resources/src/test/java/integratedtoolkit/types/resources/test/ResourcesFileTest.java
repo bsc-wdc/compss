@@ -409,7 +409,7 @@ public class ResourcesFileTest {
         String user = "user";
 
         ProcessorPropertyType pp = ResourcesFile.createProcessorProperty(key, value);
-        ProcessorType proc = ResourcesFile.createProcessor(procName, cu, arch, speed, pp);
+        ProcessorType proc = ResourcesFile.createProcessor(procName, cu, arch, speed, "CPU", 0.0f,pp);
         AdaptorType ad = ResourcesFile.createAdaptor(adaptorName, batch, null, interactive, gatprop, user);
         String xsd_path = new File(SCHEMA_PATH).toURI().getPath();
 
@@ -426,6 +426,8 @@ public class ResourcesFileTest {
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
+        assertEquals("CPU",resources.getProcessorType(procExtracted));
+        assertEquals(-1.0f, resources.getProcessorMemorySize(procExtracted),0);
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
     }
@@ -437,6 +439,8 @@ public class ResourcesFileTest {
         String nodeName = "blablahost";
         String procName = "Proc1";
         String arch = "amd64";
+        String type = "GPU";
+        float internalMemorySize = 0.01f;
         String key = "procKey";
         String value = "procValue";
         float memSize = 32.5f;
@@ -456,7 +460,8 @@ public class ResourcesFileTest {
 
         // Instantiate ResourcesFile
         ResourcesFile resources = new ResourcesFile(xsd_path, logger);
-        resources.addComputeNode(nodeName, procName, cu, arch, speed, ResourcesFile.createProcessorProperty(key, value), adaptorName,
+        resources.addComputeNode(nodeName, procName, cu, arch, speed, type, internalMemorySize,
+        		ResourcesFile.createProcessorProperty(key, value), adaptorName,
                 maxPort, minPort, executor, user, memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
@@ -464,6 +469,8 @@ public class ResourcesFileTest {
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
+        assertEquals(type,resources.getProcessorType(procExtracted));
+        assertEquals(internalMemorySize, resources.getProcessorMemorySize(procExtracted),0);
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
         assertEquals(memSize, resources.getMemorySize(cn), 0);
@@ -504,7 +511,7 @@ public class ResourcesFileTest {
 
         // Instantiate ResourcesFile
         ResourcesFile resources = new ResourcesFile(xsd_path, logger);
-        resources.addComputeNode(nodeName, procName, cu, arch, speed, ResourcesFile.createProcessorProperty(key, value), adaptorName, batch,
+        resources.addComputeNode(nodeName, procName, cu, arch, speed, null,-1f, ResourcesFile.createProcessorProperty(key, value), adaptorName, batch,
                 queues, interactive, gatprop, user, memSize, null, storageSize, null, osType, null, null);
         ComputeNodeType cn = resources.getComputeNode(nodeName);
         ProcessorType procExtracted = resources.getProcessors(cn).get(0);
@@ -512,6 +519,7 @@ public class ResourcesFileTest {
         assertEquals(cu, resources.getProcessorComputingUnits(procExtracted));
         assertEquals(arch, resources.getProcessorArchitecture(procExtracted));
         assertEquals(speed, resources.getProcessorSpeed(procExtracted), 0);
+        assertEquals("CPU",resources.getProcessorType(procExtracted));
         assertEquals(key, resources.getProcessorProperty(procExtracted).getKey());
         assertEquals(value, resources.getProcessorProperty(procExtracted).getValue());
         assertEquals(memSize, resources.getMemorySize(cn), 0);

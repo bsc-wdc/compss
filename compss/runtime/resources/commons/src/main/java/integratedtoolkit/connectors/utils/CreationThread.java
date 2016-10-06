@@ -118,7 +118,7 @@ public class CreationThread extends Thread {
                     return;
                 }
             } else {
-                int limitOfTasks = granted.getDescription().getTotalComputingUnits();
+                int limitOfTasks = granted.getDescription().getTotalCPUComputingUnits();
                 r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks,
                         rcr.getRequested().getImage().getSharedDisks());
                 /*try {
@@ -190,13 +190,19 @@ public class CreationThread extends Thread {
 
         if (granted != null) {
             resourceLogger.debug("CONNECTOR_REQUEST = [");
-            resourceLogger.debug("\tPROC = " + requested.getTotalComputingUnits());
+            resourceLogger.debug("\tPROC_CPU_CU = " + requested.getTotalCPUComputingUnits());
+            resourceLogger.debug("\tPROC_GPU_CU = " + requested.getTotalGPUComputingUnits());
+            resourceLogger.debug("\tPROC_FPGA_CU = " + requested.getTotalFPGAComputingUnits());
+            resourceLogger.debug("\tPROC_OTHER_CU = " + requested.getTotalOTHERComputingUnits());
             resourceLogger.debug("\tOS = " + requested.getOperatingSystemType());
             resourceLogger.debug("\tMEM = " + requested.getMemorySize());
             resourceLogger.debug("]");
             CloudMethodResourceDescription desc = granted.getDescription();
             resourceLogger.debug("CONNECTOR_GRANTED = [");
-            resourceLogger.debug("\tPROC = " + desc.getTotalComputingUnits());
+            resourceLogger.debug("\tPROC_CPU_CU = " + desc.getTotalCPUComputingUnits());
+            resourceLogger.debug("\tPROC_GPU_CU = " + desc.getTotalGPUComputingUnits());
+            resourceLogger.debug("\tPROC_FPGA_CU = " + desc.getTotalFPGAComputingUnits());
+            resourceLogger.debug("\tPROC_OTHER_CU = " + desc.getTotalOTHERComputingUnits());
             resourceLogger.debug("\tOS = " + desc.getOperatingSystemType());
             resourceLogger.debug("\tMEM = " + desc.getMemorySize());
             resourceLogger.debug("]");
@@ -232,7 +238,7 @@ public class CreationThread extends Thread {
         MethodConfiguration mc = cid.getConfig();
         try {
             int limitOfTasks = mc.getLimitOfTasks();
-            int computingUnits = granted.getTotalComputingUnits();
+            int computingUnits = granted.getTotalCPUComputingUnits();
             if (limitOfTasks < 0 && computingUnits < 0) {
                 mc.setLimitOfTasks(0);
                 mc.setTotalComputingUnits(0);

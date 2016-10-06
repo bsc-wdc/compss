@@ -95,8 +95,14 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public String getMonitoringData(String prefix) {
         // TODO: Add full information about description (mem type, each processor information, etc)
         StringBuilder sb = new StringBuilder();
-        sb.append(prefix).append("<TotalComputingUnits>").append(description.getTotalComputingUnits()).append("</TotalComputingUnits>")
+        sb.append(prefix).append("<TotalCPUComputingUnits>").append(description.getTotalCPUComputingUnits()).append("</TotalCPUComputingUnits>")
                 .append("\n");
+        sb.append(prefix).append("<TotalGPUComputingUnits>").append(description.getTotalGPUComputingUnits()).append("</TotalGPUComputingUnits>")
+        		.append("\n");
+        sb.append(prefix).append("<TotalFPGAComputingUnits>").append(description.getTotalFPGAComputingUnits()).append("</TotalFPGAComputingUnits>")
+        		.append("\n");
+        sb.append(prefix).append("<TotalOTHERComputingUnits>").append(description.getTotalOTHERComputingUnits()).append("</TotalOTHERComputingUnits>")
+        		.append("\n");
         sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
         sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
         return sb.toString();
@@ -155,9 +161,11 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     public String getResourceLinks(String prefix) {
         StringBuilder sb = new StringBuilder(super.getResourceLinks(prefix));
         sb.append(prefix).append("TYPE = WORKER").append("\n");
-        sb.append(prefix).append("COMPUTING_UNITS = ").append(description.getTotalComputingUnits()).append("\n");
+        sb.append(prefix).append("CPU_COMPUTING_UNITS = ").append(description.getTotalCPUComputingUnits()).append("\n");
+        sb.append(prefix).append("GPU_COMPUTING_UNITS = ").append(description.getTotalGPUComputingUnits()).append("\n");
+        sb.append(prefix).append("FPGA_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits()).append("\n");
+        sb.append(prefix).append("OTHER_COMPUTING_UNITS = ").append(description.getTotalFPGAComputingUnits()).append("\n");
         sb.append(prefix).append("MEMORY = ").append(description.getMemorySize()).append("\n");
-
         return sb.toString();
     }
 

@@ -124,9 +124,9 @@ public class Test {
          * *********************************************** 
          * COMPUTING UNITS
          ***********************************************/
-        if ((rdImpl.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-                && (rdType.getTotalComputingUnits() >= MethodResourceDescription.ONE_INT)
-                && (rdType.getTotalComputingUnits() < rdImpl.getTotalComputingUnits())) {
+        if ((rdImpl.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+                && (rdType.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
+                && (rdType.getTotalCPUComputingUnits() < rdImpl.getTotalCPUComputingUnits())) {
             return "computingUnits";
         }
 

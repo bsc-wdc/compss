@@ -14,12 +14,13 @@ import java.lang.annotation.ElementType;
  */
 public @interface Constraints {
 
-    /**
+	Processor[] processors() default {};
+	/**
      * Returns the number of computing units required for the resource to run the CE
      * 
      * @return the required computing units to run the CE
      */
-    int computingUnits() default Constants.UNASSIGNED_INT;
+	int computingUnits() default Constants.UNASSIGNED_INT;
     
     /**
      * Returns the number of computing nodes required to run the CE
@@ -48,7 +49,21 @@ public @interface Constraints {
      * @return the required architecture for the processor to run the CE
      */
     String processorArchitecture() default Constants.UNASSIGNED_STR;
-
+    
+    /**
+     * Returns the required processor internal memory for the resource to run the CE
+     *
+     * @return the required internal memory size for the processor to run the CE
+     */
+    float processorInternalMemorySize() default Constants.UNASSIGNED_FLOAT;
+    
+    /**
+     * Returns the required processor type for the resource to run the CE
+     *
+     * @return the required type for the processor to run the CE
+     */
+    String processorType() default Constants.UNASSIGNED_PROCESSOR_TYPE;
+    
     /**
      * Returns the name of the processor property required for the resource to run the CE
      * 

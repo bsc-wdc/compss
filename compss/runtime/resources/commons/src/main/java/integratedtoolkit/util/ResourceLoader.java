@@ -212,10 +212,12 @@ public class ResourceLoader {
                 int computingUnits = resources.getProcessorComputingUnits(p);
                 String architecture = resources.getProcessorArchitecture(p);
                 float speed = resources.getProcessorSpeed(p);
+                String type = resources.getProcessorType(p);
+                float internalMemory = resources.getProcessorMemorySize(p);
                 ProcessorPropertyType procProp = resources.getProcessorProperty(p);
                 String propKey = (procProp != null) ? procProp.getKey() : "";
                 String propValue = (procProp != null) ? procProp.getValue() : "";
-                mrd.addProcessor(procName, computingUnits, architecture, speed, propKey, propValue);
+                mrd.addProcessor(procName, computingUnits, architecture, speed, type, internalMemory, propKey, propValue);
             }
         }
         mrd.setMemorySize(resources.getMemorySize(cn_resources));
@@ -292,9 +294,9 @@ public class ResourceLoader {
         if (limitOfTasks >= 0) {
             config.setLimitOfTasks(limitOfTasks);
         } else {
-            config.setLimitOfTasks(mrd.getTotalComputingUnits());
+            config.setLimitOfTasks(mrd.getTotalCPUComputingUnits());
         }
-        config.setTotalComputingUnits(mrd.getTotalComputingUnits());
+        config.setTotalComputingUnits(mrd.getTotalCPUComputingUnits());
 
         ApplicationType app = project.getApplication(cn_project);
         if (app != null) {
@@ -603,10 +605,12 @@ public class ResourceLoader {
                 int computingUnits = resources.getProcessorComputingUnits(p);
                 String architecture = resources.getProcessorArchitecture(p);
                 float speed = resources.getProcessorSpeed(p);
+                String procType = resources.getProcessorType(p);
+                float internalMemory = resources.getProcessorMemorySize(p);
                 ProcessorPropertyType procProp = resources.getProcessorProperty(p);
                 String propKey = (procProp != null) ? procProp.getKey() : "";
                 String propValue = (procProp != null) ? procProp.getValue() : "";
-                cmrd.addProcessor(procName, computingUnits, architecture, speed, propKey, propValue);
+                cmrd.addProcessor(procName, computingUnits, architecture, speed, procType, internalMemory, propKey, propValue);
             }
         }
 

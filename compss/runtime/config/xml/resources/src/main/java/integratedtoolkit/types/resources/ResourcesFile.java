@@ -2274,6 +2274,10 @@ public class ResourcesFile {
      *            Processor Architecture
      * @param procSpeed
      *            Processor Speed
+     * @param procType
+     *            Processor Type
+     * @param procMemSize
+     *            Processor Internal Memory Size
      * @param procProp
      *            Processor Property
      * @param adaptorName
@@ -2303,13 +2307,13 @@ public class ResourcesFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
-            ProcessorPropertyType procProp, String adaptorName, int maxPort, int minPort, String executor, String user, float memorySize,
-            String memoryType, float storageSize, String storageType, String osType, String osDistribution, String osVersion)
+    public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed, String procType, 
+    		float procMemSize, ProcessorPropertyType procProp, String adaptorName, int maxPort, int minPort, String executor, String user, 
+    		float memorySize, String memoryType, float storageSize, String storageType, String osType, String osDistribution, String osVersion)
             throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<ProcessorType>();
-        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         processors.add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         StorageType storage = createStorage(storageSize, storageType);
@@ -2368,13 +2372,13 @@ public class ResourcesFile {
      * @return
      * @throws InvalidElementException
      */
-    public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed,
-            ProcessorPropertyType procProp, String adaptorName, boolean batch, List<String> queues, boolean interactive,
+    public ComputeNodeType addComputeNode(String name, String procName, int procCU, String procArch, float procSpeed, String procType,
+            float procMemSize, ProcessorPropertyType procProp, String adaptorName, boolean batch, List<String> queues, boolean interactive,
             String brokerAdaptor, String user, float memorySize, String memoryType, float storageSize, String storageType, String osType,
             String osDistribution, String osVersion) throws InvalidElementException {
 
         List<ProcessorType> processors = new ArrayList<ProcessorType>();
-        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         processors.add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         StorageType storage = createStorage(storageSize, storageType);
@@ -2609,17 +2613,37 @@ public class ResourcesFile {
      *            Processor Property
      * @return
      */
-    public static ProcessorType createProcessor(String name, int cu, String procArchitecture, float procSpeed,
-            ProcessorPropertyType procProperties) {
+    public static ProcessorType createProcessor(String name, int cu, String procArchitecture, float procSpeed, 
+    		 String type, float internalMemory, ProcessorPropertyType procProperties) {
 
         ProcessorType processor = new ProcessorType();
         processor.setName(name);
-        processor.getComputingUnitsOrArchitectureOrSpeed().add(cu);
-        processor.getComputingUnitsOrArchitectureOrSpeed().add(procArchitecture);
-        processor.getComputingUnitsOrArchitectureOrSpeed().add(procSpeed);
-
+        JAXBElement<Integer> cuElement = new JAXBElement<Integer>(new QName("ComputingUnits"), Integer.class, cu);
+        processor.getComputingUnitsOrArchitectureOrSpeed().add(cuElement);
+        
+        if (procArchitecture != null) {
+        	JAXBElement<String> archElement = new JAXBElement<String>(new QName("Architecture"), String.class, procArchitecture);
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(archElement);	
+        }
+        
+        if (procSpeed > 0){
+        	JAXBElement<Float> speedElement = new JAXBElement<Float>(new QName("Speed"), Float.class, procSpeed);
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(speedElement);
+        }
+        if (type != null) {
+        	JAXBElement<String> typeElement = new JAXBElement<String>(new QName("Type"), String.class, type);
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(typeElement);	
+        }else{
+        	JAXBElement<String> typeElement = new JAXBElement<String>(new QName("Type"), String.class, "CPU");
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(typeElement);
+        }
+        if (internalMemory > 0){
+        	JAXBElement<Float> memElement = new JAXBElement<Float>(new QName("InternalMemorySize"), Float.class, internalMemory);
+        	processor.getComputingUnitsOrArchitectureOrSpeed().add(memElement);
+        }
         if (procProperties != null) {
-            processor.getComputingUnitsOrArchitectureOrSpeed().add(procProperties);
+        	JAXBElement<ProcessorPropertyType> propElement = new JAXBElement<ProcessorPropertyType>(new QName("ProcessorProperty"), ProcessorPropertyType.class, procProperties);
+            processor.getComputingUnitsOrArchitectureOrSpeed().add(propElement);
         }
         return processor;
     }
@@ -2738,11 +2762,11 @@ public class ResourcesFile {
 
     }
 
-    public static InstanceTypeType createInstance(String name, String procName, int procCU, String procArch, float procSpeed,
-            ProcessorPropertyType procProp, float memorySize, String memoryType, float storageSize, String storageType) {
+    public static InstanceTypeType createInstance(String name, String procName, int procCU, String procArch, float procSpeed, String procType, 
+    		float procMemSize, ProcessorPropertyType procProp, float memorySize, String memoryType, float storageSize, String storageType) {
         InstanceTypeType instance = new InstanceTypeType();
         instance.setName(name);
-        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procProp);
+        ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         instance.getProcessorOrMemoryOrStorage().add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         instance.getProcessorOrMemoryOrStorage().add(mem);
@@ -3124,11 +3148,11 @@ public class ResourcesFile {
      * @return
      */
     public int getProcessorComputingUnits(ProcessorType p) {
-        List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
         if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof Integer) {
-                    return (Integer) obj;
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("ComputingUnits"))) {
+                    return (Integer) obj.getValue();
                 }
             }
         }
@@ -3143,11 +3167,11 @@ public class ResourcesFile {
      * @return
      */
     public String getProcessorArchitecture(ProcessorType p) {
-        List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
         if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof String) {
-                    return (String) obj;
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("Architecture"))) {
+                    return (String) obj.getValue();
                 }
             }
         }
@@ -3162,15 +3186,51 @@ public class ResourcesFile {
      * @return
      */
     public float getProcessorSpeed(ProcessorType p) {
-        List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
         if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof Float) {
-                    return (Float) obj;
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("Speed"))) {
+                    return (Float) obj.getValue();
+                }
+            }
+        }
+        return (float) -1.0;
+    }
+    
+    /**
+     * Returns the type of a given processor @p
+     *
+     * @param p
+     * @return
+     */
+    public String getProcessorType(ProcessorType p) {
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+        if (objList != null) {
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("Type"))) {
+                    return (String) obj.getValue();
                 }
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Returns the internal memory of a given processor @p
+     *
+     * @param p
+     * @return
+     */
+    public float getProcessorMemorySize(ProcessorType p) {
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+        if (objList != null) {
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("InternalMemorySize"))) {
+                    return (Float) obj.getValue();
+                }
+            }
+        }
         return (float) -1.0;
     }
 
@@ -3181,11 +3241,11 @@ public class ResourcesFile {
      * @return
      */
     public ProcessorPropertyType getProcessorProperty(ProcessorType p) {
-        List<Object> objList = p.getComputingUnitsOrArchitectureOrSpeed();
+    	List<JAXBElement<?>> objList = p.getComputingUnitsOrArchitectureOrSpeed();
         if (objList != null) {
-            for (Object obj : objList) {
-                if (obj instanceof ProcessorPropertyType) {
-                    return (ProcessorPropertyType) obj;
+            for (JAXBElement<?>  obj : objList) {
+                if (obj.getName().equals(new QName("ProcessorProperty"))) {
+                    return (ProcessorPropertyType) obj.getValue();
                 }
             }
         }

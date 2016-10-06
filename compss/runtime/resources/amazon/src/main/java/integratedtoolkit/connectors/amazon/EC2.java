@@ -202,7 +202,7 @@ public class EC2 extends AbstractSSHConnector {
         }
 
         logger.debug("Requesting machine creation " + name + ", with arch " + arch + ", description: " + requested);
-        String instanceCode = AmazonVM.classifyMachine(requested.getTotalComputingUnits(), requested.getMemorySize() * 1024f,
+        String instanceCode = AmazonVM.classifyMachine(requested.getTotalCPUComputingUnits(), requested.getMemorySize() * 1024f,
                 requested.getStorageSize() * 1024f, arch);
         try {
             RunInstancesResult res = createMachine(instanceCode, requested.getImage().getImageName());

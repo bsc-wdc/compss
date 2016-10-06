@@ -174,7 +174,7 @@ public class CEIParser {
                     mc.value();
                     for (int i = 0; i < implementationCount; i++) {
                         MethodResourceDescription specificConstraints = new MethodResourceDescription(mc.value()[i]);
-                        specificConstraints.merge(defaultConstraints);
+                        specificConstraints.mergeMultiConstraints(defaultConstraints);
                         implConstraints[i] = specificConstraints;
                     }
                 } else {

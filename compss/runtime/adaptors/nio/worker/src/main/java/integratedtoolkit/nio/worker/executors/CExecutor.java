@@ -30,7 +30,7 @@ public class CExecutor extends ExternalExecutor {
 
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
-        int numCUs = nt.getResourceDescription().getTotalComputingUnits();
+        int numCUs = nt.getResourceDescription().getTotalCPUComputingUnits();
         reqs.append("NX_ARGS='--smp-cpus=").append(numCUs);
 
         // Debug mode on

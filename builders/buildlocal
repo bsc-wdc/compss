@@ -221,7 +221,12 @@ check_args() {
   fi
 
   if [ -z "${user_exec}" ]; then
-    user_exec=${DEFAULT_USER}
+    if [ -z "${SUDO_USER}" ]; then
+      # Cannot retrieve sudo user from env
+      user_exec=${DEFAULT_USER}
+    else
+      user_exec=${SUDO_USER}
+    fi
   fi
 
   if [ -z "${mvnTests}" ]; then
@@ -257,8 +262,10 @@ install() {
   echo "- Compile sources"
   cd ${sourcesDir}/compss/
   if [ "${user_exec}" == "${DEFAULT_USER}" ]; then
+    echo "   (as root)"
     mvn -U clean package ${mvnTests}
   else 
+    echo "   (as user ${user_exec})"
     sudo -E -u ${user_exec} mvn clean install ${mvnTests}
   fi
   cd ${scriptDir}

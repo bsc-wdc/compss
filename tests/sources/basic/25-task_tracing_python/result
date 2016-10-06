@@ -21,6 +21,7 @@
   TASK_EXECUTION=105
   WORKER_END=106
   PROCESS_DESTRUCTION=107
+  MODULES_IMPORT=108
 
   #----------------------------------------------------------------------------------
   # Check that task-bindings events are present and the # is correct
@@ -35,12 +36,12 @@
       evts_type5=$(grep -c ":${TASK_EVENTS}:${TASK_EXECUTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type6=$(grep -c ":${TASK_EVENTS}:${WORKER_END}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type7=$(grep -c ":${TASK_EVENTS}:${PROCESS_DESTRUCTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type8=$(grep -c ":${TASK_EVENTS}:${MODULES_IMPORT}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
       sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
       end_evts=$(grep -c ":${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-
 
       # if [ "${evts_type1}" != "${number_of_tasks}" ]; then
       #    echo "[ERROR] Incorrect number of type 1 process creation events. [${evts_type1}/${number_of_tasks}]"
@@ -70,14 +71,16 @@
       #    echo "[ERROR] Incorrect number of type 7 process destruction events. [${evts_type7}/${number_of_tasks}]"
       #    errors=true
       # fi
+      if [ "${evts_type8}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of type 8 worker end events. [${evts_type8}/${number_of_tasks}]"
+         errors=true
+      fi
 
-      start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}))
-
+      start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}+${evts_type8}))
       if [ "$start_evts" != "$end_evts" ] ; then
         echo "[ERROR] Number of start and end emits are not equal"
         errors=true
       fi
-
 
       if [ "${sync_evts_init}" != "$((4*${number_of_tasks}))" ]; then
         echo "[ERROR] Number of start and end synchronization events are not the same as the number of tasks (${number_of_tasks}): [${sync_evts_init}/${sync_evts_end}]"

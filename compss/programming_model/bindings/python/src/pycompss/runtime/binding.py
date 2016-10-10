@@ -172,6 +172,15 @@ def set_constraints(func_name, func_module, constraints):
     logger.debug("Constraints successfully set.")
 
 
+def get_task_objects():
+    """
+    This method retrieves the dictionary that contains the objects used as parameters for the tasks.
+    Used within the API in order to check if waiting for an INOUT object.
+    :return: Dictionary containing the ids of the objects used as task parameter.
+    """
+    return task_objects
+
+
 def synchronize(obj, mode):
     """
     Synchronization function.

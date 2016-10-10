@@ -64,14 +64,21 @@ def compss_wait_on(obj, to_write=True):
     else:
         mode = 'r'
     compss_mode = get_compss_mode(mode)
-    
+
+    task_objects = get_task_objects()
+
     # Private function used below (recursively)
     def wait_on_list(l):
-        if type(l) == list:
-            return [wait_on_list(x) for x in l]
-        else:
+        # check if the object is in our task_objects dictionary
+        obj_id = id(l)
+        if obj_id in task_objects:
             return synchronize(l, compss_mode)
-    
+        else:
+            if type(l) == list:
+                return [wait_on_list(x) for x in l]
+            else:
+                return synchronize(l, compss_mode)
+
     if isinstance(obj, Future) or not isinstance(obj, types.ListType):
         return synchronize(obj, compss_mode)
     else:
@@ -81,10 +88,46 @@ def compss_wait_on(obj, to_write=True):
             # Will be a List
             res = wait_on_list(obj)
             return res
-        
+
+
 ##############
 # DEPRECATED #
 ##############
+
+# Version 4.0
+# ==============================================================================
+# def compss_wait_on(obj, to_write=True):
+#     """
+#     Waits on an object.
+#     @param obj: Object to wait on.
+#     @param to_write: Write enable?. Options = [True, False]. Default = True
+#     @return: An object of 'file' type.
+#     """
+#     # print "Waiting on", obj
+#     if to_write:
+#         mode = 'r+'
+#     else:
+#         mode = 'r'
+#     compss_mode = get_compss_mode(mode)
+#
+#     # Private function used below (recursively)
+#     def wait_on_list(l):
+#         if type(l) == list:
+#             return [wait_on_list(x) for x in l]
+#         else:
+#             return synchronize(l, compss_mode)
+#
+#     if isinstance(obj, Future) or not isinstance(obj, types.ListType):
+#         return synchronize(obj, compss_mode)
+#     else:
+#         if len(obj) == 0:  # FUTURE OBJECT
+#             return synchronize(obj, compss_mode)
+#         else:
+#             # Will be a List
+#             res = wait_on_list(obj)
+#             return res
+# ==============================================================================
+
 
 # Version 3.0
 # ==============================================================================

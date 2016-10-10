@@ -11,6 +11,7 @@ PyCOMPSs API
 from pycompss.runtime.binding import start_runtime, stop_runtime
 from pycompss.runtime.binding import get_file, delete_file
 from pycompss.runtime.binding import synchronize, get_compss_mode
+from pycompss.runtime.binding import get_task_objects
 
 from pycompss.runtime.binding import Future
 import types

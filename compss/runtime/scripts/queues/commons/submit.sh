@@ -72,6 +72,9 @@ show_opts() {
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
                                             Default: ${DEFAULT_NUM_SWITCHES} 
+    --gpus_per_node=<int>                   Number of desired GPUs per node.
+                                            Leave this field empty if your application doesn't use GPUs.
+                                            Default: ${DEFAULT_GPUS_PER_NODE}
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
@@ -136,6 +139,7 @@ log_args() {
   echo "Reservation:               ${reservation}"
   echo "Num Nodes:                 ${num_nodes}"
   echo "Num Switches:              ${num_switches}"
+  echo "GPUs per node:             ${gpus_per_node}"
   echo "Job dependency:            ${dependencyJob}"
   echo "Exec-Time:                 ${wc_limit}"
   echo "Storage Home:              ${storage_home}"
@@ -230,6 +234,9 @@ get_args() {
           num_switches=*)
             num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
             ;;
+          gpus_per_node=*)
+            gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
+            ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')
             ;;
@@ -312,6 +319,9 @@ check_args() {
   if [ -z "${num_switches}" ]; then
     num_switches=${DEFAULT_NUM_SWITCHES}
   fi
+  if [ -z "${gpus_per_node}" ]; then
+    gpus_per_node=${DEFAULT_GPUS_PER_NODE}
+  fi
   maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
   if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
     display_error "${ERROR_SWITCHES}"
@@ -392,6 +402,13 @@ EOT
   if [ "${num_switches}" != "0" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_NUM_SWITCHES}${QUEUE_SEPARATOR}"cu[maxcus=${num_switches}]"
+EOT
+  fi
+
+  # GPU selection
+  if [ "${gpus_per_node}" != "0" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_GPUS_PER_NODE}${QUEUE_SEPARATOR}${gpus_per_node}
 EOT
   fi
 

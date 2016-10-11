@@ -28,6 +28,7 @@ DEFAULT_TASK_COUNT=50
 DEFAULT_CLASSPATH=$(pwd)
 DEFAULT_PYTHONPATH=$(pwd)
 DEFAULT_LIBRARY_PATH=$(pwd)
+DEFAULT_APPDIR=$(pwd)
 DEFAULT_STORAGE_CONF="None"
 DEFAULT_PyOBJECT_SERIALIZE=false
 
@@ -106,6 +107,8 @@ show_opts() {
                                             Default: Working Directory
     --classpath=<path>                      Path for the application classes / modules
                                             Default: Working Directory
+    --appdir=<path>			    Path for the application class folder.
+					    Default: ${DEFAULT_APPDIR}
     --base_log_dir=<path>                   Base directory to store COMPSs log files (a .COMPSs/ folder will be created inside this location)
                                             Default: User home
     --specific_log_dir=<path>               Use a specific directory to store COMPSs log files (the folder MUST exist and no sandbox is created)
@@ -400,6 +403,10 @@ get_args() {
             # Maximum task count. Only for bindings
             task_count=$(echo $OPTARG | sed -e 's/task_count=//g')
             ;;
+    	  appdir=*)
+	    # Main binary directory (only for C/C++ applications)
+	    task_count=$(echo $OPTARG | sed -e 's/appdir=//g')
+	    ;;
           pythonpath=*)
             # Additional pythonpath
             pythonpath=$(echo $OPTARG | sed -e 's/pythonpath=//g')
@@ -618,6 +625,13 @@ check_args() {
 
     if [ -z "$PyObject_serialize" ]; then
       PyObject_serialize=$DEFAULT_PyOBJECT_SERIALIZE
+    fi
+  fi
+
+  # Options ONLY for C
+  if [ "$lang" = "c" ]; then
+    if [ -z "$appdir" ]; then
+      appdir=$DEFAULT_APPDIR
     fi
   fi
 }

@@ -13,12 +13,14 @@
   cp -f ${source_base_dir}/project_resourceManager_Available.xml ${target_base_dir}/
   cp -f ${source_base_dir}/project_cloudManager.xml ${target_base_dir}/
   cp -f ${source_base_dir}/project_dynamicTest.xml ${target_base_dir}/
+   cp -f ${source_base_dir}/project_multiProcessor.xml ${target_base_dir}/
   
   cp -f ${source_base_dir}/resources_constraintManager.xml ${target_base_dir}/
   cp -f ${source_base_dir}/resources_resourceManager_Compatible.xml ${target_base_dir}/
   cp -f ${source_base_dir}/resources_resourceManager_Available.xml ${target_base_dir}/
   cp -f ${source_base_dir}/resources_cloudManager.xml ${target_base_dir}/
   cp -f ${source_base_dir}/resources_dynamicTest.xml ${target_base_dir}/
+  cp -f ${source_base_dir}/resources_multiProcessor.xml ${target_base_dir}/
   
   # Copy result checkers
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
@@ -27,4 +29,4 @@
   cp -f ${source_base_dir}/result_resourceManager_Available ${target_base_dir}/result_resourceManager_Available
   cp -f ${source_base_dir}/result_cloudManager ${target_base_dir}/result_cloudManager
   cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest
-  cp -f ${source_base_dir}/result_dynamicTest ${target_base_dir}/result_dynamicTest
+  cp -f ${source_base_dir}/result_multiProcessor ${target_base_dir}/result_multiProcessor

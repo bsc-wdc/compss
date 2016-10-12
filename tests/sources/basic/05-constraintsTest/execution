@@ -17,11 +17,12 @@
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_resourceManager_Available.xml 
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_cloudManager.xml 
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_dynamicTest.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project_multiProcessor.xml
   
   #----------------------------------------------------------------------------------
   # Perform executions
-  declare -a tests_names=('constraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest')
-  declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest')
+  declare -a tests_names=('constraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest' 'multiProcessor')
+  declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest' 'multiProcessor.TestAvailable')
   
   exitValue=0
   i=0

@@ -127,7 +127,7 @@ def delete_file(file_name):
     :param file_name: File name to remove
     """
     logger.debug("Deleting file %s" %(file_name))
-    result = compss.delete(file_name)
+    result = compss.delete_file(file_name)
     if result == "true":
         logger.debug("File %s successfully deleted." % (file_name))
     else:

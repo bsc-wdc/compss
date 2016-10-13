@@ -140,8 +140,18 @@ class task(object):
                 # f(*args, **kwargs)
 
                 if returns:
-                    ret_filename = args[-1]
-                    to_serialize.append((ret, ret_filename))
+                    if isinstance(returns, list) or isinstance(returns, tuple): # multireturn
+                        num_ret = len(returns)
+                        rets = args[-num_ret:]
+                        i = 0
+                        for ret_filename in rets:
+                            print ret[i]
+                            print ret_filename
+                            to_serialize.append((ret[i], ret_filename))
+                            i += 1
+                    else:                         # simple return
+                        ret_filename = args[-1]
+                        to_serialize.append((ret, ret_filename))
 
                 if len(to_serialize) > 0:
                     serialize_objects(to_serialize)

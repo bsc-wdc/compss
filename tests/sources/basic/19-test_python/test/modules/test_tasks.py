@@ -253,4 +253,24 @@ def function_generator_return(g):
     print "- Function return a generator"
     print "Generator value: ", g.next()
     return g
+
   
+@task(returns = (float, float))
+def multireturn(value):
+    print "Value: ", value
+    print "Type:  ", type(value)
+    return value, value*2 
+
+@task(returns = float)
+def power(value):
+    print "Pow value: ", value
+    print "Result: ", value*value
+    return value*value
+    
+@task(returns = float)
+def merge(v1, v2):
+    print "Merge"
+    print "v1: ", v1
+    print "v2: ", v2
+    print "Result: ", v1+v2
+    return v1+v2

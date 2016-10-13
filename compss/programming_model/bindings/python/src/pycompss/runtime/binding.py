@@ -256,8 +256,11 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
         if isinstance(ret_type, list) or isinstance(ret_type, tuple): # MULTIRETURN
             logger.debug("Multiple objects return found.")
             pos = 0
-            spec_args.remove('compss_retvalue') # remove single return... it contains more than one
-            del deco_kwargs['compss_retvalue']  # remove single return... it contains more than one
+            firstTime = False
+            if 'compss_retvalue' in spec_args:
+                spec_args.remove('compss_retvalue') # remove single return... it contains more than one
+                del deco_kwargs['compss_retvalue']  # remove single return... it contains more than one
+                firstTime = True
             for i in ret_type:
                 if i in python_to_compss:  # primitives, string, dic, list, tuple
                     fue = Future()
@@ -269,9 +272,10 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                 ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
                 objid_to_filename[obj_id] = ret_filename
                 task_objects[obj_id] = fue
-                task_kwargs['compss_retvalue'+str(pos)] = ret_filename
-                spec_args.append('compss_retvalue'+str(pos))
-                deco_kwargs['compss_retvalue'+str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+                task_kwargs['compss_retvalue' + str(pos)] = ret_filename
+                deco_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+                if firstTime:
+                    spec_args.append('compss_retvalue'+str(pos))
                 pos += 1
         else: # SIMPLE RETURN
             if ret_type in python_to_compss:  # primitives, string, dic, list, tuple

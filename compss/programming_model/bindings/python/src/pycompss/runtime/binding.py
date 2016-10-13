@@ -77,10 +77,16 @@ class Function_Type:
 
 class Future(object):
     """
-    Future object class definition.
+    Future object class definition (iterable).
     """
     pass
+    '''
+    def __init__(self, num_fos):
+        self.list = [FO() for _ in xrange(num_fos)]
 
+    def __iter__(self):
+        return iter(self.list)
+    '''
 
 def start_runtime():
     """
@@ -244,28 +250,48 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
             first_par = 1  # skip class parameter
 
     ret_type = deco_kwargs['returns']
+    fu = []
     if ret_type:
         # Create future for return value
-        if ret_type in python_to_compss:  # primitives, string, dic, list, tuple
-            fu = Future()
-        elif inspect.isclass(ret_type):
-            # For objects:
-            # type of future has to be specified to allow o = func; o.func
-            try:
-                fu = ret_type()
-            except TypeError:
-                logger.warning("Type %s does not have an empty constructor, building generic future object" % ret_type)
+        if isinstance(ret_type, list) or isinstance(ret_type, tuple): # MULTIRETURN
+            logger.debug("Multiple objects return found.")
+            pos = 0
+            spec_args.remove('compss_retvalue') # remove single return... it contains more than one
+            del deco_kwargs['compss_retvalue']  # remove single return... it contains more than one
+            for i in ret_type:
+                if i in python_to_compss:  # primitives, string, dic, list, tuple
+                    fue = Future()
+                else:
+                    fue = Future()  # modules, functions, methods
+                fu.append(fue)
+                logger.debug("Setting object %d of %s as a future" % (id(fue), type(fue)))
+                obj_id = id(fue)
+                ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+                objid_to_filename[obj_id] = ret_filename
+                task_objects[obj_id] = fue
+                task_kwargs['compss_retvalue'+str(pos)] = ret_filename
+                spec_args.append('compss_retvalue'+str(pos))
+                deco_kwargs['compss_retvalue'+str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+                pos += 1
+        else: # SIMPLE RETURN
+            if ret_type in python_to_compss:  # primitives, string, dic, list, tuple
                 fu = Future()
-        else:
-            fu = Future()  # modules, functions, methods
-
-        logger.debug("Setting object %d of %s as a future" % (id(fu), type(fu)))
-
-        obj_id = id(fu)
-        ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
-        objid_to_filename[obj_id] = ret_filename
-        task_objects[obj_id] = fu
-        task_kwargs['compss_retvalue'] = ret_filename
+            elif inspect.isclass(ret_type):
+                # For objects:
+                # type of future has to be specified to allow o = func; o.func
+                try:
+                    fu = ret_type()
+                except TypeError:
+                    logger.warning("Type %s does not have an empty constructor, building generic future object" % ret_type)
+                    fu = Future()
+            else:
+                fu = Future()  # modules, functions, methods
+            logger.debug("Setting object %d of %s as a future" % (id(fu), type(fu)))
+            obj_id = id(fu)
+            ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+            objid_to_filename[obj_id] = ret_filename
+            task_objects[obj_id] = fu
+            task_kwargs['compss_retvalue'] = ret_filename
     else:
         fu = None
 
@@ -297,12 +323,10 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
             # It is a class function
             if spec_arg == 'self':
                 p.value = task_args[0]
-            elif spec_arg == 'compss_retvalue':
+            elif spec_arg.startswith('compss_retvalue'):
                 p.value = task_kwargs[spec_arg]
             else:
                 p.value = task_args[i]
-
-
 
         val_type = type(p.value)
         is_future[i] = (val_type == Future)

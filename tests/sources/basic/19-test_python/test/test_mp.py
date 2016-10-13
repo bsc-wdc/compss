@@ -18,7 +18,7 @@ from test.modules.test_tasks import function_iterable_object_wait, function_wait
 from test.modules.test_tasks import function_time_decorated_master, function_time_decorated_worker
 from test.modules.test_tasks import function_argfunc, function_lambda, function_generator
 from test.modules.test_tasks import function_lambda_return, function_generator_return
-
+from test.modules.test_tasks import multireturn, power, merge
 
 def main_program():
     
@@ -56,6 +56,8 @@ def main_program():
     test_generator_return()
   
     test_all_class_tasks()
+    
+    test_multireturn()
         
     
 def test_function_primitives():
@@ -504,6 +506,20 @@ def test_all_class_tasks():
         print "- Object access from MP (Round 3): OK"
     else:           
         print "- Object access from MP (Round 3): ERROR"
+
+
+def test_multireturn():
+    print "test_multireturn"
+    v,w = multireturn(10.0)
+    x = power(v)
+    y = power(w)
+    res = merge(x,y)
+    res = compss_wait_on(res)
+    if res == 500 and a == 100 and b == 400:
+        print "- Test multiple objects return: OK"
+    else:           
+        print "- Test multiple objects return: ERROR"
+    
 
 if __name__ == "__main__":
     main_program()

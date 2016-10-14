@@ -5,7 +5,7 @@
 	<!-- GENERAL INFORMATION -->
 	<groupId>es.bsc.compss</groupId>
 	<artifactId>compss-trunk</artifactId>
-<version>1.4.rc10</version>
+<version>1.4.rc09</version>
 	<packaging>pom</packaging>
 	
 	<!-- PROJECT INFORMATION -->
@@ -26,7 +26,7 @@
 	
 	<!-- PROPERTIES -->
 	<properties>
-<compss.version>1.4.rc10</compss.version>
+<compss.version>1.4.rc09</compss.version>
 		<junit.version>4.12</junit.version>
 		
 		<!-- Maven Plugins -->

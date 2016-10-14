@@ -1,11 +1,12 @@
 package cbm2.files;
 
-import integratedtoolkit.types.annotations.Parameter.*;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.*;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.Parameter.Direction;
+import integratedtoolkit.types.annotations.Parameter.Type;
+import integratedtoolkit.types.annotations.task.Method;
 
-public interface Cbm2Itf 
-{
+
+public interface Cbm2Itf {
 	@Method(declaringClass = "cbm2.files.Cbm2Impl")
 	void runTaskIn //B = f(A,B)
 	(
@@ -20,4 +21,5 @@ public interface Cbm2Itf
 		@Parameter(type = Type.INT, direction = Direction.IN)     int sleepTime,
 		@Parameter(type = Type.FILE, direction = Direction.INOUT) String dummyFilePath
 	);
+	
 }

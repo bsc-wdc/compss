@@ -1,10 +1,12 @@
 package resourceManager;
 
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
-import integratedtoolkit.types.ServiceImplementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.MethodImplementation;
+import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
+import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.Worker;
@@ -112,10 +114,9 @@ public class TestCompatible {
         }
     }
 
-    @SuppressWarnings("static-access")
     private static String checkResourcesAssignedToImpl(Implementation<?> impl, Worker<?> resource) {
-        if ((impl.getType().equals(impl.getType().METHOD) && resource.getType().equals(resource.getType().SERVICE))
-                || (impl.getType().equals(impl.getType().SERVICE) && resource.getType().equals(resource.getType().WORKER))) {
+        if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(Resource.Type.SERVICE))
+                || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(Resource.Type.WORKER))) {
             return "types";
         }
 

@@ -6,15 +6,18 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.commands.Data;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataAccessId.RWAccessId;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.MethodResourceDescription;
@@ -50,26 +53,21 @@ public class NIOJob extends Job<NIOWorkerNode> {
     }
 
     public NIOTask prepareJob() {
-        MethodImplementation method = (MethodImplementation) this.impl;
-
-        String className = method.getDeclaringClass();
+        AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
         
-        //JEA: Added for supporting implementations with different method names
-        String methodName = method.getAlternativeMethodName();
-        if (methodName == null || methodName.isEmpty()){
-        	methodName = taskParams.getName();
+        // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
+        // This is a workarround for Python
+        if (absMethodImpl.getMethodType().equals(MethodType.METHOD)) {
+            MethodImplementation mImpl = (MethodImplementation) absMethodImpl;
+            String methodName = mImpl.getAlternativeMethodName();
+            if (methodName == null || methodName.isEmpty()){
+                mImpl.setAlternativeMethodName(taskParams.getName());
+            }
         }
         
-        /*JEA Old Call. If there is no alternative method defined in constraints, this should have the same content as 
-        String methodName = taskParams.getName();
-        */
-        
         boolean hasTarget = taskParams.hasTargetObject();
-
         LinkedList<NIOParam> params = addParams();
-
-        MethodResourceDescription reqs = method.getRequirements();
-
+        MethodResourceDescription reqs = absMethodImpl.getRequirements();
         int numParams = params.size();
         if (taskParams.hasReturnValue()) {
             numParams--;
@@ -77,18 +75,17 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
         // Create NIOTask
         NIOTask nt = new NIOTask(lang, 
-                                debug, 
-                                className, 
-                                methodName, 
+                                debug,
+                                absMethodImpl,
                                 hasTarget, 
                                 params, 
                                 numParams, 
                                 reqs, 
-                                taskId, 
+                                this.taskId, 
                                 this.taskParams.getId(),
-                                jobId, 
-                                history, 
-                                transferId
+                                this.jobId, 
+                                this.history, 
+                                this.transferId
                       );
 
         return nt;
@@ -136,8 +133,9 @@ public class NIOJob extends Job<NIOWorkerNode> {
         return params;
     }
 
-    public JobKind getKind() {
-        return JobKind.METHOD;
+    @Override
+    public TaskType getType() {
+        return TaskType.METHOD;
     }
 
     public void taskFinished(boolean successful) {

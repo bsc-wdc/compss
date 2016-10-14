@@ -1,5 +1,7 @@
 package integratedtoolkit.nio;
 
+import integratedtoolkit.types.implementations.AbstractMethodImplementation;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.job.Job.JobHistory;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
@@ -14,8 +16,7 @@ public class NIOTask implements Externalizable {
 
     private String lang;
     private boolean workerDebug;
-    private String className;
-    private String methodName;
+    private AbstractMethodImplementation impl;
     private boolean hasTarget;
     private LinkedList<NIOParam> params;
     private MethodResourceDescription reqs;
@@ -31,13 +32,13 @@ public class NIOTask implements Externalizable {
 
     }
 
-    public NIOTask(String lang, boolean workerDebug, String className, String methodName, boolean hasTarget, LinkedList<NIOParam> params,
-            int numParams, MethodResourceDescription reqs, int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
+    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, 
+            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, int taskId, int taskType, int jobId, 
+            JobHistory hist, int transferGroupId) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
-        this.className = className;
-        this.methodName = methodName;
+        this.impl = impl;
         this.hasTarget = hasTarget;
         this.params = params;
         this.reqs = reqs;
@@ -56,13 +57,17 @@ public class NIOTask implements Externalizable {
     public boolean isWorkerDebug() {
         return workerDebug;
     }
-
-    public String getClassName() {
-        return className;
+    
+    public MethodType getMethodType() {
+        return this.impl.getMethodType();
     }
 
-    public String getMethodName() {
-        return methodName;
+    public String getMethodDefinition() {
+        return this.impl.getMethodDefinition();
+    }
+    
+    public AbstractMethodImplementation getMethodImplementation() {
+        return this.impl;
     }
 
     public boolean isHasTarget() {
@@ -106,8 +111,7 @@ public class NIOTask implements Externalizable {
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         lang = (String) in.readObject();
         workerDebug = in.readBoolean();
-        className = (String) in.readObject();
-        methodName = (String) in.readObject();
+        impl = (AbstractMethodImplementation) in.readObject();
         hasTarget = in.readBoolean();
         params = (LinkedList<NIOParam>) in.readObject();
         reqs = (MethodResourceDescription) in.readObject();
@@ -123,8 +127,7 @@ public class NIOTask implements Externalizable {
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeObject(lang);
         out.writeBoolean(workerDebug);
-        out.writeObject(className);
-        out.writeObject(methodName);
+        out.writeObject(impl);
         out.writeBoolean(hasTarget);
         out.writeObject(params);
         out.writeObject(reqs);
@@ -144,8 +147,7 @@ public class NIOTask implements Externalizable {
         sb.append("[TASK ID= ").append(taskId).append("]");
         sb.append("[JOB ID= ").append(jobId).append("]");
         sb.append("[HISTORY= ").append(hist).append("]");
-        sb.append("[CLASS= ").append(className).append("]");
-        sb.append("[METHOD= ").append(methodName).append("]");
+        sb.append("[IMPLEMENTATION= ").append(impl.getMethodDefinition()).append("]");
         sb.append(" [PARAMS ");
         for (NIOParam param : params) {
             sb.append(param);

@@ -2,12 +2,12 @@ package integratedtoolkit.test.dummyAdaptor;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.Job.JobListener;
 import integratedtoolkit.types.resources.Resource;

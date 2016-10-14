@@ -24,16 +24,22 @@ import org.gridlab.gat.resources.SoftwareDescription;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.DataAccessId;
+import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
-import integratedtoolkit.types.data.DataAccessId.*;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation;
+import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.MPIImplementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
+import integratedtoolkit.types.implementations.OmpSsImplementation;
+import integratedtoolkit.types.implementations.OpenCLImplementation;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.util.ErrorManager;
@@ -84,10 +90,12 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         this.usingGlobus = usingGlobus;
     }
 
-    public JobKind getKind() {
-        return JobKind.METHOD;
+    @Override
+    public TaskType getType() {
+        return TaskType.METHOD;
     }
 
+    @Override
     public void submit() throws Exception {
         // Prepare the job
         logger.info("Submit GATJob with ID " + jobId);
@@ -132,6 +140,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         }
     }
 
+    @Override
     public void stop() throws Exception {
         if (GATjob != null) {
             MetricDefinition md = GATjob.getMetricDefinitionByName(JOB_STATUS);
@@ -142,6 +151,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     // MetricListener interface implementation
+    @Override
     public void processMetricEvent(MetricEvent value) {
         Job job = (Job) value.getSource();
         JobState newJobState = (JobState) value.getValue();
@@ -219,19 +229,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
-        MethodImplementation method = (MethodImplementation) this.impl;
         TaskDescription taskParams = this.taskParams;
-        
-        //JEA: Added for supporting implementations with different method names
-        String methodName = method.getAlternativeMethodName();
-        if (methodName == null || methodName.isEmpty()){
-            methodName = taskParams.getName();
-        }
-        
-        /* JEA Replaced Old Call
-         * If there is no alternative method defined in constraints, this should have the same content as 
-         * String methodName = taskParams.getName();
-         */
 
         String targetPath = getResourceNode().getInstallDir();
         String targetHost = getResourceNode().getHost();
@@ -275,15 +273,44 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             sd.addAttribute("slot", slot);
         }
 
-        // Language-dependent arguments: app_dir classpath pythonpath debug
-        // method_class method_name has_target num_params par_type_1 par_1 ... par_type_n par_n
+        // Language-dependent arguments: app_dir classpath pythonpath debug storage_conf
+        // method_impl_type method_impl_params has_target num_params par_type_1 par_1 ... par_type_n par_n
         lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);
-        lArgs.add(method.getDeclaringClass());
-        lArgs.add(methodName);
+        
+        AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
+        lArgs.add(String.valueOf(absImpl.getMethodType()));
+        switch(absImpl.getMethodType()) {
+            case METHOD:
+                MethodImplementation methodImpl = (MethodImplementation) absImpl;
+                lArgs.add(methodImpl.getDeclaringClass());
+                String methodName = methodImpl.getAlternativeMethodName();
+                if (methodName == null || methodName.isEmpty()){
+                    methodName = taskParams.getName();
+                }
+                lArgs.add(methodName);
+                break;
+            case MPI:
+                MPIImplementation mpiImpl = (MPIImplementation) absImpl;
+                lArgs.add(mpiImpl.getMpiRunner());
+                lArgs.add(mpiImpl.getBinary());
+                break;
+            case OMPSS:
+                OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;
+                lArgs.add(ompssImpl.getBinary());
+                break;
+            case OPENCL:
+                OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
+                lArgs.add(openclImpl.getKernel());
+                break;
+            case BINARY:
+                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
+                lArgs.add(binaryImpl.getBinary());
+                break;
+        }
         lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
         int numParams = taskParams.getParameters().length;
         if (taskParams.hasReturnValue()) {
@@ -335,8 +362,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         try {
             sd.setArguments(arguments);
         } catch (NullPointerException e) {
-            StringBuilder sb = new StringBuilder(
-                    "Null argument parameter of job " + this.jobId + "(" + methodName + "@" + method.getDeclaringClass() + ")\n");
+            StringBuilder sb = new StringBuilder("Null argument parameter of job " + this.jobId + " " + absImpl.getMethodDefinition() + "\n");
             int i = 0;
             for (Parameter param : taskParams.getParameters()) {
                 sb.append("Parameter ").append(i).append("\n");
@@ -372,14 +398,14 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         }
         sd.addAttribute("jobId", jobId);
         // JEA Changed to allow execution in MN
-        sd.addAttribute(SoftwareDescription.WALLTIME_MAX, method.getRequirements().getWallClockLimit());
-        if (method.getRequirements().getHostQueues().size() > 0) {
-            sd.addAttribute(SoftwareDescription.JOB_QUEUE, method.getRequirements().getHostQueues().get(0));
+        sd.addAttribute(SoftwareDescription.WALLTIME_MAX, absImpl.getRequirements().getWallClockLimit());
+        if (absImpl.getRequirements().getHostQueues().size() > 0) {
+            sd.addAttribute(SoftwareDescription.JOB_QUEUE, absImpl.getRequirements().getHostQueues().get(0));
         }
-        sd.addAttribute("coreCount", method.getRequirements().getTotalCPUComputingUnits());
-        sd.addAttribute("gpuCount", method.getRequirements().getTotalGPUComputingUnits());
-        sd.addAttribute("fpgaCount", method.getRequirements().getTotalFPGAComputingUnits());
-        sd.addAttribute(SoftwareDescription.MEMORY_MAX, method.getRequirements().getMemorySize());
+        sd.addAttribute("coreCount", absImpl.getRequirements().getTotalCPUComputingUnits());
+        sd.addAttribute("gpuCount", absImpl.getRequirements().getTotalGPUComputingUnits());
+        sd.addAttribute("fpgaCount", absImpl.getRequirements().getTotalFPGAComputingUnits());
+        sd.addAttribute(SoftwareDescription.MEMORY_MAX, absImpl.getRequirements().getMemorySize());
         // sd.addAttribute(SoftwareDescription.SANDBOX_ROOT, "/tmp/");
 
         sd.addAttribute(SoftwareDescription.SANDBOX_ROOT, getResourceNode().getWorkingDir());

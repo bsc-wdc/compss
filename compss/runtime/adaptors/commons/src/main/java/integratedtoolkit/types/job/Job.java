@@ -6,8 +6,9 @@ import org.apache.logging.log4j.Logger;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.Resource;
 
 
@@ -38,13 +39,6 @@ public abstract class Job<T extends COMPSsWorker> {
         RESUBMITTED, 
         FAILED
     }
-
-    // Job kind
-    public enum JobKind {
-        METHOD, 
-        SERVICE
-    }
-
 
     // Information of the job
     protected int jobId;
@@ -166,9 +160,9 @@ public abstract class Job<T extends COMPSsWorker> {
 
     public abstract String getHostName();
 
-    public abstract JobKind getKind();
+    public abstract TaskType getType();
 
-
+    
     public static interface JobListener {
 
         enum JobEndStatus {

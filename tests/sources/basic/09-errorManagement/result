@@ -1,8 +1,7 @@
 #!/bin/bash
 
   # Obtain parameters
-  output_file=$1 
-  target_log_folder=$2
+  target_log_folder=$1
 
   # Define the output files. The output_file parameter is not used since we result_check all of them together
   output_file_testNonExistingInFile="${target_log_folder}/testNonExistingInFile/errorManagement_testNonExistingInFile.outputlog"
@@ -12,7 +11,7 @@
   # Default checker (application ends with : Error running application)
   if [ -f ${output_file_testNonExistingInFile} ]; then
      result_expected="Error running application"
-     test_result=$(tail -2 ${output_file} | head -1)
+     test_result=$(cat ${output_file_testNonExistingInFile} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
@@ -24,7 +23,7 @@
 
   if [ -f ${output_file_testReschedulingFail} ]; then
      result_expected="Error running application"
-     test_result=$(tail -2 ${output_file} | head -1)
+     test_result=$(cat ${output_file_testReschedulingFail} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
@@ -36,7 +35,7 @@
 
   if [ -f ${output_file_testAllBlocked} ]; then
      result_expected="Error running application"
-     test_result=$(tail -2 ${output_file} | head -1)
+     test_result=$(cat ${output_file_testAllBlocked} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
         echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1

@@ -2,7 +2,7 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
-import integratedtoolkit.types.Implementation.Type;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.util.CoreManager;
 
@@ -22,7 +22,7 @@ public class TaskDescription implements Serializable {
     private final boolean priority;
     private final boolean hasTarget;
     private final boolean hasReturn;
-    private final Type type;
+    private final TaskType type;
 
 
     public TaskDescription(String methodClass, String methodName, boolean priority, boolean hasTarget, Parameter[] parameters) {
@@ -38,7 +38,7 @@ public class TaskDescription implements Serializable {
             this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(methodClass, methodName, hasTarget, hasReturn, parameters);
-        type = Type.METHOD;
+        type = TaskType.METHOD;
     }
 
     public TaskDescription(String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
@@ -55,7 +55,7 @@ public class TaskDescription implements Serializable {
             this.hasReturn = (lastParam.getDirection() == DataDirection.OUT && (type == DataType.OBJECT_T || type == DataType.PSCO_T));
         }
         this.coreId = CoreManager.getCoreId(namespace, service, port, operation, hasTarget, hasReturn, parameters);
-        this.type = Type.SERVICE;
+        this.type = TaskType.SERVICE;
     }
 
     public Integer getId() {
@@ -82,7 +82,7 @@ public class TaskDescription implements Serializable {
         return hasReturn;
     }
 
-    public Type getType() {
+    public TaskType getType() {
         return this.type;
     }
 

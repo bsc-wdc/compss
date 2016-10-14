@@ -1,23 +1,29 @@
-package integratedtoolkit.types;
+package integratedtoolkit.types.implementations;
+
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 
 
-public class ServiceImplementation extends Implementation<ServiceResourceDescription> {
+public class ServiceImplementation extends Implementation<ServiceResourceDescription> implements Externalizable {
 
-    private final String operation;
+    private String operation;
 
 
+    public ServiceImplementation() {
+        // For externalizable
+        super();
+    }
+    
     public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation) {
         super(coreId, 0, null);
+        
         this.requirements = new ServiceResourceDescription(service, namespace, port, 1);
         this.operation = operation;
-    }
-
-    @Override
-    public Type getType() {
-        return Type.SERVICE;
     }
 
     public String getOperation() {
@@ -46,12 +52,29 @@ public class ServiceImplementation extends Implementation<ServiceResourceDescrip
 
         return buffer.toString();
     }
+    
+    @Override
+    public TaskType getTaskType() {
+        return TaskType.SERVICE;
+    }
 
     @Override
     public String toString() {
         ServiceResourceDescription description = this.requirements;
         return super.toString() + " Service in namespace " + description.getNamespace() + " with name " + description.getPort()
                 + " on port " + description.getPort() + "and operation " + operation;
+    }
+    
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
+        this.operation = (String) in.readObject();
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        super.writeExternal(out);
+        out.writeObject(this.operation);
     }
 
 }

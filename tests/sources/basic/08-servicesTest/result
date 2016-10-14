@@ -37,7 +37,12 @@
   files=$(ls ${jobs_path})
   for file in $files; do
     if [ "${file: -3}" = "out" ]; then
-       method_name=$(cat ${jobs_path}$file | grep "Method name:" | cut -c 18-)
+       method_name=$(cat ${jobs_path}$file | grep "Method definition" | tr "[" "\n" | tr "," "\n" | tr "=" "\n" | tr "]" "\n" | tail -n 2 | head -n 1)
+       if [ "${method_name}" == "" ]; then
+         # GAT execution
+         method_name=$(cat ${jobs_path}$file | grep "Method Description 1" | tr ":" "\n" | tr " " "\n" | tail -n 1)
+       fi
+       
        if [ "$method_name" = "createPerson" ]; then
           #Greps all the wh / prod computed by createPerson method
           wh=$(cat ${jobs_path}$file | grep "Working Hours:" | cut -c 27-)

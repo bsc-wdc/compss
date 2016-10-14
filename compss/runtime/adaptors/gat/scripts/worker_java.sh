@@ -8,11 +8,8 @@
   get_parameters $@
   set_env
 
-  # Execution
-  shift $shiftSizeForTaskParams # Keep only method params
-
-  # Launch the JVM to run the task
-  java -Xms128m -Xmx2048m -classpath $CLASSPATH integratedtoolkit.gat.worker.GATWorker $debug $storageConf $app $method $has_target $nparams $params
+  # Execution: launch the JVM to run the task
+  java -Xms128m -Xmx2048m -classpath $CLASSPATH integratedtoolkit.gat.worker.GATWorker $params
  
   # Exit  
   if [ $? -eq 0 ]; then

@@ -1,0 +1,80 @@
+package integratedtoolkit.types.annotations.task;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import integratedtoolkit.types.annotations.Constants;
+import integratedtoolkit.types.annotations.Constraints;
+import integratedtoolkit.types.annotations.task.repeatables.Methods;
+
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Repeatable(Methods.class)
+/**
+ * Methods definition
+ *
+ */
+public @interface Method {
+
+    /*
+     * METHOD DEFINITION
+     * 
+     */
+
+    /**
+     * Returns the declaring class of the method
+     * 
+     * @return method's declaring class
+     */
+    String declaringClass();
+
+    /**
+     * Returns the name of the method
+     * 
+     * @return method's name
+     */
+    String name() default Constants.UNASSIGNED;
+
+    /*
+     * METHOD PROPERTIES
+     * 
+     */
+
+    /**
+     * Returns whether the method is modifier or not. Avoids synchronization on implicit parameter
+     * 
+     * @return boolean indicating whether the method is modifier or not
+     */
+    boolean isModifier() default Constants.IS_MODIFIER;
+
+    /**
+     * Returns if the task must be replicated through all workers or not
+     * 
+     * @return if the task must be replicated through all workers or not
+     */
+    boolean isReplicated() default !Constants.REPLICATED_TASK;
+
+    /*
+     * COMMON PROPERTIES
+     * 
+     */
+
+    /**
+     * Returns if the method has priority or not
+     * 
+     * @return if the method has priority or not
+     */
+    boolean priority() default !Constants.PRIORITY;
+
+    /**
+     * Returns the method specific constraints
+     * 
+     * @return the method specific constraints
+     */
+    Constraints constraints() default @Constraints();
+
+}

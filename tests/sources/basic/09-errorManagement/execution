@@ -64,7 +64,7 @@
 
   #----------------------------------------------------------------------------------
   # Check result
-  ${base_app_dir}/result ${output_log} ${target_log_folder} 
+  ${base_app_dir}/result ${target_log_folder} 
   exitValue=$?
      
   # Return execution status

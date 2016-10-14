@@ -2,7 +2,7 @@ package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.util.CoreManager;
 

@@ -1,10 +1,10 @@
 package integratedtoolkit.scheduler.readyscheduler;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;

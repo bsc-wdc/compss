@@ -515,6 +515,8 @@ def test_multireturn():
     y = power(w)
     res = merge(x,y)
     res = compss_wait_on(res)
+    a = compss_wait_on(x)
+    b = compss_wait_on(y)
     if res == 500 and a == 100 and b == 400:
         print "- Test multiple objects return: OK"
     else:           

@@ -1,6 +1,6 @@
 package integratedtoolkit.types.fake;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;

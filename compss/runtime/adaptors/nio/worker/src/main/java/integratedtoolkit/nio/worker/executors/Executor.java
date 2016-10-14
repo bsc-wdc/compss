@@ -100,6 +100,7 @@ public abstract class Executor implements Runnable {
         String outputsBasename = workingDir + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
 
         // Sets the process environment variables (just in case its a MPI or OMPSs task)
+        // TODO: Add useful values for MPI / OMPSs tasks
         setEnvironmentVariables(nw.getHostName(), 1, 1, nt.getResourceDescription());
 
         // Execute task

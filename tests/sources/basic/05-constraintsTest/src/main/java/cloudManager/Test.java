@@ -2,8 +2,9 @@ package cloudManager;
 
 import commons.ConstantValues;
 import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
@@ -42,7 +43,6 @@ public class Test {
     /*
      * *********************************** CLOUD MANAGER TEST IMPLEMENTATION ***********************************
      */
-    @SuppressWarnings("static-access")
     private static void cloudManagerTest() {
         // Print Out CloudManager static structures
         System.out.println("[LOG] CloudManager Static Structures definition");
@@ -52,7 +52,7 @@ public class Test {
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
             for (Implementation<?> impl : CoreManager.getCoreImplementations(coreId)) {
-                if (impl.getType().equals(impl.getType().METHOD)) {
+                if (impl.getTaskType().equals(TaskType.METHOD)) {
                     System.out.println("[LOG]\t Checking Implementation: " + impl.getImplementationId());
                     System.out.println("\t\t Checking obtained compatible cloud images");
 

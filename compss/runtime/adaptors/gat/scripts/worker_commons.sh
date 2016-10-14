@@ -20,29 +20,20 @@
     pythonpath=$3
     debug=$4
     storageConf=$5
-    app=$6
-    method=$7
-    has_target=$8
-    nparams=$9
+    methodType=$6
 
     # Shit all parameters except method ones
     shiftSizeForApp=3
-    shiftSizeForTaskParams=9
-    shift $shiftSizeForTaskParams
+    shift $shiftSizeForApp
    
     # Get method parameters
     params=$@
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
-      echo "app         $app"
       echo "app_dir     $app_dir"
       echo "classpath   $cp"
       echo "pythonpath  $pythonpath"
-      echo "method      $method"
-      echo "has_target  $has_target"
-      echo "nparams     $nparams"
-      echo "params      $params"
     fi
   }
 

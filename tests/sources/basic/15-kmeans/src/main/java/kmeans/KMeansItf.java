@@ -1,8 +1,8 @@
 package kmeans;
 
-import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.Parameter.*;
+import integratedtoolkit.types.annotations.task.Method;
 
 
 public interface KMeansItf {

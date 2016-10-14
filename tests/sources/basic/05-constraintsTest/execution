@@ -22,7 +22,7 @@
   #----------------------------------------------------------------------------------
   # Perform executions
   declare -a tests_names=('constraintManager' 'resourceManager_Compatible' 'resourceManager_Available' 'cloudManager' 'dynamicTest' 'multiProcessor')
-  declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest' 'multiProcessor.TestAvailable')
+  declare -a tests=('constraintManager.Test' 'resourceManager.TestCompatible' 'resourceManager.TestAvailable' 'cloudManager.Test' 'dynamicTest.DynamicTest' 'multiProcessor.TestAvailable')  
   
   exitValue=0
   i=0

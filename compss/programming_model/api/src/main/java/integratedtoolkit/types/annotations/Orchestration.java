@@ -19,6 +19,6 @@ public @interface Orchestration {
      * 
      * @return the name of the interface
      */
-    String interfaceName() default Constants.UNASSIGNED_STR;
+    String interfaceName() default Constants.UNASSIGNED;
 
 }

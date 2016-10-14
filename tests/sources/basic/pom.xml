@@ -66,6 +66,8 @@
 		<!-- Module 33 is 33-implementations_c -->
                 <module>34-noEmptyConstructor</module>
                 <module>35-replicatedTask</module>
+                <module>36-environmentVariables</module>
+                <module>37-nonNativeTasks</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

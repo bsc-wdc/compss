@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.Implementation.Type;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 
 
 public class ServiceResourceDescription extends WorkerResourceDescription {
@@ -38,7 +38,7 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     @Override
     public boolean canHost(Implementation<?> impl) {
-        if (impl.getType() == Type.SERVICE) {
+        if (impl.getTaskType() == TaskType.SERVICE) {
             ServiceResourceDescription s = (ServiceResourceDescription) impl.getRequirements();
             return s.serviceName.compareTo(serviceName) == 0 && s.namespace.compareTo(namespace) == 0 && s.port.compareTo(port) == 0
                     && s.connections < this.connections;

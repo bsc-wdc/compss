@@ -4,6 +4,7 @@ import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
+import integratedtoolkit.types.allocatableactions.MultipleExecution;
 import integratedtoolkit.types.allocatableactions.SingleExecution;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -58,10 +59,16 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
                 ts.newAllocatableAction(e); 
             }
         } else {
-            // Normal task. Can use one or more resources depending on the computingNodes constraint
-            task.setExecutionCount(1);
-            SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task, null);
-            ts.newAllocatableAction(e);
+            // Normal task. Can use one or more resources depending on the computingNodes
+            if (task.isSingleNode()) {
+                task.setExecutionCount(1);
+                SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task, null);
+                ts.newAllocatableAction(e);
+            } else {
+                task.setExecutionCount(1);
+                MultipleExecution<P, T> e = new MultipleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
+                ts.newAllocatableAction(e);
+            }
         }
 
         if (debug) {

@@ -48,6 +48,7 @@ public final class Loggers {
     public static final String WORKER_EXEC_MANAGER = WORKER + ".ExecManager";
     public static final String WORKER_POOL = WORKER + ".ThreadPool";
     public static final String WORKER_EXECUTOR = WORKER + ".Executor";
+    public static final String WORKER_INVOKER = WORKER_EXECUTOR + ".Invoker";
     public static final String WORKER_DATA_MANAGER = WORKER + ".DataManager";
 
     // Communications

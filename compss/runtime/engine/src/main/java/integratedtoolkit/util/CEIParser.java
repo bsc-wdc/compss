@@ -1,19 +1,36 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.ITConstants.Lang;
+import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
-import integratedtoolkit.types.ServiceImplementation;
 import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.MPI;
+import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.annotations.task.OmpSs;
+import integratedtoolkit.types.annotations.task.OpenCL;
+import integratedtoolkit.types.annotations.task.Service;
+import integratedtoolkit.types.annotations.task.repeatables.Binaries;
+import integratedtoolkit.types.annotations.task.repeatables.MPIs;
+import integratedtoolkit.types.annotations.task.repeatables.Methods;
+import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
+import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
+import integratedtoolkit.types.annotations.task.repeatables.Services;
 import integratedtoolkit.types.exceptions.LangNotDefinedException;
 import integratedtoolkit.types.exceptions.UndefinedConstraintsSourceException;
+import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.MPIImplementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
+import integratedtoolkit.types.implementations.OmpSsImplementation;
+import integratedtoolkit.types.implementations.OpenCLImplementation;
+import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -23,27 +40,32 @@ import org.apache.logging.log4j.Logger;
 
 public class CEIParser {
 
-    private static ITConstants.Lang lang = ITConstants.Lang.JAVA;
+    private static final Lang LANG;
 
     private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = logger.isDebugEnabled();
+    
 
     static {
-        String l = System.getProperty(ITConstants.IT_LANG);
-        lang = ITConstants.Lang.JAVA;
-        if (l != null) {
-            if (l.equalsIgnoreCase("c")) {
-                lang = ITConstants.Lang.C;
-            } else if (l.equalsIgnoreCase("python")) {
-                lang = ITConstants.Lang.PYTHON;
+        // Compute language
+        Lang l = Lang.JAVA;
+        
+        String langProperty = System.getProperty(ITConstants.IT_LANG);
+        if (langProperty != null) {
+            if (langProperty.equalsIgnoreCase("python")) {
+                l = Lang.PYTHON;
+            } else if (langProperty.equalsIgnoreCase("c")) {
+                l = Lang.C;
             }
         }
+        
+        LANG = l;
     }
 
 
     public static LinkedList<Integer> parse() {
         LinkedList<Integer> updatedCores = new LinkedList<Integer>();
-        switch (lang) {
+        switch (LANG) {
             case JAVA:
                 String appName = System.getProperty(ITConstants.IT_APP_NAME);
                 try {
@@ -75,36 +97,44 @@ public class CEIParser {
      * @param i
      *            Number of the annotation (0 for the first parameter, 1 for the second, etc.)
      */
-    private static void treatAnnotationWarnings(java.lang.reflect.Method m, int i) {
-        int n = i + 1;
+    private static void treatParameterAnnotationWarnings(java.lang.reflect.Method m, int i) {
+        int paramNumber = i + 1;
         Parameter par = ((Parameter) m.getParameterAnnotations()[i][0]);
         Parameter.Type annotType = par.type();
 
-        final String WARNING_LOCATION = "In parameter number " + n + " of method '" + m.getName() + "' in interface '"
+        final String WARNING_LOCATION = "In parameter number " + paramNumber + " of method '" + m.getName() + "' in interface '"
                 + m.getDeclaringClass().toString().replace("interface ", "") + "'.";
 
         /*
-         * ////////// Uncomment to enable warnings when the type of a parameter is inferred String inferredType =
-         * inferType(m.getParameterTypes()[i], annotType); if (annotType.equals(Parameter.Type.UNSPECIFIED)) { //Using
-         * inferred type, warn user ErrorManager.warn("No type specified for parameter number " + n + " of method '" +
-         * m.getName() + "'." + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE + "Using inferred type "
-         * + inferredType + "."); }
+         * ////////// Uncomment to enable warnings when the type of a parameter is inferred 
+         * String inferredType = inferType(m.getParameterTypes()[i], annotType); 
+         * if (annotType.equals(Parameter.Type.UNSPECIFIED)) { // Using inferred type, warn user 
+         *   ErrorManager.warn("No type specified for parameter number " + n + " of method '"
+         *     + m.getName() + "'." + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE + "Using inferred type "
+         *     + inferredType + "."); 
+         * }
          */
 
         Parameter.Direction annotDirection = par.direction();
         boolean outOrInout = annotDirection.equals(Parameter.Direction.OUT) || annotDirection.equals(Parameter.Direction.INOUT);
+        
         if (annotType.equals(Parameter.Type.STRING) && outOrInout) {
-            ErrorManager.warn("Can't specify a String with direction OUT/INOUT since they are immutable." + ErrorManager.NEWLINE
-                    + WARNING_LOCATION + ErrorManager.NEWLINE + "Using direction=IN instead.");
+            ErrorManager.warn("Can't specify a String with direction OUT/INOUT since they are immutable." 
+                    + ErrorManager.NEWLINE + WARNING_LOCATION 
+                    + ErrorManager.NEWLINE + "Using direction=IN instead."
+            );
         } else if (annotType.equals(Parameter.Type.OBJECT) && annotDirection.equals(Parameter.Direction.OUT)) {
-            ErrorManager.warn("Can't specify an Object with direction OUT." + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE
-                    + "Using direction=INOUT instead.");
+            ErrorManager.warn("Can't specify an Object with direction OUT." 
+                    + ErrorManager.NEWLINE + WARNING_LOCATION 
+                    + ErrorManager.NEWLINE + "Using direction=INOUT instead."
+            );
         } else if (m.getParameterTypes()[i].isPrimitive() && outOrInout) {
             // int, boolean, long, float, char, byte, short, double
             String primType = m.getParameterTypes()[i].getName();
             ErrorManager.warn("Can't specify a primitive type ('" + primType + "') with direction OUT/INOUT, "
-                    + "since they are always passed by value. " + ErrorManager.NEWLINE + WARNING_LOCATION + ErrorManager.NEWLINE
-                    + "Using direction=IN instead.");
+                    + "since they are always passed by value. " + ErrorManager.NEWLINE 
+                    + WARNING_LOCATION + ErrorManager.NEWLINE + "Using direction=IN instead."
+            );
         }
     }
 
@@ -129,13 +159,14 @@ public class CEIParser {
         }
 
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
-            // Computes the method's signature
-            if (debug) {
-                logger.debug("Evaluating method " + m.getName());
-            }
-            StringBuilder buffer = new StringBuilder();
+            /*
+             *  Computes the callee method signature
+             */
+            logger.info("Evaluating method " + m.getName());
+
+            StringBuilder calleeMethodSignature = new StringBuilder();
             String methodName = m.getName();
-            buffer.append(methodName).append("(");
+            calleeMethodSignature.append(methodName).append("(");
             int numPars = m.getParameterAnnotations().length;
             String type;
             if (numPars > 0) {
@@ -143,95 +174,306 @@ public class CEIParser {
                     Parameter.Type annotType = ((Parameter) m.getParameterAnnotations()[i][0]).type();
                     type = inferType(m.getParameterTypes()[i], annotType);
                     if (i >= 1) {
-                        buffer.append(",");
+                        calleeMethodSignature.append(",");
                     }
-                    buffer.append(type);
-                    treatAnnotationWarnings(m, i);
+                    calleeMethodSignature.append(type);
+                    treatParameterAnnotationWarnings(m, i);
                 }
             }
-            buffer.append(")");
-            if (m.isAnnotationPresent(Method.class)) {
-                String methodSignature = buffer.toString();
-                Method methodAnnot = m.getAnnotation(Method.class);
-                String[] declaringClasses = methodAnnot.declaringClass();
-                int implementationCount = declaringClasses.length;
-                String[] signatures = new String[implementationCount];
-                for (int i = 0; i < signatures.length; i++) {
-                    signatures[i] = methodSignature + declaringClasses[i];
-                }
-                Integer methodId = CoreManager.getCoreId(signatures);
-                updatedMethods.add(methodId);
-                if (methodId == CoreManager.getCoreCount()) {
-                    CoreManager.increaseCoreCount();
-                }
-                MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
-                MethodResourceDescription[] implConstraints = new MethodResourceDescription[implementationCount];
-                if (m.isAnnotationPresent(Constraints.class)) {
-                    defaultConstraints = new MethodResourceDescription(m.getAnnotation(Constraints.class));
-                }
-                if (m.isAnnotationPresent(MultiConstraints.class)) {
-                    MultiConstraints mc = m.getAnnotation(MultiConstraints.class);
-                    mc.value();
-                    for (int i = 0; i < implementationCount; i++) {
-                        MethodResourceDescription specificConstraints = new MethodResourceDescription(mc.value()[i]);
-                        specificConstraints.mergeMultiConstraints(defaultConstraints);
-                        implConstraints[i] = specificConstraints;
-                    }
-                } else {
-                    for (int i = 0; i < implementationCount; i++) {
-                        implConstraints[i] = defaultConstraints;
-                    }
-                }
-                for (int i = 0; i < implementationCount; i++) {
-                    loadMethodConstraints(methodId, implementationCount, methodName, declaringClasses, implConstraints);
-                }
-            } else { // Service
-                Service serviceAnnot = m.getAnnotation(Service.class);
-                buffer.append(serviceAnnot.namespace()).append(',').append(serviceAnnot.name()).append(',').append(serviceAnnot.port());
-                String signature = buffer.toString();
-                Integer methodId = CoreManager.getCoreId(new String[] { signature });
-                if (methodId == CoreManager.getCoreCount()) {
-                    CoreManager.increaseCoreCount();
-                    updatedMethods.add(methodId);
-                }
-                loadServiceConstraints(methodId, serviceAnnot);
+            calleeMethodSignature.append(")");
+            
+            /*
+             * Global constraints of the method
+             */
+            MethodResourceDescription defaultConstraints = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
+            if (m.isAnnotationPresent(Constraints.class)) {
+                defaultConstraints = new MethodResourceDescription(m.getAnnotation(Constraints.class));
             }
+            
+            /*
+             * Check that all method annotations are valid
+             */
+            for (Annotation annot : m.getAnnotations()) {
+                if ( !annot.annotationType().getName().equals(Constraints.class.getName())
+                        // Simple annotations
+                        && !annot.annotationType().getName().equals(Method.class.getName())
+                        && !annot.annotationType().getName().equals(Service.class.getName())
+                        && !annot.annotationType().getName().equals(MPI.class.getName())
+                        && !annot.annotationType().getName().equals(OmpSs.class.getName())
+                        && !annot.annotationType().getName().equals(OpenCL.class.getName())
+                        && !annot.annotationType().getName().equals(Binary.class.getName())
+                        // Repeatable annotations
+                        && !annot.annotationType().getName().equals(Methods.class.getName())
+                        && !annot.annotationType().getName().equals(Services.class.getName())
+                        && !annot.annotationType().getName().equals(MPIs.class.getName())
+                        && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
+                        && !annot.annotationType().getName().equals(OpenCLs.class.getName())
+                        && !annot.annotationType().getName().equals(Binaries.class.getName())
+                        ) {
+                    
+                    ErrorManager.warn("Unrecognised annotation " + annot.annotationType().getName() + " . SKIPPING");
+                }
+            }
+
+            
+            /*
+             * Check all annotations present at the method for versioning
+             */
+            Integer methodId = CoreManager.registerCoreId(calleeMethodSignature.toString());
+            if (methodId == CoreManager.getCoreCount()) {
+                CoreManager.increaseCoreCount();
+            }
+            
+            if (debug) {
+                logger.debug("   * Method methodId = " + methodId + " has "+ m.getAnnotations().length + " annotations");
+            }
+            
+            ArrayList<Implementation<?>> implementations = new ArrayList<Implementation<?>>();
+            int implId = 0;
+            
+            /*
+             * METHOD
+             */
+            for (Method methodAnnot : m.getAnnotationsByType(Method.class)) {
+                logger.debug("   * Processing @Method annotation");
+                String declaringClass = methodAnnot.declaringClass();
+                
+                String methodSignature = calleeMethodSignature.toString() + declaringClass;
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, methodSignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + methodSignature);
+                }
+                
+                // Load specific method constraints if present
+                MethodResourceDescription implConstraints = defaultConstraints;
+                if (methodAnnot.constraints() != null) {
+                    implConstraints = new MethodResourceDescription(methodAnnot.constraints());
+                    implConstraints.mergeMultiConstraints(defaultConstraints);
+                }
+                
+                // Register method implementation                    
+                Implementation<?> impl = new MethodImplementation(  declaringClass, 
+                                                                    methodName, 
+                                                                    methodId, 
+                                                                    implId, 
+                                                                    implConstraints
+                                                                 );                     
+                ++implId;
+                implementations.add(impl);
+            }
+            
+            /*
+             * SERVICE
+             */
+            for (Service serviceAnnot : m.getAnnotationsByType(Service.class)) {
+                // Services don't have constraints
+                logger.debug("   * Processing @Service annotation");
+                calleeMethodSignature.append(serviceAnnot.namespace()).append(',');
+                calleeMethodSignature.append(serviceAnnot.name()).append(',');
+                calleeMethodSignature.append(serviceAnnot.port());
+                
+                String serviceSignature = calleeMethodSignature.toString();
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, serviceSignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + serviceSignature);
+                }
+
+                // Register service implementation
+                Implementation<?> impl = new ServiceImplementation( methodId, 
+                                                                    serviceAnnot.namespace(), 
+                                                                    serviceAnnot.name(),
+                                                                    serviceAnnot.port(), 
+                                                                    serviceAnnot.operation()
+                                                                  );
+                implementations.add(impl);
+            }
+            
+            /*
+             * MPI
+             */
+            for (MPI mpiAnnot : m.getAnnotationsByType(MPI.class)) {
+                logger.debug("   * Processing @MPI annotation");
+                String binary = mpiAnnot.binary();
+                String mpiRunner = mpiAnnot.mpiRunner();
+                
+                if (mpiRunner.startsWith(Implementation.PREFIX_ENV_VAR)) {
+                    String varName = mpiRunner.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
+                    varName = varName.replaceAll("\\{", "");
+                    varName = varName.replaceAll("\\}", "");
+                    mpiRunner = System.getenv(varName);
+                }                
+                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
+                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
+                    varName = varName.replaceAll("\\{", "");
+                    varName = varName.replaceAll("\\}", "");
+                    binary = System.getenv(varName);
+                } 
+                if (mpiRunner == null || mpiRunner.isEmpty()) {
+                    ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
+                }
+                if (binary == null || binary.isEmpty()) {
+                    ErrorManager.error("Empty binary annotation for method " + m.getName());
+                }
+                
+                logger.debug("Binary: " + binary);
+                logger.debug("mpiRunner: " + mpiRunner);
+                
+                String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.MPI_SIGNATURE;
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, mpiSignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + mpiSignature);
+                }
+                
+                // Load specific method constraints if present
+                MethodResourceDescription implConstraints = defaultConstraints;
+                if (mpiAnnot.constraints() != null) {
+                    implConstraints = new MethodResourceDescription(mpiAnnot.constraints());
+                    implConstraints.mergeMultiConstraints(defaultConstraints);
+                }
+                
+                // Register method implementation                    
+                Implementation<?> impl = new MPIImplementation( binary, 
+                                                                mpiRunner, 
+                                                                methodId, 
+                                                                implId, 
+                                                                implConstraints
+                                                               );                     
+                ++implId;
+                implementations.add(impl);
+            }
+
+            /*
+             * OMPSS
+             */
+            for (OmpSs ompssAnnot : m.getAnnotationsByType(OmpSs.class)) {
+                logger.debug("   * Processing @OmpSs annotation");
+                String binary = ompssAnnot.binary();
+                
+                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
+                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
+                    varName = varName.replaceAll("\\{", "");
+                    varName = varName.replaceAll("\\}", "");
+                    binary = System.getenv(varName);
+                }
+                if (binary == null || binary.isEmpty()) {
+                    ErrorManager.error("Empty binary annotation for method " + m.getName());
+                }
+                
+                String ompssSignature = calleeMethodSignature.toString() + LoaderUtils.OMPSS_SIGNATURE;
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, ompssSignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + ompssSignature);
+                }
+                
+                // Load specific method constraints if present
+                MethodResourceDescription implConstraints = defaultConstraints;
+                if (ompssAnnot.constraints() != null) {
+                    implConstraints = new MethodResourceDescription(ompssAnnot.constraints());
+                    implConstraints.mergeMultiConstraints(defaultConstraints);
+                }
+                
+                // Register method implementation                    
+                Implementation<?> impl = new OmpSsImplementation( binary, 
+                                                                  methodId, 
+                                                                  implId, 
+                                                                  implConstraints
+                                                                );                
+                ++implId;
+                implementations.add(impl);
+            }
+            
+            /*
+             * OPENCL
+             */
+            for (OpenCL openclAnnot : m.getAnnotationsByType(OpenCL.class)) {
+                logger.debug("   * Processing @OpenCL annotation");
+                String kernel = openclAnnot.kernel();
+                
+                if (kernel.startsWith(Implementation.PREFIX_ENV_VAR)) {
+                    String varName = kernel.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
+                    varName = varName.replaceAll("\\{", "");
+                    varName = varName.replaceAll("\\}", "");
+                    kernel = System.getenv(varName);
+                }
+                if (kernel == null || kernel.isEmpty()) {
+                    ErrorManager.error("Empty kernel annotation for method " + m.getName());
+                }
+                
+                String openclSignature = calleeMethodSignature.toString() + LoaderUtils.OPENCL_SIGNATURE;
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, openclSignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + openclSignature);
+                }
+                
+                // Load specific method constraints if present
+                MethodResourceDescription implConstraints = defaultConstraints;
+                if (openclAnnot.constraints() != null) {
+                    implConstraints = new MethodResourceDescription(openclAnnot.constraints());
+                    implConstraints.mergeMultiConstraints(defaultConstraints);
+                }
+                
+                // Register method implementation                    
+                Implementation<?> impl = new OpenCLImplementation( kernel, 
+                                                                   methodId, 
+                                                                   implId, 
+                                                                   implConstraints
+                                                                 );                     
+                ++implId;
+                implementations.add(impl);
+            }
+            
+            /*
+             * BINARY
+             */
+            for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
+                logger.debug("   * Processing @Binary annotation");
+                String binary = binaryAnnot.binary();
+                
+                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
+                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
+                    varName = varName.replaceAll("\\{", "");
+                    varName = varName.replaceAll("\\}", "");
+                    binary = System.getenv(varName);
+                }
+                if (binary == null || binary.isEmpty()) {
+                    ErrorManager.error("Empty binary annotation for method " + m.getName());
+                }
+                
+                String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
+                boolean success = CoreManager.registerSignatureToCoreId(methodId, binarySignature);
+                if (!success) {
+                    ErrorManager.error("Invalid method registration with signature " + binarySignature);
+                }
+                
+                // Load specific method constraints if present
+                MethodResourceDescription implConstraints = defaultConstraints;
+                if (binaryAnnot.constraints() != null) {
+                    implConstraints = new MethodResourceDescription(binaryAnnot.constraints());
+                    implConstraints.mergeMultiConstraints(defaultConstraints);
+                }
+                
+                // Register method implementation                    
+                Implementation<?> impl = new BinaryImplementation( binary, 
+                                                                   methodId, 
+                                                                   implId, 
+                                                                   implConstraints
+                                                                 );                   
+                ++implId;
+                implementations.add(impl);
+            }
+            
+            // Register all implementations
+            updatedMethods.add(methodId);
+            Implementation<?>[] impls = new Implementation<?>[implementations.size()];
+            for (int i = 0; i < implementations.size(); ++i) {
+                impls[i] = implementations.get(i);
+            }
+            CoreManager.registerImplementations(methodId, impls);
+        
+            // END FOR DECLARED METHOD IN ITF
         }
 
         return updatedMethods;
-    }
-
-    /**
-     * Loads the Constraints in case that core is a service. Only in Xpath format since there are no resource where its
-     * tasks can run
-     *
-     * @param coreId
-     *            identifier for that core
-     * @param service
-     *            Service annotation describing the core
-     */
-    private static void loadServiceConstraints(int coreId, Service service) {
-        Implementation<?>[] implementations = new Implementation[1];
-        implementations[0] = new ServiceImplementation(coreId, service.namespace(), service.name(), service.port(), service.operation());
-        CoreManager.registerImplementations(coreId, implementations);
-    }
-
-    /**
-     * Loads the Constraints in case that core is a service in XPath format and describing the features of the resources
-     * able to run its tasks
-     *
-     * @param coreId
-     *            identifier for that core
-     * @param service
-     *            Method annotation describing the core
-     */
-    private static void loadMethodConstraints(int coreId, int implementationCount, String methodName, String[] declaringClasses,
-            MethodResourceDescription[] cts) {
-        Implementation<?>[] implementations = new Implementation[implementationCount];
-        for (int i = 0; i < implementationCount; i++) {
-            implementations[i] = new MethodImplementation(declaringClasses[i], methodName, coreId, i, cts[i]);
-        }
-        CoreManager.registerImplementations(coreId, implementations);
     }
 
     // C constructor

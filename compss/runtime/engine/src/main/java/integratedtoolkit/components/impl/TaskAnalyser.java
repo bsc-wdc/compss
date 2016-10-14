@@ -16,7 +16,6 @@ import storage.StubItf;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
@@ -29,6 +28,7 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.operation.ResultListener;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
@@ -95,7 +95,7 @@ public class TaskAnalyser {
 
     public void processTask(Task currentTask) {
         TaskDescription params = currentTask.getTaskDescription();
-        logger.info("New " + (params.getType() == Type.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
+        logger.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
         if (drawGraph) {
             this.GM.addTaskToGraph(currentTask);
@@ -129,7 +129,7 @@ public class TaskAnalyser {
 
         // Check scheduling enforcing data
         int constrainingParam = -1;
-        if (params.getType() == Type.SERVICE && params.hasTargetObject()) {
+        if (params.getType() == TaskType.SERVICE && params.hasTargetObject()) {
             if (params.hasReturnValue()) {
                 constrainingParam = params.getParameters().length - 2;
             } else {

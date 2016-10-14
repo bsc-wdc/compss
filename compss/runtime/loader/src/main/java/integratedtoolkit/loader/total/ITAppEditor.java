@@ -26,7 +26,9 @@ import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.Parameter.Direction;
-import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.types.annotations.task.Service;
+import integratedtoolkit.types.annotations.task.repeatables.Methods;
+import integratedtoolkit.types.annotations.task.repeatables.Services;
 
 
 public class ITAppEditor extends ExprEditor {
@@ -291,7 +293,6 @@ public class ITAppEditor extends ExprEditor {
         Class<?> retType = declaredMethod.getReturnType();
         boolean isVoid = retType.equals(void.class);
         boolean isStatic = Modifier.isStatic(calledMethod.getModifiers());
-        boolean isMethod = declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.Method.class);
         Class<?> paramTypes[] = declaredMethod.getParameterTypes();
         int numParams = paramTypes.length;
         if (!isStatic) {
@@ -300,14 +301,18 @@ public class ITAppEditor extends ExprEditor {
         if (!isVoid) {
             numParams++;
         }
-        Annotation[][] paramAnnot = declaredMethod.getParameterAnnotations();
 
         // Build the executeTask call string
-        StringBuilder executeTask = new StringBuilder();
+        boolean isMethod = ( declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.task.Method.class)
+                                || declaredMethod.isAnnotationPresent(Methods.class) );
+        boolean isNonNativeMethod = ! ( declaredMethod.isAnnotationPresent(Service.class)
+                                || declaredMethod.isAnnotationPresent(Services.class) );
         
+        StringBuilder executeTask = new StringBuilder();
         if (isMethod) {
-            integratedtoolkit.types.annotations.Method methodAnnot = 
-                    declaredMethod.getAnnotation(integratedtoolkit.types.annotations.Method.class);
+            // METHOD
+            integratedtoolkit.types.annotations.task.Method methodAnnot = 
+                    declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
             
             // Instrument for execute task
             if (methodAnnot.isReplicated()) {
@@ -323,8 +328,25 @@ public class ITAppEditor extends ExprEditor {
             executeTask.append("\"").append(className).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
             executeTask.append(methodAnnot.priority()).append(',');
-
-        } else { // Service
+        } else if (isNonNativeMethod) {
+            // Non native method : MPI, OMPSS, BINARY, OPENCL
+            boolean priority = false;
+            if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.MPI.class) != null) {
+                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.MPI.class).priority();
+            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OmpSs.class) != null) {
+                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OmpSs.class).priority();
+            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OpenCL.class) != null) {
+                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OpenCL.class).priority();
+            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Binary.class) != null) {
+                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Binary.class).priority();
+            }
+            executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
+            executeTask.append(itAppIdVar).append(',');
+            executeTask.append("\"").append(className).append("\"").append(',');
+            executeTask.append("\"").append(methodName).append("\"").append(',');
+            executeTask.append(priority).append(',');
+        } else { 
+            // Service
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
             
             executeTask.append(itApiVar).append(EXECUTE_SERVICE_TASK);
@@ -343,6 +365,7 @@ public class ITAppEditor extends ExprEditor {
         if (numParams == 0) {
             executeTask.append(",null);");
         } else {
+            Annotation[][] paramAnnot = declaredMethod.getParameterAnnotations();
             CallInformation callInformation = processParameters(declaredMethod, paramAnnot, paramTypes, isVoid, isStatic, isMethod,
                     numParams, retType);
             executeTask.append(callInformation.getToAppend());
@@ -511,8 +534,8 @@ public class ITAppEditor extends ExprEditor {
             // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
-                integratedtoolkit.types.annotations.Method methodAnnot = declaredMethod
-                        .getAnnotation(integratedtoolkit.types.annotations.Method.class);
+                integratedtoolkit.types.annotations.task.Method methodAnnot = declaredMethod
+                        .getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
                 if (methodAnnot.isModifier()) {
                     targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
                 } else {

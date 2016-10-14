@@ -1,6 +1,6 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
 
@@ -100,7 +100,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
 
     @Override
     public boolean canRun(Implementation<?> implementation) {
-        switch (implementation.getType()) {
+        switch (implementation.getTaskType()) {
             case SERVICE:
                 ServiceResourceDescription s = (ServiceResourceDescription) implementation.getRequirements();
                 return (this.description.getNamespace().compareTo(s.getNamespace()) == 0

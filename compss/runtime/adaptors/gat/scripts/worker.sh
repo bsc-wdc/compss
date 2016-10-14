@@ -69,6 +69,13 @@
   #-------------------------------------
   appDir=$1
   export IT_APP_DIR=$appDir
+
+  # Add support for non-native tasks
+  methodType=$6
+  if [ "$methodType" != "METHOD" ]; then
+    lang=java
+  fi
+
   cd $sandbox
   # Run the task with the language-dependent script
   echo "** Starting language dependant script"
@@ -83,7 +90,6 @@
   if [ $tracing == "true" ]; then
 	$scriptDir/../../trace.sh end $workingDir $eventType $slot
   fi
-
 
   #-------------------------------------
   # Clean sandbox

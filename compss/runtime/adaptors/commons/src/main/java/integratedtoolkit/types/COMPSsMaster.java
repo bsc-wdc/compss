@@ -11,6 +11,7 @@ import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.copy.Copy;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;

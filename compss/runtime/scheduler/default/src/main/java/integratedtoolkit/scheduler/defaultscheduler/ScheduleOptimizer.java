@@ -5,10 +5,10 @@ import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.DefaultScore;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.OptimizationWorker;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 

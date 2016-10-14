@@ -8,8 +8,15 @@ import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.executors.util.BinaryInvoker;
+import integratedtoolkit.nio.worker.executors.util.Invoker;
+import integratedtoolkit.nio.worker.executors.util.MPIInvoker;
+import integratedtoolkit.nio.worker.executors.util.OmpSsInvoker;
+import integratedtoolkit.nio.worker.executors.util.OpenCLInvoker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
@@ -23,6 +30,7 @@ public abstract class ExternalExecutor extends Executor {
 
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
     private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
+    private static final String ERROR_UNSUPPORTED_JOB_TYPE = "Bindings don't support non-native tasks";
 
     // Storage properties
     // Storage Conf
@@ -69,6 +77,33 @@ public abstract class ExternalExecutor extends Executor {
 
     @Override
     public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) throws Exception {
+        // Check if it is a native method or not
+        switch(nt.getMethodType()) {
+            case METHOD:
+                executeNativeMethod(nw, nt, outputsBasename, assignedCoreUnits);
+                break;
+            case BINARY:
+                BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, assignedCoreUnits);
+                executeNonNativeMethod(outputsBasename, binaryInvoker);
+                break;
+            case MPI:
+                MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, assignedCoreUnits);
+                executeNonNativeMethod(outputsBasename, mpiInvoker);
+                break;
+            case OMPSS:
+                OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, assignedCoreUnits);
+                executeNonNativeMethod(outputsBasename, ompssInvoker);
+                break;
+            case OPENCL:
+                OpenCLInvoker openclInvoker = new OpenCLInvoker(nw, nt, assignedCoreUnits);
+                executeNonNativeMethod(outputsBasename, openclInvoker);
+                break;
+        }
+    }
+    
+    private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) 
+            throws JobExecutionException, SerializedObjectException {
+        
         ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir(), assignedCoreUnits);
         addArguments(args, nt, nw);
         String externalCommand = getArgumentsAsString(args);
@@ -77,6 +112,26 @@ public abstract class ExternalExecutor extends Executor {
                 + NIOWorker.SUFFIX_ERR + TOKEN_SEP + externalCommand;
 
         executeExternal(nt.getJobId(), command, nt, nw);
+    }
+    
+    private void executeNonNativeMethod(String outputsBasename, Invoker invoker) throws JobExecutionException {
+        /* Register outputs **************************************** */
+        NIOWorker.registerOutputs(outputsBasename);
+
+        /* TRY TO PROCESS THE TASK ******************************** */
+        System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Begin task execution");
+        try {
+            invoker.processTask();
+        } catch (JobExecutionException jee) {
+            System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Error in task execution");
+            System.err.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Error in task execution");
+            jee.printStackTrace();
+            throw jee;
+        } finally {
+            System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - End task execution");
+            /* Unregister outputs **************************************** */
+            NIOWorker.unregisterOutputs();
+        } 
     }
 
     @Override
@@ -149,8 +204,18 @@ public abstract class ExternalExecutor extends Executor {
         lArgs.add(Integer.toString(nt.getTaskId()));
         lArgs.add(Boolean.toString(nt.isWorkerDebug()));
         lArgs.add(STORAGE_CONF);
-        lArgs.add(nt.getClassName());
-        lArgs.add(nt.getMethodName());
+        
+        // The implementation to execute externally can only be METHOD but we double check it
+        if (nt.getMethodType() != MethodType.METHOD) {
+            throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
+        }
+        
+        // Add method classname and methodname
+        MethodImplementation impl = (MethodImplementation) nt.getMethodImplementation();
+        lArgs.add(String.valueOf(impl.getMethodType()));
+        lArgs.add(impl.getDeclaringClass());
+        lArgs.add(impl.getAlternativeMethodName());
+        
         lArgs.add(Boolean.toString(nt.isHasTarget()));
         lArgs.add(Integer.toString(nt.getNumParams()));
         for (NIOParam np : nt.getParams()) {
@@ -214,7 +279,6 @@ public abstract class ExternalExecutor extends Executor {
                     try {
                         output.close();
                     } catch (Exception e) {
-
                         if (NIOTracer.isActivated()) {
                             emitEndTask(taskId);
                         }
@@ -225,7 +289,6 @@ public abstract class ExternalExecutor extends Executor {
             done = true;
         }
         if (!done) {
-
             if (NIOTracer.isActivated()) {
                 emitEndTask(taskId);
             }

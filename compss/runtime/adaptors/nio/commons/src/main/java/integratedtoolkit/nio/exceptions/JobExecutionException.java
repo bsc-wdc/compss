@@ -11,6 +11,10 @@ public class JobExecutionException extends Exception {
     public JobExecutionException(String message) {
         super(message);
     }
+    
+    public JobExecutionException(Exception e) {
+        super(e);
+    }
 
     public JobExecutionException(String message, Exception e) {
         super(message, e);

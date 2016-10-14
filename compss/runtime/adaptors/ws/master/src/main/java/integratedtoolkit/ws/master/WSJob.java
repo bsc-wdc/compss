@@ -8,14 +8,15 @@ import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
-import integratedtoolkit.types.ServiceImplementation;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.Resource;
@@ -86,8 +87,8 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
     }
 
     @Override
-    public Job.JobKind getKind() {
-        return Job.JobKind.SERVICE;
+    public TaskType getType() {
+        return TaskType.SERVICE;
     }
 
     @Override

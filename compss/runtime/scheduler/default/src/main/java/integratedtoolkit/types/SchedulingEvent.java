@@ -3,6 +3,7 @@ package integratedtoolkit.types;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultResourceScheduler;
 import integratedtoolkit.scheduler.defaultscheduler.DefaultSchedulingInformation;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 

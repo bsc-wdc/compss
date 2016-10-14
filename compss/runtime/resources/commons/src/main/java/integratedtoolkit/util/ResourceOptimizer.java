@@ -3,9 +3,10 @@ package integratedtoolkit.util;
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.ResourceCreationRequest;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
@@ -278,7 +279,7 @@ public class ResourceOptimizer extends Thread {
                 Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
                 for (int implId = 0; implId < impls.length; implId++) {
                     Implementation<?> impl = impls[implId];
-                    if (impl.getType() == Implementation.Type.METHOD) {
+                    if (impl.getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription requirements = (MethodResourceDescription) impl.getRequirements();
                         CloudMethodResourceDescription cd = new CloudMethodResourceDescription(requirements);
                         ConstraintsCore cc = new ConstraintsCore(cd, coreId, unfulfilledConstraints[coreId]);
@@ -645,7 +646,7 @@ public class ResourceOptimizer extends Thread {
         for (int coreId = 0; coreId < creationRecommendations.length; coreId++) {
             Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
             for (Implementation<?> impl : impls) {
-                if (impl.getType() == Implementation.Type.SERVICE) {
+                if (impl.getTaskType() == TaskType.SERVICE) {
                     continue;
                 }
 
@@ -664,7 +665,7 @@ public class ResourceOptimizer extends Thread {
             if (creationRecommendations[coreId] > 1) {
                 Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
                 for (Implementation<?> impl : impls) {
-                    if (impl.getType() == Implementation.Type.SERVICE) {
+                    if (impl.getTaskType() == TaskType.SERVICE) {
                         continue;
                     }
                     MethodResourceDescription constraints = ((MethodImplementation) impl).getRequirements();

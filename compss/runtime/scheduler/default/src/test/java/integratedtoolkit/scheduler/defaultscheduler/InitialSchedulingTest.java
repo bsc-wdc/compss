@@ -4,12 +4,12 @@ import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.fake.FakeAllocatableAction;
 import integratedtoolkit.types.fake.FakeImplementation;
 import integratedtoolkit.types.fake.FakeProfile;
 import integratedtoolkit.types.fake.FakeResourceDescription;
 import integratedtoolkit.types.fake.FakeWorker;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.util.CoreManager;
 
 import org.junit.After;

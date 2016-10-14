@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
@@ -48,14 +48,14 @@ public class FakeResourceDescription extends WorkerResourceDescription {
     @Override
     public void increaseDynamic(ResourceDescription rd) {
         FakeResourceDescription desc = (FakeResourceDescription) rd;
-        int oldCount = this.coreCount;
+        //int oldCount = this.coreCount;
         this.coreCount += desc.coreCount;
     }
 
     @Override
     public ResourceDescription reduceDynamic(ResourceDescription rd) {
         FakeResourceDescription desc = (FakeResourceDescription) rd;
-        int oldCount = this.coreCount;
+        //int oldCount = this.coreCount;
         this.coreCount -= desc.coreCount;
         return desc;
     }

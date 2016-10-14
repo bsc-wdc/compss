@@ -140,7 +140,7 @@ void generate_prolog()
   fprintf(workerFile, "\n");
   fprintf(workerFile, "int main(int argc, char **argv) {\n");
   fprintf(workerFile, "\n");
-  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, className, methodName, hasTarget, numAppParams
+  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName, hasTarget, numAppParams
   fprintf(workerFile, "\tprintf(\"Total number of parameters: %%d\\n\", argc);\n");
   fprintf(workerFile, "\tif (argc < NUM_INTERNAL_ARGS) {\n");
   fprintf(workerFile, "\t\tprintf(\"ERROR: Incorrect number of COMPSs internal parameters\\n\");\n");
@@ -307,8 +307,8 @@ static void generate_enum(FILE *outFile, function *first_function)
 
   // Add constants (according to COMPSs Runtime)
   fprintf(outFile, "static const int N_OPS=%d;\n", n);
-  fprintf(outFile, "static const int NUM_INTERNAL_ARGS = 9;\n");
-  fprintf(outFile, "static const int METHOD_NAME_POS = 6;\n");
+  fprintf(outFile, "static const int NUM_INTERNAL_ARGS = 10;\n");
+  fprintf(outFile, "static const int METHOD_NAME_POS = 7;\n");
   fprintf(outFile ,"\n");
 }
 

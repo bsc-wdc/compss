@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
-import integratedtoolkit.types.MethodImplementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.util.CoreManager;
 
 import org.junit.After;

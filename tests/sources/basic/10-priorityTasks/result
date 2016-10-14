@@ -36,11 +36,16 @@
   priorCount=0
   normalCount=0
   for (( i=1; i<=$priority; i++ )); do
-      job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method name: " | cut -c 18-)
+      job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method definition" | tr "[" "\n" | tr "," "\n" | tr "=" "\n" | tr "]" "\n" | tail -n 2 | head -n 1)
+      if [ "${job_name}" == "" ]; then
+         # GAT execution
+         job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method Description 1" | tr ":" "\n" | tr " " "\n" | tail -n 1)
+      fi
+       
       if [ "$job_name" != "normalTask" ]; then
-	priorCount=$((priorCount+1))
+	    priorCount=$((priorCount+1))
       else
-	normalCount=$((normalCount+1))
+	    normalCount=$((normalCount+1))
       fi
   done
   
@@ -53,7 +58,12 @@
   priorCount=0
   normalCount=0
   for (( i=$priority+1; i<=$totalTasks; i++ )); do
-      job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method name: " | cut -c 18-)
+      job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method definition" | tr "[" "\n" | tr "," "\n" | tr "=" "\n" | tr "]" "\n" | tail -n 2 | head -n 1)
+      if [ "${job_name}" == "" ]; then
+         # GAT execution
+         job_name=$(cat ${target_log_folder}/jobs/job${i}_NEW.out | grep "Method Description 1" | tr ":" "\n" | tr " " "\n" | tail -n 1)
+      fi
+      
       if [ "$job_name" != "normalTask" ]; then
 	priorCount=$((priorCount+1))
       else

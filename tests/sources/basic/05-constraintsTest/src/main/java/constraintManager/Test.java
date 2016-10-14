@@ -5,12 +5,11 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import commons.ConstantValues;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.MultiConstraints;
+import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.CoreManager;
 
@@ -100,16 +99,26 @@ public class Test {
                 System.out.println("[ERROR] Method " + coreToName[i] + "not found.");
                 System.exit(-1);
             }
-
-            declaringClassesItf[i] = m.getAnnotation(Method.class).declaringClass();
-            if (m.isAnnotationPresent(MultiConstraints.class)) {
-                constraintsItf[i] = m.getAnnotation(MultiConstraints.class).value();
-            } else {
-                constraintsItf[i] = new Constraints[declaringClassesItf[i].length];
-            }
+            
+            // Add general constraints
             if (m.isAnnotationPresent(Constraints.class)) {
                 generalConstraintsItf[i] = m.getAnnotation(Constraints.class);
             }
+            
+            // Get declaring class of each method annotation
+            Method[] annotations = m.getAnnotationsByType(Method.class);
+            declaringClassesItf[i] = new String[annotations.length];
+            for (int j = 0; j < annotations.length; ++j) {
+                Method methodAnnotation = annotations[j];
+                declaringClassesItf[i][j] = methodAnnotation.declaringClass();
+            }
+            
+            // Get specific constraints of each method annotation
+            constraintsItf[i] = new Constraints[annotations.length];
+            for (int j = 0; j < annotations.length; ++j) {
+                Method methodAnnotation = annotations[j];
+                constraintsItf[i][j] = methodAnnotation.constraints();
+            }            
         }
 
         // Check all cores
@@ -125,7 +134,8 @@ public class Test {
         System.out.println("[LOG] \t Has " + declaringClassesItf[coreId].length + " declaring classes in the CEI");
         System.out.println("[LOG] \t Has " + idToSignatures[coreId].size() + " signatures registered");
 
-        if (declaringClassesItf[coreId].length != idToSignatures[coreId].size()) {
+        // Signatures store one dummy extra signature
+        if (declaringClassesItf[coreId].length + 1 != idToSignatures[coreId].size()) {
             System.out.println(coreToName[coreId] + " has " + idToSignatures[coreId].size() + " registered signatures and there are "
                     + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
@@ -164,21 +174,21 @@ public class Test {
          * ***************************************** 
          * ComputingUnits
          *****************************************/
-        if (general == null || general.computingUnits() == Constants.UNASSIGNED_INT) {
-            if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
+        if (general == null || general.computingUnits().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.computingUnits().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getTotalCPUComputingUnits() == MethodResourceDescription.ONE_INT);
             } else {
                 // Specific constraint value
-                ret = (registered.getTotalCPUComputingUnits() == specific.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == Integer.valueOf(specific.computingUnits()));
             }
         } else {
-            if (specific == null || specific.computingUnits() == Constants.UNASSIGNED_INT) {
+            if (specific == null || specific.computingUnits().equals(Constants.UNASSIGNED)) {
                 // General constraint value
-                ret = (registered.getTotalCPUComputingUnits() == general.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == Integer.valueOf(general.computingUnits()));
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getTotalCPUComputingUnits() == specific.computingUnits());
+                ret = (registered.getTotalCPUComputingUnits() == Integer.valueOf(specific.computingUnits()));
             }
         }
         if (!ret) {
@@ -197,8 +207,8 @@ public class Test {
          * Processor
          *****************************************/
         // !!! When checking constraints the limits are always on Processor 0
-        if (general == null || general.processorName().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.processorName().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getProcessors().get(0).getName().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -206,7 +216,7 @@ public class Test {
                 ret = (registered.getProcessors().get(0).getName().equals(specific.processorName()));
             }
         } else {
-            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.processorName().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getProcessors().get(0).getName().equals(general.processorName()));
             } else {
@@ -218,29 +228,29 @@ public class Test {
             return "processorName";
         }
 
-        if (general == null || general.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
-            if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
+        if (general == null || general.processorSpeed().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.processorSpeed().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getProcessors().get(0).getSpeed() == MethodResourceDescription.UNASSIGNED_FLOAT);
             } else {
                 // Specific constraint value
-                ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
+                ret = (registered.getProcessors().get(0).getSpeed() == Float.valueOf(specific.processorSpeed()));
             }
         } else {
-            if (specific == null || specific.processorSpeed() == Constants.UNASSIGNED_FLOAT) {
+            if (specific == null || specific.processorSpeed().equals(Constants.UNASSIGNED)) {
                 // General constraint value
-                ret = (registered.getProcessors().get(0).getSpeed() == general.processorSpeed());
+                ret = (registered.getProcessors().get(0).getSpeed() == Float.valueOf(general.processorSpeed()));
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getProcessors().get(0).getSpeed() == specific.processorSpeed());
+                ret = (registered.getProcessors().get(0).getSpeed() == Float.valueOf(specific.processorSpeed()));
             }
         }
         if (!ret) {
             return "processorSpeed";
         }
 
-        if (general == null || general.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.processorArchitecture().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getProcessors().get(0).getArchitecture().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -248,7 +258,7 @@ public class Test {
                 ret = (registered.getProcessors().get(0).getArchitecture().equals(specific.processorArchitecture()));
             }
         } else {
-            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.processorArchitecture().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getProcessors().get(0).getArchitecture().equals(general.processorArchitecture()));
             } else {
@@ -260,8 +270,8 @@ public class Test {
             return "processorArchitecture";
         }
 
-        if (general == null || general.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.processorPropertyName().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getProcessors().get(0).getPropName().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -269,7 +279,7 @@ public class Test {
                 ret = (registered.getProcessors().get(0).getPropName().equals(specific.processorPropertyName()));
             }
         } else {
-            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.processorPropertyName().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getProcessors().get(0).getPropName().equals(general.processorPropertyName()));
             } else {
@@ -281,8 +291,8 @@ public class Test {
             return "processorPropertyName";
         }
 
-        if (general == null || general.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.processorPropertyValue().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getProcessors().get(0).getPropValue().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -290,7 +300,7 @@ public class Test {
                 ret = (registered.getProcessors().get(0).getPropValue().equals(specific.processorPropertyValue()));
             }
         } else {
-            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.processorPropertyValue().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getProcessors().get(0).getPropValue().equals(general.processorPropertyValue()));
             } else {
@@ -306,29 +316,29 @@ public class Test {
          * ***************************************** 
          * Memory
          *****************************************/
-        if (general == null || general.memorySize() == Constants.UNASSIGNED_FLOAT) {
-            if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
+        if (general == null || general.memorySize().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.memorySize().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getMemorySize() == MethodResourceDescription.UNASSIGNED_FLOAT);
             } else {
                 // Specific constraint value
-                ret = (registered.getMemorySize() == specific.memorySize());
+                ret = (registered.getMemorySize() == Float.valueOf(specific.memorySize()));
             }
         } else {
-            if (specific == null || specific.memorySize() == Constants.UNASSIGNED_FLOAT) {
+            if (specific == null || specific.memorySize().equals(Constants.UNASSIGNED)) {
                 // General constraint value
-                ret = (registered.getMemorySize() == general.memorySize());
+                ret = (registered.getMemorySize() == Float.valueOf(general.memorySize()));
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getMemorySize() == specific.memorySize());
+                ret = (registered.getMemorySize() == Float.valueOf(specific.memorySize()));
             }
         }
         if (!ret) {
             return "memorySize";
         }
 
-        if (general == null || general.memoryType().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.memoryType().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getMemoryType().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -336,7 +346,7 @@ public class Test {
                 ret = (registered.getMemoryType().equals(specific.memoryType()));
             }
         } else {
-            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.memoryType().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getMemoryType().equals(general.memoryType()));
             } else {
@@ -352,29 +362,29 @@ public class Test {
          * ***************************************** 
          * Storage
          *****************************************/
-        if (general == null || general.storageSize() == Constants.UNASSIGNED_FLOAT) {
-            if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
+        if (general == null || general.storageSize().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.storageSize().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getStorageSize() == MethodResourceDescription.UNASSIGNED_FLOAT);
             } else {
                 // Specific constraint value
-                ret = (registered.getStorageSize() == specific.storageSize());
+                ret = (registered.getStorageSize() == Float.valueOf(specific.storageSize()));
             }
         } else {
-            if (specific == null || specific.storageSize() == Constants.UNASSIGNED_FLOAT) {
+            if (specific == null || specific.storageSize().equals(Constants.UNASSIGNED)) {
                 // General constraint value
-                ret = (registered.getStorageSize() == general.storageSize());
+                ret = (registered.getStorageSize() == Float.valueOf(general.storageSize()));
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getStorageSize() == specific.storageSize());
+                ret = (registered.getStorageSize() == Float.valueOf(specific.storageSize()));
             }
         }
         if (!ret) {
             return "storageSize";
         }
 
-        if (general == null || general.storageType().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.storageType().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getStorageType().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -382,7 +392,7 @@ public class Test {
                 ret = (registered.getStorageType().equals(specific.storageType()));
             }
         } else {
-            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.storageType().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getStorageType().equals(general.storageType()));
             } else {
@@ -398,8 +408,8 @@ public class Test {
          * ***************************************** 
          * Operating System
          *****************************************/
-        if (general == null || general.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.operatingSystemType().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -407,7 +417,7 @@ public class Test {
                 ret = (registered.getOperatingSystemType().equals(specific.operatingSystemType()));
             }
         } else {
-            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getOperatingSystemType().equals(general.operatingSystemType()));
             } else {
@@ -419,8 +429,8 @@ public class Test {
             return "operatingSystemType";
         }
 
-        if (general == null || general.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.operatingSystemDistribution().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getOperatingSystemDistribution().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -428,7 +438,7 @@ public class Test {
                 ret = (registered.getOperatingSystemDistribution().equals(specific.operatingSystemDistribution()));
             }
         } else {
-            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.operatingSystemDistribution().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getOperatingSystemDistribution().equals(general.operatingSystemDistribution()));
             } else {
@@ -440,8 +450,8 @@ public class Test {
             return "operatingSystemDistribution";
         }
 
-        if (general == null || general.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.operatingSystemVersion().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getOperatingSystemVersion().equals(MethodResourceDescription.UNASSIGNED_STR));
             } else {
@@ -449,7 +459,7 @@ public class Test {
                 ret = (registered.getOperatingSystemVersion().equals(specific.operatingSystemVersion()));
             }
         } else {
-            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.operatingSystemVersion().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 ret = (registered.getOperatingSystemVersion().equals(general.operatingSystemVersion()));
             } else {
@@ -465,8 +475,8 @@ public class Test {
          * ***************************************** 
          * Application Software
          *****************************************/
-        if (general == null || general.appSoftware().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.appSoftware().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = registered.getAppSoftware().isEmpty();
             } else {
@@ -480,7 +490,7 @@ public class Test {
                 ret = registered.getAppSoftware().containsAll(values);
             }
         } else {
-            if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.appSoftware().split(",")) {
@@ -513,8 +523,8 @@ public class Test {
          * ***************************************** 
          * Host Queues
          *****************************************/
-        if (general == null || general.hostQueues().equals(Constants.UNASSIGNED_STR)) {
-            if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED_STR)) {
+        if (general == null || general.hostQueues().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = registered.getHostQueues().isEmpty();
             } else {
@@ -528,7 +538,7 @@ public class Test {
                 ret = registered.getHostQueues().containsAll(values);
             }
         } else {
-            if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED_STR)) {
+            if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED)) {
                 // General constraint value
                 HashSet<String> values = new HashSet<String>();
                 for (String s : general.hostQueues().split(",")) {
@@ -561,21 +571,21 @@ public class Test {
          * ***************************************** 
          * WallClockLimit
          *****************************************/
-        if (general == null || general.wallClockLimit() == Constants.UNASSIGNED_INT) {
-            if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
+        if (general == null || general.wallClockLimit().equals(Constants.UNASSIGNED)) {
+            if (specific == null || specific.wallClockLimit().equals(Constants.UNASSIGNED)) {
                 // Default value
                 ret = (registered.getWallClockLimit() == MethodResourceDescription.UNASSIGNED_INT);
             } else {
                 // Specific constraint value
-                ret = (registered.getWallClockLimit() == specific.wallClockLimit());
+                ret = (registered.getWallClockLimit() == Integer.valueOf(specific.wallClockLimit()));
             }
         } else {
-            if (specific == null || specific.wallClockLimit() == Constants.UNASSIGNED_INT) {
+            if (specific == null || specific.wallClockLimit().equals(Constants.UNASSIGNED)) {
                 // General constraint value
-                ret = (registered.getWallClockLimit() == general.wallClockLimit());
+                ret = (registered.getWallClockLimit() == Integer.valueOf(general.wallClockLimit()));
             } else {
                 // Specific constraint value (general is overwritten)
-                ret = (registered.getWallClockLimit() == specific.wallClockLimit());
+                ret = (registered.getWallClockLimit() == Integer.valueOf(specific.wallClockLimit()));
             }
         }
         if (!ret) {

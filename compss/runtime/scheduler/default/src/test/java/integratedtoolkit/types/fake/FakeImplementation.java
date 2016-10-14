@@ -1,17 +1,18 @@
 package integratedtoolkit.types.fake;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
 public class FakeImplementation<T extends WorkerResourceDescription> extends Implementation<T> {
 
+    @SuppressWarnings("unchecked")
     public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
         super(coreId, implementationId, (T) annot);
     }
 
     @Override
-    public Type getType() {
+    public TaskType getTaskType() {
         return null;
     }
 

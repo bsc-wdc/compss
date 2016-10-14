@@ -10,33 +10,38 @@ public class Constants {
      * Unassigned value for Strings
      * 
      */
-    public static final String UNASSIGNED_STR = "[unassigned]";
-
-    /**
-     * Unassigned value for ints
-     * 
-     */
-    public static final int UNASSIGNED_INT = -1;
-
-    /**
-     * Unassigned value for floats
-     * 
-     */
-    public static final float UNASSIGNED_FLOAT = (float) -1.0;
-
-	public static final String CPU_TYPE = "CPU";
-	public static final String GPU_TYPE = "GPU";
-	public static final String FPGA_TYPE = "FPGA";
-	public static final String OTHER_TYPE = "OTHER";
-	
-    public static final String UNASSIGNED_PROCESSOR_TYPE = CPU_TYPE;
-    public static final Processor[] UNASSIGNED_PROCESSORS= new Processor[]{};
+    public static final String UNASSIGNED = "[unassigned]";
     
     /**
      * Replicated task execution
      * 
      */
     public static final boolean REPLICATED_TASK = true;
+    
+    /**
+     * Target modification boolean
+     * 
+     */
+    public static final boolean IS_MODIFIER = true;
+
+    /**
+     * Processor types
+     */
+	public static final String CPU_TYPE = "CPU";
+	public static final String GPU_TYPE = "GPU";
+	public static final String FPGA_TYPE = "FPGA";
+	public static final String OTHER_TYPE = "OTHER";
+	
+	/**
+	 * Unassigned value for processor type
+	 */
+    public static final String UNASSIGNED_PROCESSOR_TYPE = CPU_TYPE;
+    
+    /**
+     * Priority value
+     * 
+     */
+    public static final boolean PRIORITY = true;
 
     /**
      * Available hostnames for MPI tasks

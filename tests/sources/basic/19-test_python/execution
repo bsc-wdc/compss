@@ -24,7 +24,7 @@
   echo "*** RUNNING PYTHON APPLICATION TEST"
   output_log="${target_log_folder}/python_test.outputlog"
   error_log="${target_log_folder}/python_test.errorlog"  
-  expectedTime=60s
+  expectedTime=80s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --classpath=${base_app_dir} \

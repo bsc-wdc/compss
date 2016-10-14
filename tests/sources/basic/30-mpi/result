@@ -25,7 +25,24 @@
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
   fi
+  
+  #----------------------------------------------------------------------------------
+  # Check MPI task execution status
+  exitValue=0
+  
+  singleGOT=$(cat ${output_file} | grep "\[MPI\_SINGLE\] Received value from task is correct")
+  if [ -z "${singleGOT}" ]; then
+    echo "ERROR: Single MPI execution failed"
+    exitValue=1
+  fi
+  
+  multipleGOT=$(cat ${output_file} | grep "\[MPI\_MULTIPLE\] Received value from task is correct")
+  if [ -z "${multipleGOT}" ]; then
+    echo "ERROR: Multiple MPI execution failed"
+    exitValue=1
+  fi
+  
 
   #---------------------------------------------------------------------------------- 
-  # ALL OK. Report result status
-  exit 0
+  # Report result status
+  exit ${exitValue}

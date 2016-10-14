@@ -1,22 +1,23 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.MethodImplementation;
-import integratedtoolkit.types.ServiceImplementation;
-
+import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.types.exceptions.NonInstantiableException;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
+import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.resources.ResourceDescription;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 
 public class CoreManager {
 
     // Constants definition
-    private static ITConstants.Lang lang = ITConstants.Lang.JAVA;
+    private static final Lang LANG;
 
     public static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<String, Integer>();
     private static int coreCount = 0;
@@ -25,15 +26,19 @@ public class CoreManager {
     private static Implementation<?>[][] implementations;
 
     static {
-        String l = System.getProperty(ITConstants.IT_LANG);
-        lang = ITConstants.Lang.JAVA;
-        if (l != null) {
-            if (("c").equalsIgnoreCase(l)) {
-                lang = ITConstants.Lang.C;
-            } else if (("python").equalsIgnoreCase(l)) {
-                lang = ITConstants.Lang.PYTHON;
+        // Compute language
+        Lang l = Lang.JAVA;
+        
+        String langProperty = System.getProperty(ITConstants.IT_LANG);
+        if (langProperty != null) {
+            if (langProperty.equalsIgnoreCase("python")) {
+                l = Lang.PYTHON;
+            } else if (langProperty.equalsIgnoreCase("c")) {
+                l = Lang.C;
             }
         }
+        
+        LANG = l;
     }
 
 
@@ -68,47 +73,106 @@ public class CoreManager {
         implementations[coreId] = impls;
     }
 
+    /**
+     * Get coreId to create Method Task Description
+     * 
+     * @param declaringClass
+     * @param methodName
+     * @param hasTarget
+     * @param hasReturn
+     * @param parameters
+     * @return
+     */
     public static Integer getCoreId(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
             integratedtoolkit.types.parameter.Parameter[] parameters) {
         
         Integer methodId = null;
         String signature = MethodImplementation.getSignature(declaringClass, methodName, hasTarget, hasReturn, parameters);
+        
         methodId = SIGNATURE_TO_ID.get(signature);
+        
         if (methodId == null) {
             methodId = nextId++;
             SIGNATURE_TO_ID.put(signature, methodId);
-            if (lang == ITConstants.Lang.PYTHON) {
-                ((MethodImplementation) implementations[methodId][0]).setDeclaringClass(declaringClass);
+            switch(LANG) {
+                case JAVA:
+                    // Declaring classes are already computed by versioning
+                    break;
+                case PYTHON:
+                    ((MethodImplementation) implementations[methodId][0]).setDeclaringClass(declaringClass);
+                    break;
+                case C:
+                    // Declaring classes are already computed by versioning
+                    break;
             }
         }
+        
         return methodId;
     }
 
+    /**
+     * Get coreId to create Service Task Description
+     * 
+     * @param namespace
+     * @param serviceName
+     * @param portName
+     * @param operation
+     * @param hasTarget
+     * @param hasReturn
+     * @param parameters
+     * @return
+     */
     public static Integer getCoreId(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
             boolean hasReturn, integratedtoolkit.types.parameter.Parameter[] parameters) {
+        
         Integer methodId = null;
         String signature = ServiceImplementation.getSignature(namespace, serviceName, portName, operation, hasTarget, hasReturn,
                 parameters);
         methodId = SIGNATURE_TO_ID.get(signature);
+        
         if (methodId == null) {
             methodId = nextId++;
             SIGNATURE_TO_ID.put(signature, methodId);
         }
+        
         return methodId;
     }
 
-    public static Integer getCoreId(String[] signatures) {
-        Integer methodId = null;
-        for (int i = 0; i < signatures.length && methodId == null; i++) {
-            methodId = SIGNATURE_TO_ID.get(signatures[i]);
-        }
+    /**
+     * Registers a new coreElement if it hasn't been registered previously
+     * 
+     * @param signature
+     * @return the coreId
+     */
+    public static Integer registerCoreId(String signature) {
+        Integer methodId = SIGNATURE_TO_ID.get(signature);
+
         if (methodId == null) {
             methodId = nextId++;
         }
-        for (String signature : signatures) {
-            SIGNATURE_TO_ID.put(signature, methodId);
-        }
+        
+        SIGNATURE_TO_ID.put(signature, methodId);
+
         return methodId;
+    }
+    
+    /**
+     * Register a signature to a given coreId (for versioning)
+     * 
+     * @param methodId
+     * @param signature
+     * @return if the operation has been performed or not
+     */
+    public static boolean registerSignatureToCoreId(Integer methodId, String signature) {
+        // Check that the methodId is valid
+        if (!SIGNATURE_TO_ID.containsValue(methodId)) {
+            // Unregistered methodId
+            return false;
+        }
+        
+        // Registered method, add versioning signature
+        SIGNATURE_TO_ID.put(signature, methodId);
+        return true;
     }
 
     /**
@@ -159,6 +223,18 @@ public class CoreManager {
                 sb.append("\t\t -").append(impl.toString()).append("\n");
             }
         }
+        return sb.toString();
+    }
+    
+    public static String debugSignaturesString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("REGISTERED SIGNATURES: \n");
+        for (Entry<String, Integer> entry : SIGNATURE_TO_ID.entrySet()) {
+            sb.append("Signature: ").append(entry.getKey());
+            sb.append(" with MethodId ").append(entry.getValue());
+            sb.append("\n");
+        }
+        
         return sb.toString();
     }
 

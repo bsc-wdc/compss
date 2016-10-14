@@ -56,16 +56,14 @@ def compss_worker():
     logger = logging.getLogger('pycompss.worker.worker')
 
     logger.debug("Starting Worker")
+    
+    args = sys.argv[6:]
+    path = args[0]
+    method_name = args[1]
+    has_target = args[2]
+    num_params = int(args[3])
 
-    args = sys.argv[2:]
-
-    # verbose = args[0]
-    path = args[1]
-    method_name = args[2]
-    has_target = args[3]
-    num_params = int(args[4])
-
-    args = args[5:]
+    args = args[4:]
     pos = 0
     values = []
     types = []
@@ -250,15 +248,14 @@ if __name__ == "__main__":
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
     taskId = int(sys.argv[2])
-    # log_level = sys.argv[3]
-    # storage_conf = sys.argv[4]
-    # class_name = sys.argv[5]
-    # method_name = sys.argv[6]
-    # has_target = sys.argv[7] == 'true'
-    # num_params = int(sys.argv[8])
-    # params = sys.argv[9..]
-
-    sys.argv = sys.argv[2:]
+    log_level = sys.argv[3]
+    storage_conf = sys.argv[4]
+    method_type = sys.argv[5]
+    # class_name = sys.argv[6]
+    # method_name = sys.argv[7]
+    # has_target = sys.argv[8] == 'true'
+    # num_params = int(sys.argv[9])
+    # params = sys.argv[10..]
 
     if tracing:
         import pyextrae
@@ -267,8 +264,6 @@ if __name__ == "__main__":
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)
 
     # Load log level configuration file
-    log_level = sys.argv[1]
-
     worker_path = os.path.dirname(os.path.realpath(__file__))
     if log_level == 'true' or log_level == "debug":
         # Debug
@@ -280,11 +275,10 @@ if __name__ == "__main__":
         # Default
         init_logging_worker(worker_path + '/../../log/logging.json')
 
-    storage_conf = sys.argv[2]
-
     # Init worker
     compss_worker()
     if tracing:
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
+

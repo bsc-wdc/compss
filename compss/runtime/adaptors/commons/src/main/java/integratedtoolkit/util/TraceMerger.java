@@ -49,27 +49,26 @@ public class TraceMerger {
 
     private class LineInfo {
 
-        String resourceId;
-        Long timestamp;
+        private final String resourceId;
+        private final Long timestamp;
 
 
-        LineInfo(String resourceID, Long timestamp) {
+        public LineInfo(String resourceID, Long timestamp) {
             this.resourceId = resourceID;
             this.timestamp = timestamp;
         }
 
-        String getResourceId() {
+        public String getResourceId() {
             return resourceId;
         }
 
-        Long getTimestamp() {
+        public Long getTimestamp() {
             return timestamp;
         }
     }
 
 
     public TraceMerger(String workingDir, String appName) throws IOException {
-
         initMasterTraceInfo(workingDir, appName);
         initTaskTracesInfo(workingDir);
 

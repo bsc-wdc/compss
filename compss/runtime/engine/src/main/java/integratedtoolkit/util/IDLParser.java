@@ -1,7 +1,7 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.MethodImplementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 import java.io.BufferedReader;
@@ -222,7 +222,7 @@ public class IDLParser {
         	
         String taskSignature = implementedTaskSignatureBuffer.toString();
         // Adds a new Signature-Id if not exists in the TreeMap
-        Integer methodId = CoreManager.getCoreId(new String[] { taskSignature });
+        Integer methodId = CoreManager.registerCoreId(taskSignature);
         //logger.debug("CoreId for task" + taskSignature +" is " +methodId);
         updatedMethods.add(methodId);
         MethodImplementation m = new MethodImplementation(declaringClass, methodName, methodId, 0, currConstraints);

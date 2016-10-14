@@ -53,7 +53,6 @@ public abstract class ImmediateCopy extends Copy {
         try {
             specificCopy();
         } catch (Exception e) {
-            logger.error("Exception", e);
             end(DataOperation.OpEndState.OP_FAILED, e);
             return;
         } finally {

@@ -21,11 +21,15 @@
   #----------------------------------------------------------------------------------
   # MPICC binary path
   binary="${base_app_dir}/bin/addVector"
+  export VEC_SUM_MPI_BINARY=${binary}
   
   #----------------------------------------------------------------------------------
   # Run application 1 - Java MPI
   echo
   echo "*** RUNNING JAVA APPLICATION MPI"
+  
+  echo "MPI Binary: $VEC_SUM_MPI_BINARY"
+    
   output_log="${target_log_folder}/testMPI.outputlog"
   error_log="${target_log_folder}/testMPI.errorlog"
   expectedTime=60s
@@ -37,7 +41,7 @@
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/mpi.jar \
-     testMPI.Main ${binary} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     testMPI.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   
   #Check timeout

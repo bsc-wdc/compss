@@ -108,7 +108,8 @@
         appName=$(ls ${source_base_dir}/basic/ | grep $test)
         if [ -z "$appName" ]; then
            echo "[ERROR] Cannot find source folder"
-           echo "    Allowed folders are: $(ls ${source_base_dir}/basic/)"
+           echo "******* Allowed folders are: "
+           echo "$(ls ${source_base_dir}/basic/)"
            exit 1
         fi
 

@@ -3,7 +3,8 @@ package integratedtoolkit.types.resources;
 import java.util.HashMap;
 
 import integratedtoolkit.types.COMPSsWorker;
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
 
@@ -79,7 +80,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public Integer fitCount(Implementation<?> impl) {
-        if (impl.getType() == Implementation.Type.SERVICE) {
+        if (impl.getTaskType() == TaskType.SERVICE) {
             return null;
         }
         MethodResourceDescription ctrs = (MethodResourceDescription) impl.getRequirements();
@@ -148,7 +149,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
 
     @Override
     public boolean canRun(Implementation<?> implementation) {
-        switch (implementation.getType()) {
+        switch (implementation.getTaskType()) {
             case METHOD:
                 MethodResourceDescription ctrs = (MethodResourceDescription) implementation.getRequirements();
                 return description.contains(ctrs);

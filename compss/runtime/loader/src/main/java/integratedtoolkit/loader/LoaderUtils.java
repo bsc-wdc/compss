@@ -2,11 +2,22 @@ package integratedtoolkit.loader;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.annotations.Service;
+import integratedtoolkit.types.annotations.Constants;
+import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.MPI;
+import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.annotations.task.OmpSs;
+import integratedtoolkit.types.annotations.task.OpenCL;
+import integratedtoolkit.types.annotations.task.Service;
+import integratedtoolkit.types.annotations.task.repeatables.Binaries;
+import integratedtoolkit.types.annotations.task.repeatables.MPIs;
+import integratedtoolkit.types.annotations.task.repeatables.Methods;
+import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
+import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
+import integratedtoolkit.types.annotations.task.repeatables.Services;
 import integratedtoolkit.util.ErrorManager;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Random;
 
 import javassist.CtClass;
@@ -21,10 +32,15 @@ import storage.StubItf;
 
 
 public class LoaderUtils {
+    
+    public static final String MPI_SIGNATURE = "mpi.MPI";
+    public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
+    public static final String OPENCL_SIGNATURE = "opencl.OPPENCL";
+    public static final String BINARY_SIGNATURE = "binary.BINARY";
 
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
 
-
+    
     // Storage: Check object type
     public static DataType checkSCOType(Object o) {
         if (o instanceof StubItf) {
@@ -39,19 +55,82 @@ public class LoaderUtils {
     }
 
     // Return the called method if it is in the remote list
-    public static Method checkRemote(CtMethod method, Method[] remoteMethods) throws NotFoundException {
-        for (Method remote : remoteMethods) {
-            if (remote.isAnnotationPresent(integratedtoolkit.types.annotations.Method.class)) {
-                if (isSelectedMethod(method, remote)) {
-                    return remote;
+    public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods) throws NotFoundException {
+        for (java.lang.reflect.Method remoteMethod_javaLang : remoteMethods) {
+            if (remoteMethod_javaLang.isAnnotationPresent(Method.class)) {
+                // METHOD
+                Method remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Method.class);
+                if (isSelectedMethod(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
+                    return remoteMethod_javaLang;
                 }
-            } else if (remote.isAnnotationPresent(integratedtoolkit.types.annotations.Service.class)) { // Service
-                if (isSelectedService(method, remote)) {
-                    return remote;
+            } else if (remoteMethod_javaLang.isAnnotationPresent(Service.class)) {
+                // SERVICE
+                Service remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Service.class);
+                if (isSelectedService(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(MPI.class)) {
+                // MPI
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(OmpSs.class)) {
+                // OMPSS
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(OpenCL.class)) {
+                // OPENCL
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
+                // BINARY
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } // REPEATABLES
+            else if (remoteMethod_javaLang.isAnnotationPresent(Methods.class)) {
+                // METHODS
+                Methods methodsAnnotation = remoteMethod_javaLang.getAnnotation(Methods.class);
+                for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
+                    if (isSelectedMethod(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
+                        return remoteMethod_javaLang;
+                    }
+                }
+
+            } else if (remoteMethod_javaLang.isAnnotationPresent(Services.class)) {
+                // SERVICES
+                Services servicesAnnotation = remoteMethod_javaLang.getAnnotation(Services.class);
+                for (Service remoteServiceAnnotation : servicesAnnotation.value()) {
+                    if (isSelectedService(method, remoteMethod_javaLang, remoteServiceAnnotation)) {
+                        return remoteMethod_javaLang;
+                    }
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(MPIs.class)) {
+                // MPIS
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                } 
+            } else if (remoteMethod_javaLang.isAnnotationPresent(MultiOmpSs.class)) {
+                // MULTI-OMPSS
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(OpenCLs.class)) {
+                // OPENCLS
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            } else if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
+                // BINARIES
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
+                    return remoteMethod_javaLang;
                 }
             } else {
-                logger.error("Task '" + remote.getName() + "' does not have @Method or @Service annotation");
-                ErrorManager.error("Task '" + remote.getName() + "' does not have @Method or @Service annotation.\n"
+                logger.error("Task '" + remoteMethod_javaLang.getName() + "' does not have a valid annotation.\n"
+                        + "Check the COMPSs manual for more information.");
+                ErrorManager.error("Task '" + remoteMethod_javaLang.getName() + "' does not have a valid annotation.\n"
                         + "Check the COMPSs manual for more information.");
             }
         }
@@ -60,13 +139,10 @@ public class LoaderUtils {
         return null;
     }
 
-    private static boolean isSelectedMethod(CtMethod method, Method remote) throws NotFoundException {
-
-        integratedtoolkit.types.annotations.Method methodAnnot = remote.getAnnotation(integratedtoolkit.types.annotations.Method.class);
-
+    private static boolean isSelectedMethod(CtMethod method, java.lang.reflect.Method remote, Method methodAnnot) throws NotFoundException {
         // Check if methods have the same name
         String nameRemote = methodAnnot.name();
-        if (nameRemote.equals("[unassigned]")) {
+        if (nameRemote.equals(Constants.UNASSIGNED)) {
             nameRemote = remote.getName();
         }
 
@@ -75,12 +151,7 @@ public class LoaderUtils {
         }
 
         // Check if methods belong to the same class
-        boolean matchesClass = false;
-        String[] remoteDeclaringClasses = methodAnnot.declaringClass();
-        for (int i = 0; i < remoteDeclaringClasses.length && !matchesClass; i++) {
-            String remoteDeclaringClass = remoteDeclaringClasses[i];
-            matchesClass = remoteDeclaringClass.compareTo(method.getDeclaringClass().getName()) == 0;
-        }
+        boolean matchesClass = methodAnnot.declaringClass().equals(method.getDeclaringClass().getName());
         if (!matchesClass) {
             return false;
         }
@@ -102,13 +173,46 @@ public class LoaderUtils {
         // Methods match!
         return true;
     }
+    
+    private static boolean isSelectedNonNativeMethod(CtMethod method, java.lang.reflect.Method remote, String signature) 
+            throws NotFoundException {
+        
+        // Must have the same task name
+        boolean matchesMethodname = method.getName().equals(remote.getName());
+        if (!matchesMethodname) {
+            return false;
+        }
+        
+        // Non-native methods must contain the valid signature signature
+        boolean matchesClass = method.getDeclaringClass().getName().equals(signature);
+        if (!matchesClass) {
+            return false;
+        }
+     
+        // Check that methods have the same number of parameters
+        CtClass[] paramClassCurrent = method.getParameterTypes();
+        Class<?>[] paramClassRemote = remote.getParameterTypes();
+        if (paramClassCurrent.length != paramClassRemote.length) {
+            return false;
+        }
 
-    private static boolean isSelectedService(CtMethod method, Method remote) throws NotFoundException {
-        Service serviceAnnot = remote.getAnnotation(Service.class);
+        // Check that parameter types match
+        for (int i = 0; i < paramClassCurrent.length; i++) {
+            if (!paramClassCurrent[i].getName().equals(paramClassRemote[i].getCanonicalName())) {
+                return false;
+            }
+        }
+
+        // Methods match!
+        return true;
+    }
+
+    private static boolean isSelectedService(CtMethod method, java.lang.reflect.Method remote, Service serviceAnnot)
+            throws NotFoundException {
 
         // Check if methods have the same name
         String nameRemote = serviceAnnot.operation();
-        if (nameRemote.equals("[unassigned]")) {
+        if (nameRemote.equals(Constants.UNASSIGNED)) {
             nameRemote = remote.getName();
         }
 
@@ -274,7 +378,7 @@ public class LoaderUtils {
     public static Object runMethodOnObject(Object o, Class<?> methodClass, String methodName, Object[] values, Class<?>[] types)
             throws Throwable {
         // Use reflection to get the requested method
-        Method method = null;
+        java.lang.reflect.Method method = null;
         try {
             method = methodClass.getMethod(methodName, types);
         } catch (SecurityException e) {

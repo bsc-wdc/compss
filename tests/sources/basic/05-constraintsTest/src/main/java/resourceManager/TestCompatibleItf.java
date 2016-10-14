@@ -1,11 +1,10 @@
 package resourceManager;
 
 import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.MultiConstraints;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Service;
 import integratedtoolkit.types.annotations.Parameter.Direction;
+import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.annotations.task.Service;
 
 
 public interface TestCompatibleItf {
@@ -25,7 +24,7 @@ public interface TestCompatibleItf {
 	 * SIMPLE CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(computingUnits = 1)
+	@Constraints(computingUnits = "1")
 	void simpleCoreElement0();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
@@ -33,7 +32,7 @@ public interface TestCompatibleItf {
 	void simpleCoreElement1();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(processorSpeed = (float)2.4)
+	@Constraints(processorSpeed = "2.4")
 	void simpleCoreElement2();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
@@ -45,7 +44,7 @@ public interface TestCompatibleItf {
 	void simpleCoreElement4();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(memorySize = (float)8.0)
+	@Constraints(memorySize = "8.0")
 	void simpleCoreElement5();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
@@ -53,7 +52,7 @@ public interface TestCompatibleItf {
 	void simpleCoreElement6();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(storageSize = (float)240.0)
+	@Constraints(storageSize = "240.0")
 	void simpleCoreElement7();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
@@ -89,7 +88,7 @@ public interface TestCompatibleItf {
 	void simpleCoreElement15();
 
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(wallClockLimit = (int)10)
+	@Constraints(wallClockLimit = "10")
 	void simpleCoreElement16();
 	
 	
@@ -97,225 +96,157 @@ public interface TestCompatibleItf {
 	 * COMPLEX CONSTRAINTS CORE-ELEMENTS
 	 * *******************************************/
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(computingUnits = 2, processorArchitecture="amd64", 
-					memorySize=(float)8.0, storageSize=(float)120.0, 
+	@Constraints(computingUnits = "2", processorArchitecture="amd64", 
+					memorySize="8.0", storageSize="120.0", 
 					operatingSystemType="Windows")
 	void complexCoreElement0();
 	
 	@Method(declaringClass = "constraintManager.Implementation1")
-	@Constraints(   computingUnits = 2, 
-				  	processorName="Main", processorArchitecture="amd64", processorSpeed=(float)2.4, 
+	@Constraints(   computingUnits = "2", 
+				  	processorName="Main", processorArchitecture="amd64", processorSpeed="2.4", 
 				  	processorPropertyName="ThreadAffinity", processorPropertyValue="Big",
-					memorySize=(float)8.0, memoryType="Volatile",
-					storageSize=(float)120.0, storageType="SSD", 
+					memorySize="8.0", memoryType="Volatile",
+					storageSize="120.0", storageType="SSD", 
 					operatingSystemType="Windows", operatingSystemDistribution="XP", operatingSystemVersion="SP2",
 					appSoftware="JAVA, PYTHON",
 					hostQueues="sequential, debug",
-					wallClockLimit=(int)10
+					wallClockLimit="10"
 				)
 	void complexCoreElement1();
 	
 	
-	/* ********************************************
-	 * MULTI-CONSTRAINTS CORE-ELEMENTS
-	 * *******************************************/
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(computingUnits = 2)
-	@MultiConstraints({
-		@Constraints(computingUnits = 4), 
-		@Constraints()
-	})
-	void multiCoreElement0();
+    /* ********************************************
+     * MULTI-CONSTRAINTS CORE-ELEMENTS
+     * *******************************************/
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(computingUnits = "4"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(computingUnits = "2")
+    void multiCoreElement0();
+    
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints())
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(processorName = "Slave"))
+    @Constraints(processorName = "Main")
+    void multiCoreElement1();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(processorName = "Main")
-	@MultiConstraints({
-		@Constraints(), 
-		@Constraints(processorName = "Slave")
-	})
-	void multiCoreElement1();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(processorSpeed = "3.0"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(processorSpeed = "2.4")
+    void multiCoreElement2();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(processorSpeed = (float)2.4)
-	@MultiConstraints({
-		@Constraints(processorSpeed = (float)3.0), 
-		@Constraints()
-	})
-	void multiCoreElement2();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(processorArchitecture = "x86"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(processorArchitecture = "amd64")
+    void multiCoreElement3();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(processorArchitecture = "amd64")
-	@MultiConstraints({
-		@Constraints(processorArchitecture = "x86"), 
-		@Constraints()
-	})
-	void multiCoreElement3();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Little"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Big")
+    void multiCoreElement4();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Big")
-	@MultiConstraints({
-		@Constraints(processorPropertyName = "ThreadAffinity", processorPropertyValue = "Little"), 
-		@Constraints()
-	})
-	void multiCoreElement4();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints())
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(memorySize = "4.0"))
+    @Constraints(memorySize = "8.0")
+    void multiCoreElement5();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(memorySize = (float)8.0)
-	@MultiConstraints({
-		@Constraints(), 
-		@Constraints(memorySize = (float)4.0)
-	})
-	void multiCoreElement5();
+    
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(memoryType = "Non-Volatile"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(memoryType = "Volatile")
+    void multiCoreElement6();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(memoryType = "Volatile")
-	@MultiConstraints({
-		@Constraints(memoryType = "Non-Volatile"), 
-		@Constraints()
-	})
-	void multiCoreElement6();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(storageSize = "300.0"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(storageSize = "240.0")
+    void multiCoreElement7();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(storageSize = (float)240.0)
-	@MultiConstraints({
-		@Constraints(storageSize = (float)300.0), 
-		@Constraints()
-	})
-	void multiCoreElement7();
+    
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(storageType = "HDD"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(storageType = "SSD")
+    void multiCoreElement8();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(storageType = "SSD")
-	@MultiConstraints({
-		@Constraints(storageType = "HDD"), 
-		@Constraints()
-	})
-	void multiCoreElement8();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints())
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(operatingSystemType = "Windows"))
+    @Constraints(operatingSystemType = "Linux")
+    void multiCoreElement9();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(operatingSystemType = "Linux")
-	@MultiConstraints({
-		@Constraints(), 
-		@Constraints(operatingSystemType = "Windows")
-	})
-	void multiCoreElement9();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(operatingSystemDistribution = "XP"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(operatingSystemDistribution = "OpenSUSE")
+    void multiCoreElement10();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(operatingSystemDistribution = "OpenSUSE")
-	@MultiConstraints({
-		@Constraints(operatingSystemDistribution = "XP"), 
-		@Constraints()
-	})
-	void multiCoreElement10();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(operatingSystemVersion = "SP2"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(operatingSystemVersion = "13.2")
+    void multiCoreElement11();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(operatingSystemVersion = "13.2")
-	@MultiConstraints({
-		@Constraints(operatingSystemVersion = "SP2"), 
-		@Constraints()
-	})
-	void multiCoreElement11();
+    
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints())
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(appSoftware = "PYTHON"))
+    @Constraints(appSoftware = "JAVA")
+    void multiCoreElement12();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(appSoftware = "JAVA")
-	@MultiConstraints({
-		@Constraints(), 
-		@Constraints(appSoftware = "PYTHON")
-	})
-	void multiCoreElement12();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(appSoftware = "PYTHON, COMPSS"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(appSoftware = "COMPSS"))
+    @Constraints(appSoftware = "JAVA, PYTHON")
+    void multiCoreElement13();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(appSoftware = "JAVA, PYTHON")
-	@MultiConstraints({
-		@Constraints(appSoftware = "PYTHON, COMPSS"), 
-		@Constraints(appSoftware = "COMPSS")
-	})
-	void multiCoreElement13();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(hostQueues = "debug"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(hostQueues = "sequential")
+    void multiCoreElement14();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(hostQueues = "sequential")
-	@MultiConstraints({
-		@Constraints(hostQueues = "debug"), 
-		@Constraints()
-	})
-	void multiCoreElement14();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(hostQueues = "debug, bsc"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(hostQueues = "bsc"))
+    @Constraints(hostQueues = "sequential, debug")
+    void multiCoreElement15();
 
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(hostQueues = "sequential, debug")
-	@MultiConstraints({
-		@Constraints(hostQueues = "debug, bsc"), 
-		@Constraints(hostQueues = "bsc")
-	})
-	void multiCoreElement15();
-
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)
-	@Constraints(wallClockLimit = (int)10)
-	@MultiConstraints({
-		@Constraints(wallClockLimit = (int)5), 
-		@Constraints()
-	})
-	void multiCoreElement16();
-	
-	@Method(declaringClass = {
-			"constraintManager.Implementation1",
-			"constraintManager.Implementation2"}
-	)			// modified both		not modified						modified 1				modified 2
-	@Constraints(computingUnits = 2, processorArchitecture = "amd64", memorySize = (float)8.0, storageSize = (float) 240.0)
-	@MultiConstraints({
-		@Constraints(computingUnits = 4, memorySize = (float)4.0 ), 
-		@Constraints(computingUnits = 8, storageSize = (float)300.0, operatingSystemType="Windows")
-	})
-	void multiCoreElement17();
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(wallClockLimit = "5"))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints())
+    @Constraints(wallClockLimit = "10")
+    void multiCoreElement16();
+    
+    @Method(declaringClass = "constraintManager.Implementation1", 
+            constraints = @Constraints(computingUnits = "4", memorySize = "4.0" ))
+    @Method(declaringClass = "constraintManager.Implementation2", 
+            constraints = @Constraints(computingUnits = "8", storageSize = "300.0", operatingSystemType="Windows"))
+                // modified both        not modified                        modified 1              modified 2
+    @Constraints(computingUnits = "2", processorArchitecture = "amd64", memorySize = "8.0", storageSize = "240.0")
+    void multiCoreElement17();
 	
 	/* ********************************************
 	 * SERVICE CORE-ELEMENTS

@@ -21,7 +21,6 @@ import integratedtoolkit.types.resources.jaxb.MemoryType;
 import integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties;
 import integratedtoolkit.types.resources.jaxb.OSType;
 import integratedtoolkit.types.resources.jaxb.PriceType;
-import integratedtoolkit.types.resources.jaxb.ProcessorPropertyType;
 import integratedtoolkit.types.resources.jaxb.ProcessorType;
 import integratedtoolkit.types.resources.jaxb.ServiceType;
 import integratedtoolkit.types.resources.jaxb.SharedDiskType;

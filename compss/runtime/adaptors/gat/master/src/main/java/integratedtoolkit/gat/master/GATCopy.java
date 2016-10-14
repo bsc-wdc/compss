@@ -99,7 +99,7 @@ public class GATCopy extends ImmediateCopy {
                             }
                         }
                     } catch (Exception e) {
-                        logger.fatal("Exception  writing object to file.", e);
+                        logger.fatal("Exception writing object to file.", e);
                         throw new GATCopyException(ERR_NO_SRC_URI);
                     }
                 } else {
@@ -131,6 +131,10 @@ public class GATCopy extends ImmediateCopy {
                 }
                 return;
             }
+        }
+        
+        if (!(this.reason instanceof WorkersDebugInfoCopyTransferable)) {
+            ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.");
         }
 
         throw exception;

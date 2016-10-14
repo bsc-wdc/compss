@@ -2,7 +2,7 @@ package integratedtoolkit.types.resources;
 
 import java.io.Externalizable;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
 
 
 public abstract class ResourceDescription implements Externalizable {

@@ -3,17 +3,14 @@ package multiProcessor;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
-import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Processor;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
+
 import commons.Action;
 import commons.ConstantValues;
-
 
 /*
  * Checks the dynamic constraint management.
@@ -218,17 +215,17 @@ public class TestAvailable {
         // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
         // System.out.println();
 
-        
-
         System.out.println("[LOG] * Multi-processors test passed");
     }
 
 	private static boolean checkDescription(MethodResourceDescription description,
 			int CPUcus, int GPUcus, int FPGAcus, int OTHERcus) {
-		return description.getTotalCPUComputingUnits()== CPUcus && 
-				description.getTotalGPUComputingUnits()== GPUcus &&
-				description.getTotalFPGAComputingUnits()== FPGAcus &&
-				description.getTotalOTHERComputingUnits()== OTHERcus;
+	    
+		return description != null && 
+		        description.getTotalCPUComputingUnits() == CPUcus && 
+				description.getTotalGPUComputingUnits() == GPUcus &&
+				description.getTotalFPGAComputingUnits() == FPGAcus &&
+				description.getTotalOTHERComputingUnits() == OTHERcus;
 		
 	}
 

@@ -15,11 +15,11 @@ import integratedtoolkit.components.monitor.impl.RuntimeMonitor;
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.loader.total.ObjectRegistry;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.MethodImplementation;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
@@ -702,7 +702,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Object obtained " + oUpdated);
+            logger.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()) );
         }
 
         if (Tracer.isActivated()) {

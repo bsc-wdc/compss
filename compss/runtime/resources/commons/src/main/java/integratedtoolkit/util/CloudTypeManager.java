@@ -1,6 +1,7 @@
 package integratedtoolkit.util;
 
-import integratedtoolkit.types.Implementation;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
@@ -178,7 +179,7 @@ public class CloudTypeManager {
                 Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
                 slotsI[coreId] = new int[impls.length];
                 for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getType() == Implementation.Type.METHOD) {
+                    if (impls[implId].getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription rd = (MethodResourceDescription) impls[implId].getRequirements();
                         Integer into = type.rd.canHostSimultaneously(rd);
                         slotsC[coreId] = Math.max(slotsC[coreId], into);
@@ -268,7 +269,7 @@ public class CloudTypeManager {
                 Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
                 slotsImpl[coreId] = new int[impls.length];
                 for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getType() == Implementation.Type.METHOD) {
+                    if (impls[implId].getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription reqs = (MethodResourceDescription) impls[implId].getRequirements();
                         Integer into = rd.canHostSimultaneously(reqs);
                         slotsCore[coreId] = Math.max(slotsCore[coreId], into);

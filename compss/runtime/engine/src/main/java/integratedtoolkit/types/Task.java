@@ -1,10 +1,10 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.colors.ColorConfiguration;
 import integratedtoolkit.types.colors.ColorNode;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -122,6 +122,10 @@ public class Task implements Comparable<Task> {
         return this.mustBeReplicated;
     }
     
+    public boolean isSingleNode() {
+        return true;
+    }
+    
     public boolean isFree() {
         return (this.executionCount == 0);
     }
@@ -151,7 +155,7 @@ public class Task implements Comparable<Task> {
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
 
         String shape;
-        if (taskDescription.getType() == Type.METHOD) {
+        if (taskDescription.getType() == TaskType.METHOD) {
             if (this.mustBeReplicated) {
                 shape = "doublecircle";
             } else {

@@ -1,10 +1,11 @@
 package testMPI;
 
+import mpi.MPI;
+
+
 public class Main {
 
     private static final int SLEEP_TIME = 5_000;
-
-    private static String BINARY_PATH;
 
     private static final int N = 10;
     private static final int[] data = new int[N];
@@ -14,11 +15,9 @@ public class Main {
     public static void main(String[] args) {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Check args");
-        if (args.length != 1) {
+        if (args.length != 0) {
             usage();
         }
-        BINARY_PATH = args[0];
-        System.out.println("Binary: " + BINARY_PATH);
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Initialize data");
@@ -47,7 +46,7 @@ public class Main {
 
     private static void usage() {
         System.err.println("ERROR: Invalid arguments");
-        System.err.println("Usage: main <binaryPath>");
+        System.err.println("Usage: main");
 
         System.exit(1);
     }
@@ -63,7 +62,10 @@ public class Main {
     }
 
     private static void testMPISingleNode() {
-        int sum = MainImpl.taskSingleMPI(BINARY_PATH, data);
+        String output = MPI.taskSingleMPI(data);
+        
+        String[] lines = output.split("\n");
+        int sum = Integer.valueOf(lines[lines.length - 1]);
 
         if (sum == totalSum) {
             System.out.println("[MPI_SINGLE] Received value from task is correct");
@@ -73,7 +75,10 @@ public class Main {
     }
 
     private static void testMPIMultipleNodes() {
-        int sum = MainImpl.taskMultipleMPI(BINARY_PATH, data);
+        String output = MPI.taskMultipleMPI(data);
+        
+        String[] lines = output.split("\n");
+        int sum = Integer.valueOf(lines[lines.length - 1]);
 
         if (sum == totalSum) {
             System.out.println("[MPI_MULTIPLE] Received value from task is correct");

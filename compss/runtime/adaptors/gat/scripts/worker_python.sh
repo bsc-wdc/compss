@@ -9,18 +9,17 @@
   set_env
 
   # Execution
-  shift $shiftSizeForApp # Shift parameters up to executed method
   taskTracing=false # Only available with NIO
   taskId=0 # Not used with GAT
 
-  echo "EXEC CMD: $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $@"
-  python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId "$@"
+  echo "EXEC CMD: $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params"
+  python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params
 
   # Exit
   if [ $? -eq 0 ]; then
-        exit 0
+    exit 0
   else
-        echo 1>&2 "Task execution failed"
-        exit 7
+    echo 1>&2 "Task execution failed"
+    exit 7
   fi
 

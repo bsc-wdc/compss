@@ -5,9 +5,9 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.types.Implementation;
-import integratedtoolkit.types.Implementation.Type;
 import integratedtoolkit.types.ResourceCreationRequest;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -307,7 +307,7 @@ public class CloudManager {
                 Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
                 simultaneousCounts[coreId] = new int[impls.length];
                 for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getType() == Type.METHOD) {
+                    if (impls[implId].getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription description = (MethodResourceDescription) impls[implId].getRequirements();
                         if (description != null) {
                             Integer into = bestConstraints.canHostSimultaneously(description);

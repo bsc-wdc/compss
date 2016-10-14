@@ -43,7 +43,7 @@ def increment(filePath):
     fos.close()
 
 def usage():
-    print "[ERROR] Bad numnber of parameters"
+    print "[ERROR] Bad number of parameters"
     print "    Usage: simple <counterValue>"
 
 

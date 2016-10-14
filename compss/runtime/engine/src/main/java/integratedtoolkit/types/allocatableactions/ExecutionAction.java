@@ -4,7 +4,6 @@ import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.TaskDescription;
@@ -17,6 +16,8 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.operation.JobTransfersListener;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobStatusListener;
 import integratedtoolkit.types.parameter.DependencyParameter;
@@ -227,14 +228,14 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
                         break;
                     case INOUT:
                         dId = ((DataAccessId.RWAccessId) dp.getDataAccessId()).getWrittenDataInstance();
-                        if (job.getKind() == Job.JobKind.SERVICE) {
+                        if (job.getType() == TaskType.SERVICE) {
                             continue;
                         }
                         break;
                 }
 
                 String name = dId.getRenaming();
-                if (job.getKind() == Job.JobKind.METHOD) {
+                if (job.getType() == TaskType.METHOD) {
                     String targetProtocol = null;
                     switch (dp.getType()) {
                         case FILE_T:

@@ -1,0 +1,76 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Binaries paths
+  helloWorldBINARY="${base_app_dir}/bin/helloWorldBINARY"
+  helloWorldMPI="${base_app_dir}/bin/helloWorldMPI"
+  helloWorldOMPSS="${base_app_dir}/bin/helloWorldOMPSS"
+  helloWorldOPENCL="${base_app_dir}/bin/helloWorldOPENCL"
+  export HELLO_WORLD_BINARY=${helloWorldBINARY}
+  export HELLO_WORLD_MPI=${helloWorldMPI}
+  export HELLO_WORLD_OMPSS=${helloWorldOMPSS}
+  export HELLO_WORLD_OPENCL=${helloWorldOPENCL}
+  
+  #----------------------------------------------------------------------------------
+  # Run application 37 - Non Native Tasks
+  echo
+  echo "*** RUNNING JAVA APPLICATION NON NATIVE TASK"
+  
+  echo "Binary: ${HELLO_WORLD_BINARY}"
+  echo "MPI Binary: ${HELLO_WORLD_MPI}"
+  echo "OmpSs Binary: ${HELLO_WORLD_OMPSS}"
+  echo "OpenCL Binary: ${HELLO_WORLD_OPENCL}"
+  
+  output_log="${target_log_folder}/nonNativeTasks.outputlog"
+  error_log="${target_log_folder}/nonNativeTasks.errorlog"
+  expectedTime=60s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --lang=java \
+     --comm=$comm \
+     --classpath=${base_app_dir}/nonNativeTasks.jar \
+     nonNativeTasks.Main > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_01/* ${target_log_folder}
+  
+     #Check result
+     ${base_app_dir}/result ${output_log} ${target_log_folder}
+     exitValue=$?
+  fi
+  
+  
+  #----------------------------------------------------------------------------------
+  #Return execution status
+  exit $exitValue

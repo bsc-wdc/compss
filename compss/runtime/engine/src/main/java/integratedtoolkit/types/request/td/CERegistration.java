@@ -7,9 +7,9 @@ import integratedtoolkit.util.CoreManager;
 
 import java.util.concurrent.Semaphore;
 
-import integratedtoolkit.types.MethodImplementation;
-import integratedtoolkit.types.Implementation;
 import integratedtoolkit.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.util.ResourceManager;
 
 import java.util.LinkedList;
@@ -53,11 +53,12 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
 
     @Override
     public void process(TaskScheduler<P, T> ts) {
-        int coreId = CoreManager.getCoreId(new String[] { signature });
+        int coreId = CoreManager.registerCoreId(signature);
 
-        int implementationId = 0; // python can just have 1 implementation due to lack of interfaces
+        // TODO: Python only supports 1 implementation due to lack of interface
+        int implementationId = 0;
         MethodImplementation me = new MethodImplementation(declaringClass, methodName, coreId, implementationId, mrd);
-        logger.debug("Registering Implementation "+me.toString());
+        logger.debug("Registering Implementation " + me.toString());
         Implementation<?>[] impls = new Implementation[] { me };
 
         CoreManager.registerImplementations(coreId, impls);

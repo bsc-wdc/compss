@@ -1,25 +1,23 @@
 package testMPI;
 
 import integratedtoolkit.types.annotations.Constraints;
-import integratedtoolkit.types.annotations.Method;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.Parameter.Direction;
 import integratedtoolkit.types.annotations.Parameter.Type;
+import integratedtoolkit.types.annotations.task.MPI;
 
 
 public interface MainItf {
 	
-	@Method(declaringClass = "testMPI.MainImpl")
-	@Constraints(computingUnits = 2, computingNodes = 1)
-	public int taskSingleMPI(
-		@Parameter(type = Type.STRING, direction = Direction.IN) String binary,
+	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
+	@Constraints(computingUnits = "2")
+	public String taskSingleMPI(
 		@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data
 	);
 	
-	@Method(declaringClass = "testMPI.MainImpl")
-	@Constraints(computingUnits = 2, computingNodes = 2)
-	public int taskMultipleMPI(
-		@Parameter(type = Type.STRING, direction = Direction.IN) String binary,
+	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "2")
+	@Constraints(computingUnits = "2")
+	public String taskMultipleMPI(
 		@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data
 	);
 

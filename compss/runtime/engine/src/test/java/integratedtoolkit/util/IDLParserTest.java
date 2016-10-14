@@ -1,7 +1,8 @@
 package integratedtoolkit.util;
 
 import static org.junit.Assert.*;
-import integratedtoolkit.types.MethodImplementation;
+
+import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.components.Processor;
 
 import java.util.HashMap;

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>1.4.rc09</version>
+<version>1.4.rc10</version>
 	</parent>
 	<artifactId>compss-dummyPSCO</artifactId>
 	<name>Dummy PSCO implementation</name>

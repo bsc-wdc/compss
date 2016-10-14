@@ -1,5 +1,5 @@
 %define name	 	compss-extrae 
-%define version 	1.4.rc09
+%define version 	1.4.rc10
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-gfortran

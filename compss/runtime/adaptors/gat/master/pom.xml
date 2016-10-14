@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-adaptors-gat</artifactId>
-<version>1.4.rc09</version>
+<version>1.4.rc10</version>
 		<relativePath>..</relativePath>
 	</parent>
 

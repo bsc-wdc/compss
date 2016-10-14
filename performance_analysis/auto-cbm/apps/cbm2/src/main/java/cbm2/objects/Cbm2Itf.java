@@ -1,11 +1,13 @@
 package cbm2.objects;
 
-import integratedtoolkit.types.annotations.Parameter.*;
-import integratedtoolkit.types.annotations.Method;
-import integratedtoolkit.types.annotations.*;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.Parameter.Direction;
+import integratedtoolkit.types.annotations.Parameter.Type;
+import integratedtoolkit.types.annotations.task.Method;
 
-public interface Cbm2Itf 
-{
+
+public interface Cbm2Itf {
+    
 	@Method(declaringClass = "cbm2.objects.Cbm2Impl")
 	DummyPayload runTaskIn //B = f(A,B)
 	(
@@ -19,4 +21,5 @@ public interface Cbm2Itf
 		@Parameter(type = Type.INT, direction = Direction.IN) int sleepTime,
 		@Parameter(type = Type.OBJECT, direction = Direction.INOUT) DummyPayload dummy
 	);
+	
 }

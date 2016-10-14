@@ -1,18 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<groupId>es.bsc.compss</groupId>
 	<artifactId>cbm1</artifactId>
 	<packaging>jar</packaging>
-	<parent>		
+	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>auto-cbm</artifactId>
-<version>1.4.rc09</version>
-	    	<relativePath>../..</relativePath>
+		<version>1.4.rc09</version>
+		<relativePath>../..</relativePath>
 	</parent>
-	
+
 	<!-- PROJECT INFORMATION -->
 	<name>cbm1</name>
 	<description>Cbm1. Embarrassingly parallel test. Almost 100% computation (negligible data tx between tasks).</description>
@@ -44,80 +43,81 @@
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
-		
-		  <plugin>
-		    <!-- Build an executable JAR -->
-		    <groupId>org.apache.maven.plugins</groupId>
-		    <artifactId>maven-jar-plugin</artifactId>
-		    <version>2.4</version>
-		    <configuration>
-		      <archive>
-			<manifest>
-			  <addClasspath>true</addClasspath>
-			  <classpathPrefix>lib/</classpathPrefix>
-			  <mainClass>cbm1.Cbm1</mainClass>
-			</manifest>
-		      </archive>
-		    </configuration>
-		  </plugin>
-		  
-		  <plugin>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<version>${maven-compiler-plugin.version}</version>
-			<configuration>
-				<source>${maven.compiler.source}</source>
-				<target>${maven.compiler.target}</target>
-			</configuration>
-		  </plugin>
 
-		  <plugin>
-			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-dependency-plugin</artifactId>
-			  <executions>
-				  <execution>
-					  <id>copy</id>
-					  <phase>validate</phase>
-					  <goals> 
-					      <goal>copy-dependencies</goal> 
-					  </goals> 
-					  <configuration>
-						  <outputDirectory>${project.build.directory}/lib</outputDirectory> 
-						  <silent>true</silent>
-					  </configuration>
-				  </execution>
-			  </executions>
-		  </plugin>
-			
-		  <plugin>
-			  <artifactId>maven-resources-plugin</artifactId>
-			  <version>${maven-resources-plugin.version}</version>
-			  <executions>
-				  <execution>
-				      <id>copy-final-jar</id>
-				      <phase>package</phase>
-				      <goals>
-					      <goal>copy-resources</goal>
-				      </goals>
-				      <configuration>
-					<outputDirectory>${basedir}/jar</outputDirectory>
-					<resources>
-						<resource>
-							<directory>${project.build.directory}</directory>
-						<includes>
-								<include>${project.artifactId}.jar</include>
-								</includes>
-						</resource>
-					</resources>
-				      </configuration>
-				  </execution>
-			  </executions>
-		    </plugin>
+			<plugin>
+				<!-- Build an executable JAR -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>cbm1.Cbm1</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-final-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/jar</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<includes>
+										<include>${project.artifactId}.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-		
-		
+
+
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>

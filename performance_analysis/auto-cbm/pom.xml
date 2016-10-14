@@ -1,48 +1,47 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  
-  <name>auto-cbm</name>
-  <groupId>es.bsc.compss</groupId>
-  <artifactId>auto-cbm</artifactId>
-  <packaging>pom</packaging>
-  <parent>
-  	<groupId>es.bsc.compss</groupId>
-  	<artifactId>compss-trunk</artifactId>
-<version>1.4.rc09</version>
-	<relativePath>../..</relativePath>
-  </parent>
- 
-  <modules>
-        <module>apps/cbm1</module>
-	<module>apps/cbm2</module>
-	<module>apps/cbm3</module>
-	<!--module>apps/matmul</module>
-	<module>apps/kmeans</module-->
-  </modules>
- 
-  <dependencyManagement>
-    <dependencies>
-		  <dependency>
-			  <groupId>es.bsc.compss</groupId>
-			  <version>${compss.version}</version>
-			  <artifactId>compss-api</artifactId>
-		  </dependency>
-		  <dependency>
-			  <groupId>es.bsc.compss</groupId>
-			  <version>${compss.version}</version>
-			  <artifactId>compss-commons</artifactId>
-		  </dependency>
-		  <dependency>
-			  <groupId>es.bsc.compss</groupId>
-			  <version>${compss.version}</version>
-			  <artifactId>compss-resources-commons</artifactId>
-		  </dependency>
-		  <dependency>
-			  <groupId>es.bsc.compss</groupId>
-			  <version>${compss.version}</version>
-			  <artifactId>compss-scheduler-commons</artifactId>
-		  </dependency>
-    </dependencies>
-  </dependencyManagement>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>auto-cbm</name>
+	<artifactId>auto-cbm</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>es.bsc.compss</groupId>
+		<artifactId>compss-trunk</artifactId>
+		<version>1.4.rc09</version>
+		<relativePath>../..</relativePath>
+	</parent>
+
+	<modules>
+		<module>apps/cbm1</module>
+		<module>apps/cbm2</module>
+		<module>apps/cbm3</module>
+		<!--module>apps/matmul</module> <module>apps/kmeans</module -->
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<version>${compss.version}</version>
+				<artifactId>compss-api</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<version>${compss.version}</version>
+				<artifactId>compss-commons</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<version>${compss.version}</version>
+				<artifactId>compss-resources-commons</artifactId>
+			</dependency>
+			<dependency>
+				<groupId>es.bsc.compss</groupId>
+				<version>${compss.version}</version>
+				<artifactId>compss-scheduler-commons</artifactId>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 </project>

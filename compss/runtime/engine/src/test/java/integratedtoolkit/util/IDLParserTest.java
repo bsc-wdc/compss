@@ -17,6 +17,7 @@ public class IDLParserTest {
 	private static final int CORE0_2_3_4_IMPLS_RESULT=1;
 	private static final int CORE1_IMPLS_RESULT=3;
 	private static final int COMPUTING_UNITS_RESULT = 2;
+	private static final int PROCESSOR_COUNT = 2;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -75,7 +76,7 @@ public class IDLParserTest {
         assertEquals(implList.size(), CORE0_2_3_4_IMPLS_RESULT);
         impl = implList.get(0);
         System.out.println("[IDL-Loader]: Checking Number of processors (2)");
-        assertEquals(impl.getRequirements().getProcessors().size(), COMPUTING_UNITS_RESULT);
+        assertEquals(impl.getRequirements().getProcessors().size(), PROCESSOR_COUNT);
         Processor p1 = impl.getRequirements().getProcessors().get(0);
         Processor p2 = impl.getRequirements().getProcessors().get(1);
         System.out.println("[IDL-Loader]: Checking Processor 1 parameters (4)");
@@ -83,12 +84,12 @@ public class IDLParserTest {
         assertEquals(p1.getComputingUnits(), 2);
         assertEquals(p1.getArchitecture(), "x86_64");
         assertEquals(p1.getInternalMemory(), 0.6f,0);
+   
         System.out.println("[IDL-Loader]: Checking Processor 2 parameters (4)");
         assertEquals(p2.getType(), "GPU");
         assertEquals(p2.getComputingUnits(), 256);
         assertEquals(p2.getArchitecture(), "k40");
-        assertEquals(p2.getInternalMemory(), 0.024f,0);
-        
+        assertEquals(p2.getInternalMemory(), 0.024f,0);  
 	}
 
 }

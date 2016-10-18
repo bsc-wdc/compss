@@ -380,14 +380,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if (processorString != null && !processorString.isEmpty()){
         	
         	String[] processors = StringUtils.split(processorString, "@");
-
+        	
         	for (int i = 0; i < processors.length; i++){
         		processors[i] = processors[i].replace("Processor(", "");
         		processors[i] = processors[i].replaceAll("[,()]", "");
 
         		String[] processorConstraints = processors[i].split(" ");
         		proc = new Processor();
-
+        		
                 for (int j = 0; j < processorConstraints.length; ++j) {
                     String key = processorConstraints[j].split("=")[0].trim();
                     String val = processorConstraints[j].split("=")[1].trim();
@@ -401,10 +401,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         	proc.setComputingUnits(ONE_INT);
         }
         
-        for (String c : constraints) {
-            String key = c.split("=")[0].trim();
-            String val = c.split("=")[1].trim();
-            addConstraints(key, val, proc);
+        //Don't add constraints if there only was processor info
+        if ((constraints.length != 1) || (!constraints[0].equals(""))){
+        	for (String c : constraints) {
+	            String key = c.split("=")[0].trim();
+	            String val = c.split("=")[1].trim();
+	            addConstraints(key, val, proc);
+	        }
         }
         // Add the information retrieved from the processor constraints
         if (processorString == null || processorString.isEmpty()){

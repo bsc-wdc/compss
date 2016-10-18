@@ -5,6 +5,7 @@ import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.components.Processor;
+import integratedtoolkit.log.Loggers;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -12,9 +13,14 @@ import java.io.ObjectOutput;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 
+	private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
+	
     // Constant for weight difference (dynamic increase/decrease)
     private static final int DIFFERENCE_WEIGHT = 10_000;
     private static final int OTHER_PROC_DIFFERENCE_WEIGHT = 1_000;
@@ -353,7 +359,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     public MethodResourceDescription(String description) {
         super();
 
-        // Warning: When comming from constrains, only 1 PROCESSOR is available with at least 1 CU
+        // Warning: When coming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
         proc.setComputingUnits(ONE_INT);
 
@@ -367,20 +373,44 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.addProcessor(proc); // Increases the totalCUs
     }
 
-    public MethodResourceDescription(String[] constraints) {
+    public MethodResourceDescription(String[] constraints, String processorString) {
         super();
-
-        // TODO: Change to support multi-processors in constraints
-        // Warning: When comming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
-        proc.setComputingUnits(ONE_INT);
+        
+        if (processorString != null && !processorString.isEmpty()){
+        	
+        	String[] processors = StringUtils.split(processorString, "@");
+
+        	for (int i = 0; i < processors.length; i++){
+        		processors[i] = processors[i].replace("Processor(", "");
+        		processors[i] = processors[i].replaceAll("[,()]", "");
+
+        		String[] processorConstraints = processors[i].split(" ");
+        		proc = new Processor();
+
+                for (int j = 0; j < processorConstraints.length; ++j) {
+                    String key = processorConstraints[j].split("=")[0].trim();
+                    String val = processorConstraints[j].split("=")[1].trim();
+                    addConstraints(key, val, proc);
+                }
+                this.addProcessor(proc);  
+            }
+        }
+        // If no specific processor is requested, a single processor will be used with at least 1 CU
+        else{
+        	proc.setComputingUnits(ONE_INT);
+        }
+        
         for (String c : constraints) {
             String key = c.split("=")[0].trim();
             String val = c.split("=")[1].trim();
             addConstraints(key, val, proc);
         }
         // Add the information retrieved from the processor constraints
-        this.addProcessor(proc); // Increases the totalCUs
+        if (processorString == null || processorString.isEmpty()){
+        	this.addProcessor(proc); // Increases the totalCUs
+        }
+        
     }
 
     private void addConstraints(String key, String val, Processor proc) {
@@ -398,6 +428,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case PROC_TYPE:
                     proc.setType(val);
                     break;
+                case PROC_MEM_SIZE:
+                	proc.setInternalMemory(Float.valueOf(val));
+                	break;
                 case PROC_PROP_NAME:
                     proc.setPropName(val);
                     break;

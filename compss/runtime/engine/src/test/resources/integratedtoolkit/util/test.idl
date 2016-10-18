@@ -30,5 +30,12 @@
             inout boolean booleanInout, inout short shortInout, inout long longInout, 
             inout int intInout, inout float floatInout, inout double doubleInout,
             inout string stringInout, inout wstring wstringInout);
+
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2, ProcessorArchitecture=x86_64, ProcessorInternalMemorySize=0.600),
+               @Processor(ProcessorType=GPU, ComputingUnits=256, ProcessorArchitecture=k40, ProcessorInternalMemorySize=0.024)},
+               memorySize=23);
+        void Test05(out string stringOut);
+
 };
 

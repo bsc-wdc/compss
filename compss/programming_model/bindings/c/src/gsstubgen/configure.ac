@@ -26,17 +26,6 @@ AM_PROG_LEX
 dnl Initialize maintainer mode
 AM_MAINTAINER_MODE
 
-dnl Checks for libraries.
-AM_PATH_XML2(2.6.0,
-	[
-		CFLAGS="$CFLAGS $XML_CFLAGS"
-		LIBS="$LIBS $XML_LIBS"
-	],[
-		AC_MSG_ERROR([libxml not found])
-	]
-)
-	
-
 dnl Checks for header files.
 AC_FUNC_ALLOCA
 AC_HEADER_STDC

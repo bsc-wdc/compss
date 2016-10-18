@@ -13,8 +13,8 @@ import org.junit.Test;
 
 public class IDLParserTest {
 
-	private static final int CORECOUNT_RESULT=4;
-	private static final int CORE0_2_3_IMPLS_RESULT=1;
+	private static final int CORECOUNT_RESULT=5;
+	private static final int CORE0_2_3_4_IMPLS_RESULT=1;
 	private static final int CORE1_IMPLS_RESULT=3;
 	private static final int COMPUTING_UNITS_RESULT = 2;
 	
@@ -35,7 +35,7 @@ public class IDLParserTest {
         assertNotNull(implList);
         MethodImplementation impl = implList.get(0);
         System.out.println("[IDL-Loader]: Checking Number of implementations (1)");
-        assertEquals(implList.size(), CORE0_2_3_IMPLS_RESULT);
+        assertEquals(implList.size(), CORE0_2_3_4_IMPLS_RESULT);
         Processor p = impl.getRequirements().getProcessors().get(0);
         assertEquals(p.getComputingUnits(), COMPUTING_UNITS_RESULT);
         assertEquals(p.getArchitecture(), "x86_64");
@@ -60,14 +60,35 @@ public class IDLParserTest {
         implList = readMethods.get(2);
         assertNotNull(implList);
         System.out.println("[IDL-Loader]: Checking Number of implementations (1)");
-        assertEquals(implList.size(), CORE0_2_3_IMPLS_RESULT);
+        assertEquals(implList.size(), CORE0_2_3_4_IMPLS_RESULT);
         
         System.out.println("[IDL-Loader]: *** Checking Core Element 3");
         implList = readMethods.get(3);
         assertNotNull(implList);
         System.out.println("[IDL-Loader]: Checking Number of implementations (1)");
-        assertEquals(implList.size(), CORE0_2_3_IMPLS_RESULT);
+        assertEquals(implList.size(), CORE0_2_3_4_IMPLS_RESULT);
        
+        System.out.println("[IDL-Loader]: *** Checking Core Element 4");
+        implList = readMethods.get(4);
+        assertNotNull(implList);
+        System.out.println("[IDL-Loader]: Checking Number of implementations (1)");
+        assertEquals(implList.size(), CORE0_2_3_4_IMPLS_RESULT);
+        impl = implList.get(0);
+        System.out.println("[IDL-Loader]: Checking Number of processors (2)");
+        assertEquals(impl.getRequirements().getProcessors().size(), COMPUTING_UNITS_RESULT);
+        Processor p1 = impl.getRequirements().getProcessors().get(0);
+        Processor p2 = impl.getRequirements().getProcessors().get(1);
+        System.out.println("[IDL-Loader]: Checking Processor 1 parameters (4)");
+        assertEquals(p1.getType(), "CPU");
+        assertEquals(p1.getComputingUnits(), 2);
+        assertEquals(p1.getArchitecture(), "x86_64");
+        assertEquals(p1.getInternalMemory(), 0.6f,0);
+        System.out.println("[IDL-Loader]: Checking Processor 2 parameters (4)");
+        assertEquals(p2.getType(), "GPU");
+        assertEquals(p2.getComputingUnits(), 256);
+        assertEquals(p2.getArchitecture(), "k40");
+        assertEquals(p2.getInternalMemory(), 0.024f,0);
+        
 	}
 
 }

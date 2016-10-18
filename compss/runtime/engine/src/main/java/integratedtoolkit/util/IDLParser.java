@@ -22,6 +22,7 @@ public class IDLParser {
 
     private static final String CONSTRAINT_IDL = "@Constraints";
     private static final String IMPLEMENTS_IDL = "@Implements";
+    private static final String PROCESSOR_IDL = "processors";
     private static final String CLASS_METHOD_SEPARATOR = "::";
 
 
@@ -238,10 +239,25 @@ public class IDLParser {
 
     private static MethodResourceDescription loadCConstraints(String line) {
         line = line.substring(CONSTRAINT_IDL.length() + 1);
+        String proc = new String();
+
+
+        if (line.matches(".*" + PROCESSOR_IDL + ".*")){
+                int procStart = line.indexOf("{");
+                int procEnd = line.indexOf("}");
+                proc = line.substring(procStart, procEnd+1);
+                line = line.replace(proc, "");
+                line = line.replace("processors=", "");
+                proc = proc.replaceAll("[{}]", "");
+                logger.debug("[IDL Parser] Loading processors: " + proc);
+                line = line.replaceFirst(",", "");
+        }
+        
+        
         line = line.replaceAll("[() ;\n\t]", "");
         String[] constraints = line.split(",");
 
-        MethodResourceDescription mrd = new MethodResourceDescription(constraints);
+        MethodResourceDescription mrd = new MethodResourceDescription(constraints, proc);
         //logger.debug("New Constraints detected: " + mrd);
         return mrd;
     }

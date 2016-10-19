@@ -11,11 +11,13 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class CoresViewModel {
 
     private List<Core> cores;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.TasksVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_TASKS);
 
 
     @Init
@@ -36,13 +38,18 @@ public class CoresViewModel {
 
         // Import new resources
         for (String[] dc : newCoreData) {
+            /*
+             * Each entry on the newCoreData array is of the form: coreId, implId, signature, meanET, minET, maxET,
+             * execCount
+             */
+
             // Check color
             int taskId = Integer.parseInt(dc[0]) + 1; // +1 To shift according to COLORS and tracing
             int colorId = taskId % Constants.CORE_COLOR_MAX;
             String color = File.separator + "images" + File.separator + "colors" + File.separator + colorId + ".png";
 
-            // color, name, params, avgExecTime, executedCount)
-            Core c = new Core(color, dc[1], dc[2], dc[3], dc[4]);
+            // color, dc
+            Core c = new Core(color, dc);
             cores.add(c);
         }
         logger.debug("Tasks ViewModel updated");

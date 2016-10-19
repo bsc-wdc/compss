@@ -85,8 +85,9 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         AllocatableAction.setOrchestrator(this);
 
         // Insert workers
-        for (Worker w : ResourceManager.getAllWorkers()) {
-            scheduler.updatedWorker(w);
+        for (Worker<?> w : ResourceManager.getAllWorkers()) {
+            Worker<T> worker = (Worker<T>) w;
+            scheduler.updatedWorker(worker);
         }
         logger.info("Initialization finished");
     }

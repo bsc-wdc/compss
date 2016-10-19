@@ -48,7 +48,7 @@ rm -f COMPSs/Tools/monitor/apache-tomcat/conf/server.xml
 cp monitor/target/*.war COMPSs/Tools/monitor/apache-tomcat/webapps/
 cp monitor/target/classes/compss-monitor.conf COMPSs/Tools/monitor/apache-tomcat/conf/
 cp monitor/target/classes/server.xml COMPSs/Tools/monitor/apache-tomcat/conf/
-cp monitor/target/classes/log4j.properties COMPSs/Tools/monitor/
+cp monitor/target/classes/*log4j* COMPSs/Tools/monitor/
 cp monitor/scripts/compss-monitor COMPSs/etc/init.d/
 #Doc
 cp changelog COMPSs/

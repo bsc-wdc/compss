@@ -444,6 +444,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns the Application Directory
+     * 
      */
     @Override
     public String getApplicationDirectory() {
@@ -452,6 +453,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Registers a new CoreElement in the COMPSs Runtime
+     * 
      */
     @Override
     public void registerCE(String methodClass, String methodName, boolean hasTarget, boolean hasReturn, String constraints,

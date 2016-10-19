@@ -8,18 +8,24 @@ public class Resource {
     private String color;
 
     private String name;
-    private String computingUnits;
+    private String totalCPUComputingUnits;
+    private String totalGPUComputingUnits;
+    private String totalFPGAComputingUnits;
+    private String totalOTHERComputingUnits;
     private String memorySize;
     private String diskSize;
+    private String status;
     private String provider;
     private String image;
-    private String status;
     private String runningActions;
 
 
     public Resource() {
         this.setName(""); // Any
-        this.setComputingUnits("0"); // Int
+        this.setTotalCPUComputingUnits("0");
+        this.setTotalGPUComputingUnits("0");
+        this.setTotalFPGAComputingUnits("0");
+        this.setTotalOTHERComputingUnits("0");
         this.setMemorySize("0.0"); // Float MB/GB
         this.setDiskSize("0.0"); // Float MB/GB
         this.setProvider(""); // Any
@@ -30,17 +36,20 @@ public class Resource {
 
     public Resource(String[] data) {
         /*
-         * Each data has the following structure (from parser) Position: 0 1 2 3 4 5 6 7 Value: Name CU Memory Disk
-         * Provider Image Status Actions
+         * Each entry in the new Resource data is of the form: workerName totalCPUu totalGPUu totalFPGAu totalOTHERu
+         * memory disk status provider image actions
          */
         this.setName(data[0]);
-        this.setComputingUnits(data[1]);
-        this.setMemorySize(data[2]);
-        this.setDiskSize(data[3]);
-        this.setProvider(data[4]);
-        this.setImage(data[5]);
-        this.setStatus(data[6]);
-        this.setRunningActions(data[7]);
+        this.setTotalCPUComputingUnits(data[1]);
+        this.setTotalGPUComputingUnits(data[2]);
+        this.setTotalFPGAComputingUnits(data[3]);
+        this.setTotalOTHERComputingUnits(data[4]);
+        this.setMemorySize(data[5]);
+        this.setDiskSize(data[6]);
+        this.setStatus(data[7]);
+        this.setProvider(data[8]);
+        this.setImage(data[9]);
+        this.setRunningActions(data[10]);
     }
 
     public String getStatus() {
@@ -72,12 +81,36 @@ public class Resource {
         this.name = name;
     }
 
-    public String getComputingUnits() {
-        return computingUnits;
+    public String getTotalCPUComputingUnits() {
+        return totalCPUComputingUnits;
     }
 
-    public void setComputingUnits(String computingUnits) {
-        this.computingUnits = computingUnits;
+    public String getTotalGPUComputingUnits() {
+        return totalGPUComputingUnits;
+    }
+
+    public String getTotalFPGAComputingUnits() {
+        return totalFPGAComputingUnits;
+    }
+
+    public String getTotalOTHERComputingUnits() {
+        return totalOTHERComputingUnits;
+    }
+
+    public void setTotalCPUComputingUnits(String totalCPUComputingUnits) {
+        this.totalCPUComputingUnits = totalCPUComputingUnits;
+    }
+
+    public void setTotalGPUComputingUnits(String totalGPUComputingUnits) {
+        this.totalGPUComputingUnits = totalGPUComputingUnits;
+    }
+
+    public void setTotalFPGAComputingUnits(String totalFPGAComputingUnits) {
+        this.totalFPGAComputingUnits = totalFPGAComputingUnits;
+    }
+
+    public void setTotalOTHERComputingUnits(String totalOTHERComputingUnits) {
+        this.totalOTHERComputingUnits = totalOTHERComputingUnits;
     }
 
     public String getMemorySize() {

@@ -10,12 +10,14 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.Filedownload;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class CurrentGraphViewModel {
 
     private String graph;
     private String graphLastUpdateTime;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.GraphVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_GRAPH);
 
 
     @Init
@@ -31,7 +33,9 @@ public class CurrentGraphViewModel {
     @Command
     public void download() {
         try {
-            if ((graph.equals(Constants.GRAPH_NOT_FOUND_PATH)) || (graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+            if ((graph.equals(Constants.GRAPH_NOT_FOUND_PATH)) 
+                    || (graph.equals(Constants.GRAPH_EXECUTION_DONE_PATH))
+                    || (graph.equals(Constants.UNSELECTED_GRAPH_PATH))
                     || (graph.equals(Constants.EMPTY_GRAPH_PATH))) {
                 Filedownload.save(graph, null);
             } else {
@@ -83,7 +87,7 @@ public class CurrentGraphViewModel {
     @Command
     @NotifyChange("graph")
     public void clear() {
-        graph = Constants.EMPTY_GRAPH_PATH;
+        graph = Constants.UNSELECTED_GRAPH_PATH;
         graphLastUpdateTime = "";
     }
 

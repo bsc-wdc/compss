@@ -11,10 +11,12 @@ import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class ConfigurationViewModel {
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.ConfigurationVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_CONFIGURATION);
     private List<ConfigParam> configurations;
 
 

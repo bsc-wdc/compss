@@ -409,7 +409,7 @@ install() {
     cp -r ${tmpDir}/compss/tools/monitor/target/*.war ${targetDir}/Tools/monitor/apache-tomcat/webapps/
     cp ${tmpDir}/compss/tools/monitor/target/classes/compss-monitor.conf ${targetDir}/Tools/monitor/apache-tomcat/conf/
     cp ${tmpDir}/compss/tools/monitor/target/classes/server.xml ${targetDir}/Tools/monitor/apache-tomcat/conf/
-    cp ${tmpDir}/compss/tools/monitor/target/classes/log4j.properties ${targetDir}/Tools/monitor/
+    cp ${tmpDir}/compss/tools/monitor/target/classes/*log4j* ${targetDir}/Tools/monitor/
   fi
 
   #BINDINGS DEPLOYMENT

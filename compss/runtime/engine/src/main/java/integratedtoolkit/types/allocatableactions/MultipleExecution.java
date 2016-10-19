@@ -18,8 +18,8 @@ import integratedtoolkit.util.ResourceScheduler;
 
 public class MultipleExecution<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
 
-    private WorkerResourceDescription mainResourceConsumption;
-    private WorkerResourceDescription slavesResourceConsumption;
+    private T mainResourceConsumption;
+    private T slavesResourceConsumption;
 
 
     public MultipleExecution(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task) {
@@ -63,13 +63,13 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
     @Override
     protected void releaseResources() {
         // Release main
-        Worker w = selectedMainResource.getResource();
+        Worker<T> w = selectedMainResource.getResource();
         w.endTask(mainResourceConsumption);
 
         // Release slaves
         if (selectedSlaveResources != null) {
             for (ResourceScheduler<P, T> rs : selectedSlaveResources) {
-                Worker slave = rs.getResource();
+                Worker<T> slave = rs.getResource();
                 slave.endTask(slavesResourceConsumption);
             }
         }

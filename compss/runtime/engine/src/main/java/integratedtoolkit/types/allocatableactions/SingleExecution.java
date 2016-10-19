@@ -18,7 +18,7 @@ import integratedtoolkit.util.ResourceScheduler;
 
 public class SingleExecution<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
 
-    private WorkerResourceDescription resourceConsumption;
+    private T resourceConsumption;
     private final ResourceScheduler<P,T> forcedResource;
 
 
@@ -43,7 +43,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     protected void releaseResources() {
-        Worker w = selectedMainResource.getResource();
+        Worker<T> w = selectedMainResource.getResource();
         w.endTask(resourceConsumption);
     }
 

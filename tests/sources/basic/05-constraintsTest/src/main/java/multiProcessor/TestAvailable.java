@@ -67,7 +67,7 @@ public class TestAvailable {
         for (int coreId = 0; coreId < coreCount; coreId++) {
             idToSignatures[coreId] = new LinkedList<String>();
         }
-        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
             String signature = entry.getKey();
             Integer coreId = entry.getValue();
             idToSignatures[coreId].add(signature);

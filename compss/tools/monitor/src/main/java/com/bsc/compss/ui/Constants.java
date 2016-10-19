@@ -17,6 +17,7 @@ public class Constants {
     public static final String COMPLETE_GRAPH_FILE_NAME = "completeGraph.svg";
     public static final String GRAPH_NOT_FOUND_PATH = File.separator + "svg" + File.separator + "graph_not_found.svg";
     public static final String EMPTY_GRAPH_PATH = File.separator + "svg" + File.separator + "empty_graph.svg";
+    public static final String UNSELECTED_GRAPH_PATH = File.separator + "svg" + File.separator + "unselected_graph.svg";
     public static final String GRAPH_EXECUTION_DONE_PATH = File.separator + "svg" + File.separator + "graph_execution_done.svg";
     public static final String NO_CONNECTION_IMG_PATH = File.separator + "compss-monitor" + File.separator + "svg" + File.separator
             + "loadGraphNoConnection.png";

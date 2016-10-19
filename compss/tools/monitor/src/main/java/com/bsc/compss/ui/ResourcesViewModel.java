@@ -10,11 +10,13 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class ResourcesViewModel {
 
     private List<Resource> resources;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.ResourcesVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_RESOURCES);
 
 
     @Init
@@ -36,56 +38,48 @@ public class ResourcesViewModel {
         // Import new resources
         for (String[] dr : newResourcesData) {
             /*
-             * Each dr has the following structure (from parser) Position: 0 1 2 3 4 5 6 7 Value: Name CU Memory Disk
-             * Provider Image Status Actions
+             * Each entry in the new Resource data is of the form:
+             *      workerName
+             *      totalCPUu
+             *      totalGPUu
+             *      totalFPGAu
+             *      totalOTHERu
+             *      memory
+             *      disk
+             *      status
+             *      provider
+             *      image
+             *      actions
              */
+            
+            // Change format of some fields
 
             // Check memSize
-            if (dr[2] != null) {
-                if (dr[2].startsWith("0.")) {
-                    Float memsize = Float.parseFloat(dr[2]);
-                    dr[2] = String.valueOf(memsize * 1024) + " MB";
-                } else if (!dr[2].isEmpty()) {
-                    dr[2] = dr[2] + " GB";
+            if (dr[5] != null) {
+                if (dr[5].startsWith("0.")) {
+                    Float memsize = Float.parseFloat(dr[5]);
+                    dr[5] = String.valueOf(memsize * 1024) + " MB";
+                } else if (!dr[5].isEmpty()) {
+                    dr[5] = dr[5] + " GB";
                 } else {
-                    dr[2] = "-";
+                    dr[5] = "-";
                 }
             } else {
-                dr[2] = "-";
+                dr[5] = "-";
             }
 
             // Check Disk Size
-            if (dr[3] != null) {
-                if (dr[3].startsWith("0.")) {
-                    Float disksize = Float.parseFloat(dr[3]);
-                    dr[3] = String.valueOf(disksize * 1024) + " MB";
-                } else if (!dr[3].isEmpty()) {
-                    dr[3] = dr[3] + " GB";
+            if (dr[6] != null) {
+                if (dr[6].startsWith("0.")) {
+                    Float disksize = Float.parseFloat(dr[6]);
+                    dr[6] = String.valueOf(disksize * 1024) + " MB";
+                } else if (!dr[6].isEmpty()) {
+                    dr[6] = dr[6] + " GB";
                 } else {
-                    dr[3] = "-";
+                    dr[6] = "-";
                 }
             } else {
-                dr[3] = "-";
-            }
-
-            // Check Provider
-            if (dr[4] == null) {
-                dr[4] = "";
-            }
-
-            // Check Image
-            if (dr[5] == null) {
-                dr[5] = "";
-            }
-
-            // Check status
-            if (dr[6] == null) {
-                dr[6] = "";
-            }
-
-            // Check actions
-            if (dr[7] == null) {
-                dr[7] = "";
+                dr[6] = "-";
             }
 
             Resource r = new Resource(dr);

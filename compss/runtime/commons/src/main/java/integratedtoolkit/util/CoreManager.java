@@ -6,8 +6,10 @@ import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.implementations.ServiceImplementation;
+import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.ResourceDescription;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,13 +19,21 @@ import java.util.Map.Entry;
 public class CoreManager {
 
     // Constants definition
+    private static final String WARN_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition";
+    
+    // Lang
     private static final Lang LANG;
 
-    public static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<String, Integer>();
-    private static int coreCount = 0;
-    private static int nextId = 0;
+    // Signatures and Core Elements
+    private static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<String, Integer>();
 
     private static Implementation<?>[][] implementations;
+    private static String[][] signatures;
+    
+    // Structure counters
+    private static int coreCount = 0;
+    private static int nextId = 0;
+    
 
     static {
         // Compute language
@@ -46,19 +56,12 @@ public class CoreManager {
         throw new NonInstantiableException("CoreManager");
     }
 
-    public static void increaseCoreCount() {
-        coreCount++;
-    }
-
-    public static void setCoreCount(int newCoreCount) {
-        coreCount = newCoreCount;
-    }
-
     public static int getCoreCount() {
         return coreCount;
     }
 
     public static void resizeStructures(int newCoreCount) {
+        // Resize implementations
         if (implementations != null) {
             Implementation<?>[][] oldImplementations = implementations;
             implementations = new Implementation[newCoreCount][];
@@ -66,11 +69,71 @@ public class CoreManager {
         } else {
             implementations = new Implementation[newCoreCount][];
         }
+        
+        // Resize signatures
+        if (signatures != null) {
+            String[][] oldSignatures = signatures;
+            signatures = new String[newCoreCount][];
+            System.arraycopy(oldSignatures, 0, signatures, 0, oldSignatures.length);
+        } else {
+            signatures = new String[newCoreCount][];
+        }
+        
+        // Resize coreCount
         coreCount = newCoreCount;
     }
+    
+    /**
+     * Registers a new Method as Core Element if it doesn't exist
+     * 
+     * @param declaringClass
+     * @param methodName
+     * @param hasTarget
+     * @param hasReturn
+     * @param parameters
+     * 
+     * @return the methodId assigned to the new Core Element
+     */
+    public static Integer registerCoreId(String signature) {
+        Integer methodId = SIGNATURE_TO_ID.get(signature);
 
-    public static void registerImplementations(int coreId, Implementation<?>[] impls) {
+        if (methodId == null) {
+            methodId = nextId++;
+            
+            if (signature != null && !signature.isEmpty()) {
+                SIGNATURE_TO_ID.put(signature, methodId);
+            }
+        }
+
+        return methodId;
+    }
+    
+    public static void registerImplementations(int coreId, Implementation<?>[] impls, String[] signs) {
+        if (coreId < 0 || coreId >= coreCount) {
+            ErrorManager.warn(WARN_UNREGISTERED_CORE_ELEMENT);
+            return;
+        }
+        
         implementations[coreId] = impls;
+        signatures[coreId] = signs;
+        for (String signature : signs) {
+            if (signature != null && !signature.isEmpty()) {
+                SIGNATURE_TO_ID.put(signature, coreId);
+            }
+        }
+    }
+    
+    /**
+     * Gets the map of registered signatures and coreIds
+     * 
+     * @return the map of registered signatures and coreIds
+     */
+    public static HashMap<String, Integer> getSignaturesToId() {
+        return SIGNATURE_TO_ID;
+    }
+    
+    public static String getSignature(int coreId, int implId) {
+        return signatures[coreId][implId];
     }
 
     /**
@@ -83,9 +146,7 @@ public class CoreManager {
      * @param parameters
      * @return
      */
-    public static Integer getCoreId(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
-            integratedtoolkit.types.parameter.Parameter[] parameters) {
-        
+    public static Integer getCoreId(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
         Integer methodId = null;
         String signature = MethodImplementation.getSignature(declaringClass, methodName, hasTarget, hasReturn, parameters);
         
@@ -106,7 +167,7 @@ public class CoreManager {
                     break;
             }
         }
-        
+
         return methodId;
     }
 
@@ -123,7 +184,7 @@ public class CoreManager {
      * @return
      */
     public static Integer getCoreId(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
-            boolean hasReturn, integratedtoolkit.types.parameter.Parameter[] parameters) {
+            boolean hasReturn, Parameter[] parameters) {
         
         Integer methodId = null;
         String signature = ServiceImplementation.getSignature(namespace, serviceName, portName, operation, hasTarget, hasReturn,
@@ -137,45 +198,20 @@ public class CoreManager {
         
         return methodId;
     }
-
-    /**
-     * Registers a new coreElement if it hasn't been registered previously
-     * 
-     * @param signature
-     * @return the coreId
-     */
-    public static Integer registerCoreId(String signature) {
-        Integer methodId = SIGNATURE_TO_ID.get(signature);
-
-        if (methodId == null) {
-            methodId = nextId++;
-        }
-        
-        SIGNATURE_TO_ID.put(signature, methodId);
-
-        return methodId;
-    }
     
     /**
-     * Register a signature to a given coreId (for versioning)
-     * 
-     * @param methodId
-     * @param signature
-     * @return if the operation has been performed or not
+     * Clears the internal structures
      */
-    public static boolean registerSignatureToCoreId(Integer methodId, String signature) {
-        // Check that the methodId is valid
-        if (!SIGNATURE_TO_ID.containsValue(methodId)) {
-            // Unregistered methodId
-            return false;
-        }
+    public static void clear() {
+        implementations = null;
+        signatures = null;
+        SIGNATURE_TO_ID.clear();
         
-        // Registered method, add versioning signature
-        SIGNATURE_TO_ID.put(signature, methodId);
-        return true;
+        coreCount = 0;
+        nextId = 0;
     }
 
-    /**
+    /*
      * ********************************************* 
      * ********************************************* 
      * ************** QUERY OPERATIONS ************* 
@@ -189,6 +225,16 @@ public class CoreManager {
      */
     public static Implementation<?>[] getCoreImplementations(int coreId) {
         return implementations[coreId];
+    }
+    
+    /**
+     * Returns the number of implementations of a Core Element
+     * 
+     * @param coreId
+     * @return the number of implementations of a Core Element
+     */
+    public static int getNumberCoreImplementations(int coreId) {
+        return implementations[coreId].length;
     }
 
     /**
@@ -213,6 +259,13 @@ public class CoreManager {
         return executableList;
     }
 
+    /*
+     * ********************************************* 
+     * ********************************************* 
+     * ************** DEBUG OPERATIONS ************* 
+     * *********************************************
+     * *********************************************
+     */
     public static String debugString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Core Count: ").append(coreCount).append("\n");
@@ -236,12 +289,6 @@ public class CoreManager {
         }
         
         return sb.toString();
-    }
-
-    public static void clear() {
-        implementations = null;
-        coreCount = 0;
-        nextId = 0;
     }
 
 }

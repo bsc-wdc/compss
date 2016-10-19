@@ -58,10 +58,11 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         // TODO: Python only supports 1 implementation due to lack of interface
         int implementationId = 0;
         MethodImplementation me = new MethodImplementation(declaringClass, methodName, coreId, implementationId, mrd);
-        logger.debug("Registering Implementation " + me.toString());
         Implementation<?>[] impls = new Implementation[] { me };
+        String[] signatures = new String[] { signature };
 
-        CoreManager.registerImplementations(coreId, impls);
+        logger.debug("Registering Implementation " + me.toString());
+        CoreManager.registerImplementations(coreId, impls, signatures);
 
         LinkedList<Integer> newCores = new LinkedList<Integer>();
         newCores.add(coreId);

@@ -11,6 +11,8 @@ import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class RuntimeLogViewModel {
 
@@ -19,7 +21,7 @@ public class RuntimeLogViewModel {
     private String content;
     private String filter;
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.ItLogVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_RUNTIME_LOG);
     private static final String itLogNotSelected = "Application's runtime.log file not selected";
 
 

@@ -1,6 +1,6 @@
 package integratedtoolkit.components.impl;
 
-import integratedtoolkit.components.ResourceUser;
+import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
@@ -71,7 +71,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             } catch (InvalidSchedulingException ise) {
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                    AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                    AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
                     action.schedule(pre.getAssignedResource(), actionScore);
                     try {
                         action.tryToLaunch();
@@ -134,7 +134,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     Score aScore = getActionScore(a);
                     boolean keepTrying = true;
                     for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                        AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                        AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
                         action.schedule(pre.getAssignedResource(), aScore);
                         try {
                             action.tryToLaunch();
@@ -178,7 +178,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                 } catch (InvalidSchedulingException ise) {
                     boolean keepTrying = true;
                     for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                        AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                        AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
                         action.schedule(pre.getAssignedResource(), actionScore);
                         try {
                             action.tryToLaunch();
@@ -222,7 +222,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     Score aScore = getActionScore(a);
                     boolean keepTrying = true;
                     for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                        AllocatableAction<P,T> pre = a.getConstrainingPredecessors().get(i);
+                        AllocatableAction<P, T> pre = a.getConstrainingPredecessors().get(i);
                         a.schedule(pre.getAssignedResource(), aScore);
                         try {
                             action.tryToLaunch();
@@ -244,6 +244,11 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
     }
 
+    /**
+     * Updates the worker information
+     * 
+     * @param worker
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public final void updatedWorker(Worker<T> worker) {
         ResourceScheduler<P, T> ui = workers.get(worker);
@@ -291,7 +296,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     } catch (InvalidSchedulingException ise) {
                         boolean keepTrying = true;
                         for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                            AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                            AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
                             action.schedule(pre.getAssignedResource(), actionScore);
                             try {
                                 action.tryToLaunch();
@@ -321,86 +326,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
 
     }
-    
-    public void getTaskSummary(Logger logger) {        
-        // Structures for global and per worker stats
-        int coreCount = CoreManager.getCoreCount();
-        Profile[] coreGlobalProfiles = new Profile[coreCount];
-        for (int i = 0; i < coreCount; ++i) {
-            coreGlobalProfiles[i] = new Profile();
-        }
-        HashMap<String, Profile[]> coreProfilesPerWorker = new HashMap<String, Profile[]>();
-        
-        // Retrieve information
-        for (ResourceScheduler<P, T> ui : workers.values()) {
-            if (ui == null) {
-                continue;
-            }
-            
-            Profile[] coreProfiles = new Profile[coreCount];
-            for (int i = 0; i < coreCount; ++i) {
-                coreProfiles[i] = new Profile();
-            }
-            LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
-            for (int coreId = 0; coreId < coreCount; coreId++) {
-                for (Implementation<T> impl : impls[coreId]) {
-                    coreGlobalProfiles[coreId].accumulate(ui.getProfile(impl));
-                    coreProfiles[coreId].accumulate(ui.getProfile(impl));
-                }
-            }
-            coreProfilesPerWorker.put(ui.getName(), coreProfiles);
-        }
-        
-        // Process information in output format
-        logger.warn("------- COMPSs Task Execution Summary per Worker ------");
-        for (Entry<String, Profile[]> workerInfo : coreProfilesPerWorker.entrySet()) {
-            String workerName = workerInfo.getKey();
-            Profile[] workerCoreProfiles = workerInfo.getValue();
-            
-            logger.warn("--- Summary for COMPSs Worker " + workerName);
-            
-            long totalExecutedTasksInWorker = 0;
-            for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
-                String signature = entry.getKey();
-                int coreId = entry.getValue();
-                long executionCount = workerCoreProfiles[coreId].getExecutionCount();
-                totalExecutedTasksInWorker += executionCount;
-                
-                String info = executionCount + " " + signature + " tasks have been executed";
-                logger.warn(info);
-            }
-            logger.warn("--- Total executed tasks in COMPSs Worker " + workerName + ": " + totalExecutedTasksInWorker);
-        }
-        logger.warn("-------------------------------------------------------");
-        
-        logger.warn("");
-        logger.warn("------------ COMPSs Task Execution Summary ------------");
-        long totalExecutedTasks = 0;
-        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
-            String signature = entry.getKey();
-            int coreId = entry.getValue();
-            long executionCount = coreGlobalProfiles[coreId].getExecutionCount();
-            totalExecutedTasks += executionCount;
-            
-            String info = executionCount + " " + signature + " tasks have been executed";
-            logger.warn(info);
-        }
-        logger.warn("Total executed tasks: " + totalExecutedTasks);
-        logger.warn("-------------------------------------------------------");
-    }
-
-    public String getRunningActionMonitorData(Worker<T> worker, String prefix) {
-        StringBuilder runningActions = new StringBuilder();
-
-        ResourceScheduler<P, T> ui = workers.get(worker);
-        LinkedList<AllocatableAction<P, T>> hostedActions = ui.getHostedActions();
-        for (AllocatableAction<P, T> action : hostedActions) {
-            runningActions.append(prefix);
-            runningActions.append("<Action>").append(action.toString()).append("</Action>");
-            runningActions.append("\n");
-        }
-        return runningActions.toString();
-    }
 
     public LinkedList<AllocatableAction<P, T>> getBlockedActions() {
         // Parameter null to get all blocked actions
@@ -416,50 +341,166 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         ResourceScheduler<P, T> ui = workers.get(worker);
         return ui.getBlockedActions();
     }
-
-    public String getCoresMonitoringData(String prefix) {
-        StringBuilder coresInfo = new StringBuilder();
-        coresInfo.append(prefix).append("<CoresInfo>\n");
-
+    
+    /**
+     * Prints the task summary on a given logger @logger
+     * 
+     * @param logger
+     */
+    public void getTaskSummary(Logger logger) {
+        // Structures for global and per worker stats
         int coreCount = CoreManager.getCoreCount();
-        Profile[] coreProfile = new Profile[coreCount];
-        for (int coreId = 0; coreId < coreCount; coreId++) {
-            coreProfile[coreId] = new Profile();
+        Profile[] coreGlobalProfiles = new Profile[coreCount];
+        for (int i = 0; i < coreCount; ++i) {
+            coreGlobalProfiles[i] = new Profile();
         }
+        HashMap<String, Profile[]> coreProfilesPerWorker = new HashMap<String, Profile[]>();
 
+        // Retrieve information
         for (ResourceScheduler<P, T> ui : workers.values()) {
             if (ui == null) {
                 continue;
             }
+
+            Profile[] coreProfiles = new Profile[coreCount];
+            for (int i = 0; i < coreCount; ++i) {
+                coreProfiles[i] = new Profile();
+            }
             LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 for (Implementation<T> impl : impls[coreId]) {
-                    coreProfile[coreId].accumulate(ui.getProfile(impl));
+                    coreGlobalProfiles[coreId].accumulate(ui.getProfile(impl));
+                    coreProfiles[coreId].accumulate(ui.getProfile(impl));
+                }
+            }
+            coreProfilesPerWorker.put(ui.getName(), coreProfiles);
+        }
+
+        // Process information in output format
+        logger.warn("------- COMPSs Task Execution Summary per Worker ------");
+        for (Entry<String, Profile[]> workerInfo : coreProfilesPerWorker.entrySet()) {
+            String workerName = workerInfo.getKey();
+            Profile[] workerCoreProfiles = workerInfo.getValue();
+
+            logger.warn("--- Summary for COMPSs Worker " + workerName);
+
+            long totalExecutedTasksInWorker = 0;
+            for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+                String signature = entry.getKey();
+                int coreId = entry.getValue();
+                long executionCount = workerCoreProfiles[coreId].getExecutionCount();
+                totalExecutedTasksInWorker += executionCount;
+
+                String info = executionCount + " " + signature + " tasks have been executed";
+                logger.warn(info);
+            }
+            logger.warn("--- Total executed tasks in COMPSs Worker " + workerName + ": " + totalExecutedTasksInWorker);
+        }
+        logger.warn("-------------------------------------------------------");
+
+        logger.warn("");
+        logger.warn("------------ COMPSs Task Execution Summary ------------");
+        long totalExecutedTasks = 0;
+        for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
+            String signature = entry.getKey();
+            int coreId = entry.getValue();
+            long executionCount = coreGlobalProfiles[coreId].getExecutionCount();
+            totalExecutedTasks += executionCount;
+
+            String info = executionCount + " " + signature + " tasks have been executed";
+            logger.warn(info);
+        }
+        logger.warn("Total executed tasks: " + totalExecutedTasks);
+        logger.warn("-------------------------------------------------------");
+    }
+
+    /**
+     * Returns the running actions on a given @worker pre-pending the @prefix
+     * 
+     * @param worker
+     * @param prefix
+     * @return
+     */
+    public String getRunningActionMonitorData(Worker<T> worker, String prefix) {
+        StringBuilder runningActions = new StringBuilder();
+
+        ResourceScheduler<P, T> ui = workers.get(worker);
+        LinkedList<AllocatableAction<P, T>> hostedActions = ui.getHostedActions();
+        for (AllocatableAction<P, T> action : hostedActions) {
+            runningActions.append(prefix);
+            runningActions.append("<Action>").append(action.toString()).append("</Action>");
+            runningActions.append("\n");
+        }
+        return runningActions.toString();
+    }
+
+    /**
+     * Returns the coreElement information with the given @prefix
+     * 
+     * @param prefix
+     * @return
+     */
+    public String getCoresMonitoringData(String prefix) {
+        // Create size structure for profiles
+        int coreCount = CoreManager.getCoreCount();
+        Profile[][] implementationsProfile = new Profile[coreCount][];
+        for (int i = 0; i < coreCount; ++i) {
+            int implsCount = CoreManager.getNumberCoreImplementations(i);
+            implementationsProfile[i] = new Profile[implsCount];
+            for (int j = 0; j < implsCount; ++j) {
+                implementationsProfile[i][j] = new Profile();
+            }
+        }
+
+        // Retrieve information from workers
+        for (ResourceScheduler<P, T> ui : workers.values()) {
+            if (ui == null) {
+                continue;
+            }
+            LinkedList<Implementation<T>>[] runningCoreImpls = ui.getExecutableImpls();
+            for (int coreId = 0; coreId < coreCount; coreId++) {
+                for (Implementation<T> impl : runningCoreImpls[coreId]) {
+                    int implId = impl.getImplementationId();
+                    implementationsProfile[coreId][implId].accumulate(ui.getProfile(impl));
                 }
             }
         }
 
-        for (Entry<String, Integer> entry : CoreManager.SIGNATURE_TO_ID.entrySet()) {
-            int coreId = entry.getValue();
-            String signature = entry.getKey();
-            coresInfo.append(prefix).append("\t").append("<Core id=\"").append(coreId).append("\" signature=\"" + signature + "\">")
-                    .append("\n");
-            coresInfo.append(prefix).append("\t\t").append("<MeanExecutionTime>").append(coreProfile[coreId].getAverageExecutionTime())
-                    .append("</MeanExecutionTime>\n");
-            coresInfo.append(prefix).append("\t\t").append("<MinExecutionTime>").append(coreProfile[coreId].getMinExecutionTime())
-                    .append("</MinExecutionTime>\n");
-            coresInfo.append(prefix).append("\t\t").append("<MaxExecutionTime>").append(coreProfile[coreId].getMaxExecutionTime())
-                    .append("</MaxExecutionTime>\n");
-            coresInfo.append(prefix).append("\t\t").append("<ExecutedCount>").append(coreProfile[coreId].getExecutionCount())
-                    .append("</ExecutedCount>\n");
+        // Construct information string
+        StringBuilder coresInfo = new StringBuilder();
+        coresInfo.append(prefix).append("<CoresInfo>").append("\n");
+        for (int coreId = 0; coreId < implementationsProfile.length; ++coreId) {
+            coresInfo.append(prefix).append("\t").append("<Core id=\"").append(coreId).append("\"").append(">").append("\n");
+            for (int implId = 0; implId < implementationsProfile[coreId].length; ++implId) {
+                String signature = CoreManager.getSignature(coreId, implId);
+
+                coresInfo.append(prefix).append("\t\t").append("<Impl id=\"").append(implId).append("\"").append(">").append("\n");
+                coresInfo.append(prefix).append("\t\t\t").append("<Signature>").append(signature).append("</Signature>").append("\n");
+                coresInfo.append(prefix).append("\t\t\t").append("<MeanExecutionTime>")
+                        .append(implementationsProfile[coreId][implId].getAverageExecutionTime()).append("</MeanExecutionTime>")
+                        .append("\n");
+                coresInfo.append(prefix).append("\t\t\t").append("<MinExecutionTime>")
+                        .append(implementationsProfile[coreId][implId].getMinExecutionTime()).append("</MinExecutionTime>").append("\n");
+                coresInfo.append(prefix).append("\t\t\t").append("<MaxExecutionTime>")
+                        .append(implementationsProfile[coreId][implId].getMaxExecutionTime()).append("</MaxExecutionTime>").append("\n");
+                coresInfo.append(prefix).append("\t\t\t").append("<ExecutedCount>")
+                        .append(implementationsProfile[coreId][implId].getExecutionCount()).append("</ExecutedCount>").append("\n");
+                coresInfo.append(prefix).append("\t\t").append("</Impl>").append("\n");
+
+            }
             coresInfo.append(prefix).append("\t").append("</Core>").append("\n");
         }
+        coresInfo.append(prefix).append("</CoresInfo>").append("\n");
 
-        coresInfo.append(prefix).append("</CoresInfo>\n");
         return coresInfo.toString();
     }
 
-    public final void getWorkloadState(ResourceUser.WorkloadStatus response) {
+    /**
+     * sets the workload state inside the @response parameter
+     * 
+     * @param response
+     */
+    public final void getWorkloadState(WorkloadStatus response) {
         int coreCount = CoreManager.getCoreCount();
         Profile[] coreProfile = new Profile[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
@@ -496,10 +537,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             response.registerTimes(coreId, coreProfile[coreId].getMinExecutionTime(), coreProfile[coreId].getAverageExecutionTime(),
                     coreProfile[coreId].getMaxExecutionTime());
         }
-    }
-
-    public void coreElementsUpdate() {
-
     }
 
     /**
@@ -592,6 +629,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
 
     public void shutdown() {
+        // Nothing to do
     }
 
 }

@@ -332,11 +332,10 @@ public abstract class Tracer {
     }
 
     private static void defineEvents() {
+        Map<String, Integer> signatureToId = CoreManager.getSignaturesToId();
         if (debug) {
-            logger.debug("SignatureToId size: " + CoreManager.SIGNATURE_TO_ID.size());
+            logger.debug("SignatureToId size: " + signatureToId.size());
         }
-
-        Map<String, Integer> signatureToId = CoreManager.SIGNATURE_TO_ID;
 
         int size = getSizeByEventType(RUNTIME_EVENTS) + 1;
         long[] values = new long[size];

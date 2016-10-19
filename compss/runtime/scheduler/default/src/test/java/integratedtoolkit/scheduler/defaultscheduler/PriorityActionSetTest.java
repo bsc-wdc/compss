@@ -33,11 +33,11 @@ public class PriorityActionSetTest {
         CoreManager.resizeStructures(3);
 
         Implementation<?> impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(0, new Implementation[] { impl00 });
+        CoreManager.registerImplementations(0, new Implementation[] { impl00 }, new String[] { "fakeSignature00" });
         Implementation<?> impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
-        CoreManager.registerImplementations(1, new Implementation[] { impl10 });
+        CoreManager.registerImplementations(1, new Implementation[] { impl10 }, new String[] { "fakeSignature10" });
         Implementation<?> impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
-        CoreManager.registerImplementations(2, new Implementation[] { impl20 });
+        CoreManager.registerImplementations(2, new Implementation[] { impl20 }, new String[] { "fakeSignature20" });
     }
 
     @AfterClass

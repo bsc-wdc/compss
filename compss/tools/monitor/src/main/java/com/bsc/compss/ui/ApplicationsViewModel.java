@@ -15,13 +15,14 @@ import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zk.ui.Sessions;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
 import com.bsc.compss.ui.auth.UserCredential;
 
 
 public class ApplicationsViewModel {
 
     private List<Application> applications;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.ApplicationsVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_APPLICATIONS);
 
 
     @Init
@@ -47,6 +48,7 @@ public class ApplicationsViewModel {
         File COMPSs_LOG_DIR = new File(appsLocation);
         if (COMPSs_LOG_DIR.exists()) {
             for (File f : COMPSs_LOG_DIR.listFiles()) {
+                logger.debug("Adding application " + f.getName());
                 Application app = new Application(f.getName(), appsLocation + File.separator + f.getName());
                 applications.add(app);
             }

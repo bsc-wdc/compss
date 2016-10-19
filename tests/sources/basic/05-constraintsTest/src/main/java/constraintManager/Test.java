@@ -67,7 +67,7 @@ public class Test {
         }
 
         // Loading data from Cores
-        signatureToId = CoreManager.SIGNATURE_TO_ID;
+        signatureToId = CoreManager.getSignaturesToId();
         idToSignatures = new LinkedList[coreCountItf];
         for (int coreId = 0; coreId < coreCountItf; coreId++) {
             idToSignatures[coreId] = new LinkedList<String>();

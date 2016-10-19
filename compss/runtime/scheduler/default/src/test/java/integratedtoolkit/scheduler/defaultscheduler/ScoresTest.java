@@ -59,16 +59,16 @@ public class ScoresTest {
         ds = new DefaultScheduler();
 
         Implementation<?> impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(0, new Implementation[] { impl00 });
+        CoreManager.registerImplementations(0, new Implementation[] { impl00 }, new String[] { "fakeSignature00" });
         Implementation<?> impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
-        CoreManager.registerImplementations(1, new Implementation[] { impl10 });
+        CoreManager.registerImplementations(1, new Implementation[] { impl10 }, new String[] { "fakeSignature10" });
         Implementation<?> impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
-        CoreManager.registerImplementations(2, new Implementation[] { impl20 });
+        CoreManager.registerImplementations(2, new Implementation[] { impl20 }, new String[] { "fakeSignature20" });
         Implementation<?> impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
-        CoreManager.registerImplementations(3, new Implementation[] { impl30 });
+        CoreManager.registerImplementations(3, new Implementation[] { impl30 }, new String[] { "fakeSignature30" });
         Implementation<?> impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(4));
         Implementation<?> impl41 = new FakeImplementation(4, 1, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(4, new Implementation[] { impl40, impl41 });
+        CoreManager.registerImplementations(4, new Implementation[] { impl40, impl41 }, new String[] { "fakeSignature40", "fakeSignature41" });
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);

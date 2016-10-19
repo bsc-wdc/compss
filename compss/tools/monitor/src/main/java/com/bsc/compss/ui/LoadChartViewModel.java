@@ -11,6 +11,8 @@ import org.zkoss.bind.annotation.Command;
 import org.zkoss.bind.annotation.Init;
 import org.zkoss.zk.ui.util.Clients;
 
+import com.bsc.compss.commons.Loggers;
+
 import monitoringParsers.ResourcesLogParser;
 
 
@@ -22,7 +24,7 @@ public class LoadChartViewModel {
     private boolean noConnection_drawn;
     private boolean chart_drawn;
     private final int TIMEOUT = 3000; // ms - for internet connection check
-    private static final Logger logger = LogManager.getLogger("compssMonitor.LoadChartVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_LOAD_CHART);
 
 
     @Init

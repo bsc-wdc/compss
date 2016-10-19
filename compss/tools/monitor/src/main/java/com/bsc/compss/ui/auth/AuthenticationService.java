@@ -5,10 +5,12 @@ import org.apache.logging.log4j.Logger;
 import org.zkoss.zk.ui.Session;
 import org.zkoss.zk.ui.Sessions;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class AuthenticationService {
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.autentication");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_AUTHENTICATION);
 
 
     public static UserCredential getUserCredential() {

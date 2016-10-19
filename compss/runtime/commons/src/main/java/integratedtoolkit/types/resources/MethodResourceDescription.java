@@ -5,7 +5,6 @@ import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.components.Processor;
-import integratedtoolkit.log.Loggers;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -14,13 +13,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 
 public class MethodResourceDescription extends WorkerResourceDescription {
 
-	private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
-	
     // Constant for weight difference (dynamic increase/decrease)
     private static final int DIFFERENCE_WEIGHT = 10_000;
     private static final int OTHER_PROC_DIFFERENCE_WEIGHT = 1_000;
@@ -87,7 +83,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
 
     /*
-     * ******************************************* CONSTRUCTORS *******************************************/
+     * ******************************************* 
+     * CONSTRUCTORS
+     *******************************************/
     public MethodResourceDescription() {
         super();
     }
@@ -141,7 +139,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             if (procName != null && !procName.equals(UNASSIGNED_STR)) {
                 p.setName(procName);
             }
-            
+
             String cuSTR = constraints.computingUnits();
             cuSTR = loadFromEnvironment(cuSTR);
             int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
@@ -151,7 +149,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 // When loading from constraints, always use at least one computing unit
                 p.setComputingUnits(ONE_INT);
             }
-            
+
             String speedSTR = constraints.processorSpeed();
             speedSTR = loadFromEnvironment(speedSTR);
             float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
@@ -159,33 +157,33 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             if (speed != UNASSIGNED_FLOAT) {
                 p.setSpeed(speed);
             }
-            
+
             String arch = constraints.processorArchitecture();
             arch = loadFromEnvironment(arch);
             if (arch != null && !arch.equals(UNASSIGNED_STR)) {
                 p.setArchitecture(arch);
             }
-            
+
             String type = constraints.processorType();
             type = loadFromEnvironment(type);
             if (type != null) {
                 p.setType(type);
             }
-            
+
             String internalMemorySTR = constraints.processorInternalMemorySize();
             internalMemorySTR = loadFromEnvironment(internalMemorySTR);
-            float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR)) ? 
-                    Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+            float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
+                    ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
             if (internalMemory != UNASSIGNED_FLOAT) {
                 p.setInternalMemory(internalMemory);
             }
-            
+
             String propName = constraints.processorPropertyName();
             propName = loadFromEnvironment(propName);
             if (propName != null && !propName.equals(UNASSIGNED_STR)) {
                 p.setPropName(propName);
             }
-            
+
             String propvalue = constraints.processorPropertyValue();
             propvalue = loadFromEnvironment(propvalue);
             if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
@@ -271,7 +269,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Prices don't come from constraints
     }
-    
+
     private String loadFromEnvironment(String variable) {
         String varValue = variable;
         if (variable != null && variable.startsWith(Implementation.PREFIX_ENV_VAR)) {
@@ -280,15 +278,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             varValue = varValue.replaceAll("\\}", "");
             varValue = System.getenv(varValue);
         }
-        
+
         return varValue;
     }
 
     private boolean containsProcessorsProperties(Constraints constraints) {
-        return (!constraints.processorName().equals(Constants.UNASSIGNED) 
+        return (!constraints.processorName().equals(Constants.UNASSIGNED)
                 || !constraints.processorArchitecture().equals(Constants.UNASSIGNED)
                 || !constraints.processorType().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
-                || !constraints.processorSpeed().equals(Constants.UNASSIGNED) 
+                || !constraints.processorSpeed().equals(Constants.UNASSIGNED)
                 || !constraints.processorInternalMemorySize().equals(Constants.UNASSIGNED)
                 || !constraints.processorPropertyName().equals(Constants.UNASSIGNED_PROCESSOR_TYPE)
                 || !constraints.processorPropertyValue().equals(Constants.UNASSIGNED_PROCESSOR_TYPE));
@@ -302,7 +300,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             procName = loadFromEnvironment(procName);
             p.setName(procName);
         }
-        
+
         String cuSTR = processorConstraints.computingUnits();
         cuSTR = loadFromEnvironment(cuSTR);
         int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
@@ -312,7 +310,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             // When loading from constraints, always use at least one computing unit
             p.setComputingUnits(ONE_INT);
         }
-        
+
         String speedSTR = processorConstraints.speed();
         speedSTR = loadFromEnvironment(speedSTR);
         float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
@@ -320,45 +318,51 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if (speed != UNASSIGNED_FLOAT) {
             p.setSpeed(speed);
         }
-        
+
         String arch = processorConstraints.architecture();
         arch = loadFromEnvironment(arch);
         if (arch != null && !arch.equals(UNASSIGNED_STR)) {
             p.setArchitecture(arch);
         }
-        
+
         String type = processorConstraints.type();
         type = loadFromEnvironment(type);
         if (type != null) {
             p.setType(type);
         }
-        
+
         String internalMemorySTR = processorConstraints.internalMemorySize();
         internalMemorySTR = loadFromEnvironment(internalMemorySTR);
-        float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR)) ? 
-                Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
+        float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
+                ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
         if (internalMemory != UNASSIGNED_FLOAT) {
             p.setInternalMemory(internalMemory);
         }
-        
+
         String propName = processorConstraints.propertyName();
         propName = loadFromEnvironment(propName);
         if (propName != null && !propName.equals(UNASSIGNED_STR)) {
             p.setPropName(propName);
         }
-        
+
         String propvalue = processorConstraints.propertyValue();
         propvalue = loadFromEnvironment(propvalue);
         if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
             p.setPropValue(propvalue);
         }
-        
+
         return p;
     }
 
+    /**
+     * For python constraints
+     * 
+     * @param description
+     */
     public MethodResourceDescription(String description) {
         super();
 
+        // TODO: Change to support multi-processors in constraints
         // Warning: When coming from constrains, only 1 PROCESSOR is available with at least 1 CU
         Processor proc = new Processor();
         proc.setComputingUnits(ONE_INT);
@@ -373,50 +377,52 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         this.addProcessor(proc); // Increases the totalCUs
     }
 
+    /**
+     * For C constraints
+     * 
+     * @param constraints
+     */
     public MethodResourceDescription(String[] constraints, String processorString) {
         super();
         Processor proc = new Processor();
-        
-        if (processorString != null && !processorString.isEmpty()){
-        	
-        	String[] processors = StringUtils.split(processorString, "@");
-        	
-        	for (int i = 0; i < processors.length; i++){
-        		processors[i] = processors[i].replace("Processor(", "");
-        		processors[i] = processors[i].replaceAll("[,()]", "");
 
-        		String[] processorConstraints = processors[i].split(" ");
-        		proc = new Processor();
-        		
+        if (processorString != null && !processorString.isEmpty()) {
+            String[] processors = StringUtils.split(processorString, "@");
+            for (int i = 0; i < processors.length; i++) {
+                processors[i] = processors[i].replace("Processor(", "");
+                processors[i] = processors[i].replaceAll("[,()]", "");
+
+                String[] processorConstraints = processors[i].split(" ");
+                proc = new Processor();
                 for (int j = 0; j < processorConstraints.length; ++j) {
                     String key = processorConstraints[j].split("=")[0].trim();
                     String val = processorConstraints[j].split("=")[1].trim();
                     addConstraints(key, val, proc);
                 }
-                this.addProcessor(proc);  
+                this.addProcessor(proc);
+            }
+        }else {
+            // If no specific processor is requested, a single processor will be used with at least 1 CU
+            proc.setComputingUnits(ONE_INT);
+        }
+
+        // Don't add constraints if there only was processor info
+        if ((constraints.length != 1) || (!constraints[0].equals(""))) {
+            for (String c : constraints) {
+                String key = c.split("=")[0].trim();
+                String val = c.split("=")[1].trim();
+                addConstraints(key, val, proc);
             }
         }
-        // If no specific processor is requested, a single processor will be used with at least 1 CU
-        else{
-        	proc.setComputingUnits(ONE_INT);
-        }
         
-        //Don't add constraints if there only was processor info
-        if ((constraints.length != 1) || (!constraints[0].equals(""))){
-        	for (String c : constraints) {
-	            String key = c.split("=")[0].trim();
-	            String val = c.split("=")[1].trim();
-	            addConstraints(key, val, proc);
-	        }
-        }
         // Add the information retrieved from the processor constraints
-        if (processorString == null || processorString.isEmpty()){
-        	this.addProcessor(proc); // Increases the totalCUs
+        if (processorString == null || processorString.isEmpty()) {
+            this.addProcessor(proc); // Increases the totalCUs
         }
-        
     }
 
     private void addConstraints(String key, String val, Processor proc) {
+        val = loadFromEnvironment(val);
         if (val != null && !val.isEmpty()) {
             switch (key) {
                 case PROC_NAME:
@@ -431,14 +437,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 case PROC_TYPE:
                     proc.setType(val);
                     break;
-                case PROC_MEM_SIZE:
-                	proc.setInternalMemory(Float.valueOf(val));
-                	break;
                 case PROC_PROP_NAME:
                     proc.setPropName(val);
                     break;
                 case PROC_PROP_VALUE:
                     proc.setPropValue(val);
+                    break;
+                case PROC_MEM_SIZE:
+                    proc.setInternalMemory(Float.valueOf(val));
                     break;
                 case COMPUTING_UNITS:
                     proc.setComputingUnits(Integer.valueOf(val));
@@ -604,6 +610,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type, float internalMemory,
             String propName, String propValue) {
+        
         // This method is called from XML: empty and null values must be checked
         Processor p = new Processor();
         if (procName != null && !procName.isEmpty()) {
@@ -816,7 +823,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /*
      * ******************************************* 
-     * METHODRESOURCE OPERATIONS
+     * METHOD-RESOURCE OPERATIONS
      *******************************************/
     // This method tries to substitute the implicit default values by defined mr2 values.
     // Keeps the already defined values (do NOT overwrite)
@@ -1420,10 +1427,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         out.writeFloat(value);
     }
 
-    /*
-     * ******************************************* 
-     * LOGGERS
-     *******************************************/
     private Processor getDynamicCommonsProcessor(Processor pThis, Processor p) {
         // Copy the assignable processor (no the requested)
         Processor common = new Processor(pThis);

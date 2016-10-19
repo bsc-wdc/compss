@@ -28,7 +28,10 @@
 	                            <listhead>
 	                                <listheader hflex="min" label="Status" sort="auto(status)" align="center"/>
 	                                <listheader hflex="1" label="Resource Name" sort="auto(name)" align="center"/>
-	                                <listheader hflex="min" label="Computing Units" align="center"/>
+	                                <listheader hflex="min" label="CPU Computing Units" align="center"/>
+	                                <listheader hflex="min" label="GPU Computing Units" align="center"/>
+	                                <listheader hflex="min" label="FPGA Computing Units" align="center"/>
+	                                <listheader hflex="min" label="OTHER Computing Units" align="center"/>
 	                                <listheader hflex="min" label="Memory Size" align="center"/>
 	                                <listheader hflex="min" label="Disk Size" align="center"/>
 	                                <listheader hflex="min" label="Provider" align="center"/>
@@ -42,7 +45,10 @@
 	                    					<image style="width: 25px" src="@load(each.color)" />
 	                                    </listcell>                                   
 	                                    <listcell label="@load(each.name)" />
-	                                    <listcell label="@load(each.computingUnits)" />
+	                                    <listcell label="@load(each.totalCPUComputingUnits)" />
+	                                    <listcell label="@load(each.totalGPUComputingUnits)" />
+	                                    <listcell label="@load(each.totalFPGAComputingUnits)" />
+	                                    <listcell label="@load(each.totalOTHERComputingUnits)" />
 	                                    <listcell label="@load(each.memorySize)" />
 	                                    <listcell label="@load(each.diskSize)" />
 	                                    <listcell label="@load(each.provider)" />
@@ -60,20 +66,24 @@
 	                            emptyMessage="There are no jobs.">
 	                            <listhead>
 	                                <listheader hflex="min" label="Color" sort="auto(color)" align="center"/>
-	                                <listheader hflex="1" label="Name" sort="auto(name)" align="center"/>
-	                                <listheader hflex="1" label="Parameters" align="center"/>
-	                                <listheader hflex="min" label="Avg. Execution Time (s)" sort="auto(avgExecTime)" sortDirection="ascending" align="center"/>
+	                                <listheader hflex="min" label="Task Id" sort="auto(coreId)" align="center"/>
+	                                <listheader hflex="1" label="Signature" sort="auto(signature)" align="center"/>
+	                                <listheader hflex="min" label="Avg. Execution Time (s)" sort="auto(meanExecTime)" sortDirection="ascending" align="center"/>
+	                                <listheader hflex="min" label="Min. Execution Time (s)" sort="auto(minExecTime)" sortDirection="ascending" align="center"/>
+	                                <listheader hflex="min" label="Max. Execution Time (s)" sort="auto(maxExecTime)" sortDirection="ascending" align="center"/>
 	                                <listheader hflex="min" label="Executed Count" sort="auto(executedCount)" sortDirection="ascending" align="center"/>
 	                    		</listhead>
-	                            
+	                    		
 	                            <template name="job">
 	                                <listitem>
 	                                    <listcell>                                   
 	                    					<image style="width: 25px" src="@load(each.color)" />
-	                                    </listcell>                                   
-	          							<listcell label="@load(each.name)" />
-	                                    <listcell label="@load(each.parameters)" />
-	                                    <listcell label="@load(each.avgExecTime)" />
+	                                    </listcell>
+	                                    <listcell label="@load(each.coreId)" />                    
+	          							<listcell label="@load(each.signature)" />
+	                                    <listcell label="@load(each.meanExecTime)" />
+	                                    <listcell label="@load(each.minExecTime)" />
+	                                    <listcell label="@load(each.maxExecTime)" />
 	                                    <listcell label="@load(each.executedCount)" />
 	                                </listitem>
 	                            </template>
@@ -83,7 +93,7 @@
 			         
 			         <tabpanel fulfill="currentTasksGraphTab.onSelect" style="overflow:auto">		         	
 		         		<div vflex="1" hflex="1" align="center" style="overflow:auto">
-		         			<hbox height="99%" width="99%" align="center" pack="center" widths="80%,20%">
+		         			<hbox height="99%" width="99%" align="center" pack="center" widths="60%,40%">
 		         				<image style="width: 99%; height: 99%" src="@load(vm.currentGraphViewModel.graph)" />
                         		<!-- <iframe height="99%" width="99%" src="@load(vm.currentGraphViewModel.graph)" /> -->
                         		<vbox align="center" pack="center" heights="10%,90%">
@@ -91,17 +101,17 @@
 	                        		<grid model="@bind(vm.coresViewModel.cores) @template('core')" emptyMessage="There are no tasks.">
 				         				<auxhead>
 				         					<auxheader label="Color" />
-				         					<auxheader label="Name" />
+				         					<auxheader label="Signature" />
 				         				</auxhead>
 				         				<columns visible="false">
-				         					<column></column>
-						                	<column></column>
+				         					<column width="40px" />
+						                	<column />
 				         				</columns>
 				         				
 				         				<template name="core">
 							                <row>                               
 		                    					<image style="width: 25px" src="@load(each.color)" />  
-							                	<label value="@load(each.name)" />
+							                	<label value="@load(each.signature)" />
 							                </row>
 							            </template>
 				         			</grid>
@@ -122,14 +132,14 @@
 				         					<auxheader label="Name" />
 				         				</auxhead>
 				         				<columns visible="false">
-				         					<column></column>
-						                	<column></column>
+                                            <column width="40px" />
+                                            <column />
 				         				</columns>
 				         				
 				         				<template name="core">
 							                <row>                               
 		                    					<image style="width: 25px" src="@load(each.color)" />  
-							                	<label value="@load(each.name)" />
+							                	<label value="@load(each.signature)" />
 							                </row>
 							            </template>
 				         			</grid>

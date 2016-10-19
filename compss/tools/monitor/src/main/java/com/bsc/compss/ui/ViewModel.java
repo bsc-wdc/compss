@@ -13,6 +13,7 @@ import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
 import org.zkoss.zul.Messagebox;
 
+import com.bsc.compss.commons.Loggers;
 import com.bsc.compss.ui.auth.UserCredential;
 
 import monitoringParsers.*;
@@ -33,7 +34,7 @@ public class ViewModel {
 
     public static int runtimeLogConfirmation = -1; // -1: do not apply, 0: accepted, 1:denied
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.VM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VMS);
 
 
     @Init

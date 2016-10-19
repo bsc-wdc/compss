@@ -1,6 +1,7 @@
 package monitoringParsers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -11,6 +12,7 @@ import org.w3c.dom.NodeList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.bsc.compss.commons.Loggers;
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Properties;
 
@@ -19,9 +21,9 @@ public class MonitorXmlParser {
 
     private static List<String[]> WorkersDataArray;
     private static List<String[]> CoresDataArray;
-    private static String[] statisticsParameters;
+    private static HashMap<String, String> statisticParameters;
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.monitoringParser");
+    private static final Logger logger = LogManager.getLogger(Loggers.COMPSS_STATE_XML_PARSER);
 
 
     public static List<String[]> getWorkersDataArray() {
@@ -34,8 +36,8 @@ public class MonitorXmlParser {
         return CoresDataArray;
     }
 
-    public static String[] getStatisticsParameters() {
-        return statisticsParameters;
+    public static HashMap<String, String> getStatisticsParameters() {
+        return statisticParameters;
     }
 
     public static void parseResources() {
@@ -74,7 +76,7 @@ public class MonitorXmlParser {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files");
+            logger.error("Cannot load monitor xml files", e);
             // e.printStackTrace();
             return;
         }
@@ -118,7 +120,7 @@ public class MonitorXmlParser {
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files");
+            logger.error("Cannot load monitor xml files", e);
             return;
         }
 
@@ -129,7 +131,7 @@ public class MonitorXmlParser {
         String monitorLocation = Properties.BASE_PATH + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file for statistics...");
         // Reset attribute
-        statisticsParameters = new String[1];
+        statisticParameters = new HashMap<String, String>();
 
         // Show monitor location
         logger.debug("Monitor Location : " + monitorLocation);
@@ -156,12 +158,12 @@ public class MonitorXmlParser {
             nl = COMPSs.getChildNodes();
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
-                if (n.getNodeName().equals("AccumulatedCost")) {
-                    statisticsParameters[0] = n.getTextContent();
+                if (n.getNodeName().equals("Statistics")) {
+                    statisticParameters = parseStatisticsNode(n);
                 }
             }
         } catch (Exception e) {
-            logger.error("Cannot load monitor xml files");
+            logger.error("Cannot load monitor xml files", e);
             return;
         }
 
@@ -182,36 +184,76 @@ public class MonitorXmlParser {
     }
 
     private static String[] parseResourceNode(Node resource) throws Exception {
-        logger.debug("Parse ResourceNode");
-        String[] data = new String[8];
-        data[0] = resource.getAttributes().getNamedItem("id").getTextContent();
+        String workerName = resource.getAttributes().getNamedItem("id").getTextContent();
+        logger.debug("Parse ResourceNode " + workerName);
+
+        final int MAX_PARAMS = 11;
+        String[] data = new String[MAX_PARAMS];
+        // workerName, totalCPUu, totalGPUu, totalFPGAu, totalOTHERu,
+        // memory, disk, status, provider, image, actions
+        for (int i = 0; i < data.length; ++i) {
+            data[i] = "-";
+        }
+        data[0] = workerName;
+
         NodeList nl = resource.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
-            Node n = nl.item(i);
-            logger.debug("Parsing item: " + n.getNodeName());
-            if (n.getNodeName().equals("TotalComputingUnits")) {
-                data[1] = n.getTextContent();
-                if (data[1] != null && Integer.valueOf(data[1]) < 0) {
-                    data[1] = "-";
-                }
-            } else if (n.getNodeName().equals("Memory")) {
-                data[2] = n.getTextContent();
-                if (data[2] != null && Float.valueOf(data[2]) < (float) 0.0) {
-                    data[2] = null;
-                }
-            } else if (n.getNodeName().equals("Disk")) {
-                data[3] = n.getTextContent();
-                if (data[3] != null && Float.valueOf(data[3]) < (float) 0.0) {
-                    data[3] = null;
-                }
-            } else if (n.getNodeName().equals("Provider")) {
-                data[4] = n.getTextContent();
-            } else if (n.getNodeName().equals("Image")) {
-                data[5] = n.getTextContent();
-            } else if (n.getNodeName().equals("Status")) {
-                data[6] = n.getTextContent();
-            } else if (n.getNodeName().equals("Actions")) {
-                data[7] = parseActions(n);
+            Node field = nl.item(i);
+            logger.debug("Parsing item: " + field.getNodeName());
+            switch (field.getNodeName()) {
+                case "TotalCPUComputingUnits":
+                    String content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Integer.valueOf(content) > 0) {
+                        data[1] = content;
+                    }
+                    break;
+                case "TotalGPUComputingUnits":
+                    content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Integer.valueOf(content) > 0) {
+                        data[2] = content;
+                    }
+                    break;
+                case "TotalFPGAComputingUnits":
+                    content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Integer.valueOf(content) > 0) {
+                        data[3] = content;
+                    }
+                    break;
+                case "TotalOTHERComputingUnits":
+                    content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Integer.valueOf(content) > 0) {
+                        data[4] = content;
+                    }
+                    break;
+                case "Memory":
+                    content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Float.valueOf(content) > 0f) {
+                        data[5] = content;
+                    }
+                    break;
+                case "Disk":
+                    content = field.getTextContent();
+                    if (content != null && !content.isEmpty() && Float.valueOf(content) > 0) {
+                        data[6] = content;
+                    }
+                    break;
+                case "Status":
+                    data[7] = field.getTextContent();
+                    break;
+                case "Provider":
+                    data[8] = field.getTextContent();
+                    break;
+                case "Image":
+                    data[9] = field.getTextContent();
+                    break;
+                case "Actions":
+                    data[10] = parseActions(field);
+                    break;
+                case "#text":
+                    //Nothing to do
+                    break;
+                default:
+                    logger.error("Unrecognised field on ResourceNode " + field.getNodeName());
             }
         }
         return data;
@@ -223,11 +265,30 @@ public class MonitorXmlParser {
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
             if (n.getNodeName().equals("Action")) {
-                // Receives SingleExecution ( Task X, CE name YYYYYYYYYY)"
-                String actionInfo = n.getTextContent();
-                String taskId = actionInfo.split(" ")[3];
-                taskId = taskId.substring(0, taskId.length() - 1);
-                taskIds.append(taskId).append(" ");
+                /*
+                 * An action is of the form:
+                 *      - "ExecutionAction ( Task tid, CE name ceName)"
+                 *      - "StartWorkerAction ( Worker workerName)"
+                 */
+                String[] actionInfo = n.getTextContent().split(" ");
+                String actionType = actionInfo[2];
+                switch(actionType) {
+                    case "Task":
+                        String taskId = actionInfo[3];
+                        // Remove , char
+                        taskId = taskId.substring(0, taskId.length() - 1);
+                        taskIds.append(taskId).append(" ");
+                        break;
+                    case "Worker":
+                        String workerName = actionInfo[3];
+                        // Remove ) char
+                        workerName = workerName.substring(0, workerName.length() - 1);
+                        taskIds.append("Starting worker ").append(workerName).append(" ");
+                        break;
+                    default:
+                        // Nothing to do
+                        break;
+                }
             }
         }
         return taskIds.toString();
@@ -240,31 +301,119 @@ public class MonitorXmlParser {
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
             if (n.getNodeName().equals("Core")) {
-                datas.add(parseCoreNode(n));
+                datas.addAll(parseCoreNode(n));
             }
         }
         return datas;
     }
 
-    private static String[] parseCoreNode(Node cores) throws Exception {
-        String[] data = new String[5];
-        data[0] = cores.getAttributes().getNamedItem("id").getTextContent();
-        String signature = cores.getAttributes().getNamedItem("signature").getTextContent();
-        int pos = signature.indexOf("(");
-        int posfin = signature.indexOf(")");
-        data[1] = signature.substring(0, pos);
-        data[2] = signature.substring(pos + 1, posfin);
-        NodeList nl = cores.getChildNodes();
-        for (int i = 0; i < nl.getLength(); i++) {
-            Node n = nl.item(i);
-            if (n.getNodeName().equals("MeanExecutionTime")) {
-                int ms = Integer.valueOf(n.getTextContent());
-                data[3] = String.valueOf((float) (ms) / (float) (1000));
-            } else if (n.getNodeName().equals("ExecutedCount")) {
-                data[4] = n.getTextContent();
+    private static List<String[]> parseCoreNode(Node cores) throws Exception {
+        String coreId = cores.getAttributes().getNamedItem("id").getTextContent();
+        logger.debug("  - Parsing coreId " + coreId);
+
+        NodeList impls = cores.getChildNodes();
+        List<String[]> data = new ArrayList<String[]>();
+        for (int i = 0; i < impls.getLength(); ++i) {
+            Node impl = impls.item(i);
+            if (impl.getNodeName().equals("Impl")) {
+                data.add(parseImplNode(impl, coreId));
             }
         }
+
         return data;
+    }
+
+    private static String[] parseImplNode(Node impl, String coreId) {
+        String implId = impl.getAttributes().getNamedItem("id").getTextContent();
+        logger.debug("     - Parsing implId " + implId);
+
+        final int MAX_PARAMS = 7;
+        String[] data = new String[MAX_PARAMS];
+        // coreId, implId, signature, meanET, minET, maxET, execCount
+        for (int i = 0; i < data.length; ++i) {
+            data[i] = "-";
+        }
+        data[0] = coreId;
+        data[1] = implId;
+
+        NodeList nl = impl.getChildNodes();
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node field = nl.item(i);
+            switch (field.getNodeName()) {
+                case "Signature":
+                    data[2] = field.getTextContent();
+                    break;
+                case "MeanExecutionTime":
+                    Long ms = Long.valueOf(field.getTextContent());
+                    data[3] = String.valueOf((float) (ms) / (float) (1_000));
+                    break;
+                case "MinExecutionTime":
+                    ms = Long.valueOf(field.getTextContent());
+                    data[4] = String.valueOf((float) (ms) / (float) (1_000));
+                    break;
+                case "MaxExecutionTime":
+                    ms = Long.valueOf(field.getTextContent());
+                    data[5] = String.valueOf((float) (ms) / (float) (1_000));
+                    break;
+                case "ExecutedCount":
+                    int execCount = Integer.valueOf(field.getTextContent());
+                    if (execCount == 0) {
+                        // If no exec, reset min,max,mean timers
+                        data[3] = "-";
+                        data[4] = "-";
+                        data[5] = "-";
+                    }
+                    data[6] = String.valueOf(execCount);
+                    break;
+                case "#text":
+                    //Nothing to do
+                    break;
+                default:
+                    logger.error("Unrecognised field on ImplNode " + field.getNodeName());
+            }
+        }
+
+        return data;
+    }
+    
+    private static HashMap<String, String> parseStatisticsNode(Node statistics) throws Exception {
+        logger.debug("  - Parsing statistics");
+
+        NodeList statisticValues = statistics.getChildNodes();
+        HashMap<String, String> data = new HashMap<String, String>();
+        for (int i = 0; i < statisticValues.getLength(); ++i) {
+            Node statisticNode = statisticValues.item(i);
+            if (statisticNode.getNodeName().equals("Statistic")) {
+                String[] statisticKeyValue = parseStatisticNode(statisticNode);
+                data.put(statisticKeyValue[0], statisticKeyValue[1]);
+            }
+        }
+
+        return data;
+    }
+    
+    private static String[] parseStatisticNode(Node statistic) {
+        final int MAX_PARAMS = 2;
+        String[] entry = new String[MAX_PARAMS];    // key,value
+        NodeList nl = statistic.getChildNodes();
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node field = nl.item(i);
+            switch (field.getNodeName()) {
+                case "Key":
+                    entry[0] = field.getTextContent();
+                    break;
+                case "Value":
+                    entry[1] = field.getTextContent();
+                    break;
+                case "#text":
+                    //Nothing to do
+                    break;
+                default:
+                    logger.error("Unrecognised field on StatisticNode " + field.getNodeName());
+            }
+        }
+        
+        return entry;
     }
 
 }

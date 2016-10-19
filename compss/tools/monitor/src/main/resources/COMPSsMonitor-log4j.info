@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="COMPSsMonitor" status="WARN">
+
+  <!-- Logger console and files configuration -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
+    </Console>
+    <File name="COMPSsMonitorLog" fileName="/opt/COMPSs/Tools/monitor/apache-tomcat/logs/compss-monitor.log" immediateFlush="true" append="false">
+      <PatternLayout pattern="[%19c{1}]    @%-15.15M  -  %m%n"/>
+    </File>
+  </Appenders>
+
+  <!-- Configure runtime loggers -->
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Root>
+
+
+    <!-- COMPSs Monitor ROOT -->
+    <!-- compssMonitor: DEFAULT = INFO -->
+    <Logger name="compssMonitor" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+
+
+    <!-- BES -->
+    <!-- compssMonitor.BESFactoryPort: DEFAULT = INFO -->
+    <Logger name="compssMonitor.BESFactoryPort" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+
+
+    <!-- Authentication -->
+    <!-- compssMonitor.Authentication: DEFAULT = INFO -->
+    <Logger name="compssMonitor.Authentication" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+
+    <!-- VMs -->
+    <!-- compssMonitor.VM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.ApplicationsVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.ApplicationsVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.ResourcesVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.ResourcesVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.TasksVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.TasksVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.GraphVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.Graph" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.LoadChartVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.LoadChartVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.RuntimeLogVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.RuntimeLogVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.ExecutionInformationVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.ExecutionInformationVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.ConfigurationVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.ConfigurationVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.VM.StatisticsVM: DEFAULT = INFO -->
+    <Logger name="compssMonitor.VM.StatisticsVM" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    
+    <!-- PARSERS -->
+    <!-- compssMonitor.Parsers: DEFAULT = INFO -->
+    <Logger name="compssMonitor.Parsers" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.Parsers.COMPSsStateXML: DEFAULT = INFO -->
+    <Logger name="compssMonitor.Parsers.COMPSsStateXML" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.Parsers.RuntimeLog: DEFAULT = INFO -->
+    <Logger name="compssMonitor.Parsers.RuntimeLog" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+    
+    <!-- compssMonitor.Parsers.ResourcesLog: DEFAULT = INFO -->
+    <Logger name="compssMonitor.Parsers.ResourcesLog" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsMonitorLog"/>
+    </Logger>
+
+  </Loggers>
+</Configuration>
+

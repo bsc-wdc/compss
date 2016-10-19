@@ -9,13 +9,15 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
+
 import monitoringParsers.RuntimeLogParser;
 
 
 public class ExecutionInformationViewModel {
 
     private String displayType;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.ExecutionInformationVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_EXEC_INFO);
 
 
     @Init

@@ -22,6 +22,7 @@ public class MatmulImpl {
             double value = (double) (Math.random() * 10.0);
             block[k] = value;
         }
+        
         return block;
     }
 

@@ -28,7 +28,8 @@ public class IDLParserTest {
 		String constraintsFile = this.getClass().getResource("test.idl").getPath();
 		LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
         HashMap<Integer, LinkedList<MethodImplementation>> readMethods = new HashMap<Integer, LinkedList<MethodImplementation>>();
-        int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethods, constraintsFile);
+        HashMap<Integer, LinkedList<String>> readSignatures = new HashMap<Integer, LinkedList<String>>();
+        int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethods, readSignatures, constraintsFile);
 		assertEquals(coreCount, CORECOUNT_RESULT);
 		assertEquals(readMethods.size(), CORECOUNT_RESULT);
 		System.out.println("[IDL-Loader]: *** Checking Core Element 0");

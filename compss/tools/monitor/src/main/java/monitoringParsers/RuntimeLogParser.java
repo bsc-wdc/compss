@@ -8,6 +8,7 @@ import java.util.Vector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.bsc.compss.commons.Loggers;
 import com.bsc.compss.ui.Constants;
 import com.bsc.compss.ui.Properties;
 import com.bsc.compss.ui.ExecutionInformationTask;
@@ -26,7 +27,7 @@ public class RuntimeLogParser {
     private static String runtimeLogPath = "";
     private static int lastParsedLine = -1;
 
-    private static final Logger logger = LogManager.getLogger("compssMonitor.monitoringParser");
+    private static final Logger logger = LogManager.getLogger(Loggers.RUNTIME_LOG_PARSER);
 
 
     public static Vector<ExecutionInformationTask> getTasks() {

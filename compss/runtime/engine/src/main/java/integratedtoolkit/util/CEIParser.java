@@ -39,6 +39,8 @@ import org.apache.logging.log4j.Logger;
 
 
 public class CEIParser {
+    
+    private static final int DEFAULT_CORE_COUNT_PYTHON = 50;
 
     private static final Lang LANG;
 
@@ -152,11 +154,7 @@ public class CEIParser {
         if (debug) {
             logger.debug("Detected methods " + coreCount);
         }
-        if (CoreManager.getCoreCount() == 0) {
-            CoreManager.resizeStructures(coreCount);
-        } else {
-            CoreManager.resizeStructures(CoreManager.getCoreCount() + coreCount);
-        }
+        CoreManager.resizeStructures(CoreManager.getCoreCount() + coreCount);
 
         for (java.lang.reflect.Method m : annotItfClass.getDeclaredMethods()) {
             /*
@@ -219,16 +217,13 @@ public class CEIParser {
             /*
              * Check all annotations present at the method for versioning
              */
-            Integer methodId = CoreManager.registerCoreId(calleeMethodSignature.toString());
-            if (methodId == CoreManager.getCoreCount()) {
-                CoreManager.increaseCoreCount();
-            }
-            
+            Integer methodId = CoreManager.registerCoreId(calleeMethodSignature.toString());            
             if (debug) {
                 logger.debug("   * Method methodId = " + methodId + " has "+ m.getAnnotations().length + " annotations");
             }
             
             ArrayList<Implementation<?>> implementations = new ArrayList<Implementation<?>>();
+            ArrayList<String> signatures = new ArrayList<String>();
             int implId = 0;
             
             /*
@@ -239,10 +234,7 @@ public class CEIParser {
                 String declaringClass = methodAnnot.declaringClass();
                 
                 String methodSignature = calleeMethodSignature.toString() + declaringClass;
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, methodSignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + methodSignature);
-                }
+                signatures.add(methodSignature);
                 
                 // Load specific method constraints if present
                 MethodResourceDescription implConstraints = defaultConstraints;
@@ -273,10 +265,7 @@ public class CEIParser {
                 calleeMethodSignature.append(serviceAnnot.port());
                 
                 String serviceSignature = calleeMethodSignature.toString();
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, serviceSignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + serviceSignature);
-                }
+                signatures.add(serviceSignature);
 
                 // Register service implementation
                 Implementation<?> impl = new ServiceImplementation( methodId, 
@@ -319,10 +308,7 @@ public class CEIParser {
                 logger.debug("mpiRunner: " + mpiRunner);
                 
                 String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.MPI_SIGNATURE;
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, mpiSignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + mpiSignature);
-                }
+                signatures.add(mpiSignature);
                 
                 // Load specific method constraints if present
                 MethodResourceDescription implConstraints = defaultConstraints;
@@ -360,10 +346,7 @@ public class CEIParser {
                 }
                 
                 String ompssSignature = calleeMethodSignature.toString() + LoaderUtils.OMPSS_SIGNATURE;
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, ompssSignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + ompssSignature);
-                }
+                signatures.add(ompssSignature);
                 
                 // Load specific method constraints if present
                 MethodResourceDescription implConstraints = defaultConstraints;
@@ -400,10 +383,7 @@ public class CEIParser {
                 }
                 
                 String openclSignature = calleeMethodSignature.toString() + LoaderUtils.OPENCL_SIGNATURE;
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, openclSignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + openclSignature);
-                }
+                signatures.add(openclSignature);
                 
                 // Load specific method constraints if present
                 MethodResourceDescription implConstraints = defaultConstraints;
@@ -440,10 +420,7 @@ public class CEIParser {
                 }
                 
                 String binarySignature = calleeMethodSignature.toString() + LoaderUtils.BINARY_SIGNATURE;
-                boolean success = CoreManager.registerSignatureToCoreId(methodId, binarySignature);
-                if (!success) {
-                    ErrorManager.error("Invalid method registration with signature " + binarySignature);
-                }
+                signatures.add(binarySignature);
                 
                 // Load specific method constraints if present
                 MethodResourceDescription implConstraints = defaultConstraints;
@@ -468,7 +445,11 @@ public class CEIParser {
             for (int i = 0; i < implementations.size(); ++i) {
                 impls[i] = implementations.get(i);
             }
-            CoreManager.registerImplementations(methodId, impls);
+            String[] signs = new String[signatures.size()];
+            for (int i = 0; i < signatures.size(); ++i) {
+                signs[i] = signatures.get(i);
+            }
+            CoreManager.registerImplementations(methodId, impls, signs);
         
             // END FOR DECLARED METHOD IN ITF
         }
@@ -479,17 +460,19 @@ public class CEIParser {
     // C constructor
     public static LinkedList<Integer> loadC(String constraintsFile) {
         LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
-        HashMap<Integer, LinkedList<MethodImplementation>> readMethods = new HashMap<Integer, LinkedList<MethodImplementation>>();
+        HashMap<Integer, LinkedList<MethodImplementation>> readMethodImpls = new HashMap<Integer, LinkedList<MethodImplementation>>();
+        HashMap<Integer, LinkedList<String>> readMethodSignatures = new HashMap<Integer, LinkedList<String>>();
 
-        int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethods, constraintsFile);
+        int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethodImpls, readMethodSignatures, constraintsFile);
 
         CoreManager.resizeStructures(coreCount);
         for (int i = 0; i < coreCount; i++) {
-            LinkedList<MethodImplementation> implList = readMethods.get(i);
+            LinkedList<MethodImplementation> implList = readMethodImpls.get(i);
             Implementation<?>[] implementations = implList.toArray(new Implementation[implList.size()]);
-            CoreManager.registerImplementations(i, implementations);
+            LinkedList<String> signaturesList = readMethodSignatures.get(i);
+            String[] signatures = signaturesList.toArray(new String[signaturesList.size()]);
+            CoreManager.registerImplementations(i, implementations, signatures);
         }
-        CoreManager.setCoreCount(coreCount);
         return updatedMethods;
     }
 
@@ -499,7 +482,7 @@ public class CEIParser {
         String countProp = System.getProperty(ITConstants.IT_CORE_COUNT);
         Integer coreCount;
         if (countProp == null) {
-            coreCount = 50;
+            coreCount = DEFAULT_CORE_COUNT_PYTHON;
             if (debug) {
                 logger.debug("Warning: using " + coreCount + " as default for number of task types");
             }
@@ -515,12 +498,11 @@ public class CEIParser {
         for (int i = 0; i < coreCount; i++) {
             Implementation<?>[] implementations = new Implementation[1];
             implementations[0] = new MethodImplementation("", "", i, 0, MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy());
-            CoreManager.registerImplementations(i, implementations);
+            String[] signatures = new String[] { "" };
+            CoreManager.registerImplementations(i, implementations, signatures);
 
             updatedMethods.add(i);
         }
-        // Update coreCount (enable all new registers)
-        CoreManager.setCoreCount(coreCount);
 
         // Return index of modified methods
         return updatedMethods;

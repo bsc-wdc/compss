@@ -68,6 +68,7 @@
                 <module>35-replicatedTask</module>
                 <module>36-environmentVariables</module>
                 <module>37-nonNativeTasks</module>
+		<!-- Module 38 is 38-environmentVariables_python -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

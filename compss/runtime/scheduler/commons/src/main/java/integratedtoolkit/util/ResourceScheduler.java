@@ -91,6 +91,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         this.profiles = profiles;
     }
 
+    @SuppressWarnings("unchecked")
     public final P getProfile(Implementation<T> impl) {
         if (impl != null) {
             if (impl.getCoreId() != null) {
@@ -114,6 +115,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      *
      * @return a profile object for an action.
      */
+    @SuppressWarnings("unchecked")
     public P generateProfileForAllocatable() {
         return (P) new Profile();
     }

@@ -1,7 +1,9 @@
 package com.bsc.compss.ui;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,20 +12,18 @@ import org.zkoss.bind.annotation.Init;
 import org.zkoss.bind.annotation.NotifyChange;
 import org.zkoss.zul.ListModelList;
 
+import com.bsc.compss.commons.Loggers;
+
 
 public class StatisticsViewModel {
 
     private List<StatisticParameter> statistics;
-    private static final Logger logger = LogManager.getLogger("compssMonitor.StatisticsVM");
+    private static final Logger logger = LogManager.getLogger(Loggers.UI_VM_STATISTICS);
 
 
     @Init
     public void init() {
         statistics = new LinkedList<StatisticParameter>();
-
-        // Add accumulated cost
-        StatisticParameter accumulatedCost = new StatisticParameter("Accumulated Cost", "0.0", "0.0");
-        statistics.add(accumulatedCost);
     }
 
     public List<StatisticParameter> getStatistics() {
@@ -32,16 +32,14 @@ public class StatisticsViewModel {
 
     @Command
     @NotifyChange("statistics")
-    public void update(String[] statisticsParameters) {
+    public void update(HashMap<String, String> statisticsParameters) {
         logger.debug("Updating Statistics ViewModel...");
         // Erase all current resources
-        for (StatisticParameter param : statistics) {
-            param.reset();
-        }
+        statistics.clear();
 
         // Import new values
-        for (int i = 0; i < statistics.size(); ++i) {
-            statistics.get(i).setValue(statisticsParameters[i]);
+        for (Entry<String, String> entry : statisticsParameters.entrySet()) {
+            statistics.add(new StatisticParameter(entry.getKey(), entry.getValue()));
         }
 
         logger.debug("Statistics ViewModel updated");
@@ -51,9 +49,7 @@ public class StatisticsViewModel {
     @NotifyChange("statistics")
     public void clear() {
         // Erase all current resources
-        for (StatisticParameter param : statistics) {
-            param.reset();
-        }
+        statistics.clear();
     }
 
 }

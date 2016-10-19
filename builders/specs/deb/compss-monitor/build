@@ -43,7 +43,7 @@
   cp ${trunk_rel_path}/compss/tools/monitor/target/*.war ${COMPSs_target}/Tools/monitor/apache-tomcat/webapps/
   cp ${trunk_rel_path}/compss/tools/monitor/target/classes/compss-monitor.conf ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
   cp ${trunk_rel_path}/compss/tools/monitor/target/classes/server.xml ${COMPSs_target}/Tools/monitor/apache-tomcat/conf/
-  cp ${trunk_rel_path}/compss/tools/monitor/target/classes/log4j.properties ${COMPSs_target}/Tools/monitor/
+  cp ${trunk_rel_path}/compss/tools/monitor/target/classes/*log4j* ${COMPSs_target}/Tools/monitor/
   cp ${trunk_rel_path}/compss/tools/monitor/scripts/compss-monitor tmp/etc/init.d/
 
   for rt in ${release_types}; do

@@ -45,19 +45,19 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     protected boolean areEnoughResources() {
-        Worker w = selectedMainResource.getResource();
+        Worker<T> w = selectedMainResource.getResource();
         return w.canRunNow(w.getDescription());
     }
 
     @Override
     protected void reserveResources() {
-        Worker w = selectedMainResource.getResource();
+        Worker<T> w = selectedMainResource.getResource();
         w.runTask(w.getDescription());
     }
 
     @Override
     protected void releaseResources() {
-        Worker w = selectedMainResource.getResource();
+        Worker<T> w = selectedMainResource.getResource();
         w.endTask(w.getDescription());
     }
 
@@ -90,7 +90,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     protected void doFailed() {
-        Worker wNode = worker.getResource();
+        Worker<T> wNode = worker.getResource();
 
         // Remove from the pool
         ResourceManager.removeWorker(wNode);
@@ -158,8 +158,9 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
+    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) 
             throws BlockedActionException, UnassignedActionException {
+        
         this.selectedMainResource = targetWorker;
         assignImplementation(impl);
         targetWorker.initialSchedule(this);
@@ -167,7 +168,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public String toString() {
-        return "StartWorkerAction for worker " + worker.getName();
+        return "StartWorkerAction ( Worker " + worker.getName() + ")";
     }
 
     @Override

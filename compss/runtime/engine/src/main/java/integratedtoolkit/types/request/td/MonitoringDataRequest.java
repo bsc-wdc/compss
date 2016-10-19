@@ -90,7 +90,9 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
             if (runnningActions != null) {
                 // Resource state = running
                 monitorData.append(prefix + "\t\t").append("<Status>").append("Running").append("</Status>").append("\n");
-                monitorData.append(prefix + "\t\t").append("<Actions>").append(runnningActions).append("</Actions>").append("\n");
+                monitorData.append(prefix + "\t\t").append("<Actions>").append("\n");
+                monitorData.append(runnningActions);
+                monitorData.append(prefix + "\t\t").append("</Actions>").append("\n");
             } else {
                 // Resource state = on destroy
                 monitorData.append(prefix + "\t\t").append("<Status>").append("On Destroy").append("</Status>").append("\n");
@@ -100,7 +102,13 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
         }
         monitorData.append(prefix).append("</ResourceInfo>").append("\n");
 
-        monitorData.append(prefix).append("<AccumulatedCost>" + ResourceManager.getTotalCost() + "</AccumulatedCost>").append("\n");
+        monitorData.append(prefix).append("<Statistics>").append("\n");
+        monitorData.append(prefix).append("\t").append("<Statistic>").append("\n");
+        monitorData.append(prefix).append("\t\t").append("<Key>").append("Accumulated Cost").append("</Key>").append("\n");
+        monitorData.append(prefix).append("\t\t").append("<Value>").append(ResourceManager.getTotalCost()).append("</Value>").append("\n");
+        monitorData.append(prefix).append("\t").append("</Statistic>").append("\n");
+        monitorData.append(prefix).append("</Statistics>").append("\n");
+
         response = monitorData.toString();
         sem.release();
     }

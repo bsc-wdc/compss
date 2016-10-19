@@ -216,15 +216,17 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void generatePackage() {
+    public boolean generatePackage() {
         logger.debug("Generating GAT tracing package");
         GATTracer.generatePackage(this);
+        return true;
     }
 
     @Override
-    public void generateWorkersDebugInfo() {
+    public boolean generateWorkersDebugInfo() {
         // This feature is only for persistent workers (NIO)
         logger.info("Worker debug files not supported on GAT Adaptor");
+        return false;
     }
 
     public GATContext getContext() {

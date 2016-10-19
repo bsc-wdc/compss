@@ -124,4 +124,9 @@ public class TransferObjectRequest extends APRequest {
         return APRequestType.TRANSFER_OBJECT;
     }
 
+	public void setTargetData(LogicalData ld) {
+		this.target = ld;
+		
+	}
+
 }

@@ -106,12 +106,12 @@ public class CleanerExecutor {
         this.node = node;
     }
 
-    public void executeScript(List<URI> cleanScripts, List<String> cleanParams) {
+    public boolean executeScript(List<URI> cleanScripts, List<String> cleanParams) {
         try {
             pool.startThreads();
         } catch (Exception e) {
             logger.error(THREAD_POOL_START_ERR, e);
-            return;
+            return false;
         }
 
         synchronized (jobQueue) {
@@ -164,7 +164,7 @@ public class CleanerExecutor {
                 sdQueue.enqueue(sd);
             } catch (Exception e) {
                 logger.error(CLEAN_JOB_ERR, e);
-                return;
+                return false;
             }
         }
         Long timeout = System.currentTimeMillis() + 60_000l;
@@ -197,7 +197,7 @@ public class CleanerExecutor {
             pool.stopThreads();
         } catch (Exception e) {
             logger.error(THREAD_POOL_STOP_ERR, e);
-            return;
+            return false;
         }
 
         // Move cleanX.out logs to default logger
@@ -233,6 +233,7 @@ public class CleanerExecutor {
             }
             new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err").delete();
         }
+        return true;
     }
 
 

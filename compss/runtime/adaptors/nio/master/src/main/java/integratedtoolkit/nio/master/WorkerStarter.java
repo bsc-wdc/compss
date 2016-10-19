@@ -52,6 +52,7 @@ public class WorkerStarter {
 
     private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<String, WorkerStarter>();
     private boolean workerIsReady = false;
+    private boolean toStop = false;
     private NIOWorkerNode nw;
 
 
@@ -66,6 +67,10 @@ public class WorkerStarter {
     public void setWorkerIsReady() {
         workerIsReady = true;
     }
+    
+    public void setToStop(){
+    	toStop = true;
+    }
 
     public NIONode startWorker() throws Exception {
         String name = nw.getName();
@@ -76,7 +81,7 @@ public class WorkerStarter {
 
         NIONode n = null;
         int pid = -1;
-        while (port <= maxPort) {
+        while (port <= maxPort && !toStop) {
             String[] command;
             if (pid != -1) {
                 command = getStopCommand(pid);
@@ -104,7 +109,7 @@ public class WorkerStarter {
                 logger.debug("Worker process started. Checking connectivity...");
 
                 CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
-                while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT)) {
+                while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
                     Thread.sleep(delay);
                     if (!workerIsReady) {
 	                    if (debug) {
@@ -132,14 +137,19 @@ public class WorkerStarter {
             	catch (IllegalStateException e) {
             		logger.warn("Tried to shutdown vm while it was already being shutdown", e);
             	}
+            	nw.setStarted(true);
                 return n;
             }
         }
-
-        if (!workerIsReady) {
+        if (toStop){
+        	logger.debug("[STOP]: Worker " + name + " stopped during creation because application is stopped");
+        	//throw new Exception("[STOP]: Worker " + name + " stopped during creation because application is stopped");
+        	return null;
+        }else if (!workerIsReady) {
         	logger.debug("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
             throw new Exception("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
+        	
             return n; // should be unreachable statement
         }
     }

@@ -321,6 +321,7 @@ public class DataInfoProvider {
                 Comm.clearValue(sourceName);
             }
             toRequest.setResponse(ld.getValue());
+            toRequest.setTargetData(ld);
             toRequest.getSemaphore().release();
         } else {
             DataLocation targetLocation = null;

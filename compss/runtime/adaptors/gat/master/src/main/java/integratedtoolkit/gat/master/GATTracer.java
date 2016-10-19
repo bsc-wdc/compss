@@ -117,7 +117,7 @@ public class GATTracer extends Tracer {
         logger.error("Emit event method based on Extrae JAVA API is not available for GAT tracing on workers. (Use Tracer class when instrumenting master.");
     }
 
-    public static void generatePackage(GATWorkerNode node) {
+    public static boolean generatePackage(GATWorkerNode node) {
         LinkedList<URI> traceScripts = new LinkedList<URI>();
         LinkedList<String> traceParams = new LinkedList<String>();
         String host = node.getHost();
@@ -135,13 +135,15 @@ public class GATTracer extends Tracer {
             traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + TRACE_SCRIPT_PATH));
         } catch (URISyntaxException e) {
             logger.error("Error deleting tracing host", e);
+            return false;
         }
         String pars = "package " + workingDir + " " + host;
 
         traceParams.add(pars);
 
         // Use cleaner to run the trace script and generate the package
-        new CleanerExecutor(node).executeScript(traceScripts, traceParams);
+        return new CleanerExecutor(node).executeScript(traceScripts, traceParams);
+        
     }
 
 }

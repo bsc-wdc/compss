@@ -96,11 +96,13 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void generatePackage() {
+    public boolean generatePackage() {
+    	return false;
     }
 
     @Override
-    public void generateWorkersDebugInfo() {
+    public boolean generateWorkersDebugInfo() {
+    	return false;
     }
 
 }

@@ -21,11 +21,11 @@ public class Main {
 
     public static void printMessage(String msg) {
         // Sleep to allow runtime workers to be ready
-        try {
+        /*try {
             Thread.sleep(SLEEP_TIME);
         } catch (InterruptedException e) {
             // No need to handle such exceptions
-        }
+        }*/
 
         // Print out message
         System.out.println(msg);

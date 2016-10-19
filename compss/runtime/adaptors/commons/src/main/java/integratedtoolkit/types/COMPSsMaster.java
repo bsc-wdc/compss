@@ -377,12 +377,14 @@ public class COMPSsMaster extends COMPSsNode {
         }
     }
 
-    public void generatePackage() {
+    public boolean generatePackage() {
         // Should not be executed on a COMPSsMaster
+    	return false;
     }
 
-    public void generateWorkersDebugInfo() {
+    public boolean generateWorkersDebugInfo() {
         // Should not be executed on a COMPSsMaster
+    	return false;
     }
 
 }

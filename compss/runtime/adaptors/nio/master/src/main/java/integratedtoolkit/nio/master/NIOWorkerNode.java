@@ -56,7 +56,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     private NIONode node;
     private final NIOConfiguration config;
     private final NIOAdaptor commManager;
-
+    private boolean started = false;
+    private WorkerStarter workerStarter;
 
     @Override
     public String getName() {
@@ -73,9 +74,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void start() throws Exception {
         NIONode n = null;
         try {
-            n = new WorkerStarter(this).startWorker();
+        	workerStarter = new WorkerStarter(this);
+            n = workerStarter.startWorker();
         } catch (Exception e) {
-            ErrorManager.warn("There was an error when initiating worker " + getName() + ".", e);
+            ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
         }
         this.node = n;
@@ -153,18 +155,24 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public void stop(ShutdownListener sl) {
-        logger.debug("Shutting down " + this.getName());
-        if (node == null) {
-            sl.notifyFailure(new UnstartedNodeException());
-            logger.error("Shutdown has failed");
-        }
-        Connection c = NIOAgent.tm.startConnection(node);
-        commManager.shuttingDown(this, c, sl);
-        CommandShutdown cmd = new CommandShutdown(null, null);
-        c.sendCommand(cmd);
+    	if (started){
+    		logger.debug("Shutting down " + this.getName());
+    		if (node == null) {
+    			sl.notifyFailure(new UnstartedNodeException());
+    			logger.error("Shutdown has failed");
+    		}
+        	Connection c = NIOAgent.tm.startConnection(node);
+        	commManager.shuttingDown(this, c, sl);
+        	CommandShutdown cmd = new CommandShutdown(null, null);
+        	c.sendCommand(cmd);
 
-        c.receive();
-        c.finishConnection();
+        	c.receive();
+        	c.finishConnection();
+        }else{
+        	logger.debug("Worker " + this.getName() + " hos not started. Setting this to be stopped");
+        	workerStarter.setToStop();
+        	sl.notifyEnd();
+        }
     }
 
     @Override
@@ -406,37 +414,51 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void generatePackage() {
-        logger.debug("Sending command to generated tracing package for " + this.getHost());
-        if (node == null) {
-            logger.error("Package generation has failed.");
-        }
-
-        Connection c = NIOAgent.tm.startConnection(node);
-        CommandGeneratePackage cmd = new CommandGeneratePackage();
-        c.sendCommand(cmd);
-        c.receive();
-        c.finishConnection();
-
-        commManager.waitUntilTracingPackageGenerated();
-        logger.debug("Tracing Package generated");
+    public boolean generatePackage() {
+    	if (started){
+    		logger.debug("Sending command to generated tracing package for " + this.getHost());
+    		if(node == null) {
+    			logger.error("ERROR: Package generation for "+ this.getHost() +" has failed.");
+    			return false;
+    		}else{
+        
+    			Connection c = NIOAgent.tm.startConnection(node);
+    			CommandGeneratePackage cmd = new CommandGeneratePackage();
+    			c.sendCommand(cmd);
+    			c.receive();
+    			c.finishConnection();
+    			commManager.waitUntilTracingPackageGenerated();
+    			logger.debug("Tracing Package generated");
+    			return true;
+    		}
+    	}else{
+    		logger.debug("Worker " + this.getHost()+ " not started. No tracing package generated");
+    		return false;
+    	}
+    		
     }
 
     @Override
-    public void generateWorkersDebugInfo() {
-        logger.debug("Sending command to generate worker debug files for " + this.getHost());
-        if (node == null) {
-            logger.error("Worker debug files generation has failed.");
-        }
-        Connection c = NIOAgent.tm.startConnection(node);
-        CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
-        c.sendCommand(cmd);
+    public boolean generateWorkersDebugInfo() {
+    	if (started){
+    		logger.debug("Sending command to generate worker debug files for " + this.getHost());
+    		if (node == null) {
+    			logger.error("Worker debug files generation has failed.");
+    		}
+    		
+    		Connection c = NIOAgent.tm.startConnection(node);
+    		CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
+    		c.sendCommand(cmd);
+    		c.receive();
+    		c.finishConnection();
 
-        c.receive();
-        c.finishConnection();
-
-        commManager.waitUntilWorkersDebugInfoGenerated();
-        logger.debug("Worker debug files generated");
+    		commManager.waitUntilWorkersDebugInfoGenerated();
+    		logger.debug("Worker debug files generated");
+    		return true;
+    	}else{
+    		logger.debug("Worker debug files not generated because worker was not started");
+    		return false;
+    	}
     }
 
     public void submitTask(NIOJob job, LinkedList<String> obsolete) throws UnstartedNodeException {
@@ -449,5 +471,10 @@ public class NIOWorkerNode extends COMPSsWorker {
         c.sendCommand(cmd);
         c.finishConnection();
     }
+
+	public void setStarted(boolean b) {
+		started=b;
+		
+	}
 
 }

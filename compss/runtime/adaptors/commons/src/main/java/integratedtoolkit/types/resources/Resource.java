@@ -306,16 +306,18 @@ public abstract class Resource implements Comparable<Resource> {
         if (this.getType() != Type.SERVICE) {
 
             if (Tracer.isActivated()) {
-                node.generatePackage();
-                getTracingPackageToMaster();
-                if (debug) {
-                    logger.debug("Tracing package obtained for " + this.getName());
+                if (node.generatePackage()){
+                	getTracingPackageToMaster();
+                	if (debug) {
+                		logger.debug("Tracing package obtained for " + this.getName());
+                	}
                 }
             }
             if (debug) {
-                node.generateWorkersDebugInfo();
-                getWorkersDebugInfo();
-                logger.debug("Workers Debug files obtained for " + this.getName());
+                if (node.generateWorkersDebugInfo()){
+                	getWorkersDebugInfo();
+                	logger.debug("Workers Debug files obtained for " + this.getName());
+                }
             }
         }
     }

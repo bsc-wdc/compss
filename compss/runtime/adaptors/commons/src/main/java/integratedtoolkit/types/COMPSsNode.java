@@ -28,7 +28,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
 
-
     public COMPSsNode() {
     }
 
@@ -52,9 +51,9 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     public abstract void deleteTemporary();
 
-    public abstract void generatePackage();
+    public abstract boolean generatePackage();
 
-    public abstract void generateWorkersDebugInfo();
+    public abstract boolean generateWorkersDebugInfo();
 
     @Override
     public int compareTo(COMPSsNode host) {

@@ -171,6 +171,7 @@ public class ResourceManager {
         // Stop static workers - Order its destruction from runtime and transfer files
         // Physical worker (COMM) is erased now - because of cloud
         if (pool != null && !pool.getStaticResources().isEmpty()) {
+            
             resourcesLogger.debug("DEBUG_MSG = [Resource Manager retreiving data from workers...]");
             for (Worker<?> r : pool.getStaticResources()) {
                 r.retrieveData(false);
@@ -179,7 +180,7 @@ public class ResourceManager {
             ShutdownListener sl = new ShutdownListener(sem);
             resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
             for (Worker<?> r : pool.getStaticResources()) {
-                r.stop(sl);
+            	r.stop(sl);
             }
 
             resourcesLogger.debug("DEBUG_MSG = [Waiting for workers to shutdown...]");

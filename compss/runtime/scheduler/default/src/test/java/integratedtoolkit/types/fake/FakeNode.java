@@ -66,13 +66,14 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public void generatePackage() {
+    public boolean generatePackage() {
+    	return false;
 
     }
 
     @Override
-    public void generateWorkersDebugInfo() {
-
+    public boolean generateWorkersDebugInfo() {
+    	return false;
     }
 
 }

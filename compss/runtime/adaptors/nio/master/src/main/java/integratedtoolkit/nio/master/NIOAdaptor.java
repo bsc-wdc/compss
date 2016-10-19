@@ -235,6 +235,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         ShutdownListener sl = new ShutdownListener(sem);
         for (NIOWorkerNode worker : workers) {
             logger.debug("- Stopping worker" + worker.getName());
+            sl.addOperation();
             worker.stop(sl);
         }
 

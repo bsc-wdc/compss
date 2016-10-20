@@ -900,12 +900,22 @@ cleanup() {
 # Insert XML Headers
 ###############################################
 insert_xml_headers() {
-  cat > ${RESOURCES_FILE} << EOT
+  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    cat > ${RESOURCES_FILE} << EOT
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+  <SharedDisk Name="gpfs" />
+  <SharedDisk Name="gpfs2" />
+
+EOT
+  else
+    cat > ${RESOURCES_FILE} << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
   <SharedDisk Name="gpfs" />
 
 EOT
+  fi
 
   cat > ${PROJECT_FILE} << EOT
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -913,8 +923,18 @@ EOT
   <MasterNode>
       <SharedDisks>
           <AttachedDisk Name="gpfs">
-              <MountPoint>/gpfs/</MountPoint>
+              <MountPoint>${GPFS_PREFIX}</MountPoint>
           </AttachedDisk>
+EOT
+  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    cat >> ${PROJECT_FILE} << EOT
+          <AttachedDisk Name="gpfs2">
+              <MountPoint>${GPFS2_PREFIX}</MountPoint>
+          </AttachedDisk>
+EOT
+  fi 
+
+  cat >> ${PROJECT_FILE} << EOT
       </SharedDisks>
   </MasterNode>
 
@@ -987,6 +1007,16 @@ add_compute_node() {
           <AttachedDisk Name="gpfs">
               <MountPoint>${GPFS_PREFIX}</MountPoint>
           </AttachedDisk>
+EOT
+  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    cat >> ${PROJECT_FILE} << EOT
+          <AttachedDisk Name="gpfs2">
+              <MountPoint>${GPFS2_PREFIX}</MountPoint>
+          </AttachedDisk>
+EOT
+  fi
+
+  cat >> ${PROJECT_FILE} << EOT
       </SharedDisks>
   </ComputeNode>
 

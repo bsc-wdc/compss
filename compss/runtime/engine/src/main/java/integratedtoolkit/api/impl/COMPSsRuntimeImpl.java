@@ -603,6 +603,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
+        
+        logger.info("Deleting File " + fileName);
 
         // Parse the file name and translate the access mode
         DataLocation loc = null;

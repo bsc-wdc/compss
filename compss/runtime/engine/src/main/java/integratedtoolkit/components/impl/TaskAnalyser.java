@@ -448,7 +448,7 @@ public class TaskAnalyser {
     }
 
     public String getTaskStateRequest() {
-        StringBuilder sb = new StringBuilder("\t<TasksInfo>\n");
+        StringBuilder sb = new StringBuilder("\t").append("<TasksInfo>").append("\n");
         for (Entry<Long, Integer> e : appIdToTotalTaskCount.entrySet()) {
             Long appId = e.getKey();
             Integer totalTaskCount = e.getValue();
@@ -457,24 +457,28 @@ public class TaskAnalyser {
                 taskCount = 0;
             }
             int completed = totalTaskCount - taskCount;
-            sb.append("\t\t<Application id=\"").append(appId).append("\">\n");
-            sb.append("\t\t\t<TotalCount>").append(totalTaskCount).append("</TotalCount>\n");
-            sb.append("\t\t\t<InProgress>").append(taskCount).append("</InProgress>\n");
-            sb.append("\t\t\t<Completed>").append(completed).append("</Completed>\n");
-            sb.append("\t\t</Application>\n");
+            sb.append("\t\t").append("<Application id=\"").append(appId).append("\">").append("\n");
+            sb.append("\t\t\t").append("<TotalCount>").append(totalTaskCount).append("</TotalCount>").append("\n");
+            sb.append("\t\t\t").append("<InProgress>").append(taskCount).append("</InProgress>").append("\n");
+            sb.append("\t\t\t").append("<Completed>").append(completed).append("</Completed>").append("\n");
+            sb.append("\t\t").append("</Application>").append("\n");
         }
-        sb.append("\t</TasksInfo>\n");
+        sb.append("\t").append("</TasksInfo>").append("\n");
         return sb.toString();
     }
 
     public void deleteFile(FileInfo fileInfo) {
         int dataId = fileInfo.getDataId();
+        
+        logger.debug("Deleting file with id " + dataId + " and location " + fileInfo.getOriginalLocation());
+
         Task task = writers.get(dataId);
         if (task != null) {
             return;
         }
+        
         for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
-            files.remove(fileInfo.getDataId());
+            files.remove(dataId);
         }
     }
 }

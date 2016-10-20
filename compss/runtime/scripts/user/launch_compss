@@ -1009,20 +1009,20 @@ add_compute_node() {
           </AttachedDisk>
 EOT
   if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
-    cat >> ${PROJECT_FILE} << EOT
+    cat >> ${RESOURCES_FILE} << EOT
           <AttachedDisk Name="gpfs2">
               <MountPoint>${GPFS2_PREFIX}</MountPoint>
           </AttachedDisk>
 EOT
   fi
 
-  cat >> ${PROJECT_FILE} << EOT
+  cat >> ${RESOURCES_FILE} << EOT
       </SharedDisks>
   </ComputeNode>
 
 EOT
 
-  cat >> ${PROJECT_FILE} << EOT
+  cat >> ${RESOURCES_FILE} << EOT
   <ComputeNode Name="${nodeName}">
       <InstallDir>${worker_install_dir}</InstallDir>
       <WorkingDir>${worker_working_dir}</WorkingDir>

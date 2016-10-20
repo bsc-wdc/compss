@@ -1022,7 +1022,7 @@ EOT
 
 EOT
 
-  cat >> ${RESOURCES_FILE} << EOT
+  cat >> ${PROJECT_FILE} << EOT
   <ComputeNode Name="${nodeName}">
       <InstallDir>${worker_install_dir}</InstallDir>
       <WorkingDir>${worker_working_dir}</WorkingDir>

@@ -25,8 +25,8 @@ public class ITConstants {
 
     // Languages
     public static enum Lang {
-        JAVA, 
-        C, 
+        JAVA,
+        C,
         PYTHON
     }
 
@@ -61,7 +61,7 @@ public class ITConstants {
 
     public static final String COMM_ADAPTOR 		= "it.comm";
     public static final String CONNECTOR_JAR_PATHS  = "it.conn";
-    
+
     // SERVICES
     public static final String SERVICE_ADAPTOR = "integratedtoolkit.ws.master.WSAdaptor";
 
@@ -98,16 +98,17 @@ public class ITConstants {
     public static final String IT_STORAGE_CONF = "it.storage.conf";
     public static final String IT_TASK_EXECUTION = "it.task.execution";
     public static final String EXECUTION_INTERNAL = "compss";
-    
+
     // According to runcompss script default value
     // private static final String DEFAULT_ADAPTOR = "integratedtoolkit.gat.master.GATAdaptor";
     public static final String DEFAULT_ADAPTOR = "integratedtoolkit.nio.master.NIOAdaptor";
-    
+
     // All connector jars except for Docker, which gives dependency conflicts
-    public static final String DEFAULT_CONNECTOR_JAR_PATHS 	= 
+    public static final String DEFAULT_CONNECTOR_JAR_PATHS 	=
 			"compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:" +
-    		"compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar";
-    
+    		"compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar:" +
+            "compss-defaultSSH-connector.jar";
+
     public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
     public static final String DEFAULT_TRACING = "0";
     public static final String DEFAULT_CUSTOM_EXTRAE_FILE = "null";

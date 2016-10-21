@@ -54,6 +54,9 @@ public final class Loggers {
     // Communications
     public static final String COMM = IT + ".Communication";
 
+    // Connectors
+    public static final String CONN = IT + ".Connectors";
+
     // Storage
     public static final String STORAGE = IT + ".Storage";
 

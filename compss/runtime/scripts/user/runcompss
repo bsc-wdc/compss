@@ -34,7 +34,7 @@ DEFAULT_PyOBJECT_SERIALIZE=false
 
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
-DEFAULT_CONNECTOR_JARS="compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar"
+#DEFAULT_CONNECTOR_JARS="compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar"
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
@@ -83,7 +83,7 @@ show_opts() {
     --project=<path>                        Path to the project XML file
                                             Default: ${DEFAULT_PROJECT}
     --resources=<path>                      Path to the resources XML file
-                                            Default: ${DEFAULT_RESOURCES}                                                 
+                                            Default: ${DEFAULT_RESOURCES}
     --lang=<name>                           Language of the application (java/c/python)
                                             Default: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
@@ -180,11 +180,11 @@ display_error() {
 # Displays runtime/application errors
 error_msg() {
   local error_msg=$1
-  
-  # Display error 
-  echo 
+
+  # Display error
+  echo
   echo $error_msg
-  echo 
+  echo
 
   # Exit
   exit 1
@@ -282,7 +282,7 @@ get_args() {
 	    projFile=$(echo $OPTARG | sed -e 's/project=//g')
 	    if [ ! -f $projFile ]; then
 	      echo "[ WARNING ]: Project XML file '$projFile' could not be found."
-	    fi 
+	    fi
 	    ;;
 	  resources=*)
 	    # Custom resources file
@@ -298,9 +298,9 @@ get_args() {
             storageConf=`echo $OPTARG | sed -e 's/storage_conf=//g'`;
             ;;
 	  task_execution=*)
-	    # Task execution under COMPSs or Storage 
+	    # Task execution under COMPSs or Storage
 	    taskExecution=$(echo $OPTARG | sed -e 's/task_execution=//g')
-	    ;;                    	
+	    ;;
 	  lang=*)
 	    # Language selection
 	    lang=$(echo $OPTARG | sed -e 's/lang=//g')
@@ -490,7 +490,7 @@ check_args() {
   if [ -z "${custom_extrae_config_file}" ]; then
     custom_extrae_config_file=${DEFAULT_EXTRAE_CONFIG_FILE}
   fi
- 
+
   # Tracing level
   if [ -z "$tracing" ]; then
     tracing=0
@@ -541,9 +541,9 @@ check_args() {
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
 
-  if [ -z "$conn" ]; then
-    conn=${DEFAULT_CONNECTOR_JARS}
-  fi
+  # if [ -z "$conn" ]; then
+  #   conn=${DEFAULT_CONNECTOR_JARS}
+  # fi
 
   if [ -z "$scheduler" ]; then
     scheduler=${DEFAULT_SCHEDULER}
@@ -555,7 +555,7 @@ check_args() {
        cp=$cp:${DEFAULT_CLASSPATH}/$jar
     done
   else
-    fcp="" 
+    fcp=""
     for currcp in ${cp//:/$'\n'}; do
       if [ ! ${currcp:0:1} == '/' ]; then # Relative paths to absolute
         if [ -d "$currcp" ] || [ -f "$currcp" ]; then   # If the dir/file exists locally
@@ -565,14 +565,14 @@ check_args() {
 	else
 	  echo "[ WARNING ]: Classpath \"$currcp\" does not exist..."
 	fi
-      else        
+      else
    	fcp="${fcp}$currcp:"
       fi
     done
     cp="$fcp"
     echo "[  INFO] Relative Classpath resolved: $cp"
-  fi          
-        
+  fi
+
   if [ -z "$task_count" ]; then
     task_count=${DEFAULT_TASK_COUNT}
   fi
@@ -589,7 +589,7 @@ check_args() {
   if [ -z "${master_name}" ]; then
     master_name=${DEFAULT_MASTER_NAME}
   fi
-  
+
   # JVM
   if [ -z "${jvm_master_opts}" ]; then
     jvm_master_opts=${DEFAULT_JVM_MASTER}
@@ -695,7 +695,6 @@ ${jvm_debugger_opts}
 -Dit.tracing=${tracing}
 -Dit.extrae.file=${custom_extrae_config_file}
 -Dit.comm=${comm}
--Dit.conn=${conn}
 -Dit.masterName=${master_name}
 -Dit.masterPort=${master_port}
 -Dit.scheduler=${scheduler}
@@ -705,6 +704,9 @@ ${jvm_debugger_opts}
 -Dit.worker.cp=${cp}:${CLASSPATH}
 -Dit.worker.jvm_opts=${jvm_workers_opts}
 EOT
+    if [ -n "$conn" ]; then
+        /bin/echo -Dit.conn=${conn} >> ${jvm_options_file}
+    fi
 }
 
 add_jvm_opts_java() {
@@ -794,9 +796,9 @@ exec_c() {
 exec_python() {
   # Python Storage API
   storageApi=${IT_HOME}/Dependencies/
-  cp=$cp:$storageApi    
+  cp=$cp:$storageApi
 
-  # Export needed variables 
+  # Export needed variables
   if [ -d $IT_HOME/Bindings/python ]; then
     PYCOMPSS_HOME=${IT_HOME}/Bindings/python
     export PYTHONPATH=${PYCOMPSS_HOME}:$cp:$PYTHONPATH
@@ -848,7 +850,6 @@ clean_env() {
 
   # Trap to ensure clean end
   trap clean_env EXIT
-  
+
   # Real runtime execution
   execute_runtime
-

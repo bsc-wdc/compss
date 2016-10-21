@@ -180,15 +180,15 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     }
 
-	private void transferPackages(Session session, List<ApplicationPackage> packages) throws Exception {
-		ChannelSftp client = null;
-		try {
-			client = (ChannelSftp) session.openChannel("sftp");
-			client.connect(SERVER_TIMEOUT);
-			for (ApplicationPackage p : packages) {
-				String[] path = p.getSource().split(File.separator);
-				String name = path[path.length - 1];
-				String target = p.getTarget() + File.separator + name;
+    private void transferPackages(Session session, List<ApplicationPackage> packages) throws Exception {
+        ChannelSftp client = null;
+        try {
+            client = (ChannelSftp) session.openChannel("sftp");
+            client.connect(SERVER_TIMEOUT);
+            for (ApplicationPackage p : packages) {
+                String[] path = p.getSource().split(File.separator);
+                String name = path[path.length - 1];
+                String target = p.getTarget() + File.separator + name;
 
                 // Transfer packages
                 if (client == null) {
@@ -229,8 +229,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             String target = p.getTarget();
 
             // Adding classpath in bashrc
-            String command = "echo \"\nfor i in " + target + File.separator + "*.jar ; " + "do\n" + "\texport CLASSPATH=\\$CLASSPATH:\\$i\n"
-                    + "done\" >> " + File.separator + "home" + File.separator + user + File.separator + ".bashrc";
+            String command = "echo \"\nfor i in " + target +
+                    "/*.jar ; do\n\texport CLASSPATH=\\$CLASSPATH:\\$i\ndone\" >> ~/.bashrc";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         }
@@ -261,7 +261,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 errStream = p.getErrorStream();
                 outStream = p.getInputStream();
                 p.waitFor();
-                
+
                 boolean commandFailed = false;
                 if (p.exitValue() == 0) {
                     key = readInputStream(outStream);
@@ -272,7 +272,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     commandFailed = true;
                     errorString = readInputStream(outStream);
                 }
-                
+
                 if (commandFailed) {
                     errors++;
                     logger.debug("Error scaning key. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
@@ -380,12 +380,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         }
 
         try {
-            String command = "/bin/echo \"" + publicKey + "\" > " + File.separator + "home" + File.separator + user + File.separator
-                    + ".ssh" + File.separator + keyType + ".pub" + " ; " + "/bin/echo \"" + privateKey + "\" > " + File.separator + "home"
-                    + File.separator + user + File.separator + ".ssh" + File.separator + keyType + ";" + "chmod 600 " + File.separator
-                    + "home" + File.separator + user + File.separator + ".ssh" + File.separator + keyType + " ; " + "/bin/echo \""
-                    + publicKey + "\" >> " + File.separator + "home" + File.separator + user + File.separator + ".ssh" + File.separator
-                    + "authorized_keys";
+            String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub; /bin/echo \""
+                    + privateKey + "\" > ~/.ssh/" + keyType + "; chmod 600 ~/.ssh/" + keyType + "; /bin/echo \""
+                    + publicKey + "\" >> ~/.ssh/authorized_keys";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         } catch (Exception e) {
@@ -448,11 +445,18 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             exec = (ChannelExec) session.openChannel("exec");
             exec.setCommand(command);
 
+            // Waits the command to be executed
+            inputStream = exec.getErrStream();
+            InputStream stdOut = exec.getInputStream();
+
             // Execute command
             exec.connect(SERVER_TIMEOUT);
 
-            // Waits the command to be executed
-            inputStream = exec.getErrStream();
+            if (debug) {
+                String output = readInputStream(stdOut);
+                logger.debug("Command output: " + output);
+            }
+
             int exitStatus = -1;
             while (exitStatus < 0) {
                 exitStatus = exec.getExitStatus();
@@ -617,9 +621,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         @Override
         public boolean count(long count) {
             this.count += count;
-            /*
-             * float percent = this.count * 100 / max; if (debug) { logger.debug("..." + percent + "%"); }
-             */
+
+            // float percent = this.count * 100 / max; if (debug) { logger.debug("..." + percent + "%"); }
+
             return true;
         }
 

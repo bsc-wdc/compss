@@ -215,6 +215,20 @@ delete_file(PyObject *self, PyObject *args)
 
 
 static PyObject *
+waitForAllTasks(PyObject *self, PyObject *args)
+{
+    //printf ("####C#### BARRIER\n");
+
+    long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
+    GS_WaitForAllTasks(app_id);
+
+    //printf("####C#### COMPSs barrier for AppId: %ld \n", (app_id));
+
+    return Py_BuildValue("i", 0);
+}
+
+
+static PyObject *
 get_logging_path(PyObject *self, PyObject *args)
 {
     //printf ("####C#### GET LOG PATH\n");
@@ -244,7 +258,6 @@ set_constraints(PyObject *self, PyObject *args)
 	//printf ("####C####Has return: %d\n", has_return);
 	char *constraints = PyString_AsString(PyTuple_GetItem(args, 5));
 	//printf ("####C####Constraints: %s\n", constraints);
-
 	int parameterCount = (int)PyInt_AsLong(PyTuple_GetItem(args, 6));
 	//printf ("####C####parameter Count: %d\n", parameterCount);
 
@@ -281,9 +294,11 @@ static PyMethodDef CompssMethods[] = {
 
     { "delete_file", delete_file, METH_VARARGS, "Delete a file." },
 
-	{ "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
+    { "waitForAllTasks", waitForAllTasks, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
 
-	{ "set_constraints", set_constraints, METH_VARARGS, "Sets the task constraints." },
+    { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
+
+    { "set_constraints", set_constraints, METH_VARARGS, "Sets the task constraints." },
 
     { NULL, NULL, 0, NULL } /* sentinel */
 

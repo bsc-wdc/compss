@@ -22,7 +22,13 @@ import types
 import new
 import copy
 import sys
+import copy_reg
 from opcode import*
+
+
+#########################################################################
+########################## GENERATORS ###################################
+#########################################################################
 
 def copy_generator(f_gen):
     '''
@@ -168,14 +174,31 @@ def unpickle_generator_filename(filename):
     return copy_generator(gen_snapshot)[0]
 
 
+#########################################################################
+######################## MODULE OBJECTS #################################
+#########################################################################
+
+def reduce_mod(m):
+    assert sys.modules[m.__name__] is m
+    return rebuild_mod, (m.__name__,)
+
+
+def rebuild_mod(name):
+    __import__(name)
+    return sys.modules[name]
+
+
 ##############
 # Interfaces #
 ##############
 
+# ----------------- GENERATORS --------------------
+
 def pickle_generator(f_gen, f):
     '''
-    @param f_gen: generator object
-    @param f: destination file for pickling generator
+    Pickle a generator and store the serialization result in a file.
+    :param f_gen: generator object.
+    :param f: destination file for pickling generator.
     '''
     f_gen.next()  # jump one ahead for not to repeat when unpickling
     pickle.dump(GeneratorSnapshot(f_gen), f)
@@ -183,7 +206,9 @@ def pickle_generator(f_gen, f):
 
 def unpickle_generator(f):
     '''
-    @param f: source file of pickled generator
+    Unpickle a generator from a file.
+    :param f: source file of pickled generator.
+    :return: the generator from file.
     '''
     gen_snapshot = pickle.load(f)
     return copy_generator(gen_snapshot)[0]
@@ -191,8 +216,32 @@ def unpickle_generator(f):
 
 def getPickled_generator(f_gen):
     '''
-    @param f_gen: generator object
-    @param f: destination file for pickling generator
+    Retrieve a generator that has been pickled.
+    :param f_gen: generator object.
+    :param f: destination file for pickling generator.
+    :return: a generator.
     '''
     f_gen.next()  # jump one ahead for not to repeat when unpickling
     return GeneratorSnapshot(f_gen)
+
+
+# ----------------- MODULE OBJECTS --------------------
+
+def pickle_module_object(mo, f, protocol):
+    '''
+    Pickle a module object and store the serialization result in a file.
+    :param mo: module object
+    :param f: destination file for pickling the module object
+    :param protocol: pickling protocol
+    '''
+    copy_reg.pickle(type(sys), reduce_mod)
+    pickle.dump(mo, f, protocol)
+
+
+def unpickle_module_object(f):
+    '''
+    Unpickle a module object from a file.
+    :param f: source file of pickled module object.
+    :return: a module object.
+    '''
+    return pickle.load(f)

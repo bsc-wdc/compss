@@ -134,6 +134,15 @@ def delete_file(file_name):
         logger.error("Failed to remove file %s." % (file_name))
 
 
+def barrier():
+    """
+    Calls the external python library (that calls the bindings-common) in order to request a barrier.
+    Wait for all tasks.
+    """
+    logger.debug("Wait for all tasks.")
+    compss.waitForAllTasks(0) # Always 0 (not needed for the signature)
+
+
 def get_logPath():
     """
     Requests the logging path to the external python library (that calls the bindings-common).

@@ -34,6 +34,8 @@ jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the integratedtoolkit.
 jmethodID midOpenFile; 		/* ID of the openFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
+jmethodID midWaitForAllTasks; 	/* ID of the waitForAllTasks method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+
 jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
 jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
 jobject jobjParDirOUT; 		/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
@@ -191,6 +193,13 @@ void init_jni_types() {
   
   // deleteFile method
   midDeleteFile = env->GetMethodID(clsITimpl, "deleteFile", "(Ljava/lang/String;)Z"); 
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  
+  // waitForAllTasks method
+  midWaitForAllTasks = env->GetMethodID(clsITimpl, "waitForAllTasks", "(Ljava/lang/Long;)V");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -730,6 +739,18 @@ void GS_Delete_File(char *file_name, int **buf)
   }
   debug_printf("[   BINDING]  -  @GS_Delete_File  -  COMPSs filename: %s\n", *file_name);
 }
+
+
+void GS_WaitForAllTasks(long _appId)
+{
+  env->CallVoidMethod(jobjIT, midWaitForAllTasks, appId);
+  if (env->ExceptionOccurred()) {
+      env->ExceptionDescribe();
+      exit(0);
+  }
+  debug_printf("[   BINDING]  -  @GS_WaitForAllTasks  -  APP id: %lu", appId);
+}
+
 
 void GS_EmitEvent(int type, long id)
 {

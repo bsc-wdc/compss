@@ -10,6 +10,7 @@ PyCOMPSs API
 
 from pycompss.runtime.binding import start_runtime, stop_runtime
 from pycompss.runtime.binding import get_file, delete_file
+from pycompss.runtime.binding import barrier
 from pycompss.runtime.binding import synchronize, get_compss_mode
 from pycompss.runtime.binding import get_task_objects
 
@@ -50,6 +51,14 @@ def compss_delete(file_name):
     :param file_name: File name.
     """
     delete_file(file_name)
+
+
+def waitForAllTasks():
+    """
+    Perform a barrier when called.
+    Stop until all the submitted tasks have finished.
+    """
+    barrier()
 
 
 def compss_wait_on(obj, to_write=True):

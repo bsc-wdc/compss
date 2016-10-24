@@ -14,14 +14,14 @@ import math
 import logging
 from cPickle import load, dump
 from cPickle import loads, dumps
-from cPickle import HIGHEST_PROTOCOL, UnpicklingError
+from cPickle import HIGHEST_PROTOCOL, UnpicklingError, PicklingError
 import types
 import marshal
 from serialization.extendedSupport import pickle_generator
-from serialization.extendedSupport import getPickled_generator
 from serialization.extendedSupport import copy_generator
 from serialization.extendedSupport import GeneratorSnapshot
-#from ..api.gentask import GeneratorWrapper
+from serialization.extendedSupport import pickle_module_object
+from serialization.extendedSupport import unpickle_module_object
 
 logger = logging.getLogger(__name__)
 
@@ -37,13 +37,12 @@ class GeneratorException(Exception):
 
 #class GeneratorTaskException(Exception):
 #    pass
-
-
-class genTaskSerializer(object):
-    def __init__(self, gen, n, maxiter):
-        self.gen = gen
-        self.n = n
-        self.maxiter = maxiter
+#
+#class genTaskSerializer(object):
+#    def __init__(self, gen, n, maxiter):
+#        self.gen = gen
+#        self.n = n
+#        self.maxiter = maxiter
 
 
 def serialize_to_file(obj, file_name, force=False):
@@ -84,7 +83,14 @@ def serialize_to_file(obj, file_name, force=False):
             #    dump(sg, f)
             else:
                 # All other objects are serialized using cPickle
-                dump(obj, f, HIGHEST_PROTOCOL)
+                try:
+                    dump(obj, f, HIGHEST_PROTOCOL)
+                except PicklingError, e:
+                    # Could not serialize the object. Probably it is a module object.
+                    if "Can't pickle <type 'module'>" in str(e):
+                        pickle_module_object(obj, f, HIGHEST_PROTOCOL)
+                    else:
+                        raise PicklingError(str(e))
             f.close()
         return file_name
 
@@ -172,5 +178,12 @@ def serialize_objects(to_serialize):
             #    dump(sg, f)
             else:
                 # All other objects are serialized using cPickle
-                dump(obj, f, HIGHEST_PROTOCOL)
+                try:
+                    dump(obj, f, HIGHEST_PROTOCOL)
+                except PicklingError, e:
+                    # Could not serialize the object. Probably it is a module object.
+                    if "Can't pickle <type 'module'>" in str(e):
+                        pickle_module_object(obj, f, HIGHEST_PROTOCOL)
+                    else:
+                        raise PicklingError(str(e))
             f.close()

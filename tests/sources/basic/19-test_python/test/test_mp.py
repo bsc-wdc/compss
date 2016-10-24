@@ -19,6 +19,7 @@ from test.modules.test_tasks import function_time_decorated_master, function_tim
 from test.modules.test_tasks import function_argfunc, function_lambda, function_generator
 from test.modules.test_tasks import function_lambda_return, function_generator_return
 from test.modules.test_tasks import multireturn, power, merge
+from test.modules.test_tasks import function_moduleObject, Foo
 
 def main_program():
     
@@ -58,6 +59,8 @@ def main_program():
     test_all_class_tasks()
     
     test_multireturn()
+    
+    test_moduleObject()
         
     
 def test_function_primitives():
@@ -521,6 +524,19 @@ def test_multireturn():
         print "- Test multiple objects return: OK"
     else:           
         print "- Test multiple objects return: ERROR"
+
+
+def test_moduleObject():
+    print "test_moduleObject"
+    foo = Foo()
+    foo.set(10)
+    result = function_moduleObject(foo)
+    result = compss_wait_on(result)
+    if result.get() == 10*10:
+        print "- Test module object parameter: OK"
+    else:
+        print "- Test module object parameter: ERROR"
+                                            
     
 
 if __name__ == "__main__":

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  
+  #Global exit variable
+  exitValue=0
+  
+  #----------------------------------------------------------------------------------
+  #Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  
+  #----------------------------------------------------------------------------------
+  # Set environment variables
+  export computingUnits="2"
+  export processorName="MainProcessor"
+  export processorSpeed="2.4"
+  export processorArchitecture="amd64"
+  export processorPropertyName="ThreadAffinity"
+  export processorPropertyValue="Big"
+  export memorySize="8.0"
+  export memoryType="Volatile"
+  export storageSize="240.0"
+  export storageType="SSD"
+  export operatingSystemType="Linux"
+  export operatingSystemDistribution="OpenSUSE"
+  export operatingSystemVersion="13.2"
+  export appSoftware="JAVA, PYTHON, COMPSS"
+  export hostQueues="sequential, debug, bsc"
+  export wallClockLimit="10"
+  
+  #----------------------------------------------------------------------------------
+  # Run application 36 - environment variables
+  echo
+  echo "*** RUNNING PYTHON APPLICATION ENVIRONMENT VARIABLES TASK"
+  output_log="${target_log_folder}/environmentVariables_python.outputlog"
+  error_log="${target_log_folder}/environmentVariables_python.errorlog"
+  expectedTime=80s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --lang=python \
+     --comm=$comm \
+     --pythonpath=${base_app_dir}/src/ \
+     ${base_app_dir}/src/barrierTest.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/barrierTest.py_01/* ${target_log_folder}
+     
+     #Report time out
+     echo "[WARNING] Python Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/barrierTest.py_01/* ${target_log_folder}
+  
+     #Check result
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${comm}
+     exitValue=$?
+  fi
+  
+  
+  #----------------------------------------------------------------------------------
+  #Return execution status
+  exit $exitValue

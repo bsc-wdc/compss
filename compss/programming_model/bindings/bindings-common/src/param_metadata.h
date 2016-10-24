@@ -16,24 +16,24 @@ enum datatype {
         file_dt,
         object_dt,
         persistent_dt,
-	sco_dt,
+        sco_dt,
 
-	wchar_dt,
-	wstring_dt,
-	longlong_dt,
-	void_dt,
-	any_dt,
-	null_dt,
+        wchar_dt,
+        wstring_dt,
+        longlong_dt,
+        void_dt,
+        any_dt,
+        null_dt,
 };
 
 // MATCHES JAVA COMPSsRuntime API Enum
 // Adds internal data representations
 enum direction {
-	in_dir = 0, 
-	out_dir, 
-	inout_dir, 
+        in_dir = 0, 
+        out_dir, 
+        inout_dir, 
 
-	null_dir,
+        null_dir,
 };
 
 #endif /* PARAM_METADATA_H */

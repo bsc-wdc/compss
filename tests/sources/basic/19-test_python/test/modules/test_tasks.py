@@ -274,3 +274,25 @@ def merge(v1, v2):
     print "v2: ", v2
     print "Result: ", v1+v2
     return v1+v2
+
+
+import cPickle
+class Foo(object):
+    def __init__(self):
+        self.mod=cPickle
+        self.value = 0
+    def set(self,v):
+        self.value = v
+    def get(self):
+        return self.value
+
+                                            
+@task(returns = object)
+def function_moduleObject(value):
+    print "Test Module Object"
+    v = value.get()
+    print "Value before: ", v
+    print "Value set to: ", v*v
+    value.set(v*v)
+    return value
+                                                                    

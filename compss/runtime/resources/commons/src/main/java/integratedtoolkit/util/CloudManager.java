@@ -2,6 +2,7 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.ResourceCreationRequest;
@@ -12,6 +13,8 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -25,6 +28,12 @@ import org.apache.logging.log4j.Logger;
  */
 public class CloudManager {
 
+    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
+
+    private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
+    private static final String WARN_NO_IT_HOME_RESOURCES = "WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
+    private static final String WARN_NO_CONNECTORS_FOLDER = "WARN: Connectors folder not defined, no default connectors loaded";
+    private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES = "WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
     private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
     private static final String WARN_CANNOT_TURN_ON = "WARN: Connector cannot turn on resource";
     private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
@@ -47,6 +56,7 @@ public class CloudManager {
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
 
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
 
 
     /**
@@ -58,6 +68,8 @@ public class CloudManager {
         useCloud = false;
         providers = new HashMap<String, CloudProvider>();
         VM2Provider = new HashMap<String, CloudProvider>();
+
+        loadRuntimeConnectorJars();
     }
 
     /**
@@ -335,7 +347,7 @@ public class CloudManager {
 
     /**
      * Given a set of resources, it checks every possible modification of the resource and returns the one that better
-     * fits with the destuction recommendations.
+     * fits with the destruction recommendations.
      *
      * The decision-making algorithm tries to minimize the number of affected CE that weren't recommended to be
      * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
@@ -393,7 +405,6 @@ public class CloudManager {
                             bestRD = rd;
                         }
                     }
-
                 } else {
                     if (bestRecord[0] > values[0]) {
                         bestRecord = values;
@@ -536,6 +547,26 @@ public class CloudManager {
             return providers.get(name);
         }
         return null;
+    }
+
+    private static void loadRuntimeConnectorJars() {
+        runtimeLogger.debug("Loading runtime connectors to classpath...");
+
+        String itHome = System.getenv(ITConstants.IT_HOME);
+        if (itHome == null || itHome.isEmpty()) {
+            resourcesLogger.warn(WARN_NO_IT_HOME_RESOURCES);
+            runtimeLogger.warn(WARN_NO_IT_HOME);
+            return;
+        }
+
+        String connPath = itHome + CONNECTORS_REL_PATH;
+        try {
+            Classpath.loadPath(connPath, runtimeLogger);
+        } catch (FileNotFoundException fnfe) {
+            ErrorManager.warn("Connector jar " + connPath + " not found.");
+            resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
+            runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
+        }
     }
 
     /*

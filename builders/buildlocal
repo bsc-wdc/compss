@@ -306,6 +306,7 @@ install() {
   mkdir -p ${targetDir}/Runtime/scripts
   mkdir -p ${targetDir}/Runtime/adaptors
   mkdir -p ${targetDir}/Runtime/connectors
+  mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor
@@ -385,11 +386,17 @@ install() {
   done
 
   #Connectors
-  echo "--- Copy connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/defaultSSH/target/conn-jars/ -name "*.jar")
+  echo "--- Copy Runtime Connectors"
+  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
     cp $conn ${targetDir}/Runtime/connectors/
   done
+  echo "--- Copy CONN Connectors"
+  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
+  for conn in $connectors; do
+    cp $conn ${targetDir}/Runtime/cloud-conn/
+  done
+
   #Engine
   echo "--- Copy engine"
   cp ${tmpDir}/compss/runtime/compss-engine.jar ${targetDir}/Runtime/

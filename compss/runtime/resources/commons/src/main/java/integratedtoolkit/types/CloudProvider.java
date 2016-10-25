@@ -57,7 +57,8 @@ public class CloudProvider {
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(System.getProperty(ITConstants.IT_CONN));
-            Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
+            Class<?>[] parameterTypes = new Class<?>[] {String.class, String.class, String.class, HashMap.class};
+            Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(providerName, connectorJarPath, connectorMainClass, connectorProperties);
             connector = (Connector) conector;
             cost = (Cost) conector;

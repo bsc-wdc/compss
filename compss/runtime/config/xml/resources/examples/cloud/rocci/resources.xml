@@ -4,7 +4,7 @@
         <Endpoint>
             <Server>https://bscgrid20.bsc.es:11443/</Server>
             <ConnectorJar>rocci-conn.jar</ConnectorJar>
-            <ConnectorClass>integratedtoolkit.connectors.rocci.ROCCI</ConnectorClass>
+            <ConnectorClass>es.bsc.conn.rocci.ROCCI</ConnectorClass>
         </Endpoint>
         <Images>
             <Image Name="EGI_compss">

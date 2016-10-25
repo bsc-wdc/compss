@@ -100,10 +100,15 @@
   rm ${COMPSs_target}/Runtime/scheduler/compss-scheduler-commons.jar
 
   #Connectors
-  echo "--- Copy connectors"
-  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/defaultSSH/target/conn-jars/ -name "*.jar")
+  echo "--- Copy Runtime Connectors"
+  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
-    cp -f $conn ${COMPSs_target}/Runtime/connectors/
+    cp $conn ${COMPSs_target}/Runtime/connectors/
+  done
+  echo "--- Copy CONN Connectors"
+  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
+  for conn in $connectors; do
+    cp $conn ${COMPSs_target}/Runtime/cloud-conn/
   done
 
   #Engine

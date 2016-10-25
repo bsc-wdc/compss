@@ -83,7 +83,7 @@
 									<version>${conn.version}</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>dummy-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
@@ -92,7 +92,7 @@
 									<version>${conn.version}</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>jclouds-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
@@ -101,7 +101,7 @@
 									<version>${conn.version}</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>mesos-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
@@ -110,7 +110,7 @@
 									<version>${conn.version}</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>rocci-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
@@ -119,7 +119,7 @@
 									<version>${conn.version}</version>
 									<type>jar</type>
 									<overWrite>false</overWrite>
-									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>vmm-conn.jar</destFileName>
 								</artifactItem>
 							</artifactItems>

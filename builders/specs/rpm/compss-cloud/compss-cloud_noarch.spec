@@ -35,13 +35,19 @@ cd ..
 
 echo "   - Create deployment folders"
 mkdir -p COMPSs/Runtime/connectors
+mkdir -p COMPSs/Runtime/cloud-conn
 
 echo "   - Copy deployment files"
-echo "   - Copy deployment files"
-connectors=$(find ./resources/defaultSSH/target/conn-jars/ -name "*.jar")
+#Connectors
+connectors=$(find ./resources/ -name "*.jar" | grep -v "cloud-conn")
 for conn in $connectors; do
-  cp -f $conn COMPSs/Runtime/connectors/
+  cp $conn COMPSs/Runtime/connectors/
 done
+connectors=$(find ./resources/ -name "*.jar" | grep "cloud-conn")
+for conn in $connectors; do
+  cp $conn COMPSs/Runtime/cloud-conn/
+done 
+
 #Doc
 cp changelog COMPSs/
 cp LICENSE COMPSs/
@@ -62,11 +68,13 @@ echo "* Installing COMPSs Runtime Cloud Resources..."
 echo " - Creating COMPSs Runtime Cloud Resources structure..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Runtime/
 cp -r COMPSs/Runtime/connectors $RPM_BUILD_ROOT/opt/COMPSs/Runtime
+cp -r COMPSs/Runtime/cloud-conn $RPM_BUILD_ROOT/opt/COMPSs/Runtime
 echo " - COMPSs Runtime Cloud Resourcesstructure created"
 echo " "
 
 echo " - Setting COMPSs Runtime Cloud Resources permissions..."
 chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Runtime/connectors/
+chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Runtime/cloud-conn/
 echo " - COMPSs Runtime Cloud Resources permissions set"
 echo " "
 
@@ -90,6 +98,7 @@ echo " "
 #------------------------------------------------------------------------------------
 %postun 
 rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Runtime/connectors
+rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Runtime/cloud-conn
 echo "COMPSs Runtime Cloud Resources Successfully uninstalled!"
 echo " "
 

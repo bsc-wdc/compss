@@ -11,7 +11,10 @@ import java.util.List;
 public class CloudImageDescription {
     
     public static final String PASSWORD_PROPERTY_NAME = "Password";
-
+    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
+    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
+    
+    
     private final String providerName;
     private final String imageName;
     private final HashMap<String, String> properties;
@@ -48,9 +51,6 @@ public class CloudImageDescription {
         this.properties = new HashMap<String, String>();
 
         this.properties.putAll(providerProperties);
-        // Add adaptor ports in image properties for some connectors (i.e. JClouds)
-        this.properties.put("adaptor-max-port", String.valueOf(config.getMaxPort()));
-        this.properties.put("adaptor-min-port", String.valueOf(config.getMinPort()));
     }
 
     public String getOperatingSystemType() {
@@ -188,6 +188,16 @@ public class CloudImageDescription {
 
     public void setConfig(MethodConfiguration config) {
         this.config = config;
+        
+        // Add adaptor ports in image properties for some connectors (i.e. JClouds)
+        String maxPort = "-1";
+        String minPort = "-1";
+        if (config != null) {
+            maxPort = String.valueOf(config.getMaxPort());
+            minPort = String.valueOf(config.getMinPort());
+        }
+        this.properties.put(ADAPTOR_MAX_PORT_PROPERTY_NAME, maxPort);
+        this.properties.put(ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);
     }
 
     public String getProviderName() {

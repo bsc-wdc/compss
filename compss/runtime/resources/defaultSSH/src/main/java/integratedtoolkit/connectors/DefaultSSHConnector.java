@@ -21,7 +21,7 @@ import java.util.List;
 
 public class DefaultSSHConnector extends AbstractSSHConnector {
     
-    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
+    private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
     
     private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
 

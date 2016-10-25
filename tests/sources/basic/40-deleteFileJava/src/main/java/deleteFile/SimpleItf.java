@@ -1,4 +1,4 @@
-package simple;
+package deleteFile;
 
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;

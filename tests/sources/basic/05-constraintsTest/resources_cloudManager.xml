@@ -4,7 +4,8 @@
 	<CloudProvider Name="BSC">
 		<Endpoint>
 			<Server>https://bscgrid20:11443/</Server>
-			<Connector>integratedtoolkit.connectors.test.Test</Connector>
+			<ConnectorJar>dummy-conn.jar</ConnectorJar>
+			<ConnectorClass>es.bsc.conn.dummy.Dummy</ConnectorClass>
 		</Endpoint>
 		
 		<Images>

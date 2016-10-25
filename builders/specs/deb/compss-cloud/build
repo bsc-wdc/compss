@@ -28,11 +28,14 @@
   echo " "
   echo "* Copy deployment files"
   #Connectors
-  echo "   - Copy deployment files"
-  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/defaultSSH/target/conn-jars/ -name "*.jar")
+  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar" | grep -v "cloud-conn")
   for conn in $connectors; do
-    cp -f $conn ${COMPSs_target}/Runtime/connectors/
+    cp $conn ${COMPSs_target}/Runtime/connectors/
   done
+  connectors=$(find ${trunk_rel_path}/compss/runtime/resources/ -name "*.jar" | grep "cloud-conn")
+  for conn in $connectors; do
+    cp $conn ${COMPSs_target}/Runtime/cloud-conn/
+  done 
 
   for rt in ${release_types}; do
     echo " "

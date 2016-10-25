@@ -1,4 +1,4 @@
-package simple;
+package deleteFile;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

@@ -369,8 +369,13 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             LinkedList<Implementation<T>>[] impls = ui.getExecutableImpls();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 for (Implementation<T> impl : impls[coreId]) {
-                    coreGlobalProfiles[coreId].accumulate(ui.getProfile(impl));
-                    coreProfiles[coreId].accumulate(ui.getProfile(impl));
+                    String signature = CoreManager.getSignature(coreId, impl.getImplementationId());
+                    boolean isPhantomSignature = signature.endsWith(")");
+                    if (!isPhantomSignature) {
+                        // Phantom signatures are used for external execution wrappers (MPI, OMPSs, etc.)
+                        coreGlobalProfiles[coreId].accumulate(ui.getProfile(impl));
+                        coreProfiles[coreId].accumulate(ui.getProfile(impl));
+                    }
                 }
             }
             coreProfilesPerWorker.put(ui.getName(), coreProfiles);
@@ -387,12 +392,15 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             long totalExecutedTasksInWorker = 0;
             for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
                 String signature = entry.getKey();
-                int coreId = entry.getValue();
-                long executionCount = workerCoreProfiles[coreId].getExecutionCount();
-                totalExecutedTasksInWorker += executionCount;
+                boolean isPhantomSignature = signature.endsWith(")");
+                if (!isPhantomSignature) {
+                    int coreId = entry.getValue();
+                    long executionCount = workerCoreProfiles[coreId].getExecutionCount();
+                    totalExecutedTasksInWorker += executionCount;
 
-                String info = executionCount + " " + signature + " tasks have been executed";
-                logger.warn(info);
+                    String info = executionCount + " " + signature + " tasks have been executed";
+                    logger.warn(info);
+                }
             }
             logger.warn("--- Total executed tasks in COMPSs Worker " + workerName + ": " + totalExecutedTasksInWorker);
         }
@@ -403,12 +411,15 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         long totalExecutedTasks = 0;
         for (Entry<String, Integer> entry : CoreManager.getSignaturesToId().entrySet()) {
             String signature = entry.getKey();
-            int coreId = entry.getValue();
-            long executionCount = coreGlobalProfiles[coreId].getExecutionCount();
-            totalExecutedTasks += executionCount;
-
-            String info = executionCount + " " + signature + " tasks have been executed";
-            logger.warn(info);
+            boolean isPhantomSignature = signature.endsWith(")");
+            if (!isPhantomSignature) {
+                int coreId = entry.getValue();
+                long executionCount = coreGlobalProfiles[coreId].getExecutionCount();
+                totalExecutedTasks += executionCount;
+    
+                String info = executionCount + " " + signature + " tasks have been executed";
+                logger.warn(info);
+            }
         }
         logger.warn("Total executed tasks: " + totalExecutedTasks);
         logger.warn("-------------------------------------------------------");

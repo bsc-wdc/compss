@@ -1,9 +1,9 @@
 #!/bin/bash
 
   #Obtain parameters
-  output_file=$1 
-  target_log_folder=$2
-  comm=$3
+  output_file=$1
+  error_file=$2 
+  target_log_folder=$3
   
   # Log files
   runtime_log="${target_log_folder}/runtime.log"

@@ -7,9 +7,9 @@ PyCOMPSs Constraints test
     Checks the constraints, and constraints with environment variables.
 """
         
-from pycompss.api.api import compss_wait_on
+from pycompss.api.api import compss_wait_on, waitForAllTasks
 from tasks import get_hero
-       
+import time       
 
 def main_program():
     results = []
@@ -24,7 +24,7 @@ def main_program():
     print "Elapsed time: ", elapsed_time
     
     if elapsed_time >= 1:
-        print("- Test waitForAllTasksr: OK")
+        print("- Test waitForAllTasks: OK")
     else:
         print("- Test waitForAllTasks: ERROR")
                 

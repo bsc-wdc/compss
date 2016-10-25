@@ -269,10 +269,11 @@
 
         <!-- ENDPOINT TYPE -->
         <xsd:complexType name="EndpointType">
-                <xsd:choice minOccurs="2" maxOccurs="unbounded">
+                <xsd:choice minOccurs="3" maxOccurs="unbounded">
                         <!-- Mandatory -->
                         <xsd:element name="Server" type="xsd:anyURI" minOccurs="1" maxOccurs="1" />
-                        <xsd:element name="Connector" type="xsd:string" minOccurs="1" maxOccurs="1" />
+			<xsd:element name="ConnectorJar" type="xsd:string" minOccurs="1" maxOccurs="1" />
+                        <xsd:element name="ConnectorClass" type="xsd:string" minOccurs="1" maxOccurs="1" />
                         <!-- NOT mandatory -->
                         <xsd:element name="Port" type="xsd:string" minOccurs="0" maxOccurs="1" />
                 </xsd:choice>

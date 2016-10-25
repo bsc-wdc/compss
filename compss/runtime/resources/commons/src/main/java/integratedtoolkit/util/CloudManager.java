@@ -1,6 +1,5 @@
 package integratedtoolkit.util;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
 import integratedtoolkit.connectors.ConnectorException;
@@ -13,8 +12,6 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -28,12 +25,6 @@ import org.apache.logging.log4j.Logger;
  */
 public class CloudManager {
 
-    private static final String CONNECTORS_PATH = File.separator + "Runtime" + File.separator + "connectors" + File.separator;
-
-    private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
-    private static final String WARN_NO_IT_HOME_RESOURCES = "WARN_MSG = [IT_HOME NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
-    private static final String WARN_NO_CONNECTORS_FOLDER = "WARN: Connectors folder not defined, no default connectors loaded";
-    private static final String WARN_NO_CONNECTORS_FOLDER_RESOURCES = "WARN_MSG = [CONNECTORS FOLDER NOT DEFINED, NO DEFAULT CONNECTORS LOADED]";
     private static final String WARN_NO_RESOURCE_MATCHES = "WARN: No resource matches the constraints";
     private static final String WARN_CANNOT_TURN_ON = "WARN: Connector cannot turn on resource";
     private static final String WARN_EXCEPTION_TURN_ON = "WARN: Connector exception on turn on resource";
@@ -55,7 +46,6 @@ public class CloudManager {
     private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<ResourceCreationRequest>();
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
 
-    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
 
 
@@ -68,7 +58,6 @@ public class CloudManager {
         useCloud = false;
         providers = new HashMap<String, CloudProvider>();
         VM2Provider = new HashMap<String, CloudProvider>();
-        loadConnectorJars();
     }
 
     /**
@@ -109,35 +98,6 @@ public class CloudManager {
         CloudManager.maxVMs = maxVMs;
     }
 
-    private static void loadConnectorJars() {
-        runtimeLogger.info("Loading connectors...");
-        String itHome = System.getenv(ITConstants.IT_HOME);
-
-        if (itHome == null || itHome.isEmpty()) {
-            resourcesLogger.warn(WARN_NO_IT_HOME_RESOURCES);
-            runtimeLogger.warn(WARN_NO_IT_HOME);
-            return;
-        }
-
-		String connectorPaths = System.getProperty(ITConstants.CONNECTOR_JAR_PATHS);
-		
-		String[] connPaths = connectorPaths.split(":");
-		for (String connPath : connPaths) {
-			// Prepend connectors path, in case connPath is relative
-			if (!connPath.startsWith("/")) { 
-				connPath = itHome + CloudManager.CONNECTORS_PATH + connPath;
-			}
-			
-			try {
-				Classpath.loadPath(connPath, runtimeLogger);
-			} catch (FileNotFoundException ex) {
-				ErrorManager.warn("Connector jar " + connPath + " not found.");
-				resourcesLogger.warn(WARN_NO_CONNECTORS_FOLDER_RESOURCES);
-				runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
-			}
-		}
-	}
-
     /**
      * Check if Cloud is used to dynamically adapt the resource pool
      *
@@ -161,11 +121,11 @@ public class CloudManager {
      * @throws Exception
      *             Loading the connector by reflection
      */
-    public static void newCloudProvider(String name, Integer limitOfVMs, String connectorPath, HashMap<String, String> connectorProperties)
-            throws Exception {
+    public static void newCloudProvider(String providerName, Integer limitOfVMs, String connectorJarPath, String connectorMainClass,
+            HashMap<String, String> connectorProperties) throws ConnectorException {
 
-        CloudProvider cp = new CloudProvider(connectorPath, limitOfVMs, connectorProperties, name);
-        providers.put(name, cp);
+        CloudProvider cp = new CloudProvider(providerName, limitOfVMs, connectorJarPath, connectorMainClass, connectorProperties);
+        providers.put(providerName, cp);
     }
 
     /**
@@ -224,9 +184,8 @@ public class CloudManager {
 
     /**
      * *************************************************************
-     * ************************************************************* 
-     * ************** RESOURCE REQUESTS MANAGEMENT ***************** 
-     * *************************************************************
+     * ************************************************************* ************** RESOURCE REQUESTS MANAGEMENT
+     * ***************** *************************************************************
      * *************************************************************
      */
     /**

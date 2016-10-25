@@ -1242,16 +1242,35 @@ public class ResourcesFile {
     }
 
     /**
-     * Returns the connector information form a given endpoint
+     * Returns the connector main class information form a given endpoint
      *
      * @param endpoint
      * @return
      */
-    public String getConnector(EndpointType endpoint) {
-        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+    public String getConnectorMainClass(EndpointType endpoint) {
+        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorJarOrConnectorClass();
         if (elements != null) {
             for (JAXBElement<String> elem : elements) {
-                if (elem.getName().equals(new QName("Connector"))) {
+                if (elem.getName().equals(new QName("ConnectorClass"))) {
+                    return elem.getValue();
+                }
+            }
+        }
+
+        return null;
+    }
+    
+    /**
+     * Returns the connector jar file information form a given endpoint
+     *
+     * @param endpoint
+     * @return
+     */
+    public String getConnectorJarPath(EndpointType endpoint) {
+        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorJarOrConnectorClass();
+        if (elements != null) {
+            for (JAXBElement<String> elem : elements) {
+                if (elem.getName().equals(new QName("ConnectorJar"))) {
                     return elem.getValue();
                 }
             }
@@ -1267,7 +1286,7 @@ public class ResourcesFile {
      * @return
      */
     public String getServer(EndpointType endpoint) {
-        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorJarOrConnectorClass();
         if (elements != null) {
             for (JAXBElement<String> elem : elements) {
                 if (elem.getName().equals(new QName("Server"))) {
@@ -1286,7 +1305,7 @@ public class ResourcesFile {
      * @return
      */
     public String getPort(EndpointType endpoint) {
-        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorOrPort();
+        List<JAXBElement<String>> elements = endpoint.getServerOrConnectorJarOrConnectorClass();
         if (elements != null) {
             for (JAXBElement<String> elem : elements) {
                 if (elem.getName().equals(new QName("Port"))) {
@@ -2568,14 +2587,16 @@ public class ResourcesFile {
      * @return
      * @throws InvalidElementException
      */
-    public CloudProviderType addCloudProvider(String name, String server, String connector, List<ImageType> images,
+    public CloudProviderType addCloudProvider(String name, String server, String connectorJar, String connectorClass, List<ImageType> images,
             List<InstanceTypeType> instances) throws InvalidElementException {
 
         EndpointType endpoint = new EndpointType();
         JAXBElement<String> serverElement = new JAXBElement<String>(new QName("Server"), String.class, server);
-        endpoint.getServerOrConnectorOrPort().add(serverElement);
-        JAXBElement<String> connectorElement = new JAXBElement<String>(new QName("Connector"), String.class, connector);
-        endpoint.getServerOrConnectorOrPort().add(connectorElement);
+        endpoint.getServerOrConnectorJarOrConnectorClass().add(serverElement);
+        JAXBElement<String> connectorClassElement = new JAXBElement<String>(new QName("ConnectorClass"), String.class, connectorClass);
+        JAXBElement<String> connectorJarElement = new JAXBElement<String>(new QName("ConnectorJar"), String.class, connectorJar);
+        endpoint.getServerOrConnectorJarOrConnectorClass().add(connectorClassElement);
+        endpoint.getServerOrConnectorJarOrConnectorClass().add(connectorJarElement);
 
         ImagesType imagesList = new ImagesType();
         if (images != null) {
@@ -2775,18 +2796,21 @@ public class ResourcesFile {
         return instance;
     }
 
-    public static EndpointType createEndpoint(String server, String connector, String port) {
+    public static EndpointType createEndpoint(String server, String connectorClass, String connectorJar, String port) {
         EndpointType endPoint = new EndpointType();
 
         JAXBElement<String> serverElement = new JAXBElement<String>(new QName("Server"), String.class, server);
-        endPoint.getServerOrConnectorOrPort().add(serverElement);
+        endPoint.getServerOrConnectorJarOrConnectorClass().add(serverElement);
 
-        JAXBElement<String> connectorElement = new JAXBElement<String>(new QName("Connector"), String.class, connector);
-        endPoint.getServerOrConnectorOrPort().add(connectorElement);
+        JAXBElement<String> connectorClassElement = new JAXBElement<String>(new QName("ConnectorClass"), String.class, connectorClass);
+        endPoint.getServerOrConnectorJarOrConnectorClass().add(connectorClassElement);
+        
+        JAXBElement<String> connectorJarElement = new JAXBElement<String>(new QName("ConnectorJar"), String.class, connectorJar);
+        endPoint.getServerOrConnectorJarOrConnectorClass().add(connectorJarElement);
 
         if (port != null) {
             JAXBElement<String> portElement = new JAXBElement<String>(new QName("Port"), String.class, port);
-            endPoint.getServerOrConnectorOrPort().add(portElement);
+            endPoint.getServerOrConnectorJarOrConnectorClass().add(portElement);
         }
         return endPoint;
     }

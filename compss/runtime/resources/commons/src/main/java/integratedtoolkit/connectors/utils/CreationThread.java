@@ -1,6 +1,5 @@
 package integratedtoolkit.connectors.utils;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
@@ -217,7 +216,7 @@ public class CreationThread extends Thread {
         CloudImageDescription cid = granted.getImage();
         HashMap<String, String> workerProperties = cid.getProperties();
         String user = cid.getConfig().getUser();
-        String password = workerProperties.get(ITConstants.PASSWORD);
+        String password = workerProperties.get(CloudImageDescription.PASSWORD_PROPERTY_NAME);
         try {
             operations.configureAccess(granted.getName(), user, password);
         } catch (ConnectorException e) {

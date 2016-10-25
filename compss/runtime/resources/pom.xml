@@ -31,11 +31,21 @@
 	<!-- DEPENDENCIES -->
 	<dependencyManagement>
 		<dependencies>
+                        <dependency>
+                                <groupId>es.bsc</groupId>
+                                <artifactId>connectors-all</artifactId>
+                                <version>${conn.version}</version>
+                        </dependency>
 			<dependency>
 				<groupId>es.bsc.compss</groupId>
 				<artifactId>compss-adaptors-commons</artifactId>
 				<version>${compss.version}</version>
 			</dependency>
+                        <dependency>
+                                <groupId>es.bsc.compss</groupId>
+                                <artifactId>compss-resources-commons</artifactId>
+                                <version>${compss.version}</version>
+                        </dependency>
 			<dependency>
 				<groupId>es.bsc.compss</groupId>
 				<artifactId>compss-resources-schema</artifactId>
@@ -52,12 +62,6 @@
 	<!-- SUB-MODULES -->
 	<modules>
 		<module>commons</module>
-		<module>amazon</module>
 		<module>defaultSSH</module>
-		<module>one</module>
-		<module>rocci</module>
-		<module>vmm</module>
-		<module>jclouds</module>
-		<module>docker</module>
 	</modules>
 </project>

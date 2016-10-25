@@ -1,6 +1,5 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
@@ -10,6 +9,8 @@ import java.util.List;
 
 
 public class CloudImageDescription {
+    
+    public static final String PASSWORD_PROPERTY_NAME = "Password";
 
     private final String providerName;
     private final String imageName;
@@ -47,6 +48,9 @@ public class CloudImageDescription {
         this.properties = new HashMap<String, String>();
 
         this.properties.putAll(providerProperties);
+        // Add adaptor ports in image properties for some connectors (i.e. JClouds)
+        this.properties.put("adaptor-max-port", String.valueOf(config.getMaxPort()));
+        this.properties.put("adaptor-min-port", String.valueOf(config.getMinPort()));
     }
 
     public String getOperatingSystemType() {
@@ -212,7 +216,7 @@ public class CloudImageDescription {
         sb.append(prefix).append("\t").append("CLASSPATH = ").append(this.getConfig().getClasspath()).append("\n");
         sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
         sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
-        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties().get(ITConstants.PASSWORD)).append("\n");
+        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties().get(PASSWORD_PROPERTY_NAME)).append("\n");
         sb.append(prefix).append("\t").append("SHARED_DISKS = [").append("\n");
         for (java.util.Map.Entry<String, String> entry : this.sharedDisks.entrySet()) {
             sb.append(prefix).append("\t").append("\t").append("SHARED_DISK = [").append("\n");

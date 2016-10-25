@@ -386,7 +386,7 @@ install() {
 
   #Connectors
   echo "--- Copy connectors"
-  connectors=$(find ${tmpDir}/compss/runtime/resources/ -name "*.jar")
+  connectors=$(find ${tmpDir}/compss/runtime/resources/defaultSSH/target/conn-jars/ -name "*.jar")
   for conn in $connectors; do
     cp $conn ${targetDir}/Runtime/connectors/
   done

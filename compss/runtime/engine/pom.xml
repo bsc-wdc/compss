@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-engine</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>1.4.rc10</version>
+		<version>1.4.rc10</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -45,7 +45,7 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-scheduler-commons</artifactId>
 			<version>${project.version}</version>
-		</dependency>     
+		</dependency>
 
 		<!-- Storage -->
 		<dependency>
@@ -63,8 +63,8 @@
 
 		<!-- Log4j -->
 		<dependency>
-                	<groupId>org.apache.logging.log4j</groupId>
-                	<artifactId>log4j-core</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
 		</dependency>
 
 		<!-- Apache Commons -->
@@ -207,13 +207,13 @@
 				</configuration>
 			</plugin>
 			<plugin>
-    				<groupId>org.apache.maven.plugins</groupId>
-    				<artifactId>maven-surefire-plugin</artifactId>
-    				<version>${maven-surefire-plugin.version}</version>
-    				<configuration>
-        				<reuseForks>false</reuseForks>
-        				<forkCount>1</forkCount>
-    				</configuration>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven-surefire-plugin.version}</version>
+				<configuration>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

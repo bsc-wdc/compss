@@ -129,11 +129,19 @@ public class RuntimeConfigManager {
     }
 
     public void setCommAdaptor(String adaptor) {
-        config.setProperty(ITConstants.COMM_ADAPTOR, adaptor);
+        config.setProperty(ITConstants.IT_COMM_ADAPTOR, adaptor);
     }
 
     public String getCommAdaptor() {
-        return config.getString(ITConstants.COMM_ADAPTOR);
+        return config.getString(ITConstants.IT_COMM_ADAPTOR);
+    }
+    
+    public void setConn(String connector) {
+        config.setProperty(ITConstants.IT_CONN, connector);
+    }
+
+    public String getConn() {
+        return config.getString(ITConstants.IT_CONN);
     }
 
     public String getGATBrokerAdaptor() {

@@ -255,7 +255,7 @@ public class ResourceLoader {
 
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support multiple adaptor properties
-        String loadedAdaptor = System.getProperty(ITConstants.COMM_ADAPTOR);
+        String loadedAdaptor = System.getProperty(ITConstants.IT_COMM_ADAPTOR);
         List<String> queues_project = project.getAdaptorQueues(cn_project, loadedAdaptor);
         List<String> queues_resources = resources.getAdaptorQueues(cn_resources, loadedAdaptor);
         if (queues_project == null) {
@@ -402,12 +402,14 @@ public class ResourceLoader {
             integratedtoolkit.types.resources.jaxb.CloudProviderType cp_resources) {
 
         String cpName = cp_project.getName();
-        String connectorName = "";
+        String connectorJarPath = "";
+        String connectorMainClass = "";
         HashMap<String, String> properties = new HashMap<String, String>();
 
         /* Add Endpoint information from resources.xml */
         EndpointType endpoint = cp_resources.getEndpoint();
-        connectorName = resources.getConnector(endpoint);
+        connectorJarPath = resources.getConnectorJarPath(endpoint);
+        connectorMainClass = resources.getConnectorMainClass(endpoint);
         properties.put("Server", resources.getServer(endpoint));
         properties.put("Port", resources.getPort(endpoint));
 
@@ -482,7 +484,7 @@ public class ResourceLoader {
         }
         // Add Cloud Provider to CloudManager *****************************************/
         try {
-            CloudManager.newCloudProvider(cpName, limitOfVMs, connectorName, properties);
+            CloudManager.newCloudProvider(cpName, limitOfVMs, connectorJarPath, connectorMainClass, properties);
             for (CloudImageDescription cid : images) {
                 CloudManager.addImageToProvider(cpName, cid);
             }
@@ -541,7 +543,7 @@ public class ResourceLoader {
 
         // Add the adaptors properties (queue types and adaptor properties)
         // TODO Support multiple adaptor properties
-        String loadedAdaptor = System.getProperty(ITConstants.COMM_ADAPTOR);
+        String loadedAdaptor = System.getProperty(ITConstants.IT_COMM_ADAPTOR);
         List<String> queues_project = project.getAdaptorQueues(im_project, loadedAdaptor);
         List<String> queues_resources = resources.getAdaptorQueues(im_resources, loadedAdaptor);
         for (String queue : queues_resources) {

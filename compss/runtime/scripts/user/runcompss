@@ -34,7 +34,7 @@ DEFAULT_PyOBJECT_SERIALIZE=false
 
 DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 #DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.gat.master.GATAdaptor
-#DEFAULT_CONNECTOR_JARS="compss-amazon-connector.jar:compss-resources-commons.jar:compss-rocci-connector.jar:compss-jclouds-connector.jar:compss-one-connector.jar:compss-vmm-connector.jar"
+DEFFAULT_CONNECTOR=integratedtoolkit.connectors.DefaultSSHConnector
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
@@ -94,13 +94,13 @@ show_opts() {
   Advanced options:
     --extrae_config_file=<path>             Sets a custom extrae config file. Must be in a shared disk between all COMPSs workers.
                                             Default: ${DEFAULT_EXTRAE_CONFIG_FILE}
-    --comm=<path>                           Class that implements the adaptor for communications
+    --comm=<ClassName>                      Class that implements the adaptor for communications
                                             Supported adaptors: integratedtoolkit.nio.master.NIOAdaptor | integratedtoolkit.gat.master.GATAdaptor
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
-    --conn=<path>                           Path of the connector jar/s that should be loaded. You can use multiple by splitting with ':'
-                                            Supported connectors: compss-{CONN}-connector.jar
-					       (where {CONN} can be: "jclouds", "amazon", "docker", "one", "rocci", "vmm", etc.)
-    --scheduler=<path>			    Class that implements the Scheduler for COMPSs
+    --conn=<className>                      Class that implements the runtime connector for the cloud
+                                            Supported connectors: integratedtoolkit.connectors.DefaultSSHConnector
+                                            Default: ${DEFAULT_CONNECTOR}
+    --scheduler=<className>	            Class that implements the Scheduler for COMPSs
                                             Supported schedulers: integratedtoolkit.components.impl.TaskScheduler | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
@@ -346,7 +346,7 @@ get_args() {
 	    comm=$(echo $OPTARG | sed -e 's/comm=//g')
 	    ;;
 	  conn=*)
-	    # Communication connector jar directories
+	    # Communication connector main class
 	    conn=$(echo $OPTARG | sed -e 's/conn=//g')
 	    ;;
           scheduler=*)
@@ -541,9 +541,9 @@ check_args() {
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
 
-  # if [ -z "$conn" ]; then
-  #   conn=${DEFAULT_CONNECTOR_JARS}
-  # fi
+  if [ -z "$conn" ]; then
+    conn=${DEFAULT_CONNECTOR}
+  fi
 
   if [ -z "$scheduler" ]; then
     scheduler=${DEFAULT_SCHEDULER}
@@ -695,6 +695,7 @@ ${jvm_debugger_opts}
 -Dit.tracing=${tracing}
 -Dit.extrae.file=${custom_extrae_config_file}
 -Dit.comm=${comm}
+-Dit.conn=${conn}
 -Dit.masterName=${master_name}
 -Dit.masterPort=${master_port}
 -Dit.scheduler=${scheduler}
@@ -704,9 +705,6 @@ ${jvm_debugger_opts}
 -Dit.worker.cp=${cp}:${CLASSPATH}
 -Dit.worker.jvm_opts=${jvm_workers_opts}
 EOT
-    if [ -n "$conn" ]; then
-        /bin/echo -Dit.conn=${conn} >> ${jvm_options_file}
-    fi
 }
 
 add_jvm_opts_java() {

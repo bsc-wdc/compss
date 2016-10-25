@@ -216,7 +216,7 @@ public class DataInfoProvider {
                 break;
         }
         if (deleted) {
-            idToData.remove(dataId);
+            //idToData.remove(dataId);
         }
     }
 
@@ -281,15 +281,16 @@ public class DataInfoProvider {
     }
 
     public FileInfo deleteData(DataLocation loc) {
-        String locationKey = loc.getLocationKey();
+        logger.debug("Deleting Data location: " +loc.getPath());
+    	String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
         if (fileId == null) {
             return null;
         }
         FileInfo fileInfo = (FileInfo) idToData.get(fileId);
-        nameToId.remove(locationKey);
+        //nameToId.remove(locationKey);
         if (fileInfo.delete()) {
-            idToData.remove(fileId);
+            //idToData.remove(fileId);
         }
         return fileInfo;
     }
@@ -342,7 +343,7 @@ public class DataInfoProvider {
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
-        if (fileInfo != null) {
+        if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { //If current version is to delete do not tranfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
@@ -352,7 +353,9 @@ public class DataInfoProvider {
                 return null;
             }
             fileInfo.blockDeletions();
+            
             lastVersion = fileInfo.getCurrentDataInstanceId();
+            
             ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
 
             DataInstanceId fId = rf.getFileInstanceId();
@@ -391,7 +394,18 @@ public class DataInfoProvider {
             listener.addOperation();
             Comm.appHost.getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
+        }else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()){
+        	if (debug) {
+        		String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+                String origName = splitPath[splitPath.length - 1];
+                logger.debug("Trying to delete file " + origName );
+            }
+        	if (fileInfo.delete()){
+        		//idToData.remove(dataId);
+        	}
+        	
         }
+        	
         return null;
     }
 

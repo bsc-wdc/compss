@@ -111,7 +111,7 @@ public abstract class Resource implements Comparable<Resource> {
                 return r;
             }
         }
-
+        logger.warn("Resource with name "+ name + " not found");
         return null;
     }
 

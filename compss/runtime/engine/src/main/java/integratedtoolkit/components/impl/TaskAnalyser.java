@@ -312,6 +312,7 @@ public class TaskAnalyser {
                 if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
+                    logger.debug("Treating that data "+ dPar.getDataTarget()+ " has been accessed");
                     DIP.dataHasBeenAccessed(dAccId);
                 }
             }
@@ -366,6 +367,7 @@ public class TaskAnalyser {
                     DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
                     DIP.unblockDataId(id);
                 } catch (Exception e) {
+                	logger.error("Exception ordering trasnfer when task ends", e);
                 }
             }
 
@@ -476,9 +478,9 @@ public class TaskAnalyser {
         if (task != null) {
             return;
         }
-        
-        for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
-            files.remove(dataId);
+        logger.debug("Removing "+ fileInfo.getDataId() +" from written files");
+        for (TreeSet<Integer> files : appIdToWrittenFiles.values()) { 
+        	files.remove(fileInfo.getDataId());
         }
     }
 }

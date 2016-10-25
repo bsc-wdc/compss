@@ -604,6 +604,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public boolean deleteFile(String fileName) {
+    	if (logger.isDebugEnabled()) {
+            logger.debug("Access to delete file "+ fileName);
+        }
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
@@ -878,6 +881,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         String hostName = uri.getHost();
         if (hostName != null && !hostName.isEmpty()) {
             host = Resource.getResource(hostName);
+            if (host== null){
+            	ErrorManager.error("Host "+ hostName + " not found when creating data location.");
+            }
         }
 
         // Create location

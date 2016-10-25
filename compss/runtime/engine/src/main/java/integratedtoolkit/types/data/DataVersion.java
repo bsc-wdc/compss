@@ -1,5 +1,7 @@
 package integratedtoolkit.types.data;
 
+import com.jcraft.jsch.Logger;
+
 import integratedtoolkit.comm.Comm;
 
 
@@ -14,7 +16,7 @@ public class DataVersion {
     public DataVersion(int dataId, int versionId) {
         this.readers = 0;
         this.dataInstanceId = new DataInstanceId(dataId, versionId);
-        this.writters = 1;
+        this.writters = 0;
         this.toDelete = false;
         Comm.registerData(dataInstanceId.getRenaming());
     }
@@ -25,6 +27,10 @@ public class DataVersion {
 
     public void willBeRead() {
         readers++;
+    }
+    
+    public void willBeWritten() {
+        writters++;
     }
 
     public boolean hasPendingLectures() {
@@ -51,7 +57,7 @@ public class DataVersion {
     }
 
     private boolean checkDeletion() {
-        if (toDelete // deletion requested
+    	if (toDelete // deletion requested
                 && writters == 0 // version has been generated
                 && readers == 0 // version has been read
         ) {
@@ -59,6 +65,9 @@ public class DataVersion {
             return true;
         }
         return false;
+    }
+    public boolean isToDelete(){
+    	return toDelete;
     }
 
 }

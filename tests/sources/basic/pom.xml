@@ -69,6 +69,7 @@
                 <module>36-environmentVariables</module>
                 <module>37-nonNativeTasks</module>
 		<!-- Module 38 is 38-environmentVariables_python -->
+		<module>40-deleteFileJava</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

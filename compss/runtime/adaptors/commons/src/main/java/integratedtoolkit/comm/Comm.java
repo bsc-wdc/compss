@@ -245,6 +245,19 @@ public class Comm {
 
         LogicalData ld = data.remove(renaming);
         ld.isObsolete();
+        for(DataLocation dl : ld.getLocations()){
+        	MultiURI uri = dl.getURIInHost(appHost);
+        	if (uri!=null){
+        		File f = new File (uri.getPath());
+        
+        		if (f.exists()){
+        			logger.info("Deleting file " + f.getAbsolutePath());
+        			f.delete();
+        		}
+        	}
+        }
+       
+        
     }
 
     public static synchronized HashMap<String, CommAdaptor> getAdaptors() {

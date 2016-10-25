@@ -1,7 +1,9 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.Connector;
+import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.Cost;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
@@ -24,13 +26,14 @@ public class CloudProvider {
 
     private final String name;
     private final Integer limitOfVMs;
+
+    private final CloudImageManager imgManager;
+    private final CloudTypeManager typeManager;
+
+    private final Connector connector;
+    private final Cost cost;
+    
     private int currentVMCount;
-
-    private CloudImageManager imgManager;
-    private CloudTypeManager typeManager;
-
-    private Connector connector;
-    private Cost cost;
 
     // Loggers
     private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
@@ -39,21 +42,28 @@ public class CloudProvider {
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
 
 
-    public CloudProvider(String connectorPath, Integer limitOfVMs, HashMap<String, String> connectorProperties, String name)
-            throws Exception {
+    public CloudProvider(String providerName, Integer limitOfVMs, String connectorJarPath, String connectorMainClass,
+            HashMap<String, String> connectorProperties)
+            throws ConnectorException {
 
-        this.name = name;
+        this.name = providerName;
         this.limitOfVMs = limitOfVMs;
         this.currentVMCount = 0;
 
         this.imgManager = new CloudImageManager();
         this.typeManager = new CloudTypeManager();
-		
-        Class<?> conClass = Class.forName(connectorPath);
-        Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
-        Object conector = ctor.newInstance(name, connectorProperties);
-        connector = (Connector) conector;
-        cost = (Cost) conector;
+        
+        // Load Runtime connector implementation that will finally load the
+        // infrastructure dependent connector
+        try {
+            Class<?> conClass = Class.forName(System.getProperty(ITConstants.IT_CONN));
+            Constructor<?> ctor = conClass.getDeclaredConstructors()[0];
+            Object conector = ctor.newInstance(providerName, connectorJarPath, connectorMainClass, connectorProperties);
+            connector = (Connector) conector;
+            cost = (Cost) conector;
+        } catch (Exception e) {
+            throw new ConnectorException(e);
+        }
     }
 
     /*

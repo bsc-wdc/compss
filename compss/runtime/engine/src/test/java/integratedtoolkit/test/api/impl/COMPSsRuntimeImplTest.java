@@ -18,7 +18,7 @@ public class COMPSsRuntimeImplTest {
     private COMPSsRuntimeImpl rt;
 
     static {
-        System.setProperty(ITConstants.COMM_ADAPTOR, DUMMY_ADAPTOR_CLASS);
+        System.setProperty(ITConstants.IT_COMM_ADAPTOR, DUMMY_ADAPTOR_CLASS);
     }
 
 

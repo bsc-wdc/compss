@@ -164,15 +164,19 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (manager.getServiceName() != null && System.getProperty(ITConstants.IT_SERVICE_NAME) == null) {
                     System.setProperty(ITConstants.IT_SERVICE_NAME, manager.getServiceName());
                 }
-                if (System.getProperty(ITConstants.COMM_ADAPTOR) == null) {
+                if (System.getProperty(ITConstants.IT_COMM_ADAPTOR) == null) {
                     if (manager.getCommAdaptor() != null) {
-                        System.setProperty(ITConstants.COMM_ADAPTOR, manager.getCommAdaptor());
+                        System.setProperty(ITConstants.IT_COMM_ADAPTOR, manager.getCommAdaptor());
                     } else {
-                        System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
+                        System.setProperty(ITConstants.IT_COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
                     }
                 }
-                if (System.getProperty(ITConstants.CONNECTOR_JAR_PATHS) == null) {
-                	System.setProperty(ITConstants.CONNECTOR_JAR_PATHS, ITConstants.DEFAULT_CONNECTOR_JAR_PATHS);
+                if (System.getProperty(ITConstants.IT_CONN) == null) {
+                    if (manager.getConn() != null) {
+                        System.setProperty(ITConstants.IT_CONN, manager.getConn());
+                    } else {
+                        System.setProperty(ITConstants.IT_CONN, ITConstants.DEFAULT_CONNECTOR);
+                    }
                 }
                 if (System.getProperty(ITConstants.GAT_DEBUG) == null) {
                     System.setProperty(ITConstants.GAT_DEBUG, Boolean.toString(manager.isGATDebug()));
@@ -212,34 +216,34 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     private static void setDefaultProperties() {
         System.err.println(WARN_FILE_EMPTY_DEFAULT);
-        if (System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null || System.getProperty(ITConstants.IT_DEPLOYMENT_ID).equals("")) {
+        if (System.getProperty(ITConstants.IT_DEPLOYMENT_ID) == null || System.getProperty(ITConstants.IT_DEPLOYMENT_ID).isEmpty()) {
             System.setProperty(ITConstants.IT_DEPLOYMENT_ID, ITConstants.DEFAULT_DEPLOYMENT_ID);
         }
-        if (System.getProperty(ITConstants.IT_RES_SCHEMA) == null || System.getProperty(ITConstants.IT_RES_SCHEMA).equals("")) {
+        if (System.getProperty(ITConstants.IT_RES_SCHEMA) == null || System.getProperty(ITConstants.IT_RES_SCHEMA).isEmpty()) {
             System.setProperty(ITConstants.IT_RES_SCHEMA, ITConstants.DEFAULT_RES_SCHEMA);
         }
-        if (System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null || System.getProperty(ITConstants.IT_PROJ_SCHEMA).equals("")) {
+        if (System.getProperty(ITConstants.IT_PROJ_SCHEMA) == null || System.getProperty(ITConstants.IT_PROJ_SCHEMA).isEmpty()) {
             System.setProperty(ITConstants.IT_PROJ_SCHEMA, ITConstants.DEFAULT_PROJECT_SCHEMA);
         }
-        if (System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(ITConstants.GAT_ADAPTOR_PATH).equals("")) {
+        if (System.getProperty(ITConstants.GAT_ADAPTOR_PATH) == null || System.getProperty(ITConstants.GAT_ADAPTOR_PATH).isEmpty()) {
             System.setProperty(ITConstants.GAT_ADAPTOR_PATH, ITConstants.DEFAULT_GAT_ADAPTOR_LOCATION);
         }
-        if (System.getProperty(ITConstants.COMM_ADAPTOR) == null || System.getProperty(ITConstants.COMM_ADAPTOR).equals("")) {
-            System.setProperty(ITConstants.COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
+        if (System.getProperty(ITConstants.IT_COMM_ADAPTOR) == null || System.getProperty(ITConstants.IT_COMM_ADAPTOR).isEmpty()) {
+            System.setProperty(ITConstants.IT_COMM_ADAPTOR, ITConstants.DEFAULT_ADAPTOR);
         }
-        if (System.getProperty(ITConstants.CONNECTOR_JAR_PATHS) == null || System.getProperty(ITConstants.CONNECTOR_JAR_PATHS).equals("")) {
-            System.setProperty(ITConstants.CONNECTOR_JAR_PATHS, ITConstants.DEFAULT_CONNECTOR_JAR_PATHS);
+        if (System.getProperty(ITConstants.IT_CONN) == null || System.getProperty(ITConstants.IT_CONN).isEmpty()) {
+            System.setProperty(ITConstants.IT_CONN, ITConstants.DEFAULT_CONNECTOR);
         }
-        if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).equals("")) {
+        if (System.getProperty(ITConstants.IT_SCHEDULER) == null || System.getProperty(ITConstants.IT_SCHEDULER).isEmpty()) {
             System.setProperty(ITConstants.IT_SCHEDULER, ITConstants.DEFAULT_SCHEDULER);
         }
-        if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).equals("")) {
+        if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).isEmpty()) {
             System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
         }
-        if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null || System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).equals("")) {
+        if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null || System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).isEmpty()) {
             System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, ITConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         }
-        if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
+        if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).isEmpty()) {
             System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);
         }
     }

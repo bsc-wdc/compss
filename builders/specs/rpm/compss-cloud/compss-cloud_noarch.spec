@@ -38,7 +38,7 @@ mkdir -p COMPSs/Runtime/connectors
 
 echo "   - Copy deployment files"
 echo "   - Copy deployment files"
-connectors=$(find ./resources/ -name "*.jar")
+connectors=$(find ./resources/defaultSSH/target/conn-jars/ -name "*.jar")
 for conn in $connectors; do
   cp -f $conn COMPSs/Runtime/connectors/
 done

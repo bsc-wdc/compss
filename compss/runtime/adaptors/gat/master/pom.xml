@@ -1,13 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-adaptors-gat-master</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-adaptors-gat</artifactId>
-<version>1.4.rc10</version>
+		<version>1.4.rc10</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -27,7 +28,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-   
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
@@ -35,7 +36,7 @@
 			<artifactId>compss-adaptors-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<!-- JavaGAT -->
 		<dependency>
 			<groupId>org.gridlab.gat</groupId>
@@ -58,7 +59,7 @@
 			<artifactId>slf4j-log4j12</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -71,7 +72,7 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-		
+
 			<!-- Copia les dependencies a la carpeta lib -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -80,17 +81,17 @@
 					<execution>
 						<id>copy</id>
 						<phase>packaging</phase>
-						<goals> 
-							<goal>copy-dependencies</goal> 
-						</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			    
+
 			<!-- Crea el Jar amb les dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -108,7 +109,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		
+
 			<!-- Copy compss-adaptors-gat-master.jar to adaptor basedir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>

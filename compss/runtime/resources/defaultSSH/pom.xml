@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
@@ -27,25 +28,22 @@
 		<url>http://www.bsc.es</url>
 	</organization>
 
-    <!-- PROPERTIES -->
+	<!-- PROPERTIES -->
 	<properties>
 	</properties>
 
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
+			<groupId>es.bsc</groupId>
+			<artifactId>connectors-all</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-resources-commons</artifactId>
-			<version>${compss.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>es.bsc.conn</groupId>
-			<artifactId>all-connectors</artifactId>
-			<version>1.0-4</version>
-		</dependency>
-
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -53,7 +51,7 @@
 		</dependency>
 	</dependencies>
 
-	<!-- BUILD-->
+	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<plugins>
@@ -65,31 +63,71 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
+
 			<plugin>
-			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-shade-plugin</artifactId>
-			  <version>${maven-shade-plugin.version}</version>
-			  <executions>
-			    <execution>
-			      <phase>package</phase>
-			      <goals>
-			        <goal>shade</goal>
-			      </goals>
-			      <configuration>
-			        <finalName>${project.artifactId}</finalName>
-			        <filters>
-				      <filter>
-					<artifact>*</artifact>
-					   <excludes>
-					       <exclude>META-INF/*.SF</exclude>
-					       <exclude>META-INF/*.RSA</exclude>
-					       <exclude>META-INF/*.INF</exclude>
-					   </excludes>
-				       </filter>
-			        </filters>
-			      </configuration>
-			    </execution>
-			  </executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<id>copy</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>dummy-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<destFileName>dummy-conn.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>jclouds-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<destFileName>jclouds-conn.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>mesos-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<destFileName>mesos-conn.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>rocci-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<destFileName>rocci-conn.jar</destFileName>
+								</artifactItem>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>vmm-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/conn-jars/</outputDirectory>
+									<destFileName>vmm-conn.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

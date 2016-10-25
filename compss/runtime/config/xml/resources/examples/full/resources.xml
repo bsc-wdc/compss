@@ -237,7 +237,8 @@
     <CloudProvider Name="BSC_full">
         <Endpoint>
             <Server>https://bscgrid20.bsc.es</Server>
-            <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+            <ConnectorJar>rocci-conn.jar</ConnectorJar>
+            <ConnectorClass>integratedtoolkit.connectors.rocci.ROCCI</ConnectorClass>
             <Port>11443</Port>
         </Endpoint>
         <Images>
@@ -315,7 +316,8 @@
     <CloudProvider Name="BSC_empty">
         <Endpoint>
             <Server>https://bscgrid20.bsc.es:11443/</Server>
-            <Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+            <ConnectorJar>rocci-conn.jar</ConnectorJar>
+            <ConnectorClass>integratedtoolkit.connectors.rocci.ROCCI</ConnectorClass>
         </Endpoint>
         <Images>
             <Image Name="Image_bsc_empty">

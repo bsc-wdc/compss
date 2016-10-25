@@ -3,7 +3,8 @@
     <CloudProvider Name="google-compute-engine">
         <Endpoint>
             <Server></Server>
-            <Connector>integratedtoolkit.connectors.jclouds.JClouds</Connector>
+            <ConnectorJar>jclouds-conn.jar</ConnectorJar>
+            <ConnectorClass>integratedtoolkit.connectors.jclouds.JClouds</ConnectorClass>
         </Endpoint>
         <Images>
             <Image Name="https://www.googleapis.com/compute/v1/projects/GCE-PROJECT-NAME/global/images/IMAGE-NAME">

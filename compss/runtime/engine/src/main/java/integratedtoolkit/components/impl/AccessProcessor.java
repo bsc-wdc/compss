@@ -207,6 +207,13 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 daId = ra.getWrittenDataInstance();
             }
             String rename = daId.getRenaming();
+            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + rename;
+            try {
+                SimpleURI uri = new SimpleURI(path);
+                tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
+            } catch (Exception e) {
+                ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
+            }
             Comm.registerLocation(rename, tgtLocation);
         }
 

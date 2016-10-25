@@ -22,7 +22,7 @@ public abstract class DataInfo {
     // Versions of the datum
     // Map: version identifier -> version
     protected TreeMap<Integer, DataVersion> versions;
-    private boolean toDelete;
+    //private boolean toDelete;
 
     protected int deletionBlocks;
     protected final LinkedList<DataVersion> pendingDeletions;
@@ -62,7 +62,8 @@ public abstract class DataInfo {
         DataVersion readVersion = versions.get(versionId);
         if (readVersion.hasBeenRead()) {
             versions.remove(versionId);
-            return (this.toDelete && versions.size() == 0);
+            //return (this.toDelete && versions.size() == 0);
+            return (versions.size() == 0);
         }
         return false;
     }
@@ -70,6 +71,7 @@ public abstract class DataInfo {
     public void willBeWritten() {
         currentVersionId++;
         DataVersion newVersion = new DataVersion(dataId, currentVersionId);
+        newVersion.willBeWritten();
         versions.put(currentVersionId, newVersion);
         currentVersion = newVersion;
     }
@@ -78,7 +80,8 @@ public abstract class DataInfo {
         DataVersion writtenVersion = versions.get(versionId);
         if (writtenVersion.hasBeenWritten()) {
             versions.remove(versionId);
-            return (this.toDelete && versions.size() == 0);
+            //return (this.toDelete && versions.size() == 0);
+            return (versions.size() == 0);
         }
         return false;
     }
@@ -103,7 +106,7 @@ public abstract class DataInfo {
     }
 
     public boolean delete() {
-        this.toDelete = true;
+        //this.toDelete = true;
         if (deletionBlocks > 0) {
             for (DataVersion version : versions.values()) {
                 pendingDeletions.add(version);
@@ -112,7 +115,7 @@ public abstract class DataInfo {
             LinkedList<Integer> removedVersions = new LinkedList<Integer>();
             for (DataVersion version : versions.values()) {
                 if (version.delete()) {
-                    removedVersions.remove(version.getDataInstanceId().getVersionId());
+                    removedVersions.add(version.getDataInstanceId().getVersionId());
                 }
             }
             for (int versionId : removedVersions) {
@@ -124,5 +127,10 @@ public abstract class DataInfo {
         }
         return false;
     }
-
+    
+    public boolean isCurrentVersionToDelete(){
+    	return currentVersion.isToDelete();
+    }
+    
+    
 }

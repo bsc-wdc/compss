@@ -28,6 +28,7 @@
   mkdir -p ${COMPSs_target}/Runtime/scripts
   mkdir -p ${COMPSs_target}/Runtime/adaptors
   mkdir -p ${COMPSs_target}/Runtime/connectors
+  mkdir -p ${COMPSs_target}/Runtime/cloud-conn
   mkdir -p ${COMPSs_target}/Runtime/scheduler
   mkdir -p ${COMPSs_target}/Tools
   mkdir -p ${COMPSs_target}/Tools/monitor

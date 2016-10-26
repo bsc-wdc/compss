@@ -37,28 +37,28 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
         super(providerName, connectorProperties);
         super.setDefaultUser("");
         
-        logger.info("Creating DefaultSSHConnector");
+        LOGGER.info("Creating DefaultSSHConnector");
         Connector conn = null;
         
-        logger.debug(" - Loading " + connectorJarPath);
+        LOGGER.debug(" - Loading " + connectorJarPath);
         try {
             // Check if its relative to CONNECTORS or absolute to system
             String jarPath = connectorJarPath;
             if (!connectorJarPath.startsWith(File.separator)) {
                 String itHome = System.getenv(ITConstants.IT_HOME);
                 if (itHome == null || itHome.isEmpty()) {
-                    logger.warn(WARN_NO_IT_HOME);
+                    LOGGER.warn(WARN_NO_IT_HOME);
                     return;
                 }
                 jarPath = itHome + CONNECTORS_REL_PATH + connectorJarPath;
             }
             
             // Load jar to classpath
-            logger.debug(" - Loading from : " + jarPath);
-            Classpath.loadPath(jarPath, logger);     
+            LOGGER.debug(" - Loading from : " + jarPath);
+            Classpath.loadPath(jarPath, LOGGER);     
         
             // Invoke connector main class
-            logger.debug(" - Using connector " + connectorMainClass);
+            LOGGER.debug(" - Using connector " + connectorMainClass);
             Class<?> conClass = Class.forName(connectorMainClass);
             Constructor<?> constructor = conClass.getDeclaredConstructors()[0];
             conn = (Connector) constructor.newInstance(connectorProperties);
@@ -107,8 +107,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     private SoftwareDescription getSoftwareDescription(CloudMethodResourceDescription cmrd) {
         return new SoftwareDescription(cmrd.getOperatingSystemType(), cmrd.getOperatingSystemDistribution(),
-                cmrd.getOperatingSystemVersion(), cmrd.getImage().getImageName(), cmrd.getType(), cmrd.getImage().getProperties(),
-                cmrd.getAppSoftware());
+                cmrd.getOperatingSystemVersion(), cmrd.getAppSoftware());
     }
 
     private VirtualResource getVirtualResource(Object id, CloudMethodResourceDescription cmrd) {
@@ -164,13 +163,13 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     @Override
     public void destroy(Object id) throws ConnectorException {
-        logger.debug("Destroy connection with id " + id);
+        LOGGER.debug("Destroy connection with id " + id);
         connector.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
-        logger.debug("Create connection " + name);
+        LOGGER.debug("Create connection " + name);
         Object created;
         try {
             created = connector.create(getHardwareDescription(cmrd), getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
@@ -182,7 +181,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested) throws ConnectorException {
-        logger.debug("Waiting for " + (String) id);
+        LOGGER.debug("Waiting for " + (String) id);
         VirtualResource vr;
         try {
             vr = connector.waitUntilCreation(id);
@@ -190,7 +189,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
             throw new ConnectorException(ce);
         }
         CloudMethodResourceDescription cmrd = toCloudMethodResourceDescription(vr, requested);
-        logger.debug("Return cloud method resource description " + cmrd.toString());
+        LOGGER.debug("Return cloud method resource description " + cmrd.toString());
         return cmrd;
     }
 
@@ -206,7 +205,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     @Override
     protected void close() {
-        logger.debug("Close connector");
+        LOGGER.debug("Close connector");
         connector.close();
     }
 

@@ -41,7 +41,7 @@ public final class Loggers {
     public static final String FTM_COMP = TD_COMP + ".FileTransferManager";
 
     public static final String CONNECTORS = IT + ".Connectors";
-    public static final String CONNECTORS_IMPL = IT + ".ConnectorsImpl";
+    public static final String CONNECTORS_UTILS = IT + ".ConnectorsUtils";
 
     // Worker
     public static final String WORKER = IT + ".Worker";

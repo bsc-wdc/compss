@@ -21,7 +21,7 @@ public class DeletionThread extends Thread {
     private VM vm;
     private static Integer count = 0;
 
-    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.CONNECTORS);
+    private static final Logger resourcesLogger = LogManager.getLogger(Loggers.CONNECTORS_UTILS);
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
     private static final boolean debug = resourcesLogger.isDebugEnabled();
 

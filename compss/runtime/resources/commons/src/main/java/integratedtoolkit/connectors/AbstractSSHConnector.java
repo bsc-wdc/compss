@@ -33,6 +33,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String VM_USER = "vm-user";
     private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
     private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
+    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
+    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
+    public static final String PASSWORD_PROPERTY_NAME = "Password";
 
     private static final String DEFAULT_DEFAULT_USER = System.getProperty("user.name");
     private static final String DEFAULT_KEYPAIR_NAME = "id_rsa";
@@ -105,7 +108,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     @Override
     public void configureAccess(String workerIP, String user, String password) throws ConnectorException {
-        logger.debug("Configuring access for user " + user + " in " + workerIP);
+        LOGGER.debug("Configuring access for user " + user + " in " + workerIP);
 
         // Add machine to master known hosts
         putInKnownHosts(workerIP);
@@ -132,18 +135,18 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             if (keypair == null) {
                 throw new ConnectorException(ERROR_NO_KEYPAIR);
             }
-            if (debug) {
-                logger.debug("Configuring key pair: " + keypair);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Configuring key pair: " + keypair);
             }
             configureKeys(workerIP, user, setPassword, passwordOrKeyPair, KeyManager.getPublicKey(keypair),
                     KeyManager.getPrivateKey(keypair), KeyManager.getKeyType());
 
         } catch (Exception e) {
-            logger.error(ERROR_CONFIGURING_ACCESS + workerIP, e);
+            LOGGER.error(ERROR_CONFIGURING_ACCESS + workerIP, e);
             throw new ConnectorException(ERROR_CONFIGURING_ACCESS + workerIP, e);
         } finally {
             if (session != null && session.isConnected()) {
-                logger.debug("Disconnecting session");
+                LOGGER.debug("Disconnecting session");
                 session.disconnect();
             }
         }
@@ -152,7 +155,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     @Override
     public void prepareMachine(String ip, CloudImageDescription cid) throws ConnectorException {
-        logger.debug("Preparing new machine " + ip);
+        LOGGER.debug("Preparing new machine " + ip);
 
         List<ApplicationPackage> packages = cid.getPackages();
         if (!packages.isEmpty()) {
@@ -168,11 +171,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 addPackagesToClasspath(ip, user, false, null, packages);
 
             } catch (Exception e) {
-                logger.error(ERROR_PREPARING_MACHINE + ip, e);
+                LOGGER.error(ERROR_PREPARING_MACHINE + ip, e);
                 throw new ConnectorException(ERROR_PREPARING_MACHINE + ip, e);
             } finally {
                 if (session != null && session.isConnected()) {
-                    logger.debug("Disconnecting session");
+                    LOGGER.debug("Disconnecting session");
                     session.disconnect();
                 }
             }
@@ -192,7 +195,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 // Transfer packages
                 if (client == null) {
-                    logger.error(ERROR_TRANSFER_PACKAGES);
+                    LOGGER.error(ERROR_TRANSFER_PACKAGES);
                     throw new ConnectorException(ERROR_TRANSFER_PACKAGES);
                 }
                 client.put(p.getSource(), target, new PackageTransferProgressMonitor());
@@ -237,9 +240,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private void putInKnownHosts(String workerIP) throws ConnectorException {
-        if (debug) {
-            logger.debug("Putting id of new machine in master machine known hosts");
-        }
+        LOGGER.debug("Putting id of new machine in master machine known hosts");
 
         // Scan key ------------------------------------------------------------
         String key = new String();
@@ -250,12 +251,12 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             InputStream errStream = null;
             InputStream outStream = null;
             try {
-                if (debug) {
+                if (LOGGER.isDebugEnabled()) {
                     StringBuilder sb = new StringBuilder("");
                     for (String param : cmd) {
                         sb.append(param).append(" ");
                     }
-                    logger.debug("COMM CMD: " + sb.toString());
+                    LOGGER.debug("COMM CMD: " + sb.toString());
                 }
                 Process p = Runtime.getRuntime().exec(cmd);
                 errStream = p.getErrorStream();
@@ -275,7 +276,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 if (commandFailed) {
                     errors++;
-                    logger.debug("Error scaning key. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
+                    LOGGER.debug("Error scaning key. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
 
                     // Sleep until next retry
                     try {
@@ -285,7 +286,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     }
                 }
             } catch (Exception e) {
-                logger.error(ERROR_KNOWN_HOSTS, e);
+                LOGGER.error(ERROR_KNOWN_HOSTS, e);
                 throw new ConnectorException(ERROR_KNOWN_HOSTS, e);
             } finally {
                 try {
@@ -296,21 +297,21 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         errStream.close();
                     }
                 } catch (IOException e) {
-                    if (debug) {
-                        logger.debug("Exception closing streams (" + e.getMessage() + ")");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Exception closing streams (" + e.getMessage() + ")");
                     }
                 }
 
             }
-            // logger.debug("Key is " + key);
+            // LOGGER.debug("Key is " + key);
         }
         if (errors == KNOWN_HOSTS_MAX_ALLOWED_ERRORS) {
-            logger.error(ERROR_KEYSCAN + errorString);
+            LOGGER.error(ERROR_KEYSCAN + errorString);
             throw new ConnectorException(ERROR_KEYSCAN + errorString);
         }
 
         // Insert key to known hosts ------------------------------------------------------
-        logger.debug("Modifiying known hosts");
+        LOGGER.debug("Modifiying known hosts");
         cmd = new String[] { "/bin/sh", "-c", "/bin/echo " + "\"" + key + "\"" + " >> " + System.getProperty("user.home") + File.separator
                 + ".ssh" + File.separator + "known_hosts" };
 
@@ -321,12 +322,12 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 InputStream errStream = null;
                 InputStream outStream = null;
                 try {
-                    if (debug) {
+                    if (LOGGER.isDebugEnabled()) {
                         StringBuilder sb = new StringBuilder("");
                         for (String param : cmd) {
                             sb.append(param).append(" ");
                         }
-                        logger.debug("COMM CMD: " + sb.toString());
+                        LOGGER.debug("COMM CMD: " + sb.toString());
                     }
                     Process p = Runtime.getRuntime().exec(cmd);
                     errStream = p.getErrorStream();
@@ -335,7 +336,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     if (p.exitValue() != 0) {
                         errorString = readInputStream(outStream);
                         errors++;
-                        logger.debug("Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
+                        LOGGER.debug("Error inserting key into known_hosts. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
 
                         // Sleep until next retry
                         try {
@@ -345,7 +346,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error(ERROR_ADD_MASTER_KEY, e);
+                    LOGGER.error(ERROR_ADD_MASTER_KEY, e);
                     throw new ConnectorException(ERROR_ADD_MASTER_KEY, e);
                 } finally {
                     try {
@@ -356,8 +357,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                             errStream.close();
                         }
                     } catch (IOException e) {
-                        if (debug) {
-                            logger.debug("Exception closing streams (" + e.getMessage() + ")");
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Exception closing streams (" + e.getMessage() + ")");
                         }
                     }
 
@@ -366,7 +367,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         }
 
         if (errors == MAX_ALLOWED_ERRORS) {
-            logger.error(ERROR_LOCAL_KNOWN_HOSTS + errorString);
+            LOGGER.error(ERROR_LOCAL_KNOWN_HOSTS + errorString);
             throw new ConnectorException(ERROR_LOCAL_KNOWN_HOSTS + errorString);
         }
 
@@ -375,8 +376,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private void configureKeys(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String publicKey,
             String privateKey, String keyType) throws ConnectorException {
 
-        if (debug) {
-            logger.debug("Configuring keys for " + workerIP + " user: " + user);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Configuring keys for " + workerIP + " user: " + user);
         }
 
         try {
@@ -387,7 +388,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         } catch (Exception e) {
             String msg = ERROR_CONFIG_KEYS + workerIP + " user: " + user;
-            logger.error(msg, e);
+            LOGGER.error(msg, e);
             throw new ConnectorException(msg, e);
         }
 
@@ -399,8 +400,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         int numRetries = 0;
         ConnectorException reason = null;
         while (numRetries < MAX_ALLOWED_ERRORS) {
-            if (debug) {
-                logger.debug("Executing command: " + command);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Executing command: " + command);
             }
 
             // Try to execute command
@@ -412,9 +413,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 }
 
             } catch (ConnectorException ce) {
-                logger.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
+                LOGGER.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
                 numRetries++;
-                logger.error("Retrying: " + numRetries + " of " + MAX_ALLOWED_ERRORS);
+                LOGGER.error("Retrying: " + numRetries + " of " + MAX_ALLOWED_ERRORS);
                 reason = new ConnectorException(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
             }
 
@@ -422,12 +423,12 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             try {
                 Thread.sleep(RETRY_TIME * 1_000);
             } catch (InterruptedException e) {
-                logger.debug("Sleep interrupted");
+                LOGGER.debug("Sleep interrupted");
             }
         }
 
         // This code is only reached if command was unsuccessful
-        logger.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, reason);
+        LOGGER.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, reason);
         throw reason;
     }
 
@@ -452,33 +453,33 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             // Execute command
             exec.connect(SERVER_TIMEOUT);
 
-            if (debug) {
+            if (LOGGER.isDebugEnabled()) {
                 String output = readInputStream(stdOut);
-                logger.debug("Command output: " + output);
+                LOGGER.debug("Command output: " + output);
             }
 
             int exitStatus = -1;
             while (exitStatus < 0) {
                 exitStatus = exec.getExitStatus();
                 if (exitStatus == 0) {
-                    if (debug) {
-                        logger.debug("Command successfully executed: " + command);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Command successfully executed: " + command);
                     }
                     return true;
                 } else if (exitStatus > 0) {
                     String output = readInputStream(inputStream);
 
-                    if (debug) {
-                        logger.debug(ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
                     }
                     throw new Exception(ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
                 }
 
-                logger.debug("Command still on execution");
+                LOGGER.debug("Command still on execution");
                 try {
                     Thread.sleep(RETRY_TIME * 1_000);
                 } catch (InterruptedException e) {
-                    logger.debug("Sleep interrupted");
+                    LOGGER.debug("Sleep interrupted");
                 }
             }
 
@@ -489,15 +490,15 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    logger.warn(WARN_INPUTSTREAM_CLOSE);
+                    LOGGER.warn(WARN_INPUTSTREAM_CLOSE);
                 }
             }
             if (exec != null && exec.isConnected()) {
-                logger.debug("Disconnecting exec channel");
+                LOGGER.debug("Disconnecting exec channel");
                 exec.disconnect();
             }
             if (session != null && session.isConnected()) {
-                logger.debug("Disconnecting session");
+                LOGGER.debug("Disconnecting session");
                 session.disconnect();
             }
         }
@@ -522,7 +523,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     bufferedReader.close();
                 }
             } catch (IOException e) {
-                logger.warn(WARN_READER_CLOSE + " (" + e.getMessage() + ")");
+                LOGGER.warn(WARN_READER_CLOSE + " (" + e.getMessage() + ")");
             }
         }
         return stringBuilder.toString();
@@ -539,7 +540,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         if (keyPairOrPassword == null) {
             password = false;
             keyPairOrPassword = KeyManager.getKeyPair();
-            logger.warn(WARN_DEFAULT_KEYPAIR + " (" + KeyManager.getKeyPair() + ")");
+            LOGGER.warn(WARN_DEFAULT_KEYPAIR + " (" + KeyManager.getKeyPair() + ")");
         }
 
         int errors = 0;
@@ -565,17 +566,17 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 } else {
                     ++errors;
                     if (password) {
-                        logger.warn("Error connecting to " + user + "@" + host + " with password.");
+                        LOGGER.warn("Error connecting to " + user + "@" + host + " with password.");
                     } else {
-                        logger.warn("Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
+                        LOGGER.warn("Error connecting to " + user + "@" + host + " with public key" + keyPairOrPassword);
                     }
-                    logger.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
+                    LOGGER.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
                 }
             } catch (JSchException e) {
                 ++errors;
                 exception = e;
-                logger.warn("Error creating session to " + user + "@" + host + "(" + e.getMessage() + ").");
-                logger.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
+                LOGGER.warn("Error creating session to " + user + "@" + host + "(" + e.getMessage() + ").");
+                LOGGER.warn("Retrying after " + RETRY_TIME * errors + " seconds...");
                 if (session != null && session.isConnected()) {
                     session.disconnect();
                 }
@@ -583,16 +584,16 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             try {
                 Thread.sleep(RETRY_TIME * errors * 1_000);
             } catch (Exception e) {
-                logger.debug("Sleep interrumped");
+                LOGGER.debug("Sleep interrumped");
             }
         }
 
         // If we reach this point the session has not been correctly initialized
         if (exception != null) {
-            logger.error(ERROR_SESSION_CREATION + user + "@" + host, exception);
+            LOGGER.error(ERROR_SESSION_CREATION + user + "@" + host, exception);
             throw new Exception(ERROR_SESSION_CREATION + user + "@" + host, exception);
         } else {
-            logger.error(ERROR_SESSION_CREATION + user + "@" + host);
+            LOGGER.error(ERROR_SESSION_CREATION + user + "@" + host);
             throw new Exception(ERROR_SESSION_CREATION + user + "@" + host);
         }
     }
@@ -612,9 +613,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         public void init(int op, String src, String dest, long max) {
             this.max = max;
 
-            if (debug) {
-                logger.debug("Starting " + ((op == SftpProgressMonitor.PUT) ? "put" : "get") + ": " + src);
-                logger.debug("Operation transfered " + this.count + " out of " + this.max);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Starting " + ((op == SftpProgressMonitor.PUT) ? "put" : "get") + ": " + src);
+                LOGGER.debug("Operation transfered " + this.count + " out of " + this.max);
             }
         }
 
@@ -622,14 +623,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         public boolean count(long count) {
             this.count += count;
 
-            // float percent = this.count * 100 / max; if (debug) { logger.debug("..." + percent + "%"); }
+            // float percent = this.count * 100 / max; if (debug) { LOGGER.debug("..." + percent + "%"); }
 
             return true;
         }
 
         @Override
         public void end() {
-            logger.debug("Operation Finished");
+            LOGGER.debug("Operation Finished");
         }
 
     }

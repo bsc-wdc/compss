@@ -128,11 +128,11 @@
     <!-- CONNECTORS -->
     <!-- Integratedtoolkit.Connectors: DEFAULT = ERROR -->
     <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="ERROR">
-      <AppenderRef ref="COMPSsResourcesLog"/>
-    </Logger>
-    <!-- Integratedtoolkit.ConnectorsImpl: DEFAULT = ERROR -->
-    <Logger name="integratedtoolkit.ConnectorsImpl" additivity="FALSE" level="ERROR">
       <AppenderRef ref="COMPSsRuntimeLog"/>
+    </Logger>
+    <!-- Integratedtoolkit.ConnectorsUtils: DEFAULT = ERROR -->
+    <Logger name="integratedtoolkit.ConnectorsUtils" additivity="FALSE" level="ERROR">
+      <AppenderRef ref="COMPSsResourcesLog"/>
     </Logger>
 
     <!-- WORKER -->

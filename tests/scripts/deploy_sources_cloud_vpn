@@ -6,7 +6,8 @@
     COMPSs_location=$4
     cloud_owner=$5
     connector_server=$6
-    connector_class=$7
+    connector_jar=$7
+    connector_class=$8
 
     current_loc=$(pwd)
 
@@ -56,7 +57,8 @@
           resources=$(ls ${target} | grep -s resources | cat)
           for res in $resources; do
              sed -i '/<Server>/c<Server>'${connector_server}'<\/Server>' ${target}/${res}
-             sed -i '/<Connector>/c<Connector>'${connector_class}'<\/Connector>' ${target}/${res}
+             sed -i '/<ConnectorJar>/c<ConnectorJar>'${connector_jar}'<\/ConnectorJar>' ${target}/${res}
+             sed -i '/<ConnectorClass>/c<ConnectorClass>'${connector_class}'<\/ConnectorClass>' ${target}/${res}   
           done
           counter=$((counter+1))
        fi

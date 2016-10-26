@@ -5,7 +5,8 @@
     local distr=$1
     local deployment_folder=$WORKSPACE/test_$distr
     local connector_server="https://bscgrid20.bsc.es:11443/"
-    local connector_class="integratedtoolkit.connectors.rocci.ROCCI"
+    local connector_jar="rocci-conn.jar"
+    local connector_class="es.bsc.conn.rocci.ROCCI"
 
     #Erase current deployment
     echo "---- Erasing current deployment"
@@ -44,7 +45,8 @@
           resources=$(ls ${target} | grep -s resources | cat)   
           for res in $resources; do   
              sed -i '/<Server>/c<Server>'${connector_server}'<\/Server>' ${target}/${res}
-             sed -i '/<Connector>/c<Connector>'${connector_server}'<\/Connector>' ${target}/${res}
+             sed -i '/<ConnectorJar>/c<ConnectorJar>'${connector_jar}'<\/ConnectorJar>' ${target}/${res}
+             sed -i '/<ConnectorClass>/c<ConnectorClass>'${connector_class}'<\/ConnectorClass>' ${target}/${res}   
           done
 
           counter=$((counter+1))

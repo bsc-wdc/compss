@@ -3,8 +3,9 @@
 	<CloudProvider Name="Docker">
 		<Endpoint>
 			<Server>tcp://localhost</Server>
-			<Port>2375</Port>
-			<Connector>integratedtoolkit.connectors.docker.DockerConnector</Connector>
+            <ConnectorJar>docker-conn.jar</ConnectorJar>
+            <ConnectorClass>es.bsc.conn.docker.Docker</ConnectorClass>
+            <Port>2375</Port>
 		</Endpoint>
 
 		<Images>

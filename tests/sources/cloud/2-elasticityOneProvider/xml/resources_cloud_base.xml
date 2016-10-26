@@ -3,7 +3,8 @@
 	<CloudProvider Name="BSC">
 		<Endpoint>
 			<Server>https://bscgrid20.bsc.es:11443/</Server>
-			<Connector>integratedtoolkit.connectors.rocci.ROCCI</Connector>
+            <ConnectorJar>rocci-conn.jar</ConnectorJar>
+            <ConnectorClass>es.bsc.conn.rocci.ROCCI</ConnectorClass>
 		</Endpoint>
 
 		<Images>

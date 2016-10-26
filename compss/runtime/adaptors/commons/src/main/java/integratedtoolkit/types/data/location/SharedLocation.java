@@ -6,6 +6,7 @@ import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class SharedLocation extends DataLocation {
@@ -47,7 +48,9 @@ public class SharedLocation extends DataLocation {
     @Override
     public LinkedList<MultiURI> getURIs() {
         LinkedList<MultiURI> uris = new LinkedList<MultiURI>();
-        for (Resource host : SharedDiskManager.getAllMachinesfromDisk(diskName)) {
+        List<Resource> resList = SharedDiskManager.getAllMachinesfromDisk(diskName);
+        Resource[] resources = resList.toArray(new Resource[resList.size()]);
+        for (Resource host : resources) {
             String diskPath = SharedDiskManager.getMounpoint(host, diskName);
             if (!diskPath.endsWith(File.separator)) {
                 diskPath = diskPath + File.separator;

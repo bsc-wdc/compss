@@ -218,18 +218,20 @@ public class NIOWorker extends NIOAgent {
 		int i = 0;
 	
 		//Assign free CUs to the job
-		while ((!done) && (i < boundCoreUnits.length)){
-			if (boundCoreUnits[i] == -1){
-				synchronized(boundCoreUnits){	
+		synchronized(boundCoreUnits){
+			while ((!done) && (i < boundCoreUnits.length)){
+				//synchronized(boundCoreUnits){
+				if (boundCoreUnits[i] == -1){		
 					if (boundCoreUnits[i] == -1){
 						boundCoreUnits[i] = jobId;
 	    				assignedCoreUnits[assigned] = i;
 	    				assigned++;
 					}
 				}
-			}
-			i++;
-			done = (assigned == numCUs);
+				i++;
+				done = (assigned == numCUs);
+				//}
+			}	
 		}
 		
 		//If the job doesn't have all the CUs it needs, it will run on occupied ones
@@ -248,11 +250,13 @@ public class NIOWorker extends NIOAgent {
     
     // Release core units occupied by the job
     public void releaseCoreUnits(int jobId){
-		for (int i = 0; i < boundCoreUnits.length; i++){
-			if (boundCoreUnits[i] == jobId){
-				boundCoreUnits[i] = -1;
+    	synchronized(boundCoreUnits){
+			for (int i = 0; i < boundCoreUnits.length; i++){
+				if (boundCoreUnits[i] == jobId){
+					boundCoreUnits[i] = -1;
+				}
 			}
-		}
+    	}
     }
 
     @Override

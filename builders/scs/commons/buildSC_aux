@@ -71,6 +71,7 @@
   mkdir -p ${targetDir}/Runtime/scripts
   mkdir -p ${targetDir}/Runtime/adaptors
   mkdir -p ${targetDir}/Runtime/connectors
+  mkdir -p ${targetDir}/Runtime/cloud-conn
   mkdir -p ${targetDir}/Runtime/scheduler
   mkdir -p ${targetDir}/Tools
   mkdir -p ${targetDir}/Tools/monitor

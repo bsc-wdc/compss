@@ -4,7 +4,8 @@
     log_dir=$3
     cloud_owner=$4
     connector_server=$5
-    connector_class=$6
+    connector_jar=$6
+    connector_class=$7
 
     #Erase current deployment
     echo "---- Erasing current deployment"
@@ -41,7 +42,8 @@
           resources=$(ls ${target} | grep -s resources | cat)   
           for res in $resources; do   
              sed -i '/<Server>/c<Server>'${connector_server}'<\/Server>' ${target}/${res}
-             sed -i '/<Connector>/c<Connector>'${connector_class}'<\/Connector>' ${target}/${res}
+             sed -i '/<ConnectorJar>/c<ConnectorJar>'${connector_jar}'<\/ConnectorJar>' ${target}/${res}
+             sed -i '/<ConnectorClass>/c<ConnectorClass>'${connector_class}'<\/ConnectorClass>' ${target}/${res}   
           done
           counter=$((counter+1))
        fi

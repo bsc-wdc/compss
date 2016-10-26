@@ -202,7 +202,8 @@
      target_base_dir="/home/$user/tests_cloud"
      IT_HOME="/opt/COMPSs/"
      connector_server="https://bscgrid20.bsc.es:11443/"
-     connector_class="integratedtoolkit.connectors.rocci.ROCCI"
+     connector_jar="rocci-conn.jar"
+     connector_class="es.bsc.conn.rocci.ROCCI"
      comm=integratedtoolkit.nio.master.NIOAdaptor
 
      #Set environment variables from configuration file
@@ -238,7 +239,7 @@
      $(dirname $0)/compile_sources_cloud_bscgrid20 ${source_base_dir}
 
      #Deploy tests
-     $(dirname $0)/deploy_sources_cloud_bscgrid20 ${source_base_dir} ${target_base_dir} ${log_folder} ${cloud_owner} ${connector_server} ${connector_class}
+     $(dirname $0)/deploy_sources_cloud_bscgrid20 ${source_base_dir} ${target_base_dir} ${log_folder} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class}
 
      #Execute tests
      if [ "${environment}" = "cloud" ]; then
@@ -267,7 +268,8 @@
      logs_location="/home/$user"
      IT_HOME="/opt/COMPSs/"
      connector_server="https://bscgrid20.bsc.es:11443/"
-     connector_class="integratedtoolkit.connectors.rocci.ROCCI"
+     connector_jar="rocci-conn.jar"
+     connector_class="es.bsc.conn.rocci.ROCCI"
      comm=integratedtoolkit.nio.master.NIOAdaptor
 
      #Set environment variables from configuration file
@@ -306,7 +308,7 @@
      $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
 
      #Deploy tests
-     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_class}
+     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class}
      if [ $? -ne 0 ]; then
        exit 1
      fi

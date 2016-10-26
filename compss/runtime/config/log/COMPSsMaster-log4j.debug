@@ -126,13 +126,13 @@
     </Logger>
 
     <!-- CONNECTORS -->
-    <!-- Integratedtoolkit.Connectors: DEFAULT = DEBUG -->
-    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="debug">
-      <AppenderRef ref="COMPSsResourcesLog"/>
+    <!-- Integratedtoolkit.Connectors: DEFAULT = INFO -->
+    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="INFO">
+      <AppenderRef ref="COMPSsRuntimeLog"/>                                                                                                                                             
     </Logger>
-    <!-- Integratedtoolkit.ConnectorsImpl: DEFAULT = DEBUG -->
-    <Logger name="integratedtoolkit.ConnectorsImpl" additivity="FALSE" level="debug">
-      <AppenderRef ref="COMPSsRuntimeLog"/>
+    <!-- Integratedtoolkit.ConnectorsUtils: DEFAULT = DEBUG -->
+    <Logger name="integratedtoolkit.ConnectorsUtils" additivity="FALSE" level="DEBUG">
+      <AppenderRef ref="COMPSsResourcesLog"/>
     </Logger>
 
     <!-- WORKER -->

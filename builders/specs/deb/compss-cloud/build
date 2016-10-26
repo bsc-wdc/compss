@@ -24,6 +24,7 @@
   COMPSs_target=tmp/opt/COMPSs
   mkdir -p ${COMPSs_target}
   mkdir -p ${COMPSs_target}/Runtime/connectors
+  mkdir -p ${COMPSs_target}/Runtime/cloud-conn
 
   echo " "
   echo "* Copy deployment files"

@@ -56,7 +56,7 @@ public abstract class Invoker {
         this.nt = nt;
         this.assignedCoreUnits = assignedCoreUnits;
         
-        this.debug = NIOWorker.isWorkerDebugEnabled;
+        this.debug = NIOWorker.isWorkerDebugEnabled();
         
         /* Task information **************************************** */
         this.methodType = nt.getMethodType();

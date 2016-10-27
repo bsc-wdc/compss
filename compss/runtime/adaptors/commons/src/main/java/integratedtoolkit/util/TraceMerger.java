@@ -226,7 +226,7 @@ public class TraceMerger {
                 }
 
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Exception on uptade tasks info",  e);
             }
 
         }

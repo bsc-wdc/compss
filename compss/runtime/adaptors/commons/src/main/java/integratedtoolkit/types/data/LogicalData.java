@@ -192,7 +192,7 @@ public class LogicalData {
         String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
-            loc = DataLocation.createLocation(Comm.appHost, uri);
+            loc = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
@@ -236,12 +236,12 @@ public class LogicalData {
             // If the PSCO is not persisted we treat it as a normal object
         } else {
             // The object must be written to file
-            String targetPath = Comm.appHost.getWorkingDirectory() + this.name;
+            String targetPath = Comm.getAppHost().getWorkingDirectory() + this.name;
             Serializer.serialize(value, targetPath);
 
             String targetPathWithSchema = Protocol.FILE_URI.getSchema() + targetPath;
             SimpleURI targetURI = new SimpleURI(targetPathWithSchema);
-            DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
+            DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
 
             this.isBeingSaved = false;
             this.locations.add(loc);
@@ -277,7 +277,7 @@ public class LogicalData {
                 case PRIVATE:
                 case SHARED:
                     // Get URI and deserialize object if possible
-                    MultiURI u = loc.getURIInHost(Comm.appHost);
+                    MultiURI u = loc.getURIInHost(Comm.getAppHost());
                     if (u == null) {
                         continue;
                     }
@@ -287,7 +287,7 @@ public class LogicalData {
 
                         String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
                         SimpleURI uri = new SimpleURI(targetPath);
-                        DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+                        DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
                         addLocation(tgtLoc);
                     }
                     return;
@@ -311,7 +311,7 @@ public class LogicalData {
 
                     String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
                     SimpleURI uri = new SimpleURI(targetPath);
-                    DataLocation tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+                    DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
                     addLocation(tgtLoc);
 
                     return;

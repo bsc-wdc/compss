@@ -191,19 +191,24 @@ public class MasterResource extends Resource {
     }
 
     private boolean deleteDirectory(File directory) {
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (null != files) {
-                for (File f : files) {
-                    if (f.isDirectory()) {
-                        deleteDirectory(f);
-                    } else {
-                        f.delete();
+        if (!directory.exists()) {
+            return false;
+        }
+        
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    deleteDirectory(f);
+                } else {
+                    if (!f.delete()) {
+                        return false;
                     }
                 }
             }
         }
-        return (directory.delete());
+        
+        return directory.delete();
     }
 
     public String getCOMPSsLogBaseDirPath() {

@@ -234,9 +234,9 @@ public class ResourceManager {
      *            Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
-        Comm.appHost.updateSharedDisk(sharedDisks);
+        Comm.getAppHost().updateSharedDisk(sharedDisks);
         try {
-            Comm.appHost.start();
+            Comm.getAppHost().start();
         } catch (Exception e) {
             ErrorManager.error("Error updating master configuration", e);
 

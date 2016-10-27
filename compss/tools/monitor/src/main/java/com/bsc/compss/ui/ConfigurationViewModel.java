@@ -34,10 +34,10 @@ public class ConfigurationViewModel {
             int ms = Integer.valueOf(this.getValue()) * 1000;
             if ((ms > 0) && (ms < 60000)) {
                 logger.debug("   New refresh time = " + ms + " ms");
-                Properties.REFRESH_TIME = ms;
+                Properties.setRefreshTime(ms);
             } else {
                 logger.debug("   Refresh time out of bounds: " + ms + " ms");
-                this.setValue(String.valueOf((Properties.REFRESH_TIME) / 1000));
+                this.setValue(String.valueOf(Properties.getRefreshTime() / 1_000));
             }
         }
     }
@@ -54,7 +54,7 @@ public class ConfigurationViewModel {
             logger.debug("Sort Applications update.");
             boolean newValue = Boolean.valueOf(this.getValue());
             logger.debug("   New sort application value = " + newValue);
-            Properties.SORT_APPLICATIONS = newValue;
+            Properties.setSortApplications(newValue);
         }
     }
 
@@ -71,10 +71,10 @@ public class ConfigurationViewModel {
             int newValue = Integer.valueOf(this.getValue());
             if (newValue >= 1) {
                 logger.debug("   New load Graph x-Scale update = " + newValue);
-                Properties.LOAD_GRAPH_X_SCALE = newValue;
+                Properties.setxScaleForLoadGraph(newValue);
             } else {
                 logger.debug("   The load graph value isn't correct. Reverting value.");
-                this.setValue(String.valueOf(Properties.LOAD_GRAPH_X_SCALE));
+                this.setValue(String.valueOf(Properties.getxScaleForLoadGraph()));
             }
         }
     }
@@ -86,13 +86,13 @@ public class ConfigurationViewModel {
         configurations = new LinkedList<ConfigParam>();
 
         // Add Refresh Time
-        refreshTime rt = new refreshTime("Refresh Time (s)", String.valueOf((Properties.REFRESH_TIME) / 1000), false);
+        refreshTime rt = new refreshTime("Refresh Time (s)", String.valueOf(Properties.getRefreshTime() / 1_000), false);
         configurations.add(rt);
         // Add Sort Applications
-        sortApplications sa = new sortApplications("Sort applications (true/false)", String.valueOf(Properties.SORT_APPLICATIONS), false);
+        sortApplications sa = new sortApplications("Sort applications (true/false)", String.valueOf(Properties.isSortApplications()), false);
         configurations.add(sa);
         // Add LoadGraph X-Scale
-        loadGraphXScale lgxs = new loadGraphXScale("Load Graph's X-Scale factor (int >= 1)", String.valueOf(Properties.LOAD_GRAPH_X_SCALE),
+        loadGraphXScale lgxs = new loadGraphXScale("Load Graph's X-Scale factor (int >= 1)", String.valueOf(Properties.getxScaleForLoadGraph()),
                 false);
         configurations.add(lgxs);
 

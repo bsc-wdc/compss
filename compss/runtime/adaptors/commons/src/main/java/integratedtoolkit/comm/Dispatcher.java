@@ -1,5 +1,6 @@
 package integratedtoolkit.comm;
 
+import integratedtoolkit.exceptions.FileDeletionException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.data.operation.Delete;
@@ -47,8 +48,12 @@ public class Dispatcher extends RequestDispatcher<DataOperation> {
     public static void performOperation(Delete d) {
         logger.debug("THREAD " + Thread.currentThread().getName() + " Delete " + d.getFile());
         try {
-            d.getFile().delete();
-        } catch (Exception e) {
+            if (!d.getFile().delete()) {
+                FileDeletionException fde = new FileDeletionException("Error performing delete file");
+                d.end(DataOperation.OpEndState.OP_FAILED, fde);
+                return;
+            }
+        } catch (SecurityException e) {
             d.end(DataOperation.OpEndState.OP_FAILED, e);
             return;
         }

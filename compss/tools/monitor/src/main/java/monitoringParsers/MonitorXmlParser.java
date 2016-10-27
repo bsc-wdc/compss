@@ -41,7 +41,7 @@ public class MonitorXmlParser {
     }
 
     public static void parseResources() {
-        String monitorLocation = Properties.BASE_PATH + Constants.MONITOR_XML_FILE;
+        String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
         // Reset attribute
         WorkersDataArray = new ArrayList<String[]>();
@@ -85,7 +85,7 @@ public class MonitorXmlParser {
     }
 
     public static void parseCores() {
-        String monitorLocation = Properties.BASE_PATH + Constants.MONITOR_XML_FILE;
+        String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
         // Reset attribute
         CoresDataArray = new ArrayList<String[]>();
@@ -128,7 +128,7 @@ public class MonitorXmlParser {
     }
 
     public static void parseStatistics() {
-        String monitorLocation = Properties.BASE_PATH + Constants.MONITOR_XML_FILE;
+        String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file for statistics...");
         // Reset attribute
         statisticParameters = new HashMap<String, String>();

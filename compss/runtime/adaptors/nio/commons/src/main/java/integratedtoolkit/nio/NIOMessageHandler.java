@@ -57,7 +57,7 @@ public class NIOMessageHandler implements MessageHandler {
         try {
             Command cmd = (Command) t.getObject();
             LOGGER.debug("Received Command " + cmd + " through connection " + c.hashCode());
-            cmd.agent = agent;
+            cmd.setAgent(agent);
             cmd.handle(c);
         } catch (Exception e) {
             LOGGER.error("Error receving command. Finishing connection.", e);

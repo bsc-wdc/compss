@@ -214,7 +214,9 @@ public class CleanerExecutor {
             } catch (Exception e) {
                 logger.error("Error moving cleaner.out", e);
             }
-            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out").delete();
+            if (!new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out").delete()) {
+                logger.error("Error removing cleaner.out file");
+            }
         }
 
         // Move cleanX.err logs to default logger
@@ -231,7 +233,9 @@ public class CleanerExecutor {
             } catch (Exception e) {
                 logger.error("Error moving cleaner.err", e);
             }
-            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err").delete();
+            if (!new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err").delete()) {
+                logger.error("Error removing cleaner.err file");
+            }
         }
         return true;
     }

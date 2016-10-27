@@ -220,14 +220,14 @@ public class ExecutionInformationTask {
 
         public String getExecutable() {
             executable = new String("Not Available");
-            if (!Properties.BASE_PATH.equals("")) {
+            if (!Properties.getBasePath().equals("")) {
                 BufferedReader br = null;
                 try {
                     String jobOutPath;
                     if (!this.resubmited) {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
                     } else {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
                                 + Constants.JOB_OUT_RESUBMITTED_FILE;
                     }
 
@@ -259,14 +259,14 @@ public class ExecutionInformationTask {
 
         public String getArguments() {
             arguments = new String("Not Available");
-            if (!Properties.BASE_PATH.equals("")) {
+            if (!Properties.getBasePath().equals("")) {
                 BufferedReader br = null;
                 try {
                     String jobOutPath;
                     if (!this.resubmited) {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
                     } else {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
                                 + Constants.JOB_OUT_RESUBMITTED_FILE;
                     }
 
@@ -297,14 +297,14 @@ public class ExecutionInformationTask {
         }
 
         public String getOutFileContent() {
-            if (!Properties.BASE_PATH.equals("")) {
+            if (!Properties.getBasePath().equals("")) {
                 StringBuilder sb = new StringBuilder();
                 try {
                     String jobOutPath;
                     if (!this.resubmited) {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
                     } else {
-                        jobOutPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
+                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
                                 + Constants.JOB_OUT_RESUBMITTED_FILE;
                     }
                     BufferedReader br = new BufferedReader(new FileReader(jobOutPath));
@@ -324,14 +324,14 @@ public class ExecutionInformationTask {
         }
 
         public String getErrFileContent() {
-            if (!Properties.BASE_PATH.equals("")) {
+            if (!Properties.getBasePath().equals("")) {
                 StringBuilder sb = new StringBuilder();
                 try {
                     String jobErrPath;
                     if (!this.resubmited) {
-                        jobErrPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_ERR_FILE;
+                        jobErrPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_ERR_FILE;
                     } else {
-                        jobErrPath = Properties.BASE_PATH + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
+                        jobErrPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
                                 + Constants.JOB_ERR_RESUBMITTED_FILE;
                     }
                     BufferedReader br = new BufferedReader(new FileReader(jobErrPath));

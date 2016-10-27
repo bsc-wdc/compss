@@ -53,6 +53,7 @@ import integratedtoolkit.util.Tracer;
 public class AccessProcessor implements Runnable, TaskProducer {
 
     protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
+    private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
     protected TaskDispatcher<?, ?> taskDispatcher;
@@ -78,7 +79,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         dataInfoProvider = new DataInfoProvider();
 
         taskAnalyser.setCoWorkers(dataInfoProvider);
-        requestQueue = new LinkedBlockingQueue<APRequest>();
+        requestQueue = new LinkedBlockingQueue<>();
 
         keepGoing = true;
         processor = new Thread(this);
@@ -134,7 +135,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
         
         Task currentTask = new Task(appId, methodClass, methodName, mustBeReplicated, priority, hasTarget, parameters);
 
-        requestQueue.offer(new TaskAnalysisRequest(currentTask));
+        if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
+        }
         return currentTask.getId();
     }
 
@@ -144,14 +147,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
         Task currentTask = new Task(appId, namespace, service, port, operation, priority, hasTarget, parameters);
 
-        requestQueue.offer(new TaskAnalysisRequest(currentTask));
+        if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new service task");
+        }
         return currentTask.getId();
     }
 
     // Notification thread (JM)
     @Override
     public void notifyTaskEnd(Task task) {
-        requestQueue.offer(new TaskEndNotification(task));
+        if (!requestQueue.offer(new TaskEndNotification(task))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "notify task end");
+        }
     }
 
     public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
@@ -186,7 +193,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 String path = DataLocation.Protocol.FILE_URI.getSchema() + destDir + rename;
                 try {
                     SimpleURI uri = new SimpleURI(path);
-                    tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
+                    tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
                 }
@@ -207,10 +214,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
                 daId = ra.getWrittenDataInstance();
             }
             String rename = daId.getRenaming();
-            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + rename;
+            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + rename;
             try {
                 SimpleURI uri = new SimpleURI(path);
-                tgtLocation = DataLocation.createLocation(Comm.appHost, uri);
+                tgtLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
@@ -224,7 +231,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public boolean isCurrentRegisterValueValid(int hashCode) {
         Semaphore sem = new Semaphore(0);
         IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "valid object value");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -256,7 +265,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // App
     public void noMoreTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
-        requestQueue.offer(new EndOfAppRequest(appId, sem));
+        if (!requestQueue.offer(new EndOfAppRequest(appId, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "no more tasks");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -269,7 +280,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private boolean alreadyAccessed(DataLocation loc) {
         Semaphore sem = new Semaphore(0);
         AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "already accessed location");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -281,7 +294,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // App
     public void waitForAllTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
-        requestQueue.offer(new WaitForAllTasksRequest(appId, sem));
+        if (!requestQueue.offer(new WaitForAllTasksRequest(appId, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -293,7 +308,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // App
     private void waitForTask(int dataId, AccessMode mode) {
         Semaphore sem = new Semaphore(0);
-        requestQueue.offer(new WaitForTaskRequest(dataId, mode, sem));
+        if (!requestQueue.offer(new WaitForTaskRequest(dataId, mode, sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "wait for task");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -306,7 +323,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private DataAccessId registerDataAccess(AccessParams access) {
         Semaphore sem = new Semaphore(0);
         RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "register data access");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -318,20 +337,26 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // App
     public void newVersionSameValue(String rRenaming, String wRenaming) {
         NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new version");
+        }
     }
 
     // App
     public void setObjectVersionValue(String renaming, Object value) {
         SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "new object version value");
+        }
     }
 
     // App
     public String getLastRenaming(int code) {
         Semaphore sem = new Semaphore(0);
         GetLastRenamingRequest request = new GetLastRenamingRequest(code, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "get last renaming");
+        }
 
         try {
             sem.acquire();
@@ -344,13 +369,17 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // App
     public void unblockResultFiles(List<ResultFile> resFiles) {
         UnblockResultFilesRequest request = new UnblockResultFilesRequest(resFiles);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "unblock result files");
+        }
     }
 
     // App / Shutdown thread
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
-        requestQueue.offer(new ShutdownRequest(sem));
+        if (!requestQueue.offer(new ShutdownRequest(sem))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "shutdown");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -366,7 +395,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public String getCurrentTaskState() {
         Semaphore sem = new Semaphore(0);
         TasksStateRequest request = new TasksStateRequest(sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "get current task state");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
@@ -376,14 +407,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     public void markForDeletion(DataLocation loc) {
-        requestQueue.offer(new DeleteFileRequest(loc));
+        if (!requestQueue.offer(new DeleteFileRequest(loc))) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
+        }
     }
 
     // App
     private void transferFileRaw(DataAccessId faId, DataLocation location) {
         Semaphore sem = new Semaphore(0);
         TransferRawFileRequest request = new TransferRawFileRequest((RAccessId) faId, location, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file raw");
+        }
 
         try {
             sem.acquire();
@@ -398,7 +433,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private DataLocation transferFileOpen(DataAccessId faId) {
         Semaphore sem = new Semaphore(0);
         TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "transfer file open");
+        }
 
         try {
             sem.acquire();
@@ -414,7 +451,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
         // Ask for the object
         Semaphore sem = new Semaphore(0);
         TransferObjectRequest tor = new TransferObjectRequest(oaId, sem);
-        requestQueue.offer(tor);
+        if (!requestQueue.offer(tor)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "obtain object");
+        }
 
         // Wait for completion
         try {
@@ -446,14 +485,18 @@ public class AccessProcessor implements Runnable, TaskProducer {
     public void getResultFiles(Long appId) {
         Semaphore sem = new Semaphore(0);
         GetResultFilesRequest request = new GetResultFilesRequest(appId, sem);
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "get result files");
+        }
         try {
             sem.acquire();
         } catch (InterruptedException e) {
             // Nothing to do
         }
         UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
-        requestQueue.offer(urfr);
+        if (!requestQueue.offer(urfr)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "unlock result files");
+        }
     }
 
 }

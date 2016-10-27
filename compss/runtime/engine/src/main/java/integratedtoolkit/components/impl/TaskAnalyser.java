@@ -73,14 +73,14 @@ public class TaskAnalyser {
 
 
     public TaskAnalyser() {
-        currentTaskCount = new HashMap<Integer, Integer>();
-        writers = new TreeMap<Integer, Task>();
-        appIdToTaskCount = new HashMap<Long, Integer>();
-        appIdToTotalTaskCount = new HashMap<Long, Integer>();
-        appIdToSemaphore = new HashMap<Long, Semaphore>();
-        appIdToWrittenFiles = new HashMap<Long, TreeSet<Integer>>();
-        appIdToSCOWrittenIds = new HashMap<Long, TreeSet<Integer>>();
-        waitedTasks = new Hashtable<Task, List<Semaphore>>();
+        currentTaskCount = new HashMap<>();
+        writers = new TreeMap<>();
+        appIdToTaskCount = new HashMap<>();
+        appIdToTotalTaskCount = new HashMap<>();
+        appIdToSemaphore = new HashMap<>();
+        appIdToWrittenFiles = new HashMap<>();
+        appIdToSCOWrittenIds = new HashMap<>();
+        waitedTasks = new Hashtable<>();
         synchronizationId = 0;
         logger.info("Initialization finished");
     }

@@ -269,7 +269,7 @@ public abstract class Resource implements Comparable<Resource> {
         SafeCopyListener listener = new SafeCopyListener(sem);
         HashSet<LogicalData> lds = getAllDataFromHost();
         HashMap<String, String> disks = SharedDiskManager.terminate(this);
-        COMPSsNode masterNode = Comm.appHost.getNode();
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
         for (LogicalData ld : lds) {
             ld.notifyToInProgressCopiesEnd(listener);
             DataLocation lastLoc = ld.removeHostAndCheckLocationToSave(this, disks);
@@ -277,10 +277,10 @@ public abstract class Resource implements Comparable<Resource> {
                 listener.addOperation();
 
                 DataLocation safeLoc = null;
-                String safePath = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + ld.getName();
+                String safePath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + ld.getName();
                 try {
                     SimpleURI uri = new SimpleURI(safePath);
-                    safeLoc = DataLocation.createLocation(Comm.appHost, uri);
+                    safeLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
                 } catch (Exception e) {
                     ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + safePath, e);
                 }
@@ -331,13 +331,13 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     private void getTracingPackageToMaster() {
-        COMPSsNode masterNode = Comm.appHost.getNode();
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
         Semaphore sem = new Semaphore(0);
         String fileName = getName() + "_compss_trace.tar.gz";
         SimpleURI fileOriginURI = node.getCompletePath(DataType.FILE_T, fileName);
 
         if (debug) {
-            logger.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : " + Comm.appHost.getAppLogDirPath() + "trace"
+            logger.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : " + Comm.getAppHost().getAppLogDirPath() + "trace"
                     + File.separator + fileName);
         }
 
@@ -355,10 +355,10 @@ public abstract class Resource implements Comparable<Resource> {
 
         // Target data location
         DataLocation tgt = null;
-        String targetPath = Protocol.FILE_URI.getSchema() + Comm.appHost.getAppLogDirPath() + "trace" + File.separator + fileName;
+        String targetPath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
-            tgt = DataLocation.createLocation(Comm.appHost, uri);
+            tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
         }
@@ -380,9 +380,11 @@ public abstract class Resource implements Comparable<Resource> {
         File f = null;
         try {
             f = new File(source.getPath());
-            f.delete();
+            if (!f.delete()) {
+                logger.error("Unable to remove tracing temporary files of node " + this.getName());
+            }
         } catch (Exception e) {
-            logger.error("Unable to remove tracing temporary files of node " + this.getName());
+            logger.error("Unable to remove tracing temporary files of node " + this.getName(), e);
         }
     }
 
@@ -391,7 +393,7 @@ public abstract class Resource implements Comparable<Resource> {
             logger.debug("Copying Workers Information");
         }
 
-        COMPSsNode masterNode = Comm.appHost.getNode();
+        COMPSsNode masterNode = Comm.getAppHost().getNode();
         Semaphore sem = new Semaphore(0);
         WorkersDebugInformationListener wdil = new WorkersDebugInformationListener(sem);
 
@@ -399,7 +401,7 @@ public abstract class Resource implements Comparable<Resource> {
         wdil.addOperation();
         String outFileName = "worker_" + getName() + ".out";
         SimpleURI outFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + outFileName);
-        String outFileTarget = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkersDirPath() + File.separator + outFileName;
+        String outFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + outFileName;
 
         DataLocation outSource = null;
         try {
@@ -411,7 +413,7 @@ public abstract class Resource implements Comparable<Resource> {
         DataLocation outTarget = null;
         try {
             SimpleURI uri = new SimpleURI(outFileTarget);
-            outTarget = DataLocation.createLocation(Comm.appHost, uri);
+            outTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + outFileTarget);
         }
@@ -425,7 +427,7 @@ public abstract class Resource implements Comparable<Resource> {
         wdil.addOperation();
         String errFileName = "worker_" + getName() + ".err";
         SimpleURI errFileOrigin = node.getCompletePath(DataType.FILE_T, "log" + File.separator + "static_" + errFileName);
-        String errFileTarget = Protocol.FILE_URI.getSchema() + Comm.appHost.getWorkersDirPath() + File.separator + errFileName;
+        String errFileTarget = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getWorkersDirPath() + File.separator + errFileName;
 
         DataLocation errSource = null;
         try {
@@ -437,7 +439,7 @@ public abstract class Resource implements Comparable<Resource> {
         DataLocation errTarget = null;
         try {
             SimpleURI uri = new SimpleURI(errFileTarget);
-            errTarget = DataLocation.createLocation(Comm.appHost, uri);
+            errTarget = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + errFileTarget);
         }

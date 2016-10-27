@@ -47,8 +47,6 @@ import integratedtoolkit.util.Tracer;
 public class NIOWorker extends NIOAgent {
 
     // General configuration attributes
-    public static boolean isWorkerDebugEnabled;
-
     private static final int MAX_RETRIES = 5;
 
     // Logger
@@ -64,6 +62,8 @@ public class NIOWorker extends NIOAgent {
     private static boolean removeWD = removeWDFlagDefined ? Boolean.valueOf(System.getProperty(ITConstants.IT_WORKER_REMOVE_WD)) : true;
 
     // Application dependent attributes
+    private static boolean isWorkerDebugEnabled;
+    
     private final String deploymentId;
     private final String lang;
     private final String host;
@@ -173,6 +173,10 @@ public class NIOWorker extends NIOAgent {
     @Override
     public boolean isMyUuid(String uuid) {
         return uuid.equals(this.deploymentId);
+    }
+    
+    public static boolean isWorkerDebugEnabled() {
+        return isWorkerDebugEnabled;
     }
 
     public static String getExecutionType() {

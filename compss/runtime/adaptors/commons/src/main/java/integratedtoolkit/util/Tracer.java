@@ -166,7 +166,7 @@ public abstract class Tracer {
         hostId = new AtomicInteger(1);
         hostToSlots = new HashMap<String, TraceHost>();
 
-        traceDirPath = Comm.appHost.getAppLogDirPath() + "trace" + File.separator;
+        traceDirPath = Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator;
         if (!new File(traceDirPath).mkdir()) {
             ErrorManager.error(ERROR_TRACE_DIR);
         }
@@ -507,7 +507,7 @@ public abstract class Tracer {
         String sourcePath = DataLocation.Protocol.FILE_URI.getSchema() + filename;
         try {
             SimpleURI uri = new SimpleURI(sourcePath);
-            source = DataLocation.createLocation(Comm.appHost, uri);
+            source = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + sourcePath, e);
         }
@@ -515,7 +515,7 @@ public abstract class Tracer {
         String targetPath = DataLocation.Protocol.FILE_URI.getSchema() + traceDirPath + filename;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
-            target = DataLocation.createLocation(Comm.appHost, uri);
+            target = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
@@ -525,7 +525,7 @@ public abstract class Tracer {
         TracingCopyListener tracingListener = new TracingCopyListener(sem);
         tracingListener.addOperation();
 
-        Comm.appHost.getNode().obtainData(new LogicalData("tracing master package"), source, target,
+        Comm.getAppHost().getNode().obtainData(new LogicalData("tracing master package"), source, target,
                 new LogicalData("tracing master package"), new TracingCopyTransferable(), tracingListener);
 
         // Wait for data
@@ -585,7 +585,7 @@ public abstract class Tracer {
         DataLocation source = null;
         try {
             SimpleURI uri = new SimpleURI(filename);
-            source = DataLocation.createLocation(Comm.appHost, uri);
+            source = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filename, e);
         }

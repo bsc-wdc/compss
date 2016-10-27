@@ -179,12 +179,12 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
-        if (target.getHosts().contains(Comm.appHost)) {
+        if (target.getHosts().contains(Comm.getAppHost())) {
             // Request to master
 
             // Order petition directly
             if (tgtData != null) {
-                MultiURI u = ld.alreadyAvailable(Comm.appHost);
+                MultiURI u = ld.alreadyAvailable(Comm.getAppHost());
                 if (u != null) { // Already present at the master
                     reason.setDataTarget(u.getPath());
                     listener.notifyEnd(null);
@@ -206,7 +206,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     }
                 }
             }
-            String path = target.getURIInHost(Comm.appHost).getPath();
+            String path = target.getURIInHost(Comm.getAppHost()).getPath();
             ld.startCopy(c, c.getTargetLoc());
             DataRequest dr = new MasterDataRequest(c, reason.getType(), d, path);
             commManager.addTransferRequest(dr);
@@ -324,7 +324,7 @@ public class NIOWorkerNode extends COMPSsWorker {
             NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
-            String newId = StorageItf.newVersion(pscoId, Comm.appHost.getName());
+            String newId = StorageItf.newVersion(pscoId, Comm.getAppHost().getName());
             logger.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {

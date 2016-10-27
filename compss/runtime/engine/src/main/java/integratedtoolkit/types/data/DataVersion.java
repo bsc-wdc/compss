@@ -1,7 +1,5 @@
 package integratedtoolkit.types.data;
 
-import com.jcraft.jsch.Logger;
-
 import integratedtoolkit.comm.Comm;
 
 
@@ -28,7 +26,7 @@ public class DataVersion {
     public void willBeRead() {
         readers++;
     }
-    
+
     public void willBeWritten() {
         writters++;
     }
@@ -57,7 +55,7 @@ public class DataVersion {
     }
 
     private boolean checkDeletion() {
-    	if (toDelete // deletion requested
+        if (toDelete // deletion requested
                 && writters == 0 // version has been generated
                 && readers == 0 // version has been read
         ) {
@@ -66,8 +64,9 @@ public class DataVersion {
         }
         return false;
     }
-    public boolean isToDelete(){
-    	return toDelete;
+
+    public boolean isToDelete() {
+        return toDelete;
     }
 
 }

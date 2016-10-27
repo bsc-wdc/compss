@@ -57,7 +57,7 @@ public class PythonThreadPool extends ExternalThreadPool {
                     .append(ExternalExecutor.TOKEN_SEP);
         }
 
-        cmd.append(NIOWorker.isWorkerDebugEnabled).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.isWorkerDebugEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(size).append(ExternalExecutor.TOKEN_SEP);
 

@@ -206,9 +206,9 @@ public class ResourcesLogParser {
 
     public static void parse() {
         logger.debug("Parsing resources.log file...");
-        if (!Properties.BASE_PATH.equals("")) {
+        if (!Properties.getBasePath().equals("")) {
             // Check if applicaction has changed
-            String newPath = Properties.BASE_PATH + File.separator + Constants.RESOURCES_LOG;
+            String newPath = Properties.getBasePath() + File.separator + Constants.RESOURCES_LOG;
             if (!resourcesLogPath.equals(newPath)) {
                 // Load new application
                 clear();
@@ -226,7 +226,7 @@ public class ResourcesLogParser {
                         if (line.contains("TIMESTAMP = ")) {
                             logger.debug("* Timestamp flag");
                             scaleTimeStamp++;
-                            if (scaleTimeStamp >= Properties.LOAD_GRAPH_X_SCALE) {
+                            if (scaleTimeStamp >= Properties.getxScaleForLoadGraph()) {
                                 // Received information needs to be processed
                                 processInformation = true;
                                 scaleTimeStamp = 0;

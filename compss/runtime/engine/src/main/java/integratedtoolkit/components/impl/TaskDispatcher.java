@@ -54,10 +54,11 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     protected static final boolean debug = logger.isDebugEnabled();
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
+    private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
 
     public TaskDispatcher() {
-        requestQueue = new LinkedBlockingDeque<TDRequest<P, T>>();
+        requestQueue = new LinkedBlockingDeque<>();
         dispatcher = new Thread(this);
         dispatcher.setName("Task Dispatcher");
 
@@ -127,11 +128,15 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     }
 
     private void addRequest(TDRequest<P, T> request) {
-        requestQueue.offer(request);
+        if (!requestQueue.offer(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "add request");
+        }
     }
 
     private void addPrioritaryRequest(TDRequest<P, T> request) {
-        requestQueue.offerFirst(request);
+        if (!requestQueue.offerFirst(request)) {
+            ErrorManager.error(ERROR_QUEUE_OFFER + "add prioritary request");
+        }
     }
 
     // TP (TA)

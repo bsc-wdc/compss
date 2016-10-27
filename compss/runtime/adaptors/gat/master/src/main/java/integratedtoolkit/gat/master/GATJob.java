@@ -72,7 +72,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String WORKER_SCRIPT_NAME = "worker.sh";
 
-    public static LinkedList<GATJob> runningJobs = new LinkedList<GATJob>();
+    private static final LinkedList<GATJob> RUNNING_JOBS = new LinkedList<>();
 
     // Storage Conf
     private static final boolean IS_STORAGE_ENABLED = System.getProperty(ITConstants.IT_STORAGE_CONF) != null
@@ -117,7 +117,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
         try {
             job = broker.submitJob(jobDescr, this, JOB_STATUS);
-            runningJobs.add(this);
+            RUNNING_JOBS.add(this);
         } catch (Exception e) {
             if (Tracer.isActivated()) {
                 Tracer.freeSlot(((GATWorkerNode) worker.getNode()).getHost(),
@@ -131,7 +131,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     protected static void stopAll() {
-        for (GATJob job : runningJobs) {
+        for (GATJob job : RUNNING_JOBS) {
             try {
                 job.stop();
             } catch (Exception e) {
@@ -183,22 +183,22 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                     File localFile = GAT.createFile(context, errFile.toGATURI());
                     if (localFile.length() > 0) {
                         GATjob = null;
-                        runningJobs.remove(this);
+                        RUNNING_JOBS.remove(this);
                         listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                     } else {
                         if (!debug) {
                             localFile.delete();
                         }
-                        runningJobs.remove(this);
+                        RUNNING_JOBS.remove(this);
                         listener.jobCompleted(this);
                     }
                 } else {
                     if (job.getExitStatus() == 0) {
-                        runningJobs.remove(this);
+                        RUNNING_JOBS.remove(this);
                         listener.jobCompleted(this);
                     } else {
                         GATjob = null;
-                        runningJobs.remove(this);
+                        RUNNING_JOBS.remove(this);
                         listener.jobFailed(this, JobEndStatus.EXECUTION_FAILED);
                     }
                 }
@@ -214,11 +214,11 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
             try {
                 if (usingGlobus && job.getInfo().get("resManError").equals("NO_ERROR")) {
-                    runningJobs.remove(this);
+                    RUNNING_JOBS.remove(this);
                     listener.jobCompleted(this);
                 } else {
                     GATjob = null;
-                    runningJobs.remove(this);
+                    RUNNING_JOBS.remove(this);
                     listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                 }
             } catch (GATInvocationException e) {

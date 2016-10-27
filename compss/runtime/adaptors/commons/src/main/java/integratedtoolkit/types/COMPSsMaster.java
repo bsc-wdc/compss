@@ -156,7 +156,7 @@ public class COMPSsMaster extends COMPSsNode {
         if (copiesInProgress != null && !copiesInProgress.isEmpty()) {
             for (Copy copy : copiesInProgress) {
                 if (copy != null) {
-                    if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.appHost)) {
+                    if (copy.getTargetLoc() != null && copy.getTargetLoc().getHosts().contains(Comm.getAppHost())) {
                         if (debug) {
                             logger.debug("Copy in progress tranfering " + ld.getName() + "to master. Waiting for finishing");
                         }
@@ -164,45 +164,45 @@ public class COMPSsMaster extends COMPSsNode {
                         try {
                             if (debug) {
                                 logger.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                        + target.getURIInHost(Comm.appHost).getPath());
+                                        + target.getURIInHost(Comm.getAppHost()).getPath());
                             }
                             Files.copy((new File(copy.getFinalTarget())).toPath(),
-                                    new File(target.getURIInHost(Comm.appHost).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                             if (tgtData != null) {
                                 tgtData.addLocation(target);
                             }
-                            logger.debug("File copied set dataTarget " + target.getURIInHost(Comm.appHost).getPath());
-                            reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
+                            logger.debug("File copied set dataTarget " + target.getURIInHost(Comm.getAppHost()).getPath());
+                            reason.setDataTarget(target.getURIInHost(Comm.getAppHost()).getPath());
 
                             listener.notifyEnd(null);
                             ld.releaseHostRemoval();
                             return;
                         } catch (IOException ex) {
                             ErrorManager.warn("Error master local copying file " + copy.getFinalTarget() + " from master to "
-                                    + target.getURIInHost(Comm.appHost).getPath() + " with replacing", ex);
+                                    + target.getURIInHost(Comm.getAppHost()).getPath() + " with replacing", ex);
                         }
 
-                    } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.appHost)) {
+                    } else if (copy.getTargetData() != null && copy.getTargetData().getAllHosts().contains(Comm.getAppHost())) {
                         waitForCopyTofinish(copy);
                         try {
                             if (debug) {
                                 logger.debug("Master local copy " + ld.getName() + " from " + copy.getFinalTarget() + " to "
-                                        + target.getURIInHost(Comm.appHost).getPath());
+                                        + target.getURIInHost(Comm.getAppHost()).getPath());
                             }
                             Files.copy((new File(copy.getFinalTarget())).toPath(),
-                                    new File(target.getURIInHost(Comm.appHost).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                             if (tgtData != null) {
                                 tgtData.addLocation(target);
                             }
-                            logger.debug("File copied. Set data target to " + target.getURIInHost(Comm.appHost).getPath());
-                            reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
+                            logger.debug("File copied. Set data target to " + target.getURIInHost(Comm.getAppHost()).getPath());
+                            reason.setDataTarget(target.getURIInHost(Comm.getAppHost()).getPath());
 
                             listener.notifyEnd(null);
                             ld.releaseHostRemoval();
                             return;
                         } catch (IOException ex) {
                             ErrorManager.warn("Error master local copy from " + copy.getFinalTarget() + " to "
-                                    + target.getURIInHost(Comm.appHost).getPath() + " with replacing", ex);
+                                    + target.getURIInHost(Comm.getAppHost()).getPath() + " with replacing", ex);
                         }
                     } else {
                         if (debug) {
@@ -215,30 +215,30 @@ public class COMPSsMaster extends COMPSsNode {
 
         // Checking if in master
         if (debug) {
-            logger.debug("Checking if " + ld.getName() + " is at master (" + Comm.appHost + ").");
+            logger.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost() + ").");
         }
 
         for (MultiURI u : ld.getURIs()) {
             logger.debug(ld.getName() + " is at " + u.toString() + "(" + u.getHost() + ")");
-            if (u.getHost() == Comm.appHost) {
+            if (u.getHost() == Comm.getAppHost()) {
                 try {
                     if (debug) {
                         logger.debug("Master local copy " + ld.getName() + " from " + u.getHost().getName() + " to " + target.getPath());
                     }
-                    Files.copy((new File(u.getPath())).toPath(), new File(target.getURIInHost(Comm.appHost).getPath()).toPath(),
+                    Files.copy((new File(u.getPath())).toPath(), new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(),
                             StandardCopyOption.REPLACE_EXISTING);
                     if (tgtData != null) {
                         tgtData.addLocation(target);
                     }
-                    logger.debug("File copied. Set data target to " + target.getURIInHost(Comm.appHost).getPath());
-                    reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
+                    logger.debug("File copied. Set data target to " + target.getURIInHost(Comm.getAppHost()).getPath());
+                    reason.setDataTarget(target.getURIInHost(Comm.getAppHost()).getPath());
 
                     listener.notifyEnd(null);
                     ld.releaseHostRemoval();
                     return;
                 } catch (IOException ex) {
                     ErrorManager.warn("Error master local copy file from " + u.getPath() + " to "
-                            + target.getURIInHost(Comm.appHost).getPath() + " with replacing", ex);
+                            + target.getURIInHost(Comm.getAppHost()).getPath() + " with replacing", ex);
                 }
             } else {
                 if (debug) {
@@ -267,22 +267,22 @@ public class COMPSsMaster extends COMPSsNode {
                 } else {
                     try {
                         if (debug) {
-                            logger.debug("Local copy " + ld.getName() + " from " + source.getURIInHost(Comm.appHost).getPath() + " to "
-                                    + target.getURIInHost(Comm.appHost).getPath());
+                            logger.debug("Local copy " + ld.getName() + " from " + source.getURIInHost(Comm.getAppHost()).getPath() + " to "
+                                    + target.getURIInHost(Comm.getAppHost()).getPath());
                         }
                         // URI u = source.getURIInHost(sourceRes);
-                        Files.copy(new File(source.getURIInHost(Comm.appHost).getPath()).toPath(),
+                        Files.copy(new File(source.getURIInHost(Comm.getAppHost()).getPath()).toPath(),
                                 new File(target.getURIInHost(sourceRes).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                         logger.debug("File copied. Set data target to " + target.getPath());
-                        reason.setDataTarget(target.getURIInHost(Comm.appHost).getPath());
+                        reason.setDataTarget(target.getURIInHost(Comm.getAppHost()).getPath());
                         listener.notifyEnd(null);
                         ld.releaseHostRemoval();
                         return;
 
                     } catch (IOException ex) {
-                        ErrorManager.warn("Error master local copy file from " + source.getURIInHost(Comm.appHost).getPath() + " to "
-                                + target.getURIInHost(Comm.appHost).getPath(), ex);
+                        ErrorManager.warn("Error master local copy file from " + source.getURIInHost(Comm.getAppHost()).getPath() + " to "
+                                + target.getURIInHost(Comm.getAppHost()).getPath(), ex);
                     }
                 }
             }
@@ -342,7 +342,7 @@ public class COMPSsMaster extends COMPSsNode {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
+                path = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;
@@ -360,7 +360,7 @@ public class COMPSsMaster extends COMPSsNode {
 
     @Override
     public void deleteTemporary() {
-        File dir = new File(Comm.appHost.getTempDirPath());
+        File dir = new File(Comm.getAppHost().getTempDirPath());
         for (File f : dir.listFiles()) {
             deleteFolder(f);
         }
@@ -373,7 +373,9 @@ public class COMPSsMaster extends COMPSsNode {
                     deleteFolder(f);
                 }
             }
-            folder.delete();
+            if (!folder.delete()) {
+                logger.error("Error deleting file " + (folder == null ? "" : folder.getName()));
+            }
         }
     }
 

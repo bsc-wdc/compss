@@ -83,9 +83,13 @@
       export EXTRAE_CONFIG_FILE=${taskConfigFile}
     fi
 
+    tmp=$(mktemp -d --tmpdir=.)
+    wd=$(pwd)
+    cd ${tmp}
     # Real task execution
     $@ 1>> $jobOut 2>> $jobErr
     local exitValue=$?
+    cd ${wd}
 
     # Log the task end
     echo "[PYTHON PIPER] Finished Task $tid with exitStatus ${exitValue}"

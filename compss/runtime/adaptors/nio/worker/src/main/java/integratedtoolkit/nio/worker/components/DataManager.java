@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.worker.components;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
 
 import java.util.HashMap;
 
@@ -20,8 +21,8 @@ public class DataManager {
         objectCache = new HashMap<String, Object>();
     }
 
-    public void init() throws Exception {
-
+    public void init() throws InitializationException {
+        // All structures are already defined
     }
 
     public void stop() {

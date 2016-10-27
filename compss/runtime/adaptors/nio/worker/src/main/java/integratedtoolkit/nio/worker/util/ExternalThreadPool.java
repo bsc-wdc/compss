@@ -212,12 +212,6 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
     }
 
     /**
-     * Starts the threads of the pool
-     * 
-     */
-    public abstract void startThreads();
-
-    /**
      * Returns the launch command for every binding
      * 
      * @return

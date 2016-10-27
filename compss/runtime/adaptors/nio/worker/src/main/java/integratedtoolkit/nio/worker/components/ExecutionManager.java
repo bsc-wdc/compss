@@ -7,6 +7,7 @@ import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.util.CThreadPool;
 import integratedtoolkit.nio.worker.util.JavaThreadPool;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
@@ -42,7 +43,7 @@ public class ExecutionManager {
 
     }
 
-    public void init() throws Exception {
+    public void init() throws InitializationException {
         logger.info("Init Execution Manager");
         this.pool.startThreads();
     }

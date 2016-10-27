@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.worker.util;
 
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.executors.JavaExecutor;
 
 
@@ -14,7 +15,7 @@ public class JavaThreadPool extends JobsThreadPool {
      * Starts the threads of the pool
      * 
      */
-    public void startThreads() {
+    public void startThreads() throws InitializationException {
         logger.info("Start threads of ThreadPool");
         int i = 0;
         for (Thread t : workerThreads) {

@@ -36,6 +36,8 @@ import integratedtoolkit.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
+import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
@@ -134,8 +136,8 @@ public class NIOWorker extends NIOAgent {
         this.dataManager = new DataManager();
         try {
             this.dataManager.init();
-        } catch (Exception e) {
-            ErrorManager.error(DATA_MANAGER_ERROR, e);
+        } catch (InitializationException ie) {
+            ErrorManager.error(DATA_MANAGER_ERROR, ie);
         }
 
         // Start Execution Manager
@@ -147,8 +149,8 @@ public class NIOWorker extends NIOAgent {
 
         try {
             this.executionManager.init();
-        } catch (Exception e) {
-            ErrorManager.error(EXECUTION_MANAGER_ERR, e);
+        } catch (InitializationException ie) {
+            ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
         }
 
         if (tracing_level == NIOTracer.BASIC_MODE) {
@@ -210,50 +212,50 @@ public class NIOWorker extends NIOAgent {
         return this.pythonpath;
     }
     
-    // Bind numCUs core units to the job
-    public int[] bindCoreUnits(int jobId, int numCUs){
+    /**
+     * Bind numCUs core units to the job
+     * 
+     * @param jobId
+     * @param numCUs
+     * @return
+     * @throws UnsufficientAvailableCoresException
+     */
+    public int[] bindCoreUnits(int jobId, int numCUs) throws UnsufficientAvailableCoresException {
     	int assignedCoreUnits[] = new int[numCUs];
 		boolean done = false;
-		int assigned = 0;
-		int i = 0;
+		int numAssignedCores = 0;
 	
-		//Assign free CUs to the job
+		// Assign free CUs to the job
 		synchronized(boundCoreUnits){
-			while ((!done) && (i < boundCoreUnits.length)){
-				//synchronized(boundCoreUnits){
-				if (boundCoreUnits[i] == -1){		
-					if (boundCoreUnits[i] == -1){
-						boundCoreUnits[i] = jobId;
-	    				assignedCoreUnits[assigned] = i;
-	    				assigned++;
-					}
+		    for (int coreId = 0; coreId < boundCoreUnits.length && !done; ++coreId) {
+				if (boundCoreUnits[coreId] == -1) {		
+					boundCoreUnits[coreId] = jobId;
+    				assignedCoreUnits[numAssignedCores] = coreId;
+    				numAssignedCores++;
 				}
-				i++;
-				done = (assigned == numCUs);
-				//}
+				done = (numAssignedCores == numCUs);
 			}	
 		}
 		
-		//If the job doesn't have all the CUs it needs, it will run on occupied ones
-		i = 0;
-		while (!done){
-			if (boundCoreUnits[i] != jobId){
-				assignedCoreUnits[assigned] = i;
-				assigned++;
-			}
-			i++;
-			done = (assigned == numCUs);
+		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
+		// Raise exception
+		if (!done) {
+		    throw new UnsufficientAvailableCoresException("Not enough available cores for task execution");
 		}
 
 		return assignedCoreUnits;
     }
     
-    // Release core units occupied by the job
+    /**
+     * Release core units occupied by the job
+     * 
+     * @param jobId
+     */
     public void releaseCoreUnits(int jobId){
     	synchronized(boundCoreUnits){
-			for (int i = 0; i < boundCoreUnits.length; i++){
-				if (boundCoreUnits[i] == jobId){
-					boundCoreUnits[i] = -1;
+			for (int coreId = 0; coreId < boundCoreUnits.length; coreId++){
+				if (boundCoreUnits[coreId] == jobId) {
+					boundCoreUnits[coreId] = -1;
 				}
 			}
     	}
@@ -525,7 +527,6 @@ public class NIOWorker extends NIOAgent {
     // handles this as an error, which treats with its function handleError,
     // and notifies the worker in this case.
     public void handleRequestedDataNotAvailableError(LinkedList<DataRequest> failedRequests, String dataId) {
-        
         for (DataRequest dr : failedRequests) { // For every task pending on this request, flag it as an error
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
             wdr.getTransferringTask().decreaseParams();
@@ -630,12 +631,12 @@ public class NIOWorker extends NIOAgent {
         c.sendCommand(cmd);
 
         if (isWorkerDebugEnabled) {
-            c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".out");
-            c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".err");
+            c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".out");
+            c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".err");
         } else {
             if (!successful) {
-                c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".out");
-                c.sendDataFile(workingDir + "/jobs/job" + nt.getJobId() + "_" + nt.getHist() + ".err");
+                c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".out");
+                c.sendDataFile(workingDir + File.separator + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist() + ".err");
             }
         }
         c.finishConnection();

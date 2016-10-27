@@ -3,11 +3,12 @@ package integratedtoolkit.nio.worker;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 
 public class ThreadPrintStream extends PrintStream {
 
-    private HashMap<Long, PrintStream> threadToStream = new HashMap<Long, PrintStream>();
+    private Map<Long, PrintStream> threadToStream = new HashMap<>();
     private final String end;
     private final PrintStream defaultStream;
 

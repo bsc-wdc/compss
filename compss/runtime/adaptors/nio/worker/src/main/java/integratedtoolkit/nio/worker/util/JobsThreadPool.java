@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.util.RequestQueue;
 
 
@@ -64,7 +65,7 @@ public abstract class JobsThreadPool {
      * Creates and starts the threads of the pool and waits until they are created
      * 
      */
-    public abstract void startThreads();
+    public abstract void startThreads() throws InitializationException;
 
     /**
      * Stops all the threads. Inserts as many null objects to the queue as threads are managed. It wakes up all the

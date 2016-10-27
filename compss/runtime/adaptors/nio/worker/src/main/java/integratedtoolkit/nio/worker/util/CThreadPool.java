@@ -4,6 +4,7 @@ import java.util.Map;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.executors.CExecutor;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 
@@ -21,7 +22,7 @@ public class CThreadPool extends ExternalThreadPool {
      * Starts the threads of the pool
      * 
      */
-    public void startThreads() {
+    public void startThreads() throws InitializationException {
         logger.info("Start threads of ThreadPool");
         int i = 0;
         for (Thread t : workerThreads) {

@@ -164,6 +164,49 @@ For further information please refer to COMPSs User Manual: Application developm
 -------------------------------
 
 
+Release number 2.0
+Release date: November-2016
+-------------------------
+New features:
+        * Runtime:
+                - Upgrade to Java 8
+                - Support to remote input files (input files already at workers)
+                - Integration with Persistent Objects
+                - Elasticity with Docker and Mesos
+                - Multi-processor support (CPUs, GPUs, FPGAs)
+                - Dynamic constraints with environment variables
+                - Scheduling taking into account the full tasks graph (not only ready tasks)
+                - Support for SLURM clusters
+                - Initial COMPSs/OmpSs integration
+                - Replicated tasks: Tasks executed in all the workers
+                - Explicit Barrier
+
+        * Python:
+                - Python user events and HW counters tracing
+                - Improved PyCOMPSs serialization. Added support for lambda and generator parameters.
+
+        * C:
+                - Constraints support
+
+        * Tools:
+                - Improved current graph visualization on COMPSs Monitor
+
+Improvements:
+        - Simplified Resource and Project files (NO retrocompatibility)
+        - Improved binding workers execution (use pipes instead of Java Process Builders)
+        - Simplifies cluster job scripts and supercomputers configuration
+        - Several bug fixes
+
+Known Limitations:
+        * When executing python applications with constraints in the cloud the initial VMs
+ must be set to 0
+
+For further information please refer to COMPSs User Manual: Application development
+
+-------------------------------
+
+
+
 Please find more details about the COMP Superscalar framework at: 
 		http://compss.bsc.es/
 

@@ -26,18 +26,55 @@ public abstract class Command implements Externalizable {
     }
 
 
-    public NIOAgent agent;
+    protected NIOAgent agent;
 
 
+    /**
+     * Instantiates a new command
+     */
     public Command() {
+        // Only for externalization
     }
 
+    /**
+     * Instantiates a new command assigned to a given agent @agent
+     * 
+     * @param agent
+     */
     public Command(NIOAgent agent) {
         this.agent = agent;
     }
 
+    /**
+     * Returns the agent assigned to the command
+     * 
+     * @return
+     */
+    public NIOAgent getAgent() {
+        return this.agent;
+    }
+    
+    /**
+     * Assigns a new agent to the command
+     * 
+     * @param agent
+     */
+    public void setAgent(NIOAgent agent) {
+        this.agent = agent;
+    }
+
+    /**
+     * Returns the command type
+     * 
+     * @return
+     */
     public abstract CommandType getType();
 
+    /**
+     * Invokes the command handler
+     * 
+     * @param c
+     */
     public abstract void handle(Connection c);
 
 }

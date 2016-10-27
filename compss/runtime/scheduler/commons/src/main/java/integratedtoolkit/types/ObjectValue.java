@@ -2,13 +2,21 @@ package integratedtoolkit.types;
 
 public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
 
-    public T o;
-    public Score value;
+    private final T o;
+    private final Score value;
 
 
     public ObjectValue(T o, Score value) {
         this.o = o;
         this.value = value;
+    }
+
+    public T getObject() {
+        return this.o;
+    }
+
+    public Score getScore() {
+        return this.value;
     }
 
     @Override

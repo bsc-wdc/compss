@@ -31,8 +31,12 @@ public class DeleteFileRequest extends APRequest {
         if (fileInfo == null) { 
             // File is not used by any task
             File f = new File(loc.getPath());
-            f.delete();
-            logger.info("File "+ loc.getPath() + "deleted");
+            if (f.delete()) {
+                logger.info("File "+ loc.getPath() + "deleted");
+            } else {
+                logger.error("Error on deleting file " + loc.getPath());
+            }
+            
         } else { // file is involved in some task execution
             // File Won't be read by any future task or from the main code.
             // Remove it from the dependency analysis and the files to be transferred back

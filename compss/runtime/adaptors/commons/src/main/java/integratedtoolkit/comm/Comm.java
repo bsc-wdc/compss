@@ -49,7 +49,7 @@ public class Comm {
     private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
 
     // Master information
-    public static MasterResource appHost;
+    private static MasterResource appHost;
 
 
     // Communications initializer
@@ -98,6 +98,10 @@ public class Comm {
 
         // Construct properties
         return adaptor.constructConfiguration(project_properties, resources_properties);
+    }
+    
+    public static MasterResource getAppHost() {
+        return appHost;
     }
 
     public static synchronized COMPSsWorker initWorker(String name, Configuration config) {

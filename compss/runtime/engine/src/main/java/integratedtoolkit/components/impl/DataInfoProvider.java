@@ -52,10 +52,10 @@ public class DataInfoProvider {
 
 
     public DataInfoProvider() {
-        nameToId = new TreeMap<String, Integer>();
-        codeToId = new TreeMap<Integer, Integer>();
-        idToData = new TreeMap<Integer, DataInfo>();
-        renamingToValue = new TreeMap<String, Object>();
+        nameToId = new TreeMap<>();
+        codeToId = new TreeMap<>();
+        idToData = new TreeMap<>();
+        renamingToValue = new TreeMap<>();
 
         logger.info("Initialization finished");
     }
@@ -326,15 +326,15 @@ public class DataInfoProvider {
             toRequest.getSemaphore().release();
         } else {
             DataLocation targetLocation = null;
-            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + sourceName;
+            String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
             try {
                 SimpleURI uri = new SimpleURI(path);
-                targetLocation = DataLocation.createLocation(Comm.appHost, uri);
+                targetLocation = DataLocation.createLocation(Comm.getAppHost(), uri);
             } catch (Exception e) {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
             }
 
-            Comm.appHost.getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
+            Comm.getAppHost().getData(sourceName, targetLocation, new ObjectTransferable(), new OneOpWithSemListener(sem));
         }
 
         return ld;
@@ -392,7 +392,7 @@ public class DataInfoProvider {
 
             // If no PSCO location is found, perform normal getData
             listener.addOperation();
-            Comm.appHost.getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
+            Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
         }else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()){
         	if (debug) {

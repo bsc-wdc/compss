@@ -54,7 +54,7 @@ public class GraphGenerator {
     static {
         if (graphGeneratorEnabled) {
             // Set graph locations
-            monitorDirPath = Comm.appHost.getAppLogDirPath() + "monitor" + File.separator;
+            monitorDirPath = Comm.getAppHost().getAppLogDirPath() + "monitor" + File.separator;
             if (!new File(monitorDirPath).mkdir()) {
                 ErrorManager.error(ERROR_MONITOR_DIR);
             }
@@ -281,8 +281,12 @@ public class GraphGenerator {
      * 
      */
     public static void removeTemporaryGraph() {
-        new File(COMPLETE_GRAPH_TMP_FILE).delete();
-        new File(COMPLETE_LEGEND_TMP_FILE).delete();
+        if (!new File(COMPLETE_GRAPH_TMP_FILE).delete()) {
+            logger.error("Cannot remove temporary graph file");
+        }
+        if (!new File(COMPLETE_LEGEND_TMP_FILE).delete()) {
+            logger.error("Cannot remove temporary legend file");
+        }
     }
 
     /*

@@ -32,7 +32,7 @@ public class ViewModel {
 
     private String selectedTab;
 
-    public static int runtimeLogConfirmation = -1; // -1: do not apply, 0: accepted, 1:denied
+    private static int runtimeLogConfirmation = -1; // -1: do not apply, 0: accepted, 1:denied
 
     private static final Logger logger = LogManager.getLogger(Loggers.UI_VMS);
 
@@ -113,7 +113,7 @@ public class ViewModel {
     }
 
     public int getRefreshTime() {
-        return Properties.REFRESH_TIME;
+        return Properties.getRefreshTime();
     }
 
     @Command

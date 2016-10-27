@@ -56,10 +56,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     protected static AccessProcessor ap;
     protected static TaskDispatcher<?, ?> td;
 
-    // Application attributes and directories
-    public static String appName;
-
-    public static boolean initialized = false;
+    // Boolean for initialization
+    private static boolean initialized = false;
 
     // Object registry
     protected static ObjectRegistry oReg;
@@ -452,7 +450,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public String getApplicationDirectory() {
-        return Comm.appHost.getAppLogDirPath();
+        return Comm.getAppHost().getAppLogDirPath();
     }
 
     /**
@@ -665,7 +663,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
         String path;
         if (targetLocation == null) {
-            MultiURI u = sourceLocation.getURIInHost(Comm.appHost);
+            MultiURI u = sourceLocation.getURIInHost(Comm.getAppHost());
             if (u != null) {
                 path = u.getPath();
             } else {
@@ -752,7 +750,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public String getTempDir() {
-        return Comm.appHost.getTempDirPath();
+        return Comm.getAppHost().getTempDirPath();
     }
 
     /*
@@ -799,7 +797,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         String path = (targetLocation == null) ? fileName : targetLocation.getPath();
         DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
         String finalPath;
-        MultiURI u = finalLocation.getURIInHost(Comm.appHost);
+        MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
         if (u != null) {
             finalPath = u.getPath();
         } else {
@@ -877,7 +875,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Check host
-        Resource host = Comm.appHost;
+        Resource host = Comm.getAppHost();
         String hostName = uri.getHost();
         if (hostName != null && !hostName.isEmpty()) {
             host = Resource.getResource(hostName);

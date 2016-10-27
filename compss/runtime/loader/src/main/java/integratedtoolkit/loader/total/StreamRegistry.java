@@ -594,7 +594,9 @@ public class StreamRegistry {
                         String oldRen = list.getRenaming();
                         String newRen = itApi.openFile(filePath, DataDirection.OUT);
                         File f = new File(oldRen);
-                        f.renameTo(new File(newRen));
+                        if (!f.renameTo(new File(newRen))) {
+                            logger.error("Error on file renaming to " + newRen);
+                        }
 
                         if (debug) {
                             logger.debug("Renamed and moved file from " + oldRen + " to " + newRen);

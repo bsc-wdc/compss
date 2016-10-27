@@ -52,9 +52,9 @@ public class RuntimeLogViewModel {
     @Command
     @NotifyChange({ "runtimeLog", "filter" })
     public void update() {
-        if (!Properties.BASE_PATH.equals("")) {
+        if (!Properties.getBasePath().equals("")) {
             // Check if applicaction has changed
-            String newPath = Properties.BASE_PATH + File.separator + Constants.RUNTIME_LOG;
+            String newPath = Properties.getBasePath() + File.separator + Constants.RUNTIME_LOG;
             if (!this.runtimeLogPath.equals(newPath)) {
                 // Load new application
                 this.runtimeLogPath = newPath;

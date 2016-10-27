@@ -1,5 +1,6 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Score;
@@ -10,8 +11,15 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescription> {
+    
+    // Logger
+    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final boolean debug = logger.isDebugEnabled();
 
     // Task running in the resource
     private final LinkedList<AllocatableAction<P, T>> running;

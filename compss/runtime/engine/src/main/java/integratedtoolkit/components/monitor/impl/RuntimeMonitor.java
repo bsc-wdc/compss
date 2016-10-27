@@ -135,7 +135,9 @@ public class RuntimeMonitor implements Runnable {
             logger.error(ERROR_GENERATING_DATA, e);
         }
         // Clears the execution files
-        new File(monitorDirPath + "monitor.xml").delete();
+        if (!new File(monitorDirPath + "monitor.xml").delete()) {
+            logger.error("Error clearing monitor.xml execution files");
+        }
     }
 
     /**

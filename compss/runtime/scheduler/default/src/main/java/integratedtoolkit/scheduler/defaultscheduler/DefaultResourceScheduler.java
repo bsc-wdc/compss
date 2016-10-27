@@ -129,7 +129,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Exception on initial schedule", e);
         }
     }
 
@@ -688,7 +688,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
             action.tryToLaunch();
             return true;
         } catch (InvalidSchedulingException ise) {
-            ise.printStackTrace();
+            logger.error("Exception on tryToLaunch", ise);
             try {
                 long actionScore = DefaultScore.getActionScore(action);
                 long dataTime = (new DefaultScore(0, 0, 0, 0)).getDataPredecessorTime(action.getDataPredecessors());
@@ -709,7 +709,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
                 
             } catch (BlockedActionException | UnassignedActionException be) {
                 // Can not happen since there was an original source
-                be.printStackTrace();
+                logger.error("Blocked or unassigned action", ise);
             }
         }
         return false;

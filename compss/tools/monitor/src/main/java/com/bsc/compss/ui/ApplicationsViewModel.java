@@ -54,7 +54,7 @@ public class ApplicationsViewModel {
             }
         }
 
-        if (Properties.SORT_APPLICATIONS) {
+        if (Properties.isSortApplications()) {
             Collections.sort(applications, new ApplicationComparator());
         }
 
@@ -72,7 +72,7 @@ public class ApplicationsViewModel {
             }
         }
         // Set global variables to selected app
-        Properties.BASE_PATH = selectedApp.getPath();
+        Properties.setBasePath(selectedApp.getPath());
         ((UserCredential) Sessions.getCurrent().getAttribute("userCredential")).setMonitoredApp(selectedApp);
         logger.debug("Selected application updated");
     }

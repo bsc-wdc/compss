@@ -100,12 +100,12 @@ public class ServiceInstance extends COMPSsWorker {
         DataLocation tgtLoc = null;
         try {
             SimpleURI uri = new SimpleURI(path);
-            tgtLoc = DataLocation.createLocation(Comm.appHost, uri);
+            tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + path, e);
         }
 
-        COMPSsNode node = Comm.appHost.getNode();
+        COMPSsNode node = Comm.getAppHost().getNode();
         node.obtainData(ld, source, tgtLoc, tgtData, reason, listener);
     }
 
@@ -135,7 +135,7 @@ public class ServiceInstance extends COMPSsWorker {
         String path = null;
         switch (type) {
             case FILE_T:
-                path = Protocol.FILE_URI.getSchema() + Comm.appHost.getTempDirPath() + name;
+                path = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + name;
                 break;
             case OBJECT_T:
                 path = Protocol.OBJECT_URI.getSchema() + name;

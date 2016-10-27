@@ -102,14 +102,14 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             Integer bestCore = null;
             Score bestScore = null;
             for (Integer i : runnableCores) {
-                Score coreScore = actions[i].peek().value;
+                Score coreScore = actions[i].peek().getScore();
                 if (Score.isBetter(coreScore, bestScore)) {
                     bestScore = coreScore;
                     bestCore = i;
                 }
             }
             ObjectValue<AllocatableAction<P, T>> ov = actions[bestCore].poll();
-            AllocatableAction<P, T> selectedAction = ov.o;
+            AllocatableAction<P, T> selectedAction = ov.getObject();
 
             // Get the best Implementation
             try {

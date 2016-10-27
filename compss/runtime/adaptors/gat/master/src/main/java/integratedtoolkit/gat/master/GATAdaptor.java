@@ -40,8 +40,8 @@ public class GATAdaptor implements CommAdaptor {
     // Copy request queues
     // copyQueue is for ordinary copies
     // safeQueue is for priority copies
-    public static RequestQueue<DataOperation> copyQueue;
-    public static RequestQueue<DataOperation> safeQueue;
+    private static RequestQueue<DataOperation> copyQueue;
+    private static RequestQueue<DataOperation> safeQueue;
 
     protected static ThreadPool pool;
     protected static ThreadPool safePool;

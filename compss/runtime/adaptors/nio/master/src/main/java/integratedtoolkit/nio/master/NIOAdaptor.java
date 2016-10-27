@@ -85,20 +85,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     // private static final String SER_RCV_ERR =
     // "Error serializing received object";
 
-    private static final HashSet<NIOWorkerNode> nodes = new HashSet<NIOWorkerNode>();
+    private static final HashSet<NIOWorkerNode> nodes = new HashSet<>();
 
-    private static final ConcurrentHashMap<Integer, NIOJob> runningJobs = new ConcurrentHashMap<Integer, NIOJob>();
+    private static final ConcurrentHashMap<Integer, NIOJob> runningJobs = new ConcurrentHashMap<>();
 
-    private static final HashMap<Integer, LinkedList<Copy>> groupToCopy = new HashMap<Integer, LinkedList<Copy>>();
+    private static final HashMap<Integer, LinkedList<Copy>> groupToCopy = new HashMap<>();
 
-    private static final HashMap<Connection, ClosingWorker> stoppingNodes = new HashMap<Connection, ClosingWorker>();
+    private static final HashMap<Connection, ClosingWorker> stoppingNodes = new HashMap<>();
 
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
 
-    public static boolean workerDebug = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
-
-    public static String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
+    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
 
     public NIOAdaptor() {
@@ -313,7 +311,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
                     String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
                     SimpleURI targetURI = new SimpleURI(targetPath);
                     try {
-                        DataLocation loc = DataLocation.createLocation(Comm.appHost, targetURI);
+                        DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
                         Comm.registerLocation(renaming, loc);
                     } catch (Exception e) {
                         ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
@@ -330,7 +328,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (nj != null) {
             JobHistory h = nj.getHistory();
             nj.taskFinished(successful);
-            if (workerDebug) {
+            if (WORKER_DEBUG) {
                 c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".out");
                 c.receiveDataFile(JOBS_DIR + "job" + nj.getJobId() + "_" + h + ".err");
             } else {
@@ -462,7 +460,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (o == null) {
             for (MultiURI loc : ld.getURIs()) {
                 if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
-                        && loc.getHost().equals(Comm.appHost)) {
+                        && loc.getHost().equals(Comm.getAppHost())) {
                     // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
                 }
@@ -482,7 +480,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Get a Master location
         for (MultiURI loc : ld.getURIs()) {
             if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
-                    && loc.getHost().equals(Comm.appHost)) {
+                    && loc.getHost().equals(Comm.getAppHost())) {
                 return loc.getPath();
             }
         }

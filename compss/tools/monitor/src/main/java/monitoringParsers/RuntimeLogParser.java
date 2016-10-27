@@ -48,9 +48,9 @@ public class RuntimeLogParser {
 
     public static void parse() {
         logger.debug("Parsing runtime.log file...");
-        if (!Properties.BASE_PATH.equals("")) {
+        if (!Properties.getBasePath().equals("")) {
             // Check if application has changed
-            String newPath = Properties.BASE_PATH + File.separator + Constants.RUNTIME_LOG;
+            String newPath = Properties.getBasePath() + File.separator + Constants.RUNTIME_LOG;
             if (!runtimeLogPath.equals(newPath)) {
                 // Load new application
                 clear();

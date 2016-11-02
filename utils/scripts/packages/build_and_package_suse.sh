@@ -14,7 +14,7 @@
   sudo zypper install -y maven rpm-build subversion
 
   # Runtime dependencies
-  sudo zypper install -y java-1.8.0-openjdk java-1.8.0-openjdk-devel graphviz xdg-utils
+  sudo zypper install -y java-1_8_0-openjdk java-1_8_0-openjdk-devel graphviz xdg-utils
   # Bindings-common-dependencies
   sudo zypper install -y libtool automake make gcc-c++
   # Python-binding dependencies
@@ -24,7 +24,7 @@
   # Extrae dependencies
   sudo zypper install -y libxml2 gcc-fortran papi papi-devel
 
-  export JAVA_HOME=/usr/lib64/jvm/java-openjdk/
+  export JAVA_HOME=/usr/lib64/jvm/java-1.8.0-openjdk-1.8.0/
   echo "      Success"
 
   

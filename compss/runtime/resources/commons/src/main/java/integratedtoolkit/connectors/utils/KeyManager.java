@@ -1,5 +1,9 @@
 package integratedtoolkit.connectors.utils;
 
+import java.io.FileReader;
+import java.io.IOException;
+
+
 public class KeyManager {
 
     private static String keyPair = null;
@@ -77,12 +81,12 @@ public class KeyManager {
         return keyfile;
     }
 
-    public static String getPublicKey(String keyfile) throws Exception {
+    public static String getPublicKey(String keyfile) throws IOException {
         if (publicKey != null) {
             return publicKey;
         }
 
-        java.io.BufferedReader input = new java.io.BufferedReader(new java.io.FileReader(keyfile + ".pub"));
+        java.io.BufferedReader input = new java.io.BufferedReader(new FileReader(keyfile + ".pub"));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {
@@ -95,12 +99,12 @@ public class KeyManager {
         return publicKey;
     }
 
-    public static String getPrivateKey(String keyfile) throws Exception {
+    public static String getPrivateKey(String keyfile) throws IOException {
         if (privateKey != null) {
             return privateKey;
         }
 
-        java.io.BufferedReader input = new java.io.BufferedReader(new java.io.FileReader(keyfile));
+        java.io.BufferedReader input = new java.io.BufferedReader(new FileReader(keyfile));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {

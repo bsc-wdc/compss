@@ -15,14 +15,14 @@ public interface COMPSsRuntime {
         STRING_T, 
         FILE_T, 
         OBJECT_T, 
-        PSCO_T;
+        PSCO_T
     }
 
     // Parameter directions
     public enum DataDirection {
         IN, 
         OUT,
-        INOUT;
+        INOUT
     }
 
 

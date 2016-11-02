@@ -15,7 +15,7 @@ import java.util.PriorityQueue;
 
 public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourceDescription> implements Comparable<SchedulingEvent<P, T>> {
 
-    public long expectedTimeStamp;
+    protected long expectedTimeStamp;
     protected AllocatableAction<P, T> action;
 
 

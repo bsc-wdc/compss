@@ -36,7 +36,6 @@
      --lang=java \
      --classpath=${base_app_dir}/matmul.jar \
      --debug \
-     -m \
      --comm=$comm \
      --project=${base_app_dir}/project_matmul.xml \
      --resources=${base_app_dir}/resources_matmul.xml \

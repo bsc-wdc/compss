@@ -3,6 +3,7 @@ package com.bsc.compss.ui;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,9 +65,8 @@ public class RuntimeLogViewModel {
             }
             // Parse
             logger.debug("Parsing runtime.log file...");
-            try {
-                FileReader fr = new FileReader(this.runtimeLogPath);
-                BufferedReader br = new BufferedReader(fr);
+            
+            try (BufferedReader br = new BufferedReader(new FileReader(this.runtimeLogPath))) {
                 StringBuilder sb = new StringBuilder("");
                 String line = br.readLine();
                 int i = 0;
@@ -81,10 +81,8 @@ public class RuntimeLogViewModel {
                 }
                 this.content += sb.toString();
                 this.lastParsedLine = i - 1;
-                br.close();
-                fr.close();
-            } catch (Exception e) {
-                logger.error("Cannot parse runtime.log file: " + this.runtimeLogPath);
+            } catch (IOException ioe) {
+                logger.error("Cannot parse runtime.log file: " + this.runtimeLogPath, ioe);
             }
         } else {
             // Load default value

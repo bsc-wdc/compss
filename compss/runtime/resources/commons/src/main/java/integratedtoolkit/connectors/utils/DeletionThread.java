@@ -1,5 +1,6 @@
 package integratedtoolkit.connectors.utils;
 
+import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -71,13 +72,13 @@ public class DeletionThread extends Thread {
             this.vm = this.operations.pause(worker);
         }
         if (vm != null) {
-            CloudMethodWorker worker = vm.getWorker();
-            if (worker.shouldBeStopped()) {
-                worker.retrieveData(true);
+            CloudMethodWorker cloudWorker = vm.getWorker();
+            if (cloudWorker.shouldBeStopped()) {
+                cloudWorker.retrieveData(true);
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
-                runtimeLogger.info("Stopping worker " + worker.getName() + "...");
-                worker.stop(sl);
+                runtimeLogger.info("Stopping worker " + cloudWorker.getName() + "...");
+                cloudWorker.stop(sl);
 
                 sl.enable();
                 try {
@@ -86,19 +87,19 @@ public class DeletionThread extends Thread {
                     resourcesLogger.error("ERROR: Exception raised on worker shutdown");
                 }
                 if (debug) {
-                    runtimeLogger.debug("Stopping worker " + worker.getName() + "...");
+                    runtimeLogger.debug("Stopping worker " + cloudWorker.getName() + "...");
                 }
             } else {
                 if (debug) {
-                    runtimeLogger.debug("Worker " + worker.getName() + " should not be stopped.");
+                    runtimeLogger.debug("Worker " + cloudWorker.getName() + " should not be stopped.");
                 }
             }
             if (debug) {
-                runtimeLogger.debug("Worker " + worker.getName() + " stopped. Powering of the VM");
+                runtimeLogger.debug("Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
                 this.operations.poweroff(vm);
-            } catch (Exception e) {
+            } catch (ConnectorException e) {
                 resourcesLogger.error("Error powering off the resource", e);
             }
 

@@ -153,14 +153,14 @@ public class CreationThread extends Thread {
         return CreationThread.listener;
     }
 
-    private VM createResourceOnProvider(CloudMethodResourceDescription requested) throws Exception {
+    private VM createResourceOnProvider(CloudMethodResourceDescription requested) throws ConnectorException {
         VM granted;
         Object envID;
         // ASK FOR THE VIRTUAL RESOURCE
         try {
             // Turn on the VM and expects the new mr description
             envID = operations.poweron(name, requested);
-        } catch (Exception e) {
+        } catch (ConnectorException e) {
             runtimeLogger.error(ERROR_ASKING_NEW_RESOURCE + provider + "\n", e);
             resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_ASKING_NEW_RESOURCE + provider + "\n]", e);
             throw e;
@@ -169,7 +169,7 @@ public class CreationThread extends Thread {
         if (envID == null) {
             runtimeLogger.info(WARN_CANNOT_PROVIDE_VM);
             resourceLogger.info("INFO_MSG = [\n\t" + provider + WARN_CANNOT_PROVIDE_VM + "\n]");
-            throw new Exception(WARN_CANNOT_PROVIDE_VM);
+            throw new ConnectorException(WARN_CANNOT_PROVIDE_VM);
         }
 
         // WAITING FOR THE RESOURCES TO BE RUNNING
@@ -185,7 +185,7 @@ public class CreationThread extends Thread {
                 runtimeLogger.error(ERROR_POWEROFF_VM);
                 resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_POWEROFF_VM + "\n]");
             }
-            throw new Exception("Error waiting for the vm");
+            throw new ConnectorException("Error waiting for the vm");
         }
 
         if (granted != null) {
@@ -207,17 +207,17 @@ public class CreationThread extends Thread {
             resourceLogger.debug("\tMEM = " + desc.getMemorySize());
             resourceLogger.debug("]");
         } else {
-            throw new Exception(ERROR_GRANTED_NULL);
+            throw new ConnectorException(ERROR_GRANTED_NULL);
         }
         return granted;
     }
 
-    private CloudMethodWorker prepareNewResource(VM vm) throws Exception {
+    private CloudMethodWorker prepareNewResource(VM vm) throws ConnectorException {
         CloudMethodResourceDescription granted = vm.getDescription();
         CloudImageDescription cid = granted.getImage();
         HashMap<String, String> workerProperties = cid.getProperties();
         String user = cid.getConfig().getUser();
-        String password = workerProperties.get(AbstractSSHConnector.PASSWORD_PROPERTY_NAME);
+        String password = workerProperties.get(AbstractSSHConnector.PROPERTY_PASSW_NAME);
         try {
             operations.configureAccess(granted.getName(), user, password);
         } catch (ConnectorException e) {
@@ -255,7 +255,7 @@ public class CreationThread extends Thread {
             resourceLogger.error(
                     "ERROR_MSG = [\n\t" + ERROR_START_WORKER + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]");
 
-            throw new Exception(ERROR_START_VM, e);
+            throw new ConnectorException(ERROR_START_VM, e);
         }
 
         try {
@@ -275,7 +275,7 @@ public class CreationThread extends Thread {
             resourceLogger.error(
                     "ERROR_MSG = [\n\t" + ERROR_ANNOUNCE_VM + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]", e);
 
-            throw e;
+            throw new ConnectorException(e);
         }
 
         // Add the new machine to ResourceManager
@@ -297,7 +297,7 @@ public class CreationThread extends Thread {
                 resourceLogger.error(ERROR_WORKER_SHUTDOWN);
             }
 
-            throw new Exception(ERROR_USELESS_VM);
+            throw new ConnectorException(ERROR_USELESS_VM);
         }
 
         return worker;

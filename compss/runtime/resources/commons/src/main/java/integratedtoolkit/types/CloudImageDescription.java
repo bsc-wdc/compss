@@ -1,5 +1,6 @@
 package integratedtoolkit.types;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
@@ -41,11 +42,11 @@ public class CloudImageDescription {
         this.providerName = cloudProviderName;
         this.imageName = imageName;
 
-        this.appSoftware = new LinkedList<String>();
-        this.packages = new LinkedList<ApplicationPackage>();
-        this.sharedDisks = new HashMap<String, String>();
-        this.queues = new LinkedList<String>();
-        this.properties = new HashMap<String, String>();
+        this.appSoftware = new LinkedList<>();
+        this.packages = new LinkedList<>();
+        this.sharedDisks = new HashMap<>();
+        this.queues = new LinkedList<>();
+        this.properties = new HashMap<>();
 
         this.properties.putAll(providerProperties);
     }
@@ -186,6 +187,9 @@ public class CloudImageDescription {
     public void setConfig(MethodConfiguration config) {
         this.config = config;
         
+        // Add application name property for some connectors (i.e. docker, vmm)
+        this.properties.put(AbstractSSHConnector.APP_NAME, System.getProperty(ITConstants.IT_APP_NAME));
+        
         // Add adaptor ports in image properties for some connectors (i.e. JClouds)
         String maxPort = "-1";
         String minPort = "-1";
@@ -223,7 +227,8 @@ public class CloudImageDescription {
         sb.append(prefix).append("\t").append("CLASSPATH = ").append(this.getConfig().getClasspath()).append("\n");
         sb.append(prefix).append("\t").append("PYTHONPATH = ").append(this.getConfig().getPythonpath()).append("\n");
         sb.append(prefix).append("\t").append("USER = ").append(this.getConfig().getUser()).append("\n");
-        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties().get(AbstractSSHConnector.PASSWORD_PROPERTY_NAME)).append("\n");
+        sb.append(prefix).append("\t").append("PASSWORD = ").append(this.getProperties()
+                .get(AbstractSSHConnector.PROPERTY_PASSW_NAME)).append("\n");
         sb.append(prefix).append("\t").append("SHARED_DISKS = [").append("\n");
         for (java.util.Map.Entry<String, String> entry : this.sharedDisks.entrySet()) {
             sb.append(prefix).append("\t").append("\t").append("SHARED_DISK = [").append("\n");

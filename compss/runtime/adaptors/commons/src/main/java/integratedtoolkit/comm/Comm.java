@@ -251,12 +251,13 @@ public class Comm {
         ld.isObsolete();
         for(DataLocation dl : ld.getLocations()){
         	MultiURI uri = dl.getURIInHost(appHost);
-        	if (uri!=null){
+        	if (uri != null){
         		File f = new File (uri.getPath());
-        
         		if (f.exists()){
         			logger.info("Deleting file " + f.getAbsolutePath());
-        			f.delete();
+        			if (!f.delete()) {
+        			    logger.error("Cannot delete file " + f.getAbsolutePath());
+        			}
         		}
         	}
         }

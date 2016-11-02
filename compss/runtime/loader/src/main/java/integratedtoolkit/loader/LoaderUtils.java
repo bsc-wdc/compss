@@ -15,6 +15,7 @@ import integratedtoolkit.types.annotations.task.repeatables.Methods;
 import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
 import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
+import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.util.ErrorManager;
 
 import java.lang.reflect.InvocationTargetException;
@@ -39,15 +40,17 @@ public class LoaderUtils {
     public static final String BINARY_SIGNATURE = "binary.BINARY";
 
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
-
+    
+    
+    private LoaderUtils() {
+        throw new NonInstantiableException("LoaderUtils");
+    }
     
     // Storage: Check object type
     public static DataType checkSCOType(Object o) {
-        if (o instanceof StubItf) {
-            if (((StubItf) o).getID() != null) {
-                // Persisted Object
-                return DataType.PSCO_T;
-            }
+        if (o instanceof StubItf && ((StubItf) o).getID() != null) {
+            // Persisted Object
+            return DataType.PSCO_T;
         }
 
         // The Data is an Object or a non persisted PSCO
@@ -277,7 +280,7 @@ public class LoaderUtils {
 
     // Check whether the method call is a close of a stream
     public static boolean isStreamClose(MethodCall mc) {
-        if (mc.getMethodName().equals("close")) {
+        if ("close".equals(mc.getMethodName())) {
             String fullName = mc.getClassName();
             if (fullName.startsWith("java.io.")) {
                 String className = fullName.substring(8);
@@ -309,7 +312,7 @@ public class LoaderUtils {
 
     // Check if the method is the main method
     public static boolean isMainMethod(CtMethod m) throws NotFoundException {
-        return (m.getName().equals("main") && m.getParameterTypes().length == 1
+        return ("main".equals(m.getName()) && m.getParameterTypes().length == 1
                 && m.getParameterTypes()[0].getName().equals(String[].class.getCanonicalName()));
     }
 
@@ -319,10 +322,8 @@ public class LoaderUtils {
 
     public static boolean contains(CtMethod[] methods, CtMethod method) {
         for (CtMethod m : methods) {
-            if (m.equals(method)) {
-                if (method.getDeclaringClass().equals(m.getDeclaringClass())) {
-                    return true;
-                }
+            if (m.equals(method) && method.getDeclaringClass().equals(m.getDeclaringClass())) {
+                return true;
             }
         }
         return false;
@@ -381,26 +382,25 @@ public class LoaderUtils {
         java.lang.reflect.Method method = null;
         try {
             method = methodClass.getMethod(methodName, types);
-        } catch (SecurityException e) {
-            ErrorManager.error("Error writing the instrumented class file");
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
+        } catch (SecurityException se) {
+            ErrorManager.error("Error writing the instrumented class file", se);
+        } catch (NoSuchMethodException nsme) {
             String errMsg = "Requested method " + methodName + " of " + methodClass + " not found\n" + "Types length is " + types.length
                     + "\n";
             for (Class<?> type : types) {
                 errMsg += "Type is " + type;
             }
-            ErrorManager.error(errMsg);
+            ErrorManager.error(errMsg, nsme);
         }
 
         // Invoke the requested method
         Object retValue = null;
         try {
             retValue = method.invoke(o, values);
-        } catch (IllegalArgumentException e) {
-            ErrorManager.error("Wrong argument passed to method " + methodName, e);
-        } catch (IllegalAccessException e) {
-            ErrorManager.error("Cannot access method " + methodName, e);
+        } catch (IllegalArgumentException iae) {
+            ErrorManager.error("Wrong argument passed to method " + methodName, iae);
+        } catch (IllegalAccessException iae) {
+            ErrorManager.error("Cannot access method " + methodName, iae);
         } catch (InvocationTargetException e) {
             throw e.getCause(); // re-throw the user exception thrown by the method
         }
@@ -409,8 +409,8 @@ public class LoaderUtils {
     }
 
     public static boolean isFileDelete(MethodCall mc) {
-        if (mc.getMethodName().equals("delete")) {
-            return (mc.getClassName().compareTo("java.io.File") == 0);
+        if ("delete".equals(mc.getMethodName())) {
+            return mc.getClassName().compareTo("java.io.File") == 0;
         }
         return false;
     }

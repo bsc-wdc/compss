@@ -35,7 +35,6 @@ public class DataInfoProvider {
 
     // Constants definition
     private static final String RES_FILE_TRANSFER_ERR = "Error transferring result files";
-    // private static final String SERIALIZATION_ERR = "Error serializing object to a file";
 
     // Map: filename:host:path -> file identifier
     private TreeMap<String, Integer> nameToId;
@@ -64,14 +63,14 @@ public class DataInfoProvider {
     public DataAccessId registerDataAccess(AccessParams access) {
         if (access instanceof FileAccessParams) {
             FileAccessParams fAccess = (FileAccessParams) access;
-            return registerFileAccess(fAccess.getMode(), fAccess.getLocation(), -1);
+            return registerFileAccess(fAccess.getMode(), fAccess.getLocation());
         } else {
             ObjectAccessParams oAccess = (ObjectAccessParams) access;
-            return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode(), -1);
+            return registerObjectAccess(oAccess.getMode(), oAccess.getValue(), oAccess.getCode());
         }
     }
 
-    public DataAccessId registerFileAccess(AccessMode mode, DataLocation location, int readerId) {
+    public DataAccessId registerFileAccess(AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
@@ -104,7 +103,7 @@ public class DataInfoProvider {
     }
 
     // Object access
-    public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code, int readerId) {
+    public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code) {
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
 
@@ -196,8 +195,8 @@ public class DataInfoProvider {
     public void dataHasBeenAccessed(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = idToData.get(dataId);
-        Integer rVersionId = null;
-        Integer wVersionId = null;
+        Integer rVersionId;
+        Integer wVersionId;
         boolean deleted = false;
         switch (dAccId.getDirection()) {
             case R:
@@ -215,6 +214,7 @@ public class DataInfoProvider {
                 deleted = di.versionHasBeenWritten(wVersionId);
                 break;
         }
+        
         if (deleted) {
             //idToData.remove(dataId);
         }
@@ -224,7 +224,7 @@ public class DataInfoProvider {
         logger.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
-        return (fileId != null);
+        return fileId != null;
     }
 
     // DataInformation interface
@@ -263,7 +263,7 @@ public class DataInfoProvider {
     }
 
     public List<DataInstanceId> getLastVersions(TreeSet<Integer> dataIds) {
-        List<DataInstanceId> versionIds = new ArrayList<DataInstanceId>(dataIds.size());
+        List<DataInstanceId> versionIds = new ArrayList<>(dataIds.size());
         for (Integer dataId : dataIds) {
             DataInfo dataInfo = idToData.get(dataId);
             if (dataInfo != null) {
@@ -307,6 +307,7 @@ public class DataInfoProvider {
         
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
+            return null;
         }
 
         if (ld.isInMemory()) {

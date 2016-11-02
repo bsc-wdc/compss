@@ -1,8 +1,8 @@
 package integratedtoolkit.connectors;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
@@ -22,6 +22,14 @@ import integratedtoolkit.types.resources.ShutdownListener;
 
 public abstract class AbstractConnector implements Connector, Operations, Cost {
     
+    // Properties' names
+    private static final String PROP_ESTIMATED_CREATION_TIME = "estimated-creation-time";
+    private static final String PROP_MAX_VM_CREATION_TIME = "max-vm-creation-time";
+    
+    // Constants
+    protected static final int SENCONDS_TO_MINUTES = 60;
+    
+    // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
     
     public static final long ONE_HOUR = 3_600_000;
@@ -33,10 +41,10 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public static final long ONE_MIN = 60_000;
     public static final long HALF_MIN = 30_000;
     
+    
     protected static long INITIAL_CREATION_TIME = TWO_MIN;
     protected static long MINIM_DEADLINE_INTERVAL = TWO_MIN;
     protected static long DELETE_SAFETY_INTERVAL = HALF_MIN;
-    
 
     private float currentCostPerHour;
     private final float deletedMachinesCost;
@@ -53,21 +61,22 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     private final LinkedList<VM> vmsAlive;
 
 
-    public AbstractConnector(String providerName, HashMap<String, String> props) {
+    public AbstractConnector(String providerName, Map<String, String> props) {
         this.providerName = providerName;
-        IPToVM = new ConcurrentHashMap<String, VM>();
-        powerOnVMTimestamp = new ConcurrentHashMap<Object, Long>();
-        vmsToDelete = new TreeSet<VM>();
-        vmsAlive = new LinkedList<VM>();
+        IPToVM = new ConcurrentHashMap<>();
+        powerOnVMTimestamp = new ConcurrentHashMap<>();
+        vmsToDelete = new TreeSet<>();
+        vmsAlive = new LinkedList<>();
         // ipToConnection = Collections.synchronizedMap(new HashMap<String, Connection>());
-        String estCreationTimeStr = props.get("estimated-creation-time");
+        
+        String estCreationTimeStr = props.get(PROP_ESTIMATED_CREATION_TIME);
         if (estCreationTimeStr != null) {
-            meanCreationTime = Integer.parseInt(estCreationTimeStr) * 1000;
+            meanCreationTime = Integer.parseInt(estCreationTimeStr) / SENCONDS_TO_MINUTES;
         } else {
-        	String maxCreationTimeStr = props.get("MaxCreationTime");
+        	String maxCreationTimeStr = props.get(PROP_MAX_VM_CREATION_TIME);
         	if (maxCreationTimeStr != null) {
-        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * 1000;
-        	}else{
+        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) / SENCONDS_TO_MINUTES;
+        	} else {
         		meanCreationTime = INITIAL_CREATION_TIME;
         	}
         }

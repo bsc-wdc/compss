@@ -70,6 +70,8 @@
                 <module>37-nonNativeTasks</module>
 		<!-- Module 38 is 38-environmentVariables_python -->
 		<module>40-deleteFileJava</module>
+		<!-- Module 41 is 41-deleteFile_python -->
+                <module>42-monitor</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

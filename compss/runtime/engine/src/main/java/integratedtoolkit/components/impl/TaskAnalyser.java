@@ -145,7 +145,7 @@ public class TaskAnalyser {
             }
 
             // Conversion: direction -> access mode
-            AccessMode am = null;
+            AccessMode am = AccessMode.R;
             switch (p.getDirection()) {
                 case IN:
                     am = AccessMode.R;
@@ -163,7 +163,7 @@ public class TaskAnalyser {
             switch (p.getType()) {
                 case FILE_T:
                     FileParameter fp = (FileParameter) p;
-                    daId = DIP.registerFileAccess(am, fp.getLocation(), methodId);
+                    daId = DIP.registerFileAccess(am, fp.getLocation());
                     break;
                 case PSCO_T:
                 case OBJECT_T:
@@ -172,7 +172,7 @@ public class TaskAnalyser {
                     if (op.getValue() instanceof StubItf && ((StubItf) op.getValue()).getID() != null) {
                         op.setType(DataType.PSCO_T);
                     }
-                    daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode(), methodId);
+                    daId = DIP.registerObjectAccess(am, op.getValue(), op.getCode());
                     break;
                 default:
                     /*
@@ -261,7 +261,7 @@ public class TaskAnalyser {
                                                // access them
             TreeSet<Integer> idsWritten = appIdToWrittenFiles.get(appId);
             if (idsWritten == null) {
-                idsWritten = new TreeSet<Integer>();
+                idsWritten = new TreeSet<>();
                 appIdToWrittenFiles.put(appId, idsWritten);
             }
             idsWritten.add(dataId);
@@ -269,7 +269,7 @@ public class TaskAnalyser {
         if (dp.getType() == DataType.PSCO_T) {
             TreeSet<Integer> idsWritten = appIdToSCOWrittenIds.get(appId);
             if (idsWritten == null) {
-                idsWritten = new TreeSet<Integer>();
+                idsWritten = new TreeSet<>();
                 appIdToSCOWrittenIds.put(appId, idsWritten);
             }
             idsWritten.add(dataId);
@@ -331,7 +331,7 @@ public class TaskAnalyser {
     // Private method to check if a finished task is the last writer of its file parameters and eventually order the
     // necessary transfers
     private void checkResultFileTransfer(Task t) {
-        LinkedList<DataInstanceId> fileIds = new LinkedList<DataInstanceId>();
+        LinkedList<DataInstanceId> fileIds = new LinkedList<>();
         for (Parameter p : t.getTaskDescription().getParameters()) {
             switch (p.getType()) {
                 case FILE_T:
@@ -400,7 +400,7 @@ public class TaskAnalyser {
         } else {
             List<Semaphore> list = waitedTasks.get(lastWriter);
             if (list == null) {
-                list = new LinkedList<Semaphore>();
+                list = new LinkedList<>();
                 waitedTasks.put(lastWriter, list);
             }
             list.add(sem);
@@ -439,8 +439,7 @@ public class TaskAnalyser {
     }
 
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
-        TreeSet<Integer> data = appIdToWrittenFiles.remove(appId);
-        return data;
+        return appIdToWrittenFiles.remove(appId);
     }
 
     public void shutdown() {

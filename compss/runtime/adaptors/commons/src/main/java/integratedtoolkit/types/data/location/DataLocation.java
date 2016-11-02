@@ -7,6 +7,7 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SharedDiskManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 
 import org.apache.logging.log4j.LogManager;
@@ -75,7 +76,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * @return
      * @throws Exception
      */
-    public static DataLocation createLocation(Resource host, SimpleURI uri) throws Exception {
+    public static DataLocation createLocation(Resource host, SimpleURI uri) throws IOException {
         Protocol protocol = Protocol.getBySchema(uri.getSchema());
         if (protocol == null) {
             logger.warn("WARN: Unrecognised protocol [ " + uri.getSchema() + " ] for createLocation. Switching to "

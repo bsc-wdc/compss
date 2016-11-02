@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.jcraft.jsch.ChannelExec;
@@ -14,6 +14,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.SftpProgressMonitor;
 
 import integratedtoolkit.connectors.utils.KeyManager;
@@ -22,6 +23,15 @@ import integratedtoolkit.types.CloudImageDescription;
 
 
 public abstract class AbstractSSHConnector extends AbstractConnector {
+    
+    // Properties' names
+    private static final String VM_USER = "vm-user";
+    private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
+    private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
+    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
+    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
+    public static final String APP_NAME = "app-name";
+    public static final String PROPERTY_PASSW_NAME = "Password";
 
     // Retry properties
     private static final Integer KNOWN_HOSTS_MAX_ALLOWED_ERRORS = 20;
@@ -29,14 +39,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final Integer RETRY_TIME = 10; // Seconds
     private static final int SERVER_TIMEOUT = 30_000; // Milliseconds
 
-    // XML properties
-    private static final String VM_USER = "vm-user";
-    private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
-    private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
-    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
-    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
-    public static final String PASSWORD_PROPERTY_NAME = "Password";
-
+    // Default properties values
     private static final String DEFAULT_DEFAULT_USER = System.getProperty("user.name");
     private static final String DEFAULT_KEYPAIR_NAME = "id_rsa";
     private static final String DEFAULT_KEYPAIR_LOCATION = System.getProperty("user.home") + File.separator + ".ssh";
@@ -64,7 +67,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private final String keyPairLocation;
 
 
-    public AbstractSSHConnector(String providerName, HashMap<String, String> props) {
+    public AbstractSSHConnector(String providerName, Map<String, String> props) {
         super(providerName, props);
 
         String propUser = props.get(VM_USER);
@@ -114,7 +117,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         putInKnownHosts(workerIP);
 
         // Configure remote machine
-        Session session = null;
         try {
             // Set session properties with specific password or keypair
             String passwordOrKeyPair = null;
@@ -141,16 +143,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             configureKeys(workerIP, user, setPassword, passwordOrKeyPair, KeyManager.getPublicKey(keypair),
                     KeyManager.getPrivateKey(keypair), KeyManager.getKeyType());
 
-        } catch (Exception e) {
+        } catch (ConnectorException | IOException e) {
             LOGGER.error(ERROR_CONFIGURING_ACCESS + workerIP, e);
             throw new ConnectorException(ERROR_CONFIGURING_ACCESS + workerIP, e);
-        } finally {
-            if (session != null && session.isConnected()) {
-                LOGGER.debug("Disconnecting session");
-                session.disconnect();
-            }
         }
-
     }
 
     @Override
@@ -183,7 +179,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     }
 
-    private void transferPackages(Session session, List<ApplicationPackage> packages) throws Exception {
+    private void transferPackages(Session session, List<ApplicationPackage> packages) throws ConnectorException {
         ChannelSftp client = null;
         try {
             client = (ChannelSftp) session.openChannel("sftp");
@@ -194,15 +190,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 String target = p.getTarget() + File.separator + name;
 
                 // Transfer packages
-                if (client == null) {
-                    LOGGER.error(ERROR_TRANSFER_PACKAGES);
-                    throw new ConnectorException(ERROR_TRANSFER_PACKAGES);
-                }
                 client.put(p.getSource(), target, new PackageTransferProgressMonitor());
                 client.chmod(Integer.parseInt("700", 8), target);
             }
-        } catch (Exception e) {
-            throw e;
+        } catch (SftpException | JSchException e) {
+            throw new ConnectorException(ERROR_TRANSFER_PACKAGES, e);
         } finally {
             if (client != null && client.isConnected()) {
                 client.disconnect();
@@ -281,11 +273,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     // Sleep until next retry
                     try {
                         Thread.sleep(RETRY_TIME * 1_000);
-                    } catch (Exception e) {
+                    } catch (InterruptedException ie) {
                         // No need to catch such exception
                     }
                 }
-            } catch (Exception e) {
+            } catch (IOException | InterruptedException e) {
                 LOGGER.error(ERROR_KNOWN_HOSTS, e);
                 throw new ConnectorException(ERROR_KNOWN_HOSTS, e);
             } finally {
@@ -341,11 +333,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         // Sleep until next retry
                         try {
                             Thread.sleep(RETRY_TIME * 1_000);
-                        } catch (Exception e) {
+                        } catch (InterruptedException e) {
                             // No need to handle this kind of exceptions
                         }
                     }
-                } catch (Exception e) {
+                } catch (IOException | InterruptedException e) {
                     LOGGER.error(ERROR_ADD_MASTER_KEY, e);
                     throw new ConnectorException(ERROR_ADD_MASTER_KEY, e);
                 } finally {
@@ -386,7 +378,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     + publicKey + "\" >> ~/.ssh/authorized_keys";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
-        } catch (Exception e) {
+        } catch (ConnectorException e) {
             String msg = ERROR_CONFIG_KEYS + workerIP + " user: " + user;
             LOGGER.error(msg, e);
             throw new ConnectorException(msg, e);
@@ -472,7 +464,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(ERROR_COMMAND_EXEC + command + " in " + workerIP + ".\nReturned std error: " + output);
                     }
-                    throw new Exception(ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
+                    throw new ConnectorException(ERROR_COMMAND_EXEC + command + " in " + workerIP + " (exit status:" + exitStatus + ")");
                 }
 
                 LOGGER.debug("Command still on execution");
@@ -483,7 +475,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (ConnectorException | IOException | JSchException e) {
             throw new ConnectorException(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, e);
         } finally {
             if (inputStream != null) {
@@ -506,7 +498,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         return false;
     }
 
-    private String readInputStream(InputStream is) throws Exception {
+    private String readInputStream(InputStream is) throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         StringBuilder stringBuilder = new StringBuilder();
         try {
@@ -515,7 +507,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 stringBuilder.append(line);
                 stringBuilder.append('\n');
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw e;
         } finally {
             try {
@@ -529,7 +521,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         return stringBuilder.toString();
     }
 
-    private Session getSession(String host, String user, boolean password, String keyPairOrPassword) throws Exception {
+    private Session getSession(String host, String user, boolean password, String keyPairOrPassword) throws ConnectorException {
         // String[] client2server =
         // ("aes256-ctr,aes192-ctr,aes128-ctr,blowfish-ctr,aes256-cbc,aes192-cbc,aes128-cbc,blowfish-cbc").split(",");
         // String[] server2client =
@@ -583,7 +575,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             }
             try {
                 Thread.sleep(RETRY_TIME * errors * 1_000);
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
                 LOGGER.debug("Sleep interrumped");
             }
         }
@@ -591,10 +583,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         // If we reach this point the session has not been correctly initialized
         if (exception != null) {
             LOGGER.error(ERROR_SESSION_CREATION + user + "@" + host, exception);
-            throw new Exception(ERROR_SESSION_CREATION + user + "@" + host, exception);
+            throw new ConnectorException(ERROR_SESSION_CREATION + user + "@" + host, exception);
         } else {
             LOGGER.error(ERROR_SESSION_CREATION + user + "@" + host);
-            throw new Exception(ERROR_SESSION_CREATION + user + "@" + host);
+            throw new ConnectorException(ERROR_SESSION_CREATION + user + "@" + host);
         }
     }
 
@@ -606,7 +598,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
 
         public PackageTransferProgressMonitor() {
-
+            // Values initialized in static. Nothing to do
         }
 
         @Override
@@ -622,9 +614,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         @Override
         public boolean count(long count) {
             this.count += count;
-
-            // float percent = this.count * 100 / max; if (debug) { LOGGER.debug("..." + percent + "%"); }
-
             return true;
         }
 

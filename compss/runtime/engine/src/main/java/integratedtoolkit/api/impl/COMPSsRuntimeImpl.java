@@ -1,6 +1,7 @@
 package integratedtoolkit.api.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -39,40 +40,37 @@ import org.apache.logging.log4j.Logger;
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Exception constants definition
-    protected static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
-    protected static final String WARN_LOG4J_FILE_NOT_READ = "WARNING: Log4j Properties file could not be read.\nNo logging in files will be available";
-    protected static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
-    protected static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
-    protected static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
-    protected static final String ERROR_OBJECT_SERIALIZE = "ERROR: Cannot serialize object to file";
-    protected static final String ERROR_OBJECT_DESERIALIZE = "ERROR: Cannot deserialize object from file";
-    protected static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
+    private static final String WARN_IT_FILE_NOT_READ = "WARNING: IT Properties file could not be read";
+    private static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
+    private static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
+    private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
+    private static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
 
     // COMPSs Version and buildnumber attributes
-    protected static String COMPSs_VERSION = null;
-    protected static String COMPSs_BUILDNUMBER = null;
+    private static String COMPSs_VERSION = null;
+    private static String COMPSs_BUILDNUMBER = null;
 
     // Components
-    protected static AccessProcessor ap;
-    protected static TaskDispatcher<?, ?> td;
+    private static AccessProcessor ap;
+    private static TaskDispatcher<?, ?> td;
 
     // Boolean for initialization
     private static boolean initialized = false;
 
     // Object registry
-    protected static ObjectRegistry oReg;
+    private static ObjectRegistry oReg;
 
     // Monitor
-    protected static GraphGenerator graphMonitor;
-    protected static RuntimeMonitor runtimeMonitor;
+    private static GraphGenerator graphMonitor;
+    private static RuntimeMonitor runtimeMonitor;
 
     // Logger
-    protected static final Logger logger = LogManager.getLogger(Loggers.API);
+    private static final Logger logger = LogManager.getLogger(Loggers.API);
 
     static {
         // Load Runtime configuration parameters
-        String properties_loc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
-        if (properties_loc == null) {
+        String propertiesLoc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
+        if (propertiesLoc == null) {
             InputStream stream = findPropertiesConfigFile();
             if (stream != null) {
                 try {
@@ -86,7 +84,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             }
         } else {
             try {
-                setPropertiesFromRuntime(new RuntimeConfigManager(properties_loc));
+                setPropertiesFromRuntime(new RuntimeConfigManager(propertiesLoc));
             } catch (Exception e) {
                 System.err.println(WARN_IT_FILE_NOT_READ);
                 e.printStackTrace();
@@ -307,7 +305,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             props.load(this.getClass().getResourceAsStream("/version.properties"));
             COMPSs_VERSION = props.getProperty("compss.version");
             COMPSs_BUILDNUMBER = props.getProperty("compss.build");
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.warn(WARN_VERSION_PROPERTIES);
         }
 
@@ -381,8 +379,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             logger.debug("Initializing " + className + "Itf");
             try {
                 td.addInterface(Class.forName(className + "Itf"));
-            } catch (Exception e) {
-                ErrorManager.fatal("Error adding interface " + className + "Itf");
+            } catch (ClassNotFoundException cnfe) {
+                ErrorManager.fatal("Error adding interface " + className + "Itf", cnfe);
             }
         }
 
@@ -656,9 +654,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         DataLocation sourceLocation = null;
         try {
             sourceLocation = createLocation(fileName);
-        } catch (Exception e) {
-            ErrorManager.fatal(ERROR_FILE_NAME, e);
+        } catch (IOException ioe) {
+            ErrorManager.fatal(ERROR_FILE_NAME, ioe);
         }
+        if (sourceLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+        
         FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
         DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
         String path;
@@ -790,12 +792,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         // Tell the DM that the application wants to access a file.
-        // logger.debug("Requesting mainAccess");
         FileAccessParams fap = new FileAccessParams(am, loc);
         DataLocation targetLocation = ap.mainAccessToFile(loc, fap, null);
 
         String path = (targetLocation == null) ? fileName : targetLocation.getPath();
         DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
+        if (finalLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+        }
+        
         String finalPath;
         MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
         if (u != null) {
@@ -865,7 +870,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         return pars;
     }
 
-    private DataLocation createLocation(String fileName) throws Exception {
+    private DataLocation createLocation(String fileName) throws IOException {
         // Check if fileName contains schema
         SimpleURI uri = new SimpleURI(fileName);
         if (uri.getSchema().isEmpty()) {

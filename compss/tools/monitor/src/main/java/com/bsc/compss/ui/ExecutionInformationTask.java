@@ -3,6 +3,7 @@ package com.bsc.compss.ui;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,10 @@ import org.zkoss.zul.ListModelList;
 
 
 public class ExecutionInformationTask {
+    
+    private static final String STATE_IMAGES_RELATIVE_PATH = File.separator + "images" + File.separator + "state" + File.separator;
+    private static final String STATE_IMAGES_EXTENSION = ".jpg";
+    private static final String JOBS_RELATIVE_PATH = Constants.JOBS_SUB_PATH + "job";
 
     private String color;
 
@@ -23,7 +28,7 @@ public class ExecutionInformationTask {
         this.setName(name); // Any
         this.setTaskId(taskId); // Any
         this.setTaskStatus(Constants.STATUS_TASK_CREATING); // CONST_VALUES
-        jobs = new ArrayList<Job>();
+        jobs = new ArrayList<>();
     }
 
     public String getStatus() {
@@ -33,20 +38,20 @@ public class ExecutionInformationTask {
     public void setTaskStatus(String status) {
         if (status.equals(Constants.STATUS_TASK_CREATING)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+            this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
         } else if (status.equals(Constants.STATUS_TASK_RUNNING)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_RUNNING + ".jpg");
+            this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_RUNNING + STATE_IMAGES_EXTENSION);
         } else if (status.equals(Constants.STATUS_TASK_DONE)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_DONE + ".jpg");
+            this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_DONE + STATE_IMAGES_EXTENSION);
         } else if (status.equals(Constants.STATUS_TASK_FAILED)) {
             this.status = status;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_FAILED + ".jpg");
+            this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_FAILED + STATE_IMAGES_EXTENSION);
         } else {
             // Default value for error
             this.status = Constants.STATUS_TASK_FAILED;
-            this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_FAILED + ".jpg");
+            this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_FAILED + STATE_IMAGES_EXTENSION);
         }
     }
 
@@ -75,11 +80,11 @@ public class ExecutionInformationTask {
     }
 
     public List<Job> getJobs() {
-        return new ListModelList<Job>(this.jobs);
+        return new ListModelList<>(this.jobs);
     }
 
     public void addJob(String jobId, boolean resubmited) {
-        Job job = null;
+        Job job;
 
         if (!resubmited) {
             // Create a normal job
@@ -103,8 +108,8 @@ public class ExecutionInformationTask {
                 i = i - 1;
             }
             // Create a resubmitted job
-            jobId = jobId + "R";
-            job = new Job(jobId, resubmited, host, executable, args);
+            String newJobId = jobId + "R";
+            job = new Job(newJobId, resubmited, host, executable, args);
         }
 
         // Add job
@@ -145,8 +150,7 @@ public class ExecutionInformationTask {
             this.resubmited = false;
             this.host = new String("");
             this.status = new String(Constants.STATUS_CREATION);
-            this.color = new String(
-                    File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+            this.color = new String(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
             this.executable = new String("");
             this.arguments = new String("");
         }
@@ -156,8 +160,7 @@ public class ExecutionInformationTask {
             this.resubmited = resubmited;
             this.host = host;
             this.status = new String(Constants.STATUS_CREATION);
-            this.color = new String(
-                    File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+            this.color = new String(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
             this.executable = executable;
             this.arguments = args;
         }
@@ -191,22 +194,20 @@ public class ExecutionInformationTask {
         public void setStatus(String status) {
             if (status.equals(Constants.STATUS_TASK_CREATING)) {
                 this.status = status;
-                this.setColor(
-                        File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_CREATING + ".jpg");
+                this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_CREATING + STATE_IMAGES_EXTENSION);
             } else if (status.equals(Constants.STATUS_TASK_RUNNING)) {
                 this.status = status;
-                this.setColor(
-                        File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_RUNNING + ".jpg");
+                this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_RUNNING + STATE_IMAGES_EXTENSION);
             } else if (status.equals(Constants.STATUS_TASK_DONE)) {
                 this.status = status;
-                this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_DONE + ".jpg");
+                this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_DONE + STATE_IMAGES_EXTENSION);
             } else if (status.equals(Constants.STATUS_TASK_FAILED)) {
                 this.status = status;
-                this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_FAILED + ".jpg");
+                this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_FAILED + STATE_IMAGES_EXTENSION);
             } else {
                 // Default value for error
                 this.status = Constants.STATUS_TASK_FAILED;
-                this.setColor(File.separator + "images" + File.separator + "state" + File.separator + Constants.COLOR_TASK_FAILED + ".jpg");
+                this.setColor(STATE_IMAGES_RELATIVE_PATH + Constants.COLOR_TASK_FAILED + STATE_IMAGES_EXTENSION);
             }
         }
 
@@ -220,18 +221,16 @@ public class ExecutionInformationTask {
 
         public String getExecutable() {
             executable = new String("Not Available");
-            if (!Properties.getBasePath().equals("")) {
-                BufferedReader br = null;
-                try {
-                    String jobOutPath;
-                    if (!this.resubmited) {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
-                    } else {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
-                                + Constants.JOB_OUT_RESUBMITTED_FILE;
-                    }
-
-                    br = new BufferedReader(new FileReader(jobOutPath));
+            if (!Properties.getBasePath().isEmpty()) {
+                String jobOutPath;
+                if (!this.resubmited) {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
+                } else {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id.substring(0, this.id.length() - 1)
+                            + Constants.JOB_OUT_RESUBMITTED_FILE;
+                }
+                
+                try (BufferedReader br = new BufferedReader(new FileReader(jobOutPath))) {
                     String line = br.readLine();
                     boolean found = false;
                     while ((line != null) && (!found)) {
@@ -241,16 +240,8 @@ public class ExecutionInformationTask {
                         }
                         line = br.readLine();
                     }
-                } catch (Exception e) {
+                } catch (IOException ioe) {
                     // Out file doesn't exist - Display shows no information. No need to raise exception
-                } finally {
-                    try {
-                        if (br != null) {
-                            br.close();
-                        }
-                    } catch (Exception e) {
-                        // Out file cannot close - Display shows no information. No need to raise exception
-                    }
                 }
             }
 
@@ -259,18 +250,16 @@ public class ExecutionInformationTask {
 
         public String getArguments() {
             arguments = new String("Not Available");
-            if (!Properties.getBasePath().equals("")) {
-                BufferedReader br = null;
-                try {
-                    String jobOutPath;
-                    if (!this.resubmited) {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
-                    } else {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
-                                + Constants.JOB_OUT_RESUBMITTED_FILE;
-                    }
-
-                    br = new BufferedReader(new FileReader(jobOutPath));
+            if (!Properties.getBasePath().isEmpty()) {
+                String jobOutPath;
+                if (!this.resubmited) {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
+                } else {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id.substring(0, this.id.length() - 1)
+                            + Constants.JOB_OUT_RESUBMITTED_FILE;
+                }
+                
+                try (BufferedReader br = new BufferedReader(new FileReader(jobOutPath))) {
                     String line = br.readLine();
                     boolean found = false;
                     while ((line != null) && (!found)) {
@@ -280,16 +269,8 @@ public class ExecutionInformationTask {
                         }
                         line = br.readLine();
                     }
-                } catch (Exception e) {
+                } catch (IOException ioe) {
                     // Out file doesn't exist - Display shows no information. No need to raise exception
-                } finally {
-                    try {
-                        if (br != null) {
-                            br.close();
-                        }
-                    } catch (Exception e) {
-                        // Out file cannot close - Display shows no information. No need to raise exception
-                    }
                 }
             }
 
@@ -297,52 +278,51 @@ public class ExecutionInformationTask {
         }
 
         public String getOutFileContent() {
-            if (!Properties.getBasePath().equals("")) {
+            if (!Properties.getBasePath().isEmpty()) {
+                String jobOutPath;
+                if (!this.resubmited) {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_OUT_FILE;
+                } else {
+                    jobOutPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id.substring(0, this.id.length() - 1)
+                            + Constants.JOB_OUT_RESUBMITTED_FILE;
+                }
+                
                 StringBuilder sb = new StringBuilder();
-                try {
-                    String jobOutPath;
-                    if (!this.resubmited) {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_OUT_FILE;
-                    } else {
-                        jobOutPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
-                                + Constants.JOB_OUT_RESUBMITTED_FILE;
-                    }
-                    BufferedReader br = new BufferedReader(new FileReader(jobOutPath));
+                try (BufferedReader br = new BufferedReader(new FileReader(jobOutPath))) {
                     String line = br.readLine();
                     while (line != null) {
                         sb.append(line).append("\n");
                         line = br.readLine();
                     }
-                    br.close();
-                } catch (Exception e) {
+                } catch (IOException ioe) {
                     // Out file doesn't exist
                     return new String("Not Available. Set log-level to debug.");
                 }
                 return sb.toString();
             }
+            
             return new String("");
         }
 
         public String getErrFileContent() {
-            if (!Properties.getBasePath().equals("")) {
+            if (!Properties.getBasePath().isEmpty()) {
+                String jobErrPath;
+                if (!this.resubmited) {
+                    jobErrPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id + Constants.JOB_ERR_FILE;
+                } else {
+                    jobErrPath = Properties.getBasePath() + JOBS_RELATIVE_PATH + this.id.substring(0, this.id.length() - 1)
+                            + Constants.JOB_ERR_RESUBMITTED_FILE;
+                }
+                
                 StringBuilder sb = new StringBuilder();
-                try {
-                    String jobErrPath;
-                    if (!this.resubmited) {
-                        jobErrPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id + Constants.JOB_ERR_FILE;
-                    } else {
-                        jobErrPath = Properties.getBasePath() + Constants.JOBS_SUB_PATH + "job" + this.id.substring(0, this.id.length() - 1)
-                                + Constants.JOB_ERR_RESUBMITTED_FILE;
-                    }
-                    BufferedReader br = new BufferedReader(new FileReader(jobErrPath));
+                try (BufferedReader br = new BufferedReader(new FileReader(jobErrPath))) {
                     String line = br.readLine();
                     while (line != null) {
                         sb.append(line).append("\n");
                         line = br.readLine();
                     }
-                    br.close();
-                } catch (Exception e) {
-                    // Err file doesn't exist
+                } catch (IOException ioe) {
+                    // Out file doesn't exist
                     return new String("Not Available. Set log-level to debug.");
                 }
                 return sb.toString();

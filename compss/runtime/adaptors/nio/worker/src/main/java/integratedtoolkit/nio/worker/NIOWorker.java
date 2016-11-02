@@ -387,7 +387,10 @@ public class NIOWorker extends NIOAgent {
                                                     "   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. MOVING");
                                             wLogger.debug("         Source: " + source);
                                             wLogger.debug("         Target: " + target);
-                                            source.renameTo(target);
+                                            if (!source.renameTo(target)) {
+                                                wLogger.error("Error renaming file from " + source.getAbsolutePath() 
+                                                    + " to " + target.getAbsolutePath());
+                                            }
                                         }
                                         // Move object to cache
                                         Object o = Serializer.deserialize((String) param.getValue());
@@ -691,7 +694,9 @@ public class NIOWorker extends NIOAgent {
             for (String name : obsolete) {
                 if (name.startsWith(File.separator)) {
                     File f = new File(name);
-                    f.delete();
+                    if (!f.delete()) {
+                        wLogger.error("Error removing file " + f.getAbsolutePath());
+                    }
                 } else {
                     removeFromCache(name);
                 }

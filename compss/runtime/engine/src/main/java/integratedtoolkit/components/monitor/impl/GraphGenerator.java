@@ -26,17 +26,23 @@ public class GraphGenerator {
 
     // Boolean to enable GraphGeneration or not
     private static final boolean monitorEnabled = System.getProperty(ITConstants.IT_MONITOR) != null
-            && !System.getProperty(ITConstants.IT_MONITOR).equals("0") ? true : false;
+            && !"0".equals(System.getProperty(ITConstants.IT_MONITOR)) ? true : false;
     private static final boolean drawGraph = System.getProperty(ITConstants.IT_GRAPH) != null
-            && System.getProperty(ITConstants.IT_GRAPH).equals("true") ? true : false;
-    private static final boolean graphGeneratorEnabled = (monitorEnabled || drawGraph);
+            && "true".equals(System.getProperty(ITConstants.IT_GRAPH)) ? true : false;
+    private static final boolean graphGeneratorEnabled = monitorEnabled || drawGraph;
+    
+    // Graph filenames constants
+    private static final String CURRENT_GRAPH_FILENAME = "current_graph.dot";
+    private static final String COMPLETE_GRAPH_FILENAME = "complete_graph.dot";
+    private static final String COMPLETE_GRAPH_TMP_FILENAME = "complete_graph.dot.tmp";
+    private static final String COMPLETE_LEGEND_TMP_FILENAME = "complete_legend.dot.tmp";
 
     // Graph locations
-    private static final String monitorDirPath;
-    private static String CURRENT_GRAPH_FILE = "current_graph.dot";
-    private static String COMPLETE_GRAPH_FILE = "complete_graph.dot";
-    private static String COMPLETE_GRAPH_TMP_FILE = "complete_graph.dot.tmp";
-    private static String COMPLETE_LEGEND_TMP_FILE = "complete_legend.dot.tmp";
+    private static final String MONITOR_DIR_PATH;
+    private static final String CURRENT_GRAPH_FILE;
+    private static final String COMPLETE_GRAPH_FILE;
+    private static final String COMPLETE_GRAPH_TMP_FILE;
+    private static final String COMPLETE_LEGEND_TMP_FILE;
     // Graph buffers
     private static BufferedWriter full_graph;
     private static BufferedWriter current_graph;
@@ -54,14 +60,14 @@ public class GraphGenerator {
     static {
         if (graphGeneratorEnabled) {
             // Set graph locations
-            monitorDirPath = Comm.getAppHost().getAppLogDirPath() + "monitor" + File.separator;
-            if (!new File(monitorDirPath).mkdir()) {
+            MONITOR_DIR_PATH = Comm.getAppHost().getAppLogDirPath() + "monitor" + File.separator;
+            if (!new File(MONITOR_DIR_PATH).mkdir()) {
                 ErrorManager.error(ERROR_MONITOR_DIR);
             }
-            CURRENT_GRAPH_FILE = monitorDirPath + "current_graph.dot";
-            COMPLETE_GRAPH_FILE = monitorDirPath + "complete_graph.dot";
-            COMPLETE_GRAPH_TMP_FILE = monitorDirPath + "complete_graph.dot.tmp";
-            COMPLETE_LEGEND_TMP_FILE = monitorDirPath + "complete_legend.dot.tmp";
+            CURRENT_GRAPH_FILE = MONITOR_DIR_PATH + CURRENT_GRAPH_FILENAME;
+            COMPLETE_GRAPH_FILE = MONITOR_DIR_PATH + COMPLETE_GRAPH_FILENAME;
+            COMPLETE_GRAPH_TMP_FILE = MONITOR_DIR_PATH + COMPLETE_GRAPH_TMP_FILENAME;
+            COMPLETE_LEGEND_TMP_FILE = MONITOR_DIR_PATH + COMPLETE_LEGEND_TMP_FILENAME;
 
             /* Current graph for monitor display ********************************************* */
             try {
@@ -96,10 +102,14 @@ public class GraphGenerator {
                 } catch (IOException ioe) {
                     logger.error("Error generating full graph working copy file", ioe);
                 }
-                legendTasks = new HashSet<Integer>();
+                legendTasks = new HashSet<>();
             }
         } else {
-            monitorDirPath = null;
+            MONITOR_DIR_PATH = null;
+            CURRENT_GRAPH_FILE = CURRENT_GRAPH_FILENAME;
+            COMPLETE_GRAPH_FILE = COMPLETE_GRAPH_FILENAME;
+            COMPLETE_GRAPH_TMP_FILE = COMPLETE_GRAPH_TMP_FILENAME;
+            COMPLETE_LEGEND_TMP_FILE = COMPLETE_LEGEND_TMP_FILENAME;
         }
     }
 
@@ -109,6 +119,7 @@ public class GraphGenerator {
      * 
      */
     public GraphGenerator() {
+        // All attributes are initialized in the static block. Nothing to do
     }
 
     /*
@@ -131,7 +142,7 @@ public class GraphGenerator {
      * @return
      */
     public static String getMonitorDirPath() {
-        return monitorDirPath;
+        return MONITOR_DIR_PATH;
     }
 
     /*
@@ -146,7 +157,7 @@ public class GraphGenerator {
         try {
             current_graph = new BufferedWriter(new FileWriter(CURRENT_GRAPH_FILE));
             openGraphFile(current_graph);
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_OPEN_CURRENT_GRAPH);
             return null;
         }
@@ -161,7 +172,7 @@ public class GraphGenerator {
         try {
             closeGraphFile(current_graph);
             current_graph.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_CLOSE_CURRENT_GRAPH);
         }
     }
@@ -175,21 +186,24 @@ public class GraphGenerator {
         try {
             // Move dependence graph content to final location
             full_graph.close();
-            FileInputStream sourceFIS = null;
-            FileOutputStream destFOS = null;
             FileChannel sourceChannel = null;
             FileChannel destChannel = null;
-            try {
-                sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
-                destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE);
+            try (
+                 FileInputStream sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
+                 FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE)
+                ) {
                 sourceChannel = sourceFIS.getChannel();
                 destChannel = destFOS.getChannel();
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+            } catch (IOException ioe) {
+                throw ioe;
             } finally {
-                sourceChannel.close();
-                sourceFIS.close();
-                destChannel.close();
-                destFOS.close();
+                if (sourceChannel != null) {
+                    sourceChannel.close();
+                }
+                if (destChannel != null) {
+                    destChannel.close();
+                }
             }
             full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE, true));
 
@@ -201,18 +215,25 @@ public class GraphGenerator {
             openLegend(finalGraph);
 
             legend.close();
-            try {
-                sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
+            sourceChannel = null;
+            destChannel = null;
+            try (
+                 FileInputStream sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
+                 FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true)
+                ) {
                 sourceChannel = sourceFIS.getChannel();
-                destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true);
                 destChannel = destFOS.getChannel();
                 destChannel.position(destChannel.size());
                 sourceChannel.transferTo(0, sourceChannel.size(), destChannel);
+            } catch (IOException ioe) {
+                throw ioe;
             } finally {
-                sourceChannel.close();
-                sourceFIS.close();
-                destChannel.close();
-                destFOS.close();
+                if (sourceChannel != null) {
+                    sourceChannel.close();
+                }
+                if (destChannel != null) {
+                    destChannel.close();
+                }
             }
             legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE, true));
 
@@ -221,7 +242,7 @@ public class GraphGenerator {
             // Close graph
             closeGraphFile(finalGraph);
             finalGraph.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_COMMIT_FINAL_GRAPH, e);
         }
     }
@@ -236,7 +257,7 @@ public class GraphGenerator {
             full_graph.newLine();
             full_graph.write(
                     "Synchro" + synchId + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_ADDING_DATA, e);
         }
     }
@@ -255,7 +276,7 @@ public class GraphGenerator {
                 legendTasks.add(taskId);
                 legend.write(task.getLegendDescription());
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_ADDING_DATA, e);
         }
     }
@@ -271,7 +292,7 @@ public class GraphGenerator {
         try {
             full_graph.newLine();
             full_graph.write(src + " -> " + tgt + (label.isEmpty() ? ";" : "[ label=\"d" + label + "\" ];"));
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error(ERROR_ADDING_EDGE, e);
         }
     }

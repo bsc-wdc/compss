@@ -15,7 +15,7 @@
   
   #Global variables
   exitValue=0
-  remote_app_dir=/home/compss
+  remote_apps_dir=${base_app_dir}/apps  
   
   mkdir -p ${remote_app_dir}
 
@@ -64,7 +64,6 @@
      --resources=${base_app_dir}/resources_dockerProvider.xml \
      --debug \
      --comm=$comm \
-     --conn=compss-docker-connector.jar \
      --lang=java \
      --classpath=${base_app_dir}/${appName}.jar:${remote_app_dir}/${appName}.jar \
      simple.Simple $counterVal $numTasks $minVM $maxVM $creationTime > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

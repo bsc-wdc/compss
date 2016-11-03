@@ -122,6 +122,15 @@
 									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
 									<destFileName>vmm-conn.jar</destFileName>
 								</artifactItem>
+								<artifactItem>
+									<groupId>es.bsc</groupId>
+									<artifactId>docker-conn</artifactId>
+									<version>${conn.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+									<outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
+									<destFileName>docker-conn.jar</destFileName>
+								</artifactItem>
 							</artifactItems>
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>true</overWriteSnapshots>

@@ -125,7 +125,7 @@ public class GATTracer extends Tracer {
         String workingDir = node.getWorkingDir();
 
         String user = node.getUser();
-        if (user == null) {
+        if (user == null || user.isEmpty()) {
             user = "";
         } else {
             user += "@";

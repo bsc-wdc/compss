@@ -27,7 +27,7 @@ import org.gridlab.gat.resources.SoftwareDescription;
 /**
  * The cleaner class is an utility to execute the cleaning script on the remote workers.
  */
-public class CleanerExecutor {
+public class GATScriptExecutor {
 
     /**
      * Constants
@@ -41,25 +41,6 @@ public class CleanerExecutor {
      * Amount of threads that will execute the cleaning scripts
      */
     private static final int POOL_SIZE = 5;
-    /**
-     * GAT context
-     */
-    // private GATContext context;
-
-    /**
-     * GAT broker adaptor information
-     */
-
-    /**
-     * GAT is using Globus
-     */
-    // private boolean usingGlobus;
-
-    /**
-     * GAT needs a userName to connect with the resources
-     */
-    // private boolean userNeeded;
-
     /**
      * Amount of host to be clean
      */
@@ -99,14 +80,14 @@ public class CleanerExecutor {
      *            list with the input parameters that each script will run with
      */
 
-    public CleanerExecutor(GATWorkerNode node) {
+    public GATScriptExecutor(GATWorkerNode node) {
         sdQueue = new RequestQueue<SoftwareDescription>();
         jobQueue = new RequestQueue<Job>();
-        pool = new ThreadPool(POOL_SIZE, POOL_NAME, new CleanDispatcher(sdQueue, jobQueue, node));
+        pool = new ThreadPool(POOL_SIZE, POOL_NAME, new ScriptDispatcher(sdQueue, jobQueue, node));
         this.node = node;
     }
 
-    public boolean executeScript(List<URI> cleanScripts, List<String> cleanParams) {
+    public boolean executeScript(List<URI> scripts, List<String> params, String stdOutFileName) {
         try {
             pool.startThreads();
         } catch (Exception e) {
@@ -115,12 +96,12 @@ public class CleanerExecutor {
         }
 
         synchronized (jobQueue) {
-            jobCount = cleanScripts.size();
+            jobCount = scripts.size();
         }
 
-        for (int i = 0; i < cleanScripts.size(); i++) {
-            URI script = cleanScripts.get(i);
-            String cleanParam = cleanParams.get(i);
+        for (int i = 0; i < scripts.size(); i++) {
+            URI script = scripts.get(i);
+            String cleanParam = params.get(i);
             if (script == null) {
                 continue;
             }
@@ -152,12 +133,13 @@ public class CleanerExecutor {
                 if (debug) {
                     try {
                         org.gridlab.gat.io.File outFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
+                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".out");
                         sd.setStdout(outFile);
                         org.gridlab.gat.io.File errFile = GAT.createFile(node.getContext(),
-                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
+                                Protocol.ANY_URI.getSchema() + File.separator + System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err");
                         sd.setStderr(errFile);
                     } catch (Exception e) {
+                    	logger.error(CLEAN_JOB_ERR, e);
                     }
                 }
 
@@ -203,7 +185,7 @@ public class CleanerExecutor {
         // Move cleanX.out logs to default logger
         if (debug) {
             try {
-                FileReader cleanOut = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out");
+                FileReader cleanOut = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".out");
                 BufferedReader br = new BufferedReader(cleanOut);
                 String line = br.readLine();
                 while (line != null) {
@@ -212,17 +194,15 @@ public class CleanerExecutor {
                 }
                 br.close();
             } catch (Exception e) {
-                logger.error("Error moving cleaner.out", e);
+                logger.error("Error moving std out file", e);
             }
-            if (!new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.out").delete()) {
-                logger.error("Error removing cleaner.out file");
-            }
+            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName +".out").delete();
         }
 
         // Move cleanX.err logs to default logger
         if (debug) {
             try {
-                FileReader cleanErr = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err");
+                FileReader cleanErr = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err");
                 BufferedReader br = new BufferedReader(cleanErr);
                 String line = br.readLine();
                 while (line != null) {
@@ -231,11 +211,9 @@ public class CleanerExecutor {
                 }
                 br.close();
             } catch (Exception e) {
-                logger.error("Error moving cleaner.err", e);
+                logger.error("Error moving std err file", e);
             }
-            if (!new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + "cleaner.err").delete()) {
-                logger.error("Error removing cleaner.err file");
-            }
+            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err").delete();
         }
         return true;
     }
@@ -244,7 +222,7 @@ public class CleanerExecutor {
     /**
      * The CleanDispatcherClass represents a pool of threads that will run the cleaning scripts
      */
-    class CleanDispatcher extends RequestDispatcher<SoftwareDescription> {
+    class ScriptDispatcher extends RequestDispatcher<SoftwareDescription> {
 
         /**
          * All the GAT jobs that have already been submitted
@@ -261,7 +239,7 @@ public class CleanerExecutor {
          * @param jobQueue
          *            list where all the already executed tasks will be left
          */
-        public CleanDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue, GATWorkerNode node) {
+        public ScriptDispatcher(RequestQueue<SoftwareDescription> sdQueue, RequestQueue<Job> jobQueue, GATWorkerNode node) {
             super(sdQueue);
             this.jobQueue = jobQueue;
             this.node = node;

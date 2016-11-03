@@ -13,7 +13,7 @@ public class NIOConfiguration extends MethodConfiguration {
     public static final String SRUN_REMOTE_EXECUTION_COMMAND = "srun";
     public static final String DEFAULT_REMOTE_EXECUTION_COMMAND = SSH_REMOTE_EXECUTION_COMMAND;
 
-    private String sandboxWorkingDir;
+    
     private int minPort;
     private int maxPort;
     private String remoteExecutionCommand;
@@ -21,22 +21,6 @@ public class NIOConfiguration extends MethodConfiguration {
 
     public NIOConfiguration(String adaptorName) {
         super(adaptorName);
-    }
-
-	@Override
-	public void setWorkingDir(String workingDir) {
-		super.setWorkingDir(workingDir);
-		String host = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
-		String sandboxWorkingDir = this.getWorkingDir() + NIOAdaptor.DEPLOYMENT_ID + File.separator + host + File.separator;
-		this.setSandboxWorkingDir(sandboxWorkingDir);
-	}
-
-    public String getSandboxWorkingDir() {
-        return sandboxWorkingDir;
-    }
-
-    public void setSandboxWorkingDir(String sandboxWorkingDir) {
-        this.sandboxWorkingDir = sandboxWorkingDir;
     }
 
     @Override

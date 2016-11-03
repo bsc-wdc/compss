@@ -127,6 +127,7 @@ public class GATCopy extends ImmediateCopy {
                     // Try to copy from each location until successful
                 } catch (Exception e) {
                     exception.add("default logical file", e);
+                    logger.debug("Error copying file", e);
                     continue;
                 }
                 return;
@@ -134,7 +135,7 @@ public class GATCopy extends ImmediateCopy {
         }
         
         if (!(this.reason instanceof WorkersDebugInfoCopyTransferable)) {
-            ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.");
+            ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.",exception);
         }
 
         throw exception;

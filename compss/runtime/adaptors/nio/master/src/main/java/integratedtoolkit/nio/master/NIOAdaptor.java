@@ -69,7 +69,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
      * 1. Given by the IT_MASTER_PORT property 
      * 2. A BASE_MASTER_PORT plus a random number
      */
-    public static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
+    
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
     private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);

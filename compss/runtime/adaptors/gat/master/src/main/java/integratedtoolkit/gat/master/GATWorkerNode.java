@@ -20,15 +20,21 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.SSHManager;
 
 import org.gridlab.gat.GATContext;
+import org.gridlab.gat.URI;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import java.util.LinkedList;
 
 
 public class GATWorkerNode extends COMPSsWorker {
 
-    private GATConfiguration config;
+	private static final String GAT_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
+            + File.separator + "adaptors" + File.separator + "gat" + File.separator;
+    private static final String CLEANER_SCRIPT_NAME = "clean.sh";
+    private static final String INIT_SCRIPT_NAME = "init.sh";
+	private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
 
 
@@ -44,14 +50,44 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void start() throws Exception {
-        if (GATTracer.isActivated()) {
+        initWorkingDir();
+    	if (GATTracer.isActivated()) {
             logger.debug("Starting GAT tracer " + this.getName());
             tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
         }
     }
 
-    public void addAdaptorPreference(String property, String value) {
+    private void initWorkingDir() throws Exception {
+    	LinkedList<URI> traceScripts = new LinkedList<URI>();
+        LinkedList<String> traceParams = new LinkedList<String>();
+        String host = getHost();
+        String installDir = getInstallDir();
+        String workingDir = getWorkingDir();
+
+        String user = getUser();
+        if (user == null) {
+            user = "";
+        } else {
+            user += "@";
+        }
+
+        traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + GAT_SCRIPT_PATH +INIT_SCRIPT_NAME));
+        
+        String pars = workingDir;
+
+        traceParams.add(pars);
+
+        // Use cleaner to run the trace script and generate the package
+        logger.debug("Initializing working dir " + workingDir + "  in host "+ getName());
+        boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "init_"+host);
+    	if (!result){
+    		throw new Exception("Error executing init script for initializing working dir " + workingDir + " in host "+ getName());
+    	}
+		
+	}
+
+	public void addAdaptorPreference(String property, String value) {
         this.config.addContextPreference(property, value);
     }
 
@@ -69,7 +105,7 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     public String getWorkingDir() {
-        return this.config.getWorkingDir();
+        return this.config.getSandboxWorkingDir();
     }
 
     public String getAppDir() {
@@ -132,10 +168,18 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public void stop(ShutdownListener sl) {
         try {
-            File workingDirRoot = new File(this.config.getWorkingDir());
-            for (File c : workingDirRoot.listFiles()) {
-                delete(c);
-            }
+        	String workingDir = this.config.getWorkingDir();
+        	if (workingDir != null || !workingDir.isEmpty()){ 
+        		File workingDirRoot = new File(workingDir);
+        		if (workingDirRoot != null){
+        			File[] filesInFolder = workingDirRoot.listFiles();
+        			if (filesInFolder!=null){
+        				for (File c : filesInFolder) {
+        					delete(c);
+        				}
+        			}
+        		}
+        	}
         } catch (FileNotFoundException e) {
             logger.warn("Could not remove clean node working dir\n" + e);
         }
@@ -176,7 +220,7 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public void updateTaskCount(int processorCoreCount) {
         if (GATTracer.isActivated()) {
-            System.err.println("Tracing system and Cloud do not work together");
+        	logger.error("Tracing system and Cloud do not work together");
         }
     }
 
@@ -212,7 +256,35 @@ public class GATWorkerNode extends COMPSsWorker {
 
     @Override
     public void deleteTemporary() {
-        // TODO GATWorkerNode should erase " + workingDir + " a " + getName());
+    	LinkedList<URI> traceScripts = new LinkedList<URI>();
+        LinkedList<String> traceParams = new LinkedList<String>();
+        String host = getHost();
+        String installDir = getInstallDir();
+        String workingDir = getWorkingDir();
+
+        String user = getUser();
+        if (user == null) {
+            user = "";
+        } else {
+            user += "@";
+        }
+
+        try {
+            traceScripts.add(new URI(Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + GAT_SCRIPT_PATH +CLEANER_SCRIPT_NAME));
+        } catch (URISyntaxException e) {
+            logger.error("Error deleting working dir " + workingDir + " in host "+ getName(), e);
+            return;
+        }
+        String pars = workingDir;
+
+        traceParams.add(pars);
+
+        // Use cleaner to run the trace script and generate the package
+        logger.debug("Deleting working dir " + workingDir + "  in host "+ getName());
+        boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "clean_"+host);
+    	if (!result){
+    		logger.error("Error executing clean script for deleting working dir " + workingDir + " in host "+ getName());
+    	}
     }
 
     @Override

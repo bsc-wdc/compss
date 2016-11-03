@@ -142,7 +142,7 @@ public class GATTracer extends Tracer {
         traceParams.add(pars);
 
         // Use cleaner to run the trace script and generate the package
-        return new CleanerExecutor(node).executeScript(traceScripts, traceParams);
+        return new GATScriptExecutor(node).executeScript(traceScripts, traceParams, "trace_packaging_"+host);
         
     }
 

@@ -6,10 +6,10 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="[(%r) %6c{1}]  -  %m%n"/>
     </Console>
-    <File name="COMPSsRuntimeLog" fileName="${sys:it.appLogDir}/runtime.log" immediateFlush="false" append="false">
+    <File name="COMPSsRuntimeLog" fileName="${sys:it.appLogDir}/runtime.log" immediateFlush="true" append="false">
       <PatternLayout pattern="[(%r)(%d) %19c{1}]    @%-15.15M  -  %m%n"/>
     </File>
-    <File name="COMPSsResourcesLog" fileName="${sys:it.appLogDir}/resources.log" immediateFlush="false" append="false">
+    <File name="COMPSsResourcesLog" fileName="${sys:it.appLogDir}/resources.log" immediateFlush="true" append="false">
       <PatternLayout pattern="%m%n"/>
     </File>
   </Appenders>

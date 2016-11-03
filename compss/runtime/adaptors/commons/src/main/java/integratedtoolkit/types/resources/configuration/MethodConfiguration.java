@@ -1,10 +1,12 @@
 package integratedtoolkit.types.resources.configuration;
 
+import integratedtoolkit.ITConstants;
+
 import java.io.File;
 
 
 public class MethodConfiguration extends Configuration {
-
+	public static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
     private String host;
     private String user = "";
 
@@ -17,6 +19,8 @@ public class MethodConfiguration extends Configuration {
     private String classpath = "";
     private String pythonpath = "";
     private String libraryPath = "";
+    
+    private String sandboxWorkingDir;
 
 
     public MethodConfiguration(String adaptorName) {
@@ -55,6 +59,14 @@ public class MethodConfiguration extends Configuration {
         }
     }
 
+    public String getSandboxWorkingDir() {
+        return sandboxWorkingDir;
+    }
+
+    public void setSandboxWorkingDir(String sandboxWorkingDir) {
+        this.sandboxWorkingDir = sandboxWorkingDir;
+    }
+    
     public String getWorkingDir() {
         return workingDir;
     }
@@ -71,6 +83,9 @@ public class MethodConfiguration extends Configuration {
         } else {
             this.workingDir = workingDir;
         }
+        String host = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
+		String sandboxWorkingDir = this.getWorkingDir() + DEPLOYMENT_ID + File.separator + host + File.separator;
+		this.setSandboxWorkingDir(sandboxWorkingDir);
     }
 
     public int getTotalComputingUnits() {

@@ -66,7 +66,7 @@ public class GATWorkerNode extends COMPSsWorker {
         String workingDir = getWorkingDir();
 
         String user = getUser();
-        if (user == null) {
+        if (user == null || user.isEmpty()) {
             user = "";
         } else {
             user += "@";

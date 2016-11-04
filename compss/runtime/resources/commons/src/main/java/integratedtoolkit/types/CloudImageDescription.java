@@ -1,6 +1,6 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.ITConstants;
+import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
@@ -187,9 +187,6 @@ public class CloudImageDescription {
     public void setConfig(MethodConfiguration config) {
         this.config = config;
         
-        // Add application name property for some connectors (i.e. docker, vmm)
-        this.properties.put(AbstractSSHConnector.APP_NAME, System.getProperty(ITConstants.IT_APP_NAME));
-        
         // Add adaptor ports in image properties for some connectors (i.e. JClouds)
         String maxPort = "-1";
         String minPort = "-1";
@@ -197,8 +194,8 @@ public class CloudImageDescription {
             maxPort = String.valueOf(config.getMaxPort());
             minPort = String.valueOf(config.getMinPort());
         }
-        this.properties.put(AbstractSSHConnector.ADAPTOR_MAX_PORT_PROPERTY_NAME, maxPort);
-        this.properties.put(AbstractSSHConnector.ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);
+        this.properties.put(AbstractConnector.ADAPTOR_MAX_PORT_PROPERTY_NAME, maxPort);
+        this.properties.put(AbstractConnector.ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);
     }
 
     public String getProviderName() {

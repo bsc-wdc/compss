@@ -1,8 +1,5 @@
 package integratedtoolkit.nio.master.configuration;
 
-import java.io.File;
-
-import integratedtoolkit.nio.master.NIOAdaptor;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
 
@@ -13,7 +10,6 @@ public class NIOConfiguration extends MethodConfiguration {
     public static final String SRUN_REMOTE_EXECUTION_COMMAND = "srun";
     public static final String DEFAULT_REMOTE_EXECUTION_COMMAND = SSH_REMOTE_EXECUTION_COMMAND;
 
-    
     private int minPort;
     private int maxPort;
     private String remoteExecutionCommand;

@@ -24,6 +24,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
     
     private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
+    private static final String ERROR_NO_CONN = "ERROR: Connector specific implementation is null";
 
     private static final String CPU_TYPE = "CPU";
     private static final float UNASSIGNED_FLOAT = -1.0f;
@@ -35,7 +36,6 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
             HashMap<String, String> connectorProperties) throws ConnectorException {
         
         super(providerName, connectorProperties);
-        super.setDefaultUser("");
         
         LOGGER.info("Creating DefaultSSHConnector");
         Connector conn = null;
@@ -68,6 +68,10 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
             throw new ConnectorException(e);
         } finally {
             connector = conn;
+        }
+        
+        if (connector == null) {
+            throw new ConnectorException(ERROR_NO_CONN);
         }
     }
 
@@ -164,12 +168,20 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     @Override
     public void destroy(Object id) throws ConnectorException {
         LOGGER.debug("Destroy connection with id " + id);
+        if (connector == null) {
+            throw new ConnectorException(ERROR_NO_CONN);
+        }
+        
         connector.destroy(id);
     }
 
     @Override
     public Object create(String name, CloudMethodResourceDescription cmrd) throws ConnectorException {
         LOGGER.debug("Create connection " + name);
+        if (connector == null) {
+            throw new ConnectorException(ERROR_NO_CONN);
+        }
+        
         Object created;
         try {
             created = connector.create(getHardwareDescription(cmrd), getSoftwareDescription(cmrd), cmrd.getImage().getProperties());
@@ -182,6 +194,10 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     @Override
     public CloudMethodResourceDescription waitUntilCreation(Object id, CloudMethodResourceDescription requested) throws ConnectorException {
         LOGGER.debug("Waiting for " + (String) id);
+        if (connector == null) {
+            throw new ConnectorException(ERROR_NO_CONN);
+        }
+        
         VirtualResource vr;
         try {
             vr = connector.waitUntilCreation(id);
@@ -195,11 +211,19 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
 
     @Override
     public float getMachineCostPerTimeSlot(CloudMethodResourceDescription cmrd) {
+        if (connector == null) {
+            return UNASSIGNED_FLOAT;
+        }
+        
         return connector.getPriceSlot(getVirtualResource("-1", cmrd));
     }
 
     @Override
     public long getTimeSlot() {
+        if (connector == null) {
+            return TWO_MIN;
+        }
+        
         return connector.getTimeSlot();
     }
 

@@ -23,35 +23,35 @@ import integratedtoolkit.types.resources.ShutdownListener;
 public abstract class AbstractConnector implements Connector, Operations, Cost {
     
     // Properties' names
-    private static final String PROP_ESTIMATED_CREATION_TIME = "estimated-creation-time";
-    private static final String PROP_MAX_VM_CREATION_TIME = "max-vm-creation-time";
+    public static final String PROP_ESTIMATED_CREATION_TIME = "estimated-creation-time";
+    public static final String PROP_MAX_VM_CREATION_TIME = "max-vm-creation-time";
+    public static final String PROP_SERVER = "Server";
+    public static final String PROP_PORT = "Port";
+    public static final String PROPERTY_PASSW_NAME = "Password";
+    public static final String PROP_APP_NAME = "app-name";
+    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
+    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
     
     // Constants
     protected static final int SENCONDS_TO_MINUTES = 60;
+    protected static final long ONE_HOUR = 3_600_000;
+    protected static final long TWO_MIN = 120_000;
+    protected static final long HALF_MIN = 30_000;
     
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
-    
-    public static final long ONE_HOUR = 3_600_000;
-    public static final long FIFTY_EIGHT_MIN = 3_480_000;
-    public static final long FIFTY_MIN = 3_000_000;
-    public static final long FIVE_MIN = 300_000;
-    public static final long TWO_MIN = 120_000;
-    public static final long TEN_MIN = 600_000;
-    public static final long ONE_MIN = 60_000;
-    public static final long HALF_MIN = 30_000;
-    
-    
-    protected static long INITIAL_CREATION_TIME = TWO_MIN;
-    protected static long MINIM_DEADLINE_INTERVAL = TWO_MIN;
-    protected static long DELETE_SAFETY_INTERVAL = HALF_MIN;
+
+    // Timer properties
+    private static long INITIAL_CREATION_TIME = TWO_MIN;
+    private static long MINIM_DEADLINE_INTERVAL = TWO_MIN;
+    private static long DELETE_SAFETY_INTERVAL = HALF_MIN;
 
     private float currentCostPerHour;
     private final float deletedMachinesCost;
     private long meanCreationTime;
     private int createdVMs;
 
-    protected String providerName;
+    private final String providerName;
     private final ConcurrentHashMap<String, VM> IPToVM;
     private final ConcurrentHashMap<Object, Long> powerOnVMTimestamp;
     private boolean terminate = false;

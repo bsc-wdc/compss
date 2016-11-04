@@ -169,7 +169,7 @@ public class GATWorkerNode extends COMPSsWorker {
     public void stop(ShutdownListener sl) {
         try {
         	String workingDir = this.config.getWorkingDir();
-        	if (workingDir != null || !workingDir.isEmpty()){ 
+        	if (workingDir != null && !workingDir.isEmpty()){ 
         		File workingDirRoot = new File(workingDir);
         		if (workingDirRoot != null){
         			File[] filesInFolder = workingDirRoot.listFiles();

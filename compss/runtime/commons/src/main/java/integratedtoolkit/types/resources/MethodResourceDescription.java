@@ -419,6 +419,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if (processorString == null || processorString.isEmpty()) {
             this.addProcessor(proc); // Increases the totalCUs
         }
+        
+        if (this.totalCPUs == 0) {
+            Processor p = new Processor();
+            p.setComputingUnits(ONE_INT);
+            this.addProcessor(p);
+        }
+        
+        
+        
     }
 
     private void addConstraints(String key, String val, Processor proc) {

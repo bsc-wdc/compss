@@ -33,7 +33,7 @@
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
 		<comm.version>1.3-102</comm.version>
-		<conn.version>1.0-23</conn.version>
+		<conn.version>1.0-26</conn.version>
 		<storage.version>1.0</storage.version>
 	
 		<!-- ZK version -->

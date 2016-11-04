@@ -1,7 +1,7 @@
 package integratedtoolkit.connectors.utils;
 
 import integratedtoolkit.components.ResourceUser;
-import integratedtoolkit.connectors.AbstractSSHConnector;
+import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.connectors.VM;
 import integratedtoolkit.log.Loggers;
@@ -217,7 +217,7 @@ public class CreationThread extends Thread {
         CloudImageDescription cid = granted.getImage();
         HashMap<String, String> workerProperties = cid.getProperties();
         String user = cid.getConfig().getUser();
-        String password = workerProperties.get(AbstractSSHConnector.PROPERTY_PASSW_NAME);
+        String password = workerProperties.get(AbstractConnector.PROPERTY_PASSW_NAME);
         try {
             operations.configureAccess(granted.getName(), user, password);
         } catch (ConnectorException e) {

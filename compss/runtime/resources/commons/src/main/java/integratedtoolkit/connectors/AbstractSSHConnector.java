@@ -28,10 +28,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String VM_USER = "vm-user";
     private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
     private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
-    public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
-    public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
-    public static final String APP_NAME = "app-name";
-    public static final String PROPERTY_PASSW_NAME = "Password";
 
     // Retry properties
     private static final Integer KNOWN_HOSTS_MAX_ALLOWED_ERRORS = 20;

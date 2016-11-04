@@ -9,6 +9,7 @@ import javax.xml.bind.JAXBException;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.connectors.AbstractConnector;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudImageDescription;
@@ -48,8 +49,7 @@ public class ResourceLoader {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
-
-
+    
     public static void load(String resources_XML, String resources_XSD, String project_XML, String project_XSD)
             throws ResourcesFileValidationException, ProjectFileValidationException, NoResourceAvailableException {
 
@@ -410,10 +410,10 @@ public class ResourceLoader {
         EndpointType endpoint = cp_resources.getEndpoint();
         connectorJarPath = resources.getConnectorJarPath(endpoint);
         connectorMainClass = resources.getConnectorMainClass(endpoint);
-        properties.put("Server", resources.getServer(endpoint));
-        properties.put("Port", resources.getPort(endpoint));
 
         /* Add properties information ****************** */
+        properties.put(AbstractConnector.PROP_SERVER, resources.getServer(endpoint));
+        properties.put(AbstractConnector.PROP_PORT, resources.getPort(endpoint));
         List<Object> objList = cp_project.getImagesOrInstanceTypesOrLimitOfVMs();
         if (objList != null) {
             for (Object obj : objList) {
@@ -426,6 +426,9 @@ public class ResourceLoader {
                 }
             }
         }
+        
+        // Add application name property for some connectors (i.e. docker, vmm)
+        properties.put(AbstractConnector.PROP_APP_NAME, System.getProperty(ITConstants.IT_APP_NAME));       
 
         /* Add images/instances information ******************** */
         int limitOfVMs = -1;
@@ -479,9 +482,10 @@ public class ResourceLoader {
                 }
             }
         }
-        if (maxCreationTime>0){
-        	properties.put("MaxCreationTime",Integer.toString(maxCreationTime));
+        if (maxCreationTime > 0){
+        	properties.put(AbstractConnector.PROP_MAX_VM_CREATION_TIME, Integer.toString(maxCreationTime));
         }
+        
         // Add Cloud Provider to CloudManager *****************************************/
         try {
             CloudManager.newCloudProvider(cpName, limitOfVMs, connectorJarPath, connectorMainClass, properties);

@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 
 public class DefaultSSHConnector extends AbstractSSHConnector {
@@ -38,6 +39,13 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
         super(providerName, connectorProperties);
         
         LOGGER.info("Creating DefaultSSHConnector");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("  Detected " + connectorProperties.size() + " Connector properties");
+            for (Entry<String, String> prop : connectorProperties.entrySet()) {
+                LOGGER.debug("   > ConnectorProperty: " + prop.getKey() + " - " + prop.getValue());
+            }
+        }
+        
         Connector conn = null;
         
         LOGGER.debug(" - Loading " + connectorJarPath);

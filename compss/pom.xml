@@ -27,34 +27,34 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- PROPERTIES -->
 	<properties>
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
 		<comm.version>1.3-102</comm.version>
-		<conn.version>1.0-35</conn.version>
+		<conn.version>1.0-36</conn.version>
 		<storage.version>1.0</storage.version>
-	
+
 		<!-- ZK version -->
 		<zk.version>7.0.3</zk.version>
-	
+
 		<!--Log4j version -->
 		<log4j.version>2.6.1</log4j.version>
-		
+
 		<!-- Xalan and Xerces version -->
 		<xalan.version>2.7.1</xalan.version>
 		<xerces.version>2.11.0</xerces.version>
 		<xml-apis>1.4.01</xml-apis>
-		
+
 		<!-- Jaxb version-->
 		<jaxb-api.version>2.2.12</jaxb-api.version>
 		<jaxb-xjc.version>2.2.11</jaxb-xjc.version>
 		<cxf.version>3.1.6</cxf.version>
-                <cxf.api.version>2.7.18</cxf.api.version>
-		
+		<cxf.api.version>2.7.18</cxf.api.version>
+
 		<!-- Apache commons versions -->
-		<apache-commons-configuration.version>1.10</apache-commons-configuration.version>	
+		<apache-commons-configuration.version>1.10</apache-commons-configuration.version>
 		<apache-commons-lang3.version>3.4</apache-commons-lang3.version>
 		<apache-commons-collections4.version>4.1</apache-commons-collections4.version>
 		<apache-commons-io.version>2.5</apache-commons-io.version>
@@ -67,11 +67,11 @@
 		<gat.version>2.1.3</gat.version>
 		<ibis.version>2.3-pre</ibis.version>
 		<org.slf4j.version>1.7.5</org.slf4j.version>
-		
+
 		<!-- buildnumber -->
 		<buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
 	</properties>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencyManagement>
 		<dependencies>
@@ -90,11 +90,11 @@
 
 			<!-- Storage -->
 			<dependency>
-                                <groupId>es.bsc.storage</groupId>
-                                <artifactId>storageInterface</artifactId>
-                                <version>${storage.version}</version>
-                        </dependency>
-			
+				<groupId>es.bsc.storage</groupId>
+				<artifactId>storageInterface</artifactId>
+				<version>${storage.version}</version>
+			</dependency>
+
 			<!-- LOG4j -->
 			<dependency>
 				<groupId>org.apache.logging.log4j</groupId>
@@ -123,7 +123,7 @@
 				<artifactId>commons-collections4</artifactId>
 				<version>${apache-commons-collections4.version}</version>
 			</dependency>
-			
+
 			<!-- JAXB -->
 			<dependency>
 				<groupId>javax.xml.bind</groupId>
@@ -142,19 +142,19 @@
 				<artifactId>cxf-rt-frontend-jaxws</artifactId>
 				<version>${cxf.version}</version>
 				<exclusions>
-				    <exclusion>
+					<exclusion>
 					<groupId>org.apache.geronimo.specs</groupId>
 					<artifactId>geronimo-javamail_1.4_spec</artifactId>
-				    </exclusion>
-				    <exclusion>
+					</exclusion>
+					<exclusion>
 					<groupId>org.apache.geronimo.specs</groupId>
 					<artifactId>geronimo-activation_1.1_spec</artifactId>
-				    </exclusion>
-				    <exclusion>
+					</exclusion>
+					<exclusion>
 					<groupId>org.apache.geronimo.specs</groupId>
 					<artifactId>geronimo-servlet_2.5_spec</artifactId>
-				    </exclusion>
-				</exclusions> 
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.cxf</groupId>
@@ -165,8 +165,8 @@
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-api</artifactId>
 				<version>${cxf.api.version}</version>
-			</dependency> 
-			
+			</dependency>
+
 			<!-- JUNIT -->
 			<dependency>
 				<groupId>junit</groupId>
@@ -174,14 +174,14 @@
 				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
-			
+
 			<!-- Javassist -->
 			<dependency>
 				<groupId>org.javassist</groupId>
 				<artifactId>javassist</artifactId>
 				<version>${javassist.version}</version>
 			</dependency>
-			
+
 			<!-- Java GAT -->
 			<dependency>
 				<groupId>org.gridlab.gat</groupId>
@@ -214,7 +214,7 @@
 				<artifactId>jsch</artifactId>
 				<version>${jsch.version}</version>
 			</dependency>
-			
+
 			<!-- Xalan and Xerces -->
 			<dependency>
 				<groupId>xalan</groupId>
@@ -225,15 +225,15 @@
 				<groupId>xerces</groupId>
 				<artifactId>xercesImpl</artifactId>
 				<version>${xerces.version}</version>
-			</dependency>	    
+			</dependency>
 			<dependency>
 				<groupId>xml-apis</groupId>
 				<artifactId>xml-apis</artifactId>
 				<version>${xml-apis}</version>
-			</dependency>	
-			
-		        <!-- ZK Framework -->
-            		<dependency>
+			</dependency>
+
+			<!-- ZK Framework -->
+			<dependency>
 				<groupId>org.zkoss.zk</groupId>
 				<artifactId>zkplus</artifactId>
 				<version>${zk.version}</version>
@@ -255,14 +255,14 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
 	<!-- SOURCE CONTROL MANAGEMENT -->
 	<scm>
 		<connection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk/compss</connection>
 		<developerConnection>scm:svn:http://compss.bsc.es/svn/compss/framework/trunk/compss</developerConnection>
 		<url>http://compss.bsc.es/svn/compss/framework/trunk/compss</url>
 	</scm>
-	
+
 	<!-- REPOSITORIES -->
 	<repositories>
 		<repository>
@@ -302,7 +302,7 @@
 			<url>http://compss.bsc.es/artifactory/grid-devel-repo</url>
 		</repository>
 	</distributionManagement>
-	
+
 	<!-- SUB-MODULES -->
 	<modules>
 		<module>tools</module>

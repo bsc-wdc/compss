@@ -28,7 +28,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-    private DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0);
+    private DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0, 0);
 
 
     public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
@@ -235,7 +235,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
             try {
                 long actionScore = DefaultScore.getActionScore(action);
                 long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new DefaultScore<P, T>(actionScore, dataTime, 0, 0);                
+                Score aScore = new DefaultScore<P, T>(actionScore, dataTime, 0, 0, 0);                
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
                     AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);

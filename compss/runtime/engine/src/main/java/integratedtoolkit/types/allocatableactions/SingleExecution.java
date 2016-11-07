@@ -54,7 +54,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
+    	StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         
         // COMPUTE RESOURCE CANDIDATES
         LinkedList<ResourceScheduler<?, ?>> candidates = new LinkedList<ResourceScheduler<?, ?>>();

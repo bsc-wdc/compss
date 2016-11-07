@@ -25,11 +25,13 @@ public class ReadyResourceScheduler<P extends Profile, T extends WorkerResourceD
         Worker<T> w = myWorker;
         if (w.canRunNow(impl.getRequirements())) {
             long implScore = this.getProfile(impl).getAverageExecutionTime();
-            return new Score(resourceScore, implScore);
+            return new Score(resourceScore, 3, (double)(1/(double)implScore));
         } else {
-            return null;
+            return super.getImplementationScore(action, params, impl, resourceScore);
         }
     }
+    
+    
 
     /*
      * It only receives actions whose execution the worker can host at the moment. Same behavior as the base case. Not

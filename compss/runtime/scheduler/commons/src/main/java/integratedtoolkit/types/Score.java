@@ -14,26 +14,37 @@ import java.util.HashSet;
 
 public class Score {
 
-    protected long actionScore;
-    protected long resourceScore;
-    protected long implementationScore;
+    protected double actionScore; //Action Priority
+    protected double waitingScore; // Resource Ready Priority 
+    protected double resourceScore; // Resource Priority
+    protected double implementationScore; //Implementation Priority
 
 
-    public Score(long actionScore, long res, long impl) {
+    public Score(double actionScore, double waiting, double res, double impl) {
         this.actionScore = actionScore;
+        this.waitingScore = waiting;
         this.resourceScore = res;
         this.implementationScore = impl;
     }
 
-    public Score(Score s, long resource, long impl) {
+    public Score(Score s, double waiting, double resource, double impl) {
         actionScore = s.actionScore;
+        waitingScore = waiting;
         resourceScore = resource;
         implementationScore = impl;
     }
 
-    public Score(Score s, long impl) {
+    public Score(Score s, double waiting, double impl) {
         actionScore = s.actionScore;
         resourceScore = s.resourceScore;
+        waitingScore = waiting;
+        implementationScore = impl;
+    }
+    
+    public Score(Score s, double impl) {
+        actionScore = s.actionScore;
+        resourceScore = s.resourceScore;
+        waitingScore = s.waitingScore;
         implementationScore = impl;
     }
 
@@ -43,6 +54,9 @@ public class Score {
         }
         if (resourceScore != other.resourceScore) {
             return resourceScore > other.resourceScore;
+        }
+        if (waitingScore != other.waitingScore) {
+            return waitingScore > other.waitingScore;
         }
         return this.implementationScore > other.implementationScore;
     }
@@ -85,7 +99,7 @@ public class Score {
                     if (dId != null) {
                         HashSet<Resource> hosts = Comm.getData(dId.getRenaming()).getAllHosts();
                         for (Resource host : hosts) {
-                            if (host == w) {
+                        	if (host == w) {
                                 resourceScore++;
                             }
                         }
@@ -99,7 +113,7 @@ public class Score {
 
     @Override
     public String toString() {
-        return "[action:" + actionScore + ", resource:" + resourceScore + ", implementation:" + implementationScore + "]";
+        return "[action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore +", implementation:" + implementationScore + "]";
     }
 
 }

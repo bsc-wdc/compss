@@ -185,6 +185,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public boolean isPending() {
         return state != State.FAILED && state != State.FINISHED;
     }
+    
+    public boolean isRunning() {
+        return state == State.RUNNING;
+    }
 
     public Long getStartTime() {
         if (profile == null) {
@@ -226,7 +230,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     public void tryToLaunch() throws InvalidSchedulingException {
         // gets the lock on the action
-        lock.lock();
+    	lock.lock();
         if ( // has an assigned resource where to run
         selectedMainResource != null && // has not been started yet
                 state == State.RUNNABLE && // has no data dependencies with other methods
@@ -323,7 +327,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         // Release data dependencies of the task
         for (AllocatableAction<P, T> aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
-            if (!aa.hasDataPredecessors()) {
+            if (!aa.isLocked()&&!aa.isRunning()) {          	
                 freeTasks.add(aa);
             }
         }
@@ -332,7 +336,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return freeTasks;
     }
 
-    /**
+    public boolean isLocked() {
+		return lock.isLocked();
+	}
+
+	/**
      * Triggers the successful job completion notification
      */
     protected abstract void doCompleted();
@@ -469,5 +477,9 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     public abstract void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
             throws BlockedActionException, UnassignedActionException;
+
+	public boolean isNotScheduling() {
+		return !isLocked() && !isRunning() && selectedMainResource == null && state == State.RUNNABLE;
+	}
 
 }

@@ -72,7 +72,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
                 lessTimeStamp = 0;
             }
         }
-        return new DefaultScore<P, T>((DefaultScore<P, T>) actionScore, resScore * DATA_TRANSFER_DELAY, lessTimeStamp, 0);
+        return new DefaultScore<P, T>((DefaultScore<P, T>) actionScore, resScore * DATA_TRANSFER_DELAY, 0, lessTimeStamp, 0);
     }
 
     /**
@@ -109,7 +109,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
             implScore = 0;
         }
         // The data transfer penalty is already included on the datadependency time of the resourceScore
-        return new DefaultScore<P, T>((DefaultScore<P, T>) resourceScore, 0, resourceFreeTime, implScore);
+        return new DefaultScore<P, T>((DefaultScore<P, T>) resourceScore, 0, 0, resourceFreeTime, implScore);
     }
 
     /*--------------------------------------------------
@@ -690,9 +690,9 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
         } catch (InvalidSchedulingException ise) {
             logger.error("Exception on tryToLaunch", ise);
             try {
-                long actionScore = DefaultScore.getActionScore(action);
-                long dataTime = (new DefaultScore(0, 0, 0, 0)).getDataPredecessorTime(action.getDataPredecessors());
-                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0);                
+                double actionScore = DefaultScore.getActionScore(action);
+                double dataTime = (new DefaultScore(0, 0, 0, 0, 0)).getDataPredecessorTime(action.getDataPredecessors());
+                Score aScore = new DefaultScore(actionScore, dataTime, 0, 0, 0);                
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
                     AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);

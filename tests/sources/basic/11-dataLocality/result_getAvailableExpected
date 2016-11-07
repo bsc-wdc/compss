@@ -6,8 +6,9 @@
   updateBest() {
     bestActionScore=$1
     bestResourceScore=$2
-    bestImplScore=$3
-    bestResourceId=$4
+    bestWaitingScore=$3
+    bestImplScore=$4
+    bestResourceId=$5
   }
 
 
@@ -26,6 +27,7 @@
     i=0
     bestActionScore="null"
     bestResourceScore=0
+    bestWaitingScore=0
     bestImplScore=0
     bestResourceId="null"
     while [ $i -lt 4 ]; do
@@ -34,26 +36,40 @@
       resourceId=$(echo $resource | tr " " "\n" | sed -n 2p)
       actionScore=$(echo $resource | tr " " "\n" | sed -n 6p)
       resourceScore=0
+      waitingScore=0
       implScore=0
       if [ "$actionScore" != "null" ]; then
         actionScore=$(echo $actionScore | tr ":" " " | tr "," " " | awk {' print $2 '})
         resourceScore=$(echo $resource | tr " " "\n" | sed -n 7p | tr ":" " " | tr "," " " | awk {' print $2 '})
-        implScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | tr "]" " " | awk {' print $2 '})
+        waitingScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | awk {' print $2 '})
+        implScore=$(echo $resource | tr " " "\n" | sed -n 9p | tr ":" " " | tr "," " " | tr "]" " " | awk {' print $2 '})
       fi
-
+      
       # Update best
       if [ "$actionScore" != "null" ]; then
         if [ "$bestActionScore" == "null" ]; then
-          updateBest $actionScore $resourceScore $implScore $resourceId
+          updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
         else
-          if [ $actionScore -gt $bestActionScore ]; then
-            updateBest $actionScore $resourceScore $implScore $resourceId
-          elif [ $actionScore -eq $bestActionScore ]; then
-            if [ $resourceScore -gt $bestResourceScore ]; then
-              updateBest $actionScore $resourceScore $implScore $resourceId
-            elif [ $resourceScore -eq $bestResourceScore ]; then
-              if [ $implScore -ge $bestImplScore ]; then
-                updateBest $actionScore $resourceScore $implScore $resourceId
+          as_gt=$(echo "$actionScore > $bestActionScore" | bc -l)
+          as_eq=$(echo "$actionScore == $bestActionScore" | bc -l)
+          if [ $as_gt -eq 1 ]; then
+            updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
+          elif [ $as_eq -eq 1 ]; then
+            rs_gt=$(echo "$resourceScore > $bestResourceScore" | bc -l)
+            rs_eq=$(echo "$resourceScore == $bestResourceScore" | bc -l)
+            if [ $rs_gt -eq 1 ]; then
+              updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
+            elif [ $rs_eq -eq 1 ]; then
+            
+              ws_gt=$(echo "$waitingScore > $bestWaitingScore" | bc -l)
+              ws_eq=$(echo "$waitingScore == $bestWaitingScore" | bc -l)
+              if [ $ws_gt -eq 1 ]; then
+              	updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
+              elif [ $ws_eq -eq 1 ]; then
+              	is_gt=$(echo "$implScore > $bestImplScore" | bc -l)
+              	if [ $is_gt -eq 1 ]; then
+                	updateBest $actionScore $resourceScore $waitingScore $implScore $resourceId
+              	fi
               fi
             fi
           fi

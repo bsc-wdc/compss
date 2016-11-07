@@ -88,7 +88,7 @@ public class MultipleExecution<P extends Profile, T extends WorkerResourceDescri
         Score bestScore = null;
         LinkedList<ResourceScheduler<?, ?>> candidates;
         if (isSchedulingConstrained()) {
-            candidates = new LinkedList<ResourceScheduler<?, ?>>();
+            candidates = new LinkedList<>();
             for (AllocatableAction<P, T> a : this.getConstrainingPredecessors()) {
                 candidates.add(a.getAssignedResource());
             }

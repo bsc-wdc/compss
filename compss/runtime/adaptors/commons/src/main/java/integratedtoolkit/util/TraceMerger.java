@@ -43,8 +43,8 @@ public class TraceMerger {
     private String masterTracePath;
     private String[] tasksTracePath;
 
-    private HashMap<Integer, LineInfo> taskIdToStartSyncInfo = new HashMap<Integer, LineInfo>();
-    private HashMap<Integer, LineInfo> taskIdToEndSyncInfo = new HashMap<Integer, LineInfo>();
+    private HashMap<Integer, LineInfo> taskIdToStartSyncInfo = new HashMap<>();
+    private HashMap<Integer, LineInfo> taskIdToEndSyncInfo = new HashMap<>();
 
 
     private class LineInfo {

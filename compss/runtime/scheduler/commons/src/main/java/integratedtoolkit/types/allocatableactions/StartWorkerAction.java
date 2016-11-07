@@ -64,6 +64,8 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
     @Override
     protected void doAction() {
         (new Thread() {
+            
+            @Override
             public void run() {
                 Thread.currentThread().setName(selectedMainResource.getResource().getName() + " starter");
                 try {
@@ -112,7 +114,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
-        LinkedList<ResourceScheduler<?, ?>> workers = new LinkedList<ResourceScheduler<?, ?>>();
+        LinkedList<ResourceScheduler<?, ?>> workers = new LinkedList<>();
         workers.add(worker);
         return workers;
     }
@@ -131,7 +133,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        LinkedList<Implementation<T>> impls = new LinkedList<Implementation<T>>();
+        LinkedList<Implementation<T>> impls = new LinkedList<>();
         if (r == worker) {
             impls.add(impl);
         }

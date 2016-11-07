@@ -24,7 +24,7 @@ public class JobDispatcher {
     public static final String POOL_NAME = "Job Submitter";
 
     static {
-        queue = new RequestQueue<Job<?>>();
+        queue = new RequestQueue<>();
         pool = new ThreadPool(POOL_SIZE, POOL_NAME, new JobSubmitter(queue));
         try {
             pool.startThreads();

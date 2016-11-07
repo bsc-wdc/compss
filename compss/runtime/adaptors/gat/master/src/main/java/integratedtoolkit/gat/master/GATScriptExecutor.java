@@ -81,8 +81,8 @@ public class GATScriptExecutor {
      */
 
     public GATScriptExecutor(GATWorkerNode node) {
-        sdQueue = new RequestQueue<SoftwareDescription>();
-        jobQueue = new RequestQueue<Job>();
+        sdQueue = new RequestQueue<>();
+        jobQueue = new RequestQueue<>();
         pool = new ThreadPool(POOL_SIZE, POOL_NAME, new ScriptDispatcher(sdQueue, jobQueue, node));
         this.node = node;
     }

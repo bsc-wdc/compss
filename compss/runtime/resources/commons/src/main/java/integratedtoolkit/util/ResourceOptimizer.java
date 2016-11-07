@@ -781,6 +781,7 @@ public class ResourceOptimizer extends Thread {
 
     private LinkedList<CloudMethodWorker> trimReductionOptions(Collection<CloudMethodWorker> options, float[] recommendations,
             boolean aggressive) {
+        
         if (debug) {
             logger.debug(" * Trimming reduction options");
         }
@@ -862,7 +863,7 @@ public class ResourceOptimizer extends Thread {
      * ********************************************************
      */
     private LinkedList<Integer> checkNeededMachines(int noResourceCount, int[] noResourceCountPerCore, int[] slotCountPerCore) {
-        LinkedList<Integer> needed = new LinkedList<Integer>();
+        LinkedList<Integer> needed = new LinkedList<>();
         if (noResourceCount == 0) {
             return needed;
         }
@@ -876,6 +877,7 @@ public class ResourceOptimizer extends Thread {
 
     private float[] recommendCreations(int coreCount, long creationTime, long[] aggregatedMinCoreTime, long[] aggregatedMeanCoreTime,
             long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
+        
         float[] creations = new float[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             // long realTime = realSlots[coreId] * creationTime;
@@ -921,6 +923,7 @@ public class ResourceOptimizer extends Thread {
 
     private float[] deleteRecommendations(int coreCount, long limitTime, long[] aggregatedMinCoreTime, long[] aggregatedMeanCoreTime,
             long[] aggregatedMaxCoreTime, int[] totalSlots, int[] realSlots) {
+        
         if (debug) {
             logger.debug("* Delete Recomendations calculations:\n\tcoreCount: " + coreCount + " limitTime: " + limitTime);
         }

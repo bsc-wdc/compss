@@ -66,7 +66,7 @@ public class CEIParser {
 
 
     public static LinkedList<Integer> parse() {
-        LinkedList<Integer> updatedCores = new LinkedList<Integer>();
+        LinkedList<Integer> updatedCores = new LinkedList<>();
         switch (LANG) {
             case JAVA:
                 String appName = System.getProperty(ITConstants.IT_APP_NAME);
@@ -222,8 +222,8 @@ public class CEIParser {
                 logger.debug("   * Method methodId = " + methodId + " has "+ m.getAnnotations().length + " annotations");
             }
             
-            ArrayList<Implementation<?>> implementations = new ArrayList<Implementation<?>>();
-            ArrayList<String> signatures = new ArrayList<String>();
+            ArrayList<Implementation<?>> implementations = new ArrayList<>();
+            ArrayList<String> signatures = new ArrayList<>();
             int implId = 0;
             
             /*
@@ -460,8 +460,8 @@ public class CEIParser {
     // C constructor
     public static LinkedList<Integer> loadC(String constraintsFile) {
         LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
-        HashMap<Integer, LinkedList<MethodImplementation>> readMethodImpls = new HashMap<Integer, LinkedList<MethodImplementation>>();
-        HashMap<Integer, LinkedList<String>> readMethodSignatures = new HashMap<Integer, LinkedList<String>>();
+        HashMap<Integer, LinkedList<MethodImplementation>> readMethodImpls = new HashMap<>();
+        HashMap<Integer, LinkedList<String>> readMethodSignatures = new HashMap<>();
 
         int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethodImpls, readMethodSignatures, constraintsFile);
 

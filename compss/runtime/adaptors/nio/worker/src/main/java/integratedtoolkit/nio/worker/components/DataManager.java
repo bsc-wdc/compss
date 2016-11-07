@@ -18,7 +18,7 @@ public class DataManager {
 
 
     public DataManager() {
-        objectCache = new HashMap<String, Object>();
+        objectCache = new HashMap<>();
     }
 
     public void init() throws InitializationException {

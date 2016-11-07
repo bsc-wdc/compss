@@ -7,6 +7,7 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.Set;
 
 
@@ -27,8 +28,8 @@ public class CloudTypeManager {
      * Constructs a new CloudImageManager
      */
     public CloudTypeManager() {
-        types = new HashMap<String, Type>();
-        vmToType = new HashMap<String, HashMap<String, int[]>>();
+        types = new HashMap<>();
+        vmToType = new HashMap<>();
     }
 
     /**
@@ -75,7 +76,7 @@ public class CloudTypeManager {
     public void createdVM(String resourceName, String requestType) {
         HashMap<String, int[]> vm = vmToType.get(resourceName);
         if (vm == null) {
-            vm = new HashMap<String, int[]>();
+            vm = new HashMap<>();
             for (String type : types.keySet()) {
                 vm.put(type, new int[] { 0 });
             }
@@ -119,8 +120,8 @@ public class CloudTypeManager {
     // typeName->[(int[] slots that will be removed, (ResourceDescription) description of the resource that will be
     // destroyed]
     public HashMap<String, Object[]> getPossibleReductions(String name) {
-        HashMap<String, Object[]> h = new HashMap<String, Object[]>();
-        for (java.util.Map.Entry<String, int[]> entry : vmToType.get(name).entrySet()) {
+        HashMap<String, Object[]> h = new HashMap<>();
+        for (Entry<String, int[]> entry : vmToType.get(name).entrySet()) {
             String type = entry.getKey();
             Object[] value = new Object[2];
             int[] amount = entry.getValue();
@@ -151,8 +152,8 @@ public class CloudTypeManager {
 
     public HashMap<CloudMethodResourceDescription, Integer> getComposition(String name) {
         HashMap<String, int[]> vm = vmToType.get(name);
-        HashMap<CloudMethodResourceDescription, Integer> composition = new HashMap<CloudMethodResourceDescription, Integer>();
-        for (java.util.Map.Entry<String, int[]> entry : vm.entrySet()) {
+        HashMap<CloudMethodResourceDescription, Integer> composition = new HashMap<>();
+        for (Entry<String, int[]> entry : vm.entrySet()) {
             String typeName = entry.getKey();
             int[] counts = entry.getValue();
             Type type = types.get(typeName);
@@ -254,12 +255,12 @@ public class CloudTypeManager {
 
     private class Type {
 
-        CloudMethodResourceDescription rd;
-        int[] slotsCore;
-        int[][] slotsImpl;
+        private CloudMethodResourceDescription rd;
+        private int[] slotsCore;
+        private int[][] slotsImpl;
 
 
-        Type(CloudMethodResourceDescription rd) {
+        public Type(CloudMethodResourceDescription rd) {
             this.rd = rd;
             int coreCount = CoreManager.getCoreCount();
             slotsCore = new int[coreCount];

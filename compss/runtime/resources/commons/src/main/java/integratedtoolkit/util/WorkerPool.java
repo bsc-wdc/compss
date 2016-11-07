@@ -24,10 +24,10 @@ public class WorkerPool {
 
 
     public WorkerPool() {
-        staticSet = new HashMap<String, Worker<?>>();
-        criticalSet = new HashMap<String, CloudMethodWorker>();
-        nonCriticalSet = new HashMap<String, CloudMethodWorker>();
-        criticalOrder = new TreeSet<CloudMethodWorker>();
+        staticSet = new HashMap<>();
+        criticalSet = new HashMap<>();
+        nonCriticalSet = new HashMap<>();
+        criticalOrder = new TreeSet<>();
     }
 
     // Adds a new Resource on the Physical list
@@ -71,7 +71,7 @@ public class WorkerPool {
     }
 
     public LinkedList<CloudMethodWorker> getDynamicResources() {
-        LinkedList<CloudMethodWorker> resources = new LinkedList<CloudMethodWorker>();
+        LinkedList<CloudMethodWorker> resources = new LinkedList<>();
         resources.addAll(criticalSet.values());
         resources.addAll(nonCriticalSet.values());
 
@@ -158,7 +158,7 @@ public class WorkerPool {
 
     // Returns the name of all the resources able to execute coreId
     public LinkedList<Worker<?>> findAllResources() {
-        LinkedList<Worker<?>> workers = new LinkedList<Worker<?>>();
+        LinkedList<Worker<?>> workers = new LinkedList<>();
         if (staticSet != null && !staticSet.isEmpty()) {
             Object[] arrayStaticSet = staticSet.values().toArray();
             for (int i = 0; i < arrayStaticSet.length; i++) {

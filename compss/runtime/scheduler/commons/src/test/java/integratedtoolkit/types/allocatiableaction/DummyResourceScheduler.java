@@ -19,7 +19,7 @@ public class DummyResourceScheduler<P extends Profile, T extends WorkerResourceD
     @Override
     public LinkedList<AllocatableAction<P, T>> unscheduleAction(AllocatableAction<P, T> action) {
 
-        LinkedList<AllocatableAction<P, T>> freeTasks = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> freeTasks = new LinkedList<>();
         ResourceDependencies<P, T> actionDSI = (ResourceDependencies<P, T>) action.getSchedulingInfo();
 
         // Remove action from predecessors

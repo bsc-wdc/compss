@@ -36,11 +36,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
-        this.executableCores = new LinkedList<Integer>();
+        this.executableCores = new LinkedList<>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            executableImpls[coreId] = new LinkedList<Implementation<T>>();
+            executableImpls[coreId] = new LinkedList<>();
             implSimultaneousTasks[coreId] = new int[CoreManager.getCoreImplementations(coreId).length];
         }
 
@@ -54,11 +54,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         int coreCount = CoreManager.getCoreCount();
         this.coreSimultaneousTasks = new int[coreCount];
         this.idealSimultaneousTasks = new int[coreCount];
-        this.executableCores = new LinkedList<Integer>();
+        this.executableCores = new LinkedList<>();
         this.implSimultaneousTasks = new int[coreCount][];
         this.executableImpls = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            executableImpls[coreId] = new LinkedList<Implementation<T>>();
+            executableImpls[coreId] = new LinkedList<>();
             implSimultaneousTasks[coreId] = new int[CoreManager.getCoreImplementations(coreId).length];
         }
 
@@ -141,7 +141,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 boolean executableCore = false;
                 Implementation<T>[] impls = (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
                 implSimultaneousTasks[coreId] = new int[impls.length];
-                executableImpls[coreId] = new LinkedList<Implementation<T>>();
+                executableImpls[coreId] = new LinkedList<>();
                 for (Implementation<T> impl : impls) {
                     if (canRun(impl)) {
                         int simultaneousCapacity = simultaneousCapacity(impl);
@@ -177,7 +177,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             boolean executableCore = false;
             Implementation<T>[] impls = (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
             implSimultaneousTasks[coreId] = new int[impls.length];
-            executableImpls[coreId] = new LinkedList<Implementation<T>>();
+            executableImpls[coreId] = new LinkedList<>();
             for (Implementation<T> impl : impls) {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
@@ -255,7 +255,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
      * ************************************************************************
      * -----------------------------------------------------------------------*/
     public LinkedList<Integer> getRunnableCores() {
-        LinkedList<Integer> cores = new LinkedList<Integer>();
+        LinkedList<Integer> cores = new LinkedList<>();
         int coreCount = CoreManager.getCoreCount();
         for (int coreId = 0; coreId < coreCount; coreId++) {
             if (!getRunnableImplementations(coreId).isEmpty()) {
@@ -276,7 +276,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public LinkedList<Implementation<T>> getRunnableImplementations(int coreId) {
-        LinkedList<Implementation<T>> runnable = new LinkedList<Implementation<T>>();
+        LinkedList<Implementation<T>> runnable = new LinkedList<>();
         for (Implementation<T> impl : this.executableImpls[coreId]) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
@@ -290,7 +290,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public LinkedList<Implementation<?>> canRunNow(LinkedList<Implementation<T>> candidates) {
-        LinkedList<Implementation<?>> runnable = new LinkedList<Implementation<?>>();
+        LinkedList<Implementation<?>> runnable = new LinkedList<>();
         for (Implementation<T> impl : candidates) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);

@@ -21,7 +21,7 @@ public class MultiURI implements Comparable<MultiURI> {
         this.protocol = protocol;
         this.host = host;
         this.path = path;
-        this.internal = new HashMap<String, Object>();
+        this.internal = new HashMap<>();
     }
 
     public void setInternalURI(String adaptor, Object uri) {

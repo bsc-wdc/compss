@@ -53,6 +53,7 @@ public class DeletionThread extends Thread {
         return count;
     }
 
+    @Override
     public void run() {
         if (reduction != null) {
             Semaphore sem = ResourceManager.reduceCloudWorker(worker, reduction);

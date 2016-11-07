@@ -357,6 +357,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
             keepGoing = true;
         }
 
+        @Override
         public void run() {
             Thread.currentThread().setName("Connector " + providerName + " deadline");
 

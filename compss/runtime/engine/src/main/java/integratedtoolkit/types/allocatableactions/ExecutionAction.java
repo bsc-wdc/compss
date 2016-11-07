@@ -51,7 +51,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     protected final Task task;
     private int transferErrors = 0;
     private int executionErrors = 0;
-    private LinkedList<Integer> jobs = new LinkedList<Integer>();
+    private LinkedList<Integer> jobs = new LinkedList<>();
 
 
     /**

@@ -53,9 +53,9 @@ public class Task implements Comparable<Task> {
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
         this.taskDescription = new TaskDescription(methodClass, methodName, priority, hasTarget, parameters);
-        this.predecessors = new LinkedList<Task>();
-        this.successors = new LinkedList<Task>();
-        this.executions = new LinkedList<ExecutionAction<?, ?>>();
+        this.predecessors = new LinkedList<>();
+        this.successors = new LinkedList<>();
+        this.executions = new LinkedList<>();
         this.mustBeReplicated = mustBeReplicated;
     }
 
@@ -66,9 +66,9 @@ public class Task implements Comparable<Task> {
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
         this.taskDescription = new TaskDescription(namespace, service, port, operation, priority, hasTarget, parameters);
-        this.predecessors = new LinkedList<Task>();
-        this.successors = new LinkedList<Task>();
-        this.executions = new LinkedList<ExecutionAction<?, ?>>();
+        this.predecessors = new LinkedList<>();
+        this.successors = new LinkedList<>();
+        this.executions = new LinkedList<>();
         
         // Services are never replicated
         this.mustBeReplicated = false;

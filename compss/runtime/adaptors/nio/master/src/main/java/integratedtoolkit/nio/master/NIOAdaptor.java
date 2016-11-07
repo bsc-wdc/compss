@@ -257,7 +257,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
         LinkedList<LogicalData> obsoletes = res.clearObsoletes();
-        LinkedList<String> obsoleteRenamings = new LinkedList<String>();
+        LinkedList<String> obsoleteRenamings = new LinkedList<>();
         for (LogicalData ld : obsoletes) {
             obsoleteRenamings.add(ld.getName());
         }

@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -52,7 +53,7 @@ public class CloudManager {
      */
     private static HashMap<String, CloudProvider> VM2Provider;
 
-    private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<ResourceCreationRequest>();
+    private static final LinkedList<ResourceCreationRequest> pendingRequests = new LinkedList<>();
     private static int[] pendingCoreCount = new int[CoreManager.getCoreCount()];
 
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
@@ -66,8 +67,8 @@ public class CloudManager {
     public static void initialize() {
         runtimeLogger.info("Initializing Cloud Manager");
         useCloud = false;
-        providers = new HashMap<String, CloudProvider>();
-        VM2Provider = new HashMap<String, CloudProvider>();
+        providers = new HashMap<>();
+        VM2Provider = new HashMap<>();
 
         loadRuntimeConnectorJars();
     }
@@ -196,8 +197,9 @@ public class CloudManager {
 
     /**
      * *************************************************************
-     * ************************************************************* ************** RESOURCE REQUESTS MANAGEMENT
-     * ***************** *************************************************************
+     * ************************************************************* 
+     * ************** RESOURCE REQUESTS MANAGEMENT ***************** 
+     * *************************************************************
      * *************************************************************
      */
     /**
@@ -442,7 +444,7 @@ public class CloudManager {
     public static void terminateALL() throws ConnectorException {
         runtimeLogger.debug("Terminate ALL resources");
         if (providers != null) {
-            for (java.util.Map.Entry<String, CloudProvider> vm : providers.entrySet()) {
+            for (Entry<String, CloudProvider> vm : providers.entrySet()) {
                 CloudProvider cp = vm.getValue();
                 cp.terminateAll();
             }

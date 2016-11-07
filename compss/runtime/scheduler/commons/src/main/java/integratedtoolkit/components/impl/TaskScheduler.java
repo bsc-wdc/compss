@@ -36,9 +36,9 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private final ActionSet<P, T> blockedActions = new ActionSet<P, T>();
+    private final ActionSet<P, T> blockedActions = new ActionSet<>();
     private int[] readyCounts = new int[CoreManager.getCoreCount()];
-    private final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<Worker<T>, ResourceScheduler<P, T>>();
+    private final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<>();
 
 
     /**
@@ -127,7 +127,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     		}
     		LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
     		workerLoadUpdate((ResourceScheduler<P, T>) action.getAssignedResource());
-    		HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<AllocatableAction<P, T>>();
+    		HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<>();
     		freeTasks.addAll(dataFreeActions);
     		freeTasks.addAll(resourceFree);
     		for (AllocatableAction<P, T> a : freeTasks) {
@@ -217,7 +217,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                 int coreId = action.getImplementations()[0].getCoreId();
                 readyCounts[coreId]--;
             }
-            resourceFree = new LinkedList<AllocatableAction<P, T>>();
+            resourceFree = new LinkedList<>();
             for (AllocatableAction<P, T> failed : action.failed()) {
                 resourceFree.addAll(resource.unscheduleAction(failed));
             }
@@ -288,7 +288,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             this.workerRemoved(ui);
         } else {
             // Inspect blocked actions to be freed
-            LinkedList<AllocatableAction<P, T>> stillBlocked = new LinkedList<AllocatableAction<P, T>>();
+            LinkedList<AllocatableAction<P, T>> stillBlocked = new LinkedList<>();
             for (AllocatableAction<P, T> action : blockedActions.removeAllCompatibleActions(worker)) {
                 Score actionScore = getActionScore(action);
                 try {
@@ -363,7 +363,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         for (int i = 0; i < coreCount; ++i) {
             coreGlobalProfiles[i] = new Profile();
         }
-        HashMap<String, Profile[]> coreProfilesPerWorker = new HashMap<String, Profile[]>();
+        HashMap<String, Profile[]> coreProfilesPerWorker = new HashMap<>();
 
         // Retrieve information
         for (ResourceScheduler<P, T> ui : workers.values()) {

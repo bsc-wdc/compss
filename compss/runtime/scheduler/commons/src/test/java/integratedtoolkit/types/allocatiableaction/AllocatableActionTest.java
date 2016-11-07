@@ -67,7 +67,7 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
     public void testExecute() throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
         // Create one instance
         prepare(1);
-        AllocatableAction<P, T> instance = new AllocatableActionImpl<P, T>(0);
+        AllocatableAction<P, T> instance = new AllocatableActionImpl<>(0);
         // Run it
         instance.assignResources(r, null);
         instance.tryToLaunch();
@@ -98,13 +98,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndNoSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance0.tryToLaunch();
             completed(instance0);
@@ -119,13 +119,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance1.addDataPredecessor(instance0);
             instance0.tryToLaunch();
@@ -141,13 +141,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             addResourceDependency(instance0, instance1);
             instance0.tryToLaunch();
@@ -163,13 +163,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
@@ -186,13 +186,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             addResourceDependency(instance0, instance1);
             addResourceDependency(instance0, instance2);
@@ -209,13 +209,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
@@ -232,13 +232,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
@@ -255,13 +255,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance2.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance1);
@@ -281,13 +281,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoResourcesPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             addResourceDependency(instance0, instance2);
             addResourceDependency(instance1, instance2);
@@ -307,13 +307,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance2.addDataPredecessor(instance0);
             addResourceDependency(instance1, instance2);
@@ -333,13 +333,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             addResourceDependency(instance0, instance2);
             instance2.addDataPredecessor(instance1);
@@ -371,24 +371,24 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
          */
         try {
             prepare(7);
-            AllocatableAction<P, T> task1 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> task1 = new AllocatableActionImpl<>(0);
             task1.assignResources(r, null);
-            AllocatableAction<P, T> task2 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> task2 = new AllocatableActionImpl<>(1);
             task2.assignResources(r, null);
-            AllocatableAction<P, T> task3 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> task3 = new AllocatableActionImpl<>(2);
             task3.assignResources(r, null);
-            AllocatableAction<P, T> task4 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> task4 = new AllocatableActionImpl<>(3);
             task4.assignResources(r, null);
             task4.addDataPredecessor(task1);
             task4.addDataPredecessor(task2);
             task4.addDataPredecessor(task3);
-            AllocatableAction<P, T> task5 = new AllocatableActionImpl<P, T>(4);
+            AllocatableAction<P, T> task5 = new AllocatableActionImpl<>(4);
             task5.assignResources(r, null);
             task5.addDataPredecessor(task4);
-            AllocatableAction<P, T> task6 = new AllocatableActionImpl<P, T>(5);
+            AllocatableAction<P, T> task6 = new AllocatableActionImpl<>(5);
             task6.assignResources(r, null);
             task6.addDataPredecessor(task4);
-            AllocatableAction<P, T> task7 = new AllocatableActionImpl<P, T>(6);
+            AllocatableAction<P, T> task7 = new AllocatableActionImpl<>(6);
             task7.assignResources(r, null);
             task7.addDataPredecessor(task4);
 
@@ -446,8 +446,8 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testOneError");
         try {
             prepare(2);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance0.assignResources(r, null);
             instance1.assignResources(r, null);
             instance0.tryToLaunch();
@@ -465,8 +465,8 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testOneFail");
         try {
             prepare(2);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance0.assignResources(r, null);
             instance1.assignResources(r, null);
             instance0.tryToLaunch();
@@ -491,13 +491,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testBasicErrorDependencies");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
@@ -536,13 +536,13 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testBasicFailDependencies");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
             instance2.addDataPredecessor(instance0);
 
@@ -592,17 +592,17 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
              *  \ / \ 
              *   3   6
              */
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<P, T>(0);
+            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
             instance0.assignResources(r, null);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<P, T>(1);
+            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
             instance1.assignResources(r, null);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<P, T>(2);
+            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
             instance2.assignResources(r, null);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<P, T>(3);
+            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
             instance3.assignResources(r, null);
-            AllocatableAction<P, T> instance4 = new AllocatableActionImpl<P, T>(4);
+            AllocatableAction<P, T> instance4 = new AllocatableActionImpl<>(4);
             instance4.assignResources(r, null);
-            AllocatableAction<P, T> instance5 = new AllocatableActionImpl<P, T>(5);
+            AllocatableAction<P, T> instance5 = new AllocatableActionImpl<>(5);
             instance5.assignResources(r, null);
             instance3.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance1);

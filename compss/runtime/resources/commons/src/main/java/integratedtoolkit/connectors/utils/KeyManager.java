@@ -1,5 +1,6 @@
 package integratedtoolkit.connectors.utils;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -86,7 +87,7 @@ public class KeyManager {
             return publicKey;
         }
 
-        java.io.BufferedReader input = new java.io.BufferedReader(new FileReader(keyfile + ".pub"));
+        BufferedReader input = new BufferedReader(new FileReader(keyfile + ".pub"));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {
@@ -104,7 +105,7 @@ public class KeyManager {
             return privateKey;
         }
 
-        java.io.BufferedReader input = new java.io.BufferedReader(new FileReader(keyfile));
+        BufferedReader input = new BufferedReader(new FileReader(keyfile));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {

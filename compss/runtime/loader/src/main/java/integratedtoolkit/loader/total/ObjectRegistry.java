@@ -27,8 +27,8 @@ public class ObjectRegistry {
     public ObjectRegistry(LoaderAPI api) {
         this.itApi = api;
         this.serialDir = api.getTempDir();
-        this.appTaskObjects = new TreeMap<Integer, Object>();
-        this.internalObjects = new TreeMap<Integer, Object>();
+        this.appTaskObjects = new TreeMap<>();
+        this.internalObjects = new TreeMap<>();
 
         itApi.setObjectRegistry(this);
     }

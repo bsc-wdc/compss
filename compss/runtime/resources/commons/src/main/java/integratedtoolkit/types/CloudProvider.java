@@ -235,6 +235,7 @@ public class CloudProvider {
 
     private CloudMethodResourceDescription selectContainedInstance(LinkedList<CloudMethodResourceDescription> instances,
             MethodResourceDescription constraints, int amount) {
+        
         CloudMethodResourceDescription result = null;
         float bestDistance = Integer.MAX_VALUE;
 
@@ -271,7 +272,7 @@ public class CloudProvider {
     // #slots removed that were requested],
     // Type description]
     public HashMap<String, Object[]> getPossibleReductions(CloudMethodWorker res, float[] recommendedSlots) {
-        HashMap<String, Object[]> reductions = new HashMap<String, Object[]>();
+        HashMap<String, Object[]> reductions = new HashMap<>();
         HashMap<String, Object[]> types = typeManager.getPossibleReductions(res.getName());
 
         for (java.util.Map.Entry<String, Object[]> type : types.entrySet()) {

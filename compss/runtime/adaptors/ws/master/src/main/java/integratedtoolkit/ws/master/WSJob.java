@@ -44,7 +44,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
     private static WSCaller caller;
     private static final JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
     // wsdl-port--> Client
-    private static final HashMap<String, Client> portToClient = new HashMap<String, Client>();
+    private static final HashMap<String, Client> portToClient = new HashMap<>();
 
     // Pool of worker threads and queue of requests
     private static ThreadPool callerPool;
@@ -60,7 +60,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
     public static void init() throws Exception {
         // Create thread that will handle job submission requests
         if (callerQueue == null) {
-            callerQueue = new RequestQueue<WSJob<?>>();
+            callerQueue = new RequestQueue<>();
         } else {
             callerQueue.clear();
         }
@@ -135,13 +135,12 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
         @Override
         public void processRequests() {
             while (true) {
-                WSJob<?> job = null;
-                job = queue.dequeue();
+                WSJob<?> job = queue.dequeue();
                 if (job == null) {
                     break;
                 }
                 try {
-                    ArrayList<Object> input = new ArrayList<Object>();
+                    ArrayList<Object> input = new ArrayList<>();
                     TaskDescription taskParams = job.taskParams;
                     ServiceImplementation service = (ServiceImplementation) job.impl;
                     Parameter[] parameters = taskParams.getParameters();

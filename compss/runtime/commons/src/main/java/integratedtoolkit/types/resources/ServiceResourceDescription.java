@@ -95,10 +95,12 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
                 + "CONNECTIONS=" + this.connections + "]";
     }
 
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 
     }
 
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
 
     }

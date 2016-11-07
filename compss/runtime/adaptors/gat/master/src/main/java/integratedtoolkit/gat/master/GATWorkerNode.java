@@ -59,8 +59,8 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     private void initWorkingDir() throws Exception {
-    	LinkedList<URI> traceScripts = new LinkedList<URI>();
-        LinkedList<String> traceParams = new LinkedList<String>();
+    	LinkedList<URI> traceScripts = new LinkedList<>();
+        LinkedList<String> traceParams = new LinkedList<>();
         String host = getHost();
         String installDir = getInstallDir();
         String workingDir = getWorkingDir();

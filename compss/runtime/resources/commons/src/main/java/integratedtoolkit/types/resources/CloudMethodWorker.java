@@ -20,11 +20,12 @@ public class CloudMethodWorker extends MethodWorker {
             HashMap<String, String> sharedDisks) {
         super(description.getName(), description, worker, limitOfTasks, sharedDisks);
         this.toRemove = new CloudMethodResourceDescription();
-        this.pendingReductions = new LinkedList<PendingReduction>();
+        this.pendingReductions = new LinkedList<>();
     }
 
     public CloudMethodWorker(String name, CloudMethodResourceDescription description, MethodConfiguration config,
             HashMap<String, String> sharedDisks) {
+        
         super(name, description, config, sharedDisks);
 
         if (this.description != null) {
@@ -33,7 +34,7 @@ public class CloudMethodWorker extends MethodWorker {
         }
 
         this.toRemove = new CloudMethodResourceDescription();
-        this.pendingReductions = new LinkedList<PendingReduction>();
+        this.pendingReductions = new LinkedList<>();
     }
 
     public CloudMethodWorker(CloudMethodWorker cmw) {
@@ -185,24 +186,24 @@ public class CloudMethodWorker extends MethodWorker {
             }
         }
     }
-
+    
+    @Override
+    public Worker<?> getSchedulingCopy() {
+        return new CloudMethodWorker(this);
+    }
+    
 
     private class PendingReduction {
 
-        CloudMethodResourceDescription reduction;
-        Semaphore sem;
+        private CloudMethodResourceDescription reduction;
+        private Semaphore sem;
 
 
         private PendingReduction(CloudMethodResourceDescription reduction) {
             this.reduction = reduction;
             this.sem = new Semaphore(0);
         }
-    }
-
-
-    @Override
-    public Worker<?> getSchedulingCopy() {
-        return new CloudMethodWorker(this);
+        
     }
 
 }

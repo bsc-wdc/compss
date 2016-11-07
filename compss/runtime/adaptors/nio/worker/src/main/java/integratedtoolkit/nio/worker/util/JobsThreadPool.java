@@ -45,7 +45,7 @@ public abstract class JobsThreadPool {
         this.size = size;
 
         this.workerThreads = new Thread[this.size];
-        this.queue = new RequestQueue<NIOTask>();
+        this.queue = new RequestQueue<>();
 
         this.sem = new Semaphore(size);
     }

@@ -46,9 +46,9 @@ public class LogicalData {
     private String id;
 
     // List of existing copies
-    private final TreeSet<DataLocation> locations = new TreeSet<DataLocation>();
+    private final TreeSet<DataLocation> locations = new TreeSet<>();
     // In progress
-    private final LinkedList<CopyInProgress> inProgress = new LinkedList<CopyInProgress>();
+    private final LinkedList<CopyInProgress> inProgress = new LinkedList<>();
 
     // Indicates if object is also in storage
     private boolean onStorage;
@@ -103,7 +103,7 @@ public class LogicalData {
      * @return
      */
     public synchronized HashSet<Resource> getAllHosts() {
-        HashSet<Resource> list = new HashSet<Resource>();
+        HashSet<Resource> list = new HashSet<>();
         for (DataLocation loc : this.locations) {
             list.addAll(loc.getHosts());
         }
@@ -116,7 +116,7 @@ public class LogicalData {
      * @return
      */
     public synchronized LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> list = new LinkedList<MultiURI>();
+        LinkedList<MultiURI> list = new LinkedList<>();
         for (DataLocation loc : this.locations) {
             list.addAll(loc.getURIs());
         }

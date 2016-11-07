@@ -35,14 +35,14 @@ public class DefaultSchedulingInformation<P extends Profile, T extends WorkerRes
 
 
     public DefaultSchedulingInformation() {
-        resourcePredecessors = new LinkedList<AllocatableAction<P, T>>();
-        resourceSuccessors = new LinkedList<AllocatableAction<P, T>>();
+        resourcePredecessors = new LinkedList<>();
+        resourceSuccessors = new LinkedList<>();
 
         lastUpdate = System.currentTimeMillis();
         expectedStart = 0;
         expectedEnd = 0;
 
-        optimizingSuccessors = new LinkedList<AllocatableAction<P, T>>();
+        optimizingSuccessors = new LinkedList<>();
     }
 
     public void addPredecessor(AllocatableAction<P, T> predecessor) {

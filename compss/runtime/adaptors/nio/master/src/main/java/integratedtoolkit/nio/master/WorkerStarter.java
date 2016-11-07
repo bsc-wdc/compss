@@ -50,7 +50,7 @@ public class WorkerStarter {
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<String, WorkerStarter>();
+    private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<>();
     private boolean workerIsReady = false;
     private boolean toStop = false;
     private NIOWorkerNode nw;

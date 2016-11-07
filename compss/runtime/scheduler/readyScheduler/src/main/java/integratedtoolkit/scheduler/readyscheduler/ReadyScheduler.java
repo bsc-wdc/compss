@@ -23,8 +23,8 @@ import java.util.PriorityQueue;
 public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
     private static final int THRESHOLD = 50;
-    private ActionSet<P, T> dependingActions = new ActionSet<P, T>();
-    private ActionSet<P, T> unassignedReadyActions = new ActionSet<P, T>();
+    private ActionSet<P, T> dependingActions = new ActionSet<>();
+    private ActionSet<P, T> unassignedReadyActions = new ActionSet<>();
 
 
     @Override
@@ -87,7 +87,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
         PriorityQueue<ObjectValue<AllocatableAction<P, T>>>[] actions = new PriorityQueue[CoreManager.getCoreCount()];
 
         // Selecting runnable actions and priorizing them
-        LinkedList<Integer> runnableCores = new LinkedList<Integer>();
+        LinkedList<Integer> runnableCores = new LinkedList<>();
         LinkedList<Implementation<T>>[] fittingImpls = new LinkedList[CoreManager.getCoreCount()];
         for (int coreId : (LinkedList<Integer>) worker.getExecutableCores()) {
             fittingImpls[coreId] = worker.getRunnableImplementations(coreId);
@@ -168,7 +168,8 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
 
     private PriorityQueue<ObjectValue<AllocatableAction<P, T>>> sortActionsForResource(LinkedList<AllocatableAction<P, T>> actions,
             ResourceScheduler<P, T> resource) {
-        PriorityQueue<ObjectValue<AllocatableAction<P, T>>> pq = new PriorityQueue<ObjectValue<AllocatableAction<P, T>>>();
+        
+        PriorityQueue<ObjectValue<AllocatableAction<P, T>>> pq = new PriorityQueue<>();
         int counter = 0;
         for (AllocatableAction<P, T> action : actions) {
             Score actionScore = getActionScore(action);

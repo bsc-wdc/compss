@@ -26,7 +26,7 @@ public class RequestQueue<T> {
      * Constructs a new RequestQueue without any pending request nor asleep threads waiting for requests
      */
     public RequestQueue() {
-        queue = new LinkedList<T>();
+        queue = new LinkedList<>();
         waiting = 0;
     }
 

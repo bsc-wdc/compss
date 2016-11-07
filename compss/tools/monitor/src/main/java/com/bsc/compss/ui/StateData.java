@@ -36,11 +36,11 @@ public class StateData {
         this.totalCPU = 0;
         this.totalMemory = 0;
 
-        this.meanTime = new Vector<Float>();
-        this.runningCores = new Vector<Integer>();
-        this.pendingCores = new Vector<Integer>();
+        this.meanTime = new Vector<>();
+        this.runningCores = new Vector<>();
+        this.pendingCores = new Vector<>();
 
-        this.resourcesInformation = new Vector<ResourceInfo>();
+        this.resourcesInformation = new Vector<>();
     }
 
     public StateData(int timestamp) {
@@ -53,11 +53,11 @@ public class StateData {
         this.totalCPU = 0;
         this.totalMemory = 0;
 
-        this.meanTime = new Vector<Float>();
-        this.runningCores = new Vector<Integer>();
-        this.pendingCores = new Vector<Integer>();
+        this.meanTime = new Vector<>();
+        this.runningCores = new Vector<>();
+        this.pendingCores = new Vector<>();
 
-        this.resourcesInformation = new Vector<ResourceInfo>();
+        this.resourcesInformation = new Vector<>();
     }
 
     public StateData(StateData d) {
@@ -89,11 +89,11 @@ public class StateData {
         this.totalCPU = 0;
         this.totalMemory = 0;
 
-        this.meanTime = new Vector<Float>();
-        this.runningCores = new Vector<Integer>();
-        this.pendingCores = new Vector<Integer>();
+        this.meanTime = new Vector<>();
+        this.runningCores = new Vector<>();
+        this.pendingCores = new Vector<>();
 
-        this.resourcesInformation = new Vector<ResourceInfo>();
+        this.resourcesInformation = new Vector<>();
     }
 
     public void purgeLoadValues() {
@@ -102,9 +102,9 @@ public class StateData {
         this.totalCoresRunning = 0;
         this.totalCoresPending = 0;
 
-        this.meanTime = new Vector<Float>();
-        this.runningCores = new Vector<Integer>();
-        this.pendingCores = new Vector<Integer>();
+        this.meanTime = new Vector<>();
+        this.runningCores = new Vector<>();
+        this.pendingCores = new Vector<>();
     }
 
     public void purgeResourcesValues() {
@@ -112,7 +112,7 @@ public class StateData {
         this.totalCPU = 0;
         this.totalMemory = 0;
 
-        this.resourcesInformation = new Vector<ResourceInfo>();
+        this.resourcesInformation = new Vector<>();
     }
 
     // ---------------------------
@@ -278,13 +278,13 @@ public class StateData {
     // ----------------------------------
     private class ResourceInfo {
 
-        String name;
-        String type;
-        int cpu;
-        float memory;
+        private final String name;
+        private final String type;
+        private final int cpu;
+        private final float memory;
 
 
-        ResourceInfo(String name, String type, int cpu, float memory) {
+        public ResourceInfo(String name, String type, int cpu, float memory) {
             this.name = name;
             this.type = type;
             this.cpu = cpu;

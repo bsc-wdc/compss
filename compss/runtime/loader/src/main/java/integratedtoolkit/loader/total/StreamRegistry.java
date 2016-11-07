@@ -64,7 +64,7 @@ public class StreamRegistry {
 
     public StreamRegistry(LoaderAPI api) {
         this.itApi = api;
-        this.fileToStreams = new TreeMap<String, StreamList>();
+        this.fileToStreams = new TreeMap<>();
         this.taskFiles = new HashSet<String>();
         this.onWindows = File.separatorChar == '\\';
         this.tempDirPath = api.getTempDir();
@@ -637,8 +637,8 @@ public class StreamRegistry {
             this.fileRenaming = renaming;
             this.firstIsInputStream = direction == DataDirection.IN;
             this.written = false;
-            this.list = new LinkedList<Object>();
-            this.fds = new LinkedList<FileDescriptor>();
+            this.list = new LinkedList<>();
+            this.fds = new LinkedList<>();
         }
 
         public void addStream(Object stream) {

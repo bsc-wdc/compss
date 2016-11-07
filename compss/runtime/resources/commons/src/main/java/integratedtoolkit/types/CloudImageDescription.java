@@ -106,7 +106,7 @@ public class CloudImageDescription {
     }
 
     public List<String[]> getPackagesList() {
-        LinkedList<String[]> packs = new LinkedList<String[]>();
+        LinkedList<String[]> packs = new LinkedList<>();
         for (ApplicationPackage p : this.packages) {
             String[] str_pack = new String[2];
             str_pack[0] = p.getSource();

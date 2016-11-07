@@ -58,8 +58,8 @@ public abstract class Resource implements Comparable<Resource> {
     private final COMPSsNode node;
     protected HashMap<String, String> sharedDisks;
 
-    private final LinkedList<LogicalData> obsoletes = new LinkedList<LogicalData>();
-    private final HashSet<LogicalData> privateFiles = new HashSet<LogicalData>();
+    private final LinkedList<LogicalData> obsoletes = new LinkedList<>();
+    private final HashSet<LogicalData> privateFiles = new HashSet<>();
 
 
     public Resource(String name, Configuration conf, HashMap<String, String> sharedDisks) {
@@ -122,7 +122,7 @@ public abstract class Resource implements Comparable<Resource> {
      * @return
      */
     public HashSet<LogicalData> getAllDataFromHost() {
-        HashSet<LogicalData> data = new HashSet<LogicalData>();
+        HashSet<LogicalData> data = new HashSet<>();
 
         LinkedList<String> sharedDisks = SharedDiskManager.getAllSharedNames(this);
         for (String diskName : sharedDisks) {

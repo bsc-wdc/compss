@@ -57,7 +57,7 @@ public class SingleExecution<P extends Profile, T extends WorkerResourceDescript
     	StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         
         // COMPUTE RESOURCE CANDIDATES
-        LinkedList<ResourceScheduler<?, ?>> candidates = new LinkedList<ResourceScheduler<?, ?>>();
+        LinkedList<ResourceScheduler<?, ?>> candidates = new LinkedList<>();
         if (this.forcedResource != null) {
             // The scheduling is forced to a given resource
             candidates.add(this.forcedResource);

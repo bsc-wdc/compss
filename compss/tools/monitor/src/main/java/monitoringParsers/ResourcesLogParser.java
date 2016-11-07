@@ -16,7 +16,7 @@ import com.bsc.compss.ui.StateData;
 
 public class ResourcesLogParser {
 
-    private static Vector<StateData> states = new Vector<StateData>();
+    private static Vector<StateData> states = new Vector<>();
     private static String resourcesLogPath = "";
 
     private static int lastParsedLine = -1;

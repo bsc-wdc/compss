@@ -28,14 +28,14 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> list = new LinkedList<MultiURI>();
+        LinkedList<MultiURI> list = new LinkedList<>();
         list.add(this.uri);
         return list;
     }
 
     @Override
     public LinkedList<Resource> getHosts() {
-        LinkedList<Resource> list = new LinkedList<Resource>();
+        LinkedList<Resource> list = new LinkedList<>();
         list.add(this.uri.getHost());
         return list;
     }

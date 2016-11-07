@@ -92,7 +92,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
     }
 
     private LinkedList<NIOParam> addParams() {
-        LinkedList<NIOParam> params = new LinkedList<NIOParam>();
+        LinkedList<NIOParam> params = new LinkedList<>();
         for (Parameter param : taskParams.getParameters()) {
             DataType type = param.getType();
             NIOParam np;

@@ -20,17 +20,17 @@ public class SharedDiskManager {
     /**
      * Relation shared disk name --> worker names where it is mounted
      */
-    private static final HashMap<String, LinkedList<Resource>> shared2Machines = new HashMap<String, LinkedList<Resource>>();
+    private static final HashMap<String, LinkedList<Resource>> shared2Machines = new HashMap<>();
 
     /**
      * Relation resource name --> Shared disks contained
      */
-    private static final HashMap<Resource, Machine> machine2Shareds = new HashMap<Resource, Machine>();
+    private static final HashMap<Resource, Machine> machine2Shareds = new HashMap<>();
 
     /**
      * LogicalData stored in any sharedDisk
      */
-    private static final TreeMap<String, HashSet<LogicalData>> sharedDisk2SharedFiles = new TreeMap<String, HashSet<LogicalData>>();
+    private static final TreeMap<String, HashSet<LogicalData>> sharedDisk2SharedFiles = new TreeMap<>();
 
 
     /**
@@ -186,7 +186,7 @@ public class SharedDiskManager {
         if (sharedDisk2SharedFiles.containsKey(diskName)) {
             lds = sharedDisk2SharedFiles.get(diskName);
         } else {
-            lds = new HashSet<LogicalData>();
+            lds = new HashSet<>();
         }
         lds.add(ld);
         sharedDisk2SharedFiles.put(diskName, lds);
@@ -226,9 +226,9 @@ public class SharedDiskManager {
 
 
         public Machine() {
-            allShared = new LinkedList<String>();
-            mountpoint2Name = new HashMap<String, String>();
-            name2Mountpoint = new HashMap<String, String>();
+            allShared = new LinkedList<>();
+            mountpoint2Name = new HashMap<>();
+            name2Mountpoint = new HashMap<>();
         }
 
         public void addSharedDisk(String diskName, String mountpoint) {

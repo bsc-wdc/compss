@@ -278,7 +278,7 @@ public class ProjectFile {
      * @return
      */
     public List<ComputeNodeType> getComputeNodes_list() {
-        ArrayList<ComputeNodeType> list = new ArrayList<ComputeNodeType>();
+        ArrayList<ComputeNodeType> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -297,7 +297,7 @@ public class ProjectFile {
      * @return
      */
     public List<DataNodeType> getDataNodes_list() {
-        ArrayList<DataNodeType> list = new ArrayList<DataNodeType>();
+        ArrayList<DataNodeType> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -316,7 +316,7 @@ public class ProjectFile {
      * @return
      */
     public List<ServiceType> getServices_list() {
-        ArrayList<ServiceType> list = new ArrayList<ServiceType>();
+        ArrayList<ServiceType> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -335,7 +335,7 @@ public class ProjectFile {
      * @return
      */
     public List<CloudProviderType> getCloudProviders_list() {
-        ArrayList<CloudProviderType> list = new ArrayList<CloudProviderType>();
+        ArrayList<CloudProviderType> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -366,7 +366,7 @@ public class ProjectFile {
      * @return
      */
     public HashMap<String, ComputeNodeType> getComputeNodes_hashMap() {
-        HashMap<String, ComputeNodeType> res = new HashMap<String, ComputeNodeType>();
+        HashMap<String, ComputeNodeType> res = new HashMap<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -386,7 +386,7 @@ public class ProjectFile {
      * @return
      */
     public HashMap<String, DataNodeType> getDataNodes_hashMap() {
-        HashMap<String, DataNodeType> res = new HashMap<String, DataNodeType>();
+        HashMap<String, DataNodeType> res = new HashMap<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -406,7 +406,7 @@ public class ProjectFile {
      * @return
      */
     public HashMap<String, ServiceType> getServices_hashMap() {
-        HashMap<String, ServiceType> res = new HashMap<String, ServiceType>();
+        HashMap<String, ServiceType> res = new HashMap<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -426,7 +426,7 @@ public class ProjectFile {
      * @return
      */
     public HashMap<String, CloudProviderType> getCloudProviders_hashMap() {
-        HashMap<String, CloudProviderType> res = new HashMap<String, CloudProviderType>();
+        HashMap<String, CloudProviderType> res = new HashMap<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -458,7 +458,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getComputeNodes_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -477,7 +477,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getDataNodes_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -496,7 +496,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getServices_wsdls() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -515,7 +515,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getCloudProviders_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.project.getMasterNodeOrComputeNodeOrDataNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -921,7 +921,7 @@ public class ProjectFile {
     }
 
     public List<PackageType> getPackages(ImageType image) {
-        List<PackageType> packages = new ArrayList<PackageType>();
+        List<PackageType> packages = new ArrayList<>();
 
         List<JAXBElement<?>> objList = image.getInstallDirOrWorkingDirOrUser();
         if (objList != null) {
@@ -943,7 +943,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getAdaptorQueues(ImageType image, String adaptorName) {
-        List<String> empty_queues = new ArrayList<String>();
+        List<String> empty_queues = new ArrayList<>();
 
         List<JAXBElement<?>> objList = image.getInstallDirOrWorkingDirOrUser();
         if (objList != null) {
@@ -1016,7 +1016,7 @@ public class ProjectFile {
      * @return
      */
     public List<String> getAdaptorQueues(AdaptorType adaptor) {
-        List<String> empty_queues = new ArrayList<String>();
+        List<String> empty_queues = new ArrayList<>();
 
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
@@ -1515,6 +1515,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances)
             throws InvalidElementException {
+        
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1544,6 +1545,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, InstanceTypesType instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
+        
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1567,6 +1569,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, ImagesType images, List<InstanceTypeType> instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
+        
         InstanceTypesType instancesList = new InstanceTypesType();
         if (instances != null) {
             for (InstanceTypeType ins : instances) {
@@ -1590,6 +1593,7 @@ public class ProjectFile {
      */
     public CloudProviderType addCloudProvider(String name, List<ImageType> images, List<InstanceTypeType> instances, int limitOfVMs,
             CloudPropertiesType properties) throws InvalidElementException {
+        
         ImagesType imagesList = new ImagesType();
         if (images != null) {
             for (ImageType im : images) {
@@ -1777,6 +1781,7 @@ public class ProjectFile {
 
     public static ImageType createImage(String name, String installDir, String workingDir, String user, String appDir, String libPath,
             String cp, String pypath, int limitOfTasks, PackageType pack, AdaptorsListType adaptors) {
+        
         ImageType image = new ImageType();
 
         // Mandatory elements
@@ -1888,6 +1893,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, ExternalAdaptorProperties externalproperties,
             String user) {
+        
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1919,6 +1925,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, SubmissionSystemType subsys, List<PropertyAdaptorType> externalProperties,
             String user) {
+        
         AdaptorType adaptor = new AdaptorType();
         adaptor.setName(name);
 
@@ -1958,6 +1965,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             NIOAdaptorProperties nioproperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -1989,6 +1997,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties,
             String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2020,6 +2029,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             ExternalAdaptorProperties externalProperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2051,6 +2061,7 @@ public class ProjectFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             List<PropertyAdaptorType> externalProperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();

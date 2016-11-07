@@ -16,13 +16,13 @@ import com.bsc.compss.ui.ExecutionInformationTask;
 
 public class RuntimeLogParser {
 
-    private static Vector<ExecutionInformationTask> tasks = new Vector<ExecutionInformationTask>();
-    private static Vector<ExecutionInformationTask> tasksCurrent = new Vector<ExecutionInformationTask>();
-    private static Vector<ExecutionInformationTask> tasksFailed = new Vector<ExecutionInformationTask>();
-    private static Vector<ExecutionInformationTask> tasksWithFailedJobs = new Vector<ExecutionInformationTask>();
+    private static Vector<ExecutionInformationTask> tasks = new Vector<>();
+    private static Vector<ExecutionInformationTask> tasksCurrent = new Vector<>();
+    private static Vector<ExecutionInformationTask> tasksFailed = new Vector<>();
+    private static Vector<ExecutionInformationTask> tasksWithFailedJobs = new Vector<>();
 
-    private static Vector<Integer> jobsToTasks = new Vector<Integer>();
-    private static Vector<String> resubmitedJobs = new Vector<String>();
+    private static Vector<Integer> jobsToTasks = new Vector<>();
+    private static Vector<String> resubmitedJobs = new Vector<>();
 
     private static String runtimeLogPath = "";
     private static int lastParsedLine = -1;

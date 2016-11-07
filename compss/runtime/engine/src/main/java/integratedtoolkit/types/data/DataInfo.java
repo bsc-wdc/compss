@@ -30,12 +30,12 @@ public abstract class DataInfo {
 
     public DataInfo() {
         this.dataId = nextDataId++;
-        this.versions = new TreeMap<Integer, DataVersion>();
+        this.versions = new TreeMap<>();
         this.currentVersionId = FIRST_VERSION_ID;
         this.currentVersion = new DataVersion(dataId, 1);
         this.versions.put(currentVersionId, currentVersion);
         this.deletionBlocks = 0;
-        this.pendingDeletions = new LinkedList<DataVersion>();
+        this.pendingDeletions = new LinkedList<>();
     }
 
     public int getDataId() {
@@ -112,7 +112,7 @@ public abstract class DataInfo {
                 pendingDeletions.add(version);
             }
         } else {
-            LinkedList<Integer> removedVersions = new LinkedList<Integer>();
+            LinkedList<Integer> removedVersions = new LinkedList<>();
             for (DataVersion version : versions.values()) {
                 if (version.delete()) {
                     removedVersions.add(version.getDataInstanceId().getVersionId());

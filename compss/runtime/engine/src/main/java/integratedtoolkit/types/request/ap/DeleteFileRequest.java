@@ -25,7 +25,6 @@ public class DeleteFileRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
-       
     	FileInfo fileInfo = dip.deleteData(loc);
 
         if (fileInfo == null) { 

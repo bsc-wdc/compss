@@ -53,7 +53,7 @@ public class GATCopy extends ImmediateCopy {
 
         // Fetch valid destination URIs
         LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
-        LinkedList<URI> selectedTargetURIs = new LinkedList<URI>();
+        LinkedList<URI> selectedTargetURIs = new LinkedList<>();
         for (MultiURI uri : targetURIs) {
             URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
             if (internalURI != null) {
@@ -67,7 +67,7 @@ public class GATCopy extends ImmediateCopy {
 
         // Fetch valid source URIs
         LinkedList<MultiURI> sourceURIs;
-        LinkedList<URI> selectedSourceURIs = new LinkedList<URI>();
+        LinkedList<URI> selectedSourceURIs = new LinkedList<>();
         synchronized (srcData) {
             if (srcLoc != null) {
                 sourceURIs = srcLoc.getURIs();

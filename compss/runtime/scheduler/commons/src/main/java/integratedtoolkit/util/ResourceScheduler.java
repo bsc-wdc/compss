@@ -45,8 +45,8 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
                 profiles[coreId][implId] = generateProfileForAllocatable();
             }
         }
-        running = new LinkedList<AllocatableAction<P, T>>();
-        blocked = new PriorityQueue<AllocatableAction<P, T>>(20, new Comparator<AllocatableAction<P, T>>() {
+        running = new LinkedList<>();
+        blocked = new PriorityQueue<>(20, new Comparator<AllocatableAction<P, T>>() {
         	public int compare(AllocatableAction<P, T> a1, AllocatableAction<P, T>a2){
         		return a2.getPriority()-a1.getPriority();
         	}       	
@@ -196,7 +196,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     
     public Score getWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {      
     	double waitingScore = 2.0;
-    	if (blocked.size()>0){
+    	if (blocked.size() > 0) {
     		waitingScore = (double)(1/(double)blocked.size());
     	}
     	return new Score(resourceScore,waitingScore,0);
@@ -213,7 +213,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     }
 
     public LinkedList<AllocatableAction<P, T>> unscheduleAction(AllocatableAction<P, T> action) {
-        return new LinkedList<AllocatableAction<P, T>>();
+        return new LinkedList<>();
     }
 
     public final void cancelAction(AllocatableAction<P, T> action) {

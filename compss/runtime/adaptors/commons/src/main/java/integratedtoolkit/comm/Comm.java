@@ -39,7 +39,7 @@ public class Comm {
     private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
     private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
 
-    private static final HashMap<String, CommAdaptor> adaptors = new HashMap<String, CommAdaptor>();
+    private static final HashMap<String, CommAdaptor> adaptors = new HashMap<>();
 
     // Log and debug
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);

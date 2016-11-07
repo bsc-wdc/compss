@@ -1,7 +1,10 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 
@@ -38,8 +41,8 @@ public class KeyManager {
         for (String folder : KEY_FOLDERS) {
             for (String type : KEY_TYPES) {
                 String keyfile = folder + keyType;
-                java.io.File pvKey = new java.io.File(keyfile);
-                java.io.File pbKey = new java.io.File(keyfile + ".pub");
+                File pvKey = new File(keyfile);
+                File pbKey = new File(keyfile + ".pub");
                 if (pvKey.exists() && pbKey.exists()) {
                     keyType = type;
                     keyPair = keyfile;
@@ -54,7 +57,7 @@ public class KeyManager {
         if (publicKey != null) {
             return publicKey;
         }
-        java.io.BufferedReader input = new java.io.BufferedReader(new java.io.FileReader(keyfile + ".pub"));
+        BufferedReader input = new BufferedReader(new FileReader(keyfile + ".pub"));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {
@@ -72,7 +75,7 @@ public class KeyManager {
             return privateKey;
         }
 
-        java.io.BufferedReader input = new java.io.BufferedReader(new java.io.FileReader(keyfile));
+        BufferedReader input = new BufferedReader(new FileReader(keyfile));
         StringBuilder key = new StringBuilder();
         String sb = input.readLine();
         while (sb != null) {

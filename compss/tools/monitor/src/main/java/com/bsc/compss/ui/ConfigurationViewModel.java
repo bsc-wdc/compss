@@ -83,7 +83,7 @@ public class ConfigurationViewModel {
     @Init
     public void init() {
         logger.debug("Loading configurable parameters...");
-        configurations = new LinkedList<ConfigParam>();
+        configurations = new LinkedList<>();
 
         // Add Refresh Time
         refreshTime rt = new refreshTime("Refresh Time (s)", String.valueOf(Properties.getRefreshTime() / 1_000), false);

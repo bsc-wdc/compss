@@ -13,18 +13,18 @@ public class DefaultScore<P extends Profile, T extends WorkerResourceDescription
      * ActionScore -> task Priority expectedDataAvailable -> expected time when data dependencies will be ready (take
      * into account transfers) resourceScore -> Expected ResourceAvailability implementationScore -> ExecutionTime
      */
-    private final long expectedDataAvailable;
-    private long expectedStart;
+    private final double expectedDataAvailable;
+    private double expectedStart;
 
 
-    public DefaultScore(long actionScore, long dataAvailability, long res, long impl) {
-        super(actionScore, res, impl);
+    public DefaultScore(double actionScore, double dataAvailability, double waiting, double res, double impl) {
+        super(actionScore, waiting, res, impl);
         expectedDataAvailable = dataAvailability;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
 
-    public DefaultScore(DefaultScore<P, T> actionScore, long transferTime, long resourceTime, long impl) {
-        super(actionScore, resourceTime, impl);
+    public DefaultScore(DefaultScore<P, T> actionScore, long transferTime, double waiting, double resourceTime, double impl) {
+        super(actionScore, waiting, resourceTime, impl);
         expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
@@ -35,8 +35,8 @@ public class DefaultScore<P extends Profile, T extends WorkerResourceDescription
         if (actionScore != other.actionScore) {
             return actionScore > other.actionScore;
         }
-        long ownEnd = expectedStart + implementationScore;
-        long otherEnd = otherDS.expectedStart + other.implementationScore;
+        double ownEnd = expectedStart + implementationScore;
+        double otherEnd = otherDS.expectedStart + other.implementationScore;
         return ownEnd < otherEnd;
     }
 
@@ -52,23 +52,23 @@ public class DefaultScore<P extends Profile, T extends WorkerResourceDescription
         return dataTime;
     }
 
-    public long getActionScore() {
+    public double getActionScore() {
         return actionScore;
     }
 
-    public long getExpectedDataAvailable() {
+    public double getExpectedDataAvailable() {
         return expectedDataAvailable;
     }
 
-    public long getResourceScore() {
+    public double getResourceScore() {
         return resourceScore;
     }
 
-    public long getExpectedStart() {
+    public double getExpectedStart() {
         return expectedStart;
     }
 
-    public long getImplementationScore() {
+    public double getImplementationScore() {
         return implementationScore;
     }
 

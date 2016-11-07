@@ -14,6 +14,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
@@ -164,7 +165,7 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + prefix + "color=red");
                 graph.newLine();
-                LinkedList<AllocatableAction<P, T>> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
+                PriorityQueue<AllocatableAction<P, T>> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
                 for (AllocatableAction<P, T> action : blockedActionsOnResource) {
                     if (action instanceof SingleExecution) {
                         SingleExecution<P, T> se = (SingleExecution<P, T>) action;

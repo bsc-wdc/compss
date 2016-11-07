@@ -88,7 +88,7 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
 
     @Override
     public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-        return new Score(0, 0, 0);
+        return new Score(0, 0, 0, 0);
     }
 
     @Override

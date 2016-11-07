@@ -95,6 +95,7 @@ public class ResourceOptimizer extends Thread {
 
                     // int runningTasks = workload.getRunningTaskCount();
                     int blockedTasks = workload.getNoResourceCount();
+                    
                     boolean potentialBlock = (blockedTasks > 0);
 
                     // resourcesLogger.info(workload.toString());

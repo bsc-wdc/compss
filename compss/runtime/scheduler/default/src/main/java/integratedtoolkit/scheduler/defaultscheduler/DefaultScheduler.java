@@ -13,7 +13,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
-    private final DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0);
+    private final DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0, 0);
     private final ScheduleOptimizer<P, T> optimizer = new ScheduleOptimizer<P, T>(this);
 
 
@@ -39,7 +39,7 @@ public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescrip
     public Score getActionScore(AllocatableAction<P, T> action) {
         long actionScore = DefaultScore.getActionScore(action);
         long dataTime = dummyScore.getDataPredecessorTime(action.getDataPredecessors());
-        return new DefaultScore<P, T>(actionScore, dataTime, 0, 0);
+        return new DefaultScore<P, T>(actionScore, dataTime, 0, 0, 0);
     }
 
     public void shutdown() {

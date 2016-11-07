@@ -10,6 +10,8 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Comparator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +27,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     private final LinkedList<AllocatableAction<P, T>> running;
 
     // Task without enough resources to be executed right now
-    private final LinkedList<AllocatableAction<P, T>> blocked;
+    private final PriorityQueue<AllocatableAction<P, T>> blocked;
 
     // Profile information of the task executions
     private Profile[][] profiles;
@@ -44,7 +46,12 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
             }
         }
         running = new LinkedList<AllocatableAction<P, T>>();
-        blocked = new LinkedList<AllocatableAction<P, T>>();
+        blocked = new PriorityQueue<AllocatableAction<P, T>>(20, new Comparator<AllocatableAction<P, T>>() {
+        	public int compare(AllocatableAction<P, T> a1, AllocatableAction<P, T>a2){
+        		return a2.getPriority()-a1.getPriority();
+        	}       	
+        }
+        );
         myWorker = w;
     }
 
@@ -143,7 +150,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         return running;
     }
 
-    public final LinkedList<AllocatableAction<P, T>> getBlockedActions() {
+    public final PriorityQueue<AllocatableAction<P, T>> getBlockedActions() {
         return blocked;
     }
 
@@ -167,7 +174,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     }
 
     public final AllocatableAction<P, T> getFirstBlocked() {
-        return blocked.getFirst();
+        return blocked.peek();
     }
 
     public final void removeFirstBlocked() {
@@ -183,13 +190,21 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      */
     public Score getResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
         long resourceScore = Score.getLocalityScore(params, myWorker);
-        return new Score(actionScore, resourceScore, 0);
+        return new Score(actionScore, 0, resourceScore, 0);
 
+    }
+    
+    public Score getWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {      
+    	double waitingScore = 2.0;
+    	if (blocked.size()>0){
+    		waitingScore = (double)(1/(double)blocked.size());
+    	}
+    	return new Score(resourceScore,waitingScore,0);
     }
 
     public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
         long implScore = this.getProfile(impl).getAverageExecutionTime();
-        return new Score(resourceScore, implScore);
+        return new Score(getWaitingScore(action, params, impl, resourceScore), (double)(1/(double)implScore));
     }
 
     public void initialSchedule(AllocatableAction<P, T> action) {

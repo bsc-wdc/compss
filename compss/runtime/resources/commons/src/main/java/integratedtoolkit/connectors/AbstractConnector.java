@@ -43,9 +43,9 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
     // Timer properties
-    private static long INITIAL_CREATION_TIME = TWO_MIN * MIN_TO_S * S_TO_MS;
-    private static long MINIM_DEADLINE_INTERVAL = TWO_MIN * MIN_TO_S * S_TO_MS;
-    private static long DELETE_SAFETY_INTERVAL = HALF_MIN * MIN_TO_S * S_TO_MS;
+    private static long INITIAL_CREATION_TIME = TWO_MIN ;
+    private static long MINIM_DEADLINE_INTERVAL = TWO_MIN;
+    private static long DELETE_SAFETY_INTERVAL = HALF_MIN;
 
     private float currentCostPerHour;
     private final float deletedMachinesCost;

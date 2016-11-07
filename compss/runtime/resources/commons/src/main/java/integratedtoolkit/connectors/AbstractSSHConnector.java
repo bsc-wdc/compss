@@ -264,7 +264,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 if (commandFailed) {
                     errors++;
-                    LOGGER.debug("Error scaning key. Retrying: " + errors + "/" + MAX_ALLOWED_ERRORS);
+                    LOGGER.debug("Error scaning key. Retrying: " + errors + "/" + KNOWN_HOSTS_MAX_ALLOWED_ERRORS);
 
                     // Sleep until next retry
                     try {
@@ -468,7 +468,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 LOGGER.debug("Command still on execution");
                 try {
-                    Thread.sleep(RETRY_TIME * 1_000);
+                    Thread.sleep(RETRY_TIME * S_TO_MS);
                 } catch (InterruptedException e) {
                     LOGGER.debug("Sleep interrupted");
                 }

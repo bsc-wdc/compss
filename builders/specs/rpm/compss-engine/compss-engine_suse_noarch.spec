@@ -1,5 +1,5 @@
 %define name	 	compss-engine 
-%define version 	1.4.rc10
+%define version 	2.0
 %define release		1
 
 Requires: java-1_8_0-openjdk, xdg-utils, graphviz

@@ -1,5 +1,5 @@
 %define name	 	compss-c-binding 
-%define version 	1.4.rc10
+%define version 	2.0
 %define release		1
 
 Requires: compss-bindings-common, libxml2-devel, libtool, automake, make, boost-devel, tcsh, gcc-c++

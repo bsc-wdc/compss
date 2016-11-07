@@ -553,7 +553,15 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 // Check creation status
                 if (session.isConnected()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        if (password) {
+                            LOGGER.debug("Session created as " + user + "@" + host + " with password.");
+                        } else {
+                            LOGGER.debug("Session created as " + user + "@" + host + "with public key " + keyPairOrPassword); 
+                        }
+                    }
                     return session;
+                    
                 } else {
                     ++errors;
                     if (password) {
@@ -572,10 +580,12 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     session.disconnect();
                 }
             }
+            
+            // Sleep between retries
             try {
-                Thread.sleep(RETRY_TIME * errors * 1_000);
+                Thread.sleep(RETRY_TIME * errors * S_TO_MS);
             } catch (InterruptedException e) {
-                LOGGER.debug("Sleep interrumped");
+                LOGGER.debug("Sleep interrupted", e);
             }
         }
 

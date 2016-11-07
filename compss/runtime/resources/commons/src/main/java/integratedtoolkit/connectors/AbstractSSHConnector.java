@@ -268,9 +268,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                     // Sleep until next retry
                     try {
-                        Thread.sleep(RETRY_TIME * 1_000);
+                        Thread.sleep(RETRY_TIME * S_TO_MS);
                     } catch (InterruptedException ie) {
-                        // No need to catch such exception
+                        LOGGER.warn("Sleep between keyscan interrupted", ie);
                     }
                 }
             } catch (IOException | InterruptedException e) {
@@ -385,14 +385,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     private void executeTask(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String command)
             throws ConnectorException {
-
+        
         int numRetries = 0;
         ConnectorException reason = null;
-        while (numRetries < MAX_ALLOWED_ERRORS) {
+        do {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Executing command: " + command);
             }
-
+            
             // Try to execute command
             try {
                 boolean success = tryToExecuteCommand(workerIP, user, setPassword, passwordOrKeyPair, command);
@@ -402,19 +402,21 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 }
 
             } catch (ConnectorException ce) {
+                ++numRetries;
                 LOGGER.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
-                numRetries++;
                 LOGGER.error("Retrying: " + numRetries + " of " + MAX_ALLOWED_ERRORS);
                 reason = new ConnectorException(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
             }
-
+            
             // Sleep between connection retries
             try {
-                Thread.sleep(RETRY_TIME * 1_000);
-            } catch (InterruptedException e) {
-                LOGGER.debug("Sleep interrupted");
+                long sleepTime = RETRY_TIME * S_TO_MS;
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException ie) {
+                LOGGER.warn("Sleep between CMD execution interrupted", ie);
             }
-        }
+            
+        } while (numRetries < MAX_ALLOWED_ERRORS);
 
         // This code is only reached if command was unsuccessful
         LOGGER.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, reason);

@@ -40,27 +40,37 @@
 					<Value>test-elasticity-oneProvider</Value>
 				</Property>
 
-				<!-- Optional connector parameters -->
-				<Property>
-					<Name>max-vm-creation-time</Name>
-					<Value>10</Value> <!-- Minutes -->
-				</Property>
-				<Property>
-					<Name>max-connection-errors</Name>
-					<Value>36</Value>
-				</Property>
-				<Property>
-					<Name>vm-user</Name>
-					<Value>user</Value>
-				</Property>
-				<Property>
-					<Name>vm-keypair-name</Name>
-					<Value>jenkins_test_dsa</Value>
-				</Property>
-				<Property>
-					<Name>vm-keypair-location</Name>
-					<Value>/path/to/certs</Value>
-				</Property>
+                <!-- Optional connector parameters -->
+                <Property>
+                    <Name>estimated-creation-time</Name>
+                    <Value>7</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>max-vm-creation-time</Name>
+                    <Value>10</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>time-slot</Name>
+                    <Value>5</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>max-connection-errors</Name>
+                    <Value>36</Value>
+                </Property>
+
+                <!-- Abstract SSH Connector parameters -->
+                <Property>
+                    <Name>vm-user</Name>
+                    <Value>user</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-name</Name>
+                    <Value>jenkins_test_dsa</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-location</Name>
+                    <Value>/path/to/certs</Value>
+                </Property>
 			</Properties>
 			<Images>
 				<Image Name="uuid_XX_compss_testing_XX">

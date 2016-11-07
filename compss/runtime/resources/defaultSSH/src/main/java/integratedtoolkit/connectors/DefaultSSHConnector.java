@@ -229,7 +229,7 @@ public class DefaultSSHConnector extends AbstractSSHConnector {
     @Override
     public long getTimeSlot() {
         if (connector == null) {
-            return TWO_MIN;
+            return TWO_MIN * MIN_TO_S * S_TO_MS;
         }
         
         return connector.getTimeSlot();

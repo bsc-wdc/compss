@@ -33,7 +33,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
     
     // Constants
-    protected static final int SENCONDS_TO_MINUTES = 60;
+    protected static final long MIN_TO_S = 60;
+    protected static final long S_TO_MS = 1_000;
     protected static final long ONE_HOUR = 3_600_000;
     protected static final long TWO_MIN = 120_000;
     protected static final long HALF_MIN = 30_000;
@@ -42,13 +43,13 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
     // Timer properties
-    private static long INITIAL_CREATION_TIME = TWO_MIN;
-    private static long MINIM_DEADLINE_INTERVAL = TWO_MIN;
-    private static long DELETE_SAFETY_INTERVAL = HALF_MIN;
+    private static long INITIAL_CREATION_TIME = TWO_MIN * MIN_TO_S * S_TO_MS;
+    private static long MINIM_DEADLINE_INTERVAL = TWO_MIN * MIN_TO_S * S_TO_MS;
+    private static long DELETE_SAFETY_INTERVAL = HALF_MIN * MIN_TO_S * S_TO_MS;
 
     private float currentCostPerHour;
     private final float deletedMachinesCost;
-    private long meanCreationTime;
+    private long meanCreationTime; // MS
     private int createdVMs;
 
     private final String providerName;
@@ -71,11 +72,11 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         
         String estCreationTimeStr = props.get(PROP_ESTIMATED_CREATION_TIME);
         if (estCreationTimeStr != null) {
-            meanCreationTime = Integer.parseInt(estCreationTimeStr) / SENCONDS_TO_MINUTES;
+            meanCreationTime = Integer.parseInt(estCreationTimeStr) * MIN_TO_S * S_TO_MS;
         } else {
         	String maxCreationTimeStr = props.get(PROP_MAX_VM_CREATION_TIME);
         	if (maxCreationTimeStr != null) {
-        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) / SENCONDS_TO_MINUTES;
+        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * MIN_TO_S * S_TO_MS;
         	} else {
         		meanCreationTime = INITIAL_CREATION_TIME;
         	}
@@ -359,7 +360,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         public void run() {
             Thread.currentThread().setName("Connector " + providerName + " deadline");
 
-            long sleepTime = 1000l;
+            long sleepTime = 1_000l;
             while (keepGoing) {
                 try {
                     LOGGER.debug("Deadline thread sleeps " + sleepTime + " ms.");

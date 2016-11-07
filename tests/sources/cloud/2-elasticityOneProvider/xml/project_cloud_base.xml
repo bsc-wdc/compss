@@ -35,9 +35,17 @@
 
 				<!-- Optional connector parameters -->
 				<Property>
+                    <Name>estimated-creation-time</Name>
+                    <Value>7</Value> <!-- Minutes -->
+                </Property>
+				<Property>
 					<Name>max-vm-creation-time</Name>
 					<Value>10</Value> <!-- Minutes -->
 				</Property>
+				<Property>
+                    <Name>time-slot</Name>
+                    <Value>5</Value> <!-- Minutes -->
+                </Property>
 				<Property>
 					<Name>max-connection-errors</Name>
 					<Value>36</Value>

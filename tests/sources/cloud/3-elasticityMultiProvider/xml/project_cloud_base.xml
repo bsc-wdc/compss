@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Project>
 	<MasterNode />
-	
+
 	<Cloud>
 		<InitialVMs>1</InitialVMs>
 		<MinimumVMs>1</MinimumVMs>
 		<MaximumVMs>3</MaximumVMs>
-		
+
 		<CloudProvider Name="BSC1">
 			<LimitOfVMs>2</LimitOfVMs>
 			<Properties>
@@ -37,19 +37,37 @@
 
 				<!-- Optional connector parameters -->
 				<Property>
+					<Name>estimated-creation-time</Name>
+					<Value>7</Value> <!-- Minutes -->
+				</Property>
+				<Property>
 					<Name>max-vm-creation-time</Name>
 					<Value>10</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>time-slot</Name>
+					<Value>5</Value> <!-- Minutes -->
 				</Property>
 				<Property>
 					<Name>max-connection-errors</Name>
 					<Value>36</Value>
 				</Property>
+
+				<!-- Abstract SSH Connector parameters -->
 				<Property>
 					<Name>vm-user</Name>
 					<Value>user</Value>
 				</Property>
+				<Property>
+					<Name>vm-keypair-name</Name>
+					<Value>jenkins_test_dsa</Value>
+				</Property>
+				<Property>
+					<Name>vm-keypair-location</Name>
+					<Value>/path/to/certs</Value>
+				</Property>
 			</Properties>
-			
+
 			<Images>
 				<Image Name="uuid_XX_compss_testing_XX">
 					<InstallDir>remote_COMPSs</InstallDir>
@@ -61,7 +79,7 @@
 					</Package>
 				</Image>
 			</Images>
-			
+
 			<InstanceTypes>
 				<InstanceType Name="small" />
 			</InstanceTypes>
@@ -95,21 +113,39 @@
 					<Value>test-multiProvider2</Value>
 				</Property>
 
-				<!-- Optional connector parameters -->
-				<Property>
-					<Name>max-vm-creation-time</Name>
-					<Value>10</Value> <!-- Minutes -->
-				</Property>
-				<Property>
-					<Name>max-connection-errors</Name>
-					<Value>36</Value>
-				</Property>
-				<Property>
-					<Name>vm-user</Name>
-					<Value>user</Value>
-				</Property>
+                <!-- Optional connector parameters -->
+                <Property>
+                    <Name>estimated-creation-time</Name>
+                    <Value>7</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>max-vm-creation-time</Name>
+                    <Value>10</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>time-slot</Name>
+                    <Value>5</Value> <!-- Minutes -->
+                </Property>
+                <Property>
+                    <Name>max-connection-errors</Name>
+                    <Value>36</Value>
+                </Property>
+
+                <!-- Abstract SSH Connector parameters -->
+                <Property>
+                    <Name>vm-user</Name>
+                    <Value>user</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-name</Name>
+                    <Value>jenkins_test_dsa</Value>
+                </Property>
+                <Property>
+                    <Name>vm-keypair-location</Name>
+                    <Value>/path/to/certs</Value>
+                </Property>
 			</Properties>
-			
+
 			<Images>
 				<Image Name="uuid_XX_compss_testing_XX">
 					<InstallDir>remote_COMPSs</InstallDir>
@@ -121,7 +157,7 @@
 					</Package>
 				</Image>
 			</Images>
-			
+
 			<InstanceTypes>
 				<InstanceType Name="medium" />
 				<InstanceType Name="large" />

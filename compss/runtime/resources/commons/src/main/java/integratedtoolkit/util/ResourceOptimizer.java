@@ -46,8 +46,9 @@ public class ResourceOptimizer extends Thread {
 
     // Error messages
     private static final String ERROR_OPT_RES = "Error optimizing resources.";
-    private static final String PERSISTENT_BLOCK_ERR = "Persistent block detected.\n"
-            + "No task could be scheduled or sent to any of the available resources.\n" + "Shutting down COMPSs now...";
+    private static final String PERSISTENT_BLOCK_ERR = "Unschedulable tasks detected.\n"
+            + "COMPSs has found tasks with constraints that cannot be fulfilled.\n"
+            + "Shutting down COMPSs now...";
 
     // This counts the number of retries when detecting a situation
     // where all the tasks are blocked, and no resources are being created/can be created.

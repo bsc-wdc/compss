@@ -364,9 +364,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private void configureKeys(String workerIP, String user, boolean setPassword, String passwordOrKeyPair, String publicKey,
             String privateKey, String keyType) throws ConnectorException {
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Configuring keys for " + workerIP + " user: " + user);
-        }
+        LOGGER.debug("Configuring keys for " + workerIP + " user: " + user);
 
         try {
             String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub" + "; "
@@ -557,7 +555,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         if (password) {
                             LOGGER.debug("Session created as " + user + "@" + host + " with password.");
                         } else {
-                            LOGGER.debug("Session created as " + user + "@" + host + "with public key " + keyPairOrPassword); 
+                            LOGGER.debug("Session created as " + user + "@" + host + " with public key " + keyPairOrPassword); 
                         }
                     }
                     return session;

@@ -404,7 +404,7 @@ public class ResourceLoader {
         String cpName = cp_project.getName();
         String connectorJarPath = "";
         String connectorMainClass = "";
-        HashMap<String, String> properties = new HashMap<String, String>();
+        HashMap<String, String> properties = new HashMap<>();
 
         /* Add Endpoint information from resources.xml */
         EndpointType endpoint = cp_resources.getEndpoint();
@@ -428,7 +428,10 @@ public class ResourceLoader {
         }
         
         // Add application name property for some connectors (i.e. docker, vmm)
-        properties.put(AbstractConnector.PROP_APP_NAME, System.getProperty(ITConstants.IT_APP_NAME));       
+        String appName = System.getProperty(ITConstants.IT_APP_NAME);
+        appName = appName.toLowerCase();
+        appName = appName.replace('.', '-');
+        properties.put(AbstractConnector.PROP_APP_NAME, appName);       
 
         /* Add images/instances information ******************** */
         int limitOfVMs = -1;

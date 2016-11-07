@@ -8,7 +8,24 @@
 		<CloudProvider Name="Docker">
 			<LimitOfVMs>MAX_VMS</LimitOfVMs>
 			<Properties>
-				
+				<!-- Optional connector parameters -->
+				<Property>
+					<Name>estimated-creation-time</Name>
+					<Value>3</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>max-vm-creation-time</Name>
+					<Value>5</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>time-slot</Name>
+					<Value>2</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>max-connection-errors</Name>
+					<Value>36</Value>
+				</Property>
+
 				<!-- Abstract SSH Connector parameters -->
 				<Property>
 					<Name>vm-user</Name>
@@ -23,7 +40,7 @@
 					<Value>/home/LOCAL_USER/.ssh</Value>
 				</Property>
 			</Properties>
-			
+
 			<Images>
 				<Image Name="compss/compss:latest">
 					<InstallDir>/opt/COMPSs</InstallDir>

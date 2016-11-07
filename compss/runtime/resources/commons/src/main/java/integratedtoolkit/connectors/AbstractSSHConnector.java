@@ -369,9 +369,10 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         }
 
         try {
-            String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub; /bin/echo \""
-                    + privateKey + "\" > ~/.ssh/" + keyType + "; chmod 600 ~/.ssh/" + keyType + "; /bin/echo \""
-                    + publicKey + "\" >> ~/.ssh/authorized_keys";
+            String command = "/bin/echo \"" + publicKey + "\" > ~/.ssh/" + keyType + ".pub" + "; "
+                    + "/bin/echo \"" + privateKey + "\" > ~/.ssh/" + keyType + "; "
+                    + "chmod 600 ~/.ssh/" + keyType + "; "
+                    + "/bin/echo \"" + publicKey + "\" >> ~/.ssh/authorized_keys";
 
             executeTask(workerIP, user, setPassword, passwordOrKeyPair, command);
         } catch (ConnectorException e) {

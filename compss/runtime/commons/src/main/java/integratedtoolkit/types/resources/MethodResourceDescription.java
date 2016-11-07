@@ -69,9 +69,9 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     protected String operatingSystemDistribution = UNASSIGNED_STR;
     protected String operatingSystemVersion = UNASSIGNED_STR;
     // Applications
-    protected List<String> appSoftware = new LinkedList<String>();
+    protected List<String> appSoftware = new LinkedList<>();
     // Host queues
-    protected List<String> hostQueues = new LinkedList<String>();
+    protected List<String> hostQueues = new LinkedList<>();
     // Price
     protected int priceTimeUnit = UNASSIGNED_INT;
     protected float pricePerUnit = UNASSIGNED_FLOAT;
@@ -1334,7 +1334,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private void decreaseComputingUnits(String type, int cus) {
-
         if (type.equals(Constants.CPU_TYPE)) {
             this.totalCPUComputingUnits -= cus;
         } else if (type.equals(Constants.GPU_TYPE)) {

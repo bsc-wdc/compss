@@ -23,7 +23,7 @@ public class StatisticsViewModel {
 
     @Init
     public void init() {
-        statistics = new LinkedList<StatisticParameter>();
+        statistics = new LinkedList<>();
     }
 
     public List<StatisticParameter> getStatistics() {

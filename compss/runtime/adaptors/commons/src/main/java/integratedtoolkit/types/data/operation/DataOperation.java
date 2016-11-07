@@ -40,7 +40,7 @@ public abstract class DataOperation {
             this.name = ld.getName();
         } catch (Exception e) {
         }
-        this.listeners = new LinkedList<EventListener>();
+        this.listeners = new LinkedList<>();
         this.listeners.add(listener);
         operationId = opCount;
         opCount++;

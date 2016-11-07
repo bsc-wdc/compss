@@ -34,12 +34,12 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
 
     private final LinkedList<Gap> gaps;
     private OptimizationAction<P, T> opAction;
-    private Set<AllocatableAction<P, T>> pendingUnschedulings = new HashSet<AllocatableAction<P, T>>();
+    private Set<AllocatableAction<P, T>> pendingUnschedulings = new HashSet<>();
 
 
     public DefaultResourceScheduler(Worker<T> w) {
         super(w);
-        gaps = new LinkedList<Gap>();
+        gaps = new LinkedList<>();
         addGap(new Gap(Long.MIN_VALUE, Long.MAX_VALUE, null, myWorker.getDescription().copy(), 0));
     }
 
@@ -135,9 +135,9 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
 
     @Override
     public LinkedList<AllocatableAction<P, T>> unscheduleAction(AllocatableAction<P, T> action) {
-        LinkedList<AllocatableAction<P, T>> freeTasks = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> freeTasks = new LinkedList<>();
         DefaultSchedulingInformation<P, T> actionDSI = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
-        LinkedList<AllocatableAction<P, T>> successors = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> successors = new LinkedList<>();
 
         // Create predecessor list
         // Lock access to predecessors
@@ -231,7 +231,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
         Implementation<T> impl = action.getAssignedImplementation();
         Profile p = getProfile(impl);
         ResourceDescription constraints = impl.getRequirements().copy();
-        LinkedList<AllocatableAction<P, T>> predecessors = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> predecessors = new LinkedList<>();
 
         Iterator<Gap> gapIt = gaps.descendingIterator();
         boolean fullyCoveredReqs = false;
@@ -316,15 +316,15 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
     public PriorityQueue<AllocatableAction<P, T>> localOptimization(long updateId, Comparator<AllocatableAction<P, T>> selectionComparator,
             Comparator<AllocatableAction<P, T>> donorComparator) {
 
-        PriorityQueue<AllocatableAction<P, T>> actions = new PriorityQueue<AllocatableAction<P, T>>(1, donorComparator);
+        PriorityQueue<AllocatableAction<P, T>> actions = new PriorityQueue<>(1, donorComparator);
 
         // Actions not depending on other actions scheduled on the same resource
         // Sorted by data dependencies release
-        PriorityQueue<AllocatableAction<P, T>> readyActions = new PriorityQueue<AllocatableAction<P, T>>(1, getReadyComparator());
+        PriorityQueue<AllocatableAction<P, T>> readyActions = new PriorityQueue<>(1, getReadyComparator());
 
         // Actions that can be selected to be scheduled on the node
         // Sorted by data dependencies release
-        PriorityActionSet<P, T> selectableActions = new PriorityActionSet<P, T>(selectionComparator);
+        PriorityActionSet<P, T> selectableActions = new PriorityActionSet<>(selectionComparator);
         synchronized (gaps) {
             opAction = new OptimizationAction<P, T>();
         }
@@ -333,7 +333,7 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
         // Scan actions: Filters ready and selectable actions
         LinkedList<AllocatableAction<P, T>> runningActions = scanActions(readyActions, selectableActions);
         // Gets all the pending schedulings
-        LinkedList<AllocatableAction<P, T>> newPendingSchedulings = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> newPendingSchedulings = new LinkedList<>();
         LinkedList<AllocatableAction<P, T>> pendingSchedulings;
         synchronized (gaps) {
             DefaultSchedulingInformation<P, T> opDSI = (DefaultSchedulingInformation<P, T>) opAction.getSchedulingInfo();
@@ -376,8 +376,9 @@ public class DefaultResourceScheduler<P extends Profile, T extends WorkerResourc
     // classified in any list since we cannot know the start time.
     public LinkedList<AllocatableAction<P, T>> scanActions(PriorityQueue<AllocatableAction<P, T>> readyActions,
             PriorityActionSet<P, T> selectableActions) {
-        LinkedList<AllocatableAction<P, T>> runningActions = new LinkedList<AllocatableAction<P, T>>();
-        PriorityQueue<AllocatableAction<P, T>> actions = new PriorityQueue<AllocatableAction<P, T>>(1, getScanComparator());
+        
+        LinkedList<AllocatableAction<P, T>> runningActions = new LinkedList<>();
+        PriorityQueue<AllocatableAction<P, T>> actions = new PriorityQueue<>(1, getScanComparator());
         for (Gap g : gaps) {
             AllocatableAction<P, T> gapAction = (AllocatableAction<P, T>) g.getOrigin();
             if (gapAction != null) {

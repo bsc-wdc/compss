@@ -395,7 +395,7 @@ public class DataInfoProvider {
             listener.addOperation();
             Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
-        }else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()){
+        } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
         	if (debug) {
         		String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
                 String origName = splitPath[splitPath.length - 1];
@@ -404,7 +404,6 @@ public class DataInfoProvider {
         	if (fileInfo.delete()){
         		//idToData.remove(dataId);
         	}
-        	
         }
         	
         return null;

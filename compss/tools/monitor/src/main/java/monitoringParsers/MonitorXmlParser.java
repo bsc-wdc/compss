@@ -19,8 +19,8 @@ import com.bsc.compss.ui.Properties;
 
 public class MonitorXmlParser {
 
-    private static List<String[]> WorkersDataArray;
-    private static List<String[]> CoresDataArray;
+    private static List<String[]> workersDataArray;
+    private static List<String[]> coresDataArray;
     private static HashMap<String, String> statisticParameters;
 
     private static final Logger logger = LogManager.getLogger(Loggers.COMPSS_STATE_XML_PARSER);
@@ -28,12 +28,12 @@ public class MonitorXmlParser {
 
     public static List<String[]> getWorkersDataArray() {
         logger.debug("Granting access to resources data");
-        return WorkersDataArray;
+        return workersDataArray;
     }
 
     public static List<String[]> getCoresDataArray() {
         logger.debug("Granting access to cores data");
-        return CoresDataArray;
+        return coresDataArray;
     }
 
     public static HashMap<String, String> getStatisticsParameters() {
@@ -44,7 +44,7 @@ public class MonitorXmlParser {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
         // Reset attribute
-        WorkersDataArray = new ArrayList<String[]>();
+        workersDataArray = new ArrayList<>();
 
         // Show monitor location
         logger.debug("Monitor Location : " + monitorLocation);
@@ -72,7 +72,7 @@ public class MonitorXmlParser {
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
                 if (n.getNodeName().equals("ResourceInfo")) {
-                    WorkersDataArray = parseResourceInfoNode(n);
+                    workersDataArray = parseResourceInfoNode(n);
                 }
             }
         } catch (Exception e) {
@@ -88,7 +88,7 @@ public class MonitorXmlParser {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file...");
         // Reset attribute
-        CoresDataArray = new ArrayList<String[]>();
+        coresDataArray = new ArrayList<>();
 
         // Show monitor location
         logger.debug("Monitor Location : " + monitorLocation);
@@ -116,7 +116,7 @@ public class MonitorXmlParser {
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
                 if (n.getNodeName().equals("CoresInfo")) {
-                    CoresDataArray = parseCoresInfoNode(n);
+                    coresDataArray = parseCoresInfoNode(n);
                 }
             }
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class MonitorXmlParser {
         String monitorLocation = Properties.getBasePath() + Constants.MONITOR_XML_FILE;
         logger.debug("Parsing XML file for statistics...");
         // Reset attribute
-        statisticParameters = new HashMap<String, String>();
+        statisticParameters = new HashMap<>();
 
         // Show monitor location
         logger.debug("Monitor Location : " + monitorLocation);
@@ -172,7 +172,7 @@ public class MonitorXmlParser {
 
     private static List<String[]> parseResourceInfoNode(Node resourceInfo) throws Exception {
         logger.debug("Parsing resources nodes...");
-        List<String[]> datas = new ArrayList<String[]>();
+        List<String[]> datas = new ArrayList<>();
         NodeList nl = resourceInfo.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
@@ -296,7 +296,7 @@ public class MonitorXmlParser {
 
     private static List<String[]> parseCoresInfoNode(Node coresInfo) throws Exception {
         logger.debug("Parsing cores nodes...");
-        List<String[]> datas = new ArrayList<String[]>();
+        List<String[]> datas = new ArrayList<>();
         NodeList nl = coresInfo.getChildNodes();
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
@@ -312,7 +312,7 @@ public class MonitorXmlParser {
         logger.debug("  - Parsing coreId " + coreId);
 
         NodeList impls = cores.getChildNodes();
-        List<String[]> data = new ArrayList<String[]>();
+        List<String[]> data = new ArrayList<>();
         for (int i = 0; i < impls.getLength(); ++i) {
             Node impl = impls.item(i);
             if (impl.getNodeName().equals("Impl")) {
@@ -380,7 +380,7 @@ public class MonitorXmlParser {
         logger.debug("  - Parsing statistics");
 
         NodeList statisticValues = statistics.getChildNodes();
-        HashMap<String, String> data = new HashMap<String, String>();
+        HashMap<String, String> data = new HashMap<>();
         for (int i = 0; i < statisticValues.getLength(); ++i) {
             Node statisticNode = statisticValues.item(i);
             if (statisticNode.getNodeName().equals("Statistic")) {

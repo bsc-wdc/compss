@@ -26,9 +26,9 @@ public class IDLParserTest {
 	@Test
 	public void loadIDLTest() {
 		String constraintsFile = this.getClass().getResource("test.idl").getPath();
-		LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
-        HashMap<Integer, LinkedList<MethodImplementation>> readMethods = new HashMap<Integer, LinkedList<MethodImplementation>>();
-        HashMap<Integer, LinkedList<String>> readSignatures = new HashMap<Integer, LinkedList<String>>();
+		LinkedList<Integer> updatedMethods = new LinkedList<>();
+        HashMap<Integer, LinkedList<MethodImplementation>> readMethods = new HashMap<>();
+        HashMap<Integer, LinkedList<String>> readSignatures = new HashMap<>();
         int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethods, readSignatures, constraintsFile);
 		assertEquals(coreCount, CORECOUNT_RESULT);
 		assertEquals(readMethods.size(), CORECOUNT_RESULT);

@@ -13,14 +13,14 @@ public class NIOTaskResult implements Externalizable {
 
     private int taskId;
 
-    private LinkedList<DataType> paramTypes = new LinkedList<DataType>();
+    private LinkedList<DataType> paramTypes = new LinkedList<>();
 
     // ATTENTION: Parameter Values will be empty if it doesn't contain a PSCO Id
-    private LinkedList<Object> paramValues = new LinkedList<Object>();
+    private LinkedList<Object> paramValues = new LinkedList<>();
 
 
     public NIOTaskResult() {
-
+        // All attributes are initialized statically
     }
 
     public NIOTaskResult(int taskId, LinkedList<NIOParam> params) {

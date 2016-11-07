@@ -64,7 +64,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         logger.debug("Registering Implementation " + me.toString());
         CoreManager.registerImplementations(coreId, impls, signatures);
 
-        LinkedList<Integer> newCores = new LinkedList<Integer>();
+        LinkedList<Integer> newCores = new LinkedList<>();
         newCores.add(coreId);
 
         ResourceManager.coreElementUpdates(newCores);

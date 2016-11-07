@@ -24,7 +24,7 @@ public class Verifiers {
         if (obtained.size() != expected.length) {
             fail("Obtained lists doesn't match on size.");
         }
-        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue();
+        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue<>();
         while (obtainedCopy.size() > 0) {
             AllocatableAction action = obtainedCopy.poll();
             AllocatableAction expectedAction = expected[idx];
@@ -40,7 +40,7 @@ public class Verifiers {
         if (obtained.size() != expected.length) {
             fail("Obtained lists doesn't match on size.");
         }
-        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue();
+        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue<>();
         while (obtainedCopy.size() > 0) {
             AllocatableAction action = obtainedCopy.poll();
             AllocatableAction expectedAction = expected[idx];

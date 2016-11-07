@@ -162,7 +162,7 @@ public class ResourceLoader {
     }
 
     private static void loadMaster(MasterNodeType master) {
-        HashMap<String, String> sharedDisks = new HashMap<String, String>();
+        HashMap<String, String> sharedDisks = new HashMap<>();
         List<Object> masterInformation = master.getSharedDisksOrPrice();
         if (masterInformation != null) {
             for (Object obj : masterInformation) {
@@ -436,8 +436,8 @@ public class ResourceLoader {
         /* Add images/instances information ******************** */
         int limitOfVMs = -1;
         int maxCreationTime = -1; // Seconds
-        LinkedList<CloudImageDescription> images = new LinkedList<CloudImageDescription>();
-        LinkedList<CloudMethodResourceDescription> instanceTypes = new LinkedList<CloudMethodResourceDescription>();
+        LinkedList<CloudImageDescription> images = new LinkedList<>();
+        LinkedList<CloudMethodResourceDescription> instanceTypes = new LinkedList<>();
         objList = cp_project.getImagesOrInstanceTypesOrLimitOfVMs();
         if (objList != null) {
             for (Object obj : objList) {

@@ -16,7 +16,7 @@ public class SchedulingInformation<P extends Profile, T extends WorkerResourceDe
 
     static {
         for (int coreId = 0; coreId < CoreManager.getCoreCount(); coreId++) {
-            coreToWorkers[coreId] = new LinkedList<ResourceScheduler<?, ?>>();
+            coreToWorkers[coreId] = new LinkedList<>();
         }
     }
 

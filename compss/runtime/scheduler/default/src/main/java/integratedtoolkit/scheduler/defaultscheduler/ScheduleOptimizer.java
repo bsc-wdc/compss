@@ -28,7 +28,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
     private boolean stop = false;
     private Semaphore sem = new Semaphore(0);
 
-    private DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0, 0);
+    private DefaultScore<P, T> dummyScore = new DefaultScore<>(0, 0, 0, 0, 0);
 
 
     public ScheduleOptimizer(DefaultScheduler<?, ?> scheduler) {
@@ -82,7 +82,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
             return;
         }
         OptimizationWorker[] optimizedWorkers = new OptimizationWorker[workersCount];
-        LinkedList<OptimizationWorker> receivers = new LinkedList<OptimizationWorker>();
+        LinkedList<OptimizationWorker> receivers = new LinkedList<>();
 
         for (int i = 0; i < workersCount; i++) {
             optimizedWorkers[i] = new OptimizationWorker((DefaultResourceScheduler<?, ?>) workers[i]);
@@ -120,7 +120,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
     public static OptimizationWorker determineDonorAndReceivers(OptimizationWorker[] workers, LinkedList<OptimizationWorker> receivers) {
 
         receivers.clear();
-        PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<OptimizationWorker>(1, getReceptionComparator());
+        PriorityQueue<OptimizationWorker> receiversPQ = new PriorityQueue<>(1, getReceptionComparator());
         long topIndicator = Long.MIN_VALUE;
         OptimizationWorker top = null;
 

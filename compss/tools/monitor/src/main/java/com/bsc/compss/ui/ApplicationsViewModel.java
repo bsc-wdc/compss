@@ -27,7 +27,7 @@ public class ApplicationsViewModel {
 
     @Init
     public void init() {
-        applications = new LinkedList<Application>();
+        applications = new LinkedList<>();
         update();
     }
 

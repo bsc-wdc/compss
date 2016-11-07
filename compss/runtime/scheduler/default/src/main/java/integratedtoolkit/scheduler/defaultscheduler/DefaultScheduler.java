@@ -13,8 +13,8 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
-    private final DefaultScore<P, T> dummyScore = new DefaultScore<P, T>(0, 0, 0, 0, 0);
-    private final ScheduleOptimizer<P, T> optimizer = new ScheduleOptimizer<P, T>(this);
+    private final DefaultScore<P, T> dummyScore = new DefaultScore<>(0, 0, 0, 0, 0);
+    private final ScheduleOptimizer<P, T> optimizer = new ScheduleOptimizer<>(this);
 
 
     /*
@@ -27,12 +27,12 @@ public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescrip
 
     @Override
     public ResourceScheduler<P, T> generateSchedulerForResource(Worker<T> w) {
-        return new DefaultResourceScheduler<P, T>(w);
+        return new DefaultResourceScheduler<>(w);
     }
 
     @Override
     public SchedulingInformation<P, T> generateSchedulingInformation() {
-        return new DefaultSchedulingInformation<P, T>();
+        return new DefaultSchedulingInformation<>();
     }
 
     @Override

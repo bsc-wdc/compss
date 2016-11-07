@@ -19,8 +19,8 @@ public class ResourcesState {
 
     public ResourcesState() {
         // Resource Information
-        currentResources_nameToInfo = new HashMap<String, HostInfo>();
-        pendingResources_nameToInfo = new HashMap<String, HostInfo>();
+        currentResources_nameToInfo = new HashMap<>();
+        pendingResources_nameToInfo = new HashMap<>();
     }
 
     public void setUseCloud(boolean useCloud) {

@@ -6,7 +6,7 @@ public class ColorNode {
     private final String fontColor;
 
 
-    ColorNode(String fillColor, String fontColor) {
+    public ColorNode(String fillColor, String fontColor) {
         this.fillColor = fillColor;
         this.fontColor = fontColor;
     }

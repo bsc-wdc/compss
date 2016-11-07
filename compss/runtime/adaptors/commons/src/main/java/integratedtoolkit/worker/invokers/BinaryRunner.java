@@ -16,7 +16,7 @@ public class BinaryRunner {
 
 
     public static ArrayList<String> createCMDParametersFromValues(Object[] values) throws InvokeExecutionException {
-        ArrayList<String> binaryParams = new ArrayList<String>();
+        ArrayList<String> binaryParams = new ArrayList<>();
         for (int i = 0; i < values.length; ++i) {
             if (values[i] != null && values[i].getClass().isArray()) {
                 try {

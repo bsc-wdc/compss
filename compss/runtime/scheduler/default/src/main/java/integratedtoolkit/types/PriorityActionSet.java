@@ -19,20 +19,20 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
     @SuppressWarnings("unchecked")
     public PriorityActionSet(Comparator<AllocatableAction<P, T>> comparator) {
         this.comparator = comparator;
-        noCoreActions = new PriorityQueue<AllocatableAction<P, T>>(1, comparator);
-        priority = new PriorityQueue<AllocatableAction<P, T>>(1, comparator);
+        noCoreActions = new PriorityQueue<>(1, comparator);
+        priority = new PriorityQueue<>(1, comparator);
         coreActions = new PriorityQueue[0];
     }
 
     @SuppressWarnings("unchecked")
     public PriorityActionSet(PriorityActionSet<P, T> clone) {
         comparator = clone.comparator;
-        noCoreActions = new PriorityQueue<AllocatableAction<P, T>>(clone.noCoreActions);
+        noCoreActions = new PriorityQueue<>(clone.noCoreActions);
         coreActions = new PriorityQueue[clone.coreActions.length];
         for (int idx = 0; idx < coreActions.length; idx++) {
-            coreActions[idx] = new PriorityQueue<AllocatableAction<P, T>>(clone.coreActions[idx]);
+            coreActions[idx] = new PriorityQueue<>(clone.coreActions[idx]);
         }
-        priority = new PriorityQueue<AllocatableAction<P, T>>(clone.priority);
+        priority = new PriorityQueue<>(clone.priority);
     }
 
     @SuppressWarnings("unchecked")
@@ -52,7 +52,7 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
                     PriorityQueue<AllocatableAction<P, T>>[] coreActions = new PriorityQueue[coreId + 1];
                     System.arraycopy(this.coreActions, 0, coreActions, 0, originalSize);
                     for (int coreIdx = originalSize; coreIdx < coreId + 1; coreIdx++) {
-                        coreActions[coreIdx] = new PriorityQueue<AllocatableAction<P, T>>(1, comparator);
+                        coreActions[coreIdx] = new PriorityQueue<>(1, comparator);
                     }
                     this.coreActions = coreActions;
                 }
@@ -106,7 +106,7 @@ public class PriorityActionSet<P extends Profile, T extends WorkerResourceDescri
     }
 
     public PriorityQueue<AllocatableAction<P, T>> peekAll() {
-        PriorityQueue<AllocatableAction<P, T>> peeks = new PriorityQueue<AllocatableAction<P, T>>(coreActions.length + 1, comparator);
+        PriorityQueue<AllocatableAction<P, T>> peeks = new PriorityQueue<>(coreActions.length + 1, comparator);
 
         AllocatableAction<P, T> currentCore = noCoreActions.peek();
         if (currentCore != null && !((DefaultSchedulingInformation<P, T>) currentCore.getSchedulingInfo()).isToReschedule()) {

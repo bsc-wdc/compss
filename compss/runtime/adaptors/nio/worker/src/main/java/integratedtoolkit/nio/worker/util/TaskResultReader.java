@@ -42,8 +42,8 @@ public class TaskResultReader extends Thread {
 
         this.mustStop = false;
         this.haveWaiters = false;
-        this.jobIdsToStatus = new HashMap<Integer, Integer>();
-        this.jobIdsToWaiters = new HashMap<Integer, Semaphore>();
+        this.jobIdsToStatus = new HashMap<>();
+        this.jobIdsToWaiters = new HashMap<>();
     }
 
     @Override

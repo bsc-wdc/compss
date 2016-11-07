@@ -22,7 +22,7 @@ public class CoresViewModel {
 
     @Init
     public void init() {
-        cores = new LinkedList<Core>();
+        cores = new LinkedList<>();
     }
 
     public List<Core> getCores() {

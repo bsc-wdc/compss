@@ -6,7 +6,7 @@ import java.util.HashSet;
 
 public class SSHManager {
 
-    private static HashSet<COMPSsWorker> workers = new HashSet<COMPSsWorker>();
+    private static HashSet<COMPSsWorker> workers = new HashSet<>();
 
 
     public static void registerWorker(COMPSsWorker worker) {

@@ -271,7 +271,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         String pscoId = srcLD.getId();
 
         // Get the current locations
-        List<String> currentLocations = new LinkedList<String>();
+        List<String> currentLocations = new LinkedList<>();
         try {
             currentLocations = StorageItf.getLocations(pscoId);
         } catch (StorageException se) {

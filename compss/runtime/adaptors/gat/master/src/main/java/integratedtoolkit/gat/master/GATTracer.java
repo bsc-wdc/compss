@@ -118,8 +118,8 @@ public class GATTracer extends Tracer {
     }
 
     public static boolean generatePackage(GATWorkerNode node) {
-        LinkedList<URI> traceScripts = new LinkedList<URI>();
-        LinkedList<String> traceParams = new LinkedList<String>();
+        LinkedList<URI> traceScripts = new LinkedList<>();
+        LinkedList<String> traceParams = new LinkedList<>();
         String host = node.getHost();
         String installDir = node.getInstallDir();
         String workingDir = node.getWorkingDir();

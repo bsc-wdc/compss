@@ -26,7 +26,7 @@ public class CExecutor extends ExternalExecutor {
 
     @Override
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits) {
-        ArrayList<String> lArgs = new ArrayList<String>();
+        ArrayList<String> lArgs = new ArrayList<>();
 
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
@@ -54,7 +54,7 @@ public class CExecutor extends ExternalExecutor {
     }
 
     public static Map<String, String> getEnvironment(NIOWorker nw) {
-        Map<String, String> env = new HashMap<String, String>();
+        Map<String, String> env = new HashMap<>();
         String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
         if (ldLibraryPath == null) {
             ldLibraryPath = nw.getLibPath();

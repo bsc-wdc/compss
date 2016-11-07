@@ -72,7 +72,7 @@ public class AddOrchestration {
     }
 
     private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, Exception {
-        List<CtClass> classes = new LinkedList<CtClass>();
+        List<CtClass> classes = new LinkedList<>();
         List<String> params = getParametersTypeFromLabel(label);
         if (params != null && params.size() > 0) {
             for (String className : params) {

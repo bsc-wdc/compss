@@ -25,7 +25,7 @@ public class CoreManager {
     private static final Lang LANG;
 
     // Signatures and Core Elements
-    private static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<String, Integer>();
+    private static final LinkedHashMap<String, Integer> SIGNATURE_TO_ID = new LinkedHashMap<>();
 
     private static Implementation<?>[][] implementations;
     private static String[][] signatures;

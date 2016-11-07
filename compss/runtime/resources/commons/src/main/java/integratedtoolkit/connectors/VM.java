@@ -30,6 +30,7 @@ public class VM implements Comparable<VM> {
         creationTime = this.startTime - this.requestTime;
     }
 
+    @Override
     public String toString() {
         return "VM " + envId + " (ip = " + rd.getName() + ", request time = " + requestTime + ", start time = " + startTime
                 + ", creation time = " + creationTime + ", image = " + rd.getImage().getImageName() + ", procs = CPU: "
@@ -79,6 +80,7 @@ public class VM implements Comparable<VM> {
     }
 
     // Comparable interface implementation
+    @Override
     public int compareTo(VM vm) throws NullPointerException {
         if (vm == null) {
             throw new NullPointerException();

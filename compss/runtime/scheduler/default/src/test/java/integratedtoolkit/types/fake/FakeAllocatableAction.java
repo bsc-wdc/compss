@@ -54,7 +54,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        LinkedList<Implementation<T>> ret = new LinkedList<Implementation<T>>();
+        LinkedList<Implementation<T>> ret = new LinkedList<>();
         ret.addAll(Arrays.asList(impls));
         return ret;
     }

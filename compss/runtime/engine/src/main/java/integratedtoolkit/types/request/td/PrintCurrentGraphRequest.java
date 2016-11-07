@@ -14,7 +14,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
@@ -75,8 +74,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
     @Override
     public void process(TaskScheduler<P, T> ts) throws ShutdownException {
         try {
-            PriorityQueue<Task> pending = new PriorityQueue<Task>();
-            HashSet<Task> tasks = new HashSet<Task>();
+            PriorityQueue<Task> pending = new PriorityQueue<>();
+            HashSet<Task> tasks = new HashSet<>();
             String prefix = "  ";
 
             // Header options
@@ -219,7 +218,7 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
 
             /* Write edges *************************************************** */
             for (Task t : tasks) {
-                HashSet<Task> successors = new HashSet<Task>();
+                HashSet<Task> successors = new HashSet<>();
                 successors.addAll(t.getSuccessors());
                 for (Task t2 : successors) {
                     graph.write(prefix + t.getId() + " -> " + t2.getId() + ";");

@@ -36,7 +36,7 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> uris = new LinkedList<MultiURI>();
+        LinkedList<MultiURI> uris = new LinkedList<>();
 
         // Retrieve URIs from Storage Back-end
         try {
@@ -57,7 +57,7 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public LinkedList<Resource> getHosts() {
-        LinkedList<Resource> hosts = new LinkedList<Resource>();
+        LinkedList<Resource> hosts = new LinkedList<>();
 
         // Retrieve URIs from Storage Back-end
         logger.debug("Get PSCO locations for " + this.id);

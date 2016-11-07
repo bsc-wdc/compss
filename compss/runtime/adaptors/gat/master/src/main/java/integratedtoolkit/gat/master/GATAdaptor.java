@@ -141,7 +141,7 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     public LinkedList<DataOperation> getPending() {
-        LinkedList<DataOperation> l = new LinkedList<DataOperation>();
+        LinkedList<DataOperation> l = new LinkedList<>();
 
         for (DataOperation c : copyQueue.getQueue()) {
             l.add(c);

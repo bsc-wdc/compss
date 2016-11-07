@@ -12,7 +12,7 @@ public class LocalOptimizationState {
 
     private final long updateId;
 
-    private final LinkedList<Gap> gaps = new LinkedList<Gap>();
+    private final LinkedList<Gap> gaps = new LinkedList<>();
 
     private AllocatableAction action = null;
     private ResourceDescription missingResources;
@@ -31,7 +31,7 @@ public class LocalOptimizationState {
 
     public LinkedList<Gap> reserveResources(ResourceDescription resources, long startTime) {
 
-        LinkedList<Gap> previousGaps = new LinkedList();
+        LinkedList<Gap> previousGaps = new LinkedList<>();
         // Remove requirements from resource description
         ResourceDescription requirements = resources.copy();
         Iterator<Gap> gapIt = gaps.iterator();

@@ -74,11 +74,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public AllocatableAction(SchedulingInformation<P, T> schedulingInformation) {
         id = nextId.getAndIncrement();
         state = State.RUNNABLE;
-        dataPredecessors = new LinkedList<AllocatableAction<P, T>>();
-        dataSuccessors = new LinkedList<AllocatableAction<P, T>>();
+        dataPredecessors = new LinkedList<>();
+        dataSuccessors = new LinkedList<>();
         selectedMainResource = null;
         selectedSlaveResources = null;
-        executingResources = new LinkedList<ResourceScheduler<P, T>>();
+        executingResources = new LinkedList<>();
         schedulingInfo = schedulingInformation;
     }
     
@@ -374,7 +374,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     protected abstract void doError() throws FailedActionException;
 
     public final LinkedList<AllocatableAction<P, T>> failed() {
-        LinkedList<AllocatableAction<P, T>> failed = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> failed = new LinkedList<>();
         state = State.FAILED;
 
         // Predecessors -> ignore Action

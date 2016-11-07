@@ -89,10 +89,10 @@ public abstract class NIOAgent {
         receiveTransfers = 0;
         MAX_RECEIVE_TRANSFERS = rcv;
         masterPort = port;
-        ongoingTransfers = new HashMap<Connection, String>();
-        pendingRequests = new LinkedList<DataRequest>();
-        dataToRequests = new HashMap<String, LinkedList<DataRequest>>();
-        connection2Partner = new HashMap<Connection, Integer>();
+        ongoingTransfers = new HashMap<>();
+        pendingRequests = new LinkedList<>();
+        dataToRequests = new HashMap<>();
+        connection2Partner = new HashMap<>();
         finish = false;
     }
 
@@ -275,7 +275,7 @@ public abstract class NIOAgent {
         }
         releaseReceiveSlot();
         LinkedList<DataRequest> requests = dataToRequests.remove(dataId);
-        HashMap<String, LinkedList<DataRequest>> byTarget = new HashMap<String, LinkedList<DataRequest>>();
+        HashMap<String, LinkedList<DataRequest>> byTarget = new HashMap<>();
         for (DataRequest req : requests) {
             LinkedList<DataRequest> sameTarget = byTarget.get(req.getTarget());
             if (sameTarget == null) {

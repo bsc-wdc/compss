@@ -158,6 +158,7 @@ public class ResourcesFile {
      */
     public ResourcesFile(String xmlString, String xsdPath, Logger logger)
             throws SAXException, JAXBException, ResourcesFileValidationException {
+        
         this.logger = logger;
         this.logger.info("Init Resources.xml parsing");
         if (this.logger.isDebugEnabled()) {
@@ -263,7 +264,7 @@ public class ResourcesFile {
      * @return
      */
     public List<SharedDiskType> getSharedDisks_list() {
-        ArrayList<SharedDiskType> list = new ArrayList<SharedDiskType>();
+        ArrayList<SharedDiskType> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -282,7 +283,7 @@ public class ResourcesFile {
      * @return
      */
     public List<DataNodeType> getDataNodes_list() {
-        ArrayList<DataNodeType> list = new ArrayList<DataNodeType>();
+        ArrayList<DataNodeType> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -301,7 +302,7 @@ public class ResourcesFile {
      * @return
      */
     public List<ComputeNodeType> getComputeNodes_list() {
-        ArrayList<ComputeNodeType> list = new ArrayList<ComputeNodeType>();
+        ArrayList<ComputeNodeType> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -320,7 +321,7 @@ public class ResourcesFile {
      * @return
      */
     public List<ServiceType> getServices_list() {
-        ArrayList<ServiceType> list = new ArrayList<ServiceType>();
+        ArrayList<ServiceType> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -339,7 +340,7 @@ public class ResourcesFile {
      * @return
      */
     public List<CloudProviderType> getCloudProviders_list() {
-        ArrayList<CloudProviderType> list = new ArrayList<CloudProviderType>();
+        ArrayList<CloudProviderType> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -362,7 +363,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, SharedDiskType> getSharedDisks_hashMap() {
-        HashMap<String, SharedDiskType> res = new HashMap<String, SharedDiskType>();
+        HashMap<String, SharedDiskType> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -382,7 +383,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, DataNodeType> getDataNodes_hashMap() {
-        HashMap<String, DataNodeType> res = new HashMap<String, DataNodeType>();
+        HashMap<String, DataNodeType> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -402,7 +403,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, ComputeNodeType> getComputeNodes_hashMap() {
-        HashMap<String, ComputeNodeType> res = new HashMap<String, ComputeNodeType>();
+        HashMap<String, ComputeNodeType> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -424,7 +425,7 @@ public class ResourcesFile {
      * @return Map of Compute Node name: Mount point
      */
     public HashMap<String, String> getDiskMountPointsInComputeNodes(String diskName) {
-        HashMap<String, String> mountPoints = new HashMap<String, String>();
+        HashMap<String, String> mountPoints = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -447,7 +448,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, ServiceType> getServices_hashMap() {
-        HashMap<String, ServiceType> res = new HashMap<String, ServiceType>();
+        HashMap<String, ServiceType> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -467,7 +468,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, List<ServiceType>> getServices_byName() {
-        HashMap<String, List<ServiceType>> res = new HashMap<String, List<ServiceType>>();
+        HashMap<String, List<ServiceType>> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -479,7 +480,7 @@ public class ResourcesFile {
                         auxServicesList = res.get(serviceName);
                         auxServicesList.add((ServiceType) obj);
                     } else {
-                        auxServicesList = new ArrayList<ServiceType>();
+                        auxServicesList = new ArrayList<>();
                     }
                     res.put(serviceName, auxServicesList);
                 }
@@ -495,7 +496,7 @@ public class ResourcesFile {
      * @return
      */
     public HashMap<String, CloudProviderType> getCloudProviders_hashMap() {
-        HashMap<String, CloudProviderType> res = new HashMap<String, CloudProviderType>();
+        HashMap<String, CloudProviderType> res = new HashMap<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -519,7 +520,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getSharedDisks_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -538,7 +539,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getDataNodes_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -557,7 +558,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getComputeNodes_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -576,7 +577,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getServices_wsdls() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -595,7 +596,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getServices_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -617,7 +618,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getCloudProviders_names() {
-        ArrayList<String> list = new ArrayList<String>();
+        ArrayList<String> list = new ArrayList<>();
         List<Object> objList = this.resources.getSharedDiskOrDataNodeOrComputeNode();
         if (objList != null) {
             for (Object obj : objList) {
@@ -788,7 +789,7 @@ public class ResourcesFile {
      * @return
      */
     public List<ProcessorType> getProcessors(ComputeNodeType c) {
-        List<ProcessorType> processors = new ArrayList<ProcessorType>();
+        List<ProcessorType> processors = new ArrayList<>();
 
         List<Object> objList = c.getProcessorOrAdaptorsOrMemory();
         if (objList != null) {
@@ -1029,7 +1030,7 @@ public class ResourcesFile {
             for (Object obj : objList) {
                 if (obj instanceof AttachedDisksListType) {
                     AttachedDisksListType disks = (AttachedDisksListType) obj;
-                    HashMap<String, String> disksInformation = new HashMap<String, String>();
+                    HashMap<String, String> disksInformation = new HashMap<>();
                     for (AttachedDiskType disk : disks.getAttachedDisk()) {
                         disksInformation.put(disk.getName(), disk.getMountPoint());
                     }
@@ -1068,7 +1069,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getAdaptorQueues(ComputeNodeType cn, String adaptorName) {
-        List<String> empty_queues = new ArrayList<String>();
+        List<String> empty_queues = new ArrayList<>();
 
         List<Object> objList = cn.getProcessorOrAdaptorsOrMemory();
         if (objList != null) {
@@ -1526,7 +1527,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getAdaptorQueues(ImageType image, String adaptorName) {
-        List<String> empty_queues = new ArrayList<String>();
+        List<String> empty_queues = new ArrayList<>();
 
         List<Object> objList = image.getAdaptorsOrOperatingSystemOrSoftware();
         if (objList != null) {
@@ -1589,7 +1590,7 @@ public class ResourcesFile {
      * @return
      */
     public List<ProcessorType> getProcessors(InstanceTypeType instance) {
-        List<ProcessorType> processors = new ArrayList<ProcessorType>();
+        List<ProcessorType> processors = new ArrayList<>();
 
         List<Object> objList = instance.getProcessorOrMemoryOrStorage();
         if (objList != null) {
@@ -1727,7 +1728,7 @@ public class ResourcesFile {
      * @return
      */
     public List<String> getAdaptorQueues(AdaptorType adaptor) {
-        List<String> empty_queues = new ArrayList<String>();
+        List<String> empty_queues = new ArrayList<>();
 
         List<JAXBElement<?>> innerElements = adaptor.getSubmissionSystemOrPortsOrBrokerAdaptor();
         if (innerElements != null) {
@@ -2331,13 +2332,13 @@ public class ResourcesFile {
     		float memorySize, String memoryType, float storageSize, String storageType, String osType, String osDistribution, String osVersion)
             throws InvalidElementException {
 
-        List<ProcessorType> processors = new ArrayList<ProcessorType>();
+        List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         processors.add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         StorageType storage = createStorage(storageSize, storageType);
         OSType os = createOperatingSystem(osType, osDistribution, osVersion);
-        List<AdaptorType> adaptors = new ArrayList<AdaptorType>();
+        List<AdaptorType> adaptors = new ArrayList<>();
         NIOAdaptorProperties nioProp = new NIOAdaptorProperties();
         nioProp.setMaxPort(maxPort);
         nioProp.setMinPort(minPort);
@@ -2396,13 +2397,13 @@ public class ResourcesFile {
             String brokerAdaptor, String user, float memorySize, String memoryType, float storageSize, String storageType, String osType,
             String osDistribution, String osVersion) throws InvalidElementException {
 
-        List<ProcessorType> processors = new ArrayList<ProcessorType>();
+        List<ProcessorType> processors = new ArrayList<>();
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
         processors.add(pr);
         MemoryType mem = createMemory(memorySize, memoryType);
         StorageType storage = createStorage(storageSize, storageType);
         OSType os = createOperatingSystem(osType, osDistribution, osVersion);
-        List<AdaptorType> adaptors = new ArrayList<AdaptorType>();
+        List<AdaptorType> adaptors = new ArrayList<>();
         AdaptorType adaptor = ResourcesFile.createAdaptor(adaptorName, batch, queues, interactive, brokerAdaptor, user);
         adaptors.add(adaptor);
         return this.addComputeNode(name, processors, adaptors, mem, storage, os, null, null, null);
@@ -2753,6 +2754,7 @@ public class ResourcesFile {
 
     public static ImageType createImage(String name, String adaptorName, boolean batch, List<String> queues, boolean interactive,
             String brokerAdaptor, String user, String osType, String osDistribution, String osVersion) {
+        
         ImageType image = new ImageType();
         image.setName(name);
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -2767,6 +2769,7 @@ public class ResourcesFile {
 
     public static ImageType createImage(String name, String adaptorName, int maxPort, int minPort, String executor, String user,
             String osType, String osDistribution, String osVersion) {
+        
         ImageType image = new ImageType();
         image.setName(name);
         AdaptorsListType adaptorsList = new AdaptorsListType();
@@ -2785,6 +2788,7 @@ public class ResourcesFile {
 
     public static InstanceTypeType createInstance(String name, String procName, int procCU, String procArch, float procSpeed, String procType, 
     		float procMemSize, ProcessorPropertyType procProp, float memorySize, String memoryType, float storageSize, String storageType) {
+        
         InstanceTypeType instance = new InstanceTypeType();
         instance.setName(name);
         ProcessorType pr = createProcessor(procName, procCU, procArch, procSpeed, procType, procMemSize, procProp);
@@ -2961,6 +2965,7 @@ public class ResourcesFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             NIOAdaptorProperties nioproperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -2998,6 +3003,7 @@ public class ResourcesFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive, String gatproperties,
             String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -3029,6 +3035,7 @@ public class ResourcesFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             ExternalAdaptorProperties externalProperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -3060,6 +3067,7 @@ public class ResourcesFile {
      */
     public static AdaptorType createAdaptor(String name, boolean batch, List<String> queues, boolean interactive,
             List<PropertyAdaptorType> externalProperties, String user) {
+        
         SubmissionSystemType subsys = new SubmissionSystemType();
         if (batch) {
             BatchType b = new BatchType();
@@ -3163,7 +3171,8 @@ public class ResourcesFile {
     }
 
     /*
-     * ************************************** GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
+     * ************************************** 
+     * GETTERS: HELPERS FOR SECOND LEVEL ELEMENTS
      **************************************/
     /**
      * Returns the number of Compunting Units of a given processor @p

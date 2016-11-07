@@ -19,12 +19,12 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
 
     @SuppressWarnings("unchecked")
     public ActionSet() {
-        noCore = new LinkedList<AllocatableAction<P, T>>();
+        noCore = new LinkedList<>();
         int coreCount = CoreManager.getCoreCount();
         coreIndexed = new LinkedList[coreCount];
         counts = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList<AllocatableAction<P, T>>();
+            coreIndexed[coreId] = new LinkedList<>();
             counts[coreId] = 0;
         }
     }
@@ -41,7 +41,7 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
             counts[coreId] = this.counts[coreId];
         }
         for (; coreId < newCoreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList<AllocatableAction<P, T>>();
+            coreIndexed[coreId] = new LinkedList<>();
             counts[coreId] = 0;
         }
         this.coreIndexed = coreIndexed;
@@ -60,7 +60,7 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
     }
 
     public LinkedList<AllocatableAction<P, T>> removeAllCompatibleActions(Worker<T> r) {
-        LinkedList<AllocatableAction<P, T>> runnable = new LinkedList<AllocatableAction<P, T>>();
+        LinkedList<AllocatableAction<P, T>> runnable = new LinkedList<>();
         Iterator<AllocatableAction<P, T>> actions = noCore.iterator();
         while (actions.hasNext()) {
             AllocatableAction<P, T> action = actions.next();
@@ -73,7 +73,7 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription> {
         LinkedList<Integer> executableCores = r.getExecutableCores();
         for (int core : executableCores) {
             runnable.addAll(coreIndexed[core]);
-            coreIndexed[core] = new LinkedList<AllocatableAction<P, T>>();
+            coreIndexed[core] = new LinkedList<>();
             counts[core] = 0;
         }
         return runnable;

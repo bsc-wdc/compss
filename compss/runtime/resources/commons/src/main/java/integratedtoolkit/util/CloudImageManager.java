@@ -34,7 +34,7 @@ public class CloudImageManager {
      */
     public CloudImageManager() {
         logger.info("Initializing CloudImageManager");
-        images = new HashMap<String, CloudImageDescription>();
+        images = new HashMap<>();
     }
 
     /**
@@ -57,7 +57,7 @@ public class CloudImageManager {
      */
     public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
         // logger.debug("REQUESTED: " + requested.toString());
-        LinkedList<CloudImageDescription> compatiblesList = new LinkedList<CloudImageDescription>();
+        LinkedList<CloudImageDescription> compatiblesList = new LinkedList<>();
         for (CloudImageDescription cid : images.values()) {
             // logger.debug("CID: " + cid.toString());
 

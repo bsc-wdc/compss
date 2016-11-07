@@ -21,7 +21,7 @@ public class ResourcesViewModel {
 
     @Init
     public void init() {
-        resources = new LinkedList<Resource>();
+        resources = new LinkedList<>();
     }
 
     public List<Resource> getResources() {

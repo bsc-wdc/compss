@@ -64,7 +64,8 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         public LinkedList<SchedulingEvent<P, T>> process(LocalOptimizationState state, DefaultResourceScheduler<P, T> worker,
                 PriorityQueue<AllocatableAction<P, T>> readyActions, PriorityActionSet<P, T> selectableActions,
                 PriorityQueue<AllocatableAction<P, T>> rescheduledActions) {
-            LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
+            
+            LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<>();
             DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
 
             // Set the expected Start time and endTime of the action
@@ -72,7 +73,7 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
             long expectedEndTime = getExpectedEnd(action, worker, expectedTimeStamp);
             dsi.setExpectedEnd(expectedEndTime);
             // Add corresponding end event
-            SchedulingEvent<P, T> endEvent = new End<P, T>(expectedEndTime, action);
+            SchedulingEvent<P, T> endEvent = new End<>(expectedEndTime, action);
             enabledEvents.add(endEvent);
 
             // Remove resources from the state and fill the gaps before its execution
@@ -110,8 +111,9 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         private PriorityQueue<Gap> fillGap(DefaultResourceScheduler<P, T> worker, Gap gap,
                 PriorityQueue<AllocatableAction<P, T>> readyActions, PriorityActionSet<P, T> selectableActions,
                 PriorityQueue<AllocatableAction<P, T>> rescheduledActions, LocalOptimizationState state) {
+            
             // Find selected action predecessors
-            PriorityQueue<Gap> availableGaps = new PriorityQueue<Gap>(1, new Comparator<Gap>() {
+            PriorityQueue<Gap> availableGaps = new PriorityQueue<>(1, new Comparator<Gap>() {
 
                 @Override
                 public int compare(Gap g1, Gap g2) {
@@ -255,7 +257,8 @@ public abstract class SchedulingEvent<P extends Profile, T extends WorkerResourc
         public LinkedList<SchedulingEvent<P, T>> process(LocalOptimizationState state, DefaultResourceScheduler<P, T> worker,
                 PriorityQueue<AllocatableAction<P, T>> readyActions, PriorityActionSet<P, T> selectableActions,
                 PriorityQueue<AllocatableAction<P, T>> rescheduledActions) {
-            LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<SchedulingEvent<P, T>>();
+            
+            LinkedList<SchedulingEvent<P, T>> enabledEvents = new LinkedList<>();
             DefaultSchedulingInformation<P, T> dsi = (DefaultSchedulingInformation<P, T>) action.getSchedulingInfo();
             dsi.setOnOptimization(false);
 

@@ -23,7 +23,7 @@ public class GetResultFilesRequest extends APRequest {
     public GetResultFilesRequest(Long appId, Semaphore sem) {
         this.appId = appId;
         this.sem = sem;
-        blockedData = new LinkedList<ResultFile>();
+        blockedData = new LinkedList<>();
     }
 
     public Long getAppId() {

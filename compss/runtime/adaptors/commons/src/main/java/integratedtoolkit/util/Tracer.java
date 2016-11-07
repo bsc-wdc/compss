@@ -164,7 +164,7 @@ public abstract class Tracer {
         }
 
         hostId = new AtomicInteger(1);
-        hostToSlots = new HashMap<String, TraceHost>();
+        hostToSlots = new HashMap<>();
 
         traceDirPath = Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator;
         if (!new File(traceDirPath).mkdir()) {

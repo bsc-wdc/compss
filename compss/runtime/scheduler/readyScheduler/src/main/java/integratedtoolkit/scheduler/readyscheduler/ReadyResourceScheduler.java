@@ -27,8 +27,8 @@ public class ReadyResourceScheduler<P extends Profile, T extends WorkerResourceD
             long implScore = this.getProfile(impl).getAverageExecutionTime();
             return new Score(resourceScore, 3, (double)(1/(double)implScore));
         } else {
-            //return null;
         	return super.getImplementationScore(action, params, impl, resourceScore);
+        	//return null;
         }
     }
     

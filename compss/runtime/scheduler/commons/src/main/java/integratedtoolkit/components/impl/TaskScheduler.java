@@ -109,7 +109,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     	}
     	LinkedList<AllocatableAction<P, T>> dataFreeActions = action.completed();
     	for (AllocatableAction<P, T> dataFreeAction : dataFreeActions) {
-    		if (dataFreeAction != null && dataFreeAction.isNotScheduling()){
+    		//if (dataFreeAction != null && dataFreeAction.isNotScheduling()){
     			if (dataFreeAction.getImplementations().length > 0) {
     				Integer coreId = dataFreeAction.getImplementations()[0].getCoreId();
     				if (coreId != null) {
@@ -124,46 +124,48 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     					blockedActions.addAction(dataFreeAction);
     				}
     			}
-    		}
-    		LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
-    		workerLoadUpdate((ResourceScheduler<P, T>) action.getAssignedResource());
-    		HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<>();
-    		freeTasks.addAll(dataFreeActions);
-    		freeTasks.addAll(resourceFree);
-    		for (AllocatableAction<P, T> a : freeTasks) {
-    			if (a != null && !a.isLocked() && !a.isRunning()){
+    		//}
+    	}
+    	LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
+    	workerLoadUpdate((ResourceScheduler<P, T>) action.getAssignedResource());
+    	HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<>();
+    	freeTasks.addAll(dataFreeActions);
+    	freeTasks.addAll(resourceFree);
+    	for (AllocatableAction<P, T> a : freeTasks) {
+    		//if (a != null && !a.isLocked() && !a.isRunning()){
+    			try { 
     				try {
-    					try {
-    						a.tryToLaunch();
-    					} catch (InvalidSchedulingException ise) {
-    						Score aScore = getActionScore(a);
-    						boolean keepTrying = true;
-    						for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-    							AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
-    							action.schedule(pre.getAssignedResource(), aScore);
-    							try {
-    								action.tryToLaunch();
-    								keepTrying = false;
-    							} catch (InvalidSchedulingException ise2) {
-    								// Try next predecessor
-    								keepTrying = true;
-    							}
+    					a.tryToLaunch();
+    				} catch (InvalidSchedulingException ise) {
+    					Score aScore = getActionScore(a);
+    					boolean keepTrying = true;
+    					for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
+    						AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
+    						action.schedule(pre.getAssignedResource(), aScore);
+    						try {
+    							action.tryToLaunch();
+    							keepTrying = false;
+    						} catch (InvalidSchedulingException ise2) {
+    							// Try next predecessor
+    							keepTrying = true;
     						}
     					}
-
-    				} catch (UnassignedActionException ure) {
-    					StringBuilder info = new StringBuilder("Scheduler has lost track of action ");
-    					info.append(action.toString());
-    					ErrorManager.fatal(info.toString());
-    				} catch (BlockedActionException bae) {
-    					if (a != null && !a.isLocked() && !a.isRunning()){
-    						logger.info("Blocked Action: " + a, bae);
-    						blockedActions.addAction(a);
-    					}
     				}
+
+    			} catch (UnassignedActionException ure) {
+    				StringBuilder info = new StringBuilder("Scheduler has lost track of action ");
+    				info.append(action.toString());
+    				ErrorManager.fatal(info.toString());
+    			} catch (BlockedActionException bae) {
+    				//if (a != null && !a.isLocked() && !a.isRunning()){
+    					logger.info("Blocked Action: " + a, bae);
+    					blockedActions.addAction(a);
+    				//}
     			}
-    		}
-        }
+    		//}
+    	}
+
+
     }
 
     /**

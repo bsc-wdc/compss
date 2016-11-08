@@ -42,6 +42,22 @@ public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
     public boolean hasAvailable(WorkerResourceDescription consumption) {
         return true;
     }
+    
+    @Override
+    public boolean usesGPU(WorkerResourceDescription consumption){
+    	logger.debug("fake worker <T>");
+    	return false;
+    }
+    
+    @Override
+    public boolean usesFPGA(WorkerResourceDescription consumption){
+    	return false;
+    }
+    
+    @Override
+    public boolean usesOthers(WorkerResourceDescription consumption){
+    	return false;
+    }
 
     @Override
     public T reserveResource(T consumption) {

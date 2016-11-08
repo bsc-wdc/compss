@@ -2,6 +2,7 @@ package integratedtoolkit.types.fake;
 
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.Worker;
 
 
@@ -72,6 +73,22 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
         synchronized (available) {
             return available.canHost(consumption);
         }
+    }
+    
+    @Override
+    public boolean usesGPU(FakeResourceDescription consumption){
+    	logger.debug("fake worker");
+    	return false;
+    }
+    
+    @Override
+    public boolean usesFPGA(FakeResourceDescription consumption){
+    	return false;
+    }
+    
+    @Override
+    public boolean usesOthers(FakeResourceDescription consumption){
+    	return false;
     }
 
     @Override

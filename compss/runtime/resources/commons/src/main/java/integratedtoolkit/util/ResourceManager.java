@@ -256,13 +256,48 @@ public class ResourceManager {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
-        int computingUnits = rd.getTotalCPUComputingUnits();
+        int computingUnits = rd.getTotalCPUComputingUnits();       
+        
         if (limitOfTasks < 0 && computingUnits < 0) {
             taskCount = 0;
         } else {
             taskCount = Math.max(limitOfTasks, computingUnits);
         }
         mc.setLimitOfTasks(taskCount);
+        
+        
+        limitOfTasks = mc.getLimitOfGPUTasks();
+        computingUnits = rd.getTotalGPUComputingUnits();       
+               
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
+        }
+        mc.setLimitOfGPUTasks(taskCount);
+        
+        
+        limitOfTasks = mc.getLimitOfFPGATasks();
+        computingUnits = rd.getTotalFPGAComputingUnits();       
+              
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
+        }
+        mc.setLimitOfFPGATasks(taskCount);
+        
+        
+        limitOfTasks = mc.getLimitOfOTHERSTasks();
+        computingUnits = rd.getTotalOTHERComputingUnits();       
+        
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            taskCount = 0;
+        } else {
+            taskCount = Math.max(limitOfTasks, computingUnits);
+        }
+        mc.setLimitOfOTHERSTasks(taskCount);
+        
         MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
         addStaticResource(newResource);
     }

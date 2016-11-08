@@ -106,12 +106,14 @@ public abstract class Executor implements Runnable {
         // Execute task
         try {
             int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits());
-            executeTask(nw, nt, outputsBasename, assignedCoreUnits);
+            int[] assignedGPUs = nw.bindGPUs(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits());
+            executeTask(nw, nt, outputsBasename, assignedCoreUnits, assignedGPUs);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return false;
         } finally {
             nw.releaseCoreUnits(nt.getJobId());
+            nw.releaseGPUs(nt.getJobId());
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
             }
@@ -122,7 +124,7 @@ public abstract class Executor implements Runnable {
 
     public abstract void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs);
 
-    public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) throws Exception;
+    public abstract void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) throws Exception;
 
     public abstract void finish();
 

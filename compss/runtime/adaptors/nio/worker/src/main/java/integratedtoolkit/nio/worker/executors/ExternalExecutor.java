@@ -76,11 +76,11 @@ public abstract class ExternalExecutor extends Executor {
     }
 
     @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) throws Exception {
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) throws Exception {
         // Check if it is a native method or not
         switch(nt.getMethodType()) {
             case METHOD:
-                executeNativeMethod(nw, nt, outputsBasename, assignedCoreUnits);
+                executeNativeMethod(nw, nt, outputsBasename, assignedCoreUnits, assignedGPUs);
                 break;
             case BINARY:
                 BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, assignedCoreUnits);
@@ -101,10 +101,10 @@ public abstract class ExternalExecutor extends Executor {
         }
     }
     
-    private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) 
+    private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) 
             throws JobExecutionException, SerializedObjectException {
         
-        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir(), assignedCoreUnits);
+        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir(), assignedCoreUnits, assignedGPUs);
         addArguments(args, nt, nw);
         String externalCommand = getArgumentsAsString(args);
 
@@ -181,7 +181,7 @@ public abstract class ExternalExecutor extends Executor {
         logger.info("End Finishing ExternalExecutor");
     }
 
-    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits);
+    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs);
 
     private String getArgumentsAsString(ArrayList<String> args) {
         StringBuilder sb = new StringBuilder();

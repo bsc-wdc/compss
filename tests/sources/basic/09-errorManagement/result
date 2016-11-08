@@ -13,11 +13,11 @@
      result_expected="Error running application"
      test_result=$(cat ${output_file_testNonExistingInFile} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "1 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "1b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
      exit 1
   fi
 
@@ -25,11 +25,11 @@
      result_expected="Error running application"
      test_result=$(cat ${output_file_testReschedulingFail} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "2 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "2b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
      exit 1
   fi
 
@@ -37,11 +37,11 @@
      result_expected="Error running application"
      test_result=$(cat ${output_file_testAllBlocked} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "3 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
         exit 1
      fi
   else
-     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "3b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
      exit 1
   fi
 

@@ -236,6 +236,7 @@ get_args() {
             ;;
           gpus_per_node=*)
             gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
+            args_pass="$args_pass --$OPTARG"
             ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')

@@ -296,13 +296,16 @@ public class DataInfoProvider {
     }
 
     public LogicalData transferObjectValue(TransferObjectRequest toRequest) {
-        Semaphore sem = toRequest.getSemaphore();
+    	
+    	Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
-
+        
         String sourceName = rwaId.getReadDataInstance().getRenaming();
         // String targetName = rwaId.getWrittenDataInstance().getRenaming();
-
+        if (debug) {
+            logger.debug("Requesting getting object " + sourceName );
+        }
         LogicalData ld = Comm.getData(sourceName);
         
         if (ld == null) {
@@ -326,6 +329,9 @@ public class DataInfoProvider {
             toRequest.setTargetData(ld);
             toRequest.getSemaphore().release();
         } else {
+        	 if (debug) {
+                 logger.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
+             }
             DataLocation targetLocation = null;
             String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
             try {

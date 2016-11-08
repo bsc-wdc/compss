@@ -328,9 +328,9 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         for (AllocatableAction<P, T> aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
             if (!aa.hasDataPredecessors()) { 
-            	//if (!aa.isLocked()&&!aa.isRunning()) {          	
+            	if (!aa.isLocked()&&!aa.isRunning()) {          	
                      freeTasks.add(aa);
-                //}
+                }
             }
         }
         dataSuccessors.clear();

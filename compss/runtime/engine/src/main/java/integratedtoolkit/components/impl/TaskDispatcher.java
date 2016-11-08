@@ -96,8 +96,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     // Dispatcher thread
     public void run() {
         while (keepGoing) {
-            try {
+            String requestType="Not defined";
+        	try {
                 TDRequest<P, T> request = requestQueue.take();
+                requestType = request.getType().toString();
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
                 }
@@ -118,7 +120,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
-                logger.error("RequestError", e);
+                logger.error("Error in request "+ requestType, e);
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }

@@ -327,8 +327,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         // Release data dependencies of the task
         for (AllocatableAction<P, T> aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
-            if (!aa.isLocked()&&!aa.isRunning()) {          	
-                freeTasks.add(aa);
+            if (!aa.hasDataPredecessors()) { 
+            	//if (!aa.isLocked()&&!aa.isRunning()) {          	
+                     freeTasks.add(aa);
+                //}
             }
         }
         dataSuccessors.clear();

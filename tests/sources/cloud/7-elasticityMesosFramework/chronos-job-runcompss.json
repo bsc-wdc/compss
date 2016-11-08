@@ -1,0 +1,32 @@
+{
+    "name": "COMPSs_cloud_test",
+    "command": "/home/alberts/compssBuilds/COMPSs//Runtime/scripts/user/runcompss --project=/home/alberts/tests_cloud_vpn/apps_cloud/app07/project_mesosFramework.xml --resources=/home/alberts/tests_cloud_vpn/apps_cloud/app07/resources_mesosFramework.xml --debug --comm=integratedtoolkit.nio.master.NIOAdaptor --lang=java --classpath=/home/alberts/tests_cloud_vpn/apps_cloud/app07/Simple.jar simple.Simple 1 100 1 4 30",
+    "shell": true,
+    "epsilon": "PT30M",
+    "executor": "",
+    "executorFlags": "",
+    "retries": 2,
+    "owner": "albert.serven@bsc.es",
+    "async": false,
+    "successCount": 190,
+    "errorCount": 3,
+    "lastSuccess": "2014-03-08T16:57:17.507Z",
+    "lastError": "2014-03-01T00:10:15.957Z",
+    "cpus": 1.0,
+    "disk": 10240,
+    "mem": 1024,
+    "disabled": false,
+    "uris": [],
+    "schedule": "R1/2016-10-24T10:15.000Z/PT24H",
+    "environmentVariables": [
+        {
+            "name": "MESOS_NATIVE_JAVA_LIBRARY",
+            "value": "/home/alberts/Downloads/mesos-0.28.2/build/src/.libs/libmesos.so"
+        },
+        {
+            "name": "JAVA_HOME",
+            "value": "/usr/java/latest/"
+        }
+    ]
+}
+

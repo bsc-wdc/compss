@@ -17,6 +17,9 @@ public class MethodConfiguration extends Configuration {
     private String sandboxWorkingDir;
 
     private int totalComputingUnits = 0;
+    private int totalGPUComputingUnits = 0;
+    private int totalFPGAComputingUnits = 0;
+    private int totalOTHERComputingUnits = 0;
 
     private String appDir = "";
     private String classpath = "";
@@ -37,6 +40,9 @@ public class MethodConfiguration extends Configuration {
         workingDir = clone.workingDir;
 
         totalComputingUnits = clone.totalComputingUnits;
+        totalGPUComputingUnits = clone.totalGPUComputingUnits;
+        totalFPGAComputingUnits = clone.totalFPGAComputingUnits;
+        totalOTHERComputingUnits = clone.totalOTHERComputingUnits;
 
         appDir = clone.appDir;
         classpath = clone.classpath;
@@ -100,6 +106,47 @@ public class MethodConfiguration extends Configuration {
             this.totalComputingUnits = 0;
         }
     }
+    
+    
+    public int getTotalGPUComputingUnits() {
+        return totalGPUComputingUnits;
+    }
+
+    public void setTotalGPUComputingUnits(int totalGPUs) {
+        if (totalGPUs > 0) {
+            this.totalGPUComputingUnits = totalGPUs;
+        } else {
+            this.totalGPUComputingUnits = 0;
+        }
+    }
+    
+    
+    public int getTotalFPGAComputingUnits() {
+        return totalFPGAComputingUnits;
+    }
+
+    public void setTotalFPGAComputingUnits(int totalFPGAs) {
+        if (totalFPGAs > 0) {
+            this.totalFPGAComputingUnits = totalFPGAs;
+        } else {
+            this.totalFPGAComputingUnits = 0;
+        }
+    }
+    
+    
+    public int getTotalOTHERComputingUnits() {
+        return totalOTHERComputingUnits;
+    }
+
+    public void setTotalOTHERComputingUnits(int totalOTHERs) {
+        if (totalOTHERs > 0) {
+            this.totalOTHERComputingUnits = totalOTHERs;
+        } else {
+            this.totalOTHERComputingUnits = 0;
+        }
+    }
+    
+    
 
     public String getAppDir() {
         return appDir;

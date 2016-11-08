@@ -295,6 +295,9 @@ public class WorkerStarter {
         // Storage parameters
         cmd[nextPosition++] = storageConf;
         cmd[nextPosition++] = executionType;
+        
+        //GPU parameters
+        //cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
 
         return cmd;
     }

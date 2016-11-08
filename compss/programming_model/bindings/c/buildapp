@@ -76,6 +76,13 @@ if [ "${WITH_OMPSS}" != "" ]; then
     export CXXFLAGS="--ompss"
   fi
 fi
+if [ "${WITH_CUDA}" != "" ]; then
+  # Flag is defined, check value
+  if [ $WITH_CUDA == 1 ]; then
+    LDFLAGS="$LDFLAGS -L/opt/cuda/7.0/lib64 -lcudart"
+  fi
+fi
+
 $GS_HOME/bin/gsbuild build worker $@
 if [ $? -ne 0 ]; then
     echo " "

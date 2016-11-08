@@ -297,6 +297,9 @@ public class ResourceLoader {
             config.setLimitOfTasks(mrd.getTotalCPUComputingUnits());
         }
         config.setTotalComputingUnits(mrd.getTotalCPUComputingUnits());
+        config.setTotalGPUComputingUnits(mrd.getTotalGPUComputingUnits());
+        config.setTotalFPGAComputingUnits(mrd.getTotalFPGAComputingUnits());
+        config.setTotalOTHERComputingUnits(mrd.getTotalOTHERComputingUnits());
 
         ApplicationType app = project.getApplication(cn_project);
         if (app != null) {

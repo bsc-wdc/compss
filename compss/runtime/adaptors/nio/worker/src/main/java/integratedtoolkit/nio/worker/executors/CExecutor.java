@@ -25,9 +25,9 @@ public class CExecutor extends ExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits) {
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs) {
         ArrayList<String> lArgs = new ArrayList<>();
-
+        
         // NX_ARGS string built from the Resource Description
         StringBuilder reqs = new StringBuilder();
         int numCUs = nt.getResourceDescription().getTotalCPUComputingUnits();
@@ -38,6 +38,17 @@ public class CExecutor extends ExternalExecutor {
             reqs.append(" --summary");
         }
         reqs.append("' ");
+        
+        StringBuilder cuda_visible = new StringBuilder();
+        
+        if (assignedGPUs.length > 0){
+        	String quotes = "\"";
+        	cuda_visible.append("CUDA_VISIBLE_DEVICES=").append(quotes);
+        	for (int i = 0; i < (assignedGPUs.length - 1); i++){
+        		cuda_visible.append(assignedGPUs[i]).append(",");
+        	}
+        	cuda_visible.append(assignedGPUs[assignedGPUs.length - 1]).append(quotes).append(" ");
+        }
            
         // Taskset string to bind the job
 		StringBuilder taskset = new StringBuilder();
@@ -47,8 +58,8 @@ public class CExecutor extends ExternalExecutor {
 		}
 		
 		taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
-
-        lArgs.add(reqs.toString() + taskset.toString() + nw.getAppDir() + WORKER_C_RELATIVE_PATH);
+		
+        lArgs.add(cuda_visible.toString() + reqs.toString() + taskset.toString() +  nw.getAppDir() + WORKER_C_RELATIVE_PATH);
 
         return lArgs;
     }

@@ -77,6 +77,21 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
             return available.containsDynamic(consumption);
         }
     }
+    
+    @Override
+    public boolean usesGPU(MethodResourceDescription consumption){
+    	return (consumption.getTotalGPUComputingUnits() > 0);
+    }
+    
+    @Override
+    public boolean usesFPGA(MethodResourceDescription consumption){
+    	return (consumption.getTotalFPGAComputingUnits() > 0);
+    }
+    
+    @Override
+    public boolean usesOthers(MethodResourceDescription consumption){
+    	return (consumption.getTotalOTHERComputingUnits() > 0);
+    }
 
     @Override
     public Integer fitCount(Implementation<?> impl) {

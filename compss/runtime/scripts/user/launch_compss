@@ -312,6 +312,9 @@ get_args() {
         sc_cfg=*)
           sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
           ;;
+        gpus_per_node=*)
+          gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
+          ;;
         tasks_per_node=*)
           tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
           ;;
@@ -729,6 +732,7 @@ log_variables() {
   echo "Master:                    ${master_node}"
   echo "Workers:                   ${worker_nodes}"
   echo "Tasks per Node:            ${tasks_per_node}"
+  echo "Gpus per Node:             ${gpus_per_node}"
   echo "Network:                   ${network}"
   echo "Worker in Master Tasks:    ${worker_in_master_tasks}"
   echo "Worker in Master Memory:   ${worker_in_master_memory}"
@@ -778,7 +782,7 @@ create_xml_files() {
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
-    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory}
+    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory} ${gpus_per_node}
   done
 
   # Finish the resources file and the project file 
@@ -961,6 +965,7 @@ add_compute_node() {
   local nodeName=$1
   local cus=$2
   local memory=$3
+  local gpus=$4
 
   ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
 
@@ -971,6 +976,7 @@ add_compute_node() {
           <Architecture>Intel</Architecture>
           <Speed>2.6</Speed>
       </Processor>
+
       <OperatingSystem>
           <Type>Linux</Type>
           <Distribution>SMP</Distribution>
@@ -1028,7 +1034,6 @@ EOT
       <WorkingDir>${worker_working_dir}</WorkingDir>
       <Application>
           <LibraryPath>${library_path}</LibraryPath>
-	  <AppDir>${appdir}</AppDir>
       </Application>
   </ComputeNode>
 

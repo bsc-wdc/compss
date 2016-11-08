@@ -8,6 +8,9 @@ public class Configuration {
     private final String adaptorName;
     private final HashMap<String, String> additionalProperties = new HashMap<String, String>();
     private int limitOfTasks = -1;
+    private int limitOfGPUTasks = -1;
+    private int limitOfFPGATasks = -1;
+    private int limitOfOTHERSTasks = -1;
 
 
     /**
@@ -89,4 +92,62 @@ public class Configuration {
         this.limitOfTasks = limitOfTasks;
     }
 
+    
+    /**
+     * Gets the limit of GPU tasks
+     *
+     * @return
+     */
+    public int getLimitOfGPUTasks() {
+        return limitOfGPUTasks;
+    }
+
+    /**
+     * Sets the limit of GPU tasks
+     *
+     * @param limitOfGPUTasks
+     */
+    public void setLimitOfGPUTasks(int limitOfGPUTasks) {
+        this.limitOfGPUTasks = limitOfGPUTasks;
+    }
+    
+    
+    /**
+     * Gets the limit of FPGA tasks
+     *
+     * @return
+     */
+    public int getLimitOfFPGATasks() {
+        return limitOfFPGATasks;
+    }
+
+    /**
+     * Sets the limit of FPGA tasks
+     *
+     * @param limitOfFPGATasks
+     */
+    public void setLimitOfFPGATasks(int limitOfFPGATasks) {
+        this.limitOfFPGATasks = limitOfFPGATasks;
+    }
+    
+    
+    /**
+     * Gets the limit of OTHERS tasks
+     *
+     * @return
+     */
+    public int getLimitOfOTHERSTasks() {
+        return limitOfOTHERSTasks;
+    }
+
+    /**
+     * Sets the limit of OTHERS tasks
+     *
+     * @param limitOfOTHERSTasks
+     */
+    public void setLimitOfOTHERSTasks(int limitOfOTHERSTasks) {
+        this.limitOfOTHERSTasks = limitOfOTHERSTasks;
+    }
+    
+    
 }

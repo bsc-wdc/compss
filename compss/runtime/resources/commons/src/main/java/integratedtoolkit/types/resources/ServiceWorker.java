@@ -53,6 +53,22 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     public boolean hasAvailable(ServiceResourceDescription consumption) {
         return true;
     }
+    
+    @Override
+    public boolean usesGPU(ServiceResourceDescription consumption){
+    	logger.debug("service worker");
+    	return false;
+    }
+    
+    @Override
+    public boolean usesFPGA(ServiceResourceDescription consumption){
+    	return false;
+    }
+    
+    @Override
+    public boolean usesOthers(ServiceResourceDescription consumption){
+    	return false;
+    }
 
     @Override
     public ServiceResourceDescription reserveResource(ServiceResourceDescription consumption) {

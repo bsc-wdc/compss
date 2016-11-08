@@ -38,6 +38,7 @@ import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
+import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableGPUsException;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
@@ -89,8 +90,9 @@ public class NIOWorker extends NIOAgent {
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
     
-    // Bound CoreUnits
+    // Bound Resources
     private int[] boundCoreUnits;
+    private int[] boundGPUs;
 
     static {
         try {
@@ -105,7 +107,7 @@ public class NIOWorker extends NIOAgent {
 
 
     public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, String appUuid, String lang, String hostName, String workingDir,
-            String installDir, String appDir, String libPath, String classpath, String pythonpath) {
+            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs) {
 
         super(snd, rcv, masterPort);
 
@@ -123,12 +125,18 @@ public class NIOWorker extends NIOAgent {
         this.classpath = classpath.equals("null") ? "" : classpath;
         this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;
         
-        // Set every CoreUnit assigned job to -1 (no job assigned to that CU)
+        // Set every resource assigned job to -1 (no job assigned to that CU)
         this.boundCoreUnits = new int[numJobThreads];
         for (int i = 0; i < numJobThreads; i++){
         	boundCoreUnits[i] = -1;
         }
 
+        this.boundGPUs = new int[numGPUs];
+        for (int i = 0; i < numGPUs; i++){
+        	boundGPUs[i] = -1;
+        }
+        
+        
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
 
@@ -265,6 +273,64 @@ public class NIOWorker extends NIOAgent {
     	}
     }
 
+    
+    
+    /**
+     * Bind numGPUs core units to the job
+     * 
+     * @param jobId
+     * @param numGPUs
+     * @return
+     * @throws UnsufficientAvailableGPUsException
+     */
+    public int[] bindGPUs(int jobId, int numGPUs) throws UnsufficientAvailableGPUsException {
+    	int assignedGPUs[] = new int[numGPUs];
+		boolean done = false;
+		if (numGPUs == 0){
+			done = true;
+		}
+		int numAssignedGPUs = 0;
+	
+		// Assign free GPUUs to the job
+		synchronized(boundGPUs){
+		    for (int GPUId = 0; GPUId < boundGPUs.length && !done; ++GPUId) {
+				if (boundGPUs[GPUId] == -1) {		
+					boundGPUs[GPUId] = jobId;
+    				assignedGPUs[numAssignedGPUs] = GPUId;
+    				numAssignedGPUs++;
+				}
+				done = (numAssignedGPUs == numGPUs);
+			}	
+		}
+		
+		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
+		// Raise exception
+		if (!done) {
+		    //throw new UnsufficientAvailableGPUsException("Not enough available GPUs for task execution");
+		}
+		
+		return assignedGPUs;
+    }
+    
+    /**
+     * Release GPUs occupied by the job
+     * 
+     * @param jobId
+     */
+    public void releaseGPUs(int jobId){
+    	synchronized(boundGPUs){
+			for (int GPUId = 0; GPUId < boundGPUs.length; GPUId++){
+				if (boundGPUs[GPUId] == jobId) {
+					boundGPUs[GPUId] = -1;
+				}
+			}
+    	}
+    }
+    
+    
+   
+    
+    
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
         wLogger.info("Received Job " + task);
@@ -972,7 +1038,10 @@ public class NIOWorker extends NIOAgent {
 
         String storageConf = args[18];
         executionType = args[19];
-
+        
+        //int numGPUs = new Integer(args[20]);
+        int numGPUs = 0;
+        
         /*
          * ************************************** 
          * Print args
@@ -1000,6 +1069,8 @@ public class NIOWorker extends NIOAgent {
 
             wLogger.debug("StorageConf: " + storageConf);
             wLogger.debug("executionType: " + executionType);
+            
+            wLogger.debug("Gpus per node: " + String.valueOf(numGPUs));
 
             wLogger.debug("Remove Sanbox WD: " + removeWD);
         }
@@ -1044,7 +1115,7 @@ public class NIOWorker extends NIOAgent {
          * LAUNCH THE WORKER
          **************************************/
         NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, lang, workerIP, workingDir, installDir, appDir, libPath,
-                classpath, pythonpath);
+                classpath, pythonpath, numGPUs);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 

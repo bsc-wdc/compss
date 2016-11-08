@@ -134,6 +134,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     public int getTotalComputingUnits() {
         return config.getTotalComputingUnits();
     }
+    
+    public int getTotalGPUs() {
+    	return config.getTotalGPUComputingUnits();
+    }
 
     public NIOConfiguration getConfiguration() {
         return this.config;

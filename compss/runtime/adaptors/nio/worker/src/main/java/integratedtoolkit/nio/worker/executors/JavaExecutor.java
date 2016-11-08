@@ -30,7 +30,7 @@ public class JavaExecutor extends Executor {
     }
 
     @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits) throws JobExecutionException {
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) throws JobExecutionException {
         /* Register outputs **************************************** */
         NIOWorker.registerOutputs(outputsBasename);
 

@@ -33,7 +33,7 @@ public class PythonExecutor extends ExternalExecutor {
 
     @Override
     public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs) {
-        ArrayList<String> lArgs = new ArrayList<String>();
+        ArrayList<String> lArgs = new ArrayList<>();
 
         if (pythonPersistentWorker) {
             // The execution command in python is empty (the handler adds the pre-command and the application args)
@@ -75,7 +75,6 @@ public class PythonExecutor extends ExternalExecutor {
         }
 
         // Add pyextrae to PYTHONPATH if tracing
-
         if (NIOTracer.isActivated()) {
             String libexec_extrae_path = nw.getInstallDir() + LIBEXEC_EXTRAE_RELATIVE_PATH;
             String lib_extrae_path = nw.getInstallDir() + LIB_EXTRAE_RELATIVE_PATH;

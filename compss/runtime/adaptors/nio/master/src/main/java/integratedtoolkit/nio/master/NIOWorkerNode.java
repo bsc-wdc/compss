@@ -236,7 +236,9 @@ public class NIOWorkerNode extends COMPSsWorker {
                 return;
             }
         }
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("Ordering deferred copy " + ld.getName() );
+        }
         orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
     }
 
@@ -364,13 +366,13 @@ public class NIOWorkerNode extends COMPSsWorker {
             } else {
                 path = c.getTargetLoc().getPath();
             }
-
+            c.setProposedSource(new Data(ld));
+            logger.debug("Setting final target in deferred copy " + path);
+            c.setFinalTarget(path);
             // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
             ld.startCopy(c, c.getTargetLoc());
             commManager.registerCopy(c);
         }
-        c.setProposedSource(new Data(ld));
-        c.setFinalTarget(path);
         c.end(DataOperation.OpEndState.OP_OK);
     }
 

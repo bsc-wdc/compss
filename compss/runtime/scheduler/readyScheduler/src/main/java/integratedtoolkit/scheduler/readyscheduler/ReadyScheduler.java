@@ -104,49 +104,47 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             Integer bestCore = null;
             Score bestScore = null;
             for (Integer i : runnableCores) {
-                //if(actions[i].size()>0){
-                	Score coreScore = actions[i].peek().getScore();
-                	if (Score.isBetter(coreScore, bestScore)) {
-                		bestScore = coreScore;
-                		bestCore = i;
-                	}
-                //}
+            	Score coreScore = actions[i].peek().getScore();
+            	if (Score.isBetter(coreScore, bestScore)) {
+            		bestScore = coreScore;
+            		bestCore = i;
+            	}
             }
-            //if (bestCore != null){
-            	ObjectValue<AllocatableAction<P, T>> ov = actions[bestCore].poll();
-            	AllocatableAction<P, T> selectedAction = ov.getObject();
 
-            	// Get the best Implementation
+            ObjectValue<AllocatableAction<P, T>> ov = actions[bestCore].poll();
+            AllocatableAction<P, T> selectedAction = ov.getObject();
+
+            // Get the best Implementation
+            try {
+            	Score actionScore = getActionScore(selectedAction);
+            	selectedAction.schedule(resource, actionScore);
             	try {
-            		Score actionScore = getActionScore(selectedAction);
-            		selectedAction.schedule(resource, actionScore);
-            		try {
-            			selectedAction.tryToLaunch();
-            		} catch (InvalidSchedulingException ise) {
-            			boolean keepTrying = true;
-            			for (int i = 0; i < selectedAction.getConstrainingPredecessors().size() && keepTrying; ++i) {
-            				AllocatableAction<P,T> pre = selectedAction.getConstrainingPredecessors().get(i);
-            				selectedAction.schedule(pre.getAssignedResource(), actionScore);
-            				try {
-            					selectedAction.tryToLaunch();
-            					keepTrying = false;
-            				} catch (InvalidSchedulingException ise2) {
-            					// Try next predecessor
-            					keepTrying = true;
-            				}
+            		selectedAction.tryToLaunch();
+            	} catch (InvalidSchedulingException ise) {
+            		boolean keepTrying = true;
+            		for (int i = 0; i < selectedAction.getConstrainingPredecessors().size() && keepTrying; ++i) {
+            			AllocatableAction<P,T> pre = selectedAction.getConstrainingPredecessors().get(i);
+            			selectedAction.schedule(pre.getAssignedResource(), actionScore);
+            			try {
+            				selectedAction.tryToLaunch();
+            				keepTrying = false;
+            			} catch (InvalidSchedulingException ise2) {
+            				// Try next predecessor
+            				keepTrying = true;
             			}
             		}
-            	} catch (UnassignedActionException uae) {
-            		// Action stays unassigned and ready
-            		continue;
-            	} catch (BlockedActionException bae) {
-            		// Never happens!
-            		continue;
             	}
-            	// Task was assigned to the resource.
-            	// Remove from pending task sets
-            	unassignedReadyActions.removeAction(selectedAction);
-            //}
+            } catch (UnassignedActionException uae) {
+            	// Action stays unassigned and ready
+            	continue;
+            } catch (BlockedActionException bae) {
+            	// Never happens!
+            	continue;
+            }
+            // Task was assigned to the resource.
+            // Remove from pending task sets
+            unassignedReadyActions.removeAction(selectedAction);
+
             // Update Runnable Cores
             Iterator<Integer> coreIter = runnableCores.iterator();
             while (coreIter.hasNext()) {

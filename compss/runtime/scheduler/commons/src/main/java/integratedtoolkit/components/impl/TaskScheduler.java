@@ -109,7 +109,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     	}
     	LinkedList<AllocatableAction<P, T>> dataFreeActions = action.completed();
     	for (AllocatableAction<P, T> dataFreeAction : dataFreeActions) {
-    		//if (dataFreeAction != null && dataFreeAction.isNotScheduling()){
+    		if (dataFreeAction != null && dataFreeAction.isNotScheduling()){
     			if (dataFreeAction.getImplementations().length > 0) {
     				Integer coreId = dataFreeAction.getImplementations()[0].getCoreId();
     				if (coreId != null) {
@@ -124,7 +124,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     					blockedActions.addAction(dataFreeAction);
     				}
     			}
-    		//}
+    		}
     	}
     	LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
     	workerLoadUpdate((ResourceScheduler<P, T>) action.getAssignedResource());
@@ -132,7 +132,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     	freeTasks.addAll(dataFreeActions);
     	freeTasks.addAll(resourceFree);
     	for (AllocatableAction<P, T> a : freeTasks) {
-    		//if (a != null && !a.isLocked() && !a.isRunning()){
+    		if (a != null && !a.isLocked() && !a.isRunning()){
     			try { 
     				try {
     					a.tryToLaunch();
@@ -157,12 +157,12 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     				info.append(action.toString());
     				ErrorManager.fatal(info.toString());
     			} catch (BlockedActionException bae) {
-    				//if (a != null && !a.isLocked() && !a.isRunning()){
+    				if (a != null && !a.isLocked() && !a.isRunning()){
     					logger.info("Blocked Action: " + a, bae);
     					blockedActions.addAction(a);
-    				//}
+    				}
     			}
-    		//}
+    		}
     	}
 
 

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ResourcesList>
-	<CloudProvider Name="Docker">
+	<CloudProvider Name="BSC">
 		<Endpoint>
-			<Server>unix:///var/run/docker.sock</Server>
-            <ConnectorJar>docker-conn.jar</ConnectorJar>
-            <ConnectorClass>es.bsc.conn.docker.Docker</ConnectorClass>
+            <Server>localhost:5050</Server>
+			<ConnectorJar>mesos-conn.jar</ConnectorJar>
+            <ConnectorClass>es.bsc.conn.mesos.Mesos</ConnectorClass>
 		</Endpoint>
 
 		<Images>
 			<Image Name="compss/compss:1.4.rc09">
-				<CreationTime>110</CreationTime>
+				<CreationTime>60</CreationTime>
 				<Adaptors>
 					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
 						<SubmissionSystem>
 							<Interactive />
 						</SubmissionSystem>
 						<Ports>
-							<MinPort>43000</MinPort>
-							<MaxPort>43003</MaxPort>
+							<MinPort>43100</MinPort>
+							<MaxPort>43110</MaxPort>
 						</Ports>
 					</Adaptor>
 					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
@@ -39,24 +39,32 @@
 					<ComputingUnits>1</ComputingUnits>
 				</Processor>
 				<Memory>
-					<Size>2.0</Size>
+					<Size>0.5</Size>
 				</Memory>
 				<Storage>
-					<Size>10.0</Size>
+					<Size>5.0</Size>
 				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.085</PricePerUnit>
+				</Price>
 			</InstanceType>
 			<InstanceType Name="medium">
 				<Processor Name="Processor1">
-					<ComputingUnits>2</ComputingUnits>
+					<ComputingUnits>1</ComputingUnits>
 				</Processor>
 				<Memory>
-					<Size>3.0</Size>
+					<Size>1.0</Size>
 				</Memory>
 				<Storage>
 					<Size>10.0</Size>
 				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.212</PricePerUnit>
+				</Price>
 			</InstanceType>
-			<InstanceType Name="large">
+            <!--InstanceType Name="large">
 				<Processor Name="Processor1">
 					<ComputingUnits>4</ComputingUnits>
 				</Processor>
@@ -66,6 +74,10 @@
 				<Storage>
 					<Size>10.0</Size>
 				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.34</PricePerUnit>
+				</Price>
 			</InstanceType>
 			<InstanceType Name="extra_large">
 				<Processor Name="Processor1">
@@ -77,7 +89,11 @@
 				<Storage>
 					<Size>10.0</Size>
 				</Storage>
-			</InstanceType>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.68</PricePerUnit>
+				</Price>
+            </InstanceType-->
 		</InstanceTypes>
 	</CloudProvider>
 

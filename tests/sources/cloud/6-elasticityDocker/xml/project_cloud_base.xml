@@ -8,47 +8,33 @@
 		<CloudProvider Name="Docker">
 			<LimitOfVMs>MAX_VMS</LimitOfVMs>
 			<Properties>
-				<!-- Optional connector parameters -->
-				<Property>
-					<Name>estimated-creation-time</Name>
-					<Value>3</Value> <!-- Minutes -->
-				</Property>
-				<Property>
-					<Name>max-vm-creation-time</Name>
-					<Value>5</Value> <!-- Minutes -->
-				</Property>
-				<Property>
-					<Name>time-slot</Name>
-					<Value>2</Value> <!-- Minutes -->
-				</Property>
-				<Property>
-					<Name>max-connection-errors</Name>
-					<Value>36</Value>
-				</Property>
 
 				<!-- Abstract SSH Connector parameters -->
 				<Property>
 					<Name>vm-user</Name>
-					<Value>compss</Value>
+					<Value>root</Value>
 				</Property>
 				<Property>
 					<Name>vm-keypair-name</Name>
-					<Value>id_rsa</Value>
+					<Value>compss_rsa</Value>
 				</Property>
 				<Property>
 					<Name>vm-keypair-location</Name>
-					<Value>/home/LOCAL_USER/.ssh</Value>
+					<Value>~/.ssh/docker_keys</Value>
 				</Property>
 			</Properties>
 
 			<Images>
-				<Image Name="compss/compss:latest">
-					<InstallDir>/opt/COMPSs</InstallDir>
-					<WorkingDir>/home/compss</WorkingDir>
-					<User>compss</User>
+				<Image Name="compss/compss:1.4.rc09">
+					<InstallDir>remote_COMPSs</InstallDir>
+					<WorkingDir>/root/</WorkingDir>
+					<User>root</User>
+					<Application>
+						<AppDir>/root/</AppDir>
+					</Application>
 					<Package>
 						<Source>Simple.tar.gz</Source>
-						<Target>/home/compss</Target>
+						<Target>/root</Target>
 					</Package>
 				</Image>
 			</Images>
@@ -61,4 +47,3 @@
 		</CloudProvider>
 	</Cloud>
 </Project>
-

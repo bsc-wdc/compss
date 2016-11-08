@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode />
+	<Cloud>
+		<InitialVMs>1</InitialVMs>
+		<MinimumVMs>1</MinimumVMs>
+		<MaximumVMs>4</MaximumVMs>
+		<CloudProvider Name="BSC">
+			<LimitOfVMs>4</LimitOfVMs>
+			<Properties>
+				<Property>
+					<Name>mesos-framework-register-timeout</Name>
+                    <Value>30000</Value>
+				</Property>
+				<Property>
+					<Name>auth</Name>
+					<Value>x509</Value>
+				</Property>
+				<Property>
+					<Name>ca-path</Name>
+					<Value>/etc/grid-security/certificates</Value>
+				</Property>
+				<Property>
+					<Name>user-cred</Name>
+					<Value>jenkins-test.pem</Value>
+				</Property>
+				<Property>
+					<Name>password</Name>
+					<Value>jenkins-test2014</Value>
+				</Property>
+				<Property>
+					<Name>owner</Name>
+					<Value>jenkins-test</Value>
+				</Property>
+				<Property>
+					<Name>jobname</Name>
+					<Value>test-elasticity-oneProvider</Value>
+				</Property>
+
+				<!-- Optional connector parameters -->
+				<Property>
+					<Name>max-vm-creation-time</Name>
+					<Value>10</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+					<Name>max-connection-errors</Name>
+					<Value>36</Value>
+				</Property>
+
+				<!-- Abstract SSH Connector parameters -->
+				<Property>
+					<Name>vm-user</Name>
+					<Value>root</Value>
+				</Property>
+				<Property>
+					<Name>vm-keypair-name</Name>
+					<Value>compss_rsa</Value>
+				</Property>
+				<Property>
+					<Name>vm-keypair-location</Name>
+					<Value>~/.ssh/docker_keys</Value>
+				</Property>
+			</Properties>
+			<Images>
+				<Image Name="compss/compss:1.4.rc09">
+					<InstallDir>remote_COMPSs</InstallDir>
+					<WorkingDir>/root/</WorkingDir>
+					<User>root</User>
+                    <Application>
+                        <AppDir>/root/</AppDir>
+                    </Application>
+					<Package>
+                        <Source>Simple.tar.gz</Source>
+						<Target>/root</Target>
+					</Package>
+				</Image>
+			</Images>
+			<InstanceTypes>
+				<InstanceType Name="small" />
+				<InstanceType Name="medium" />
+				<!--InstanceType Name="large" />
+				<InstanceType Name="extra_large" /-->
+			</InstanceTypes>
+		</CloudProvider>
+	</Cloud>
+</Project>

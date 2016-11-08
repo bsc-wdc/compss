@@ -51,8 +51,8 @@
 
           projects=$(ls ${target} | grep -s project | cat)
           for proj in $projects; do
-             sed -i '/<InstallDir>remote_COMPSs<\/InstallDir>/c<InstallDir>\/home\/user\/apps\/COMPSs\/<\/InstallDir>' ${target}/${proj}
-             sed -i '/<\/Image>/c<Package><Source>'${target_dir}\/COMPSs.tar.gz'<\/Source><Target>\/home\/user\/apps<\/Target><\/Package><\/Image>' ${target}/${proj}
+             sed -i '/<InstallDir>remote_COMPSs<\/InstallDir>/c<InstallDir>\/opt\/COMPSs\/<\/InstallDir>' ${target}/${proj}
+             sed -i '/<\/Image>/c<Package><Source>'${target_dir}\/COMPSs.tar.gz'<\/Source><Target>\/opt<\/Target><\/Package><\/Image>' ${target}/${proj}
           done
           resources=$(ls ${target} | grep -s resources | cat)
           for res in $resources; do

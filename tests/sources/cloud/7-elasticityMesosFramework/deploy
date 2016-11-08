@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+
+  owner=$3
+  appName=Simple
+
+  testName=mesosFramework
+
+  cp -f ${source_base_dir}/target/${appName}.jar ${target_base_dir}/${appName}.jar
+
+  cp -f ${source_base_dir}/xml/project_cloud_base.xml ${target_base_dir}/project_${testName}_base.xml
+  cp -f ${source_base_dir}/xml/resources_cloud_base.xml ${target_base_dir}/resources_${testName}_base.xml
+
+  cp -f ${source_base_dir}/execution ${target_base_dir}/execution
+  cp -f ${source_base_dir}/result ${target_base_dir}/result
+
+  cp -rf ${source_base_dir}/certs ${target_base_dir}

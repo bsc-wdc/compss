@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-tests-cloud</artifactId>
 	<packaging>pom</packaging>
 	<parent>
                 <groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests</artifactId>
-<version>2.0</version>
+<version>1.4.rc10</version>
                 <relativePath>..</relativePath>
         </parent>
-	
+
 	<!-- PROJECT INFORMATION -->
 	<name>COMP Superscalar Tests - Cloud</name>
 	<description>COMPSs Framework Tests - Cloud</description>
@@ -41,7 +41,7 @@
                 <cloud.max.vm>3</cloud.max.vm>
                 <cloud.creation.time>120</cloud.creation.time>
 	</properties>
-    
+
 	<!-- SUB-MODULES -->
 	<modules>
 		<!-- BLOCK 2 -->
@@ -50,6 +50,6 @@
 		<module>3-elasticityMultiProvider</module>
 		<module>4-elasticityTracing</module>
 		<module>6-elasticityDocker</module>
+		<module>7-elasticityMesosFramework</module>
 	</modules>
 </project>
- 

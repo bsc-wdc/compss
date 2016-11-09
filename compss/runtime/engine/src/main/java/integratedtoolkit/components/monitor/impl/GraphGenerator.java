@@ -79,31 +79,28 @@ public class GraphGenerator {
             }
 
             /* Final graph for drawGraph option ********************************************* */
-            if (drawGraph) {
-                // Generate an empty full_graph file
-                try {
-                    full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_FILE));
-                    emptyFullGraph();
-                    full_graph.close();
-                } catch (IOException ioe) {
-                    logger.error("Error generating full graph file", ioe);
-                }
-
-                // Open a full graph working copy
-                try {
-                    full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE));
-                    openGraphFile(full_graph);
-                    openDependenceGraph(full_graph);
-                } catch (IOException ioe) {
-                    logger.error("Error generating graph file", ioe);
-                }
-                try {
-                    legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE));
-                } catch (IOException ioe) {
-                    logger.error("Error generating full graph working copy file", ioe);
-                }
-                legendTasks = new HashSet<>();
+            try {
+                full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_FILE));
+                emptyFullGraph();
+                full_graph.close();
+            } catch (IOException ioe) {
+                logger.error("Error generating full graph file", ioe);
             }
+
+            // Open a full graph working copy
+            try {
+                full_graph = new BufferedWriter(new FileWriter(COMPLETE_GRAPH_TMP_FILE));
+                openGraphFile(full_graph);
+                openDependenceGraph(full_graph);
+            } catch (IOException ioe) {
+                logger.error("Error generating graph file", ioe);
+            }
+            try {
+                legend = new BufferedWriter(new FileWriter(COMPLETE_LEGEND_TMP_FILE));
+            } catch (IOException ioe) {
+                logger.error("Error generating full graph working copy file", ioe);
+            }
+            legendTasks = new HashSet<>();
         } else {
             MONITOR_DIR_PATH = null;
             CURRENT_GRAPH_FILE = CURRENT_GRAPH_FILENAME;

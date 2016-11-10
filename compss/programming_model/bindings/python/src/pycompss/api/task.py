@@ -71,7 +71,8 @@ class task(object):
         # methods have a first argument named self, and other functions don't.
         # Fragile, but then, there's no really solid way."
         self.spec_args = inspect.getargspec(f)
-        # print("self.spec_args: ", self.spec_args)
+        #print("self.spec_args: ", self.spec_args)
+        #print("self.kwargs   : ", self.kwargs)
         if self.spec_args and len(self.spec_args[0]) and self.spec_args[0][0] == 'self':
             self.is_instance = True
         if self.kwargs['returns']:
@@ -80,6 +81,7 @@ class task(object):
         # Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
         self.module = mod.__name__
+
 
         if(self.module == '__main__' or
            self.module == 'pycompss.runtime.launch'):
@@ -95,8 +97,15 @@ class task(object):
             dirs = path.split(os.path.sep)
             file_name = os.path.splitext(os.path.basename(path))[0]
             mod_name = file_name
-            i = -1
 
+            if file_name.startswith('InteractiveMode'):
+                # put code into file
+                updateTasksCodeFile(f, path)
+            else:
+                # work as always
+                pass
+
+            i = -1
             while True:
                 new_l = len(path) - (len(dirs[i]) + 1)
                 path = path[0:new_l]
@@ -297,3 +306,252 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
         '''
 
     return real_values, to_serialize
+
+
+###########################################################################
+############### INTERACTIVE MODE AUXILIAR METHODS #########################
+###########################################################################
+
+def updateTasksCodeFile(f, filePath):
+
+    if not os.path.exists(filePath):
+        createTasksCodeFile(filePath)
+    imports = getIPythonImports()     ######## [import\n, import\n, ...]
+    #print imports
+    taskCode = getTaskCode(f)         ######## {'name': str(line\nline\n...)}
+    #print taskCode
+    oldCode = getOldCode(filePath)    ######## {'imports':[import\n, import\n, ...], 'tasks':{'name':str(line\nline\n...), 'name':str(line\nline\n...), ...}}
+    #print oldCode
+
+    newImports = updateImports(imports, oldCode['imports'])
+    newCode = updateTasks(taskCode, oldCode['tasks'])
+
+    updateCodeFile(newImports, newCode, filePath)
+
+    #print "Task appended to: ", filePath
+    print "Task appended."
+
+
+def createTasksCodeFile(filePath):
+    file = open(filePath, 'a')
+    file.write('\n')
+    file.write("##########\n") # separator between imports and tasks 10x#
+    file.close()
+
+
+def getIPythonImports():
+    # print globals()['In'] # is not in this scope
+    ipython = globals()['__builtins__']['get_ipython']()  # retrieve the self of ipython where to look
+    # If you want to show the contents of the ipython object for analysis
+    # file.write(str(ipython.__dict__))
+    # import pprint
+    # pprint.pprint(ipython.__dict__, width=1)
+    raw_code = ipython.__dict__['user_ns']['In']
+    imports = []
+    for i in raw_code:
+        if i.startswith("from") or i.startswith("import"):
+            imports.append(i+'\n')
+    return imports
+
+
+def getTaskCode(f):
+    import inspect
+    taskCode = inspect.getsource(f)
+    name = ''
+    lines = taskCode.split('\n')
+    for line in lines:
+        if line.startswith('def'):
+            name = line.replace('(', ' (').split(' ')[1]
+    return {name:taskCode}
+
+
+def clean(linesList):
+    result = []
+    for l in linesList:
+        if l != '\n':
+            result.append(l)
+    return result
+
+
+def reduce(linesList):
+    result = []
+    jump = False
+    for l in linesList:
+        if l == '\n' and not jump:
+            result.append(l)
+            jump = True
+        if l != '\n':
+            result.append(l)
+            jump = False
+    return result
+
+
+def getOldCode(filePath):
+    # Read the entire file
+    file = open(filePath, 'r')
+    contents = file.readlines()
+    file.close()
+    # Separate imports from tasks
+    fileImports = []
+    fileTasks = []
+    foundSeparator = False
+    for line in contents:
+        if line == '##########\n':
+            foundSeparator = True
+        else:
+            if not foundSeparator:
+                fileImports.append(line)
+            else:
+                fileTasks.append(line)
+
+    fileImports = clean(fileImports)
+    fileTasks = reduce(fileTasks)
+
+    # Process tasks
+    # get indices for splitting ('\n')
+    ind = []
+    for i in range(len(fileTasks)):
+        if fileTasks[i] == '\n':
+            ind.append(i)
+    # split into tasks
+    parts = []
+    for i in range(len(ind)):
+        if i == 0 and ind[i] != 0:
+            parts.append(fileTasks[0:ind[i]])
+        elif i == len(ind) - 1:
+            parts.append(fileTasks[ind[i]:])
+        else:
+            parts.append(fileTasks[ind[i]:ind[i+1]])
+    # Add tasks to dictionary by function name:
+    tasks = {}
+    for task in parts:
+        code = ''
+        name = ''
+        for line in task:
+            code += line
+            if line.startswith('def'):
+                name = line.replace('(',' (').split(' ')[1]
+        tasks[name] = code
+    return {'imports':fileImports, 'tasks':tasks}
+
+
+def updateImports(newImports, oldImports):
+    notInImports = []
+    for i in newImports:
+        already = False
+        for j in oldImports:
+            if i == j:
+                already = True
+        if not already:
+            notInImports.append(i)
+    # Merge the minimum imports
+    imports = oldImports + notInImports
+    return imports
+
+
+def updateTasks(newTask, tasks):
+    newTaskName = newTask.keys()[0]
+    if tasks.has_key(newTaskName):
+        print "WARNING! A task with the same name already exists (the previous will be deprecated)."
+    tasks[newTaskName] = newTask[newTaskName]
+    return tasks
+
+
+def updateCodeFile(newImports, newCode, filePath):
+    file = open(filePath, 'w')
+    for i in newImports:
+        file.write(i)
+    file.write("##########\n")  # separator between imports and tasks 10x#
+    file.write('\n')
+    for k,v in newCode.iteritems():
+        for line in v:
+            file.write(line)
+        file.write('\n')
+    file.close()
+
+
+
+
+'''
+# old way to update the tasks code:
+
+def updateTasksCodeFile(f, filePath):
+
+    imports = getImports()
+    taskCode = getTaskCode(f)
+
+    if not os.path.exists(filePath):
+        createTasksCodeFile(filePath)
+    updateImports(imports, filePath)
+    addNewTaskCode(taskCode, filePath)
+
+    print "Task appended to: ", filePath
+
+
+def getImports():
+    # print globals()['In'] # is not in this scope
+    ipython = globals()['__builtins__']['get_ipython']()  # retrieve the self of ipython where to look
+    # If you want to show the contents of the ipython object for analysis
+    # file.write(str(ipython.__dict__))
+    # import pprint
+    # pprint.pprint(ipython.__dict__, width=1)
+    raw_code = ipython.__dict__['user_ns']['In']
+    imports = []
+    for i in raw_code:
+        if i.startswith("from") or i.startswith("import"):
+            imports.append(i+'\n')
+    return imports
+
+
+def getTaskCode(f):
+    import inspect
+    taskCode = inspect.getsource(f)
+    return taskCode
+
+
+def createTasksCodeFile(filePath):
+    file = open(filePath, 'a')
+    file.write('\n')
+    file.write("##########\n") # separator between imports and tasks 10x#
+    file.close()
+
+
+def updateImports(imports, filePath):
+    # Read the entire file
+    file = open(filePath, 'r')
+    contents = file.readlines()
+    file.close()
+    # Separate imports from tasks
+    fileImports = []
+    fileTasks = []
+    foundSeparator = False
+    for line in contents:
+        if line == '##########\n':
+            foundSeparator = True
+        if not foundSeparator:
+            fileImports.append(line)
+        else:
+            fileTasks.append(line)
+    # Check the imports that are not already defined
+    notInImports = []
+    for i in imports:
+        already = False
+        for j in fileImports:
+            if i == j:
+                already = True
+        if not already:
+            notInImports.append(i)
+    # Write all contents
+    result = fileImports + notInImports + fileTasks
+    file = open(filePath, 'w')
+    for i in result:
+        file.write(i)
+    file.close()
+
+
+def addNewTaskCode(taskCode, filePath):
+    file = open(filePath, 'a')
+    file.write('\n')
+    file.write(taskCode)
+    file.close()
+'''

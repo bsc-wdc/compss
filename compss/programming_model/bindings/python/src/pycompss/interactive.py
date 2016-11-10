@@ -31,14 +31,17 @@ myUuid = 0
 app_path = "InteractiveMode"
 
 
+# os.environ['IT_HOME'] + '/Runtime/configuration/xml/projects/default_project.xml',
+#os.environ['IT_HOME'] + '/Runtime/configuration/xml/resources/default_resources.xml',
+
 def start(log_level="off",
           o_c=False,
           debug=False,
           graph=False,
           trace=False,
           monitor=None,
-          project_xml=os.environ['IT_HOME'] + '/Runtime/configuration/xml/projects/default_project.xml',
-          resources_xml=os.environ['IT_HOME'] + '/Runtime/configuration/xml/resources/default_resources.xml',
+          project_xml='/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml',
+          resources_xml='/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml',
           summary=False,
           taskExecution='compss',
           storageConf=None,

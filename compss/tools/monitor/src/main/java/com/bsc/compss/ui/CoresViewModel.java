@@ -42,6 +42,14 @@ public class CoresViewModel {
              * Each entry on the newCoreData array is of the form: coreId, implId, signature, meanET, minET, maxET,
              * execCount
              */
+            if (logger.isDebugEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("   - CoreElement: ");
+                for (String elem : dc) {
+                    sb.append(elem).append(" ");
+                }
+                logger.debug(sb.toString());
+            }
 
             // Check color
             int taskId = Integer.parseInt(dc[0]) + 1; // +1 To shift according to COLORS and tracing

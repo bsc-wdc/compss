@@ -27,6 +27,7 @@ public class TraceMerger {
     private static final String traceExtension = ".prv";
     private static final String traceSubDir = "trace";
     private static final String taskSubDir = "tasks";
+    private static String workingDir;
 
     private FileWriter fw;
     private BufferedWriter bw;
@@ -104,6 +105,7 @@ public class TraceMerger {
     }
 
     private void initTaskTracesInfo(String workingDir) throws FileNotFoundException {
+        this.workingDir = workingDir;
         File f = new File(workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
         File[] matchingFiles = f.listFiles(new FilenameFilter() {
 
@@ -131,9 +133,16 @@ public class TraceMerger {
         for (File taskFile : taskTraces) {
             List<String> cleanLines = getTaskEvents(taskFile);
             updateTasksInfo(cleanLines);
+            taskFile.delete();
         }
         masterWriter.close();
-        logger.debug("Merging finished");
+        logger.debug("Merging finished,");
+        File f = new File(this.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
+        if (f.delete()){
+            logger.debug("Temporal task folder removed.");
+        } else {
+            logger.warn("Could not remove temporal task folder: " + f);
+        }
     }
 
     private void parseMasterSyncEvents() throws IOException {

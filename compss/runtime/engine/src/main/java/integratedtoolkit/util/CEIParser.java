@@ -494,7 +494,7 @@ public class CEIParser {
         CoreManager.resizeStructures(coreCount);
 
         // Register implementations
-        LinkedList<Integer> updatedMethods = new LinkedList<Integer>();
+        LinkedList<Integer> updatedMethods = new LinkedList<>();
         for (int i = 0; i < coreCount; i++) {
             Implementation<?>[] implementations = new Implementation[1];
             implementations[0] = new MethodImplementation("", "", i, 0, MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy());

@@ -161,6 +161,7 @@ public class CoreManager {
                     break;
                 case PYTHON:
                     ((MethodImplementation) implementations[methodId][0]).setDeclaringClass(declaringClass);
+                    signatures[methodId][0] = signature;
                     break;
                 case C:
                     // Declaring classes are already computed by versioning

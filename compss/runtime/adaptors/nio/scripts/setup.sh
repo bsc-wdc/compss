@@ -54,6 +54,7 @@
     tracing=${16}
     extraeFile=${17}
     hostId=${18}
+    gpus=${21}
     
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
@@ -62,6 +63,7 @@
       echo "- WorkingDir: $workingDir"
       echo "- InstallDir: $installDir"
       echo "- NumThreads: $numThreads"
+      echo "- Gpus/node:  $gpus"
       echo "- JVM Opts:   $jvmFlags"
 
       echo "- AppUUID:    ${appUuid}"

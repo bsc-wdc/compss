@@ -306,7 +306,7 @@ public class NIOWorker extends NIOAgent {
 		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
 		// Raise exception
 		if (!done) {
-		    //throw new UnsufficientAvailableGPUsException("Not enough available GPUs for task execution");
+		    throw new UnsufficientAvailableGPUsException("Not enough available GPUs for task execution");
 		}
 		
 		return assignedGPUs;
@@ -1039,8 +1039,8 @@ public class NIOWorker extends NIOAgent {
         String storageConf = args[18];
         executionType = args[19];
         
-        //int numGPUs = new Integer(args[20]);
-        int numGPUs = 0;
+        int numGPUs = new Integer(args[20]);
+        
         
         /*
          * ************************************** 

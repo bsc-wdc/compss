@@ -297,7 +297,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = executionType;
         
         //GPU parameters
-        //cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
+        cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
 
         return cmd;
     }

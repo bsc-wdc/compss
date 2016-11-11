@@ -33,7 +33,7 @@ usage() {
   svn cp ${documentation_dir}/latest ${documentation_dir}/${version}
 
   #---------------------------------------------------------------------
-  # Update internal files version
+  # Update internal files version on new tag
   echo "- Update files version"
   sed -i '/Version: /cVersion: '${version}'' ${documentation_dir}/${version}/README
   docs=$(ls ${documentation_dir}/${version}/)
@@ -41,6 +41,22 @@ usage() {
     cd ${documentation_dir}/${version}/${doc}
     latexFile=$(ls *.tex | grep -v configuration.tex)
     echo $latexFile
+    sed -i '/Version: /cVersion: '${version}'' README
+    sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
+    sed -i 's/<\<version\>>/'${version}'/g' $latexFile
+    cd ${script_dir}
+  done
+
+  #---------------------------------------------------------------------
+  # Update internal files version on latest
+  echo "- Update files version"
+  sed -i '/Version: /cVersion: '${version}'' ${documentation_dir}/latest/README
+  docs=$(ls ${documentation_dir}/latest/)
+  for doc in ${docs}; do
+    cd ${documentation_dir}/latest/${doc}
+    latexFile=$(ls *.tex | grep -v configuration.tex)
+    echo $latexFile
+    sed -i '/Version: /cVersion: '${version}'' README
     sed -i '/\\def \\compssversion/c\\\def \\compssversion \{'${version}'\}' $latexFile
     sed -i 's/<\<version\>>/'${version}'/g' $latexFile
     cd ${script_dir}

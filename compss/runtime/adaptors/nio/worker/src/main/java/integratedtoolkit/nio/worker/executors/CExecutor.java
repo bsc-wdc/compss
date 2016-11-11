@@ -37,8 +37,8 @@ public class CExecutor extends ExternalExecutor {
         if (workerDebug) {
             reqs.append(" --summary");
         }
-        reqs.append("' ");
         
+
         StringBuilder cuda_visible = new StringBuilder();
         
         if (assignedGPUs.length > 0){
@@ -49,7 +49,12 @@ public class CExecutor extends ExternalExecutor {
         	}
         	cuda_visible.append(assignedGPUs[assignedGPUs.length - 1]).append(quotes).append(" ");
         }
-           
+        else {
+        	reqs.append(" --disable-cuda=yes");
+        }
+          
+        reqs.append("' ");
+        
         // Taskset string to bind the job
 		StringBuilder taskset = new StringBuilder();
 		taskset.append("taskset -c ");

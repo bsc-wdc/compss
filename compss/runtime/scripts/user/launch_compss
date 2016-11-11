@@ -200,6 +200,7 @@ worker_cmd() {
   local jvm_opts_size=$3
   local jvm_opts_str=$4
   local cus=$5
+  local gpus=$6
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
@@ -231,7 +232,8 @@ worker_cmd() {
             ${custom_extrae_file} \
             ${nodeId} \
             ${storage_conf} \
-            ${taskExecution}"
+            ${taskExecution} \
+	    ${gpus}"
 }
 
 ###############################################
@@ -807,7 +809,7 @@ launch() {
       # Worker in master node
       local jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
       local jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
-      worker_cmd $hostid "${master_node}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_tasks}
+      worker_cmd $hostid "${master_node}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_tasks} ${gpus_per_node}
       WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
@@ -817,7 +819,7 @@ launch() {
     local jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
     local jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
     for node in ${worker_nodes}; do
-      worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node}
+      worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node} ${gpus_per_node}
       WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
@@ -974,6 +976,13 @@ add_compute_node() {
       <Processor Name="MainProcessor">
           <ComputingUnits>${cus}</ComputingUnits>
           <Architecture>Intel</Architecture>
+          <Speed>2.6</Speed>
+      </Processor>
+
+      <Processor Name="GPU">
+          <Type>GPU</Type>
+          <ComputingUnits>${gpus}</ComputingUnits>
+          <Architecture>k80</Architecture>
           <Speed>2.6</Speed>
       </Processor>
 

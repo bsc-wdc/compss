@@ -2,9 +2,16 @@ package integratedtoolkit.types.resources.configuration;
 
 import java.util.HashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import integratedtoolkit.log.Loggers;
+
 
 public class Configuration {
 
+	protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+	
     private final String adaptorName;
     private final HashMap<String, String> additionalProperties = new HashMap<String, String>();
     private int limitOfTasks = -1;

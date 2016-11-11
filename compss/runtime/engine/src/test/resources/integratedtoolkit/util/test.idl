@@ -37,5 +37,27 @@
                memorySize=23);
         void Test05(out string stringOut);
 
+		
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2)});
+        void Test06(out string stringOut);
+
+
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=4)});
+        void Test07(out string stringOut);
+
+	    @Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=2),
+			   @Processor(ProcessorType=CPU, ComputingUnits=2)});
+	    @Implements(Test07);
+	    void Test07_impl_1(out string stringOut);
+        
+		@Constraints(processors={
+               @Processor(ProcessorType=CPU, ComputingUnits=1),
+			   @Processor(ProcessorType=GPU, ComputingUnits=1)});
+        @Implements(Test07);
+	    void Test07_impl_2(out string stringOut);
+
 };
 

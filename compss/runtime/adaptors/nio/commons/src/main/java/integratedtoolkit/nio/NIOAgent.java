@@ -36,7 +36,7 @@ public abstract class NIOAgent {
     public static final String ID = NIOAgent.class.getCanonicalName();
     
     public static final int NUM_PARAMS_PER_WORKER_SH = 5;
-    public static final int NUM_PARAMS_NIO_WORKER = 20;
+    public static final int NUM_PARAMS_NIO_WORKER = 21;
 
     private int sendTransfers;
     private final int MAX_SEND_TRANSFERS;

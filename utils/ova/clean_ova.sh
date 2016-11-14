@@ -18,22 +18,10 @@
   sudo find . -name ".subversion" | xargs -r -i -t rm -rf {}
   sudo find . -name ".m2" | xargs -r -i -t rm -rf {}
   sudo find . -name ".COMPSs" | xargs -r -i -t rm -rf {}
- 
+
+  # Add 0's to image 
   echo "Adding 0's"
-  # Add 0's to HOME
-  cd $HOME
-  dd if=/dev/zero of=zeroFile bs=1M
-  rm -f zeroFile
-
-  # Add 0's to sharedDisk
-  cd $SHAREDDISK
-  dd if=/dev/zero of=zeroFile bs=1M
-  rm -f zeroFile
-
-  # Add 0's to HOME
-  cd $ROOT_FOLDER
-  sudo dd if=/dev/zero of=zeroFile bs=1M
-  sudo rm -f zeroFile
+  ./clean_0s.sh
 
   # End
   echo "DONE!"

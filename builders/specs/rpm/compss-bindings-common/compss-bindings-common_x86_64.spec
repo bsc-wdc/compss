@@ -2,7 +2,7 @@
 %define version 	2.0
 %define release		1
 
-Requires: compss-engine
+Requires: compss-engine, libtool, automake, make, gcc-c++
 Summary: The C libraries shared by BSC COMP Superscalar Bindings
 Name: %{name}
 Version: %{version}

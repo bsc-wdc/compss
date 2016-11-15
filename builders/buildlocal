@@ -339,14 +339,15 @@ install() {
     cd ${scriptDir}
   fi
 
-  #Config
+  # Config
   echo "--- Copy configuration"
   find ${tmpDir}/compss/runtime/config -name src | xargs rm -rf
   find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
   find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
   cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+  sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xmls/projects/default_project.xml
 
-  #Scripts
+  # Scripts
   echo "--- Copy scripts"
   cp -r ${tmpDir}/compss/runtime/scripts/* ${targetDir}/Runtime/scripts/
 

@@ -134,6 +134,7 @@
   find ${tmpDir}/compss/runtime/config -name target | xargs rm -rf
   find ${tmpDir}/compss/runtime/config -name pom.xml | xargs rm -rf
   cp -r ${tmpDir}/compss/runtime/config/* ${targetDir}/Runtime/configuration/
+  sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xmls/projects/default_project.xml
 
   # Scripts
   echo "--- Copy scripts"

@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 public class TraceMerger {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
+    protected static final boolean debug = logger.isDebugEnabled();
 
     private static final Integer SYNC_TYPE = 8000666;
     private static final Integer R_ID_INDEX = 1;
@@ -133,15 +134,19 @@ public class TraceMerger {
         for (File taskFile : taskTraces) {
             List<String> cleanLines = getTaskEvents(taskFile);
             updateTasksInfo(cleanLines);
-            taskFile.delete();
+            if (!debug) {
+                taskFile.delete();
+            }
         }
         masterWriter.close();
         logger.debug("Merging finished,");
-        File f = new File(this.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
-        if (f.delete()){
-            logger.debug("Temporal task folder removed.");
-        } else {
-            logger.warn("Could not remove temporal task folder: " + f);
+        if (!debug){
+            File f = new File(this.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
+            if (f.delete()){
+                logger.debug("Temporal task folder removed.");
+            } else {
+                logger.warn("Could not remove temporal task folder: " + f);
+            }
         }
     }
 

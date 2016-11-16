@@ -29,7 +29,7 @@
         retries=1
         testExitValue=3
         while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
-          log_folder="${base_log_folder}/$app_$retries"
+          log_folder="${base_log_folder}/${app}_${retries}"
           mkdir -p ${log_folder}
 
           # Specific test Execute

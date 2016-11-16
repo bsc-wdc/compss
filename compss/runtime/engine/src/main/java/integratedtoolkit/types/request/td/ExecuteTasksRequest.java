@@ -4,8 +4,9 @@ import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
-import integratedtoolkit.types.allocatableactions.MultipleExecution;
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.Task.TaskState;
+import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
+import integratedtoolkit.types.allocatableactions.SlaveExecutionAction;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
@@ -48,26 +49,30 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
         if (debug) {
             logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreID + ")");
         }
-        task.setStatus(Task.TaskState.TO_EXECUTE);
+        task.setStatus(TaskState.TO_EXECUTE);
         
-        if (task.isReplicatedTask()) {
+        if (task.getTaskDescription().isReplicated()) {
             // Method annotation forces to replicate task to all nodes
             ResourceScheduler<P, T>[] resources = ts.getWorkers();
             task.setExecutionCount(resources.length);
             for (ResourceScheduler<P, T> rs : resources) {
-                SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task, rs);
-                ts.newAllocatableAction(e); 
+                MasterExecutionAction<P, T> singleExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), producer, task, rs);
+                ts.newAllocatableAction(singleExec); 
             }
         } else {
-            // Normal task. Can use one or more resources depending on the computingNodes
-            if (task.isSingleNode()) {
-                task.setExecutionCount(1);
-                SingleExecution<P, T> e = new SingleExecution<P, T>(ts.generateSchedulingInformation(), producer, task, null);
-                ts.newAllocatableAction(e);
-            } else {
-                task.setExecutionCount(1);
-                MultipleExecution<P, T> e = new MultipleExecution<P, T>(ts.generateSchedulingInformation(), producer, task);
-                ts.newAllocatableAction(e);
+            // Normal task
+            int numNodes = task.getTaskDescription().getNumNodes();
+            task.setExecutionCount(numNodes);
+            
+            // Can use one or more resources depending on the computingNodes
+            // Launch the master task and slaves if needed
+            MasterExecutionAction<P, T> masterExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), producer, task, null);
+            ts.newAllocatableAction(masterExec);
+            
+            int numSlaveNodes = numNodes - 1;
+            for (int i = 0; i < numSlaveNodes; ++i) {
+                SlaveExecutionAction<P, T> slaveExec = new SlaveExecutionAction<>(ts.generateSchedulingInformation(), producer, task, null);
+                ts.newAllocatableAction(slaveExec);
             }
         }
 

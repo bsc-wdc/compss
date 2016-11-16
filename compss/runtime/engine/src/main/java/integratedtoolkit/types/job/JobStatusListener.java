@@ -1,15 +1,17 @@
 package integratedtoolkit.types.job;
 
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class JobStatusListener implements JobListener {
+public class JobStatusListener<P extends Profile, T extends WorkerResourceDescription> implements JobListener {
 
-    private final ExecutionAction<?, ?> execution;
+    private final ExecutionAction<P, T> execution;
 
 
-    public JobStatusListener(ExecutionAction<?, ?> ex) {
+    public JobStatusListener(ExecutionAction<P, T> ex) {
         this.execution = ex;
     }
 

@@ -4,7 +4,7 @@ import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -105,8 +105,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             graph.newLine();
             LinkedList<AllocatableAction<P, T>> blockedActions = ts.getBlockedActions();
             for (AllocatableAction<P, T> action : blockedActions) {
-                if (action instanceof SingleExecution) {
-                    SingleExecution<P, T> se = (SingleExecution<P, T>) action;
+                if (action instanceof MasterExecutionAction) {
+                    MasterExecutionAction<P, T> se = (MasterExecutionAction<P, T>) action;
                     Task t = se.getTask();
                     graph.write(prefix + prefix + prefix + t.getDotDescription());
                     graph.newLine();
@@ -141,8 +141,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
                 graph.newLine();
                 LinkedList<AllocatableAction<P, T>> hostedActions = ts.getHostedActions(worker);
                 for (AllocatableAction<P, T> action : hostedActions) {
-                    if (action instanceof SingleExecution) {
-                        SingleExecution<P, T> se = (SingleExecution<P, T>) action;
+                    if (action instanceof MasterExecutionAction) {
+                        MasterExecutionAction<P, T> se = (MasterExecutionAction<P, T>) action;
                         Task t = se.getTask();
                         graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         graph.newLine();
@@ -166,8 +166,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
                 graph.newLine();
                 PriorityQueue<AllocatableAction<P, T>> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
                 for (AllocatableAction<P, T> action : blockedActionsOnResource) {
-                    if (action instanceof SingleExecution) {
-                        SingleExecution<P, T> se = (SingleExecution<P, T>) action;
+                    if (action instanceof MasterExecutionAction) {
+                        MasterExecutionAction<P, T> se = (MasterExecutionAction<P, T>) action;
                         Task t = se.getTask();
                         graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         graph.newLine();

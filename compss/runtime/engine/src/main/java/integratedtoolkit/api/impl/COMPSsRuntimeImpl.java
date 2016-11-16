@@ -484,7 +484,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
-
+        
+        return executeTask(appId, methodClass, methodName, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
+                !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
+    }
+    
+    /**
+     * Execute task: methods
+     */
+    @Override
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+        
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
@@ -495,33 +506,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, !Constants.REPLICATED_TASK, priority, hasTarget, pars);
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-        }
-
-        return task;
-    }
-
-    /**
-     * Execute task: services
-     */
-    @Override
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
-            int parameterCount, Object... parameters) {
-
-        if (Tracer.isActivated()) {
-            Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
-        }
-
-        logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
-        if (logger.isDebugEnabled()) {
-            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
-        }
-
-        Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, namespace, service, port, operation, priority, hasTarget, pars);
+        int task = ap.newTask(appId, methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
@@ -531,23 +516,38 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
     
     /**
-     * Execute globalSpawn tasks
+     * Execute task: services
      */
     @Override
-    public int executeReplicatedTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
-            Object... parameters) {
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+            int parameterCount, Object... parameters) {
+
+        return executeTask(appId, namespace, service, port, operation, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
+                            !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
+    }
+    
+    /**
+     * Execute task: services
+     */
+    @Override
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, 
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
+        
+        if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
+            ErrorManager.fatal("ERROR: Unsupported feature for Services: multi-node, replicated or distributed");
+        }
 
-        logger.info("Creating multinode task from method " + methodName + " in " + methodClass);
+        logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
         if (logger.isDebugEnabled()) {
             logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
-        int task = ap.newTask(appId, methodClass, methodName, Constants.REPLICATED_TASK, priority, hasTarget, pars);
+        int task = ap.newTask(appId, namespace, service, port, operation, isPrioritary, hasTarget, pars);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

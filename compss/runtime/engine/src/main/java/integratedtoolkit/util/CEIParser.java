@@ -6,6 +6,7 @@ import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.SchedulerHints;
 import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.MPI;
 import integratedtoolkit.types.annotations.task.Method;
@@ -207,6 +208,8 @@ public class CEIParser {
                         && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                         && !annot.annotationType().getName().equals(OpenCLs.class.getName())
                         && !annot.annotationType().getName().equals(Binaries.class.getName())
+                        // Scheduler hints
+                        && !annot.annotationType().getName().equals(SchedulerHints.class.getName())
                         ) {
                     
                     ErrorManager.warn("Unrecognised annotation " + annot.annotationType().getName() + " . SKIPPING");
@@ -282,21 +285,10 @@ public class CEIParser {
              */
             for (MPI mpiAnnot : m.getAnnotationsByType(MPI.class)) {
                 logger.debug("   * Processing @MPI annotation");
-                String binary = mpiAnnot.binary();
-                String mpiRunner = mpiAnnot.mpiRunner();
                 
-                if (mpiRunner.startsWith(Implementation.PREFIX_ENV_VAR)) {
-                    String varName = mpiRunner.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-                    varName = varName.replaceAll("\\{", "");
-                    varName = varName.replaceAll("\\}", "");
-                    mpiRunner = System.getenv(varName);
-                }                
-                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
-                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-                    varName = varName.replaceAll("\\{", "");
-                    varName = varName.replaceAll("\\}", "");
-                    binary = System.getenv(varName);
-                } 
+                String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
+                String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
+
                 if (mpiRunner == null || mpiRunner.isEmpty()) {
                     ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
                 }
@@ -333,14 +325,8 @@ public class CEIParser {
              */
             for (OmpSs ompssAnnot : m.getAnnotationsByType(OmpSs.class)) {
                 logger.debug("   * Processing @OmpSs annotation");
-                String binary = ompssAnnot.binary();
-                
-                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
-                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-                    varName = varName.replaceAll("\\{", "");
-                    varName = varName.replaceAll("\\}", "");
-                    binary = System.getenv(varName);
-                }
+                String binary = EnvironmentLoader.loadFromEnvironment(ompssAnnot.binary());
+
                 if (binary == null || binary.isEmpty()) {
                     ErrorManager.error("Empty binary annotation for method " + m.getName());
                 }
@@ -370,14 +356,8 @@ public class CEIParser {
              */
             for (OpenCL openclAnnot : m.getAnnotationsByType(OpenCL.class)) {
                 logger.debug("   * Processing @OpenCL annotation");
-                String kernel = openclAnnot.kernel();
-                
-                if (kernel.startsWith(Implementation.PREFIX_ENV_VAR)) {
-                    String varName = kernel.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-                    varName = varName.replaceAll("\\{", "");
-                    varName = varName.replaceAll("\\}", "");
-                    kernel = System.getenv(varName);
-                }
+                String kernel = EnvironmentLoader.loadFromEnvironment(openclAnnot.kernel());
+
                 if (kernel == null || kernel.isEmpty()) {
                     ErrorManager.error("Empty kernel annotation for method " + m.getName());
                 }
@@ -407,14 +387,8 @@ public class CEIParser {
              */
             for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
                 logger.debug("   * Processing @Binary annotation");
-                String binary = binaryAnnot.binary();
+                String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
                 
-                if (binary.startsWith(Implementation.PREFIX_ENV_VAR)) {
-                    String varName = binary.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-                    varName = varName.replaceAll("\\{", "");
-                    varName = varName.replaceAll("\\}", "");
-                    binary = System.getenv(varName);
-                }
                 if (binary == null || binary.isEmpty()) {
                     ErrorManager.error("Empty binary annotation for method " + m.getName());
                 }

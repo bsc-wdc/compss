@@ -42,36 +42,32 @@ public class Task implements Comparable<Task> {
     private final List<ExecutionAction<?, ?>> executions;
     
     // Execution count information
-    private final boolean mustBeReplicated;
     private int executionCount;
 
 
-    public Task(Long appId, String methodClass, String methodName, boolean mustBeReplicated, boolean priority, boolean hasTarget, 
-            Parameter[] parameters) {
+    public Task(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+            boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
         
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(methodClass, methodName, priority, hasTarget, parameters);
+        this.taskDescription = new TaskDescription(methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, 
+                                                    hasTarget, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
-        this.mustBeReplicated = mustBeReplicated;
     }
 
-    public Task(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
+    public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
             Parameter[] parameters) {
 
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(namespace, service, port, operation, priority, hasTarget, parameters);
+        this.taskDescription = new TaskDescription(namespace, service, port, operation, isPrioritary, hasTarget, parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
-        
-        // Services are never replicated
-        this.mustBeReplicated = false;
     }
 
     public static int getCurrentTaskCount() {
@@ -118,14 +114,6 @@ public class Task implements Comparable<Task> {
         this.enforcingTask = task;
     }
     
-    public boolean isReplicatedTask() {
-        return this.mustBeReplicated;
-    }
-    
-    public boolean isSingleNode() {
-        return true;
-    }
-    
     public boolean isFree() {
         return (this.executionCount == 0);
     }
@@ -156,8 +144,11 @@ public class Task implements Comparable<Task> {
 
         String shape;
         if (taskDescription.getType() == TaskType.METHOD) {
-            if (this.mustBeReplicated) {
+            if (this.taskDescription.isReplicated()) {
                 shape = "doublecircle";
+            } else if (this.taskDescription.isDistributed()) {
+                // Its only a scheduler hint, no need to show them differently
+                shape = "circle";
             } else {
                 shape = "circle";
             }

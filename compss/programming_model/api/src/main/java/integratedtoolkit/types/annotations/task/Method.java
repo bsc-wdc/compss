@@ -51,13 +51,6 @@ public @interface Method {
      */
     boolean isModifier() default Constants.IS_MODIFIER;
 
-    /**
-     * Returns if the task must be replicated through all workers or not
-     * 
-     * @return if the task must be replicated through all workers or not
-     */
-    boolean isReplicated() default !Constants.REPLICATED_TASK;
-
     /*
      * COMMON PROPERTIES
      * 

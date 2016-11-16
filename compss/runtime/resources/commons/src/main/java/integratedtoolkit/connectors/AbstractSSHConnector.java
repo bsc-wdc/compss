@@ -26,6 +26,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     
     // Properties' names
     private static final String VM_USER = "vm-user";
+    private static final String VM_PASSWORD = "vm-password";
     private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
     private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
 
@@ -59,6 +60,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
     // Attributes
     private String defaultUser;
+    private String defaultPassword;
     private final String keyPairName;
     private final String keyPairLocation;
 
@@ -74,6 +76,8 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
         String propKeypairLocation = props.get(VM_KEYPAIR_LOCATION);
         keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
+        
+        defaultPassword = props.get(VM_PASSWORD);
     }
 
     /**
@@ -120,12 +124,20 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
             if (user == null) {
                 user = defaultUser;
             }
-            if (password != null) {
+            if (password != null || defaultPassword != null) {
                 setPassword = true;
-                passwordOrKeyPair = password;
+                if (password == null){
+                	passwordOrKeyPair = defaultPassword;
+                }else{
+                	passwordOrKeyPair = password;
+                }
+                LOGGER.debug("First access done by password");
             } else if (keyPairName != null) {
                 setPassword = false;
                 passwordOrKeyPair = keyPairLocation + File.separator + keyPairName;
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("First access done by key pair: " + passwordOrKeyPair);
+                }
             }
 
             // Configure keypair from master

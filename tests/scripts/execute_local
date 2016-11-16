@@ -6,6 +6,8 @@
   comm=$2
   base_dir=$3
   COMPSs_log_folder=$4
+
+  MAX_RETRIES=3
   base_log_folder="${base_dir}/logs"
   exitValue=0
 
@@ -18,27 +20,53 @@
   results=""
   app_folders=$(ls ${app_base_dir})
   for app in ${app_folders}; do
-      log_folder="${base_log_folder}/$app"
-      mkdir -p ${log_folder}
-      cd ${app_base_dir}/${app}
-      ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder}
-      if [ $? -ne 0 ]; then
-         exitValue=1
-         results="${results}1"
+      if [ -f ${app_base_dir}/${app}/skip ]; then
+        # Mark test as skip
+        results="${results}2"
       else
-         results="${results}0"
+        # Execute test with retries
+        cd ${app_base_dir}/${app}
+        retries=1
+        testExitValue=3
+        while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
+          log_folder="${base_log_folder}/$app_$retries"
+          mkdir -p ${log_folder}
+
+          # Specific test Execute
+          ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${retries}
+          testExitValue=$?
+
+          # Sleep before cleanning test environment
+          sleep 1s
+          # Clean possible remaining test processes
+          $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
+          $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+          $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
+          # Sleep to avoid interferences between tests
+          sleep 1s
+          # Increase to next retry
+          retries=$((retries + 1))
+        done
+
+        # Annotate test result
+        if [ $testExitValue -ne 0 ]; then
+           exitValue=1
+           results="${results}3"
+        else
+           if [ $retries -eq 2 ]; then
+             # Test OK on first try (but counter was increased)
+             results="${results}0"
+           else
+             results="${results}1"
+           fi
+        fi
       fi
+
+      # Go to next test
       appCounter=$((appCounter+1))
-      # Sleep to avoid interferences between tests
-      sleep 1s
-      # Clean remaining processes (if any)
-      $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
-      $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
-      # Sleep to avoid interferences between tests
-      sleep 1s
   done
 
-  #Show Result table
+  # Show Result table
   counter=1
   pos=0
   echo
@@ -48,6 +76,10 @@
   while [ $counter -lt $appCounter ]; do
     if [ "${results:$pos:1}" == "0" ]; then
        echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[32mOK"
+    elif [ "${results:$pos:1}" == "1" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[33mOK"
+    elif [ "${results:$pos:1}" == "2" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[36mSKIP"
     else
        echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[31mERROR"
     fi

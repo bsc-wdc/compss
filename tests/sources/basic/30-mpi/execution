@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   # Global exit variable
   exitValue=0
@@ -30,8 +31,8 @@
   
   echo "MPI Binary: $VEC_SUM_MPI_BINARY"
     
-  output_log="${target_log_folder}/testMPI.outputlog"
-  error_log="${target_log_folder}/testMPI.errorlog"
+  output_log="${target_log_folder}/testMPI_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/testMPI_0${retryNum}.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -47,14 +48,14 @@
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testMPI.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/testMPI.Main_0${retryNum}/* ${target_log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      exitValue=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testMPI.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/testMPI.Main_0${retryNum}/* ${target_log_folder}
   
      #Check result
      ${base_app_dir}/result ${output_log} ${target_log_folder} 

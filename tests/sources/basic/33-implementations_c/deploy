@@ -12,7 +12,5 @@
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
 
   cp -rf ${source_base_dir}/src ${target_base_dir}/src
-  cp -f ${source_base_dir}/Simple.cc ${target_base_dir}/Simple.cc
-  cp -f ${source_base_dir}/Simple-functions.cc ${target_base_dir}/Simple-functions.cc
-  cp -f ${source_base_dir}/Simple.idl ${target_base_dir}/Simple.idl
-
+  cp -f ${source_base_dir}/*.cc ${target_base_dir}/
+  cp -f ${source_base_dir}/*.idl ${target_base_dir}/

@@ -1,4 +1,4 @@
-interface simple {
+interface implementations {
 	@Constraints(ComputingUnits=8);
 	void increment(inout File filename);
 

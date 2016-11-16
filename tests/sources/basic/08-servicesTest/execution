@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   #Global exit variable
   exitValue=0
@@ -27,8 +28,8 @@
   groupServicePID=$!
   sleep 15s
   
-  output_log="${target_log_folder}/servicesTest.outputlog"
-  error_log="${target_log_folder}/servicesTest.errorlog"
+  output_log="${target_log_folder}/servicesTest_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/servicesTest_0${retryNum}.errorlog"
   expectedTime=60s
   numCalls=4
   
@@ -47,7 +48,7 @@
      kill $groupServicePID
      
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/servicesTest.ServicesTest_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/servicesTest.ServicesTest_0${retryNum}/* ${target_log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
@@ -57,7 +58,7 @@
      kill $groupServicePID
      
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/servicesTest.ServicesTest_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/servicesTest.ServicesTest_0${retryNum}/* ${target_log_folder}
   
      #Check result
      ${base_app_dir}/result ${output_log} ${target_log_folder}

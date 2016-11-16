@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   #Global exit variable
   exitValue=0
@@ -26,8 +27,8 @@
   echo "*** RUNNING JAVA APPLICATION DATA LOCALITY - Basic Test"
   log_folder="${target_log_folder}/basicTest"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/dataLocality_basicTest.outputlog"
-  error_log="${log_folder}/dataLocality_basicTest.errorlog"
+  output_log="${log_folder}/dataLocality_basicTest_0${retryNum}.outputlog"
+  error_log="${log_folder}/dataLocality_basicTest_0${retryNum}.errorlog"
   
   expectedTime=60s
   numTasks=5
@@ -47,14 +48,14 @@
   ev1=0
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/basicTest.DataLocality_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/basicTest.DataLocality_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev1=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/basicTest.DataLocality_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/basicTest.DataLocality_0${retryNum}/* ${log_folder}
   
      #Check result
      ${base_app_dir}/result_basicTest ${output_log} ${log_folder}
@@ -78,8 +79,8 @@
   echo "*** RUNNING JAVA APPLICATION DATA LOCALITY - Complex Test"
   log_folder="${target_log_folder}/complexTest"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/dataLocality_complexTest.outputlog"
-  error_log="${log_folder}/dataLocality_complexTest.errorlog"
+  output_log="${log_folder}/dataLocality_complexTest_0${retryNum}.outputlog"
+  error_log="${log_folder}/dataLocality_complexTest_0${retryNum}.errorlog"
   expectedTime=2400s
   msize=4
   
@@ -96,14 +97,14 @@
   ev2=0
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/complexTest.DataLocality_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/complexTest.DataLocality_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev2=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/complexTest.DataLocality_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/complexTest.DataLocality_0${retryNum}/* ${log_folder}
     
      #Check result
      ${base_app_dir}/result_complexTest ${output_log} ${log_folder} ${base_app_dir} 

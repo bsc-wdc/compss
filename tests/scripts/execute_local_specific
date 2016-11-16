@@ -7,6 +7,8 @@
   comm=$3
   base_dir=$4
   COMPSs_log_folder=$5
+
+  MAX_RETRIES=3
   base_log_folder="${base_dir}/logs"
   exitValue=0
 
@@ -23,23 +25,62 @@
   else 
      app_base_dir="${base_dir}/app$testnum"
      log_folder="${base_log_folder}/app$testnum"
-  fi 
+  fi
 
-  mkdir -p ${log_folder}
-  cd ${app_base_dir}
-  ./execution ${COMPSs_exec} ${comm} ${app_base_dir} ${COMPSs_log_folder} ${log_folder}
-  if [ $? -ne 0 ]; then
-     exitValue=1
-     echo -e "\e[34m------------------------------------------------------------------------"
-     echo -e "\e[34m------------------------------------------------------------------------"
-     echo "   Application Name                                      TEST STATUS"
-     echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[31mERROR"
+  if [ -f ${app_base_dir}/skip ]; then
+    # Skip test
+    testExitValue=2
   else
-     exitValue=0
-     echo -e "\e[34m------------------------------------------------------------------------"
-     echo -e "\e[34m------------------------------------------------------------------------"
-     echo "   Application Name                                      TEST STATUS"
-     echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[32mOK"
+    # Execute test with retries
+    cd ${app_base_dir}
+    retries=1
+    testExitValue=3
+    while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -eq 3 ]; do
+      log_folder_withR="${log_folder}_$retries"
+      mkdir -p ${log_folder_withR}
+
+      # Specific test Execute
+      ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder_withR} ${retries}
+      if [ $? -ne 0 ]; then
+        testExitValue=3
+      else
+        if [ $retries -eq 1 ]; then 
+          testExitValue=0
+        else
+          testExitValue=1
+        fi
+      fi
+
+      # Sleep before cleanning test environment
+      sleep 1s
+      # Clean possible remaining test processes
+      $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
+      $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+      $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)                                                                                                
+      # Sleep to avoid interferences between tests
+      sleep 1s
+      # Increase to next retry
+      retries=$((retries + 1))
+    done
+  fi
+
+  #--------------------------------------------------------------------------------
+  # Print test result execution
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo -e "\e[34m------------------------------------------------------------------------"
+  echo "   Application Name                                      TEST STATUS"
+  if [ $testExitValue -eq 0 ]; then
+    exitValue=0
+    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[32mOK"
+  elif [ $testExitValue -eq 1 ]; then
+    exitValue=0
+    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[33mOK"
+  elif [ $testExitValue -eq 2 ]; then
+    exitValue=1
+    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[36mSKIP"
+  else
+    exitValue=1
+    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[31mERROR"
   fi
   echo -e "\e[34m------------------------------------------------------------------------"
   echo -e "\e[34m------------------------------------------------------------------------" 

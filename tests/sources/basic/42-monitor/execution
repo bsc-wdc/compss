@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   #Global exit variable
   exitValue=0
@@ -22,8 +23,8 @@
   #Run application 1 - Monitor
   echo
   echo "*** RUNNING JAVA APPLICATION MONITOR - MATMUL Arrays"
-  output_log="${target_log_folder}/monitor.outputlog"
-  error_log="${target_log_folder}/monitor.errorlog"
+  output_log="${target_log_folder}/monitor_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/monitor_0${retryNum}.errorlog"
   expectedTime=1200s
   Ain="${base_app_dir}/java_matmul_A8x8.in"
   Bin="${base_app_dir}/java_matmul_B8x8.in"
@@ -43,14 +44,14 @@
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/monitor.Matmul_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/monitor.Matmul_0${retryNum}/* ${target_log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      exitValue=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/monitor.Matmul_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/monitor.Matmul_0${retryNum}/* ${target_log_folder}
   
      #Check result
      ${base_app_dir}/result ${output_log} ${target_log_folder} $CoutExpected $CoutGot

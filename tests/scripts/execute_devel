@@ -6,7 +6,9 @@
   comm=$2
   base_dir=$3
   COMPSs_log_folder=$4
+
   base_log_folder="${base_dir}/logs"
+  MAX_RETRIES=3
   exitValue=0
 
   #--------------------------------------------------------------------------------

@@ -9,7 +9,6 @@
      echo "- Available environments:"
      echo "    - local / local_X"
      echo "    - devel_X"
-     echo "    - cloud / cloud_X"
      echo "    - cloudvpn / cloudvpn_X"
      echo " "
      echo " For further information look the README file or the documentation folder"
@@ -163,100 +162,6 @@
   fi
 
   #-----------------------------------------------------------------------------------------------
-  #CLOUD JENKINS
-  if [ "${environment}" = "cloud_jenkins" ]; then
-       # Run cloud test from JENKINS environment
-       
-       #Global exit variable
-       exitValue=0
-
-       #Deploy tests
-       $(dirname $0)/deploy_sources_cloud_jenkins
-       if [ $? -ne 0 ]; then
-          exit 1
-       fi
-
-       #Execute tests
-       $(dirname $0)/execute_cloud_jenkins
-       if [ $? -ne 0 ]; then
-          exitValue=1
-       fi
-
-       #Reset known_hosts state
-       rm -f $HOME/.ssh/known_hosts
-       cp -f $HOME/.ssh/known_hosts.bk $HOME/.ssh/known_hosts
-
-       #Exit
-       exit $exitValue
-   fi
-
-  #-----------------------------------------------------------------------------------------------
-  #CLOUD BSCGRID20
-  if [ "${environment}" = "cloud" ] || [ "${environment:0:6}" = "cloud_" ]; then
-     #Global exit variable
-     exitValue=0
-
-     #Set default environment variables
-     user=$(whoami)
-     bscgrid20_user=user
-     target_base_dir="/home/$user/tests_cloud"
-     IT_HOME="/opt/COMPSs/"
-     connector_server="https://bscgrid20.bsc.es:11443/"
-     connector_jar="rocci-conn.jar"
-     connector_class="es.bsc.conn.rocci.ROCCI"
-     comm=integratedtoolkit.nio.master.NIOAdaptor
-
-     #Set environment variables from configuration file
-     configuration=$2
-     if [[ $configuration = */* ]]; then
-       source $configuration
-       if [ $? -ne 0 ]; then
-         exit 1
-       fi
-     else
-       source $(dirname $0)/../configurations/$configuration
-       if [ $? -ne 0 ]; then
-         exit 1
-       fi
-     fi
-     if [ -z "$JAVA_HOME" ]; then
-       echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
-       exit 1
-     fi
-
-     #Set the rest of environment variables
-     COMPSs_location="${IT_HOME}"
-     COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
-     log_folder="${target_base_dir}/logs"
-     source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
-     cloud_owner="jenkins-test"
-
-     #Export base variables
-     export IT_HOME=$IT_HOME
-     export JAVA_HOME=$JAVA_HOME
-
-     #Compile sources cloud
-     $(dirname $0)/compile_sources_cloud_bscgrid20 ${source_base_dir}
-
-     #Deploy tests
-     $(dirname $0)/deploy_sources_cloud_bscgrid20 ${source_base_dir} ${target_base_dir} ${log_folder} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class}
-
-     #Execute tests
-     if [ "${environment}" = "cloud" ]; then
-       num_test="all"
-     else
-       num_test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
-     fi
-     $(dirname $0)/execute_cloud_bscgrid20 ${bscgrid20_user} ${COMPSs_location} ${COMPSs_exec} ${comm} ${target_base_dir} ${log_folder} ${num_test}
-     if [ $? -ne 0 ]; then
-       exitValue=1
-     fi
-
-     #Exit
-     exit $exitValue
-  fi
-
-  #-----------------------------------------------------------------------------------------------
   #CLOUD VPN
   if [ "${environment:0:8}" = "cloudvpn" ]; then
      #Global exit variable
@@ -271,6 +176,7 @@
      connector_jar="rocci-conn.jar"
      connector_class="es.bsc.conn.rocci.ROCCI"
      comm=integratedtoolkit.nio.master.NIOAdaptor
+     remote_COMPSs=/opt/
 
      #Set environment variables from configuration file
      configuration=$2
@@ -308,7 +214,7 @@
      $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
 
      #Deploy tests
-     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class}
+     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class} ${remote_COMPSs}
      if [ $? -ne 0 ]; then
        exit 1
      fi

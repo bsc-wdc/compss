@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   #Global exit variable
   exitValue=0
@@ -39,8 +40,8 @@
   echo "OmpSs Binary: ${HELLO_WORLD_OMPSS}"
   echo "OpenCL Binary: ${HELLO_WORLD_OPENCL}"
   
-  output_log="${target_log_folder}/nonNativeTasks.outputlog"
-  error_log="${target_log_folder}/nonNativeTasks.errorlog"
+  output_log="${target_log_folder}/nonNativeTasks_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/nonNativeTasks_0${retryNum}.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -56,14 +57,14 @@
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_0${retryNum}/* ${target_log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      exitValue=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_01/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/nonNativeTasks.Main_0${retryNum}/* ${target_log_folder}
   
      #Check result
      ${base_app_dir}/result ${output_log} ${target_log_folder}

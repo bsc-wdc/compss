@@ -5,6 +5,6 @@
   target_base_dir=$2
   
   #Copy files
+  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
-
   

@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   #Global exit variable
   exitValue=0
@@ -24,8 +25,8 @@
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Arrays"
   log_folder="${target_log_folder}/arrays"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/sparselu_arrays.outputlog"
-  error_log="${log_folder}/sparselu_arrays.errorlog"
+  output_log="${log_folder}/sparselu_arrays_0${retryNum}.outputlog"
+  error_log="${log_folder}/sparselu_arrays_0${retryNum}.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout="${base_app_dir}/java_sparseLU_A.out"
@@ -43,14 +44,14 @@
   ev1=0
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev1=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.arrays.SparseLU_0${retryNum}/* ${log_folder}
   
      #Check result
      ${base_app_dir}/result_arrays ${output_log} ${log_folder}
@@ -71,8 +72,8 @@
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Objects"
   log_folder="${target_log_folder}/objects"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/sparselu_objects.outputlog"
-  error_log="${log_folder}/sparselu_objects.errorlog"
+  output_log="${log_folder}/sparselu_objects_0${retryNum}.outputlog"
+  error_log="${log_folder}/sparselu_objects_0${retryNum}.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout="${base_app_dir}/java_sparseLU_A.out"
@@ -90,14 +91,14 @@
   ev2=0
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev2=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.objects.SparseLU_0${retryNum}/* ${log_folder}
     
      #Check result
      ${base_app_dir}/result_objects ${output_log} ${log_folder}
@@ -118,8 +119,8 @@
   echo "*** RUNNING JAVA APPLICATION SPARSELU - Files"
   log_folder="${target_log_folder}/files"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/sparselu_files.outputlog"
-  error_log="${log_folder}/sparselu_files.errorlog"
+  output_log="${log_folder}/sparselu_files_0${retryNum}.outputlog"
+  error_log="${log_folder}/sparselu_files_0${retryNum}.errorlog"
   expectedTime=1200s
   path_ain="${base_app_dir}/java_sparseLU_A.in"
   path_aout_expected="${base_app_dir}/java_sparseLU_A.out"
@@ -138,14 +139,14 @@
   ev3=0
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev3=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/sparseLU.files.SparseLU_0${retryNum}/* ${log_folder}
     
      #Check result
      ${base_app_dir}/result_files ${output_log} ${log_folder} ${path_aout_expected} ${path_aout_got}

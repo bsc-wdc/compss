@@ -2,22 +2,23 @@
 
   # Obtain parameters
   target_log_folder=$1
+  retryNum=$2
 
   # Define the output files. The output_file parameter is not used since we result_check all of them together
-  output_file_testNonExistingInFile="${target_log_folder}/testNonExistingInFile/errorManagement_testNonExistingInFile.outputlog"
-  output_file_testReschedulingFail="${target_log_folder}/testReschedulingFail/errorManagement_testReschedulingFail.outputlog"
-  output_file_testAllBlocked="${target_log_folder}/testAllBlocked/errorManagement_testAllBlocked.outputlog"
+  output_file_testNonExistingInFile="${target_log_folder}/testNonExistingInFile/errorManagement_testNonExistingInFile_0${retryNum}.outputlog"
+  output_file_testReschedulingFail="${target_log_folder}/testReschedulingFail/errorManagement_testReschedulingFail_0${retryNum}.outputlog"
+  output_file_testAllBlocked="${target_log_folder}/testAllBlocked/errorManagement_testAllBlocked_0${retryNum}.outputlog"
  
   # Default checker (application ends with : Error running application)
   if [ -f ${output_file_testNonExistingInFile} ]; then
      result_expected="Error running application"
      test_result=$(cat ${output_file_testNonExistingInFile} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "1 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "1 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testNonExistingInFile}
         exit 1
      fi
   else
-     echo "1b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "1b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testNonExistingInFile}
      exit 1
   fi
 
@@ -25,11 +26,11 @@
      result_expected="Error running application"
      test_result=$(cat ${output_file_testReschedulingFail} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "2 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "2 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testReschedulingFail}
         exit 1
      fi
   else
-     echo "2b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "2b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testReschedulingFail}
      exit 1
   fi
 
@@ -37,11 +38,11 @@
      result_expected="Error running application"
      test_result=$(cat ${output_file_testAllBlocked} | tail -n 2 | head -n 1)
      if [ "${result_expected}" != "${test_result}" ]; then
-        echo "3 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        echo "3 SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testAllBlocked}
         exit 1
      fi
   else
-     echo "3b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     echo "3b SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file_testAllBlocked}
      exit 1
   fi
 

@@ -16,7 +16,7 @@
 #include<iostream>
 #include<fstream>
 #include<string>
-#include"Simple.h"
+#include"Implementations.h"
 
 using namespace std;
 

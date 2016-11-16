@@ -6,6 +6,7 @@
   base_app_dir=$3
   COMPSs_log_folder=$4
   target_log_folder=$5
+  retryNum=$6
   
   # Global exit variable
   exitValue=0
@@ -35,8 +36,8 @@ EOF
   echo "*** RUNNING JAVA APPLICATION PSCOs internalExecution"
   log_folder="${target_log_folder}/internalExecution"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/testPSCO_internalExecution.outputlog"
-  error_log="${log_folder}/testPSCO_internalExecution.errorlog"
+  output_log="${log_folder}/testPSCO_internalExecution_0${retryNum}.outputlog"
+  error_log="${log_folder}/testPSCO_internalExecution_0${retryNum}.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -54,14 +55,14 @@ EOF
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev1=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCOInternal.Internal_0${retryNum}/* ${log_folder}
   
      #Check result
      ${base_app_dir}/result_internal ${output_log} ${log_folder} 
@@ -82,8 +83,8 @@ EOF
   echo "*** RUNNING JAVA APPLICATION PSCOs externalExecution"
   log_folder="${target_log_folder}/externalExecution"
   mkdir -p ${log_folder}
-  output_log="${log_folder}/testPSCO_externalExecution.outputlog"
-  error_log="${log_folder}/testPSCO_externalExecution.errorlog"
+  output_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.outputlog"
+  error_log="${log_folder}/testPSCO_externalExecution_0${retryNum}.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -102,14 +103,14 @@ EOF
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
      
      #Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
      ev2=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_01/* ${log_folder}
+     cp -rf ${COMPSs_log_folder}/testPSCOExternal.External_0${retryNum}/* ${log_folder}
   
      #Check result
      ${base_app_dir}/result_external ${output_log} ${log_folder} 

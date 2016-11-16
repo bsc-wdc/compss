@@ -17,24 +17,55 @@
 
   app_folders=$(ls ${base_dir})
   for app in $app_folders; do
-      if [ "$app" != "logs" ]; then
-         log_folder="${base_log_folder}/$app"
-         mkdir -p ${log_folder}
-         cd ${base_dir}/$app
-         ./execution ${COMPSs_exec} ${comm} "${base_dir}/$app" ${COMPSs_log_folder} ${log_folder}
-         if [ $? -ne 0 ]; then
-            exitValue=1
-            results="${results}1"
-         else
-            results="${results}0"
-         fi
-         appCounter=$((appCounter+1))
-         # Sleep to avoid interferences between tests
-         sleep 1
+    if [ "$app" != "logs" ]; then
+      if [ -f ${base_log_folder}/$app/skip ]; then
+        # Skip test
+        results="${results}2"
+      else
+        # Execute test with retries
+        cd ${base_dir}/$app
+        retries=1
+        testExitValue=3
+        while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
+          log_folder="${base_log_folder}/$app_$retries"
+          mkdir -p ${log_folder}
+
+          # Specific test Execute
+          ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${retries}
+          testExitValue=$?
+
+          # Sleep before cleanning test environment
+          sleep 1s
+          # Clean possible remaining test processes
+          $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
+          $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+          $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
+          # Sleep to avoid interferences between tests
+          sleep 1s
+          # Increase to next retry
+          retries=$((retries + 1))
+        done
+
+        # Annotate test result
+        if [ $testExitValue -ne 0 ]; then
+           exitValue=1
+           results="${results}3"
+        else
+           if [ $retries -eq 2 ]; then
+             # Test OK on first try (but counter was increased)
+             results="${results}0"
+           else
+             results="${results}1"
+           fi
+        fi
       fi
+
+      # Increase total AppCounter
+      appCounter=$((appCounter+1))
+    fi
   done
 
-  #Show Result table
+  # Show Result table
   counter=1
   pos=0
   echo
@@ -43,9 +74,13 @@
   echo -e "\e[34m   Application Name                                      TEST STATUS"
   while [ $counter -lt $appCounter ]; do
     if [ "${results:$pos:1}" == "0" ]; then
-       echo -e "\e[34m [TEST RESULT] Application DEVEL BLOCK $counter ..................... \e[32mOK"
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[32mOK"
+    elif [ "${results:$pos:1}" == "1" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[33mOK"
+    elif [ "${results:$pos:1}" == "2" ]; then
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[36mSKIP"
     else
-       echo -e "\e[34m [TEST RESULT] Application DEVEL BLOCK $counter ..................... \e[31mERROR"
+       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[31mERROR"
     fi
     counter=$((counter+1))
     pos=$((pos+1))

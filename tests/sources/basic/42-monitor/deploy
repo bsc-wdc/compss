@@ -17,3 +17,5 @@
   cp -f ${source_base_dir}/B8x8.in ${target_base_dir}/java_matmul_B8x8.in
   cp -f ${source_base_dir}/C8x8.out ${target_base_dir}/java_matmul_C8x8.out
 
+  cp -f ${source_base_dir}/skip ${target_base_dir}/skip  
+

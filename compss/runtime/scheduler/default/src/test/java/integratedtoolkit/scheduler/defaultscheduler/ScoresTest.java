@@ -10,6 +10,7 @@ import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.types.DefaultScore;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.location.DataLocation;
@@ -154,7 +155,8 @@ public class ScoresTest {
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, DataDirection.IN);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription("", "", false, false, new Parameter[] { dpD1V1, dpD2V2 });
+        TaskDescription params = new TaskDescription("", "", false, Constants.SINGLE_NODE, false, false, false, 
+                new Parameter[] { dpD1V1, dpD2V2 });
         DefaultScore actionScore = (DefaultScore) ds.getActionScore(action1);
 
         DefaultScore score1 = (DefaultScore) drs.getResourceScore(action1, params, actionScore);
@@ -181,7 +183,7 @@ public class ScoresTest {
         drs.clear();
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(1, 0, CoreManager.getCoreImplementations(4));
-        TaskDescription tp1 = new TaskDescription("", "", false, false, new Parameter[0]);
+        TaskDescription tp1 = new TaskDescription("", "", false, Constants.SINGLE_NODE, false, false, false, new Parameter[0]);
         DefaultScore score1 = (DefaultScore) ds.getActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);
 

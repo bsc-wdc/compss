@@ -24,11 +24,17 @@ import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.loader.LoaderConstants;
 import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.Parameter.Direction;
+import integratedtoolkit.types.annotations.SchedulerHints;
+import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.MPI;
+import integratedtoolkit.types.annotations.task.OmpSs;
+import integratedtoolkit.types.annotations.task.OpenCL;
 import integratedtoolkit.types.annotations.task.Service;
-import integratedtoolkit.types.annotations.task.repeatables.Methods;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
+import integratedtoolkit.util.EnvironmentLoader;
 
 
 public class ITAppEditor extends ExprEditor {
@@ -52,9 +58,7 @@ public class ITAppEditor extends ExprEditor {
     private static final String IS_TASK_FILE = ".isTaskFile(";
     private static final String OPEN_FILE = ".openFile(";
     private static final String DELETE_FILE = ".deleteFile(";
-    private static final String EXECUTE_METHOD_TASK = ".executeTask(";
-    private static final String EXECUTE_SERVICE_TASK = ".executeTask(";
-    private static final String EXECUTE_REPLICATED_METHOD_TASK = ".executeReplicatedTask(";
+    private static final String EXECUTE_TASK = ".executeTask(";
     private static final String PROCEED = "$_ = $proceed(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
@@ -301,63 +305,70 @@ public class ITAppEditor extends ExprEditor {
         if (!isVoid) {
             numParams++;
         }
-
-        // Build the executeTask call string
-        boolean isMethod = ( declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.task.Method.class)
-                                || declaredMethod.isAnnotationPresent(Methods.class) );
-        boolean isNonNativeMethod = ! ( declaredMethod.isAnnotationPresent(Service.class)
-                                || declaredMethod.isAnnotationPresent(Services.class) );
         
+        // Build the executeTask call string
         StringBuilder executeTask = new StringBuilder();
+        executeTask.append(itApiVar).append(EXECUTE_TASK);
+        executeTask.append(itAppIdVar).append(',');
+        
+        // Common values
+        boolean isPrioritary = !Constants.PRIORITY;
+        int numNodes = Constants.SINGLE_NODE;
+        
+        // Scheduler hints values
+        boolean isReplicated = !Constants.REPLICATED_TASK;
+        boolean isDistributed = !Constants.DISTRIBUTED_TASK;
+        if (declaredMethod.isAnnotationPresent(SchedulerHints.class)) {
+            SchedulerHints schedAnnot = declaredMethod.getAnnotation(SchedulerHints.class);
+            isReplicated = schedAnnot.isReplicated();
+            isDistributed = schedAnnot.isDistributed();
+        }
+        
+        // Specific implementation values
+        boolean isMethod = ! ( declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class) );
         if (isMethod) {
-            // METHOD
-            integratedtoolkit.types.annotations.task.Method methodAnnot = 
-                    declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
-            
-            // Instrument for execute task
-            if (methodAnnot.isReplicated()) {
-                // The task must be replicated through the workers
-                executeTask.append(itApiVar).append(EXECUTE_REPLICATED_METHOD_TASK);
-            } else {
-                // Single task execution
-                executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
+            // Method: native, MPI, OMPSs, Binary, OpenCL, etc.            
+            if (declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.task.Method.class)) {
+                integratedtoolkit.types.annotations.task.Method methodAnnot = 
+                        declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
+                isPrioritary = methodAnnot.priority();
+            } else if (declaredMethod.isAnnotationPresent(MPI.class)) {
+                MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
+                isPrioritary = mpiAnnot.priority();
+                // Parse computingNodes from environment if needed
+                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.computingNodes());
+                numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
+                        ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
+            } else if (declaredMethod.isAnnotationPresent(OmpSs.class)) {
+                OmpSs ompssAnnot = declaredMethod.getAnnotation(OmpSs.class);
+                isPrioritary = ompssAnnot.priority();
+            } else if (declaredMethod.isAnnotationPresent(OpenCL.class)) {
+                OpenCL openCLAnnot = declaredMethod.getAnnotation(OpenCL.class);
+                isPrioritary = openCLAnnot.priority();
+            } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
+                Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
+                isPrioritary = binaryAnnot.priority();
             }
             
-            // Add commons execute task call
-            executeTask.append(itAppIdVar).append(',');
             executeTask.append("\"").append(className).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
-            executeTask.append(methodAnnot.priority()).append(',');
-        } else if (isNonNativeMethod) {
-            // Non native method : MPI, OMPSS, BINARY, OPENCL
-            boolean priority = false;
-            if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.MPI.class) != null) {
-                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.MPI.class).priority();
-            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OmpSs.class) != null) {
-                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OmpSs.class).priority();
-            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OpenCL.class) != null) {
-                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.OpenCL.class).priority();
-            } else if (declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Binary.class) != null) {
-                priority = declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Binary.class).priority();
-            }
-            executeTask.append(itApiVar).append(EXECUTE_METHOD_TASK);
-            executeTask.append(itAppIdVar).append(',');
-            executeTask.append("\"").append(className).append("\"").append(',');
-            executeTask.append("\"").append(methodName).append("\"").append(',');
-            executeTask.append(priority).append(',');
-        } else { 
+        } else {
             // Service
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
             
-            executeTask.append(itApiVar).append(EXECUTE_SERVICE_TASK);
-            executeTask.append(itAppIdVar).append(',');
             executeTask.append("\"").append(serviceAnnot.namespace()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.name()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.port()).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
-            executeTask.append(serviceAnnot.priority()).append(',');
         }
+        
+        // Add scheduler common values
+        executeTask.append(isPrioritary).append(',');
+        executeTask.append(numNodes).append(",");
+        executeTask.append(isReplicated).append(',');
+        executeTask.append(isDistributed).append(',');
 
+        // Add if call has target object or not
         executeTask.append(!isStatic).append(',');
 
         // Add parameters
@@ -916,7 +927,7 @@ public class ITAppEditor extends ExprEditor {
             logger.debug("Replaced regular field access by " + toInclude.toString());
         }
     }
-
+    
 
     private class ParameterInformation {
 

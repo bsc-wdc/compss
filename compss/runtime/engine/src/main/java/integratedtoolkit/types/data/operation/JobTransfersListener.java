@@ -5,11 +5,13 @@ import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.data.listener.EventListener;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class JobTransfersListener extends EventListener {
+public class JobTransfersListener<P extends Profile, T extends WorkerResourceDescription> extends EventListener {
 
     private int operation = 0;
     private int errors = 0;
@@ -18,10 +20,10 @@ public class JobTransfersListener extends EventListener {
     private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    private ExecutionAction<?, ?> execution;
+    private ExecutionAction<P, T> execution;
 
 
-    public JobTransfersListener(ExecutionAction<?, ?> execution) {
+    public JobTransfersListener(ExecutionAction<P, T> execution) {
         this.execution = execution;
     }
 
@@ -30,8 +32,8 @@ public class JobTransfersListener extends EventListener {
         boolean failed;
         synchronized (this) {
             enabled = true;
-            finished = operation == 0;
-            failed = errors > 0;
+            finished = (operation == 0);
+            failed = (errors > 0);
         }
 
         if (finished) {
@@ -91,7 +93,7 @@ public class JobTransfersListener extends EventListener {
     }
 
     private void doReady() {
-        execution.submitJob(this.getId());
+        execution.doSubmit(this.getId());
     }
 
     private void doFailures() {

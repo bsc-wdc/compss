@@ -85,6 +85,24 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters);
+    
+    /**
+     * New Method task (from loader)
+     * 
+     * @param appId
+     * @param methodClass
+     * @param methodName
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameterCount
+     * @param parameters
+     * @return
+     */
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * New Service task
@@ -104,19 +122,24 @@ public interface COMPSsRuntime {
             int parameterCount, Object... parameters);
     
     /**
-     * New Replicated Method task
+     * New service task (from loader) 
      * 
      * @param appId
-     * @param methodClass
-     * @param methodName
-     * @param priority
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
      * @param hasTarget
      * @param parameterCount
      * @param parameters
      * @return
      */
-    public int executeReplicatedTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, 
-            int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, 
+            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId

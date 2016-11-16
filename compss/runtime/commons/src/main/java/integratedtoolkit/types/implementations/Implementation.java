@@ -11,19 +11,16 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 public abstract class Implementation<T extends WorkerResourceDescription> implements Externalizable {
 
     public enum TaskType {
-        METHOD, SERVICE
+        METHOD, 
+        SERVICE
     }
 
-
-    // Constant for environment variables definition
-    public static final String PREFIX_ENV_VAR = "$";
-    public static final String PREFIX_ENV_VAR_SCAPED = "\\$";
 
     protected Integer coreId;
     protected Integer implementationId;
     protected T requirements;
 
-    
+
     public Implementation() {
         // For externalizable
     }

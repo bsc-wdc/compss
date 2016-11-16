@@ -130,10 +130,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     // App : new Method Task
-    public int newTask(Long appId, String methodClass, String methodName, boolean mustBeReplicated, boolean priority, boolean hasTarget, 
-            Parameter[] parameters) {
+    public int newTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
         
-        Task currentTask = new Task(appId, methodClass, methodName, mustBeReplicated, priority, hasTarget, parameters);
+        Task currentTask = new Task(appId, methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, 
+                                        hasTarget, parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");

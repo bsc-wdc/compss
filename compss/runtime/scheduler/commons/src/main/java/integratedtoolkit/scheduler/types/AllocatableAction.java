@@ -25,13 +25,6 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class AllocatableAction<P extends Profile, T extends WorkerResourceDescription> {
 
-    public static interface ActionOrchestrator {
-
-        public void actionCompletion(AllocatableAction<?, ?> action);
-
-        public void actionError(AllocatableAction<?, ?> action);
-    }
-
     private enum State {
         RUNNABLE, 
         WAITING, 
@@ -71,6 +64,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     private final ReentrantLock lock = new ReentrantLock();
 
 
+    /**
+     * Registers a new allocatable action
+     * 
+     * @param schedulingInformation
+     */
     public AllocatableAction(SchedulingInformation<P, T> schedulingInformation) {
         id = nextId.getAndIncrement();
         state = State.RUNNABLE;
@@ -82,10 +80,20 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         schedulingInfo = schedulingInformation;
     }
     
+    /**
+     * Assigns an action Orchestrator
+     * 
+     * @param orchestrator
+     */
     public static void setOrchestrator(ActionOrchestrator orchestrator) {
         AllocatableAction.orchestrator = orchestrator;
     }
 
+    /**
+     * Returns the AA id
+     * 
+     * @return
+     */
     public long getId() {
         return id;
     }
@@ -98,6 +106,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * They should only be updated by the main thread of the task Dispatcher 
      * ----------------------------------------------
      */
+    /**
+     * Adds a data predecessor
+     * 
+     * @param predecessor
+     */
     public final void addDataPredecessor(AllocatableAction<P, T> predecessor) {
         if (predecessor.isPending()) {
             dataPredecessors.add(predecessor);
@@ -106,6 +119,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     }
 
+    /**
+     * Updates the done predecessors
+     * 
+     * @param finishedAction
+     */
     private void dataPredecessorDone(AllocatableAction<P, T> finishedAction) {
         Iterator<AllocatableAction<P, T>> it = dataPredecessors.iterator();
         while (it.hasNext()) {
@@ -116,18 +134,38 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         }
     }
 
+    /**
+     * Returns the data predecessors
+     * 
+     * @return
+     */
     public LinkedList<AllocatableAction<P, T>> getDataPredecessors() {
         return dataPredecessors;
     }
 
+    /**
+     * Returns the data successors
+     * 
+     * @return
+     */
     public LinkedList<AllocatableAction<P, T>> getDataSuccessors() {
         return dataSuccessors;
     }
 
+    /**
+     * Returns if there is any existing data predecessor
+     * 
+     * @return
+     */
     public final boolean hasDataPredecessors() {
         return dataPredecessors.size() > 0;
     }
 
+    /**
+     * Adds a resource predecessor
+     * 
+     * @param predecessor
+     */
     public void addResourceConstraint(AllocatableAction<P, T> predecessor) {
         schedulingInfo.addResourceConstraint(predecessor);
     }
@@ -148,6 +186,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return !schedulingInfo.getConstrainingPredecessors().isEmpty();
     }
     
+    /**
+     * Returns if a resource is not needed for the current AllocatableAction
+     * 
+     * @return
+     */
     public boolean unrequiredResource() {
         for (AllocatableAction<P,T> a : this.getConstrainingPredecessors()) {
             if (a.getAssignedResource() == selectedMainResource) {
@@ -167,10 +210,21 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return schedulingInfo.getConstrainingPredecessors();
     }
 
+    /**
+     * Returns the coreElement executors
+     * 
+     * @param coreId
+     * @return
+     */
     protected LinkedList<ResourceScheduler<?, ?>> getCoreElementExecutors(int coreId) {
         return schedulingInfo.getCoreElementExecutors(coreId);
     }
 
+    /**
+     * Returns the scheduling information
+     * 
+     * @return
+     */
     public SchedulingInformation<P, T> getSchedulingInfo() {
         return schedulingInfo;
     }
@@ -182,14 +236,27 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * ------------------------------------------------
      * ------------------------------------------------
      */
+    /**
+     * Returns if the AllocatableAction is pending or not
+     * 
+     * @return
+     */
     public boolean isPending() {
         return state != State.FAILED && state != State.FINISHED;
     }
     
+    /**
+     * Returns if the AllocatableAction is running or not
+     * @return
+     */
     public boolean isRunning() {
         return state == State.RUNNING;
     }
 
+    /**
+     * Returns the start time (ms) of the allocatable action
+     * @return
+     */
     public Long getStartTime() {
         if (profile == null) {
             return null;
@@ -197,10 +264,24 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return profile.getStartTime();
     }
 
+    /**
+     * Assigned an implementation to the allocatable action
+     * 
+     * @param impl
+     */
     public void assignImplementation(Implementation<T> impl) {
         if (state == State.RUNNABLE) {
             selectedImpl = impl;
         }
+    }
+    
+    /**
+     * Returns if the allocatable action is not beeing scheduled
+     * 
+     * @return
+     */
+    public boolean isNotScheduling() {
+        return !isLocked() && !isRunning() && selectedMainResource == null && state == State.RUNNABLE;
     }
 
     /**
@@ -212,6 +293,12 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         return selectedImpl;
     }
 
+    /**
+     * Assign resources to the allocatable action
+     * 
+     * @param mainRes
+     * @param slaveRes
+     */
     public void assignResources(ResourceScheduler<P, T> mainRes, ResourceScheduler<P, T>[] slaveRes) {
         if (state == State.RUNNABLE) {
             selectedMainResource = mainRes;
@@ -406,25 +493,6 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     protected abstract void doFailed();
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HashCode ").append(this.hashCode()).append("\n");
-        sb.append("\tdataPredecessors:");
-        for (AllocatableAction<P, T> aa : dataPredecessors) {
-            sb.append(" ").append(aa.hashCode());
-        }
-        sb.append("\n");
-        sb.append("\tdataSuccessors: ");
-        for (AllocatableAction<P, T> aa : dataSuccessors) {
-            sb.append(" ").append(aa.hashCode());
-        }
-        sb.append("\n");
-        sb.append(schedulingInfo);
-        sb.append("\n");
-        return sb.toString();
-    }
-
     /*
      * ------------------------------------------------
      * ------------------------------------------------
@@ -479,9 +547,24 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     public abstract void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
             throws BlockedActionException, UnassignedActionException;
-
-	public boolean isNotScheduling() {
-		return !isLocked() && !isRunning() && selectedMainResource == null && state == State.RUNNABLE;
-	}
+	
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HashCode ").append(this.hashCode()).append("\n");
+        sb.append("\tdataPredecessors:");
+        for (AllocatableAction<P, T> aa : dataPredecessors) {
+            sb.append(" ").append(aa.hashCode());
+        }
+        sb.append("\n");
+        sb.append("\tdataSuccessors: ");
+        for (AllocatableAction<P, T> aa : dataSuccessors) {
+            sb.append(" ").append(aa.hashCode());
+        }
+        sb.append("\n");
+        sb.append(schedulingInfo);
+        sb.append("\n");
+        return sb.toString();
+    }
 
 }

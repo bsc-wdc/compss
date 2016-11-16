@@ -5,6 +5,7 @@ import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.components.Processor;
+import integratedtoolkit.util.EnvironmentLoader;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -135,13 +136,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         if (containsProcessorsProperties(constraints)) {
             Processor p = new Processor();
             String procName = constraints.processorName();
-            procName = loadFromEnvironment(procName);
+            procName = EnvironmentLoader.loadFromEnvironment(procName);
             if (procName != null && !procName.equals(UNASSIGNED_STR)) {
                 p.setName(procName);
             }
 
             String cuSTR = constraints.computingUnits();
-            cuSTR = loadFromEnvironment(cuSTR);
+            cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
             int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
             if (cu > ONE_INT) {
                 p.setComputingUnits(cu);
@@ -151,7 +152,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
 
             String speedSTR = constraints.processorSpeed();
-            speedSTR = loadFromEnvironment(speedSTR);
+            speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
             float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
                     : UNASSIGNED_FLOAT;
             if (speed != UNASSIGNED_FLOAT) {
@@ -159,19 +160,19 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
 
             String arch = constraints.processorArchitecture();
-            arch = loadFromEnvironment(arch);
+            arch = EnvironmentLoader.loadFromEnvironment(arch);
             if (arch != null && !arch.equals(UNASSIGNED_STR)) {
                 p.setArchitecture(arch);
             }
 
             String type = constraints.processorType();
-            type = loadFromEnvironment(type);
+            type = EnvironmentLoader.loadFromEnvironment(type);
             if (type != null) {
                 p.setType(type);
             }
 
             String internalMemorySTR = constraints.processorInternalMemorySize();
-            internalMemorySTR = loadFromEnvironment(internalMemorySTR);
+            internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
             float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
                     ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
             if (internalMemory != UNASSIGNED_FLOAT) {
@@ -179,13 +180,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             }
 
             String propName = constraints.processorPropertyName();
-            propName = loadFromEnvironment(propName);
+            propName = EnvironmentLoader.loadFromEnvironment(propName);
             if (propName != null && !propName.equals(UNASSIGNED_STR)) {
                 p.setPropName(propName);
             }
 
             String propvalue = constraints.processorPropertyValue();
-            propvalue = loadFromEnvironment(propvalue);
+            propvalue = EnvironmentLoader.loadFromEnvironment(propvalue);
             if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
                 p.setPropValue(propvalue);
             }
@@ -200,7 +201,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Parse software
         String software = constraints.appSoftware();
-        software = loadFromEnvironment(software);
+        software = EnvironmentLoader.loadFromEnvironment(software);
         if (software != null && !software.equals(UNASSIGNED_STR)) {
             for (String value : software.split(",")) {
                 this.appSoftware.add(value.trim().toUpperCase());
@@ -209,7 +210,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Parse queues
         String queues = constraints.hostQueues();
-        queues = loadFromEnvironment(queues);
+        queues = EnvironmentLoader.loadFromEnvironment(queues);
         if (queues != null && !queues.equals(UNASSIGNED_STR)) {
             for (String value : queues.split(",")) {
                 this.hostQueues.add(value.trim().toUpperCase());
@@ -218,49 +219,49 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
         // Parse memory, storage and OS constraints
         String memorySizeSTR = constraints.memorySize();
-        memorySizeSTR = loadFromEnvironment(memorySizeSTR);
+        memorySizeSTR = EnvironmentLoader.loadFromEnvironment(memorySizeSTR);
         float memorySize = (memorySizeSTR != null && !memorySizeSTR.isEmpty() && !memorySizeSTR.equals(UNASSIGNED_STR))
                 ? Float.valueOf(memorySizeSTR) : UNASSIGNED_FLOAT;
         if (memorySize != UNASSIGNED_FLOAT) {
             this.memorySize = memorySize;
         }
         String memoryType = constraints.memoryType();
-        memoryType = loadFromEnvironment(memoryType);
+        memoryType = EnvironmentLoader.loadFromEnvironment(memoryType);
         if (memoryType != null && !memoryType.equals(UNASSIGNED_STR)) {
             this.memoryType = memoryType;
         }
 
         String storageSizeSTR = constraints.storageSize();
-        storageSizeSTR = loadFromEnvironment(storageSizeSTR);
+        storageSizeSTR = EnvironmentLoader.loadFromEnvironment(storageSizeSTR);
         float storageSize = (storageSizeSTR != null && !storageSizeSTR.isEmpty() && !storageSizeSTR.equals(UNASSIGNED_STR))
                 ? Float.valueOf(storageSizeSTR) : UNASSIGNED_FLOAT;
         if (storageSize != UNASSIGNED_FLOAT) {
             this.storageSize = storageSize;
         }
         String storageType = constraints.storageType();
-        storageType = loadFromEnvironment(storageType);
+        storageType = EnvironmentLoader.loadFromEnvironment(storageType);
         if (storageType != null && !storageType.equals(UNASSIGNED_STR)) {
             this.storageType = storageType;
         }
 
         String operatingSystemType = constraints.operatingSystemType();
-        operatingSystemType = loadFromEnvironment(operatingSystemType);
+        operatingSystemType = EnvironmentLoader.loadFromEnvironment(operatingSystemType);
         if (operatingSystemType != null && !operatingSystemType.equals(UNASSIGNED_STR)) {
             this.operatingSystemType = operatingSystemType;
         }
         String operatingSystemDistribution = constraints.operatingSystemDistribution();
-        operatingSystemDistribution = loadFromEnvironment(operatingSystemDistribution);
+        operatingSystemDistribution = EnvironmentLoader.loadFromEnvironment(operatingSystemDistribution);
         if (operatingSystemDistribution != null && !operatingSystemDistribution.equals(UNASSIGNED_STR)) {
             this.operatingSystemDistribution = operatingSystemDistribution;
         }
         String operatingSystemVersion = constraints.operatingSystemVersion();
-        operatingSystemVersion = loadFromEnvironment(operatingSystemVersion);
+        operatingSystemVersion = EnvironmentLoader.loadFromEnvironment(operatingSystemVersion);
         if (operatingSystemVersion != null && !operatingSystemVersion.equals(UNASSIGNED_STR)) {
             this.operatingSystemVersion = operatingSystemVersion;
         }
 
         String wallClockLimitSTR = constraints.wallClockLimit();
-        wallClockLimitSTR = loadFromEnvironment(wallClockLimitSTR);
+        wallClockLimitSTR = EnvironmentLoader.loadFromEnvironment(wallClockLimitSTR);
         int wallClockLimit = (wallClockLimitSTR != null && !wallClockLimitSTR.isEmpty() && !wallClockLimitSTR.equals(UNASSIGNED_STR))
                 ? Integer.valueOf(wallClockLimitSTR) : UNASSIGNED_INT;
         if (wallClockLimit != UNASSIGNED_INT) {
@@ -268,18 +269,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         // Prices don't come from constraints
-    }
-
-    private String loadFromEnvironment(String variable) {
-        String varValue = variable;
-        if (variable != null && variable.startsWith(Implementation.PREFIX_ENV_VAR)) {
-            varValue = variable.replaceAll(Implementation.PREFIX_ENV_VAR_SCAPED, "");
-            varValue = varValue.replaceAll("\\{", "");
-            varValue = varValue.replaceAll("\\}", "");
-            varValue = System.getenv(varValue);
-        }
-
-        return varValue;
     }
 
     private boolean containsProcessorsProperties(Constraints constraints) {
@@ -297,12 +286,12 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         Processor p = new Processor();
         String procName = processorConstraints.name();
         if (procName != null && !procName.equals(UNASSIGNED_STR)) {
-            procName = loadFromEnvironment(procName);
+            procName = EnvironmentLoader.loadFromEnvironment(procName);
             p.setName(procName);
         }
 
         String cuSTR = processorConstraints.computingUnits();
-        cuSTR = loadFromEnvironment(cuSTR);
+        cuSTR = EnvironmentLoader.loadFromEnvironment(cuSTR);
         int cu = (cuSTR != null && !cuSTR.isEmpty() && !cuSTR.equals(UNASSIGNED_STR)) ? Integer.valueOf(cuSTR) : ONE_INT;
         if (cu > ONE_INT) {
             p.setComputingUnits(cu);
@@ -312,7 +301,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         String speedSTR = processorConstraints.speed();
-        speedSTR = loadFromEnvironment(speedSTR);
+        speedSTR = EnvironmentLoader.loadFromEnvironment(speedSTR);
         float speed = (speedSTR != null && !speedSTR.isEmpty() && !speedSTR.equals(UNASSIGNED_STR)) ? Float.valueOf(speedSTR)
                 : UNASSIGNED_FLOAT;
         if (speed != UNASSIGNED_FLOAT) {
@@ -320,19 +309,19 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         String arch = processorConstraints.architecture();
-        arch = loadFromEnvironment(arch);
+        arch = EnvironmentLoader.loadFromEnvironment(arch);
         if (arch != null && !arch.equals(UNASSIGNED_STR)) {
             p.setArchitecture(arch);
         }
 
         String type = processorConstraints.type();
-        type = loadFromEnvironment(type);
+        type = EnvironmentLoader.loadFromEnvironment(type);
         if (type != null) {
             p.setType(type);
         }
 
         String internalMemorySTR = processorConstraints.internalMemorySize();
-        internalMemorySTR = loadFromEnvironment(internalMemorySTR);
+        internalMemorySTR = EnvironmentLoader.loadFromEnvironment(internalMemorySTR);
         float internalMemory = (internalMemorySTR != null && !internalMemorySTR.isEmpty() && !internalMemorySTR.equals(UNASSIGNED_STR))
                 ? Float.valueOf(internalMemorySTR) : UNASSIGNED_FLOAT;
         if (internalMemory != UNASSIGNED_FLOAT) {
@@ -340,13 +329,13 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         String propName = processorConstraints.propertyName();
-        propName = loadFromEnvironment(propName);
+        propName = EnvironmentLoader.loadFromEnvironment(propName);
         if (propName != null && !propName.equals(UNASSIGNED_STR)) {
             p.setPropName(propName);
         }
 
         String propvalue = processorConstraints.propertyValue();
-        propvalue = loadFromEnvironment(propvalue);
+        propvalue = EnvironmentLoader.loadFromEnvironment(propvalue);
         if (propvalue != null && !propvalue.equals(UNASSIGNED_STR)) {
             p.setPropValue(propvalue);
         }
@@ -431,7 +420,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     private void addConstraints(String key, String val, Processor proc) {
-        val = loadFromEnvironment(val);
+        val = EnvironmentLoader.loadFromEnvironment(val);
         if (val != null && !val.isEmpty()) {
             switch (key) {
                 case PROC_NAME:

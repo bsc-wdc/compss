@@ -106,7 +106,7 @@ public class TraceMerger {
     }
 
     private void initTaskTracesInfo(String workingDir) throws FileNotFoundException {
-        this.workingDir = workingDir;
+        TraceMerger.workingDir = workingDir;
         File f = new File(workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
         File[] matchingFiles = f.listFiles(new FilenameFilter() {
 
@@ -141,7 +141,7 @@ public class TraceMerger {
         masterWriter.close();
         logger.debug("Merging finished,");
         if (!debug){
-            File f = new File(this.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
+            File f = new File(TraceMerger.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
             if (f.delete()){
                 logger.debug("Temporal task folder removed.");
             } else {

@@ -3,7 +3,7 @@ package integratedtoolkit.types.request.td;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Profile;
-import integratedtoolkit.types.allocatableactions.SingleExecution;
+import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -54,7 +54,7 @@ public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescript
     public void process(TaskScheduler<P, T> ts) throws ShutdownException {
         // ts.shutdown();
         logger.debug("Processing ShutdownRequest request...");
-        SingleExecution.shutdown();
+        MasterExecutionAction.shutdown();
         ts.shutdown();
 
         // Print core state

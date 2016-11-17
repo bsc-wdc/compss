@@ -532,6 +532,10 @@ check_args() {
     tasks_per_node=${DEFAULT_TASKS_PER_NODE}
   fi
 
+  if [ -z "${gpus_per_node}" ]; then
+    gpus_per_node=${DEFAULT_GPUS_PER_NODE}
+  fi
+
   if [ -z "${node_memory}" ]; then
     node_memory=${DEFAULT_NODE_MEMORY}
   fi 
@@ -978,14 +982,20 @@ add_compute_node() {
           <Architecture>Intel</Architecture>
           <Speed>2.6</Speed>
       </Processor>
+EOT
 
-      <Processor Name="GPU">
-          <Type>GPU</Type>
-          <ComputingUnits>${gpus}</ComputingUnits>
-          <Architecture>k80</Architecture>
-          <Speed>2.6</Speed>
-      </Processor>
+  if [ ${gpus} != $DEFAULT_GPUS_PER_NODE ]; then
+    cat >> ${RESOURCES_FILE} << EOT
+        <Processor Name="GPU">
+            <Type>GPU</Type>
+            <ComputingUnits>${gpus}</ComputingUnits>
+            <Architecture>k80</Architecture>
+            <Speed>2.6</Speed>
+        </Processor>
+EOT
+  fi
 
+  cat >> ${RESOURCES_FILE} << EOT
       <OperatingSystem>
           <Type>Linux</Type>
           <Distribution>SMP</Distribution>

@@ -1,0 +1,125 @@
+#!/bin/bash
+
+  #--------------------------------------------------------------------------------
+  # HELPER COMMON METHODS FOR TEST EXECUTION
+  #--------------------------------------------------------------------------------
+
+
+  #--------------------------------------------------------------------------------
+  # Clean orphans
+  clean_orphans() {
+    # Sleep before cleanning test environment
+    sleep 1s
+  
+    # Clean possible remaining test processes
+    $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
+    $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
+    $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
+
+    # Sleep after cleanning test environment
+    sleep 1s
+  }
+
+  
+  #--------------------------------------------------------------------------------
+  # Compute test result status
+  # WARN: Uses global variables --> OUT: results, exitValue
+  get_test_result() {
+    local testExitValue=$1
+    local retries=$2
+
+    if [ $testExitValue -ne 0 ]; then
+      exitValue=1
+      results="${results}3"
+    else
+      if [ $retries -eq 2 ]; then
+        # Test OK on first try (but counter was increased)
+        results="${results}0"
+      else
+        results="${results}1"
+      fi
+    fi
+  }
+
+
+  #--------------------------------------------------------------------------------
+  # Execute application
+  # WARN: Uses global variables --> OUT: results, exitValue
+  execute_application() {
+    local COMPSsExec=$1
+    local comm=$2
+    local COMPSsLogFolder=$3
+    local appBaseDir=$4
+    local appLogDir=$5
+
+    local MAX_RETRIES=3
+
+    if [ -f ${appBaseDir}/skip ]; then
+      # Mark test as skip
+      results="${results}2"
+    else
+      # Execute test with retries
+      cd ${appBaseDir}
+      local retries=1
+      local testExitValue=3
+      while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
+        local appLogDirWithRetries="${appLogDir}_${retries}"
+        mkdir -p ${appLogDirWithRetries}
+
+        # Specific test Execute
+        ./execution ${COMPSsExec} ${comm} ${appBaseDir} ${COMPSsLogFolder} ${appLogDirWithRetries} ${retries}
+        testExitValue=$?
+
+        # Clean environment if needed
+        clean_orphans
+
+        # Increase to next retry
+        retries=$((retries + 1))
+      done
+
+      # Annotate test result
+      get_test_result $testExitValue $retries
+    fi
+  }
+
+
+  #--------------------------------------------------------------------------------
+  # Print result
+  print_result() {
+    local execType=$1
+    local results=$2
+
+    # Show results table
+    local numTests=${#results}
+    local pos=0
+    local appCounter=1
+
+    # Header
+    echo " "
+    echo -e "\e[34m------------------------------------------------------------------------"
+    echo -e "\e[34m------------------------------------------------------------------------"
+    echo "   Application Name                                      TEST STATUS"
+
+    # Test results
+    while [ $pos -lt ${numTests} ]; do
+      if [ "${results:$pos:1}" == "0" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[32mOK"
+      elif [ "${results:$pos:1}" == "1" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[33mOK"
+      elif [ "${results:$pos:1}" == "2" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[36mSKIP"
+      else
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[31mERROR"
+      fi
+      pos=$((pos+1))
+      appCounter=$((appCounter+1))
+    done
+ 
+    # Footer
+    echo " "
+    echo -e "\e[34m-----------------------------------------------------------------------"
+    echo -e "\e[34m------------------------------------------------------------------------" 
+    echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
+    echo -e "\e[0m"
+  }
+

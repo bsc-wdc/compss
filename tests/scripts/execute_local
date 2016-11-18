@@ -1,97 +1,39 @@
 #!/bin/bash
 
   #--------------------------------------------------------------------------------
-  #Set global variables
-  COMPSs_exec=$1
+  # Get script parameters
+  COMPSsExec=$1
   comm=$2
-  base_dir=$3
-  COMPSs_log_folder=$4
+  baseDir=$3
+  COMPSsLogFolder=$4
 
-  MAX_RETRIES=3
-  base_log_folder="${base_dir}/logs"
+  # Set script variables
+  appsBaseDir=${baseDir}/apps_basic
+  logsBaseDir=${baseDir}/logs
+
   exitValue=0
+  results=""
 
   #--------------------------------------------------------------------------------
-  echo
+  # Source common execution script
+  scriptDir=$(pwd)/$(dirname $0)  
+  source ${scriptDir}/execute_commons
+
+  #--------------------------------------------------------------------------------
+  echo " "
   echo "**Testing Basic Block Apps"
-  app_base_dir="${base_dir}/apps_basic"
+  echo " "
 
-  appCounter=1
-  results=""
-  app_folders=$(ls ${app_base_dir})
-  for app in ${app_folders}; do
-      if [ -f ${app_base_dir}/${app}/skip ]; then
-        # Mark test as skip
-        results="${results}2"
-      else
-        # Execute test with retries
-        cd ${app_base_dir}/${app}
-        retries=1
-        testExitValue=3
-        while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -ne 0 ]; do
-          log_folder="${base_log_folder}/${app}_${retries}"
-          mkdir -p ${log_folder}
+  appFolders=$(ls ${appsBaseDir})
+  for app in ${appFolders}; do
+    appBaseDir=${appsBaseDir}/${app}
+    appLogDir=${logsBaseDir}/${app}
 
-          # Specific test Execute
-          ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder} ${retries}
-          testExitValue=$?
-
-          # Sleep before cleanning test environment
-          sleep 1s
-          # Clean possible remaining test processes
-          $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
-          $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
-          $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)
-          # Sleep to avoid interferences between tests
-          sleep 1s
-          # Increase to next retry
-          retries=$((retries + 1))
-        done
-
-        # Annotate test result
-        if [ $testExitValue -ne 0 ]; then
-           exitValue=1
-           results="${results}3"
-        else
-           if [ $retries -eq 2 ]; then
-             # Test OK on first try (but counter was increased)
-             results="${results}0"
-           else
-             results="${results}1"
-           fi
-        fi
-      fi
-
-      # Go to next test
-      appCounter=$((appCounter+1))
+    execute_application ${COMPSsExec} ${comm} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir} 
   done
 
   # Show Result table
-  counter=1
-  pos=0
-  echo
-  echo -e "\e[34m------------------------------------------------------------------------"
-  echo -e "\e[34m------------------------------------------------------------------------"
-  echo "   Application Name                                      TEST STATUS"
-  while [ $counter -lt $appCounter ]; do
-    if [ "${results:$pos:1}" == "0" ]; then
-       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[32mOK"
-    elif [ "${results:$pos:1}" == "1" ]; then
-       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[33mOK"
-    elif [ "${results:$pos:1}" == "2" ]; then
-       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[36mSKIP"
-    else
-       echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $counter ..................... \e[31mERROR"
-    fi
-    counter=$((counter+1))
-    pos=$((pos+1))
-  done  
-  echo
-  echo -e "\e[34m-----------------------------------------------------------------------"
-  echo -e "\e[34m------------------------------------------------------------------------" 
-  echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
-  echo -e "\e[0m"
-
+  print_result "BASIC" $results
 
   #--------------------------------------------------------------------------------
   #EXIT

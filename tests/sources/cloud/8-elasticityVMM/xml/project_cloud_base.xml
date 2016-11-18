@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Project>
+	<MasterNode />
+	<Cloud>
+		<InitialVMs>1</InitialVMs>
+		<MinimumVMs>1</MinimumVMs>
+		<MaximumVMs>3</MaximumVMs>
+		<CloudProvider Name="BSC">
+			<LimitOfVMs>3</LimitOfVMs>
+			<Properties>
+
+				<!-- Optional connector parameters -->
+				<Property>
+                    			<Name>estimated-creation-time</Name>
+                    			<Value>2</Value> <!-- Minutes -->
+                		</Property>
+				<Property>
+					<Name>max-vm-creation-time</Name>
+					<Value>10</Value> <!-- Minutes -->
+				</Property>
+				<Property>
+                    			<Name>time-slot</Name>
+                    			<Value>5</Value> <!-- Minutes -->
+                		</Property>
+				<Property>
+					<Name>max-connection-errors</Name>
+					<Value>36</Value>
+				</Property>
+				
+				<!-- Abstract SSH Connector parameters -->
+				<Property>
+					<Name>vm-user</Name>
+					<Value>ubuntu</Value>
+				</Property>
+				<Property>
+					<Name>vm-password</Name>
+					<Value>jorgebsc</Value>
+				</Property>
+			</Properties>
+			<Images>
+				<Image Name="576c3c9a-f301-471a-9de5-a06e0e0e0960">
+					<InstallDir>remote_COMPSs</InstallDir>
+					<WorkingDir>/home/ubuntu/IT/</WorkingDir>
+					<User>ubuntu</User>
+					<Package>
+						<Source>Simple.tar.gz</Source>
+						<Target>/home/ubuntu/</Target>
+					</Package>
+				</Image>
+			</Images>
+			<InstanceTypes>
+				<InstanceType Name="small" />
+				<InstanceType Name="medium" />
+				<InstanceType Name="large" />
+				<InstanceType Name="extra_large" />
+			</InstanceTypes>
+		</CloudProvider>
+	</Cloud>
+</Project>
+

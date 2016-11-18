@@ -1,93 +1,49 @@
 #!/bin/bash
 
+
   #--------------------------------------------------------------------------------
-  #Set global variables
-  testnum=$1
-  COMPSs_exec=$2
+  # Get script parameters
+  testNum=$1
+  COMPSsExec=$2
   comm=$3
-  base_dir=$4
-  COMPSs_log_folder=$5
+  baseDir=$4
+  COMPSsLogFolder=$5
 
-  MAX_RETRIES=3
-  base_log_folder="${base_dir}/logs"
+  # Set script variables
+  appsBaseDir=${baseDir}/apps_basic
+  logsBaseDir=${baseDir}/logs
+
   exitValue=0
+  results=""
 
   #--------------------------------------------------------------------------------
+  # Source common execution script
+  scriptDir=$(pwd)/$(dirname $0)
+  source ${scriptDir}/execute_commons
+
+  #--------------------------------------------------------------------------------
+  # Execute test application
   echo -e "\e[0m"
   echo -e "\e[34m*******************"
-  echo -e "\e[34m** Testing App $testnum **"
+  echo -e "\e[34m** Testing App $testNum **"
   echo -e "\e[34m*******************"
   echo -e "\e[0m"
 
-  if [ $testnum -lt 10 ]; then
-     app_base_dir="${base_dir}/app0$testnum"
-     log_folder="${base_log_folder}/app0$testnum"
+  if [ $testNum -lt 10 ]; then
+     appBaseDir="${baseDir}/app0$testNum"
+     appLogDir="${logsBaseDir}/app0$testNum"
   else 
-     app_base_dir="${base_dir}/app$testnum"
-     log_folder="${base_log_folder}/app$testnum"
+     appBaseDir="${baseDir}/app$testNum"
+     appLogDir="${logsBaseDir}/app$testNum"
   fi
 
-  if [ -f ${app_base_dir}/skip ]; then
-    # Skip test
-    testExitValue=2
-  else
-    # Execute test with retries
-    cd ${app_base_dir}
-    retries=1
-    testExitValue=3
-    while [ $retries -le $MAX_RETRIES ] && [ $testExitValue -eq 3 ]; do
-      log_folder_withR="${log_folder}_$retries"
-      mkdir -p ${log_folder_withR}
+  execute_application ${COMPSsExec} ${comm} ${COMPSsLogFolder} ${appBaseDir} ${appLogDir}
+  
 
-      # Specific test Execute
-      ./execution ${COMPSs_exec} ${comm} "${app_base_dir}/$app" ${COMPSs_log_folder} ${log_folder_withR} ${retries}
-      if [ $? -ne 0 ]; then
-        testExitValue=3
-      else
-        if [ $retries -eq 1 ]; then 
-          testExitValue=0
-        else
-          testExitValue=1
-        fi
-      fi
-
-      # Sleep before cleanning test environment
-      sleep 1s
-      # Clean possible remaining test processes
-      $(ps x -o  "%r %c" | grep "runcompss" | awk {' print $1 '} | xargs -r -i kill -9 -{})
-      $(ps -elfa | grep "java" | grep "integratedtoolkit.nio.worker.NIOWorker" | awk {' print $4 '} | xargs -r kill -9)
-      $(ps -elfa | grep piper | grep -v grep | awk {' print $4 '} | xargs -r kill -9)                                                                                                
-      # Sleep to avoid interferences between tests
-      sleep 1s
-      # Increase to next retry
-      retries=$((retries + 1))
-    done
-  fi
+  # Show Result table
+  print_result "BASIC SPECIFIC" $results
 
   #--------------------------------------------------------------------------------
-  # Print test result execution
-  echo -e "\e[34m------------------------------------------------------------------------"
-  echo -e "\e[34m------------------------------------------------------------------------"
-  echo "   Application Name                                      TEST STATUS"
-  if [ $testExitValue -eq 0 ]; then
-    exitValue=0
-    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[32mOK"
-  elif [ $testExitValue -eq 1 ]; then
-    exitValue=0
-    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[33mOK"
-  elif [ $testExitValue -eq 2 ]; then
-    exitValue=1
-    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[36mSKIP"
-  else
-    exitValue=1
-    echo -e "\e[34m [TEST RESULT] Application BASIC BLOCK $testnum ..................... \e[31mERROR"
-  fi
-  echo -e "\e[34m------------------------------------------------------------------------"
-  echo -e "\e[34m------------------------------------------------------------------------" 
-  echo -e "\e[34mIf there are errors, please check the WORKSPACE/logs/ files"
-  echo -e "\e[0m"
-
-  #--------------------------------------------------------------------------------
-  #EXIT
+  # EXIT
   exit $exitValue
 

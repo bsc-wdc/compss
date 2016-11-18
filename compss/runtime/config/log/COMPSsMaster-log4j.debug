@@ -127,7 +127,7 @@
 
     <!-- CONNECTORS -->
     <!-- Integratedtoolkit.Connectors: DEFAULT = INFO -->
-    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="INFO">
+    <Logger name="integratedtoolkit.Connectors" additivity="FALSE" level="DEBUG">
       <AppenderRef ref="COMPSsRuntimeLog"/>                                                                                                                                             
     </Logger>
     <!-- Integratedtoolkit.ConnectorsUtils: DEFAULT = DEBUG -->

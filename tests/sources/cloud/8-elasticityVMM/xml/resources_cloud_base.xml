@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+	<CloudProvider Name="BSC">
+		<Endpoint>
+			<Server>https://bscgrid20.bsc.es:11443/</Server>
+            <ConnectorJar>rocci-conn.jar</ConnectorJar>
+            <ConnectorClass>es.bsc.conn.rocci.ROCCI</ConnectorClass>
+		</Endpoint>
+
+		<Images>
+			<Image Name="576c3c9a-f301-471a-9de5-a06e0e0e0960">
+				<CreationTime>60</CreationTime>
+				<Adaptors>
+					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+						<SubmissionSystem>
+							<Interactive />
+						</SubmissionSystem>
+						<Ports>
+							<MinPort>43100</MinPort>
+							<MaxPort>43110</MaxPort>
+						</Ports>
+					</Adaptor>
+					<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+						<SubmissionSystem>
+							<Batch>
+								<Queue>sequential</Queue>
+							</Batch>
+							<Interactive />
+						</SubmissionSystem>
+						<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+					</Adaptor>
+				</Adaptors>
+			</Image>
+		</Images>
+
+		<InstanceTypes>
+			<InstanceType Name="small">
+				<Processor Name="Processor1">
+					<ComputingUnits>1</ComputingUnits>
+				</Processor>
+				<Memory>
+					<Size>2.0</Size>
+				</Memory>
+				<Storage>
+					<Size>10.0</Size>
+				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.085</PricePerUnit>
+				</Price>
+			</InstanceType>
+			<InstanceType Name="medium">
+				<Processor Name="Processor1">
+					<ComputingUnits>2</ComputingUnits>
+				</Processor>
+				<Memory>
+					<Size>3.0</Size>
+				</Memory>
+				<Storage>
+					<Size>10.0</Size>
+				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.212</PricePerUnit>
+				</Price>
+			</InstanceType>
+			<InstanceType Name="large">
+				<Processor Name="Processor1">
+					<ComputingUnits>4</ComputingUnits>
+				</Processor>
+				<Memory>
+					<Size>4</Size>
+				</Memory>
+				<Storage>
+					<Size>10.0</Size>
+				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.34</PricePerUnit>
+				</Price>
+			</InstanceType>
+			<InstanceType Name="extra_large">
+				<Processor Name="Processor1">
+					<ComputingUnits>4</ComputingUnits>
+				</Processor>
+				<Memory>
+					<Size>8</Size>
+				</Memory>
+				<Storage>
+					<Size>10.0</Size>
+				</Storage>
+				<Price>
+					<TimeUnit>1</TimeUnit>
+					<PricePerUnit>0.68</PricePerUnit>
+				</Price>
+			</InstanceType>
+		</InstanceTypes>
+	</CloudProvider>
+
+</ResourcesList>

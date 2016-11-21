@@ -58,9 +58,9 @@ public class RuntimeLogParser {
             }
 
             // Parse
-            try {
-                FileReader fr = new FileReader(runtimeLogPath);
-                BufferedReader br = new BufferedReader(fr);
+            try ( FileReader fr = new FileReader(runtimeLogPath);
+                    BufferedReader br = new BufferedReader(fr)) {
+
                 String line = br.readLine(); // Parsed line
                 int i = 0; // Line counter
                 String lastNewJobId = new String(""); // Last new job ID entry
@@ -172,8 +172,6 @@ public class RuntimeLogParser {
                     line = br.readLine();
                 }
                 lastParsedLine = i - 1;
-                br.close();
-                fr.close();
             } catch (Exception e) {
                 logger.error("Cannot parse runtime.log file: " + runtimeLogPath);
                 logger.debug("Error ", e);

@@ -159,6 +159,7 @@ public class GATWorker {
                         }
                         sb.append("is null!");
                         ErrorManager.error(sb.toString());
+                        return;
                     }
 
                     // Store retrieved object
@@ -187,6 +188,7 @@ public class GATWorker {
                             sb.append(info).append(" ");
                         }
                         ErrorManager.error(sb.toString());
+                        return;
                     }
 
                     // Check retrieved id
@@ -199,6 +201,7 @@ public class GATWorker {
                         }
                         sb.append("is null!");
                         ErrorManager.error(sb.toString());
+                        return;
                     }
 
                     Object obj = null;
@@ -216,6 +219,7 @@ public class GATWorker {
                             sb.append(info).append(" ");
                         }
                         ErrorManager.error(sb.toString());
+                        return;
                     } finally {
                         if (Tracer.isActivated()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
@@ -232,6 +236,7 @@ public class GATWorker {
                         }
                         sb.append("is null!");
                         ErrorManager.error(sb.toString());
+                        return;
                     }
 
                     // Store retrieved object
@@ -290,7 +295,7 @@ public class GATWorker {
                     break;
                 default:
                     ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType);
-                    break;
+                    return;
             }
             isFile[i] = argType.equals(DataType.FILE_T);
             argPosition += 2;

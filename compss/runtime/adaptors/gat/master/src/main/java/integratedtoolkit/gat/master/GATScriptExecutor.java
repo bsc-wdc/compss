@@ -184,36 +184,45 @@ public class GATScriptExecutor {
 
         // Move cleanX.out logs to default logger
         if (debug) {
-            try {
-                FileReader cleanOut = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".out");
-                BufferedReader br = new BufferedReader(cleanOut);
+            String stdOutFilePath = System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".out";
+            
+            try (FileReader cleanOut = new FileReader(stdOutFilePath);
+                    BufferedReader br = new BufferedReader(cleanOut)) {
+               
                 String line = br.readLine();
                 while (line != null) {
                     logger.debug(line);
                     line = br.readLine();
                 }
-                br.close();
             } catch (Exception e) {
                 logger.error("Error moving std out file", e);
             }
-            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName +".out").delete();
+            
+            // Delete file
+            if (!new File(stdOutFilePath).delete()) {
+                logger.error("Error deleting out file " + stdOutFilePath);
+            }
         }
 
         // Move cleanX.err logs to default logger
         if (debug) {
-            try {
-                FileReader cleanErr = new FileReader(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err");
-                BufferedReader br = new BufferedReader(cleanErr);
+            String stdErrFilePath = System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err";
+            
+            try (FileReader cleanErr = new FileReader(stdErrFilePath);
+                    BufferedReader br = new BufferedReader(cleanErr)) {
+                
                 String line = br.readLine();
                 while (line != null) {
                     logger.error(line);
                     line = br.readLine();
-                }
-                br.close();
+                } 
             } catch (Exception e) {
                 logger.error("Error moving std err file", e);
             }
-            new File(System.getProperty(ITConstants.IT_APP_LOG_DIR) + File.separator + stdOutFileName + ".err").delete();
+
+            if (!new File(stdErrFilePath).delete()) {
+                logger.error("Error deleting err file " + stdErrFilePath);
+            }
         }
         return true;
     }

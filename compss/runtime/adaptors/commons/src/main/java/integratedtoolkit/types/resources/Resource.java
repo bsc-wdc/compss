@@ -346,21 +346,23 @@ public abstract class Resource implements Comparable<Resource> {
         tracingListener.addOperation();
 
         // Source data location
-        DataLocation source = null;
+        DataLocation source;
         try {
             source = DataLocation.createLocation(this, fileOriginURI);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + fileOriginURI.getPath(), e);
+            return;
         }
 
         // Target data location
-        DataLocation tgt = null;
+        DataLocation tgt;
         String targetPath = Protocol.FILE_URI.getSchema() + Comm.getAppHost().getAppLogDirPath() + "trace" + File.separator + fileName;
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             tgt = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath);
+            return;
         }
 
         // Ask for data

@@ -55,6 +55,8 @@ public class JavaExecutor extends Executor {
                 case BINARY:
                     invoker = new BinaryInvoker(nw, nt, assignedCoreUnits);
                     break;
+                default:
+                    throw new JobExecutionException("Unrecognised method type");
             }
             invoker.processTask();
         } catch (JobExecutionException jee) {

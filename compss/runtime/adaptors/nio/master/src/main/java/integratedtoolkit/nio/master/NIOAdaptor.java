@@ -1,6 +1,6 @@
 package integratedtoolkit.nio.master;
 
-import es.bsc.comm.CommException;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
 
 import java.io.File;

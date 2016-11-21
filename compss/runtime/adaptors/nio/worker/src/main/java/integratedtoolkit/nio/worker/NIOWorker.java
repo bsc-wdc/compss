@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
-import es.bsc.comm.CommException;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
@@ -688,7 +688,7 @@ public class NIOWorker extends NIOAgent {
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e1) {
-                        // Nothing to do
+                        Thread.currentThread().interrupt();
                     }
                     retries++;
                 }

@@ -210,6 +210,7 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
                 client = dcf.createClient(si.getWsdl(), serviceQName, portQName);
             } catch (Exception e) {
                 logger.error("Exception", e);
+                return null;
             }
 
             HTTPConduit http = (HTTPConduit) client.getConduit();

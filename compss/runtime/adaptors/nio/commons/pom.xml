@@ -35,8 +35,8 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>es.bsc</groupId>
-			<artifactId>comm</artifactId>
+			<groupId>es.bsc.comm</groupId>
+			<artifactId>comm-all</artifactId>
 		</dependency>
 	</dependencies>
 	

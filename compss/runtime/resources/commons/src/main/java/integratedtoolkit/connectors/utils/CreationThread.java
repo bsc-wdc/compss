@@ -45,6 +45,7 @@ public class CreationThread extends Thread {
     private static final String WARN_CANNOT_PROVIDE_VM = "Provider can not provide the vm";
 
     private static ResourceUser listener;
+    private static final Object countSynchronizer = new Object();
     private static Integer count = 0;
 
     private final Operations operations;
@@ -61,7 +62,7 @@ public class CreationThread extends Thread {
         this.name = name;
         this.rcr = rR;
         this.reused = reused;
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count++;
         }
     }
@@ -140,7 +141,7 @@ public class CreationThread extends Thread {
             ResourceManager.increasedCloudWorker(rcr, r, granted.getDescription());
         }
 
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count--;
         }
     }
@@ -312,7 +313,7 @@ public class CreationThread extends Thread {
     }
 
     private void notifyFailure() {
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count--;
         }
     }

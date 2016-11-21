@@ -26,7 +26,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     
     // Properties' names
     private static final String VM_USER = "vm-user";
-    private static final String VM_PASSWORD = "vm-password";
+    private static final String VM_PASSWD = "vm-password";
     private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
     private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
 
@@ -77,7 +77,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         String propKeypairLocation = props.get(VM_KEYPAIR_LOCATION);
         keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
         
-        defaultPassword = props.get(VM_PASSWORD);
+        defaultPassword = props.get(VM_PASSWD);
     }
 
     /**
@@ -285,9 +285,11 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         LOGGER.warn("Sleep between keyscan interrupted", ie);
                     }
                 }
-            } catch (IOException | InterruptedException e) {
-                LOGGER.error(ERROR_KNOWN_HOSTS, e);
-                throw new ConnectorException(ERROR_KNOWN_HOSTS, e);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } catch (IOException ioe) {
+                LOGGER.error(ERROR_KNOWN_HOSTS, ioe);
+                throw new ConnectorException(ERROR_KNOWN_HOSTS, ioe);
             } finally {
                 try {
                     if (outStream != null) {
@@ -342,12 +344,14 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         try {
                             Thread.sleep(RETRY_TIME * 1_000);
                         } catch (InterruptedException e) {
-                            // No need to handle this kind of exceptions
+                            Thread.currentThread().interrupt();
                         }
                     }
-                } catch (IOException | InterruptedException e) {
-                    LOGGER.error(ERROR_ADD_MASTER_KEY, e);
-                    throw new ConnectorException(ERROR_ADD_MASTER_KEY, e);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                } catch (IOException ioe) {
+                    LOGGER.error(ERROR_ADD_MASTER_KEY, ioe);
+                    throw new ConnectorException(ERROR_ADD_MASTER_KEY, ioe);
                 } finally {
                     try {
                         if (outStream != null) {
@@ -409,8 +413,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                 if (success) {
                     return;
+                } else {
+                    throw new ConnectorException(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP);
                 }
-
             } catch (ConnectorException ce) {
                 ++numRetries;
                 LOGGER.error(ERROR_EXCEPTION_EXEC_COMMAND + user + "@" + workerIP, ce);
@@ -424,6 +429,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException ie) {
                 LOGGER.warn("Sleep between CMD execution interrupted", ie);
+                Thread.currentThread().interrupt();
             }
             
         } while (numRetries < MAX_ALLOWED_ERRORS);
@@ -481,6 +487,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                     Thread.sleep(RETRY_TIME * S_TO_MS);
                 } catch (InterruptedException e) {
                     LOGGER.debug("Sleep interrupted");
+                    Thread.currentThread().interrupt();
                 }
             }
 
@@ -596,6 +603,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                 Thread.sleep(RETRY_TIME * errors * S_TO_MS);
             } catch (InterruptedException e) {
                 LOGGER.debug("Sleep interrupted", e);
+                Thread.currentThread().interrupt();
             }
         }
 

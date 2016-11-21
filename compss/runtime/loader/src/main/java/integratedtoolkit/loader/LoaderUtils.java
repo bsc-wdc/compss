@@ -384,6 +384,7 @@ public class LoaderUtils {
             method = methodClass.getMethod(methodName, types);
         } catch (SecurityException se) {
             ErrorManager.error("Error writing the instrumented class file", se);
+            return null;
         } catch (NoSuchMethodException nsme) {
             String errMsg = "Requested method " + methodName + " of " + methodClass + " not found\n" + "Types length is " + types.length
                     + "\n";
@@ -391,6 +392,7 @@ public class LoaderUtils {
                 errMsg += "Type is " + type;
             }
             ErrorManager.error(errMsg, nsme);
+            return null;
         }
 
         // Invoke the requested method

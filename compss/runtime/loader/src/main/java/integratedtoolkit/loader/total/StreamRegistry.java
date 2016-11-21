@@ -467,6 +467,7 @@ public class StreamRegistry {
         } catch (IOException e) {
             // The Integrated Toolkit must finish
             ErrorManager.fatal("Cannot create stream for file " + file.getAbsolutePath() + " with direction " + direction, e);
+            return null;
         }
 
         if (onWindows) {

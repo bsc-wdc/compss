@@ -135,7 +135,9 @@ public class TraceMerger {
             List<String> cleanLines = getTaskEvents(taskFile);
             updateTasksInfo(cleanLines);
             if (!debug) {
-                taskFile.delete();
+                if (!taskFile.delete()) {
+                    logger.error("Error deleting trace file " + taskFile);
+                }
             }
         }
         masterWriter.close();

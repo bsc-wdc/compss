@@ -238,7 +238,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
 
         return request.getResponse();
@@ -272,7 +272,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         logger.info("All tasks finished");
     }
@@ -287,7 +287,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         return request.getResponse();
     }
@@ -301,7 +301,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         logger.info("Barrier: End of waited all tasks");
     }
@@ -315,7 +315,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         logger.info("End of waited task for data " + dataId);
     }
@@ -330,7 +330,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         return request.getResponse();
     }
@@ -362,7 +362,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         return request.getResponse();
     }
@@ -384,7 +384,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -402,7 +402,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         return (String) request.getResponse();
     }
@@ -424,7 +424,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
 
         logger.debug("Raw file transferred");
@@ -441,7 +441,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
 
         logger.debug("Open file transferred");
@@ -460,7 +460,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
 
         // Get response
@@ -492,7 +492,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
         UnblockResultFilesRequest urfr = new UnblockResultFilesRequest(request.getBlockedData());
         if (!requestQueue.offer(urfr)) {

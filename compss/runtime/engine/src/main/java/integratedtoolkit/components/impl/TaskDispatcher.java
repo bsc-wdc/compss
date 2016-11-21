@@ -184,6 +184,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         return request.getResponse();
@@ -196,6 +197,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -211,6 +213,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         return (String) request.getResponse();
     }
@@ -224,6 +227,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -244,6 +248,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         if (debug) {
@@ -262,6 +267,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         if (debug) {

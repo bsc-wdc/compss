@@ -651,14 +651,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             destDir += File.separator;
         }
         // Parse the file name
-        DataLocation sourceLocation = null;
+        DataLocation sourceLocation;
         try {
             sourceLocation = createLocation(fileName);
         } catch (IOException ioe) {
             ErrorManager.fatal(ERROR_FILE_NAME, ioe);
+            return null;
         }
         if (sourceLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
+            return null;
         }
         
         FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
@@ -771,11 +773,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         logger.info("Opening file " + fileName + " in mode " + mode);
 
-        DataLocation loc = null;
+        DataLocation loc;
         try {
             loc = createLocation(fileName);
         } catch (Exception e) {
             ErrorManager.fatal(ERROR_FILE_NAME, e);
+            return null;
         }
 
         AccessMode am = null;
@@ -799,6 +802,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
         if (finalLocation == null) {
             ErrorManager.fatal(ERROR_FILE_NAME);
+            return null;
         }
         
         String finalPath;

@@ -48,7 +48,7 @@ public class IDLParser {
         try {
             br = new BufferedReader(new FileReader(constraintsFile));
             boolean isReadingCodeRegion = false;
-            StringBuilder structureString = null;
+            StringBuilder structureString = new StringBuilder();
             CodeRegion type = null;
             CImplementation implementation = null;
             MethodResourceDescription currConstraints = new MethodResourceDescription(defaultCtr);

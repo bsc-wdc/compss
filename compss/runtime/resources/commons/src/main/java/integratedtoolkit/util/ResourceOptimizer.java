@@ -415,7 +415,11 @@ public class ResourceOptimizer extends Thread {
 
             // Add
             List<Processor> procs = unassigned.desc.getProcessors();
-            if (procs != null && !procs.isEmpty()) {
+            if (procs == null) {
+                procs = new LinkedList<Processor>();
+            }
+            
+            if (!procs.isEmpty()) {
                 procs.get(0).setArchitecture(bestArch);
             } else {
                 Processor p = new Processor();

@@ -214,10 +214,11 @@ public class ResourcesLogParser {
                 clear();
                 resourcesLogPath = newPath;
             }
+            
             // Parse
-            try {
-                FileReader fr = new FileReader(resourcesLogPath);
-                BufferedReader br = new BufferedReader(fr);
+            try (FileReader fr = new FileReader(resourcesLogPath);
+                    BufferedReader br = new BufferedReader(fr)) {
+
                 String line = br.readLine(); // Parsed line
                 int i = 0; // Line counter
                 while (line != null) {
@@ -377,8 +378,6 @@ public class ResourcesLogParser {
                     i = i + 1;
                 }
                 lastParsedLine = i - 1;
-                br.close();
-                fr.close();
             } catch (Exception e) {
                 clear();
                 logger.error("Cannot parse resrouces.log file: " + resourcesLogPath);

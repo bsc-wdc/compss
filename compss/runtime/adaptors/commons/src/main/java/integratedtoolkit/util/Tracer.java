@@ -582,12 +582,13 @@ public abstract class Tracer {
     private static void cleanMasterPackage() {
         String filename = DataLocation.Protocol.FILE_URI.getSchema() + "master_compss_trace.tar.gz";
 
-        DataLocation source = null;
+        DataLocation source;
         try {
             SimpleURI uri = new SimpleURI(filename);
             source = DataLocation.createLocation(Comm.getAppHost(), uri);
         } catch (Exception e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + filename, e);
+            return;
         }
 
         if (debug) {

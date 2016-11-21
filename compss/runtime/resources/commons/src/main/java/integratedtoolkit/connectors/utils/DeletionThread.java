@@ -20,6 +20,8 @@ public class DeletionThread extends Thread {
     private final CloudMethodWorker worker;
     private final CloudMethodResourceDescription reduction;
     private VM vm;
+    
+    private static final Object countSynchronizer = new Object();
     private static Integer count = 0;
 
     private static final Logger resourcesLogger = LogManager.getLogger(Loggers.CONNECTORS_UTILS);
@@ -30,7 +32,7 @@ public class DeletionThread extends Thread {
     public DeletionThread(Operations connector, CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         this.setName("DeletionThread " + worker.getName());
         this.operations = connector;
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count++;
         }
         this.worker = worker;
@@ -41,7 +43,7 @@ public class DeletionThread extends Thread {
     public DeletionThread(Operations connector, VM vm) {
         this.setName("DeletionThread " + vm.getName());
         this.operations = connector;
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count++;
         }
         this.worker = null;
@@ -106,7 +108,7 @@ public class DeletionThread extends Thread {
 
         }
 
-        synchronized (count) {
+        synchronized (countSynchronizer) {
             count--;
             if (debug) {
                 runtimeLogger.debug("Number of current VMs deletions decreased (" + count + ").");

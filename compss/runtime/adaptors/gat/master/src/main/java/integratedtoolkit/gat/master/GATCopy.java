@@ -1,6 +1,9 @@
 package integratedtoolkit.gat.master;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.exceptions.CopyException;
+import integratedtoolkit.exceptions.UnstartedNodeException;
+import integratedtoolkit.gat.master.exceptions.GATCopyException;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.LogicalData;
@@ -48,16 +51,20 @@ public class GATCopy extends ImmediateCopy {
     }
 
     @Override
-    public void specificCopy() throws Exception {
+    public void specificCopy() throws CopyException {
         logger.debug("Performing GAT Specific Copy");
 
         // Fetch valid destination URIs
         LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
         LinkedList<URI> selectedTargetURIs = new LinkedList<>();
         for (MultiURI uri : targetURIs) {
-            URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
-            if (internalURI != null) {
-                selectedTargetURIs.add(internalURI);
+            try {
+                URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
+                if (internalURI != null) {
+                    selectedTargetURIs.add(internalURI);
+                }
+            } catch (UnstartedNodeException une) {
+                throw new GATCopyException(une);
             }
         }
 
@@ -72,18 +79,26 @@ public class GATCopy extends ImmediateCopy {
             if (srcLoc != null) {
                 sourceURIs = srcLoc.getURIs();
                 for (MultiURI uri : sourceURIs) {
-                    URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
-                    if (internalURI != null) {
-                        selectedSourceURIs.add(internalURI);
+                    try {
+                        URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
+                        if (internalURI != null) {
+                            selectedSourceURIs.add(internalURI);
+                        }
+                    } catch (UnstartedNodeException une) {
+                        throw new GATCopyException(une);
                     }
                 }
             }
 
             sourceURIs = srcData.getURIs();
             for (MultiURI uri : sourceURIs) {
-                URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
-                if (internalURI != null) {
-                    selectedSourceURIs.add(internalURI);
+                try {
+                    URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
+                    if (internalURI != null) {
+                        selectedSourceURIs.add(internalURI);
+                    }
+                } catch (UnstartedNodeException une) {
+                    throw new GATCopyException(une);
                 }
             }
 
@@ -138,7 +153,7 @@ public class GATCopy extends ImmediateCopy {
             ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.",exception);
         }
 
-        throw exception;
+        throw new GATCopyException(exception);
     }
 
     private void doCopy(org.gridlab.gat.URI src, org.gridlab.gat.URI dest) throws Exception {

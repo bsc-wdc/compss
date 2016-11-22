@@ -60,9 +60,7 @@ public class TaskResultReader extends Thread {
         logger.debug("TaskResultReader stoped with: mustStop = " + mustStop + " Waiters = " + haveWaiters);
 
         // When shutdown signal received, release the semaphore
-        if (mustStop) {
-            stopSem.release();
-        }
+        stopSem.release();
     }
 
     public void shutdown(Semaphore sem) {

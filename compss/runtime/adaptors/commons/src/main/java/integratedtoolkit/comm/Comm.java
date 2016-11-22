@@ -3,10 +3,13 @@ package integratedtoolkit.comm;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
+import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -33,7 +36,10 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
+/**
+ * Representation of the Communication interface of the Runtime
+ * 
+ */
 public class Comm {
 
     private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
@@ -50,9 +56,18 @@ public class Comm {
 
     // Master information
     private static MasterResource appHost;
+    
+    
+    /**
+     * Private constructor to avoid instantiation
+     */
+    private Comm() {
+        throw new NonInstantiableException("Comm");
+    }
 
-
-    // Communications initializer
+    /**
+     * Communications initializer
+     */
     public static synchronized void init() {
         appHost = new MasterResource();
         try {
@@ -80,15 +95,35 @@ public class Comm {
 
     }
 
+    /**
+     * Initializes the internal adaptor and constructs a comm configuration
+     * 
+     * @param adaptorName
+     * @param project_properties
+     * @param resources_properties
+     * @return
+     * @throws ConstructConfigurationException
+     */
     public static synchronized Configuration constructConfiguration(String adaptorName, Object project_properties,
-            Object resources_properties) throws Exception {
+            Object resources_properties) throws ConstructConfigurationException {
 
-        // Init adaptor
+        // Check if adaptor has already been used
         CommAdaptor adaptor = adaptors.get(adaptorName);
         if (adaptor == null) {
-            Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
-            adaptor = (CommAdaptor) constrAdaptor.newInstance();
+            // Create a new adaptor instance
+            try {
+                Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
+                adaptor = (CommAdaptor) constrAdaptor.newInstance();
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | 
+                    InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                
+                throw new ConstructConfigurationException(e);
+            }
+            
+            // Initialize adaptor
             adaptor.init();
+            
+            // Add adaptor to used adaptors
             adaptors.put(adaptorName, adaptor);
         }
 
@@ -100,17 +135,32 @@ public class Comm {
         return adaptor.constructConfiguration(project_properties, resources_properties);
     }
     
+    /**
+     * Returns the resource assigned as master node
+     * 
+     * @return
+     */
     public static MasterResource getAppHost() {
         return appHost;
     }
 
+    /**
+     * Initializes a worker with name @name and configuration @config
+     * 
+     * @param name
+     * @param config
+     * @return
+     */
     public static synchronized COMPSsWorker initWorker(String name, Configuration config) {
         String adaptorName = config.getAdaptorName();
         CommAdaptor adaptor = adaptors.get(adaptorName);
         return adaptor.initWorker(name, config);
     }
 
-    // Clean FTM, Job, {GATJob, NIOJob} and WSJob
+    /**
+     * Stops the communication layer. 
+     * Clean FTM, Job, {GATJob, NIOJob} and WSJob
+     */
     public static synchronized void stop() {
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : adaptors.values()) {
@@ -134,6 +184,12 @@ public class Comm {
         }
     }
 
+    /**
+     * Registers a new data with id @dataId
+     * 
+     * @param dataId
+     * @return
+     */
     public static synchronized LogicalData registerData(String dataId) {
         logger.debug("Register new data " + dataId);
         
@@ -143,6 +199,14 @@ public class Comm {
         return logicalData;
     }
 
+    /**
+     * Registers a new location @location for the data with id @dataId
+     * dataId must exist
+     * 
+     * @param dataId
+     * @param location
+     * @return
+     */
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
         logger.debug("Registering new Location for data " + dataId + ":");
         logger.debug("  * Location: " + location);
@@ -153,6 +217,14 @@ public class Comm {
         return logicalData;
     }
 
+    /**
+     * Registers a new value @value for the data with id @dataId
+     * dataId must exist
+     * 
+     * @param dataId
+     * @param value
+     * @return
+     */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
         logger.debug("Register value " + value + " for data " + dataId);
 
@@ -180,6 +252,14 @@ public class Comm {
         return logicalData;
     }
 
+    /**
+     * Registers a new PSCO id @id for the data with id @dataId
+     * dataId must exist
+     * 
+     * @param dataId
+     * @param id
+     * @return
+     */
     public static synchronized LogicalData registerPSCO(String dataId, String id) {
         String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
         DataLocation location = null;
@@ -196,6 +276,12 @@ public class Comm {
         return logicalData;
     }
 
+    /**
+     * Clears the value of the data id @dataId
+     * 
+     * @param dataId
+     * @return
+     */
     public static synchronized Object clearValue(String dataId) {
         logger.debug("Clear value of data " + dataId);
         LogicalData logicalData = data.get(dataId);
@@ -203,10 +289,22 @@ public class Comm {
         return logicalData.removeValue();
     }
 
+    /**
+     * Checks if a given dataId @renaming exists
+     * 
+     * @param renaming
+     * @return
+     */
     public static synchronized boolean existsData(String renaming) {
         return (data.get(renaming) != null);
     }
 
+    /**
+     * Returns the data with id @dataId
+     * 
+     * @param dataId
+     * @return
+     */
     public static synchronized LogicalData getData(String dataId) {
         if (logger.isDebugEnabled()) {
             logger.debug("Get data " + data.get(dataId));
@@ -215,6 +313,11 @@ public class Comm {
         return data.get(dataId);
     }
 
+    /**
+     * Dumps the stored data (only for testing)
+     * 
+     * @return
+     */
     public static synchronized String dataDump() {
         StringBuilder sb = new StringBuilder("DATA DUMP\n");
         for (Map.Entry<String, LogicalData> lde : data.entrySet()) {
@@ -239,11 +342,22 @@ public class Comm {
         return sb.toString();
     }
 
+    /**
+     * Returns all the data stored in a host @host
+     * 
+     * @param host
+     * @return
+     */
     public static synchronized HashSet<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
         return host.getAllDataFromHost();
     }
 
+    /**
+     * Removes the data with id @renaming
+     * 
+     * @param renaming
+     */
     public static synchronized void removeData(String renaming) {
         logger.debug("Remove data " + renaming);
 
@@ -265,10 +379,19 @@ public class Comm {
         
     }
 
+    /**
+     * Return the active adaptors
+     * 
+     * @return
+     */
     public static synchronized HashMap<String, CommAdaptor> getAdaptors() {
         return adaptors;
     }
 
+    /**
+     * Stops all the submitted jobs
+     * 
+     */
     public static synchronized void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {
             adaptor.stopSubmittedJobs();

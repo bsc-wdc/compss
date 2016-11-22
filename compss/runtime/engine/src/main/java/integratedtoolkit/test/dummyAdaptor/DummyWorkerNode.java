@@ -1,6 +1,8 @@
 package integratedtoolkit.test.dummyAdaptor;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.exceptions.AnnounceException;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
@@ -17,11 +19,21 @@ import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 
 
+/**
+ * Dummy Worker Node for integration tests
+ *
+ */
 public class DummyWorkerNode extends COMPSsWorker {
 
     private final String name;
 
 
+    /**
+     * New DummyWorker node with name @name and configuration @config
+     * 
+     * @param name
+     * @param config
+     */
     public DummyWorkerNode(String name, MethodConfiguration config) {
         super(name, config);
         this.name = name;
@@ -33,7 +45,7 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() throws InitNodeException {
     }
 
     @Override
@@ -79,11 +91,11 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void announceCreation() throws Exception {
+    public void announceCreation() throws AnnounceException {
     }
 
     @Override
-    public void announceDestruction() throws Exception {
+    public void announceDestruction() throws AnnounceException {
     }
 
     @Override
@@ -97,12 +109,12 @@ public class DummyWorkerNode extends COMPSsWorker {
 
     @Override
     public boolean generatePackage() {
-    	return false;
+        return false;
     }
 
     @Override
     public boolean generateWorkersDebugInfo() {
-    	return false;
+        return false;
     }
 
 }

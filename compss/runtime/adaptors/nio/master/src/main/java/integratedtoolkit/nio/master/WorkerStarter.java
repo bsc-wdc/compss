@@ -3,6 +3,7 @@ package integratedtoolkit.nio.master;
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.commands.CommandCheckWorker;
@@ -72,7 +73,7 @@ public class WorkerStarter {
     	toStop = true;
     }
 
-    public NIONode startWorker() throws Exception {
+    public NIONode startWorker() throws InitNodeException {
         String name = nw.getName();
         String user = nw.getUser();
         int minPort = nw.getConfiguration().getMinPort();
@@ -110,7 +111,12 @@ public class WorkerStarter {
 
                 CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
                 while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
-                    Thread.sleep(delay);
+                    try {
+                        Thread.sleep(delay);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                    }
+                    
                     if (!workerIsReady) {
 	                    if (debug) {
 	                        logger.debug("Sending check command to worker " + nodeName);
@@ -125,8 +131,8 @@ public class WorkerStarter {
                     }
                 }
             } else {
-                throw new Exception("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user " + user
-                        + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
+                throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user " 
+                        + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
             }
             if (!workerIsReady) {
                 ++port;
@@ -147,7 +153,7 @@ public class WorkerStarter {
         	return null;
         }else if (!workerIsReady) {
         	logger.debug("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
-            throw new Exception("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
+            throw new InitNodeException("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
         	
             return n; // should be unreachable statement

@@ -13,6 +13,7 @@ import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.connectors.ConnectorException;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.ResourcesState;
@@ -237,7 +238,7 @@ public class ResourceManager {
         Comm.getAppHost().updateSharedDisk(sharedDisks);
         try {
             Comm.getAppHost().start();
-        } catch (Exception e) {
+        } catch (InitNodeException e) {
             ErrorManager.error("Error updating master configuration", e);
 
         }
@@ -392,6 +393,7 @@ public class ResourceManager {
      */
     public static void increasedCloudWorker(ResourceCreationRequest origin, CloudMethodWorker worker,
             CloudMethodResourceDescription extension) {
+        
         synchronized (pool) {
             CloudManager.confirmedRequest(origin, worker);
             int[] maxTaskCount = worker.getSimultaneousTasks();

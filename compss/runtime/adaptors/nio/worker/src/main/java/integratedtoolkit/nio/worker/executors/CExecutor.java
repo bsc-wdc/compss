@@ -18,6 +18,8 @@ public class CExecutor extends ExternalExecutor {
     private static final String COMMONS_LIB_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "commons" + File.separator
             + "lib";
     private static final String WORKER_C_RELATIVE_PATH = File.separator + "worker" + File.separator + "worker_c";
+    
+    private static final String LIBRARY_PATH_ENV = "LD_LIBRARY_PATH";
 
 
     public CExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
@@ -71,7 +73,7 @@ public class CExecutor extends ExternalExecutor {
 
     public static Map<String, String> getEnvironment(NIOWorker nw) {
         Map<String, String> env = new HashMap<>();
-        String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
+        String ldLibraryPath = System.getenv(LIBRARY_PATH_ENV);
         if (ldLibraryPath == null) {
             ldLibraryPath = nw.getLibPath();
         } else {
@@ -79,8 +81,8 @@ public class CExecutor extends ExternalExecutor {
         }
 
         // Add C and commons libs
-        ldLibraryPath.concat(":" + nw.getInstallDir() + C_LIB_RELATIVE_PATH);
-        ldLibraryPath.concat(":" + nw.getInstallDir() + COMMONS_LIB_RELATIVE_PATH);
+        ldLibraryPath = ldLibraryPath.concat(":" + nw.getInstallDir() + C_LIB_RELATIVE_PATH);
+        ldLibraryPath = ldLibraryPath.concat(":" + nw.getInstallDir() + COMMONS_LIB_RELATIVE_PATH);
 
         env.put("LD_LIBRARY_PATH", ldLibraryPath);
         return env;

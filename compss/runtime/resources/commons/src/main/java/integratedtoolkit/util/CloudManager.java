@@ -384,7 +384,7 @@ public class CloudManager {
             }
             HashMap<String, Object[]> typeToPoints = cp.getPossibleReductions(res, destroyRecommendations);
 
-            for (java.util.Map.Entry<String, Object[]> destruction : typeToPoints.entrySet()) {
+            for (Entry<String, Object[]> destruction : typeToPoints.entrySet()) {
                 String typeName = destruction.getKey();
                 Object[] description = destruction.getValue();
                 float[] values = (float[]) description[0];

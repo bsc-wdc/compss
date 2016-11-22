@@ -1,6 +1,7 @@
 package com.bsc.compss.ui;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 
 import org.apache.logging.log4j.LogManager;
@@ -91,7 +92,7 @@ public class CurrentGraphViewModel {
         graphLastUpdateTime = "";
     }
 
-    private String loadGraph(String location, String target) throws Exception {
+    private String loadGraph(String location, String target) throws IOException {
         if (logger.isDebugEnabled()) {
             logger.debug("Loading Graph...");
             logger.debug("   - Monitoring source: " + location);
@@ -101,7 +102,12 @@ public class CurrentGraphViewModel {
         String[] createSVG = { "/bin/sh", "-c", "dot -T svg " + location + " > " + System.getProperty("catalina.base") + File.separator
                 + "webapps" + File.separator + "compss-monitor" + File.separator + target };
         Process p1 = Runtime.getRuntime().exec(createSVG);
-        p1.waitFor();
+        
+        try {
+            p1.waitFor();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         // Add JSPan.js configuration
         /*

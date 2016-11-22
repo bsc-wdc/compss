@@ -4,6 +4,7 @@ import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.listener.EventListener;
@@ -71,12 +72,12 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() throws InitNodeException {
         NIONode n = null;
         try {
         	workerStarter = new WorkerStarter(this);
             n = workerStarter.startWorker();
-        } catch (Exception e) {
+        } catch (InitNodeException e) {
             ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
         }

@@ -42,7 +42,7 @@ public class ScheduleOptimizer<P extends Profile, T extends WorkerResourceDescri
         try {
             Thread.sleep(500);
         } catch (InterruptedException ie) {
-            // Do nothing
+            Thread.currentThread().interrupt();
         }
         while (!stop) {
             long optimizationTS = System.currentTimeMillis();

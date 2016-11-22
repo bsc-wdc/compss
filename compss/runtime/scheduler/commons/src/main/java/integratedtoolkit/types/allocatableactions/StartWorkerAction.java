@@ -1,6 +1,7 @@
 package integratedtoolkit.types.allocatableactions;
 
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -71,7 +72,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
                 try {
                     selectedMainResource.getResource().start();
                     notifyCompleted();
-                } catch (Exception e) {
+                } catch (InitNodeException e) {
                     logger.error("Error starting resource", e);
                     ErrorManager.warn("Exception creating worker. Check runtime.log for more details", e);
                     notifyError();

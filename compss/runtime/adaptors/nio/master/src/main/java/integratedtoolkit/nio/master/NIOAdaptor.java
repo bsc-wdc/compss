@@ -14,6 +14,7 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.nio.NIOAgent;
@@ -143,11 +144,15 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties) 
+            throws ConstructConfigurationException {
+        
         NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
-        integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
+        integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = 
+                (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
+        integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = 
+                (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
 
         // Get ports
         int min_project = (props_project != null) ? props_project.getMinPort() : -1;
@@ -156,7 +161,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             min_resources = props_resources.getMinPort();
         } else {
             // MinPort on resources is mandatory
-            throw new Exception("Resources file doesn't contain a minimum port value");
+            throw new ConstructConfigurationException("Resources file doesn't contain a minimum port value");
         }
         int max_project = (props_project != null) ? props_project.getMaxPort() : -1;
         int max_resources = (props_resources != null) ? props_resources.getMaxPort() : -1;
@@ -203,7 +208,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         if (!remoteExecutionCommand.equals(NIOConfiguration.SSH_REMOTE_EXECUTION_COMMAND)
                 && !remoteExecutionCommand.equals(NIOConfiguration.SRUN_REMOTE_EXECUTION_COMMAND)) {
-            throw new Exception("Invalid remote execution command on resources file");
+            throw new ConstructConfigurationException("Invalid remote execution command on resources file");
         }
         config.setRemoteExecutionCommand(remoteExecutionCommand);
 

@@ -2,6 +2,7 @@ package integratedtoolkit.types.resources;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
@@ -89,7 +90,7 @@ public abstract class Resource implements Comparable<Resource> {
      * 
      * @throws Exception
      */
-    public void start() throws Exception {
+    public void start() throws InitNodeException {
         this.node.start();
         if (sharedDisks != null) {
             for (Entry<String, String> disk : sharedDisks.entrySet()) {

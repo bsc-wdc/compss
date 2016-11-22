@@ -175,7 +175,7 @@ public abstract class ExternalExecutor extends Executor {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // No need to handle such exceptions
+            Thread.currentThread().interrupt();
         }
 
         logger.info("End Finishing ExternalExecutor");
@@ -301,7 +301,7 @@ public abstract class ExternalExecutor extends Executor {
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // No need to handle such exception
+            Thread.currentThread().interrupt();
         }
         int exitValue = taskResultReader.getExitValue(jobId);
 

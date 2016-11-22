@@ -577,8 +577,7 @@ public class ITAppEditor extends ExprEditor {
             if (numParams > 1) {
                 infoToAppend.append(',');
             }
-            
-            String typeName = retType.getName();
+
             if (retType.isPrimitive()) {
                 /*
                  * *********************************
@@ -591,35 +590,35 @@ public class ITAppEditor extends ExprEditor {
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
                 String converterMethod;
-                if (typeName.equals(boolean.class.getName())) {
+                if (retType.isAssignableFrom(boolean.class)) {
                     retValueCreation += "new Boolean(false);";
                     cast = "(Boolean)";
                     converterMethod = "booleanValue()";
-                } else if (typeName.equals(char.class.getName())) {
+                } else if (retType.isAssignableFrom(char.class)) {
                     retValueCreation += "new Character(Character.MIN_VALUE);";
                     cast = "(Character)";
                     converterMethod = "charValue()";
-                } else if (typeName.equals(byte.class.getName())) {
+                } else if (retType.isAssignableFrom(byte.class)) {
                     retValueCreation += "new Byte(Byte.MIN_VALUE);";
                     cast = "(Byte)";
                     converterMethod = "byteValue()";
-                } else if (typeName.equals(short.class.getName())) {
+                } else if (retType.isAssignableFrom(short.class)) {
                     retValueCreation += "new Short(Short.MIN_VALUE);";
                     cast = "(Short)";
                     converterMethod = "shortValue()";
-                } else if (typeName.equals(int.class.getName())) {
+                } else if (retType.isAssignableFrom(int.class)) {
                     retValueCreation += "new Integer(Integer.MIN_VALUE);";
                     cast = "(Integer)";
                     converterMethod = "intValue()";
-                } else if (typeName.equals(long.class.getName())) {
+                } else if (retType.isAssignableFrom(long.class)) {
                     retValueCreation += "new Long(Long.MIN_VALUE);";
                     cast = "(Long)";
                     converterMethod = "longValue()";
-                } else if (typeName.equals(float.class.getName())) {
+                } else if (retType.isAssignableFrom(float.class)) {
                     retValueCreation += "new Float(Float.MIN_VALUE);";
                     cast = "(Float)";
                     converterMethod = "floatValue()";
-                } else { // (typeName.equals(double.class.getName()))
+                } else { // (retType.isAssignableFrom(double.class))
                     retValueCreation += "new Double(Double.MIN_VALUE);";
                     cast = "(Double)";
                     converterMethod = "doubleValue()";
@@ -640,6 +639,7 @@ public class ITAppEditor extends ExprEditor {
                  * ********************************* 
                  * ARRAY
                  *********************************/
+                String typeName = retType.getName();
                 Class<?> compType = retType.getComponentType();
                 int numDim = typeName.lastIndexOf('[');
                 String dims = "[0]";
@@ -659,25 +659,26 @@ public class ITAppEditor extends ExprEditor {
                  * OBJECT
                  *********************************/
                 // Wrapper for a primitive type: return a default value
-                if (typeName.equals(Boolean.class.getName())) {
+                if (retType.isAssignableFrom(Boolean.class)) {
                     infoToPrepend.insert(0, "$_ = new Boolean(false);");
-                } else if (typeName.equals(Character.class.getName())) {
+                } else if (retType.isAssignableFrom(Character.class)) {
                     infoToPrepend.insert(0, "$_ = new Character(Character.MIN_VALUE);");
-                } else if (typeName.equals(Byte.class.getName())) {
+                } else if (retType.isAssignableFrom(Byte.class)) {
                     infoToPrepend.insert(0, "$_ = new Byte(Byte.MIN_VALUE);");
-                } else if (typeName.equals(Short.class.getName())) {
+                } else if (retType.isAssignableFrom(Short.class)) {
                     infoToPrepend.insert(0, "$_ = new Short(Short.MIN_VALUE);");
-                } else if (typeName.equals(Integer.class.getName())) {
+                } else if (retType.isAssignableFrom(Integer.class)) {
                     infoToPrepend.insert(0, "$_ = new Integer(Integer.MIN_VALUE);");
-                } else if (typeName.equals(Long.class.getName())) {
+                } else if (retType.isAssignableFrom(Long.class)) {
                     infoToPrepend.insert(0, "$_ = new Long(Long.MIN_VALUE);");
-                } else if (typeName.equals(Float.class.getName())) {
+                } else if (retType.isAssignableFrom(Float.class)) {
                     infoToPrepend.insert(0, "$_ = new Float(Float.MIN_VALUE);");
-                } else if (typeName.equals(Double.class.getName())) {
+                } else if (retType.isAssignableFrom(Double.class)) {
                     infoToPrepend.insert(0, "$_ = new Double(Double.MIN_VALUE);");
                 } // Object (maybe String): use the no-args constructor
                 else {
                     // Check that object class has empty constructor
+                    String typeName = retType.getName();
                     try {
                         Class.forName(typeName).getConstructor();
                     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {

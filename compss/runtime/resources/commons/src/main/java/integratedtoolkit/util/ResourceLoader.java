@@ -10,6 +10,7 @@ import javax.xml.bind.JAXBException;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.connectors.AbstractConnector;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudImageDescription;
@@ -278,8 +279,8 @@ public class ResourceLoader {
         try {
             config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project,
                     adaptorProperties_resources);
-        } catch (Exception e) {
-            ErrorManager.warn("Adaptor " + loadedAdaptor + " configuration constructor failed", e);
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("Adaptor " + loadedAdaptor + " configuration constructor failed", cce);
             return false;
         }
 
@@ -334,8 +335,8 @@ public class ResourceLoader {
         ServiceConfiguration config = null;
         try {
             config = (ServiceConfiguration) Comm.constructConfiguration(serviceAdaptorName, s_project, s_resources);
-        } catch (Exception e) {
-            ErrorManager.warn("Service configuration constructor failed", e);
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("Service configuration constructor failed", cce);
             return false;
         }
 
@@ -568,8 +569,8 @@ public class ResourceLoader {
         try {
             config = (MethodConfiguration) Comm.constructConfiguration(loadedAdaptor, adaptorProperties_project,
                     adaptorProperties_resources);
-        } catch (Exception e) {
-            ErrorManager.warn("Adaptor configuration constructor failed", e);
+        } catch (ConstructConfigurationException cce) {
+            ErrorManager.warn("Adaptor configuration constructor failed", cce);
             return null;
         }
 

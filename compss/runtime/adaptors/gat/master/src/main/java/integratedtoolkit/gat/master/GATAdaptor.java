@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.comm.Dispatcher;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.gat.master.configuration.GATConfiguration;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.operation.DataOperation;
@@ -97,7 +98,9 @@ public class GATAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException {
+        
         String brokerAdaptorName = System.getProperty(ITConstants.GAT_BROKER_ADAPTOR);
         String project_brokerAdaptor = (String) project_properties;
         String resources_brokerAdaptor = (String) resources_properties;
@@ -109,7 +112,8 @@ public class GATAdaptor implements CommAdaptor {
                     brokerAdaptorName = project_brokerAdaptor;
                 } else {
                     // Specified Broker adaptors don't match
-                    throw new Exception("GATAdaptor: BrokerAdaptor defined in resources.xml and project.xml donesn't match");
+                    throw new ConstructConfigurationException("GATAdaptor: BrokerAdaptor defined in resources.xml and"
+                            + " project.xml donesn't match");
                 }
             } else {
                 // Only project

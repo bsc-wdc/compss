@@ -1,27 +1,58 @@
-package integratedtoolkit.util;
+package integratedtoolkit.gat.master.utils;
 
 import integratedtoolkit.types.COMPSsWorker;
+import integratedtoolkit.types.exceptions.NonInstantiableException;
+
+import java.io.IOException;
 import java.util.HashSet;
 
 
+/**
+ * Supporting class to manage SSH connections
+ * 
+ *
+ */
 public class SSHManager {
 
     private static HashSet<COMPSsWorker> workers = new HashSet<>();
 
 
+    /**
+     * Private constructor to avoid instantiation
+     */
+    private SSHManager() {
+        throw new NonInstantiableException("SSHManager");
+    }
+
+    /**
+     * Registers a new worker
+     * 
+     * @param worker
+     */
     public static void registerWorker(COMPSsWorker worker) {
         synchronized (workers) {
             workers.add(worker);
         }
     }
 
+    /**
+     * Removes an existing worker
+     * 
+     * @param worker
+     */
     public static void removeWorker(COMPSsWorker worker) {
         synchronized (workers) {
             workers.remove(worker);
         }
     }
 
-    public static void announceCreation(COMPSsWorker worker) throws Exception {
+    /**
+     * Announces a worker creation (inserts ssh keys in all existing nodes)
+     * 
+     * @param worker
+     * @throws IOException
+     */
+    public static void announceCreation(COMPSsWorker worker) throws IOException {
         int i = 0;
         Process[] p;
         synchronized (workers) {
@@ -40,14 +71,24 @@ public class SSHManager {
         }
         i = 0;
         while (i < p.length) {
-            p[i].waitFor();
+            try {
+                p[i].waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             p[i].getErrorStream().close();
             p[i].getOutputStream().close();
             i++;
         }
     }
 
-    public static void announceDestruction(COMPSsWorker worker) throws Exception {
+    /**
+     * Announces a worker destruction (cleans ssh keys in worker node)
+     * 
+     * @param worker
+     * @throws IOException
+     */
+    public static void announceDestruction(COMPSsWorker worker) throws IOException {
         int i = 1;
 
         Process[] p;
@@ -64,7 +105,11 @@ public class SSHManager {
         }
         i = 1;
         while (i < p.length) {
-            p[i].waitFor();
+            try {
+                p[i].waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             p[i].getErrorStream().close();
             p[i].getOutputStream().close();
             i++;
@@ -72,12 +117,22 @@ public class SSHManager {
 
     }
 
-    public static void removeKey(COMPSsWorker worker) throws Exception {
+    /**
+     * Removes worker keys
+     * 
+     * @param worker
+     * @throws IOException
+     */
+    public static void removeKey(COMPSsWorker worker) throws IOException {
         String user = System.getProperty("user.name");
         String[] cmd = new String[] { "mv /home/" + user + "/.ssh/known_hosts known " + "&& grep -vw " + worker.getName()
                 + " known > /home/" + user + "/.ssh/known_hosts" + "&& rm known" };
         Process p = Runtime.getRuntime().exec(cmd);
-        p.waitFor();
+        try {
+            p.waitFor();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         p.getErrorStream().close();
         p.getOutputStream().close();
     }

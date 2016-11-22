@@ -3,18 +3,26 @@ package integratedtoolkit.test.dummyAdaptor;
 import java.util.LinkedList;
 
 import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
 
+/**
+ * Dummy Adaptor for testing purposes. Defined in main package because it is used in integration tests
+ *
+ */
 public class DummyAdaptor implements CommAdaptor {
 
-    public static final String ID = DummyAdaptor.class.getCanonicalName();
+    private static final String ID = DummyAdaptor.class.getCanonicalName();
 
 
+    /**
+     * Instantiates a new Dummy Adaptor
+     */
     public DummyAdaptor() {
-
+        // Nothing to do since there are no attributes to initialize
     }
 
     @Override
@@ -22,7 +30,9 @@ public class DummyAdaptor implements CommAdaptor {
     }
 
     @Override
-    public MethodConfiguration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
+    public MethodConfiguration constructConfiguration(Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException {
+
         MethodConfiguration config = new MethodConfiguration(ID);
         return config;
     }

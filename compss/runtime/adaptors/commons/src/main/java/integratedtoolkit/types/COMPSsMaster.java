@@ -29,7 +29,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.concurrent.Semaphore;
 
-
+/**
+ * Representation of the COMPSs Master Node
+ * Only 1 instance per execution
+ *
+ */
 public class COMPSsMaster extends COMPSsNode {
 
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
@@ -40,6 +44,9 @@ public class COMPSsMaster extends COMPSsNode {
     private final String name;
 
 
+    /**
+     * New COMPSs Master
+     */
     public COMPSsMaster() {
         super();
         
@@ -324,6 +331,7 @@ public class COMPSsMaster extends COMPSsNode {
             sem.acquire();
         } catch (InterruptedException ex) {
             ErrorManager.warn("Error waiting for files in resource " + getName() + " to get saved");
+            Thread.currentThread().interrupt();
         }
         if (debug) {
             logger.debug("Copy " + copy.getName() + "(id: " + copy.getId() + ") is finished");
@@ -367,23 +375,23 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     private void deleteFolder(File folder) {
-        if (folder != null) {
-            if (folder.isDirectory()) {
-                for (File f : folder.listFiles()) {
-                    deleteFolder(f);
-                }
+        if (folder.isDirectory()) {
+            for (File f : folder.listFiles()) {
+                deleteFolder(f);
             }
-            if (!folder.delete()) {
-                logger.error("Error deleting file " + (folder == null ? "" : folder.getName()));
-            }
+        }
+        if (!folder.delete()) {
+            logger.error("Error deleting file " + (folder == null ? "" : folder.getName()));
         }
     }
 
+    @Override
     public boolean generatePackage() {
         // Should not be executed on a COMPSsMaster
     	return false;
     }
 
+    @Override
     public boolean generateWorkersDebugInfo() {
         // Should not be executed on a COMPSsMaster
     	return false;

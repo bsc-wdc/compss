@@ -77,16 +77,19 @@ public class FakeResourceDescription extends WorkerResourceDescription {
         return new FakeResourceDescription(coreCount);
     }
 
+    @Override
     public String toString() {
         return coreCount + " cores";
     }
 
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
+        coreCount = in.readInt();
     }
 
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-
+        out.writeInt(coreCount);
     }
 
     public boolean checkEquals(FakeResourceDescription fakeResourceDescription) {

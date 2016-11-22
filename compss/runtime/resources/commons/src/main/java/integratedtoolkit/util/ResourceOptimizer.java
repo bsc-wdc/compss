@@ -58,7 +58,7 @@ public class ResourceOptimizer extends Thread {
     private int everythingBlockedRetryCount = -1;
 
 
-    ResourceOptimizer(ResourceUser resUser) {
+    public ResourceOptimizer(ResourceUser resUser) {
         if (debug) {
             logger.debug("Initializing Resource Optimizer");
         }
@@ -118,7 +118,7 @@ public class ResourceOptimizer extends Thread {
                         }
                     }
                 } catch (InterruptedException ex) {
-                    // Do nothing
+                    Thread.currentThread().interrupt();
                 }
 
             } catch (Exception e) {
@@ -513,7 +513,7 @@ public class ResourceOptimizer extends Thread {
         try {
             creationTime = CloudManager.getNextCreationTime();
         } catch (Exception ex) {
-            creationTime = 120000l;
+            creationTime = 120_000l;
         }
 
         int coreCount = workload.getCoreCount();

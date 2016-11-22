@@ -120,6 +120,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
+                Thread.currentThread().interrupt();
                 continue;
             } catch (ShutdownException se) {
                 logger.debug("Exiting dispatcher because of shutting down");
@@ -283,7 +284,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         try {
             sem.acquire();
         } catch (InterruptedException e) {
-            // Nothing to do
+            Thread.currentThread().interrupt();
         }
     }
 

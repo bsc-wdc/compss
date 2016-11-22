@@ -2,12 +2,17 @@ package integratedtoolkit.comm;
 
 import java.util.LinkedList;
 
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.data.operation.DataOperation;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.uri.MultiURI;
 
 
+/**
+ * Abstract definition of a Communication Adaptor for the Runtime
+ *
+ */
 public interface CommAdaptor {
 
     /**
@@ -23,7 +28,8 @@ public interface CommAdaptor {
      * @return
      * @throws Exception
      */
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception;
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException;
 
     /**
      * Initializes a worker through an adaptor

@@ -1,5 +1,9 @@
 package integratedtoolkit.types.resources;
 
+/**
+ * Abstract representation of a Worker Resource
+ *
+ */
 public abstract class WorkerResourceDescription extends ResourceDescription {
 
     // Unassigned values
@@ -12,10 +16,18 @@ public abstract class WorkerResourceDescription extends ResourceDescription {
     public static final int ONE_INT = 1;
 
 
+    /**
+     * Empty worker resource
+     */
     public WorkerResourceDescription() {
         super();
     }
 
+    /**
+     * Worker resource constructed by copy
+     * 
+     * @param desc
+     */
     public WorkerResourceDescription(WorkerResourceDescription desc) {
         super(desc);
     }

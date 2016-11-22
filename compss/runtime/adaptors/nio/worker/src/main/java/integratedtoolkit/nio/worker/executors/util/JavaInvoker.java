@@ -168,6 +168,7 @@ public class JavaInvoker extends Invoker {
         } catch (StorageException e) {
             throw new JobExecutionException(ERROR_STORAGE_CALL, e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new JobExecutionException(ERROR_CALLBACK_INTERRUPTED, e);
         } finally {
             if (NIOTracer.isActivated()) {

@@ -1,8 +1,10 @@
 package integratedtoolkit.loader;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -11,7 +13,7 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.Annotation;
-
+import integratedtoolkit.loader.exceptions.NameNotFoundException;
 import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,7 +26,7 @@ public class AddOrchestration {
     private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
 
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws NotFoundException, NameNotFoundException, CannotCompileException, IOException {
         if (args.length < 2) {
             ErrorManager.fatal("Error: missing arguments for loader");
         }
@@ -71,7 +73,7 @@ public class AddOrchestration {
          */
     }
 
-    private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, Exception {
+    private static CtClass[] getParamClasses(String label, ClassPool pool) throws NotFoundException, NameNotFoundException {
         List<CtClass> classes = new LinkedList<>();
         List<String> params = getParametersTypeFromLabel(label);
         if (params != null && params.size() > 0) {
@@ -88,7 +90,7 @@ public class AddOrchestration {
         }
     }
 
-    public static List<String> getParametersTypeFromLabel(String label) throws Exception {
+    public static List<String> getParametersTypeFromLabel(String label) throws NameNotFoundException {
         int begin = label.indexOf("(");
         int end = label.indexOf(")");
         if (begin > 0 && end > 0 && end > begin) {
@@ -108,20 +110,20 @@ public class AddOrchestration {
             }
             return parameters;
         } else {
-            throw new Exception("Error incorrect label " + label);
+            throw new NameNotFoundException("Error incorrect label " + label);
         }
     }
 
-    private static String getMethodName(String label) throws Exception {
+    private static String getMethodName(String label) throws NameNotFoundException {
         int i = label.indexOf("(");
         if (i > 0) {
             return label.substring(0, i);
         } else {
-            throw new Exception("Error method name from label " + label);
+            throw new NameNotFoundException("Error method name from label " + label);
         }
     }
 
-    private static String getPackage(String className) throws Exception {
+    private static String getPackage(String className) throws NameNotFoundException {
         if (className != null && className.trim().length() > 0) {
             int i = className.lastIndexOf(".");
             if (i >= 0) {
@@ -130,7 +132,7 @@ public class AddOrchestration {
                 return null;
             }
         } else {
-            throw new Exception("ClassName is null");
+            throw new NameNotFoundException("ClassName is null");
         }
     }
 

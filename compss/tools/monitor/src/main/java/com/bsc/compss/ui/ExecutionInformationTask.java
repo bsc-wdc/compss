@@ -178,6 +178,11 @@ public class ExecutionInformationTask {
             Job job2 = (Job) obj;
             return this.getId().equals(job2.getId());
         }
+        
+        @Override
+        public int hashCode() {
+            return Integer.valueOf(this.getId());
+        }
 
         public String getHost() {
             return this.host;

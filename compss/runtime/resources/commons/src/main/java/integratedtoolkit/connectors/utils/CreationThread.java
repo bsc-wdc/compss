@@ -19,7 +19,10 @@ import org.apache.logging.log4j.Logger;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
-
+/**
+ * Helper thread for VM creation
+ *
+ */
 public class CreationThread extends Thread {
 
     // Loggers
@@ -55,8 +58,18 @@ public class CreationThread extends Thread {
     private final VM reused;
 
 
+    /**
+     * New helper thread for VM creation with the given properties
+     * 
+     * @param operations
+     * @param name
+     * @param provider
+     * @param rR
+     * @param reused
+     */
     public CreationThread(Operations operations, String name, String provider, ResourceCreationRequest rR, VM reused) {
-        this.setName("creationThread");
+        this.setName("Creation Thread " + name);
+        
         this.operations = operations;
         this.provider = provider;
         this.name = name;
@@ -67,12 +80,8 @@ public class CreationThread extends Thread {
         }
     }
 
-    public static int getCount() {
-        return count;
-    }
-
     @Override
-    public void run() {
+    public void run() {        
         boolean check = operations.getCheck();
         runtimeLogger.debug("Operations check = " + check);
 
@@ -80,7 +89,6 @@ public class CreationThread extends Thread {
         VM granted;
 
         if (reused == null) { // If the resources does not exist --> Create
-            this.setName("Creation Thread " + name);
             try {
                 granted = createResourceOnProvider(requested);
             } catch (Exception e) {
@@ -102,7 +110,7 @@ public class CreationThread extends Thread {
                                     + granted.getEnvId() + " REUSED\n]");
         }
 
-        this.setName("creationThread " + granted.getName());
+        this.setName("Creation Thread " + granted.getName());
         CloudMethodWorker r = ResourceManager.getDynamicResource(granted.getName());
         if (r == null) { // Resources are provided in a new VM
             if (reused == null) { // And are new --> Initiate VM
@@ -122,14 +130,6 @@ public class CreationThread extends Thread {
                 int limitOfTasks = granted.getDescription().getTotalCPUComputingUnits();
                 r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks,
                         rcr.getRequested().getImage().getSharedDisks());
-                /*try {
-                    r.start();
-                } catch (Exception e) {
-                    runtimeLogger.error(ERROR_REUSING_MACHINE, e);
-                    powerOff(granted);
-                    notifyFailure();
-                    return;
-                }*/
                 if (debug) {
                     runtimeLogger.debug("Worker for new resource " + granted.getName() + " set.");
                 }
@@ -145,11 +145,30 @@ public class CreationThread extends Thread {
             count--;
         }
     }
+    
+    /**
+     * Returns the number of active creation threads
+     * 
+     * @return
+     */
+    public static int getCount() {
+        return count;
+    }
 
+    /**
+     * Sets the associated task dispatcher
+     * 
+     * @param listener
+     */
     public static void setTaskDispatcher(ResourceUser listener) {
         CreationThread.listener = listener;
     }
 
+    /**
+     * Returns the associated task dispatcher
+     * 
+     * @return
+     */
     public static ResourceUser getTaskDispatcher() {
         return CreationThread.listener;
     }

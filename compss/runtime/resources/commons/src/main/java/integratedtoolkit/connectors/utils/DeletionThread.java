@@ -13,7 +13,10 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
+/**
+ * Support thread for VM destruction
+ *
+ */
 public class DeletionThread extends Thread {
 
     private final Operations operations;
@@ -29,30 +32,43 @@ public class DeletionThread extends Thread {
     private static final boolean debug = resourcesLogger.isDebugEnabled();
 
 
+    /**
+     * Creates a new support thread for VM reduction with the given properties
+     * 
+     * @param connector
+     * @param worker
+     * @param reduction
+     */
     public DeletionThread(Operations connector, CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
         this.setName("DeletionThread " + worker.getName());
+        
         this.operations = connector;
-        synchronized (countSynchronizer) {
-            count++;
-        }
         this.worker = worker;
         this.reduction = reduction;
         this.vm = null;
-    }
-
-    public DeletionThread(Operations connector, VM vm) {
-        this.setName("DeletionThread " + vm.getName());
-        this.operations = connector;
+        
         synchronized (countSynchronizer) {
             count++;
         }
+    }
+
+    /**
+     * Creates a new support thread for VM destruction with the given properties
+     * 
+     * @param connector
+     * @param vm
+     */
+    public DeletionThread(Operations connector, VM vm) {
+        this.setName("DeletionThread " + vm.getName());
+        
+        this.operations = connector;
         this.worker = null;
         this.reduction = null;
         this.vm = vm;
-    }
-
-    public static int getCount() {
-        return count;
+        
+        synchronized (countSynchronizer) {
+            count++;
+        }
     }
 
     @Override
@@ -67,7 +83,7 @@ public class DeletionThread extends Thread {
                     sem.acquire();
                 }
             } catch (InterruptedException e) {
-                // We will never reach this point
+                Thread.currentThread().interrupt();
             }
             if (debug) {
                 runtimeLogger.debug("All tasks finished for resource " + worker.getName() + ". Pausing worker...");
@@ -114,6 +130,15 @@ public class DeletionThread extends Thread {
                 runtimeLogger.debug("Number of current VMs deletions decreased (" + count + ").");
             }
         }
+    }
+    
+    /**
+     * Returns the number of active deletion threads
+     * 
+     * @return
+     */
+    public static int getCount() {
+        return count;
     }
 
 }

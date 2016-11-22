@@ -7,6 +7,7 @@ import es.bsc.conn.types.Processor;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudImageDescription;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.util.Classpath;
@@ -19,20 +20,38 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+/**
+ * Default SSH Connector implementation to use specific SSH connectors' interface
+ *
+ */
 public class DefaultSSHConnector extends AbstractSSHConnector {
     
     private static final String CONNECTORS_REL_PATH = File.separator + "Runtime" + File.separator + "cloud-conn" + File.separator;
     
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
     private static final String WARN_NO_IT_HOME = "WARN: IT_HOME not defined, no default connectors loaded";
     private static final String ERROR_NO_CONN = "ERROR: Connector specific implementation is null";
 
+    // Constraints default values
     private static final String CPU_TYPE = "CPU";
     private static final float UNASSIGNED_FLOAT = -1.0f;
 
     private final Connector connector;
 
 
+    /**
+     * Constructs a new Default SSH Connector and instantiates the specific connector implementation
+     * 
+     * @param providerName
+     * @param connectorJarPath
+     * @param connectorMainClass
+     * @param connectorProperties
+     * @throws ConnectorException
+     */
     public DefaultSSHConnector(String providerName, String connectorJarPath, String connectorMainClass, 
             HashMap<String, String> connectorProperties) throws ConnectorException {
         

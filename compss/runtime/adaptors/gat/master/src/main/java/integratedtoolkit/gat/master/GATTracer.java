@@ -1,6 +1,7 @@
 package integratedtoolkit.gat.master;
 
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.gat.master.utils.GATScriptExecutor;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.util.Tracer;
 import integratedtoolkit.util.ErrorManager;

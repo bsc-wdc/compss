@@ -20,7 +20,7 @@ public class NIOParam implements Externalizable {
 
 
     public NIOParam() {
-
+        // Only executed by externalizable
     }
 
     public NIOParam(DataType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {

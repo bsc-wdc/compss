@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -18,6 +21,7 @@ import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.SftpProgressMonitor;
 
 import integratedtoolkit.connectors.utils.KeyManager;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.ApplicationPackage;
 import integratedtoolkit.types.CloudImageDescription;
 
@@ -26,7 +30,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     
     // Properties' names
     private static final String VM_USER = "vm-user";
-    private static final String VM_PASSWD = "vm-password";
+    private static final String VM_PASS = "vm-password";
     private static final String VM_KEYPAIR_NAME = "vm-keypair-name";
     private static final String VM_KEYPAIR_LOCATION = "vm-keypair-location";
 
@@ -41,6 +45,9 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String DEFAULT_KEYPAIR_NAME = "id_rsa";
     private static final String DEFAULT_KEYPAIR_LOCATION = System.getProperty("user.home") + File.separator + ".ssh";
 
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
+    
     // Error messages
     private static final String ERROR_NO_KEYPAIR = "Error: There is no key pair to configure. Please create one with the ssh-keygen tool";
     private static final String ERROR_CONFIGURING_ACCESS = "Error configuring access for ";
@@ -54,7 +61,6 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     private static final String ERROR_COMMAND_EXEC = "Error: Failed to execute command ";
     private static final String ERROR_EXCEPTION_EXEC_COMMAND = "Exception running command on ";
     private static final String ERROR_SESSION_CREATION = "Error creating session to ";
-    private static final String WARN_READER_CLOSE = "Warn: Exception closing the reader";
     private static final String WARN_INPUTSTREAM_CLOSE = "Warn: InputStream for remote command cannot be closed";
     private static final String WARN_DEFAULT_KEYPAIR = "Warn: Neither password nor key-pair specified. Trying with default key-pair";
 
@@ -77,7 +83,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
         String propKeypairLocation = props.get(VM_KEYPAIR_LOCATION);
         keyPairLocation = (propKeypairLocation != null) ? propKeypairLocation : DEFAULT_KEYPAIR_LOCATION;
         
-        defaultPassword = props.get(VM_PASSWD);
+        defaultPassword = props.get(VM_PASS);
     }
 
     /**
@@ -283,6 +289,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
                         Thread.sleep(RETRY_TIME * S_TO_MS);
                     } catch (InterruptedException ie) {
                         LOGGER.warn("Sleep between keyscan interrupted", ie);
+                        Thread.currentThread().interrupt();
                     }
                 }
             } catch (InterruptedException ie) {
@@ -342,7 +349,7 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
 
                         // Sleep until next retry
                         try {
-                            Thread.sleep(RETRY_TIME * 1_000);
+                            Thread.sleep(RETRY_TIME * (long)1_000);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
@@ -515,25 +522,18 @@ public abstract class AbstractSSHConnector extends AbstractConnector {
     }
 
     private String readInputStream(InputStream is) throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
         StringBuilder stringBuilder = new StringBuilder();
-        try {
+        
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
                 stringBuilder.append('\n');
-            }
-        } catch (IOException e) {
-            throw e;
-        } finally {
-            try {
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-            } catch (IOException e) {
-                LOGGER.warn(WARN_READER_CLOSE + " (" + e.getMessage() + ")");
-            }
+            } 
+        } catch (IOException ioe) {
+            throw ioe;
         }
+        
         return stringBuilder.toString();
     }
 

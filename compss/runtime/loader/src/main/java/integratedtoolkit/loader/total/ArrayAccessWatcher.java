@@ -3,8 +3,9 @@ package integratedtoolkit.loader.total;
 public class ArrayAccessWatcher {
 
     /*
-     * For now, there is no need to do anything inside this methods but to return or modify the array position The
-     * black-box synchronization will get us the right array before we reach the code of these methods 
+     * For now, there is no need to do anything inside this methods but to return or modify the array position.
+     * The black-box synchronization will get us the right array before we reach the code of these methods.
+     * 
      * TODO: Do not depend on the black-box, but deal directly with the object registry and distinguish 
      * between read and write access
      */

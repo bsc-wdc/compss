@@ -2,6 +2,7 @@ package integratedtoolkit.ws.master;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
@@ -32,7 +33,7 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public void start() throws Exception {
+    public void start() throws InitNodeException {
         // Do nothing
     }
 

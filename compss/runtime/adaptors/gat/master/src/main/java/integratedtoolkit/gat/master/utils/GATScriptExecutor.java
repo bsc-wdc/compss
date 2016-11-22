@@ -1,4 +1,4 @@
-package integratedtoolkit.gat.master;
+package integratedtoolkit.gat.master.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,6 +8,7 @@ import java.util.List;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.gat.master.GATWorkerNode;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;

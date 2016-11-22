@@ -832,7 +832,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
         int i = 0;
-        for (int npar = 0; npar < parameterCount; npar++) {
+        for (int npar = 0; npar < parameterCount; ++npar) {
             DataType type = (DataType) parameters[i + 1];
             DataDirection direction = (DataDirection) parameters[i + 2];
 
@@ -853,7 +853,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     break;
 
                 case PSCO_T:
-                case OBJECT_T:
+                case OBJECT_T:                    
                     pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
                     break;
 
@@ -862,8 +862,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                      * Basic types (including String). The only possible direction is IN, warn otherwise
                      */
                     if (direction != DataDirection.IN) {
-                        logger.warn(
-                                WARN_WRONG_DIRECTION + "Parameter " + npar + " has a basic type, therefore it must have INPUT direction");
+                        logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar 
+                                + " has a basic type, therefore it must have INPUT direction");
                     }
                     pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
                     break;

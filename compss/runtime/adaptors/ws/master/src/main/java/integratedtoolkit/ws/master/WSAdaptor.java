@@ -1,6 +1,7 @@
 package integratedtoolkit.ws.master;
 
 import integratedtoolkit.comm.CommAdaptor;
+import integratedtoolkit.exceptions.ConstructConfigurationException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.data.operation.DataOperation;
@@ -35,9 +36,13 @@ public class WSAdaptor implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) throws Exception {
-        integratedtoolkit.types.project.jaxb.ServiceType s_project = (integratedtoolkit.types.project.jaxb.ServiceType) project_properties;
-        integratedtoolkit.types.resources.jaxb.ServiceType s_resources = (integratedtoolkit.types.resources.jaxb.ServiceType) resources_properties;
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties) 
+            throws ConstructConfigurationException {
+        
+        integratedtoolkit.types.project.jaxb.ServiceType s_project = 
+                (integratedtoolkit.types.project.jaxb.ServiceType) project_properties;
+        integratedtoolkit.types.resources.jaxb.ServiceType s_resources = 
+                (integratedtoolkit.types.resources.jaxb.ServiceType) resources_properties;
 
         String wsdl = null;
         if (s_project != null) {
@@ -46,7 +51,7 @@ public class WSAdaptor implements CommAdaptor {
             wsdl = s_resources.getWsdl();
         } else {
             // No wsdl (service unique key), throw exception
-            throw new Exception("Cannot configure service because no WSDL provided");
+            throw new ConstructConfigurationException("Cannot configure service because no WSDL provided");
         }
 
         WSConfiguration config = new WSConfiguration(this.getClass().getName(), wsdl);

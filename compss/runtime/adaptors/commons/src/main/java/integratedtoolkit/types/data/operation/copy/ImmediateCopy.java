@@ -1,5 +1,6 @@
 package integratedtoolkit.types.data.operation.copy;
 
+import integratedtoolkit.exceptions.CopyException;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.listener.EventListener;
@@ -52,7 +53,7 @@ public abstract class ImmediateCopy extends Copy {
 
         try {
             specificCopy();
-        } catch (Exception e) {
+        } catch (CopyException e) {
             end(DataOperation.OpEndState.OP_FAILED, e);
             return;
         } finally {
@@ -74,6 +75,6 @@ public abstract class ImmediateCopy extends Copy {
         }
     }
 
-    public abstract void specificCopy() throws Exception;
+    public abstract void specificCopy() throws CopyException;
     
 }

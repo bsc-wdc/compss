@@ -4,15 +4,33 @@ import java.io.Externalizable;
 
 import integratedtoolkit.types.implementations.Implementation;
 
-
+/**
+ * Abstract representation of a Resource
+ * 
+ */
 public abstract class ResourceDescription implements Externalizable {
 
+    /**
+     * Empty resource Description
+     */
     public ResourceDescription() {
+        // Only for externalization
     }
 
+    /**
+     * New copy of a resource description
+     * 
+     * @param rd
+     */
     public ResourceDescription(ResourceDescription rd) {
+        // Nothing to copy since there are no attributes
     }
 
+    /**
+     * Copy method
+     * 
+     * @return
+     */
     public abstract ResourceDescription copy();
 
     /**

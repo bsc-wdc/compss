@@ -97,12 +97,12 @@ public class ServiceResourceDescription extends WorkerResourceDescription {
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-
+        // Nothing to serialize since it is never used
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-
+        // Nothing to serialize since it is never used
     }
 
     @Override

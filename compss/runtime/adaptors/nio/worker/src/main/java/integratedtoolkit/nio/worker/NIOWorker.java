@@ -741,6 +741,7 @@ public class NIOWorker extends NIOAgent {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
                     // Nothing to do
+                    Thread.currentThread().interrupt();
                 }
             }
         }
@@ -1154,6 +1155,7 @@ public class NIOWorker extends NIOAgent {
             tm.join();
         } catch (InterruptedException ie) {
             wLogger.warn("TransferManager interrupted", ie);
+            Thread.currentThread().interrupt();
         }
     }
 

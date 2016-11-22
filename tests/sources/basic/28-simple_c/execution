@@ -43,7 +43,6 @@
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
-     --lang=c \
      ${base_app_dir}/master/Simple $counterVal > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   #Check timeout

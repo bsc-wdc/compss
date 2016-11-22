@@ -85,7 +85,7 @@ show_opts() {
     --resources=<path>                      Path to the resources XML file
                                             Default: ${DEFAULT_RESOURCES}
     --lang=<name>                           Language of the application (java/c/python)
-                                            Default: ${DEFAULT_LANGUAGE}
+                                            Default: Inferred is possible. Otherwise: ${DEFAULT_LANGUAGE}
     --summary                               Displays a task execution summary at the end of the application execution
                                             Default: ${DEFAULT_SUMMARY}
     --log_level=<level>, --debug, -d        Set the debug level: ${LOG_LEVEL_OFF} | ${LOG_LEVEL_INFO} | ${LOG_LEVEL_DEBUG}
@@ -427,10 +427,10 @@ get_args() {
 	;;
     esac
   done
-  #Shift COMPSs arguments
+  # Shift COMPSs arguments
   shift $((OPTIND-1))
 
-  #Parse application name
+  # Parse application name
   if [[ $# -eq 0 ]]; then
     display_error "${APPLICATION_ERROR}"
   else
@@ -442,7 +442,7 @@ get_args() {
     fi
   fi
 
-  #Parse application arguments
+  # Parse application arguments
   application_args=$*
 }
 
@@ -467,7 +467,21 @@ check_args() {
   fi
 
   if [ -z "$lang" ]; then
-    lang=${DEFAULT_LANGUAGE}
+    # Try to infer language
+    isPython=$(file $fullAppPath | grep "Python" | cat)
+    isPythonCompiled=$(file $fullAppPath | grep "python" | cat)
+    isC=$(file $fullAppPath | grep "executable" | cat)
+    if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
+      echo "[  INFO] Inferred PYTHON language"
+      lang=python
+    elif [ -n "$isC" ]; then
+      echo "[  INFO] Inferred C/C++ language"
+      lang=c
+    else
+      # Lang cannot be infered or it's the default JAVA
+      echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+      lang=${DEFAULT_LANGUAGE}
+    fi
   elif [ "$lang" = "java" ]; then
     lang=java
   elif [ "$lang" = "c" ]; then

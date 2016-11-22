@@ -32,7 +32,6 @@
      --resources=${base_app_dir}/resources_simple.xml \
      --debug \
      --summary \
-     --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/simple.jar \
      simple.Simple 1 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)

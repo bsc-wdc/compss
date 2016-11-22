@@ -34,7 +34,6 @@
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
-     --lang=python \
      ${base_app_dir}/test/simple.py $counterVal > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   #Check timeout

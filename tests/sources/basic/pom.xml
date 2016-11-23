@@ -72,6 +72,7 @@
 		<module>40-deleteFileJava</module>
 		<!-- Module 41 is 41-deleteFile_python -->
                 <module>42-monitor</module>
+                <module>43-distributedTask</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

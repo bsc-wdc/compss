@@ -32,16 +32,27 @@
   
   singleGOT=$(cat ${output_file} | grep "\[MPI\_SINGLE\] Received value from task is correct")
   if [ -z "${singleGOT}" ]; then
-    echo "ERROR: Single MPI execution failed"
+    echo "ERROR: Single MPI execution failed" | tee -a ${output_file}
     exitValue=1
   fi
   
   multipleGOT=$(cat ${output_file} | grep "\[MPI\_MULTIPLE\] Received value from task is correct")
   if [ -z "${multipleGOT}" ]; then
-    echo "ERROR: Multiple MPI execution failed"
+    echo "ERROR: Multiple MPI execution failed" | tee -a ${output_file}
     exitValue=1
   fi
   
+  #----------------------------------------------------------------------------------
+  # Check that MPI command from multi-node task uses more than one host
+  jobOut=${target_log_folder}/jobs/job3_NEW.out
+  numNodesExpected=2
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | awk {' print $7 '} | tr "," "\n" | wc -l)
+  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node task." | tee -a ${output_file}
+    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+    exitValue=1
+  fi
 
   #---------------------------------------------------------------------------------- 
   # Report result status

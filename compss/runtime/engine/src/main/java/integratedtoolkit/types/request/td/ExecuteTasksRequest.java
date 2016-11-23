@@ -99,26 +99,30 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
     private void submitTask(TaskScheduler<P, T> ts, ResourceScheduler<P, T> specificResource) {
         // Can use one or more resources depending on the computingNodes
         int numNodes = task.getTaskDescription().getNumNodes();
+        int numSlaveNodes = numNodes - 1;
 
-        // Launch the master task
+        // Prepare the master execution task
         MasterExecutionAction<P, T> masterExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), 
                                                                                 producer, 
-                                                                                task, 
+                                                                                task,
+                                                                                numSlaveNodes,
                                                                                 specificResource);
-        ts.newAllocatableAction(masterExec);
-        
+ 
         // Launch slave tasks if needed (can go to any resource if it fits the requirements)
-        int numSlaveNodes = numNodes - 1;
         if (debug && numSlaveNodes > 0) {
             logger.debug("MultiNode task " + task.getId() + ". Reserving slave nodes...");
         }
         for (int i = 0; i < numSlaveNodes; ++i) {
             SlaveExecutionAction<P, T> slaveExec = new SlaveExecutionAction<>(ts.generateSchedulingInformation(), 
                                                                                 producer, 
-                                                                                task, 
+                                                                                task,
+                                                                                masterExec,
                                                                                 null);
             ts.newAllocatableAction(slaveExec);
-        } 
+        }
+        
+        // Launch the master task
+        ts.newAllocatableAction(masterExec);
     }
 
     @Override

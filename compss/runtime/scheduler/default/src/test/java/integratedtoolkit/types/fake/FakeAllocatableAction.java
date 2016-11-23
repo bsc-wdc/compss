@@ -76,24 +76,24 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     protected boolean areEnoughResources() {
-        Worker<T> r = selectedMainResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker<T> r = selectedMainResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker<T> r = selectedMainResource.getResource();
+        Worker<T> r = selectedResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 
     public void selectExecution(ResourceScheduler<P, T> resource, Implementation<T> impl) {
-        selectedMainResource = resource;
+        selectedResource = resource;
         selectedImpl = impl;
     }
 
@@ -105,7 +105,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     @Override
     public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
         this.assignImplementation(impls[0]);
-        this.assignResources(targetWorker, null);
+        this.assignResources(targetWorker);
         targetWorker.initialSchedule(this);
     }
 
@@ -113,7 +113,7 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
             throws BlockedActionException, UnassignedActionException {
         this.assignImplementation(impl);
-        this.assignResources(targetWorker, null);
+        this.assignResources(targetWorker);
         targetWorker.initialSchedule(this);
     }
 

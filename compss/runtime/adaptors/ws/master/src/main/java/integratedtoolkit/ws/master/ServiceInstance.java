@@ -1,5 +1,7 @@
 package integratedtoolkit.ws.master;
 
+import java.util.List;
+
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.InitNodeException;
@@ -13,7 +15,7 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.Transferable;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -76,8 +78,10 @@ public class ServiceInstance extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        return new WSJob<COMPSsWorker>(taskId, taskParams, impl, res, listener);
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        
+        return new WSJob(taskId, taskParams, impl, res, listener);
     }
 
     @Override

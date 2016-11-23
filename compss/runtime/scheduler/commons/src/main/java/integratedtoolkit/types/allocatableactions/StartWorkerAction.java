@@ -46,19 +46,19 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     protected boolean areEnoughResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         return w.canRunNow(w.getDescription());
     }
 
     @Override
     protected void reserveResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         w.runTask(w.getDescription());
     }
 
     @Override
     protected void releaseResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         w.endTask(w.getDescription());
     }
 
@@ -68,9 +68,9 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
             
             @Override
             public void run() {
-                Thread.currentThread().setName(selectedMainResource.getResource().getName() + " starter");
+                Thread.currentThread().setName(selectedResource.getResource().getName() + " starter");
                 try {
-                    selectedMainResource.getResource().start();
+                    selectedResource.getResource().start();
                     notifyCompleted();
                 } catch (InitNodeException e) {
                     logger.error("Error starting resource", e);
@@ -148,14 +148,14 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.selectedMainResource = worker;
+        this.selectedResource = worker;
         assignImplementation(impl);
         worker.initialSchedule(this);
     }
 
     @Override
     public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.selectedMainResource = targetWorker;
+        this.selectedResource = targetWorker;
         assignImplementation(impl);
         targetWorker.initialSchedule(this);
     }
@@ -164,7 +164,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
     public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) 
             throws BlockedActionException, UnassignedActionException {
         
-        this.selectedMainResource = targetWorker;
+        this.selectedResource = targetWorker;
         assignImplementation(impl);
         targetWorker.initialSchedule(this);
     }

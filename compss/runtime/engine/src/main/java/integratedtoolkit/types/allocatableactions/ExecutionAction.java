@@ -15,7 +15,7 @@ import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.data.operation.JobTransfersListener;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener.JobEndStatus;
 import integratedtoolkit.types.job.JobStatusListener;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -104,19 +104,19 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
      */
     @Override
     protected boolean areEnoughResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         return w.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         resourceConsumption = w.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
         w.endTask(resourceConsumption);
     }
 
@@ -126,7 +126,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
      */
     @Override
     protected void doAction() {
-        JOB_LOGGER.info("Ordering transfers to " + selectedMainResource + " to run task: " + task.getId());
+        JOB_LOGGER.info("Ordering transfers to " + selectedResource + " to run task: " + task.getId());
         transferErrors = 0;
         executionErrors = 0;
         doInputTransfers();
@@ -150,13 +150,13 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
         ++transferErrors;
         if (transferErrors < TRANSFER_CHANCES) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + selectedMainResource.getName() + " since "
+            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + selectedResource.getName() + " since "
                     + failedtransfers + " transfers failed.");
 
             doInputTransfers();
         } else {
             ErrorManager
-                    .warn("Transfers for running task " + task.getId() + " on worker " + selectedMainResource.getName() + " have failed.");
+                    .warn("Transfers for running task " + task.getId() + " on worker " + selectedResource.getName() + " have failed.");
             this.notifyError();
         }
     }
@@ -177,7 +177,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         JOB_LOGGER.info(
                 (this.executingResources.size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
         JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
-        JOB_LOGGER.info("  * Target host: " + selectedMainResource.getName());
+        JOB_LOGGER.info("  * Target host: " + selectedResource.getName());
         profile.start();
         JobDispatcher.dispatch(job);
     }
@@ -191,15 +191,15 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
      * @param job
      * @param endStatus
      */
-    public void failedJob(Job<?> job, JobListener.JobEndStatus endStatus) {
+    public void failedJob(Job<?> job, JobEndStatus endStatus) {
         profile.end();
         int jobId = job.getJobId();
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
         ++executionErrors;
         if (transferErrors + executionErrors < SUBMISSION_CHANCES) {
-            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedMainResource.getName()
+            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedResource.getName()
                     + " has failed; resubmitting task to the same worker.");
-            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedMainResource.getName()
+            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedResource.getName()
                     + " has failed; resubmitting task to the same worker.");
             job.setHistory(Job.JobHistory.RESUBMITTED);
             profile.start();
@@ -234,7 +234,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
     @Override
     protected void doCompleted() {
-        selectedMainResource.profiledExecution(selectedImpl, profile);
+        selectedResource.profiledExecution(selectedImpl, profile);
         task.setStatus(Task.TaskState.FINISHED);
         producer.notifyTaskEnd(task);
     }
@@ -246,9 +246,9 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
             ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             throw new FailedActionException();
         } else {
-            ErrorManager.warn("Task " + task.getId() + " execution on worker " + selectedMainResource.getName()
+            ErrorManager.warn("Task " + task.getId() + " execution on worker " + selectedResource.getName()
                     + " has failed; rescheduling task execution. (changing worker)");
-            logger.error("Task " + task.getId() + " execution on worker " + selectedMainResource.getName()
+            logger.error("Task " + task.getId() + " execution on worker " + selectedResource.getName()
                     + " has failed; rescheduling task execution. (changing worker)");
         }
     }
@@ -382,7 +382,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         }
 
         this.assignImplementation(bestImpl);
-        this.assignResources(bestWorker, null);
+        this.assignResources(bestWorker);
         logger.debug(debugString.toString());
         logger.info("Assigning action " + this + " to worker" + bestWorker + " with implementation " + bestImpl.getImplementationId());
         bestWorker.initialSchedule(this);
@@ -420,7 +420,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         }
 
         this.assignImplementation(bestImpl);
-        this.assignResources(bestWorker, null);
+        this.assignResources(bestWorker);
         logger.info("\t Worker" + bestWorker + " Implementation " + bestImpl.getImplementationId());
         logger.debug(debugString.toString());
         bestWorker.initialSchedule(this);
@@ -440,7 +440,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         }
 
         this.assignImplementation(impl);
-        this.assignResources(targetWorker, null);
+        this.assignResources(targetWorker);
         logger.info("\t Worker" + targetWorker + " Implementation " + impl.getImplementationId());
         logger.debug(debugString.toString());
         targetWorker.initialSchedule(this);

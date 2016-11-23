@@ -20,7 +20,7 @@ import integratedtoolkit.types.data.transferable.TracingCopyTransferable;
 import integratedtoolkit.types.data.transferable.WorkersDebugInfoCopyTransferable;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 
@@ -198,8 +199,14 @@ public abstract class Resource implements Comparable<Resource> {
         node.setInternalURI(u);
     }
 
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, JobListener listener) {
-        return node.newJob(taskId, taskParams, impl, this, listener);
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+        
+        return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
+    }
+    
+    public Job<?> newSlaveJob(int taskId, TaskDescription taskParams, Implementation<?> impl, JobListener listener) {
+        return node.newSlaveJob(taskId, taskParams, impl, this, listener);
     }
 
     public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener) {

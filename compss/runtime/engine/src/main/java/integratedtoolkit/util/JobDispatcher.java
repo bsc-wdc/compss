@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.JobListener.JobEndStatus;
 
 
 public class JobDispatcher {
@@ -67,7 +68,7 @@ public class JobDispatcher {
                     }
                 } catch (Exception ex) {
                     logger.error(SUBMISSION_ERROR + job.getJobId(), ex);
-                    job.getListener().jobFailed(job, Job.JobListener.JobEndStatus.SUBMISSION_FAILED);
+                    job.getListener().jobFailed(job, JobEndStatus.SUBMISSION_FAILED);
                 }
             }
             logger.debug("JobDispatcher finished");

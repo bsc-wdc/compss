@@ -16,7 +16,7 @@ import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -217,7 +218,10 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        // TODO: Support multiNode tasks: slaveWorkersNodeNames
+        
         return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus());
     }
 

@@ -1,5 +1,7 @@
 package integratedtoolkit.types.fake;
 
+import java.util.List;
+
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.TaskDescription;
@@ -9,6 +11,7 @@ import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -43,7 +46,14 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, Job.JobListener jl) {
+    public Job<?> newJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, List<String> slaveWorkersNodeNames,
+            JobListener jl) {
+
+        return null;
+    }
+
+    @Override
+    public Job<?> newSlaveJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, JobListener jl) {
         return null;
     }
 
@@ -67,13 +77,13 @@ public class FakeNode extends COMPSsNode {
 
     @Override
     public boolean generatePackage() {
-    	return false;
+        return false;
 
     }
 
     @Override
     public boolean generateWorkersDebugInfo() {
-    	return false;
+        return false;
     }
 
 }

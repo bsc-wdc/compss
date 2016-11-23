@@ -9,9 +9,14 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 
+/**
+ * Representation of a Task *
+ */
 public class NIOTask implements Externalizable {
 
     private String lang;
@@ -20,20 +25,41 @@ public class NIOTask implements Externalizable {
     private boolean hasTarget;
     private LinkedList<NIOParam> params;
     private MethodResourceDescription reqs;
+    private List<String> slaveWorkersNodeNames;
     private int taskId;
     private int taskType;
     private int jobId;
     private JobHistory hist;
     private int transferGroupId;
     private int numParams;
-    
 
+
+    /**
+     * New NIO Task
+     */
     public NIOTask() {
-
+        // Only for externalization
     }
 
-    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, 
-            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, int taskId, int taskType, int jobId, 
+    /**
+     * Creates a new task instance with the given parameters
+     * 
+     * @param lang
+     * @param workerDebug
+     * @param impl
+     * @param hasTarget
+     * @param params
+     * @param numParams
+     * @param reqs
+     * @param slaveWorkersNodeNames
+     * @param taskId
+     * @param taskType
+     * @param jobId
+     * @param hist
+     * @param transferGroupId
+     */
+    public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, LinkedList<NIOParam> params,
+            int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId, int taskType, int jobId,
             JobHistory hist, int transferGroupId) {
 
         this.lang = lang;
@@ -42,6 +68,7 @@ public class NIOTask implements Externalizable {
         this.hasTarget = hasTarget;
         this.params = params;
         this.reqs = reqs;
+        this.slaveWorkersNodeNames = slaveWorkersNodeNames;
         this.taskType = taskType;
         this.taskId = taskId;
         this.jobId = jobId;
@@ -50,110 +77,199 @@ public class NIOTask implements Externalizable {
         this.transferGroupId = transferGroupId;
     }
 
+    /**
+     * Returns the task lang
+     * 
+     * @return
+     */
     public String getLang() {
         return lang;
     }
 
+    /**
+     * Returns if the worker debug is enabled or not
+     * 
+     * @return
+     */
     public boolean isWorkerDebug() {
         return workerDebug;
     }
-    
+
+    /**
+     * Returns the method type
+     * 
+     * @return
+     */
     public MethodType getMethodType() {
         return this.impl.getMethodType();
     }
 
+    /**
+     * Returns the method definition
+     * 
+     * @return
+     */
     public String getMethodDefinition() {
         return this.impl.getMethodDefinition();
     }
-    
+
+    /**
+     * Returns the method implementation type
+     * 
+     * @return
+     */
     public AbstractMethodImplementation getMethodImplementation() {
         return this.impl;
     }
 
+    /**
+     * Returns if the task has target or not
+     * 
+     * @return
+     */
     public boolean isHasTarget() {
         return hasTarget;
     }
 
+    /**
+     * Returns the number of parameters of the task
+     * 
+     * @return
+     */
+    public int getNumParams() {
+        return numParams;
+    }
+
+    /**
+     * Returns the task parameters
+     * 
+     * @return
+     */
     public LinkedList<NIOParam> getParams() {
         return params;
     }
 
+    /**
+     * Returns the task id
+     * 
+     * @return
+     */
     public int getTaskId() {
         return taskId;
     }
 
+    /**
+     * Returns the task type
+     * 
+     * @return
+     */
     public int getTaskType() {
         return taskType;
     }
 
+    /**
+     * Returns the job id
+     * 
+     * @return
+     */
     public int getJobId() {
         return jobId;
     }
 
+    /**
+     * Returns the job history
+     * 
+     * @return
+     */
     public JobHistory getHist() {
         return hist;
     }
 
+    /**
+     * Returns the transfer group id
+     * 
+     * @return
+     */
     public int getTransferGroupId() {
         return transferGroupId;
     }
 
+    /**
+     * Returns the resource description needed for the task execution
+     * 
+     * @return
+     */
     public MethodResourceDescription getResourceDescription() {
         return reqs;
     }
 
-    public int getNumParams() {
-        return numParams;
+    /**
+     * Returns the slave workers node names
+     * 
+     * @return
+     */
+    public List<String> getSlaveWorkersNodeNames() {
+        return this.slaveWorkersNodeNames;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        lang = (String) in.readObject();
-        workerDebug = in.readBoolean();
-        impl = (AbstractMethodImplementation) in.readObject();
-        hasTarget = in.readBoolean();
-        params = (LinkedList<NIOParam>) in.readObject();
-        reqs = (MethodResourceDescription) in.readObject();
-        taskType = in.readInt();
-        taskId = in.readInt();
-        jobId = in.readInt();
-        hist = (JobHistory) in.readObject();
-        numParams = in.readInt();
-        transferGroupId = in.readInt();
+        this.lang = (String) in.readObject();
+        this.workerDebug = in.readBoolean();
+        this.impl = (AbstractMethodImplementation) in.readObject();
+        this.hasTarget = in.readBoolean();
+        this.params = (LinkedList<NIOParam>) in.readObject();
+        this.reqs = (MethodResourceDescription) in.readObject();
+        this.slaveWorkersNodeNames = (ArrayList<String>) in.readObject();
+        this.taskType = in.readInt();
+        this.taskId = in.readInt();
+        this.jobId = in.readInt();
+        this.hist = (JobHistory) in.readObject();
+        this.numParams = in.readInt();
+        this.transferGroupId = in.readInt();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(lang);
-        out.writeBoolean(workerDebug);
-        out.writeObject(impl);
-        out.writeBoolean(hasTarget);
-        out.writeObject(params);
-        out.writeObject(reqs);
-        out.writeInt(taskType);
-        out.writeInt(taskId);
-        out.writeInt(jobId);
-        out.writeObject(hist);
-        out.writeInt(numParams);
-        out.writeInt(transferGroupId);
+        out.writeObject(this.lang);
+        out.writeBoolean(this.workerDebug);
+        out.writeObject(this.impl);
+        out.writeBoolean(this.hasTarget);
+        out.writeObject(this.params);
+        out.writeObject(this.reqs);
+        out.writeObject(this.slaveWorkersNodeNames);
+        out.writeInt(this.taskType);
+        out.writeInt(this.taskId);
+        out.writeInt(this.jobId);
+        out.writeObject(this.hist);
+        out.writeInt(this.numParams);
+        out.writeInt(this.transferGroupId);
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("[TASK ");
-        sb.append("[LANG= ").append(lang).append("]");
-        sb.append("[TASK TYPE= ").append(taskType).append("]");
-        sb.append("[TASK ID= ").append(taskId).append("]");
-        sb.append("[JOB ID= ").append(jobId).append("]");
-        sb.append("[HISTORY= ").append(hist).append("]");
-        sb.append("[IMPLEMENTATION= ").append(impl.getMethodDefinition()).append("]");
+        sb.append("[LANG= ").append(this.lang).append("]");
+        sb.append("[TASK TYPE= ").append(this.taskType).append("]");
+        sb.append("[TASK ID= ").append(this.taskId).append("]");
+        sb.append("[JOB ID= ").append(this.jobId).append("]");
+        sb.append("[HISTORY= ").append(this.hist).append("]");
+        sb.append("[IMPLEMENTATION= ").append(this.impl.getMethodDefinition()).append("]");
         sb.append(" [PARAMS ");
-        for (NIOParam param : params) {
+        for (NIOParam param : this.params) {
             sb.append(param);
         }
         sb.append("]");
-        sb.append("[REQUIREMENTS= ").append(reqs).append("]");
+
+        sb.append("[REQUIREMENTS= ").append(this.reqs).append("]");
+
+        sb.append("[SLAVE_WORKERS_NODE_NAMES= ");
+        for (String name : this.slaveWorkersNodeNames) {
+            sb.append("[SW_NAME=").append(name).append("]");
+        }
+        sb.append("]");
+
         sb.append("]");
         return sb.toString();
     }

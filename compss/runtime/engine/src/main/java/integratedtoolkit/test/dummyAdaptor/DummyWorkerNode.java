@@ -1,5 +1,7 @@
 package integratedtoolkit.test.dummyAdaptor;
 
+import java.util.List;
+
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.AnnounceException;
 import integratedtoolkit.exceptions.InitNodeException;
@@ -11,7 +13,7 @@ import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
@@ -64,7 +66,9 @@ public class DummyWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        
         return null;
     }
 

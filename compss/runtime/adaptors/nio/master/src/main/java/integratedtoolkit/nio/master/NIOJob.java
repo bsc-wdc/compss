@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.master;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.NIOParam;
@@ -19,15 +20,21 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
+import integratedtoolkit.types.job.JobListener;
+import integratedtoolkit.types.job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
+    
+    private final List<String> slaveWorkersNodeNames;
 
-    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        
         super(taskId, taskParams, impl, res, listener);
+        this.slaveWorkersNodeNames = slaveWorkersNodeNames;
     }
 
     @Override
@@ -80,7 +87,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
                                 hasTarget, 
                                 params, 
                                 numParams, 
-                                reqs, 
+                                reqs,
+                                this.slaveWorkersNodeNames,
                                 this.taskId, 
                                 this.taskParams.getId(),
                                 this.jobId, 

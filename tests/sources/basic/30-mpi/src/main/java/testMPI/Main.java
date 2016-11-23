@@ -1,5 +1,6 @@
 package testMPI;
 
+import integratedtoolkit.api.COMPSs;
 import mpi.MPI;
 
 
@@ -35,6 +36,10 @@ public class Main {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test MPI with 1 node");
         testMPISingleNode();
+        
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Wait for single node execution");
+        COMPSs.waitForAllTasks();
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test MPI with 2 node");

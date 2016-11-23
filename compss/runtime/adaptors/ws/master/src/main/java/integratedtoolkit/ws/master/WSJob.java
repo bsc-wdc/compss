@@ -1,6 +1,7 @@
 package integratedtoolkit.ws.master;
 
 import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
@@ -11,14 +12,13 @@ import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
-import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.job.Job.JobListener.JobEndStatus;
+import integratedtoolkit.types.job.JobListener.JobEndStatus;
 import integratedtoolkit.types.resources.Resource;
 
 import java.util.ArrayList;
@@ -35,12 +35,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public class WSJob<T extends COMPSsWorker> extends Job<T> {
+public class WSJob extends Job<ServiceInstance> {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private static RequestQueue<WSJob<?>> callerQueue;
+    private static RequestQueue<WSJob> callerQueue;
     private static WSCaller caller;
     private static final JaxWsDynamicClientFactory dcf = JaxWsDynamicClientFactory.newInstance();
     // wsdl-port--> Client
@@ -126,16 +126,16 @@ public class WSJob<T extends COMPSsWorker> extends Job<T> {
     }
 
 
-    private static class WSCaller extends RequestDispatcher<WSJob<?>> {
+    private static class WSCaller extends RequestDispatcher<WSJob> {
 
-        public WSCaller(RequestQueue<WSJob<?>> queue) {
+        public WSCaller(RequestQueue<WSJob> queue) {
             super(queue);
         }
 
         @Override
         public void processRequests() {
             while (true) {
-                WSJob<?> job = queue.dequeue();
+                WSJob job = queue.dequeue();
                 if (job == null) {
                     break;
                 }

@@ -11,7 +11,11 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.Resource;
 
-
+/**
+ * Abstract representation of a job
+ *
+ * @param <T>
+ */
 public abstract class Job<T extends COMPSsWorker> {
 
     // Job identifier management
@@ -40,6 +44,7 @@ public abstract class Job<T extends COMPSsWorker> {
         FAILED
     }
 
+
     // Information of the job
     protected int jobId;
 
@@ -56,6 +61,15 @@ public abstract class Job<T extends COMPSsWorker> {
     protected static final boolean debug = logger.isDebugEnabled();
 
 
+    /**
+     * Creates a new job instance with the given parameters
+     * 
+     * @param taskId
+     * @param task
+     * @param impl
+     * @param res
+     * @param listener
+     */
     public Job(int taskId, TaskDescription task, Implementation<?> impl, Resource res, JobListener listener) {
         jobId = nextJobId++;
         this.taskId = taskId;
@@ -98,85 +112,151 @@ public abstract class Job<T extends COMPSsWorker> {
         }
     }
 
+    /**
+     * Returns the job id
+     * 
+     * @return
+     */
     public int getJobId() {
         return jobId;
     }
 
+    /**
+     * Returns the task params
+     * @return
+     */
     public TaskDescription getTaskParams() {
         return taskParams;
     }
 
+    /**
+     * Returns the job history
+     * 
+     * @return
+     */
     public JobHistory getHistory() {
         return history;
     }
 
+    /**
+     * Sets a new job history
+     * 
+     * @param newHistoryState
+     */
     public void setHistory(JobHistory newHistoryState) {
         this.history = newHistoryState;
     }
 
+    /**
+     * Returns the resource assigned to the job execution
+     * 
+     * @return
+     */
     public Resource getResource() {
         return this.worker;
     }
 
+    /**
+     * Returns the job classpath
+     * 
+     * @return
+     */
     public String getClasspath() {
         return this.workerClasspath;
     }
 
+    /**
+     * Returns the job pythonpath
+     * 
+     * @return
+     */
     public String getPythonpath() {
         return this.workerPythonpath;
     }
 
+    /**
+     * Returns the resource node assigned to the job
+     * 
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public T getResourceNode() {
         return (T) this.worker.getNode();
     }
 
+    /**
+     * Returns the job listener associated to the job
+     * 
+     * @return
+     */
     public JobListener getListener() {
         return listener;
     }
 
+    /**
+     * Returns the core implementation
+     * 
+     * @return
+     */
     public Implementation<?> getImplementation() {
         return this.impl;
     }
 
+    /**
+     * Sets the transfer group id
+     * 
+     * @param transferId
+     */
     public void setTransferGroupId(int transferId) {
         this.transferId = transferId;
     }
 
+    /**
+     * Returns the transfer group id
+     * @return
+     */
     public int getTransferGroupId() {
         return this.transferId;
     }
-
-    @Override
-    public abstract String toString();
-
-    public abstract void submit() throws Exception;
-
-    public abstract void stop() throws Exception;
-
+    
+    /**
+     * Returns the return value of the job
+     * 
+     * @return
+     */
     public Object getReturnValue() {
         return null;
     }
 
+    /**
+     * Actions to submit the job
+     * 
+     * @throws Exception
+     */
+    public abstract void submit() throws Exception;
+
+    /**
+     * Actions to stop the job
+     * 
+     * @throws Exception
+     */
+    public abstract void stop() throws Exception;
+
+    /**
+     * Returns the hostname
+     * 
+     * @return
+     */
     public abstract String getHostName();
 
+    /**
+     * Returns the task type of the job
+     * 
+     * @return
+     */
     public abstract TaskType getType();
-
     
-    public static interface JobListener {
+    @Override
+    public abstract String toString();
 
-        enum JobEndStatus {
-            OK, 
-            TO_RESCHEDULE, 
-            TRANSFERS_FAILED, 
-            SUBMISSION_FAILED, 
-            EXECUTION_FAILED;
-        }
-
-
-        void jobCompleted(Job<?> job);
-
-        void jobFailed(Job<?> job, JobEndStatus endStatus);
-
-    }
 }

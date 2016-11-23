@@ -1,6 +1,11 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.exceptions.AnnounceException;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.JobListener;
+import integratedtoolkit.types.job.SlaveJob;
+import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.configuration.Configuration;
 
 
@@ -18,6 +23,11 @@ public abstract class COMPSsWorker extends COMPSsNode {
      */
     public COMPSsWorker(String name, Configuration config) {
         super();
+    }
+    
+    @Override
+    public Job<?> newSlaveJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+        return new SlaveJob(taskId, taskParams, impl, res, listener);
     }
 
     /**

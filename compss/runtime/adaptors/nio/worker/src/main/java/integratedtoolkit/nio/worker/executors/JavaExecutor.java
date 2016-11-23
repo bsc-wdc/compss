@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
+
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
@@ -24,7 +25,13 @@ public class JavaExecutor extends Executor {
 
     @Override
     public void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs) {
-        System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames);
+        if (logger.isDebugEnabled()) {
+            System.out.println("HOSTNAMES: " + hostnames);
+            System.out.println("NUM_NODES: " + numNodes);
+            System.out.println("CPU_COMPUTING_UNITS: " + cus);
+        }
+        
+        System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames.toString());
         System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
         System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
     }

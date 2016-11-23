@@ -1,6 +1,10 @@
 package integratedtoolkit.nio.worker.executors;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -100,8 +104,27 @@ public abstract class Executor implements Runnable {
         String outputsBasename = workingDir + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
 
         // Sets the process environment variables (just in case its a MPI or OMPSs task)
-        // TODO: Add useful values for MPI / OMPSs tasks
-        setEnvironmentVariables(nw.getHostName(), 1, 1, nt.getResourceDescription());
+        List<String> slaveWorkersHostnames = nt.getSlaveWorkersNodeNames();
+        
+        Set<String> hostnames = new HashSet<String>();
+        hostnames.add(nw.getHostName());
+        hostnames.addAll(nt.getSlaveWorkersNodeNames());
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (Iterator<String> it = hostnames.iterator(); it.hasNext(); ) {
+            String hostname = it.next();
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(hostname);
+            } else {
+                hostnamesSTR.append(",").append(hostname);
+            }
+        }
+
+        int numNodes = slaveWorkersHostnames.size() + 1;
+        int cus = nt.getResourceDescription().getTotalCPUComputingUnits();
+        
+        setEnvironmentVariables(hostnamesSTR.toString(), numNodes, cus, nt.getResourceDescription());
 
         // Execute task
         try {

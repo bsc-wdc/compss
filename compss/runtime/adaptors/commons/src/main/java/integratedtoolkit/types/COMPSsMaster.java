@@ -13,6 +13,7 @@ import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -27,6 +28,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -340,7 +342,15 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, Job.JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        
+        // Cannot run jobs
+        return null;
+    }
+    
+    @Override
+    public Job<?> newSlaveJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
         // Cannot run jobs
         return null;
     }

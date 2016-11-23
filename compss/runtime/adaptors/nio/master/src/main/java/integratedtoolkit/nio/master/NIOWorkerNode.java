@@ -33,7 +33,7 @@ import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.data.operation.copy.DeferredCopy;
 import integratedtoolkit.types.data.operation.copy.StorageCopy;
 import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -154,8 +154,10 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
-        return new NIOJob(taskId, taskParams, impl, res, listener);
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener) {
+        
+        return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
     @Override

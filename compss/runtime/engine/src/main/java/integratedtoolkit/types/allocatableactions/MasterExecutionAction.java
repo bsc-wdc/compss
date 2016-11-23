@@ -1,5 +1,9 @@
 package integratedtoolkit.types.allocatableactions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,16 +31,52 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceScheduler;
 
-
+/**
+ * Representation of a Master Execution Action
+ *
+ * @param <P>
+ * @param <T>
+ */
 public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
 
     // LOGGER
     private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
+    
+    private final int numSlaves;
+    private final Semaphore waitForSlaves;
+    private final List<String> slaveWorkerNodeNames;
+    private final List<JobStatusListener<P, T>> slaveListeners;
 
+    /**
+     * Creates a new master action with a fixed amount of slaves
+     * 
+     * @param schedulingInformation
+     * @param producer
+     * @param task
+     * @param numSlaves
+     * @param forcedResource
+     */
     public MasterExecutionAction(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task,
-            ResourceScheduler<P, T> forcedResource) {
+            int numSlaves, ResourceScheduler<P, T> forcedResource) {
 
         super(schedulingInformation, producer, task, forcedResource);
+        
+        this.numSlaves = numSlaves;
+        this.waitForSlaves = new Semaphore(0);
+        this.slaveWorkerNodeNames = new ArrayList<>();
+        this.slaveListeners = new ArrayList<>();
+    }
+    
+    /**
+     * Handler for a SlaveExecutionAction to notify its readiness to the master
+     * 
+     * @param w
+     * @param listener
+     */
+    protected void notifySlaveReady(Worker<T> w, JobStatusListener<P, T> listener) {
+        this.waitForSlaves.release();
+        this.slaveWorkerNodeNames.add(w.getNode().getName());
+        this.slaveListeners.add(listener);
     }
 
     @Override
@@ -64,7 +104,7 @@ public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDe
 
     // Private method that performs data transfers
     private void transferJobData(DependencyParameter param, JobTransfersListener<P, T> listener) {
-        Worker<?> w = selectedMainResource.getResource();
+        Worker<?> w = selectedResource.getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
@@ -90,9 +130,20 @@ public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public Job<?> submitJob(int transferGroupId, JobStatusListener<P, T> listener) {
-        Worker<T> w = selectedMainResource.getResource();
-
-        Job<?> job = w.newJob(task.getId(), task.getTaskDescription(), selectedImpl, listener);
+        Worker<T> w = selectedResource.getResource();
+        
+        // Wait for slaves
+        try {
+            this.waitForSlaves.acquire(this.numSlaves);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Add slave listeners to ours
+        listener.addSlaveListeners(this.slaveListeners);
+        
+        // Create job        
+        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.selectedImpl, this.slaveWorkerNodeNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
@@ -102,7 +153,7 @@ public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDe
     @Override
     protected void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
 
         for (Parameter p : job.getTaskParams().getParameters()) {
             if (p instanceof DependencyParameter) {

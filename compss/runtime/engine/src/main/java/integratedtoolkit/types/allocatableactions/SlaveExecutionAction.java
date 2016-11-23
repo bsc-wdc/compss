@@ -13,11 +13,14 @@ import integratedtoolkit.util.ResourceScheduler;
 
 
 public class SlaveExecutionAction<P extends Profile, T extends WorkerResourceDescription> extends ExecutionAction<P, T> {
+    
+    private final MasterExecutionAction<P,T> master;
 
     public SlaveExecutionAction(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task,
-            ResourceScheduler<P, T> forcedResource) {
+            MasterExecutionAction<P,T> master, ResourceScheduler<P, T> forcedResource) {
 
         super(schedulingInformation, producer, task, forcedResource);
+        this.master = master;
     }
 
     @Override
@@ -27,9 +30,12 @@ public class SlaveExecutionAction<P extends Profile, T extends WorkerResourceDes
 
     @Override
     public Job<?> submitJob(int transferGroupId, JobStatusListener<P, T> listener) {
-        Worker<T> w = selectedMainResource.getResource();
+        Worker<T> w = selectedResource.getResource();
+        
+        // Notify the master that the slave is active
+        master.notifySlaveReady(w, listener);
 
-        Job<?> job = w.newJob(task.getId(), task.getTaskDescription(), selectedImpl, listener);
+        Job<?> job = w.newSlaveJob(task.getId(), task.getTaskDescription(), selectedImpl, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 

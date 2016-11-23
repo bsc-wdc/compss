@@ -10,11 +10,13 @@ import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.job.Job.JobListener;
+import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,8 +76,21 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param listener
      * @return
      */
-    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, JobListener listener);
+    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, 
+            List<String> slaveWorkersNodeNames, JobListener listener);
 
+    /**
+     * Adds a new slave job to the node
+     * 
+     * @param taskId
+     * @param taskparams
+     * @param impl
+     * @param res
+     * @param listener
+     * @return
+     */
+    public abstract Job<?> newSlaveJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, JobListener listener);
+    
     /**
      * Sends an specific data to the node
      * 

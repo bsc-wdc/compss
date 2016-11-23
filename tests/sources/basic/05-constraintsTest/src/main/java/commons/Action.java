@@ -30,19 +30,19 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
 
     @Override
     protected boolean areEnoughResources() {
-        Worker r = selectedMainResource.getResource();
+        Worker r = selectedResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker r = selectedMainResource.getResource();
+        Worker r = selectedResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker r = selectedMainResource.getResource();
+        Worker r = selectedResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 

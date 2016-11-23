@@ -49,36 +49,76 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
         if (debug) {
             logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreID + ")");
         }
+        
         task.setStatus(TaskState.TO_EXECUTE);
+        int numNodes = task.getTaskDescription().getNumNodes();
         
         if (task.getTaskDescription().isReplicated()) {
             // Method annotation forces to replicate task to all nodes
-            ResourceScheduler<P, T>[] resources = ts.getWorkers();
-            task.setExecutionCount(resources.length);
-            for (ResourceScheduler<P, T> rs : resources) {
-                MasterExecutionAction<P, T> singleExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), producer, task, rs);
-                ts.newAllocatableAction(singleExec); 
+            if (debug) {
+                logger.debug("Replicating task " + task.getId());
             }
-        } else {
-            // Normal task
-            int numNodes = task.getTaskDescription().getNumNodes();
+            ResourceScheduler<P, T>[] resources = ts.getWorkers();
+            task.setExecutionCount(resources.length * numNodes);
+            for (ResourceScheduler<P, T> rs : resources) {
+                submitTask(ts, rs);
+            }
+        } else if (task.getTaskDescription().isDistributed()) {
+            // Method annotation forces RoundRobin among nodes
+            // WARN: This code is proportional to the number of resources, can lead to some overhead
+            if (debug) {
+                logger.debug("Distributing task " + task.getId());
+            }
+            
             task.setExecutionCount(numNodes);
             
-            // Can use one or more resources depending on the computingNodes
-            // Launch the master task and slaves if needed
-            MasterExecutionAction<P, T> masterExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), producer, task, null);
-            ts.newAllocatableAction(masterExec);
-            
-            int numSlaveNodes = numNodes - 1;
-            for (int i = 0; i < numSlaveNodes; ++i) {
-                SlaveExecutionAction<P, T> slaveExec = new SlaveExecutionAction<>(ts.generateSchedulingInformation(), producer, task, null);
-                ts.newAllocatableAction(slaveExec);
+            ResourceScheduler<P, T> selectedResource = null;
+            int minNumTasksOfSameType = Integer.MAX_VALUE;
+            ResourceScheduler<P, T>[] resources = ts.getWorkers();
+            for (ResourceScheduler<P, T> rs : resources) {
+                // RS numTasks only considers MasterExecutionActions
+                int numTasks = rs.getNumTasks(task.getTaskDescription().getId());
+                if (numTasks < minNumTasksOfSameType) {
+                    minNumTasksOfSameType = numTasks;
+                    selectedResource = rs;
+                }
             }
+            
+            submitTask(ts, selectedResource);
+        } else {
+            // Normal task
+            task.setExecutionCount(numNodes);
+            submitTask(ts, null);
         }
 
         if (debug) {
             logger.debug("Treated Scheduling request for task " + task.getId() + "(core " + coreID + ")");
         }
+    }
+    
+    private void submitTask(TaskScheduler<P, T> ts, ResourceScheduler<P, T> specificResource) {
+        // Can use one or more resources depending on the computingNodes
+        int numNodes = task.getTaskDescription().getNumNodes();
+
+        // Launch the master task
+        MasterExecutionAction<P, T> masterExec = new MasterExecutionAction<>(ts.generateSchedulingInformation(), 
+                                                                                producer, 
+                                                                                task, 
+                                                                                specificResource);
+        ts.newAllocatableAction(masterExec);
+        
+        // Launch slave tasks if needed (can go to any resource if it fits the requirements)
+        int numSlaveNodes = numNodes - 1;
+        if (debug && numSlaveNodes > 0) {
+            logger.debug("MultiNode task " + task.getId() + ". Reserving slave nodes...");
+        }
+        for (int i = 0; i < numSlaveNodes; ++i) {
+            SlaveExecutionAction<P, T> slaveExec = new SlaveExecutionAction<>(ts.generateSchedulingInformation(), 
+                                                                                producer, 
+                                                                                task, 
+                                                                                null);
+            ts.newAllocatableAction(slaveExec);
+        } 
     }
 
     @Override

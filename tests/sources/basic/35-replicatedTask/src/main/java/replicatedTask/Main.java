@@ -16,7 +16,7 @@ public class Main {
         try {
             Thread.sleep(WAIT_RUNTIME);
         } catch (InterruptedException e) {
-            // No need to handle such exception
+            Thread.currentThread().interrupt();
         }
 
         // ----------------------------------------------------------------------------

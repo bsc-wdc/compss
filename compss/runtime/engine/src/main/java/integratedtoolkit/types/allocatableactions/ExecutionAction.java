@@ -90,6 +90,10 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         }
     }
 
+    /**
+     * Returns the associated task
+     * @return
+     */
     public Task getTask() {
         return this.task;
     }

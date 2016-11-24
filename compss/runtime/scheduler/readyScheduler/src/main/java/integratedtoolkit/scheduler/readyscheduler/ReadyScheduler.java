@@ -20,12 +20,27 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 
+/**
+ * Representation of a Scheduler that considers only ready tasks
+ *
+ * @param <P>
+ * @param <T>
+ */
 public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
     private static final int THRESHOLD = 50;
+    
     private ActionSet<P, T> dependingActions = new ActionSet<>();
     private ActionSet<P, T> unassignedReadyActions = new ActionSet<>();
 
+
+    /**
+     * Constructs a new Ready Scheduler instance
+     * 
+     */
+    public ReadyScheduler() {
+        super();
+    }
 
     @Override
     protected final void scheduleAction(AllocatableAction<P, T> action, Score actionScore) throws BlockedActionException {
@@ -35,7 +50,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             try {
                 action.schedule(actionScore);
             } catch (UnassignedActionException ex) {
-            	logger.debug("Adding action " + action + " to unassigned list");
+                logger.debug("Adding action " + action + " to unassigned list");
                 unassignedReadyActions.addAction(action);
             }
         }
@@ -52,7 +67,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             } catch (InvalidSchedulingException ise) {
                 boolean keepTrying = true;
                 for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
-                    AllocatableAction<P,T> pre = action.getConstrainingPredecessors().get(i);
+                    AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
                     action.schedule(pre.getAssignedResource(), actionScore);
                     try {
                         action.tryToLaunch();
@@ -64,8 +79,8 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                 }
             }
         } catch (UnassignedActionException ex) {
-        	logger.debug("Adding action " + action + " to unassigned list");
-        	unassignedReadyActions.addAction(action);
+            logger.debug("Adding action " + action + " to unassigned list");
+            unassignedReadyActions.addAction(action);
         }
     }
 
@@ -81,6 +96,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
         // anything.
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void workerLoadUpdate(ResourceScheduler<P, T> resource) {
         Worker<T> worker = resource.getResource();
@@ -104,11 +120,11 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
             Integer bestCore = null;
             Score bestScore = null;
             for (Integer i : runnableCores) {
-            	Score coreScore = actions[i].peek().getScore();
-            	if (Score.isBetter(coreScore, bestScore)) {
-            		bestScore = coreScore;
-            		bestCore = i;
-            	}
+                Score coreScore = actions[i].peek().getScore();
+                if (Score.isBetter(coreScore, bestScore)) {
+                    bestScore = coreScore;
+                    bestCore = i;
+                }
             }
 
             ObjectValue<AllocatableAction<P, T>> ov = actions[bestCore].poll();
@@ -116,30 +132,30 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
 
             // Get the best Implementation
             try {
-            	Score actionScore = getActionScore(selectedAction);
-            	selectedAction.schedule(resource, actionScore);
-            	try {
-            		selectedAction.tryToLaunch();
-            	} catch (InvalidSchedulingException ise) {
-            		boolean keepTrying = true;
-            		for (int i = 0; i < selectedAction.getConstrainingPredecessors().size() && keepTrying; ++i) {
-            			AllocatableAction<P,T> pre = selectedAction.getConstrainingPredecessors().get(i);
-            			selectedAction.schedule(pre.getAssignedResource(), actionScore);
-            			try {
-            				selectedAction.tryToLaunch();
-            				keepTrying = false;
-            			} catch (InvalidSchedulingException ise2) {
-            				// Try next predecessor
-            				keepTrying = true;
-            			}
-            		}
-            	}
+                Score actionScore = getActionScore(selectedAction);
+                selectedAction.schedule(resource, actionScore);
+                try {
+                    selectedAction.tryToLaunch();
+                } catch (InvalidSchedulingException ise) {
+                    boolean keepTrying = true;
+                    for (int i = 0; i < selectedAction.getConstrainingPredecessors().size() && keepTrying; ++i) {
+                        AllocatableAction<P, T> pre = selectedAction.getConstrainingPredecessors().get(i);
+                        selectedAction.schedule(pre.getAssignedResource(), actionScore);
+                        try {
+                            selectedAction.tryToLaunch();
+                            keepTrying = false;
+                        } catch (InvalidSchedulingException ise2) {
+                            // Try next predecessor
+                            keepTrying = true;
+                        }
+                    }
+                }
             } catch (UnassignedActionException uae) {
-            	// Action stays unassigned and ready
-            	continue;
+                // Action stays unassigned and ready
+                continue;
             } catch (BlockedActionException bae) {
-            	// Never happens!
-            	continue;
+                // Never happens!
+                continue;
             }
             // Task was assigned to the resource.
             // Remove from pending task sets
@@ -152,7 +168,8 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                 Iterator<Implementation<T>> implIter = fittingImpls[coreId].iterator();
                 while (implIter.hasNext()) {
                     Implementation<?> impl = implIter.next();
-                    if ( !((Worker) worker).canRunNow(impl.getRequirements()) ) {
+                    T requirements = (T) impl.getRequirements();
+                    if (!worker.canRunNow(requirements)) {
                         implIter.remove();
                     }
                 }
@@ -171,7 +188,7 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
 
     private PriorityQueue<ObjectValue<AllocatableAction<P, T>>> sortActionsForResource(LinkedList<AllocatableAction<P, T>> actions,
             ResourceScheduler<P, T> resource) {
-        
+
         PriorityQueue<ObjectValue<AllocatableAction<P, T>>> pq = new PriorityQueue<>();
         int counter = 0;
         for (AllocatableAction<P, T> action : actions) {

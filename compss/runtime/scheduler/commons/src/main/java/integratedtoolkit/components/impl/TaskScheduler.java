@@ -39,6 +39,14 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     private final ActionSet<P, T> blockedActions = new ActionSet<>();
     private int[] readyCounts = new int[CoreManager.getCoreCount()];
     private final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<>();
+    
+    /**
+     * Construct a new Task Scheduler
+     * 
+     */
+    public TaskScheduler() {
+        // Nothing to do since all attributes are already initialized
+    }
 
 
     /**
@@ -107,15 +115,17 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     			readyCounts[coreId]--;
     		}
     	}
+    	
     	LinkedList<AllocatableAction<P, T>> dataFreeActions = action.completed();
     	for (AllocatableAction<P, T> dataFreeAction : dataFreeActions) {
-    		if (dataFreeAction != null && dataFreeAction.isNotScheduling()){
+    		if (dataFreeAction != null && dataFreeAction.isNotScheduling()) {
     			if (dataFreeAction.getImplementations().length > 0) {
     				Integer coreId = dataFreeAction.getImplementations()[0].getCoreId();
     				if (coreId != null) {
     					readyCounts[coreId]++;
     				}
     			}
+    			
     			try {
     				dependencyFreeAction(dataFreeAction);
     			} catch (BlockedActionException bae) {
@@ -126,6 +136,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     			}
     		}
     	}
+    	
     	LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
     	workerLoadUpdate((ResourceScheduler<P, T>) action.getAssignedResource());
     	HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<>();
@@ -151,7 +162,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     						}
     					}
     				}
-
     			} catch (UnassignedActionException ure) {
     				StringBuilder info = new StringBuilder("Scheduler has lost track of action ");
     				info.append(action.toString());
@@ -164,8 +174,6 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     			}
     		}
     	}
-
-
     }
 
     /**

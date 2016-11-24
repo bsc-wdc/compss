@@ -1,5 +1,9 @@
 package storage;
 
+/**
+ * Abstract interface of Stub objects
+ *
+ */
 public interface StubItf {
 
     /**

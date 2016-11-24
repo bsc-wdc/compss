@@ -1,5 +1,9 @@
 package storage;
 
+/**
+ * Abstract implementation of an Storage Object
+ *
+ */
 public class StorageObject implements StubItf {
 
     /**

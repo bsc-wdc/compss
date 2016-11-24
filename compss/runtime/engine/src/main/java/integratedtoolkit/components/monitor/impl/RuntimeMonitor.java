@@ -15,6 +15,10 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.util.ResourceManager;
 
 
+/**
+ * Represents the thread to handle all the information needed by the COMPSs Monitor
+ * 
+ */
 public class RuntimeMonitor implements Runnable {
 
     private static final boolean monitorEnabled = System.getProperty(ITConstants.IT_MONITOR) != null
@@ -167,10 +171,20 @@ public class RuntimeMonitor implements Runnable {
         this.GM.closeCurrentGraph();
     }
 
+    /**
+     * Returns the monitor dir path
+     * 
+     * @return
+     */
     public static String getMonitorDirPath() {
         return monitorDirPath;
     }
 
+    /**
+     * Returns if the monitor is enabled or not
+     * 
+     * @return
+     */
     public static boolean isEnabled() {
         return monitorEnabled;
     }

@@ -9,8 +9,19 @@ import java.net.URLClassLoader;
 import org.apache.logging.log4j.Logger;
 
 
+/**
+ * Support class to load jar files to the classpath
+ *
+ */
 public class Classpath {
 
+    /**
+     * Loads all the jars existing in the given path @jarPath
+     * 
+     * @param jarPath
+     * @param logger
+     * @throws FileNotFoundException
+     */
     public static void loadPath(String jarPath, Logger logger) throws FileNotFoundException {
         File directory = new File(jarPath);
         if (!directory.exists()) {
@@ -44,5 +55,5 @@ public class Classpath {
             }
         }
     }
-    
+
 }

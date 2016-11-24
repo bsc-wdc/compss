@@ -1,6 +1,6 @@
 package integratedtoolkit.types.request.td;
 
-import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
+import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;

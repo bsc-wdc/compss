@@ -175,8 +175,8 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         	c.receive();
         	c.finishConnection();
-        }else{
-        	logger.debug("Worker " + this.getName() + " hos not started. Setting this to be stopped");
+        } else {
+        	logger.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
         	workerStarter.setToStop();
         	sl.notifyEnd();
         }

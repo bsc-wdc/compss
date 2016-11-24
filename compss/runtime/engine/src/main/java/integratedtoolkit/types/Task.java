@@ -10,7 +10,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
+/**
+ * Representation of a Task
+ * 
+ */
 public class Task implements Comparable<Task> {
 
     // Task ID management
@@ -18,7 +21,10 @@ public class Task implements Comparable<Task> {
     private static AtomicInteger nextTaskId = new AtomicInteger(FIRST_TASK_ID);
 
 
-    // Task states
+    /**
+     *  Task states
+     *
+     */
     public enum TaskState {
         TO_ANALYSE, 
         TO_EXECUTE, 
@@ -45,6 +51,19 @@ public class Task implements Comparable<Task> {
     private int executionCount;
 
 
+    /**
+     * Creates a new task with the given parameters
+     * 
+     * @param appId
+     * @param methodClass
+     * @param methodName
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameters
+     */
     public Task(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
             boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
         
@@ -58,6 +77,18 @@ public class Task implements Comparable<Task> {
         this.executions = new LinkedList<>();
     }
 
+    /**
+     * Creates a new task with the given parameters
+     * 
+     * @param appId
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param isPrioritary
+     * @param hasTarget
+     * @param parameters
+     */
     public Task(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
             Parameter[] parameters) {
 
@@ -70,15 +101,29 @@ public class Task implements Comparable<Task> {
         this.executions = new LinkedList<>();
     }
 
+    /**
+     * Returns the current number of generated tasks
+     * 
+     * @return
+     */
     public static int getCurrentTaskCount() {
         return nextTaskId.get();
     }
 
+    /**
+     * Adds a data dependency from the @producer to this task
+     * 
+     * @param producer
+     */
     public void addDataDependency(Task producer) {
         producer.successors.add(this);
         this.predecessors.add(producer);
     }
 
+    /**
+     * Release all the tasks that are data dependent to this task
+     * 
+     */
     public void releaseDataDependents() {
         for (Task t : this.successors) {
             t.predecessors.remove(this);
@@ -86,58 +131,127 @@ public class Task implements Comparable<Task> {
         this.successors.clear();
     }
 
+    /**
+     * Returns all the successor tasks
+     * 
+     * @return
+     */
     public List<Task> getSuccessors() {
         return successors;
     }
 
+    /**
+     * Returns all the predecessor tasks
+     * 
+     * @return
+     */
     public List<Task> getPredecessors() {
         return predecessors;
     }
 
+    /**
+     * Returns the app id
+     * 
+     * @return
+     */
     public long getAppId() {
         return appId;
     }
 
+    /**
+     * Returns the task id
+     * 
+     * @return
+     */
     public int getId() {
         return taskId;
     }
 
+    /**
+     * Returns the task status
+     * 
+     * @return
+     */
     public TaskState getStatus() {
         return status;
     }
 
+    /**
+     * Sets a new task status
+     * 
+     * @param status
+     */
     public void setStatus(TaskState status) {
         this.status = status;
     }
 
+    /**
+     * Sets the task as enforcing
+     * 
+     * @param task
+     */
     public void setEnforcingTask(Task task) {
         this.enforcingTask = task;
     }
     
+    /**
+     * Returns whether the task is free or not
+     * 
+     * @return
+     */
     public boolean isFree() {
         return (this.executionCount == 0);
     }
     
+    /**
+     * Sets a new execution count for the task
+     * 
+     * @param executionCount
+     */
     public void setExecutionCount(int executionCount) {
         this.executionCount = executionCount;
     }
     
+    /**
+     * Decreases the execution count of the task
+     * 
+     */
     public void decreaseExecutionCount() {
         --this.executionCount;
     }
 
+    /**
+     * Returns the task description
+     * 
+     * @return
+     */
     public TaskDescription getTaskDescription() {
         return taskDescription;
     }
 
+    /**
+     * Returns whether the task is scheduling forced or not
+     * 
+     * @return
+     */
     public boolean isSchedulingForced() {
         return this.enforcingTask != null;
     }
 
+    /**
+     * Returns the associated enforcing task
+     * 
+     * @return
+     */
     public Task getEnforcingTask() {
         return this.enforcingTask;
     }
 
+    /**
+     * Returns the DOT description of the task (only for monitoring)
+     * 
+     * @return
+     */
     public String getDotDescription() {
         int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
@@ -161,6 +275,11 @@ public class Task implements Comparable<Task> {
                 + color.getFontColor() + "\"];";
     }
 
+    /**
+     * Returns the task legend description (only for monitoring)
+     * 
+     * @return
+     */
     public String getLegendDescription() {
         StringBuilder information = new StringBuilder();
         information.append("<tr>").append("\n");
@@ -171,26 +290,45 @@ public class Task implements Comparable<Task> {
         return information.toString();
     }
 
+    /**
+     * Returns the method name associated to this task
+     * 
+     * @return
+     */
     public String getMethodName() {
         String methodName = taskDescription.getName();
         return methodName;
     }
 
+    /**
+     * Returns the task color (only for monitoring)
+     * 
+     * @return
+     */
     public String getColor() {
         int monitorTaskId = taskDescription.getId() + 1; // Coherent with Trace.java
         ColorNode color = ColorConfiguration.COLORS[monitorTaskId % ColorConfiguration.NUM_COLORS];
         return color.getFillColor();
     }
 
+    /**
+     * Adds a new execution to the task
+     * 
+     * @param execution
+     */
     public void addExecution(ExecutionAction<?, ?> execution) {
         this.executions.add(execution);
     }
 
+    /**
+     * Returns the executions of the task
+     * 
+     * @return
+     */
     public List<ExecutionAction<?, ?>> getExecutions() {
         return executions;
     }
 
-    // Comparable interface implementation
     @Override
     public int compareTo(Task task) {
         if (task == null) {

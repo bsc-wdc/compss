@@ -37,10 +37,11 @@ import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.util.ErrorManager;
 
 
+/**
+ * Class to analyse the data dependencies between tasks
+ * 
+ */
 public class TaskAnalyser {
-
-    // Constants definition
-    private static final String TASK_FAILED = "Task failed: ";
 
     // Components
     private DataInfoProvider DIP;
@@ -64,14 +65,20 @@ public class TaskAnalyser {
     private Hashtable<Task, List<Semaphore>> waitedTasks;
 
     // Logger
-    private static final Logger logger = LogManager.getLogger(Loggers.TA_COMP);
-    private static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
+    private static final boolean debug = LOGGER.isDebugEnabled();
+    private static final String TASK_FAILED = "Task failed: ";
+
     // Graph drawing
     private static final boolean drawGraph = GraphGenerator.isEnabled();
 
     private static int synchronizationId;
 
 
+    /**
+     * Creates a new Task Analyser instance
+     * 
+     */
     public TaskAnalyser() {
         currentTaskCount = new HashMap<>();
         writers = new TreeMap<>();
@@ -82,20 +89,35 @@ public class TaskAnalyser {
         appIdToSCOWrittenIds = new HashMap<>();
         waitedTasks = new Hashtable<>();
         synchronizationId = 0;
-        logger.info("Initialization finished");
+        LOGGER.info("Initialization finished");
     }
 
+    /**
+     * Sets the TaskAnalyser co-workers
+     * 
+     * @param DIP
+     */
     public void setCoWorkers(DataInfoProvider DIP) {
         this.DIP = DIP;
     }
 
+    /**
+     * Sets the graph generator co-worker
+     * 
+     * @param GM
+     */
     public void setGM(GraphGenerator GM) {
         this.GM = GM;
     }
 
+    /**
+     * Process the dependencies of a new task @currentTask
+     * 
+     * @param currentTask
+     */
     public void processTask(Task currentTask) {
         TaskDescription params = currentTask.getTaskDescription();
-        logger.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
+        LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
         if (drawGraph) {
             this.GM.addTaskToGraph(currentTask);
@@ -141,7 +163,7 @@ public class TaskAnalyser {
         for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
             Parameter p = parameters[paramIdx];
             if (debug) {
-                logger.debug("* Parameter : " + p);
+                LOGGER.debug("* Parameter : " + p);
             }
 
             // Conversion: direction -> access mode
@@ -226,8 +248,8 @@ public class TaskAnalyser {
         Task lastWriter = writers.get(dataId);
         if (lastWriter != null && lastWriter != currentTask) { // avoid self-dependencies
             if (debug) {
-                logger.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
-                logger.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
+                LOGGER.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
+                LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
 
             if (drawGraph) {
@@ -243,7 +265,7 @@ public class TaskAnalyser {
                                 String.valueOf(dp.getDataAccessId().getDataId()));
                     }
                 } catch (Exception e) {
-                    logger.error("Error drawing dependency in graph", e);
+                    LOGGER.error("Error drawing dependency in graph", e);
                 }
             }
             currentTask.addDataDependency(lastWriter);
@@ -252,6 +274,12 @@ public class TaskAnalyser {
         }
     }
 
+    /**
+     * Registers the output values of the task @currentTask
+     * 
+     * @param currentTask
+     * @param dp
+     */
     public void registerOutputValues(Task currentTask, DependencyParameter dp) {
         int currentTaskId = currentTask.getId();
         int dataId = dp.getDataAccessId().getDataId();
@@ -275,12 +303,17 @@ public class TaskAnalyser {
             idsWritten.add(dataId);
         }
         if (debug) {
-            logger.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
+            LOGGER.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
         }
     }
 
+    /**
+     * Registers the end of execution of task @task
+     * 
+     * @param task
+     */
     public void endTask(Task task) {
-        logger.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
+        LOGGER.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
         if (task.getStatus() == TaskState.FAILED) {
             ErrorManager.error(TASK_FAILED + task);
         }
@@ -306,24 +339,24 @@ public class TaskAnalyser {
                     sem.release();
                 }
             }
-    
+
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 DataType type = param.getType();
                 if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
-                    logger.debug("Treating that data "+ dPar.getDataTarget()+ " has been accessed");
+                    LOGGER.debug("Treating that data " + dPar.getDataTarget() + " has been accessed");
                     DIP.dataHasBeenAccessed(dAccId);
                 }
             }
-    
+
             // Add the task to the set of finished tasks
             // finishedTasks.add(task);
             // Check if the finished task was the last writer of a file, but only if task generation has finished
             if (appIdToSemaphore.get(appId) != null) {
                 checkResultFileTransfer(task);
             }
-    
+
             task.releaseDataDependents();
         }
     }
@@ -367,13 +400,18 @@ public class TaskAnalyser {
                     DIP.blockDataAndGetResultFile(id, new ResultListener(new Semaphore(0)));
                     DIP.unblockDataId(id);
                 } catch (Exception e) {
-                	logger.error("Exception ordering trasnfer when task ends", e);
+                    LOGGER.error("Exception ordering trasnfer when task ends", e);
                 }
             }
 
         }
     }
 
+    /**
+     * Returns the tasks dependent to the requested task
+     * 
+     * @param request
+     */
     public void findWaitedTask(WaitForTaskRequest request) {
         int dataId = request.getDataId();
         AccessMode am = request.getAccessMode();
@@ -392,7 +430,7 @@ public class TaskAnalyser {
                     this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
                 }
             } catch (Exception e) {
-                logger.error("Error adding task to graph file", e);
+                LOGGER.error("Error adding task to graph file", e);
             }
         }
         if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
@@ -407,6 +445,11 @@ public class TaskAnalyser {
         }
     }
 
+    /**
+     * Barrier
+     * 
+     * @param request
+     */
     public void waitForAllTasks(WaitForAllTasksRequest request) {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
@@ -424,6 +467,11 @@ public class TaskAnalyser {
         }
     }
 
+    /**
+     * End of execution barrier
+     * 
+     * @param request
+     */
     public void noMoreTasks(EndOfAppRequest request) {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
@@ -438,16 +486,31 @@ public class TaskAnalyser {
         }
     }
 
+    /**
+     * Returns the written files and deletes them
+     * 
+     * @param appId
+     * @return
+     */
     public TreeSet<Integer> getAndRemoveWrittenFiles(Long appId) {
         return appIdToWrittenFiles.remove(appId);
     }
 
+    /**
+     * Shutdown
+     * 
+     */
     public void shutdown() {
         if (drawGraph) {
             GraphGenerator.removeTemporaryGraph();
         }
     }
 
+    /**
+     * Returns the task state
+     * 
+     * @return
+     */
     public String getTaskStateRequest() {
         StringBuilder sb = new StringBuilder("\t").append("<TasksInfo>").append("\n");
         for (Entry<Long, Integer> e : appIdToTotalTaskCount.entrySet()) {
@@ -468,18 +531,24 @@ public class TaskAnalyser {
         return sb.toString();
     }
 
+    /**
+     * Deletes the specified file and its renamings
+     * 
+     * @param fileInfo
+     */
     public void deleteFile(FileInfo fileInfo) {
         int dataId = fileInfo.getDataId();
-        
-        logger.debug("Deleting file with id " + dataId + " and location " + fileInfo.getOriginalLocation());
+
+        LOGGER.debug("Deleting file with id " + dataId + " and location " + fileInfo.getOriginalLocation());
 
         Task task = writers.get(dataId);
         if (task != null) {
             return;
         }
-        logger.debug("Removing "+ fileInfo.getDataId() +" from written files");
-        for (TreeSet<Integer> files : appIdToWrittenFiles.values()) { 
-        	files.remove(fileInfo.getDataId());
+        LOGGER.debug("Removing " + fileInfo.getDataId() + " from written files");
+        for (TreeSet<Integer> files : appIdToWrittenFiles.values()) {
+            files.remove(fileInfo.getDataId());
         }
     }
+
 }

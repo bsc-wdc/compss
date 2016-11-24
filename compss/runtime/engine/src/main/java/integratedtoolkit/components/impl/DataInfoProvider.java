@@ -31,6 +31,10 @@ import storage.StorageException;
 import storage.StorageItf;
 
 
+/**
+ * Component to handle the specific data structures such as file names, versions, renamings and values
+ *
+ */
 public class DataInfoProvider {
 
     // Constants definition
@@ -50,6 +54,10 @@ public class DataInfoProvider {
     private static final boolean debug = logger.isDebugEnabled();
 
 
+    /**
+     * New Data Info Provider instance
+     * 
+     */
     public DataInfoProvider() {
         nameToId = new TreeMap<>();
         codeToId = new TreeMap<>();
@@ -59,7 +67,12 @@ public class DataInfoProvider {
         logger.info("Initialization finished");
     }
 
-    // DataAccess interface
+    /**
+     * DataAccess interface: registers a new data access
+     * 
+     * @param access
+     * @return
+     */
     public DataAccessId registerDataAccess(AccessParams access) {
         if (access instanceof FileAccessParams) {
             FileAccessParams fAccess = (FileAccessParams) access;
@@ -70,6 +83,13 @@ public class DataInfoProvider {
         }
     }
 
+    /**
+     * DataAccess interface: registers a new file access
+     * 
+     * @param mode
+     * @param location
+     * @return
+     */
     public DataAccessId registerFileAccess(AccessMode mode, DataLocation location) {
         DataInfo fileInfo;
         String locationKey = location.getLocationKey();
@@ -102,7 +122,14 @@ public class DataInfoProvider {
         return willAccess(mode, fileInfo);
     }
 
-    // Object access
+    /**
+     * DataAccess interface: registers a new object access
+     * 
+     * @param mode
+     * @param value
+     * @param code
+     * @return
+     */
     public DataAccessId registerObjectAccess(AccessMode mode, Object value, int code) {
         DataInfo oInfo;
         Integer aoId = codeToId.get(code);
@@ -192,6 +219,11 @@ public class DataInfoProvider {
         return daId;
     }
 
+    /**
+     * Returns if a given data has been accessed or not
+     * 
+     * @param dAccId
+     */
     public void dataHasBeenAccessed(DataAccessId dAccId) {
         Integer dataId = dAccId.getDataId();
         DataInfo di = idToData.get(dataId);
@@ -214,12 +246,18 @@ public class DataInfoProvider {
                 deleted = di.versionHasBeenWritten(wVersionId);
                 break;
         }
-        
+
         if (deleted) {
-            //idToData.remove(dataId);
+            // idToData.remove(dataId);
         }
     }
 
+    /**
+     * Returns if a given location has been accessed or not
+     * 
+     * @param loc
+     * @return
+     */
     public boolean alreadyAccessed(DataLocation loc) {
         logger.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
@@ -227,41 +265,88 @@ public class DataInfoProvider {
         return fileId != null;
     }
 
-    // DataInformation interface
+    /**
+     * DataInformation interface: returns the last renaming of a given data
+     * 
+     * @param code
+     * @return
+     */
     public String getLastRenaming(int code) {
         Integer aoId = codeToId.get(code);
         DataInfo oInfo = idToData.get(aoId);
         return oInfo.getCurrentDataInstanceId().getRenaming();
     }
 
+    /**
+     * Returns the original location of a data id
+     * 
+     * @param fileId
+     * @return
+     */
     public DataLocation getOriginalLocation(int fileId) {
         FileInfo info = (FileInfo) idToData.get(fileId);
         return info.getOriginalLocation();
     }
 
+    /**
+     * Sets the value @value to the renaming @renaming
+     * 
+     * @param renaming
+     * @param value
+     */
     public void setObjectVersionValue(String renaming, Object value) {
         renamingToValue.put(renaming, value);
         Comm.registerValue(renaming, value);
     }
 
+    /**
+     * Returns if the dataInstanceId is registered in the master or not
+     * 
+     * @param dId
+     * @return
+     */
     public boolean isHere(DataInstanceId dId) {
         return renamingToValue.get(dId.getRenaming()) != null;
     }
 
+    /**
+     * Returns the object associated to the renaming @renaming
+     * 
+     * @param renaming
+     * @return
+     */
     public Object getObject(String renaming) {
         return renamingToValue.get(renaming);
     }
 
+    /**
+     * Creates a new version with the same value
+     * 
+     * @param rRenaming
+     * @param wRenaming
+     */
     public void newVersionSameValue(String rRenaming, String wRenaming) {
         renamingToValue.put(wRenaming, renamingToValue.get(rRenaming));
     }
 
+    /**
+     * Returns the last data access to a given renaming
+     * 
+     * @param code
+     * @return
+     */
     public DataInstanceId getLastDataAccess(int code) {
         Integer aoId = codeToId.get(code);
         DataInfo oInfo = idToData.get(aoId);
         return oInfo.getCurrentDataInstanceId();
     }
 
+    /**
+     * Returns the last versions of all the specified data Ids
+     * 
+     * @param dataIds
+     * @return
+     */
     public List<DataInstanceId> getLastVersions(TreeSet<Integer> dataIds) {
         List<DataInstanceId> versionIds = new ArrayList<>(dataIds.size());
         for (Integer dataId : dataIds) {
@@ -275,39 +360,55 @@ public class DataInfoProvider {
         return versionIds;
     }
 
+    /**
+     * Unblocks a dataId
+     * 
+     * @param dataId
+     */
     public void unblockDataId(Integer dataId) {
         DataInfo dataInfo = idToData.get(dataId);
         dataInfo.unblockDeletions();
     }
 
+    /**
+     * Marks a data Id for deletion
+     * 
+     * @param loc
+     * @return
+     */
     public FileInfo deleteData(DataLocation loc) {
-        logger.debug("Deleting Data location: " +loc.getPath());
-    	String locationKey = loc.getLocationKey();
+        logger.debug("Deleting Data location: " + loc.getPath());
+        String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
         if (fileId == null) {
             return null;
         }
         FileInfo fileInfo = (FileInfo) idToData.get(fileId);
-        //nameToId.remove(locationKey);
+        // nameToId.remove(locationKey);
         if (fileInfo.delete()) {
-            //idToData.remove(fileId);
+            // idToData.remove(fileId);
         }
         return fileInfo;
     }
 
+    /**
+     * Transfers the value of an object
+     * 
+     * @param toRequest
+     * @return
+     */
     public LogicalData transferObjectValue(TransferObjectRequest toRequest) {
-    	
-    	Semaphore sem = toRequest.getSemaphore();
+        Semaphore sem = toRequest.getSemaphore();
         DataAccessId daId = toRequest.getDaId();
         RWAccessId rwaId = (RWAccessId) daId;
-        
+
         String sourceName = rwaId.getReadDataInstance().getRenaming();
         // String targetName = rwaId.getWrittenDataInstance().getRenaming();
         if (debug) {
-            logger.debug("Requesting getting object " + sourceName );
+            logger.debug("Requesting getting object " + sourceName);
         }
         LogicalData ld = Comm.getData(sourceName);
-        
+
         if (ld == null) {
             ErrorManager.error("Unregistered data " + sourceName);
             return null;
@@ -329,9 +430,9 @@ public class DataInfoProvider {
             toRequest.setTargetData(ld);
             toRequest.getSemaphore().release();
         } else {
-        	 if (debug) {
-                 logger.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
-             }
+            if (debug) {
+                logger.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
+            }
             DataLocation targetLocation = null;
             String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
             try {
@@ -347,10 +448,18 @@ public class DataInfoProvider {
         return ld;
     }
 
+    /**
+     * Blocks dataId and retrieves its result file
+     * 
+     * @param dataId
+     * @param listener
+     * @return
+     */
     public ResultFile blockDataAndGetResultFile(int dataId, ResultListener listener) {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
-        if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { //If current version is to delete do not tranfer
+        if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
+                                                                        // tranfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
@@ -360,9 +469,9 @@ public class DataInfoProvider {
                 return null;
             }
             fileInfo.blockDeletions();
-            
+
             lastVersion = fileInfo.getCurrentDataInstanceId();
-            
+
             ResultFile rf = new ResultFile(lastVersion, fileInfo.getOriginalLocation());
 
             DataInstanceId fId = rf.getFileInstanceId();
@@ -402,19 +511,23 @@ public class DataInfoProvider {
             Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
         } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
-        	if (debug) {
-        		String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
+            if (debug) {
+                String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
                 String origName = splitPath[splitPath.length - 1];
-                logger.debug("Trying to delete file " + origName );
+                logger.debug("Trying to delete file " + origName);
             }
-        	if (fileInfo.delete()){
-        		//idToData.remove(dataId);
-        	}
+            if (fileInfo.delete()) {
+                // idToData.remove(dataId);
+            }
         }
-        	
+
         return null;
     }
 
+    /**
+     * Shuts down the component
+     * 
+     */
     public void shutdown() {
         // Nothing to do
     }

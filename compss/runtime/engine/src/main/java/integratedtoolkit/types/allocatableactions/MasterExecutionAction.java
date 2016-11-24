@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
+import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;

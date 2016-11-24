@@ -1,6 +1,6 @@
 package integratedtoolkit.types.allocatableactions;
 
-import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
+import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.data.operation.JobTransfersListener;

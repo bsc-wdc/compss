@@ -5,10 +5,13 @@ import java.util.UUID;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 
-
+/**
+ * COMPSs Runtime Constants
+ *
+ */
 public class ITConstants {
 
-    /*
+    /**
      * Languages
      */
     public static enum Lang {
@@ -25,6 +28,7 @@ public class ITConstants {
     public static final String LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
     public static final String IT_WORKING_DIR = "IT_WORKING_DIR";
     public static final String IT_APP_DIR = "IT_APP_DIR";
+    public static final String GAT_LOC = "GAT_LOCATION";
 
     /*
      * Component names
@@ -125,7 +129,7 @@ public class ITConstants {
     public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator
             + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
 
-    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv("GAT_LOCATION") + File.separator + "lib" + File.separator
+    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator
             + "adaptors";
 
 

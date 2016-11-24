@@ -2,7 +2,10 @@ package storage;
 
 import java.util.List;
 
-
+/**
+ * Representation of the Storage ITF
+ *
+ */
 public final class StorageItf {
 
     private static final String STORAGE_NOT_FOUND_MESSAGE = "You are trying to start a run with "

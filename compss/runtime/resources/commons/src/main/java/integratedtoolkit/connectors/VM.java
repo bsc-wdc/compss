@@ -9,7 +9,7 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
  * Representation of a VM
  *
  */
-public class VM {
+public class VM implements Comparable<VM> {
 
     private final Object envId;
     private final CloudMethodResourceDescription rd;
@@ -92,7 +92,7 @@ public class VM {
     public long getStartTime() {
         return startTime;
     }
-    
+
     /**
      * Returns the creation time
      * 
@@ -127,7 +127,7 @@ public class VM {
     public void computeCreationTime() {
         creationTime = this.startTime - this.requestTime;
     }
-    
+
     /**
      * Sets the start time
      * 
@@ -136,7 +136,7 @@ public class VM {
     public void setStartTime(long startTime) {
         this.startTime = startTime;
     }
-    
+
     /**
      * Sets the request time
      * 
@@ -162,6 +162,39 @@ public class VM {
      */
     public void setToDelete(boolean toDelete) {
         this.toDelete = toDelete;
+    }
+
+    // Comparable interface implementation
+    @Override
+    public int compareTo(VM vm) throws NullPointerException {
+        if (vm == null) {
+            throw new NullPointerException();
+        }
+
+        if (vm.getName().equals(getName())) {
+            return 0;
+        }
+
+        long now = System.currentTimeMillis();
+        int mod1 = (int) (now - getStartTime()) % 3_600_000; // 1 h in ms
+        int mod2 = (int) (now - vm.getStartTime()) % 3_600_000; // 1 h in ms
+
+        return mod2 - mod1;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof VM) {
+            VM vm = (VM) obj;
+            return vm.getName().equals(getName());
+        }
+        
+        return false;
+    }
+    
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
     }
 
     @Override

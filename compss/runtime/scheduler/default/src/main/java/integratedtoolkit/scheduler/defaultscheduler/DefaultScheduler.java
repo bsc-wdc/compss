@@ -11,17 +11,26 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
+/**
+ * Implementation of a Scheduler that handles the full task graph
+ *
+ * @param <P>
+ * @param <T>
+ */
 public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
     private final DefaultScore<P, T> dummyScore = new DefaultScore<>(0, 0, 0, 0, 0);
     private final ScheduleOptimizer<P, T> optimizer = new ScheduleOptimizer<>(this);
 
 
-    /*
+    /**
+     * Constructs a new scheduler.
+     * 
      * scheduleAction(Action action) Behaves as the basic Task Scheduler, as tasks arrive their executions are scheduled
      * into a worker node
      */
     public DefaultScheduler() {
+        super();
         optimizer.start();
     }
 
@@ -42,11 +51,12 @@ public class DefaultScheduler<P extends Profile, T extends WorkerResourceDescrip
         return new DefaultScore<P, T>(actionScore, dataTime, 0, 0, 0);
     }
 
+    @Override
     public void shutdown() {
         try {
             optimizer.shutdown();
         } catch (InterruptedException ie) {
-            // No need to do anything.
+            Thread.currentThread().interrupt();
         }
     }
 

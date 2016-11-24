@@ -10,8 +10,19 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;
 
 
+/**
+ * Implementation for the ReadyResourceScheduler
+ *
+ * @param <P>
+ * @param <T>
+ */
 public class ReadyResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ResourceScheduler<P, T> {
 
+    /**
+     * New ready resource scheduler instance
+     * 
+     * @param w
+     */
     public ReadyResourceScheduler(Worker<T> w) {
         super(w);
     }
@@ -21,26 +32,17 @@ public class ReadyResourceScheduler<P extends Profile, T extends WorkerResourceD
      * worker to host the implementation execution, it ignores the implementation.
      */
     @Override
-    public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
+    public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl,
+            Score resourceScore) {
+        
         Worker<T> w = myWorker;
         if (w.canRunNow(impl.getRequirements())) {
             long implScore = this.getProfile(impl).getAverageExecutionTime();
-            return new Score(resourceScore, 3, (double)(1/(double)implScore));
+            return new Score(resourceScore, 3, (double) (1 / (double) implScore));
         } else {
-        	//return super.getImplementationScore(action, params, impl, resourceScore);
-        	return null;
+            // return super.getImplementationScore(action, params, impl, resourceScore);
+            return null;
         }
     }
-    
-    
 
-    /*
-     * It only receives actions whose execution the worker can host at the moment. Same behavior as the base case. Not
-     * adding any resource dependency.
-     * 
-     * @Override public void initialSchedule(AllocatableAction action, Implementation bestImpl) { //No need to add any
-     * resource dependency. It can start executing!
-     * 
-     * }
-     */
 }

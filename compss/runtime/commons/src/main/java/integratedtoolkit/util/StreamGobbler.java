@@ -5,12 +5,22 @@ import java.io.InputStream;
 import java.io.PrintStream;
 
 
+/**
+ * Support class to retrieve external processes output
+ * 
+ */
 public class StreamGobbler extends Thread {
 
     private final InputStream in;
     private final PrintStream out;
 
 
+    /**
+     * Creates a new StreamGobbler for is @in and prints information to os @out
+     * 
+     * @param in
+     * @param out
+     */
     public StreamGobbler(InputStream in, PrintStream out) {
         this.setName("Stream Gobbler");
 

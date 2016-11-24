@@ -155,7 +155,6 @@ public class WorkerStarter {
         	logger.debug("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
             throw new InitNodeException("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
         } else {
-        	
             return n; // should be unreachable statement
         }
     }

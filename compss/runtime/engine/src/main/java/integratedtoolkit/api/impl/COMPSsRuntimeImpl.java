@@ -189,9 +189,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null) {
                     System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, manager.getCustomExtraeFile());
                 }
-                if (System.getProperty(ITConstants.IT_PRESCHED) == null) {
-                    System.setProperty(ITConstants.IT_PRESCHED, Boolean.toString(manager.isPresched()));
-                }
                 if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null
                         || System.getProperty(ITConstants.IT_TASK_EXECUTION).equals("")) {
                     System.setProperty(ITConstants.IT_TASK_EXECUTION, ITConstants.EXECUTION_INTERNAL);

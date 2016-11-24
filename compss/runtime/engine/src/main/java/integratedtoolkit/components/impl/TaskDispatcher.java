@@ -38,14 +38,14 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
+/**
+ * Component used as interface between the task analysis and the task scheduler
+ * Manage and handles requests for task execution, task status, etc.
+ * 
+ * @param <P>
+ * @param <T>
+ */
 public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescription> implements Runnable, ResourceUser, ActionOrchestrator {
-
-    public interface TaskProducer {
-
-        public void notifyTaskEnd(Task task);
-    }
-
 
     // Schedulers jars path
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
@@ -66,6 +66,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
 
 
+    /**
+     * Creates a new task dispatcher instance
+     * 
+     */
     public TaskDispatcher() {
         requestQueue = new LinkedBlockingDeque<>();
         dispatcher = new Thread(this);
@@ -103,6 +107,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     }
 
     // Dispatcher thread
+    @Override
     public void run() {
         while (keepGoing) {
             String requestType="Not defined";
@@ -139,19 +144,34 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         }
     }
 
+    /**
+     * Adds a new request to the task dispatcher
+     * 
+     * @param request
+     */
     private void addRequest(TDRequest<P, T> request) {
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "add request");
         }
     }
 
+    /**
+     * Adds a new prioritary request to the task dispatcher
+     * 
+     * @param request
+     */
     private void addPrioritaryRequest(TDRequest<P, T> request) {
         if (!requestQueue.offerFirst(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "add prioritary request");
         }
     }
 
-    // TP (TA)
+    /**
+     * Adds a new execute task request
+     * 
+     * @param producer
+     * @param task
+     */
     public void executeTask(TaskProducer producer, Task task) {
         if (debug) {
             StringBuilder sb = new StringBuilder("Schedule tasks: ");
@@ -191,6 +211,11 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         return request.getResponse();
     }
     
+    /**
+     * Adds a new task summary request
+     * 
+     * @param logger
+     */
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
         TaskSummaryRequest<P, T> request = new TaskSummaryRequest<P,T>(logger, sem);
@@ -219,6 +244,11 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         return (String) request.getResponse();
     }
 
+    /**
+     * Adds a new request to print the current monitor graph
+     * 
+     * @param graph
+     */
     public void printCurrentGraph(BufferedWriter graph) {
         Semaphore sem = new Semaphore(0);
         PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest<P, T>(sem, graph);
@@ -238,6 +268,11 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         addPrioritaryRequest(request);
     }
 
+    /**
+     * Adds a new request to add a new interface
+     * 
+     * @param forName
+     */
     public void addInterface(Class<?> forName) {
         if (debug) {
             logger.debug("Updating CEI " + forName.getName());
@@ -257,6 +292,14 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         }
     }
 
+    /**
+     * Adds a new request to register a new CoreElement
+     * 
+     * @param signature
+     * @param methodName
+     * @param declaringClass
+     * @param constraints
+     */
     public void registerCEI(String signature, String methodName, String declaringClass, MethodResourceDescription constraints) {
         if (debug) {
             logger.debug("Registering CEI");
@@ -276,7 +319,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         }
     }
 
-    // TP (TA)
+    /**
+     * Shuts down the component
+     * 
+     */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
         ShutdownRequest<P, T> request = new ShutdownRequest<P, T>(sem);

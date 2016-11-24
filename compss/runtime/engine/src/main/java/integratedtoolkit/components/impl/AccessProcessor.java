@@ -2,7 +2,7 @@ package integratedtoolkit.components.impl;
 
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
-import integratedtoolkit.components.impl.TaskDispatcher.TaskProducer;
+import integratedtoolkit.components.impl.TaskProducer;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -50,6 +50,10 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
 
+/**
+ * Component to handle the tasks accesses to files and object
+ * 
+ */
 public class AccessProcessor implements Runnable, TaskProducer {
 
     protected static final String ERROR_OBJECT_LOAD_FROM_STORAGE = "ERROR: Cannot load object from storage (file or PSCO)";
@@ -71,6 +75,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
     int changes = CHANGES;
 
 
+    /**
+     * Creates a new Access Processor instance
+     * 
+     * @param td
+     */
     public AccessProcessor(TaskDispatcher<?, ?> td) {
         taskDispatcher = td;
 
@@ -93,6 +102,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
+    /**
+     * Sets the GraphGenerator co-worker
+     * 
+     * @param gm
+     */
     public void setGM(GraphGenerator gm) {
         this.taskAnalyser.setGM(gm);
     }
@@ -129,12 +143,25 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.info("AccessProcessor shutdown");
     }
 
-    // App : new Method Task
+    /**
+     * App : new Method Task
+     * 
+     * @param appId
+     * @param methodClass
+     * @param methodName
+     * @param isPrioritary
+     * @param numNodes
+     * @param isReplicated
+     * @param isDistributed
+     * @param hasTarget
+     * @param parameters
+     * @return
+     */
     public int newTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
-        
-        Task currentTask = new Task(appId, methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, 
-                                        hasTarget, parameters);
+
+        Task currentTask = new Task(appId, methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameters);
 
         if (!requestQueue.offer(new TaskAnalysisRequest(currentTask))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "new method task");
@@ -142,7 +169,19 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return currentTask.getId();
     }
 
-    // App : new Service task
+    /**
+     * App : new Service task
+     * 
+     * @param appId
+     * @param namespace
+     * @param service
+     * @param port
+     * @param operation
+     * @param priority
+     * @param hasTarget
+     * @param parameters
+     * @return
+     */
     public int newTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             Parameter[] parameters) {
 
@@ -162,6 +201,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
+    /**
+     * Notifies a main access to a given file @sourceLocation in mode @fap
+     * 
+     * @param sourceLocation
+     * @param fap
+     * @param destDir
+     * @return
+     */
     public DataLocation mainAccessToFile(DataLocation sourceLocation, AccessParams.FileAccessParams fap, String destDir) {
         boolean alreadyAccessed = alreadyAccessed(sourceLocation);
 
@@ -229,6 +276,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return tgtLocation;
     }
 
+    /**
+     * Returns if the value with hashCode @hashCode is valid or obsolete
+     * 
+     * @param hashCode
+     * @return
+     */
     public boolean isCurrentRegisterValueValid(int hashCode) {
         Semaphore sem = new Semaphore(0);
         IsObjectHereRequest request = new IsObjectHereRequest(hashCode, sem);
@@ -244,6 +297,14 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return request.getResponse();
     }
 
+    /**
+     * Notifies a main access to an object @o
+     * 
+     * @param o
+     * @param hashCode
+     * @param destDir
+     * @return
+     */
     public Object mainAcessToObject(Object o, int hashCode, String destDir) {
         // Tell the DIP that the application wants to access an object
         AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);
@@ -263,7 +324,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return oUpdated;
     }
 
-    // App
+    /**
+     * Notification for no more tasks
+     * 
+     * @param appId
+     */
     public void noMoreTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
         if (!requestQueue.offer(new EndOfAppRequest(appId, sem))) {
@@ -277,7 +342,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.info("All tasks finished");
     }
 
-    // App
+    /**
+     * Returns whether the @loc has already been accessed or not
+     * 
+     * @param loc
+     * @return
+     */
     private boolean alreadyAccessed(DataLocation loc) {
         Semaphore sem = new Semaphore(0);
         AlreadyAccessedRequest request = new AlreadyAccessedRequest(loc, sem);
@@ -292,7 +362,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return request.getResponse();
     }
 
-    // App
+    /**
+     * Barrier
+     * 
+     * @param appId
+     */
     public void waitForAllTasks(Long appId) {
         Semaphore sem = new Semaphore(0);
         if (!requestQueue.offer(new WaitForAllTasksRequest(appId, sem))) {
@@ -306,7 +380,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.info("Barrier: End of waited all tasks");
     }
 
-    // App
+    /**
+     * Synchronism for an specific task
+     * 
+     * @param dataId
+     * @param mode
+     */
     private void waitForTask(int dataId, AccessMode mode) {
         Semaphore sem = new Semaphore(0);
         if (!requestQueue.offer(new WaitForTaskRequest(dataId, mode, sem))) {
@@ -320,7 +399,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.info("End of waited task for data " + dataId);
     }
 
-    // App
+    /**
+     * Registers a new data access
+     * 
+     * @param access
+     * @return
+     */
     private DataAccessId registerDataAccess(AccessParams access) {
         Semaphore sem = new Semaphore(0);
         RegisterDataAccessRequest request = new RegisterDataAccessRequest(access, sem);
@@ -335,7 +419,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return request.getResponse();
     }
 
-    // App
+    /**
+     * Registers a new version of file/object with the same value
+     * 
+     * @param rRenaming
+     * @param wRenaming
+     */
     public void newVersionSameValue(String rRenaming, String wRenaming) {
         NewVersionSameValueRequest request = new NewVersionSameValueRequest(rRenaming, wRenaming);
         if (!requestQueue.offer(request)) {
@@ -343,7 +432,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
-    // App
+    /**
+     * Sets a new value to a specific version of a file/object
+     * 
+     * @param renaming
+     * @param value
+     */
     public void setObjectVersionValue(String renaming, Object value) {
         SetObjectVersionValueRequest request = new SetObjectVersionValueRequest(renaming, value);
         if (!requestQueue.offer(request)) {
@@ -351,7 +445,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
-    // App
+    /**
+     * Returns the last version of a file/object with code @code
+     * 
+     * @param code
+     * @return
+     */
     public String getLastRenaming(int code) {
         Semaphore sem = new Semaphore(0);
         GetLastRenamingRequest request = new GetLastRenamingRequest(code, sem);
@@ -367,7 +466,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return request.getResponse();
     }
 
-    // App
+    /**
+     * Unblock result files
+     * 
+     * @param resFiles
+     */
     public void unblockResultFiles(List<ResultFile> resFiles) {
         UnblockResultFilesRequest request = new UnblockResultFilesRequest(resFiles);
         if (!requestQueue.offer(request)) {
@@ -375,7 +478,10 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
     }
 
-    // App / Shutdown thread
+    /**
+     * Shutdown request
+     * 
+     */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
         if (!requestQueue.offer(new ShutdownRequest(sem))) {
@@ -407,13 +513,23 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return (String) request.getResponse();
     }
 
+    /**
+     * Marks a location for deletion
+     * 
+     * @param loc
+     */
     public void markForDeletion(DataLocation loc) {
         if (!requestQueue.offer(new DeleteFileRequest(loc))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "mark for deletion");
         }
     }
 
-    // App
+    /**
+     * Adds a request for file raw transfer
+     * 
+     * @param faId
+     * @param location
+     */
     private void transferFileRaw(DataAccessId faId, DataLocation location) {
         Semaphore sem = new Semaphore(0);
         TransferRawFileRequest request = new TransferRawFileRequest((RAccessId) faId, location, sem);
@@ -430,7 +546,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         logger.debug("Raw file transferred");
     }
 
-    // App
+    /**
+     * Adds a request for open file transfer
+     * 
+     * @param faId
+     * @return
+     */
     private DataLocation transferFileOpen(DataAccessId faId) {
         Semaphore sem = new Semaphore(0);
         TransferOpenFileRequest request = new TransferOpenFileRequest(faId, sem);
@@ -448,6 +569,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return request.getLocation();
     }
 
+    /**
+     * Adds a request to obtain an object from a worker to the master
+     * 
+     * @param oaId
+     * @return
+     */
     private Object obtainObject(DataAccessId oaId) {
         // Ask for the object
         Semaphore sem = new Semaphore(0);
@@ -483,6 +610,11 @@ public class AccessProcessor implements Runnable, TaskProducer {
         return oUpdated;
     }
 
+    /**
+     * Adds a request to retrieve the result files from the workers to the master
+     * 
+     * @param appId
+     */
     public void getResultFiles(Long appId) {
         Semaphore sem = new Semaphore(0);
         GetResultFilesRequest request = new GetResultFilesRequest(appId, sem);

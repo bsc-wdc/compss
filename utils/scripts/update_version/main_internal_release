@@ -22,7 +22,7 @@ usage() {
   baseVersion=$(cat ${trunk_dir}/pom.xml | grep "compss.version" | tr ">" "\t" | awk {' print $2 '} | tr "<" "\t" | awk {' print $1 '})
 
   # Compute version
-  month=$(date +"%m")
+  month=$(date +"%y%m")
   if [[ ${baseVersion} == *rc* ]]; then
     version=${baseVersion::-5}.rc${month}
   else

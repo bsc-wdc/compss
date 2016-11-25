@@ -463,7 +463,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 	exit(0);
       }
       break;
-    case persistent_dt:
+    case external_psco_dt:
       jobjParVal = env->NewStringUTF(*(char **)parVal);
       if (env->ExceptionOccurred()) {
 	env->ExceptionDescribe();

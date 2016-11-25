@@ -108,6 +108,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                 case FILE_T:
                 case OBJECT_T:
                 case PSCO_T:
+                case EXTERNAL_PSCO_T:
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     Object value = dPar.getDataTarget();

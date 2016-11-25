@@ -248,6 +248,10 @@ public class GATWorker {
                     }
                     argPosition++;
                     break;
+                case EXTERNAL_PSCO_T:
+                    types[i] = String.class;
+                    values[i] = args[argPosition + 1];
+                    break;
                 case BOOLEAN_T:
                     types[i] = boolean.class;
                     values[i] = new Boolean(args[argPosition + 1]);

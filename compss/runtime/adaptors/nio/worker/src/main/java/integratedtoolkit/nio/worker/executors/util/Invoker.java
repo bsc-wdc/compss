@@ -250,6 +250,11 @@ public abstract class Invoker {
                     this.values[i] = obj;
                 }
                 break;
+            case EXTERNAL_PSCO_T:
+                types[i] = String.class;
+                values[i] = np.getValue();
+                writeFinalValue[i] = np.isWriteFinalValue();
+                break;
         }
 
         this.isFile[i] = (np.getType().equals(DataType.FILE_T));

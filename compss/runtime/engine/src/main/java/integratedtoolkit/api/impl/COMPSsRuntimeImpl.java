@@ -331,7 +331,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public synchronized void startIT() {
-
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             Tracer.emitEvent(Tracer.Event.START.getId(), Tracer.Event.START.getType());
@@ -355,10 +354,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             // Application
             synchronized (this) {
                 logger.debug("Initializing components");
+                
+                // Initialize object registry for bindings if needed
+                String lang = System.getProperty(ITConstants.IT_LANG);
+                if (lang != ITConstants.Lang.JAVA.name() && oReg == null) {
+                    oReg = new ObjectRegistry(this);
+                }
 
+                // Initialize main runtime components
                 td = new TaskDispatcher();
                 ap = new AccessProcessor(td);
 
+                // Initialize runtime tools components
                 if (GraphGenerator.isEnabled()) {
                     graphMonitor = new GraphGenerator();
                     ap.setGM(graphMonitor);
@@ -367,6 +374,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     runtimeMonitor = new RuntimeMonitor(ap, td, graphMonitor, Long.parseLong(System.getProperty(ITConstants.IT_MONITOR)));
                 }
 
+                // Log initialization
                 initialized = true;
                 logger.debug("Ready to process tasks");
             }
@@ -850,6 +858,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     break;
 
                 case PSCO_T:
+                case EXTERNAL_PSCO_T:
                 case OBJECT_T:                    
                     pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
                     break;
@@ -860,7 +869,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                      */
                     if (direction != DataDirection.IN) {
                         logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar 
-                                + " has a basic type, therefore it must have INPUT direction");
+                                + " is a basic type, therefore it must have IN direction");
                     }
                     pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
                     break;

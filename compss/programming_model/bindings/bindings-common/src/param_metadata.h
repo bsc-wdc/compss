@@ -15,8 +15,8 @@ enum datatype {
         string_dt,
         file_dt,
         object_dt,
-        persistent_dt,
-        sco_dt,
+        psco_dt,
+        external_psco_dt,
 
         wchar_dt,
         wstring_dt,

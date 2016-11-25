@@ -188,6 +188,12 @@ public class TaskAnalyser {
                     daId = DIP.registerFileAccess(am, fp.getLocation());
                     break;
                 case PSCO_T:
+                case EXTERNAL_PSCO_T:
+                    ObjectParameter pscop = (ObjectParameter) p;
+                    // Check if its PSCO class and persisted to infer its type
+                    pscop.setType(DataType.PSCO_T);
+                    daId = DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                    break;
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
@@ -342,7 +348,7 @@ public class TaskAnalyser {
 
             for (Parameter param : task.getTaskDescription().getParameters()) {
                 DataType type = param.getType();
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T) {
+                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
                     LOGGER.debug("Treating that data " + dPar.getDataTarget() + " has been accessed");

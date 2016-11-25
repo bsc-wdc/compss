@@ -433,8 +433,7 @@ public class NIOWorker extends NIOAgent {
                             }
 
                             if (!locationsInCache) {
-                                // Try if any of the object locations is in the
-                                // host
+                                // Try if any of the object locations is in the host
                                 wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
                                 NIOURI loc = param.getData().getURIinHost(host);
                                 if (loc != null) {
@@ -560,7 +559,7 @@ public class NIOWorker extends NIOAgent {
                         }
                         break;
 
-                    /* OTHERS: Strings or basic types */
+                    /* OTHERS: External PSCOs (sending the id as string), Strings or basic types */
                     default:
                         // The master should have erased all these parameters so we are never entering this section
                         // In any case, there is nothing to do for these type of parameters

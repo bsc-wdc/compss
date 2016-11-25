@@ -570,7 +570,7 @@ public abstract class Tracer {
         }
 
         String lang = System.getProperty(ITConstants.IT_LANG);
-        if (exitCode == 0 && lang.equals("python")) {
+        if (exitCode == 0 && lang.equalsIgnoreCase(ITConstants.Lang.PYTHON.name())) {
             try {
                 new TraceMerger(System.getProperty(ITConstants.IT_APP_LOG_DIR), appName).merge();
             } catch (IOException e) {

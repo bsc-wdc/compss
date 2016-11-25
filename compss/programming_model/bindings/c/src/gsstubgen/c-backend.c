@@ -26,8 +26,8 @@ static char *c_types[] = {
   "char *",		// string_dt
   "file",		// file_dt
   "void *",		// object_dt
-  "void *",		// persistent_dt
-  "void *",		// sco_dt
+  "void *",		// psco_dt
+  "void *",		// external_psco_dt
   
   "char", 		// wchar_dt
   "char *", 		// wstring_dt
@@ -49,8 +49,8 @@ static char *c_out_types[] = {
   "char *",               // string_dt
   "file",                 // file_dt
   "void *",               // object_dt
-  "void *",               // persistent_dt
-  "void *",               // sco_dt
+  "void *",               // psco_dt
+  "void *",               // external_psco_dt
   
   "char",                 // wchar_dt
   "char *",               // wstring_dt

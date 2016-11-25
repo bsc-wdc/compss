@@ -55,9 +55,9 @@ public class CEIParser {
         
         String langProperty = System.getProperty(ITConstants.IT_LANG);
         if (langProperty != null) {
-            if (langProperty.equalsIgnoreCase("python")) {
+            if (langProperty.equalsIgnoreCase(ITConstants.Lang.PYTHON.name())) {
                 l = Lang.PYTHON;
-            } else if (langProperty.equalsIgnoreCase("c")) {
+            } else if (langProperty.equalsIgnoreCase(ITConstants.Lang.C.name())) {
                 l = Lang.C;
             }
         }

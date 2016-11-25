@@ -28,7 +28,7 @@ public class COMPSsRuntimeImplTest {
         String resources_xsd = this.getClass().getResource("resources_schema.xsd").getPath();
         String project = this.getClass().getResource("project.xml").getPath();
         String project_xsd = this.getClass().getResource("project_schema.xsd").getPath();
-        System.setProperty(ITConstants.IT_LANG, "python");
+        System.setProperty(ITConstants.IT_LANG, ITConstants.Lang.PYTHON.name());
         System.setProperty(ITConstants.IT_RES_FILE, resources);
         System.setProperty(ITConstants.IT_RES_SCHEMA, resources_xsd);
         System.setProperty(ITConstants.IT_PROJ_FILE, project);

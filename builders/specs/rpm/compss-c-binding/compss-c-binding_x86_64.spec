@@ -84,15 +84,24 @@ echo " "
 echo "* Installing COMPSs C-Binding..."
 echo " "
 
+echo " - Configure and compile GSBuilder and GSStrubGen"
+cd /opt/COMPSs/Bindings/c/
+./install /opt/COMPSs/Bindings/c false
+echo " "
+
 echo " - Adding c-binaries to profile..."
 echo "export PATH=\$PATH:/opt/COMPSs/Bindings/c/bin" >> /etc/profile.d/compss.sh
-echo " - c-binaries added to user profile"
+echo " "
+
+echo " - Setting COMPSs C-Binding permissions..."
+chmod 755 -R /opt/COMPSs/Runtime/scripts/system/c
+chmod 755 /opt/COMPSs/Runtime/scripts/user/buildapp
+chmod 755 -R /opt/COMPSs/Bindings/c
 echo " "
 
 echo "Congratulations!"
 echo "COMPSs C-Binding Successfully installed!"
 echo " "
-
 
 #------------------------------------------------------------------------------------
 %preun

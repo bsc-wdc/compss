@@ -40,7 +40,6 @@
     # Adding C-binaries
     echo " - Adding c-binaries to profile..."
     echo "export PATH=\$PATH:/opt/COMPSs/Bindings/c/bin" >> /etc/profile.d/compss.sh
-    echo " - c-binaries added to user profile"
     echo " "
 
     # Clean

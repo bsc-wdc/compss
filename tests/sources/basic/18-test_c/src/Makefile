@@ -1,25 +1,28 @@
-all:
+GCC=g++
+#DEBUG_FLAG=-DDEBUG_BINDING
+CFLAGS=${DEBUG_FLAG} -g -I. -I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
 
-	@echo "Building application..."
+all: clean compile_master compile_worker deploy
 
-	g++ -DCOMPSS_MASTER -DDEBUG_BINDING -g -I. -I/opt/COMPSs/Runtime/bindings/c/include -I/opt/COMPSs/Runtime/bindings/bindings-common/include -c address.cc student.cc
-	#g++ -DCOMPSS_MASTER -g -I. -I/opt/COMPSs/Runtime/bindings/c/include -I/opt/COMPSs/Runtime/bindings/bindings-common/include -c address.cc student.cc
-		
+compile_master:
+	@echo "Building application for master..."
+	$(GCC) -DCOMPSS_MASTER $(CFLAGS) -c address.cc student.cc
 	ar rvs libmaster.a address.o student.o
 	ranlib libmaster.a
-	
-	rm *.o
-		
-	g++ -DCOMPSS_WORKER -DDEBUG_BINDING -g -I. -I/opt/COMPSs/Runtime/bindings/c/include -I/opt/COMPSs/Runtime/bindings/bindings-common/include -c address.cc student.cc
-	#g++ -DCOMPSS_WORKER -g -I. -I/opt/COMPSs/Runtime/bindings/c/include -I/opt/COMPSs/Runtime/bindings/bindings-common/include -c address.cc student.cc
-		
+
+compile_worker:
+	@echo "Building application for workers..."
+	$(GCC) -DCOMPSS_WORKER $(CFLAGS) -c address.cc student.cc
 	ar rvs libworker.a address.o student.o
-	ranlib libworker.a 
-	
-	rm *.o		
-	 			
+	ranlib libworker.a
+
+deploy:
+	@echo "Deploying lib files..."
 	@rm -rf ../lib
 	@mkdir ../lib
 	@mv *.a ../lib
-	
-	@echo " " 
+
+clean:
+	@echo "Cleaning intermediate files..."
+	rm -f *.o
+

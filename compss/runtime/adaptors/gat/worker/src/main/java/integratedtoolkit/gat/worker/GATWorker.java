@@ -2,18 +2,20 @@ package integratedtoolkit.gat.worker;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.gat.worker.utils.Invokers;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
-import integratedtoolkit.worker.invokers.GenericInvoker;
-import integratedtoolkit.worker.invokers.InvokeExecutionException;
 
 import java.io.File;
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -22,103 +24,177 @@ import storage.StubItf;
 
 /**
  * The worker class is executed on the remote resources in order to execute the tasks.
+ * 
  */
 public class GATWorker {
 
     private static final String WARN_UNSUPPORTED_TYPE = "WARNING: Unsupported data type";
-    private static final String ERROR_INVOKE = "Error invoking requested method";
+    private static final String ERROR_APP_PARAMETERS = "ERROR: Incorrect number of parameters";
+    private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
+    private static final String ERROR_SERIALIZE_RETURN = "Error serializing object return value with renaming ";
+    private static final String ERROR_OUTPUT_FILES = "ERROR: One or more OUT files have not been created by task '";
+
+    private static final int DEFAULT_FLAGS_SIZE = 2;
+
+    private static boolean debug;
+    private static String storageConf;
+
+    private static int numNodes;
+    private static Set<String> hostnames;
+    private static int cus;
+
+    private static MethodType methodType;
+    private static String[] methodDefinition;
+    private static boolean hasTarget;
+    private static int numParams;
+    private static int initialAppParamsPosition;
+    private static int finalAppParamsPosition;
+
+    private static Class<?> types[];
+    private static Object values[];
+    private static boolean isFile[];
+    private static boolean mustWrite[];
+    private static String renamings[];
+    private static Object target;
+    private static String retRenaming;
+    private static Object retValue;
 
 
     /**
      * Executes a method taking into account the parameters. First it parses the parameters assigning values and
-     * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection and serializes all the
-     * objects that has been modified and the result.
+     * deserializing Read/creating empty ones for Write. Invokes the desired method by reflection. and serializes all
+     * the objects that has been modified and the result.
+     * 
+     */
+    public static void main(String args[]) {
+        // Retrieve arguments
+        parseArguments(args);
+        parseApplicationParameters(args);
+
+        // Log information
+        if (GATWorker.debug) {
+            logArguments();
+        }
+
+        // Set environment variables for MPI/OMPSs tasks
+        setEnvironmentVariables();
+
+        // Invoke method depending on its type
+        invokeMethod();
+        if (GATWorker.retValue != null) {
+            GATWorker.retRenaming = args[GATWorker.finalAppParamsPosition + 1];
+        }
+
+        // Post task execution
+        serializeResults();
+        checkOutputFiles();
+
+        // We don't stop the storage because the master does it
+    }
+
+    /**
+     * Parses the all the arguments except the application parameters
      *
      * @param args
-     *            args for the execution: 
-     *            arg[0]: boolean enable debug 
-     *            arg[1]: String with Storage configuration
-     *            arg[2]: Method type
-     *            arg[3,3-4]: Method dependant parameters
-     *            arg[5]: boolean is the method executed on a certain instance 
-     *            arg[6]: integer amount of parameters of the method 
-     *            arg[7+]: parameters of the method For each parameter: type:
-     *            0-10 (file, boolean, char, string, byte, short, int, long, float, double, object) [substrings: amount
-     *            of substrings (only used when the type is string)] value: value for the parameter or the file where it
-     *            is contained (for objects and files) [Direction: R/W (only used when the type is object)]
+     *            args for the execution: arg[0]: boolean enable debug arg[1]: String with Storage configuration arg[2]:
+     *            Number of nodes for multi-node tasks (N) arg[3,N]: N strings with multi-node hostnames arg[3+N+1]:
+     *            Number of computing units arg[3+N+2]: Method type (M=3+N+2) arg[M,M - M+1]: Method dependant
+     *            parameters Others
+     * 
      */
-    public static void main(String args[]) {        
-        boolean debug = Boolean.valueOf(args[0]);
-        String storageConf = args[1];
-        
-        MethodType methodType = MethodType.valueOf(args[2]);
-        String[] methodDefinition = null;
-        int argPosition = 3;
-        switch(methodType) {
+    private static void parseArguments(String args[]) {
+        // Default flags
+        GATWorker.debug = Boolean.valueOf(args[0]);
+        GATWorker.storageConf = args[1];
+
+        // Execution information for multi-node tasks
+        GATWorker.numNodes = Integer.parseInt(args[DEFAULT_FLAGS_SIZE]);
+        GATWorker.hostnames = new HashSet<String>();
+        for (int i = 0; i < numNodes; ++i) {
+            GATWorker.hostnames.add(args[DEFAULT_FLAGS_SIZE + 1 + i]);
+        }
+        GATWorker.cus = Integer.parseInt(args[DEFAULT_FLAGS_SIZE + GATWorker.numNodes + 1]);
+
+        int argPosition = DEFAULT_FLAGS_SIZE + numNodes + 2;
+        GATWorker.methodType = MethodType.valueOf(args[argPosition++]);
+        GATWorker.methodDefinition = null;
+        switch (GATWorker.methodType) {
             case METHOD:
                 // classname, methodname
-                methodDefinition = new String[] { args[3], args[4] };
+                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1] };
                 argPosition += 2;
                 break;
             case MPI:
                 // mpiRunner, mpiBinary
-                methodDefinition = new String[] { args[3], args[4] };
+                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1] };
                 argPosition += 2;
                 break;
             case OMPSS:
                 // binary
-                methodDefinition = new String[] { args[3] };
+                GATWorker.methodDefinition = new String[] { args[argPosition] };
                 argPosition += 1;
                 break;
             case OPENCL:
                 // kernel
-                methodDefinition = new String[] { args[3] };
+                GATWorker.methodDefinition = new String[] { args[argPosition] };
                 argPosition += 1;
                 break;
             case BINARY:
                 // binary
-                methodDefinition = new String[] { args[3] };
+                GATWorker.methodDefinition = new String[] { args[argPosition] };
                 argPosition += 1;
                 break;
         }
 
-        boolean hasTarget = Boolean.parseBoolean(args[argPosition++]);
-        int numParams = Integer.parseInt(args[argPosition++]);
+        GATWorker.hasTarget = Boolean.parseBoolean(args[argPosition++]);
+        GATWorker.numParams = Integer.parseInt(args[argPosition++]);
+        GATWorker.initialAppParamsPosition = argPosition;
 
         // Check received arguments
-        if (args.length < 2 * numParams + argPosition) {
-            ErrorManager.error("Incorrect number of parameters");
+        if (args.length < 2 * GATWorker.numParams + GATWorker.initialAppParamsPosition) {
+            ErrorManager.error(ERROR_APP_PARAMETERS);
         }
 
         // Check if we must enable the storage
-        System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
-        if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+        System.setProperty(ITConstants.IT_STORAGE_CONF, GATWorker.storageConf);
+        if (GATWorker.storageConf != null && !GATWorker.storageConf.equals("") && !GATWorker.storageConf.equals("null")) {
             try {
-                StorageItf.init(storageConf);
+                StorageItf.init(GATWorker.storageConf);
             } catch (StorageException e) {
-                ErrorManager.fatal("Error loading storage configuration file: " + storageConf, e);
+                ErrorManager.fatal(ERROR_STORAGE_CONF + GATWorker.storageConf, e);
             }
         }
+    }
 
+    /**
+     * Parses the application parameters
+     * 
+     * @param args
+     *            arg[L]: boolean is the method executed on a certain instance arg[L]: integer amount of parameters of
+     *            the method arg[L+]: parameters of the method For each parameter: type: 0-10 (file, boolean, char,
+     *            string, byte, short, int, long, float, double, object) [substrings: amount of substrings (only used
+     *            when the type is string)] value: value for the parameter or the file where it is contained (for
+     *            objects and files) [Direction: R/W (only used when the type is object)]
+     */
+    private static void parseApplicationParameters(String[] args) {
         // Variables
-        Class<?> types[];
-        Object values[];
-        if (hasTarget) {
+        if (GATWorker.hasTarget) {
             // The target object of the last parameter before the return value (if any)
-            types = new Class[numParams - 1];
-            values = new Object[numParams - 1];
+            GATWorker.types = new Class[GATWorker.numParams - 1];
+            GATWorker.values = new Object[GATWorker.numParams - 1];
         } else {
-            types = new Class[numParams];
-            values = new Object[numParams];
+            GATWorker.types = new Class[GATWorker.numParams];
+            GATWorker.values = new Object[GATWorker.numParams];
         }
-        boolean isFile[] = new boolean[numParams];
-        boolean mustWrite[] = new boolean[numParams];
-        String renamings[] = new String[numParams];
+
+        GATWorker.isFile = new boolean[GATWorker.numParams];
+        GATWorker.mustWrite = new boolean[GATWorker.numParams];
+        GATWorker.renamings = new String[GATWorker.numParams];
 
         // Parse the parameter types and values
-        Object target = null;
         DataType[] dataTypes = DataType.values();
-        for (int i = 0; i < numParams; i++) {
+        int argPosition = GATWorker.initialAppParamsPosition;
+        for (int i = 0; i < GATWorker.numParams; i++) {
             // We need to use wrapper classes for basic types, reflection will unwrap automatically
             int argType_index = Integer.parseInt(args[argPosition]);
             if (argType_index >= dataTypes.length) {
@@ -127,141 +203,35 @@ public class GATWorker {
             DataType argType = DataType.values()[argType_index];
             switch (argType) {
                 case FILE_T:
-                    types[i] = String.class;
-                    values[i] = args[argPosition + 1];
+                    GATWorker.types[i] = String.class;
+                    GATWorker.values[i] = args[argPosition + 1];
                     break;
                 case OBJECT_T:
-                    renamings[i] = (String) args[argPosition + 1];
-                    mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
-
-                    String renaming = renamings[i];
-                    Object o = null;
-                    try {
-                        o = Serializer.deserialize(renaming);
-                    } catch (Exception e) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Error deserializing object parameter ").append(i);
-                        sb.append(" with renaming ").append(renaming);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        ErrorManager.error(sb.toString());                        
-                    }
-
-                    // Check retrieved object
-                    if (o == null) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Object with renaming ").append(renaming);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        sb.append("is null!");
-                        ErrorManager.error(sb.toString());
-                        return;
-                    }
-
-                    // Store retrieved object
-                    if (hasTarget && i == numParams - 1) { // last parameter is the target object
-                        target = o;
-                    } else {
-                        types[i] = o.getClass();
-                        values[i] = o;
-                    }
+                    GATWorker.renamings[i] = (String) args[argPosition + 1];
+                    GATWorker.mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
+                    retrieveObject(renamings[i], i);
                     argPosition++;
                     break;
                 case PSCO_T:
-                    renamings[i] = (String) args[argPosition + 1];
-                    mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
-
-                    renaming = renamings[i];
-                    String id = null;
-                    try {
-                        id = (String) Serializer.deserialize(renaming);
-                    } catch (Exception e) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Error deserializing PSCO id parameter ").append(i);
-                        sb.append(" with renaming ").append(renaming);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        ErrorManager.error(sb.toString());
-                        return;
-                    }
-
-                    // Check retrieved id
-                    if (id == null) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("PSCO Id with renaming ").append(renaming);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        sb.append("is null!");
-                        ErrorManager.error(sb.toString());
-                        return;
-                    }
-
-                    Object obj = null;
-                    if (Tracer.isActivated()) {
-                        Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-                    }
-                    try {
-                        obj = StorageItf.getByID(id);
-                    } catch (StorageException e) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Cannot getByID parameter ").append(i);
-                        sb.append(" with PSCOId ").append(id);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        ErrorManager.error(sb.toString());
-                        return;
-                    } finally {
-                        if (Tracer.isActivated()) {
-                            Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-                        }
-                    }
-
-                    // Check retrieved object
-                    if (obj == null) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("PSCO with id ").append(id);
-                        sb.append(", at");
-                        for (String info : methodDefinition) {
-                            sb.append(info).append(" ");
-                        }
-                        sb.append("is null!");
-                        ErrorManager.error(sb.toString());
-                        return;
-                    }
-
-                    // Store retrieved object
-                    if (hasTarget && i == numParams - 1) { // last parameter is the target object
-                        target = obj;
-                    } else {
-                        types[i] = obj.getClass();
-                        values[i] = obj;
-                    }
+                    GATWorker.renamings[i] = (String) args[argPosition + 1];
+                    GATWorker.mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
+                    retrievePSCO(renamings[i], i);
                     argPosition++;
                     break;
                 case EXTERNAL_PSCO_T:
-                    types[i] = String.class;
-                    values[i] = args[argPosition + 1];
+                    GATWorker.types[i] = String.class;
+                    GATWorker.values[i] = args[argPosition + 1];
                     break;
                 case BOOLEAN_T:
-                    types[i] = boolean.class;
-                    values[i] = new Boolean(args[argPosition + 1]);
+                    GATWorker.types[i] = boolean.class;
+                    GATWorker.values[i] = new Boolean(args[argPosition + 1]);
                     break;
                 case CHAR_T:
-                    types[i] = char.class;
-                    values[i] = new Character(args[argPosition + 1].charAt(0));
+                    GATWorker.types[i] = char.class;
+                    GATWorker.values[i] = new Character(args[argPosition + 1].charAt(0));
                     break;
                 case STRING_T:
-                    types[i] = String.class;
+                    GATWorker.types[i] = String.class;
                     int numSubStrings = Integer.parseInt(args[argPosition + 1]);
                     String aux = "";
                     for (int j = 2; j <= numSubStrings + 1; j++) {
@@ -270,121 +240,265 @@ public class GATWorker {
                             aux += " ";
                         }
                     }
-                    values[i] = aux;
+                    GATWorker.values[i] = aux;
                     argPosition += numSubStrings;
                     break;
                 case BYTE_T:
-                    types[i] = byte.class;
-                    values[i] = new Byte(args[argPosition + 1]);
+                    GATWorker.types[i] = byte.class;
+                    GATWorker.values[i] = new Byte(args[argPosition + 1]);
                     break;
                 case SHORT_T:
-                    types[i] = short.class;
-                    values[i] = new Short(args[argPosition + 1]);
+                    GATWorker.types[i] = short.class;
+                    GATWorker.values[i] = new Short(args[argPosition + 1]);
                     break;
                 case INT_T:
-                    types[i] = int.class;
-                    values[i] = new Integer(args[argPosition + 1]);
+                    GATWorker.types[i] = int.class;
+                    GATWorker.values[i] = new Integer(args[argPosition + 1]);
                     break;
                 case LONG_T:
-                    types[i] = long.class;
-                    values[i] = new Long(args[argPosition + 1]);
+                    GATWorker.types[i] = long.class;
+                    GATWorker.values[i] = new Long(args[argPosition + 1]);
                     break;
                 case FLOAT_T:
-                    types[i] = float.class;
-                    values[i] = new Float(args[argPosition + 1]);
+                    GATWorker.types[i] = float.class;
+                    GATWorker.values[i] = new Float(args[argPosition + 1]);
                     break;
                 case DOUBLE_T:
-                    types[i] = double.class;
-                    values[i] = new Double(args[argPosition + 1]);
+                    GATWorker.types[i] = double.class;
+                    GATWorker.values[i] = new Double(args[argPosition + 1]);
                     break;
                 default:
                     ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType);
                     return;
             }
-            isFile[i] = argType.equals(DataType.FILE_T);
+            GATWorker.isFile[i] = argType.equals(DataType.FILE_T);
             argPosition += 2;
         }
 
-        if (debug) {
-            // Print request information
-            System.out.println("WORKER - Parameters of execution:");
-            for (int j = 0; j < methodDefinition.length; ++j) {
-                System.out.println("  * Method Description " + j + ": " + methodDefinition[j]);
+        GATWorker.finalAppParamsPosition = argPosition;
+    }
+
+    /**
+     * Retrieves an object from its renaming
+     * 
+     * @param renaming
+     * @param position
+     */
+    private static void retrieveObject(String renaming, int position) {
+        Object o = null;
+        try {
+            o = Serializer.deserialize(renaming);
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Error deserializing object parameter ").append(position);
+            sb.append(" with renaming ").append(renaming);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
             }
-            System.out.print("  * Parameter types:");
-            for (Class<?> c : types) {
-                System.out.print(" " + c.getName());
-            }
-            System.out.println("");
-            System.out.print("  * Parameter values:");
-            for (Object v : values) {
-                System.out.print(" " + v);
-            }
-            System.out.println("");
+            ErrorManager.error(sb.toString());
         }
-        
-        // Set environment variables
-        // TODO: Add useful values for MPI / OmpSs tasks
+
+        // Check retrieved object
+        if (o == null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Object with renaming ").append(renaming);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
+            }
+            sb.append("is null!");
+            ErrorManager.error(sb.toString());
+            return;
+        }
+
+        // Store retrieved object
+        if (GATWorker.hasTarget && position == GATWorker.numParams - 1) { // last parameter is the target object
+            GATWorker.target = o;
+        } else {
+            GATWorker.types[position] = o.getClass();
+            GATWorker.values[position] = o;
+        }
+    }
+
+    /**
+     * Retrieves a PSCO from its renaming
+     * 
+     * @param renaming
+     * @param position
+     */
+    private static void retrievePSCO(String renaming, int position) {
+        String id = null;
+        try {
+            id = (String) Serializer.deserialize(renaming);
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Error deserializing PSCO id parameter ").append(position);
+            sb.append(" with renaming ").append(renaming);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
+            }
+            ErrorManager.error(sb.toString());
+            return;
+        }
+
+        // Check retrieved id
+        if (id == null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("PSCO Id with renaming ").append(renaming);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
+            }
+            sb.append("is null!");
+            ErrorManager.error(sb.toString());
+            return;
+        }
+
+        Object obj = null;
+        if (Tracer.isActivated()) {
+            Tracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+        }
+        try {
+            obj = StorageItf.getByID(id);
+        } catch (StorageException e) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Cannot getByID parameter ").append(position);
+            sb.append(" with PSCOId ").append(id);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
+            }
+            ErrorManager.error(sb.toString());
+            return;
+        } finally {
+            if (Tracer.isActivated()) {
+                Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+            }
+        }
+
+        // Check retrieved object
+        if (obj == null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("PSCO with id ").append(id);
+            sb.append(", at");
+            for (String info : GATWorker.methodDefinition) {
+                sb.append(info).append(" ");
+            }
+            sb.append("is null!");
+            ErrorManager.error(sb.toString());
+            return;
+        }
+
+        // Store retrieved object
+        if (GATWorker.hasTarget && position == GATWorker.numParams - 1) { // last parameter is the target object
+            GATWorker.target = obj;
+        } else {
+            GATWorker.types[position] = obj.getClass();
+            GATWorker.values[position] = obj;
+        }
+    }
+
+    /**
+     * Logs the parsed arguments
+     * 
+     */
+    private static void logArguments() {
+        // Print arguments information
+        System.out.println("WORKER - Parameters of execution:");
+        for (int j = 0; j < GATWorker.methodDefinition.length; ++j) {
+            System.out.println("  * Method Description " + j + ": " + GATWorker.methodDefinition[j]);
+        }
+        System.out.print("  * Parameter types:");
+        for (Class<?> c : GATWorker.types) {
+            System.out.print(" " + c.getName());
+        }
+        System.out.println("");
+        System.out.print("  * Parameter values:");
+        for (Object v : GATWorker.values) {
+            System.out.print(" " + v);
+        }
+        System.out.println("");
+    }
+
+    /**
+     * Sets MPI / OMPSs environment variables
+     * 
+     */
+    private static void setEnvironmentVariables() {
         String hostname = "localhost";
         try {
             hostname = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e1) {
             ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
         }
-        setEnvironmentVariables(hostname, 1, 1);
-        
-        // Invoke method depending on its type
-        Object retValue = null;
-        switch(methodType) {
-            case METHOD:
-                retValue = invokeJavaMethod(methodDefinition[0], methodDefinition[1], target, types, values);
-                break;
-            case MPI:
-                retValue = invokeMPIMethod(methodDefinition[0], methodDefinition[1], target, types, values);
-                break;
-            case OMPSS:
-                retValue = invokeOmpSsMethod(methodDefinition[0], target, types, values);
-                break;
-            case OPENCL:
-                retValue = invokeOpenCLMethod(methodDefinition[0], target, types, values);
-                break;
-            case BINARY:
-                retValue = invokeBinaryMethod(methodDefinition[0], target, types, values);
-                break;
-        }
+        GATWorker.hostnames.add(hostname);
 
-        // Check if all the output files have been actually created (in case user has forgotten)
-        // No need to distinguish between IN or OUT files, because IN files will
-        // exist, and if there's one or more missing, they will be necessarily out.
-        boolean allOutFilesCreated = true;
-
-        for (int i = 0; i < numParams; i++) {
-            if (isFile[i]) {
-                String filepath = (String) values[i];
-                File f = new File(filepath);
-                if (!f.exists()) {
-                    StringBuilder errMsg = new StringBuilder();
-                    errMsg.append("ERROR: File with path '").append(values[i]).append("' has not been generated by task '");
-                    for (String info : methodDefinition) {
-                        errMsg.append(info).append(" ");
-                    }
-                    ErrorManager.warn(errMsg.toString());
-                    allOutFilesCreated = false;
-                }
+        boolean firstElement = true;
+        StringBuilder hostnamesSTR = new StringBuilder();
+        for (Iterator<String> it = GATWorker.hostnames.iterator(); it.hasNext();) {
+            String nodeName = it.next();
+            if (firstElement) {
+                firstElement = false;
+                hostnamesSTR.append(nodeName);
+            } else {
+                hostnamesSTR.append(",").append(nodeName);
             }
         }
 
-        // ////////////////////////
+        if (GATWorker.debug) {
+            System.out.println("HOSTNAMES: " + hostnamesSTR.toString());
+            System.out.println("NUM_NODES: " + GATWorker.numNodes);
+            System.out.println("CPU_COMPUTING_UNITS: " + GATWorker.cus);
+        }
+
+        System.setProperty(Constants.COMPSS_HOSTNAMES, hostnamesSTR.toString());
+        System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(GATWorker.numNodes));
+        System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(GATWorker.cus));
+    }
+
+    /**
+     * Invokes the task method by reflection depending on the invoker type
+     * 
+     */
+    private static void invokeMethod() {
+        retValue = null;
+
+        switch (GATWorker.methodType) {
+            case METHOD:
+                retValue = Invokers.invokeJavaMethod(methodDefinition[0], methodDefinition[1], target, types, values);
+                break;
+            case MPI:
+                retValue = Invokers.invokeMPIMethod(methodDefinition[0], methodDefinition[1], target, types, values);
+                break;
+            case OMPSS:
+                retValue = Invokers.invokeOmpSsMethod(methodDefinition[0], target, types, values);
+                break;
+            case OPENCL:
+                retValue = Invokers.invokeOpenCLMethod(methodDefinition[0], target, types, values);
+                break;
+            case BINARY:
+                retValue = Invokers.invokeBinaryMethod(methodDefinition[0], target, types, values);
+                break;
+        }
+    }
+
+    /**
+     * Serializes the required results produced by the task
+     * 
+     */
+    private static void serializeResults() {
         // Write to disk the updated object parameters, if any (including the target)
-        for (int i = 0; i < numParams; i++) {
-            if (mustWrite[i]) {
+        for (int i = 0; i < GATWorker.numParams; i++) {
+            if (GATWorker.mustWrite[i]) {
                 try {
                     // Check if we must serialize a parameter or the target object
                     Object toSerialize = null;
-                    if (hasTarget && i == numParams - 1) {
-                        toSerialize = target;
+                    if (GATWorker.hasTarget && i == GATWorker.numParams - 1) {
+                        toSerialize = GATWorker.target;
                     } else {
-                        toSerialize = values[i];
+                        toSerialize = GATWorker.values[i];
                     }
 
                     // Check if its a PSCO and it's persisted
@@ -396,13 +510,13 @@ public class GATWorker {
                     }
 
                     // Serialize
-                    Serializer.serialize(toSerialize, renamings[i]);
+                    Serializer.serialize(toSerialize, GATWorker.renamings[i]);
                 } catch (Exception e) {
                     StringBuilder errMsg = new StringBuilder();
                     errMsg.append("Error serializing object parameter ").append(i);
-                    errMsg.append(" with renaming ").append(renamings[i]);
+                    errMsg.append(" with renaming ").append(GATWorker.renamings[i]);
                     errMsg.append(", at ");
-                    for (String info : methodDefinition) {
+                    for (String info : GATWorker.methodDefinition) {
                         errMsg.append(info).append(" ");
                     }
                     ErrorManager.warn(errMsg.toString());
@@ -411,118 +525,65 @@ public class GATWorker {
         }
 
         // Serialize the return value if existing
-        if (retValue != null) {
+        if (GATWorker.retValue != null) {
             // If the retValue is a PSCO and it is persisted, we only send the ID
             // Otherwise we treat the PSCO as a normal object
-            if (retValue instanceof StubItf) {
-                String id = ((StubItf) retValue).getID();
+            if (GATWorker.retValue instanceof StubItf) {
+                String id = ((StubItf) GATWorker.retValue).getID();
                 if (id != null) {
-                    retValue = id;
+                    GATWorker.retValue = id;
                 }
             }
 
             // Serialize return value to its location
-            String renaming = (String) args[argPosition + 1];
             try {
-                Serializer.serialize(retValue, renaming);
-            } catch (Exception e) {
+                Serializer.serialize(GATWorker.retValue, GATWorker.retRenaming);
+            } catch (IOException ioe) {
                 StringBuilder errMsg = new StringBuilder();
-                errMsg.append("Error serializing object return value with renaming ").append(renaming);
+                errMsg.append(ERROR_SERIALIZE_RETURN).append(GATWorker.retRenaming);
                 errMsg.append(", at ");
-                for (String info : methodDefinition) {
+                for (String info : GATWorker.methodDefinition) {
                     errMsg.append(info).append(" ");
                 }
                 ErrorManager.warn(errMsg.toString());
             }
         }
+    }
+
+    /**
+     * Checks that all the output files have been generated
+     * 
+     */
+    private static void checkOutputFiles() {
+        // Check if all the output files have been actually created (in case user has forgotten)
+        // No need to distinguish between IN or OUT files, because IN files will
+        // exist, and if there's one or more missing, they will be necessarily out.
+        boolean allOutFilesCreated = true;
+        for (int i = 0; i < GATWorker.numParams; i++) {
+            if (GATWorker.isFile[i]) {
+                String filepath = (String) GATWorker.values[i];
+                File f = new File(filepath);
+                if (!f.exists()) {
+                    StringBuilder errMsg = new StringBuilder();
+                    errMsg.append("ERROR: File with path '").append(GATWorker.values[i]).append("' has not been generated by task '");
+                    for (String info : GATWorker.methodDefinition) {
+                        errMsg.append(info).append(" ");
+                    }
+                    ErrorManager.warn(errMsg.toString());
+                    allOutFilesCreated = false;
+                }
+            }
+        }
 
         if (!allOutFilesCreated) {
             StringBuilder errMsg = new StringBuilder();
-            errMsg.append("ERROR: One or more OUT files have not been created by task '");
-            for (String info : methodDefinition) {
+            errMsg.append(ERROR_OUTPUT_FILES);
+            for (String info : GATWorker.methodDefinition) {
                 errMsg.append(info).append(" ");
             }
             errMsg.append("'");
-            ErrorManager.warn(errMsg.toString());            
+            ErrorManager.error(errMsg.toString());
         }
-
-        // Stop the storage if needed
-        // WARN: Currently the master does and its no needed
-        /*
-         * if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) { try {
-         * StorageItf.finish(); } catch (StorageException e) { ErrorManager.fatal("Error releasing storage library: " +
-         * e.getMessage()); } }
-         */
-    }
-    
-    private static void setEnvironmentVariables(String hostnames, int numNodes, int cus) {
-        System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames);
-        System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
-        System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
-    }
-    
-    private static Object invokeJavaMethod(String className, String methodName, Object target, Class<?>[] types, Object[] values) {
-        // Use reflection to get the requested method
-        Method method = null;
-        try {
-            Class<?> methodClass = Class.forName(className);
-            method = methodClass.getMethod(methodName, types);
-        } catch (ClassNotFoundException e) {
-            ErrorManager.error("Application class not found");
-        } catch (SecurityException e) {
-            ErrorManager.error("Security exception");
-        } catch (NoSuchMethodException e) {
-            ErrorManager.error("Requested method not found");
-        }
-
-        // Invoke the requested method
-        Object retValue = null;
-        try {
-            retValue = method.invoke(target, values);
-        } catch (Exception e) {
-            ErrorManager.error(ERROR_INVOKE, e);
-        }
-        
-        return retValue;
-    }
-    
-    private static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Class<?>[] types, Object[] values) {
-        Object retValue = null;
-        try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values);
-        } catch(InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-        
-        return retValue;
-    }
-
-    private static Object invokeOmpSsMethod(String ompssBinary, Object target, Class<?>[] types, Object[] values) {
-        Object retValue = null;
-        try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values);
-        } catch(InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-        
-        return retValue;
-    }
-
-    private static Object invokeOpenCLMethod(String kernel, Object target, Class<?>[] types, Object[] values) {
-        ErrorManager.error("ERROR: OpenCL is not supported");
-
-        return null;
-    }
-
-    private static Object invokeBinaryMethod(String binary, Object target, Class<?>[] types, Object[] values) {
-        Object retValue = null;
-        try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values);
-        } catch(InvokeExecutionException iee) {
-            ErrorManager.error(ERROR_INVOKE, iee);
-        }
-        
-        return retValue;
     }
 
 }

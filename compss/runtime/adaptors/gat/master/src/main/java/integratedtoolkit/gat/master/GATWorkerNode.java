@@ -220,9 +220,9 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
             List<String> slaveWorkersNodeNames, JobListener listener) {
-        // TODO: Support multiNode tasks: slaveWorkersNodeNames
         
-        return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus());
+        return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus(),
+                slaveWorkersNodeNames);
     }
 
     @Override

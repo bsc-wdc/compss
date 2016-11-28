@@ -53,22 +53,7 @@
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-		</dependency>
-
-		<!-- Xalan and Xerces -->
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>xml-apis</groupId>
-			<artifactId>xml-apis</artifactId>
-		</dependency>
+		</dependency> 
 	</dependencies>
 
 	<!-- BUILD -->

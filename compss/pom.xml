@@ -32,20 +32,15 @@
 	<properties>
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-		<comm.version>1.4-110</comm.version>
-		<conn.version>1.0-40</conn.version>
+		<comm.version>1.4-111</comm.version>
+		<conn.version>1.0-41</conn.version>
 		<storage.version>1.0</storage.version>
 
 		<!-- ZK version -->
-		<zk.version>7.0.3</zk.version>
+		<zk.version>8.0.2.2</zk.version>
 
 		<!--Log4j version -->
-		<log4j.version>2.6.1</log4j.version>
-
-		<!-- Xalan and Xerces version -->
-		<xalan.version>2.7.1</xalan.version>
-		<xerces.version>2.11.0</xerces.version>
-		<xml-apis>1.4.01</xml-apis>
+		<log4j.version>2.7</log4j.version>
 
 		<!-- Jaxb version-->
 		<jaxb-api.version>2.2.12</jaxb-api.version>
@@ -55,14 +50,12 @@
 
 		<!-- Apache commons versions -->
 		<apache-commons-configuration.version>1.10</apache-commons-configuration.version>
-		<apache-commons-lang3.version>3.4</apache-commons-lang3.version>
-		<apache-commons-collections4.version>4.1</apache-commons-collections4.version>
 		<apache-commons-io.version>2.5</apache-commons-io.version>
 
 		<!-- Javassist -->
-		<javassist.version>3.20.0-GA</javassist.version>
+		<javassist.version>3.21.0-GA</javassist.version>
 		<!-- SSH -->
-		<jsch.version>0.1.53</jsch.version>
+		<jsch.version>0.1.54</jsch.version>
 		<!-- Java GAT -->
 		<gat.version>2.1.3</gat.version>
 		<ibis.version>2.3-pre</ibis.version>
@@ -112,16 +105,6 @@
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>${apache-commons-io.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-lang3</artifactId>
-				<version>${apache-commons-lang3.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-collections4</artifactId>
-				<version>${apache-commons-collections4.version}</version>
 			</dependency>
 
 			<!-- JAXB -->
@@ -213,23 +196,6 @@
 				<groupId>com.jcraft</groupId>
 				<artifactId>jsch</artifactId>
 				<version>${jsch.version}</version>
-			</dependency>
-
-			<!-- Xalan and Xerces -->
-			<dependency>
-				<groupId>xalan</groupId>
-				<artifactId>xalan</artifactId>
-				<version>${xalan.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>xerces</groupId>
-				<artifactId>xercesImpl</artifactId>
-				<version>${xerces.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>xml-apis</groupId>
-				<artifactId>xml-apis</artifactId>
-				<version>${xml-apis}</version>
 			</dependency>
 
 			<!-- ZK Framework -->

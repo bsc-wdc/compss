@@ -196,16 +196,16 @@
 			         		<hbox height="99%" width="99%" align="start" pack="center" widths="80%,20%">
 				                <grid width="95%" model="@load(vm.executionInformationViewModel.tasks) @template('task')" emptyMessage="There are no tasks.">
 		                            <auxhead>
-		                                <auxheader width="7%" rowspan="2" label="Task Id" align="center" />
-		                                <auxheader width="12%" rowspan="2" label="Task Name" align="start" />
-		                                <auxheader width="70%" rowspan="2" label="Associated Jobs Information" align="center">
+		                                <auxheader rowspan="2" label="Task Id" align="center" />
+		                                <auxheader rowspan="2" label="Task Name" align="start" />
+		                                <auxheader rowspan="2" label="Associated Jobs Information" align="center">
 		                                	<hbox width="100%" widths="10%,80%,10%" align="center">
 		                               			<div align="center"><label value="Job Id" /></div>
 				                    			<div align="center"><label value="Host" /></div>
 				                    			<div align="center"><label value="Job Status" /></div>
 				                    		</hbox>
 		                                </auxheader>
-		                                <auxheader width="10%" rowspan="2" label="Task Status" align="center" />
+		                                <auxheader rowspan="2" label="Task Status" align="center" />
 		                    		</auxhead>
 		                    		
 		                    		<columns>

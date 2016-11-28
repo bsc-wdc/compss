@@ -42,53 +42,75 @@ import integratedtoolkit.types.implementations.OmpSsImplementation;
 import integratedtoolkit.types.implementations.OpenCLImplementation;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.job.JobListener.JobEndStatus;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
 import java.util.LinkedList;
+import java.util.List;
 
-
+/**
+ * Representation of a Job execution for COMPSs with GAT Adaptor
+ * 
+ */
 public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> implements MetricListener {
-
-    private static final String JOBS_DIR = System.getProperty(ITConstants.IT_APP_LOG_DIR) + "jobs" + java.io.File.separator;
-
-    private static final String JOB_STATUS = "job.status";
-    private static final String RES_ATTR = "machine.node";
-
-    private static final String CALLBACK_PROCESSING_ERR = "Error processing callback for job";
-    private static final String TERM_ERR = "Error terminating";
-
-    private Job GATjob;
-    // GAT context
-    private GATContext context;
-    // GAT broker adaptor information
-    private boolean usingGlobus;
-    private boolean userNeeded;
-
-    // Brokers - TODO: Problem if many resources used
-    private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
-
+    
+    // Worker script path
     private static final String WORKER_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String WORKER_SCRIPT_NAME = "worker.sh";
-
-    private static final LinkedList<GATJob> RUNNING_JOBS = new LinkedList<>();
 
     // Storage Conf
     private static final boolean IS_STORAGE_ENABLED = System.getProperty(ITConstants.IT_STORAGE_CONF) != null
             && !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("")
             && !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("null");
     private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(ITConstants.IT_STORAGE_CONF) : "null";
+    
+
+    private static final String JOBS_DIR = System.getProperty(ITConstants.IT_APP_LOG_DIR) + "jobs" + java.io.File.separator;
+    
+    private static final String JOB_STATUS = "job.status";
+    private static final String RES_ATTR = "machine.node";
+    private static final String CALLBACK_PROCESSING_ERR = "Error processing callback for job";
+    private static final String TERM_ERR = "Error terminating";
+
+    private static final LinkedList<GATJob> RUNNING_JOBS = new LinkedList<>();
+
+    // Brokers - TODO: Problem if many resources used
+    private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
+    
+    private Job GATjob;
+    // GAT context
+    private final GATContext context;
+    // GAT broker adaptor information
+    private final boolean usingGlobus;
+    private final boolean userNeeded;
+    // Multi node information
+    private final List<String> slaveWorkersNodeNames;
 
 
+    /**
+     * New GAT Job instance
+     * 
+     * @param taskId
+     * @param taskParams
+     * @param impl
+     * @param res
+     * @param listener
+     * @param context
+     * @param userNeeded
+     * @param usingGlobus
+     * @param slaveWorkersNodeNames
+     */
     public GATJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
-            boolean userNeeded, boolean usingGlobus) {
+            boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
         
         super(taskId, taskParams, impl, res, listener);
         this.context = context;
         this.userNeeded = userNeeded;
         this.usingGlobus = usingGlobus;
+        this.slaveWorkersNodeNames = slaveWorkersNodeNames;
     }
 
     @Override
@@ -245,8 +267,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         sd.setExecutable(targetPath + WORKER_SCRIPT_PATH + WORKER_SCRIPT_NAME);
         ArrayList<String> lArgs = new ArrayList<String>();
 
-        // Common arguments: language working_dir lib_path num_obsolete [obs1
-        // ... obsN] tracing [event_type task_id slot_id]
+        // Common arguments: language working_dir lib_path num_obsolete [obs1... obsN] tracing [event_type task_id slot_id]
         lArgs.add(lang);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
@@ -275,12 +296,18 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         }
 
         // Language-dependent arguments: app_dir classpath pythonpath debug storage_conf
+        // numSlaves [slave1,..,slaveN] numCus
         // method_impl_type method_impl_params has_target num_params par_type_1 par_1 ... par_type_n par_n
         lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
+        
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);
+        
+        lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
+        lArgs.addAll(slaveWorkersNodeNames);
+        lArgs.add(String.valueOf( ((MethodResourceDescription)this.impl.getRequirements()).getTotalCPUComputingUnits() ));
         
         AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
         lArgs.add(String.valueOf(absImpl.getMethodType()));

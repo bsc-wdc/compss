@@ -106,7 +106,7 @@ public class RuntimeLogParser {
                                 tasksFailed.add(tasks.get(Integer.valueOf(taskId)));
                             }
                             tasksCurrent.remove(tasks.get(Integer.valueOf(taskId)));
-                        } else if ((line.contains("@submitJob")) && (line.contains("New Job"))) {
+                        } else if ((line.contains("@doSubmit")) && (line.contains("New Job"))) {
                             logger.debug("* New job");
                             String[] str = line.split(" ");
                             lastNewJobId = str[str.length - 3];
@@ -122,7 +122,7 @@ public class RuntimeLogParser {
                             if (!tasksCurrent.contains(tasks.get(Integer.valueOf(taskId)))) {
                                 tasksCurrent.add(tasks.get(Integer.valueOf(taskId)));
                             }
-                        } else if ((line.contains("@submitJob")) && (line.contains("Rescheduled Job"))) {
+                        } else if ((line.contains("@doSubmit")) && (line.contains("Rescheduled Job"))) {
                             logger.debug("* Rescheduled job");
                             String[] str = line.split(" ");
                             lastNewJobId = str[str.length - 3];
@@ -138,7 +138,7 @@ public class RuntimeLogParser {
                             if (!tasksCurrent.contains(tasks.get(Integer.valueOf(taskId)))) {
                                 tasksCurrent.add(tasks.get(Integer.valueOf(taskId)));
                             }
-                        } else if ((line.contains("@submitJob")) && (line.contains("* Target host"))) {
+                        } else if ((line.contains("@doSubmit")) && (line.contains("* Target host"))) {
                             logger.debug("* Add target for last new job");
                             String host = line.substring(line.lastIndexOf(": ") + 1);
                             tasks.get(jobsToTasks.get(Integer.valueOf(lastNewJobId))).setJobHost(lastNewJobId, false, host);

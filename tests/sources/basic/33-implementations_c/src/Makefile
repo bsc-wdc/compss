@@ -1,6 +1,6 @@
 GCC=g++
-#CFLAGS=-std=c++11 -DDEBUG_BINDING -g -I. -I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
-CFLAGS=-std=c++11 -g -I. -I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
+#DEBUG_FLAG=-DDEBUG_BINDING
+CFLAGS=${DEBUG_FLAG} -g -I. -I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
 
 all: clean compile_master compile_worker deploy
 
@@ -25,3 +25,4 @@ deploy:
 clean:
 	@echo "Cleaning intermediate files..."
 	rm -f *.o
+

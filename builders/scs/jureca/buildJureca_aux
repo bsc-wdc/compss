@@ -29,7 +29,7 @@
   targetDir=$1
   scriptDir=$(dirname $0)
 
-  modules="Python/2.7.11 Java Intel/2016.2.181-GCC-4.9.3-2.25 IntelMPI/5.1.3.181 Boost XML-LibXML/2.0124-Perl-5.22.1 GCCcore/.4.9.3 PAPI/5.4.3 Autotools/20150215"
+  modules="GCCcore/.5.4.0 Intel/2017.0.098-GCC-5.4.0 Python/2.7.12 Java IntelMPI Boost PAPI/5.5.0 Autotools/20150215"
   additionalExports=""
   queues_cfg="jureca.cfg"
   extrae_with_openmpi="false"

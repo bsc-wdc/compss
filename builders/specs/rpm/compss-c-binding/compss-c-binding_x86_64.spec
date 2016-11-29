@@ -1,6 +1,6 @@
-%define name	 	compss-c-binding 
-%define version 	2.0
-%define release		1
+%define name            compss-c-binding                                                                                                                                                
+%define version         2.0
+%define release         1
 
 Requires: compss-bindings-common, libxml2-devel, boost-devel, tcsh
 Summary: The BSC COMP Superscalar C-Binding
@@ -28,6 +28,18 @@ The BSC COMP Superscalar C-Binding.
 echo "* Building COMP Superscalar C-Binding..."
 echo " "
 
+echo "   - Copy deployment files"
+mkdir -p COMPSs/Bindings/c_pack
+cp changelog COMPSs/
+cp LICENSE COMPSs/
+cp NOTICE COMPSs/
+cp README COMPSs/
+cp RELEASE_NOTES COMPSs/
+cp -r c/* COMPSs/Bindings/c_pack/
+
+echo "   - Erase sources"
+ls . | grep -v COMPSs | xargs rm -r
+
 echo "COMP Superscalar C-Binding built"
 echo " "
 
@@ -35,7 +47,29 @@ echo " "
 %install
 echo "* Installing COMPSs C-Binding..."
 
+mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+
+cp COMPSs/changelog $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/LICENSE $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/NOTICE $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/README $RPM_BUILD_ROOT/opt/COMPSs/
+cp COMPSs/RELEASE_NOTES $RPM_BUILD_ROOT/opt/COMPSs/    
+
+cp -r COMPSs/Bindings/c_pack/ $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+
+echo "* Setting COMPSs C-Binding permissions..."
+chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c_pack
+
+echo "DONE!"
+echo " "
+
+#------------------------------------------------------------------------------------
+%post 
+echo "* Installing COMPSs C-Binding..."
+echo " "
+
 # Find JAVA_HOME
+echo " - Finding JAVA_HOME installation"
 openjdk=$(rpm -qa | grep jdk-1.8.0)
 libjvm=$(rpm -ql $openjdk | grep libjvm.so | head -n 1)
 export JAVA_LIB_DIR=$(dirname $libjvm)
@@ -50,46 +84,20 @@ fi
 echo "Using JAVA_HOME=$JAVA_HOME"
 
 # Install
-echo " - Creating COMPSs C-Binding structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+echo " - Configure, compile and install"
+cd /opt/COMPSs/Bindings/c_pack/
+./install /opt/COMPSs/Bindings/c/ true
 
-echo "   - Configure, compile and install"
-cd bindings-common/
-./install_common
-cd ../c/
-./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c true
-cd ..
+echo " - Add binaries to path"
+mkdir -p /opt/COMPSs/Runtime/scripts/system/c
+mkdir -p /opt/COMPSs/Runtime/scripts/user
+cp /opt/COMPSs/Bindings/c/bin/* /opt/COMPSs/Runtime/scripts/system/c
+cp /opt/COMPSs/Bindings/c/buildapp /opt/COMPSs/Runtime/scripts/user/
 
-echo "   - Add binaries to path"
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user
-cp c/bin/* $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
-cp c/buildapp $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user/
-echo "   - Binaries added"
-echo " "
+echo " - Remove unneeded sources"
+rm -rf /opt/COMPSs/Runtime/Bindings/c_pack/
 
-echo " - Setting COMPSs C-Binding permissions..."
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/system/c
-chmod 755 $RPM_BUILD_ROOT/opt/COMPSs/Runtime/scripts/user/buildapp
-chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Bindings/c
-echo " - COMPSs Runtime C-Binding permissions set"
-echo " "
-
-echo "Congratulations!"
-echo "COMPSs C-Binding Successfully installed!"
-echo " "
-
-#------------------------------------------------------------------------------------
-%post 
-echo "* Installing COMPSs C-Binding..."
-echo " "
-
-echo " - Configure and compile GSBuilder and GSStrubGen"
-cd /opt/COMPSs/Bindings/c/
-./install /opt/COMPSs/Bindings/c false
-echo " "
-
-echo " - Adding c-binaries to profile..."
+echo " - Adding c-binaries to profile"
 echo "export PATH=\$PATH:/opt/COMPSs/Bindings/c/bin" >> /etc/profile.d/compss.sh
 echo " "
 
@@ -97,7 +105,6 @@ echo " - Setting COMPSs C-Binding permissions..."
 chmod 755 -R /opt/COMPSs/Runtime/scripts/system/c
 chmod 755 /opt/COMPSs/Runtime/scripts/user/buildapp
 chmod 755 -R /opt/COMPSs/Bindings/c
-echo " "
 
 echo "Congratulations!"
 echo "COMPSs C-Binding Successfully installed!"

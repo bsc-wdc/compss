@@ -101,7 +101,8 @@ show_opts() {
                                             Supported connectors: integratedtoolkit.connectors.DefaultSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
     --scheduler=<className>	            Class that implements the Scheduler for COMPSs
-                                            Supported schedulers: integratedtoolkit.components.impl.TaskScheduler | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
+                                            Supported schedulers: integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
+                                                                  | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory

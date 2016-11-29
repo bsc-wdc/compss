@@ -20,7 +20,6 @@
   echo "* Packing COMPSs sources..."
   echo " "
   target=tmp/SOURCES/${package_name}-${COMPSS_VERSION}/
-  cp -rf ${trunk_rel_path}/compss/programming_model/bindings/bindings-common ${target}
   cp -rf ${trunk_rel_path}/compss/programming_model/bindings/c ${target}
   cp -rf ${trunk_rel_path}/changelog ${target}
   cp -rf ${trunk_rel_path}/LICENSE ${target}

@@ -31,7 +31,6 @@ public class TaskDescription implements Serializable {
     private final boolean hasReturn;
 
 
-
     public TaskDescription(String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
             boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
         

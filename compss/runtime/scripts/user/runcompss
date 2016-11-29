@@ -596,7 +596,7 @@ check_args() {
   fi
 
   if [ -z "$uuid" ]; then
-    uuid=$(cat /proc/sys/kernel/random/uuid)
+    uuid=$(uuidgen)
   fi
 
   # MASTER

@@ -110,12 +110,16 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
         for (int coreId : (LinkedList<Integer>) worker.getExecutableCores()) {
             fittingImpls[coreId] = worker.getRunnableImplementations(coreId);
             if (!fittingImpls[coreId].isEmpty() && unassignedReadyActions.getActionCounts()[coreId] > 0) {
-                runnableCores.add(coreId);
-                actions[coreId] = sortActionsForResource(unassignedReadyActions.getActions(coreId), resource);
+	        	actions[coreId] = sortActionsForResource(unassignedReadyActions.getActions(coreId), resource);
+	        	//check actions[coreId] is not empty
+	        	if(!actions[coreId].isEmpty()){
+	        		runnableCores.add(coreId);
+	        	}
             }
         }
 
         while (!runnableCores.isEmpty()) {
+        	
             // Pick Best Action
             Integer bestCore = null;
             Score bestScore = null;
@@ -126,10 +130,15 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                     bestCore = i;
                 }
             }
-
+            
             ObjectValue<AllocatableAction<P, T>> ov = actions[bestCore].poll();
             AllocatableAction<P, T> selectedAction = ov.getObject();
-
+            
+            if (actions[bestCore].isEmpty()) {
+            	runnableCores.remove(bestCore);
+            }
+            unassignedReadyActions.removeAction(selectedAction);
+            
             // Get the best Implementation
             try {
                 Score actionScore = getActionScore(selectedAction);
@@ -149,22 +158,26 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                             keepTrying = true;
                         }
                     }
+                    if(keepTrying){
+                    	// Action couldn't be assigned
+                    	unassignedReadyActions.addAction(selectedAction);
+                    }
                 }
             } catch (UnassignedActionException uae) {
                 // Action stays unassigned and ready
+            	unassignedReadyActions.addAction(selectedAction);
                 continue;
             } catch (BlockedActionException bae) {
                 // Never happens!
+            	unassignedReadyActions.addAction(selectedAction);
                 continue;
             }
-            // Task was assigned to the resource.
-            // Remove from pending task sets
-            unassignedReadyActions.removeAction(selectedAction);
-
+           
             // Update Runnable Cores
             Iterator<Integer> coreIter = runnableCores.iterator();
             while (coreIter.hasNext()) {
                 int coreId = coreIter.next();
+                fittingImpls[coreId] = worker.getRunnableImplementations(coreId);
                 Iterator<Implementation<T>> implIter = fittingImpls[coreId].iterator();
                 while (implIter.hasNext()) {
                     Implementation<?> impl = implIter.next();
@@ -173,12 +186,11 @@ public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescripti
                         implIter.remove();
                     }
                 }
-                if (fittingImpls[coreId].isEmpty() || unassignedReadyActions.getActionCounts()[coreId] == 0) {
+                if(fittingImpls[coreId].isEmpty() || unassignedReadyActions.getActionCounts()[coreId] == 0) {
                     coreIter.remove();
                 }
-            }
+            }  
         }
-
     }
 
     @Override

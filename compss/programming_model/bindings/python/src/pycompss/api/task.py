@@ -71,8 +71,8 @@ class task(object):
         # methods have a first argument named self, and other functions don't.
         # Fragile, but then, there's no really solid way."
         self.spec_args = inspect.getargspec(f)
-        #print("self.spec_args: ", self.spec_args)
-        #print("self.kwargs   : ", self.kwargs)
+        # print("self.spec_args: ", self.spec_args)
+        # print("self.kwargs   : ", self.kwargs)
         if self.spec_args and len(self.spec_args[0]) and self.spec_args[0][0] == 'self':
             self.is_instance = True
         if self.kwargs['returns']:
@@ -138,15 +138,45 @@ class task(object):
 
                 returns = self.kwargs['returns']
 
+                spec_args = self.spec_args[0]
+                # *args
+                aargs = self.spec_args[1]
+                # **kwargs
+                aakwargs = self.spec_args[2]
+                toadd = []
+                # Check if there is *arg parameter in the task
+                if aargs is not None:
+                    toadd.append(aargs)
+                # Check if there is **kwarg parameters in the task
+                if aakwargs is not None:
+                    toadd.append(aakwargs)
+                if returns is not None:
+                    spec_args = spec_args[:-1] + toadd + spec_args[-1:]
+                else:
+                    spec_args = spec_args[:-1] + toadd
+
                 # Discover hidden objects passed as files
                 real_values, to_serialize = reveal_objects(args,
-                                                           self.spec_args[0],
+                                                           spec_args,
                                                            self.kwargs,
                                                            kwargs['compss_types'],
                                                            returns)
+                kargs = {}
+                # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
+                if aargs is not None:
+                    if aakwargs is not None:
+                        real_values = real_values[:-2] + list(real_values[-2]) + [real_values[-1]]
+                    else:
+                        real_values = real_values[:-1] + list(real_values[-1])
+                # Check if there is **kwarg parameter in the task, so the last element (kwarg dict) has to be flattened
+                if aakwargs is not None:
+                    kargs = real_values[-1]         # kwargs dict
+                    real_values = real_values[:-1]  # remove kwargs from real_values
+                    if returns is not None:
+                        kargs.pop('compss_retvalue')
+                    #real_values = real_values[:-1] + [kargs]
 
-                ret = f(*real_values)  # Llamada real de la funcion f
-                # f(*args, **kwargs)
+                ret = f(*real_values, **kargs)  # Llamada real de la funcion f
 
                 if returns:
                     if isinstance(returns, list) or isinstance(returns, tuple): # multireturn
@@ -154,8 +184,8 @@ class task(object):
                         rets = args[-num_ret:]
                         i = 0
                         for ret_filename in rets:
-                            print ret[i]
-                            print ret_filename
+                            # print ret[i]
+                            # print ret_filename
                             to_serialize.append((ret[i], ret_filename))
                             i += 1
                     else:                         # simple return
@@ -219,8 +249,44 @@ class task(object):
 
                     args = tuple(argsl)
 
-                return process_task(f, ftype, self.spec_args[0], class_name,
-                                    self.module, args, kwargs, self.kwargs)
+                spec_args = self.spec_args[0]
+                values = args
+
+                # *args
+                aargs = self.spec_args[1]
+                # **kwargs
+                aakwargs = self.spec_args[2]
+                num_args = len(args) - num_params  # # args
+                vals_names = list(spec_args[:num_params])
+                vals = list(args[:num_params])  # first values of args are the parameters
+                arg_name = []
+                arg_vals = []
+                # if user uses *args
+                if aargs is not None:
+                    arg_name.append(aargs)                      # Name used for the *args
+                    arg_vals.append(args[0 - num_args:])  # last values will compose the *args parameter
+                # if user uses **kwargs
+                if aakwargs is not None:
+                    arg_name.append(aakwargs)                    # Name used for the *args
+                    arg_vals.append(kwargs)                          # last values will compose the *args parameter
+
+                spec_args = vals_names + arg_name
+                if 'compss_retvalue' in self.spec_args[0]:
+                    spec_args += ['compss_retvalue']
+                values = tuple(vals + arg_vals)
+
+                # print "f: ", f
+                # print "ftype: ", ftype
+                # print "self.spec_args[0]: ", self.spec_args[0]
+                # print "class_name: ", class_name
+                # print "self.module: ", self.module
+                # print "args: ", args
+                # print "kwargs: ", kwargs
+                # print "self.kwargs: ", self.kwargs
+                # print "spec_args: ", spec_args
+                # print "values: ", values
+
+                return process_task(f, ftype, spec_args, class_name, self.module, values, kwargs, self.kwargs)
                 # Starts the asyncrhonous creation of the task.
                 # First calling the pycompss library and then C library (bindings-commons).
 
@@ -249,7 +315,14 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
     """
     from pycompss.api.parameter import Parameter, Type, Direction
     from pycompss.util.serializer import deserialize_from_file
-    # from cPickle import load
+
+    # print "-----------------------------------"
+    # print "values: ", values
+    # print "spec_args: ", spec_args
+    # print "deco_kwargs: ", deco_kwargs
+    # print "compss_types: ", compss_types
+    # print "returns: ", returns
+    # print "-----------------------------------"
 
     num_pars = len(spec_args)
     real_values = []

@@ -17,11 +17,28 @@ from cPickle import loads, dumps
 from cPickle import HIGHEST_PROTOCOL, UnpicklingError, PicklingError
 import types
 import marshal
+import thread, threading
+import copy_reg
+import types
 from serialization.extendedSupport import pickle_generator
 from serialization.extendedSupport import copy_generator
 from serialization.extendedSupport import GeneratorSnapshot
 from serialization.extendedSupport import pickle_module_object
-from serialization.extendedSupport import unpickle_module_object
+from serialization.extendedSupport import unpickle_module_object 
+from serialization.extendedSupport import serialize_event
+from serialization.extendedSupport import serialize_lock
+from serialization.extendedSupport import serialize_ellipsis
+#from serialization.extendedSupport import serialize_quit 
+#from serialization.extendedSupport import restorefunction, reducefunction
+
+copy_reg.pickle(threading._Event, serialize_event)
+copy_reg.pickle(thread.LockType, serialize_lock)
+copy_reg.pickle(type(Ellipsis), serialize_ellipsis)
+#copy_reg.pickle(type(quit), serialize_quit)
+#copy_reg.pickle(type(exit), serialize_quit) 
+#copy_reg.pickle(type(NotImplemented), serialize_quit)
+#copy_reg.constructor(restorefunction)
+#copy_reg.pickle(types.FunctionType, reducefunction)
 
 logger = logging.getLogger(__name__)
 

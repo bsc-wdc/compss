@@ -1,5 +1,6 @@
-###
+### 
 # Recipe source:  http://en.sharejs.com/python/12922
+# Improved with my sugar.
 ###
 
 ###
@@ -18,13 +19,14 @@
 ###
 
 import cPickle as pickle
+import marshal
 import types
 import new
 import copy
 import sys
 import copy_reg
 from opcode import*
-
+import threading
 
 #########################################################################
 ########################## GENERATORS ###################################
@@ -188,6 +190,68 @@ def rebuild_mod(name):
     return sys.modules[name]
 
 
+#########################################################################
+######################## THREAD EVENTS ##################################
+#########################################################################
+
+def unserialize_event(isset):
+    e = threading.Event()
+    if isset:
+        e.set()
+    return e
+                    
+def serialize_event(e):
+   return unserialize_event, (e.isSet(),)
+                        
+
+#########################################################################
+######################### THREAD LOCK ###################################
+#########################################################################
+
+def unserialize_lock(locked):
+    from threading import Lock
+    lock = Lock()
+    if locked:
+        if not lock.acquire(False):
+            raise UnpicklingError("Cannot acquire lock")
+    return lock
+
+def serialize_lock(l):
+   return unserialize_lock, (l.locked(),)
+
+
+#########################################################################
+########################### ELLIPSIS ####################################
+#########################################################################
+
+def unserialize_ellipsis(el):
+    return eval(el) 
+                                    
+def serialize_ellipsis(e):
+    return unserialize_ellipsis, (e.__repr__(),)
+
+
+#########################################################################
+######################### QUIT - EXIT ###################################
+#########################################################################
+
+def unserialize_quit(q):
+    return eval(q)
+    
+def serialize_quit(q):
+    return unserialize_quit, (q.__repr__(),)
+     
+#########################################################################
+####################### sys.FunctionType ################################
+#########################################################################
+
+def reducefunction(func):
+    return (restorefunction, (func.func_name, marshal.dumps(func.func_code)))
+
+def restorefunction(func_name, dump):
+    return types.FunctionType(marshal.loads(dump), globals(), func_name)
+
+
 ##############
 # Interfaces #
 ##############
@@ -245,3 +309,7 @@ def unpickle_module_object(f):
     :return: a module object.
     '''
     return pickle.load(f)
+    
+    
+# ----------------- OTHERS --------------------
+    

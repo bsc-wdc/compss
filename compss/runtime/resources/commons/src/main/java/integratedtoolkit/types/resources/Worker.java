@@ -374,6 +374,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public boolean canRunNow(T consumption) {
+    	//Available slots
     	boolean canRun = this.getUsedTaskCount() < this.getMaxTaskCount();
     	canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !this.usesGPU(consumption));
     	canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));

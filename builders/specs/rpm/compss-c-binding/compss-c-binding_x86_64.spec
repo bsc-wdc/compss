@@ -70,8 +70,7 @@ echo " "
 
 # Find JAVA_HOME
 echo " - Finding JAVA_HOME installation"
-openjdk=$(rpm -qa | grep jdk-1.8.0)
-libjvm=$(rpm -ql $openjdk | grep libjvm.so | head -n 1)
+libjvm=$(find /etc/alternatives/java_sdk_1.8.0/ -name libjvm.so | head -n 1)
 export JAVA_LIB_DIR=$(dirname $libjvm)
 if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then
   export JAVA_HOME="${libjvm/\/jre\/lib\/amd64\/server\/libjvm.so/}"

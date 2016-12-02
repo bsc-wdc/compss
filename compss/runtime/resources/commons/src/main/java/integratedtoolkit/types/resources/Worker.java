@@ -38,7 +38,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private final int maxFPGATaskCount;
     private int usedOthersTaskCount = 0;
     private final int maxOthersTaskCount;
-    
+
     // Logger
     protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
@@ -117,7 +117,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public int getUsedTaskCount() {
         return this.usedTaskCount;
     }
-    
+
     public int getMaxGPUTaskCount() {
         return this.maxGPUTaskCount;
     }
@@ -125,7 +125,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public int getUsedGPUTaskCount() {
         return this.usedGPUTaskCount;
     }
-    
+
     public int getMaxFPGATaskCount() {
         return this.maxFPGATaskCount;
     }
@@ -133,7 +133,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public int getUsedFPGATaskCount() {
         return this.usedFPGATaskCount;
     }
-    
+
     public int getMaxOthersTaskCount() {
         return this.maxOthersTaskCount;
     }
@@ -157,7 +157,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private void increaseUsedGPUTaskCount() {
         this.usedGPUTaskCount++;
     }
-    
+
     private void decreaseUsedFPGATaskCount() {
         this.usedFPGATaskCount--;
     }
@@ -165,7 +165,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private void increaseUsedFPGATaskCount() {
         this.usedFPGATaskCount++;
     }
-    
+
     private void decreaseUsedOthersTaskCount() {
         this.usedOthersTaskCount--;
     }
@@ -173,7 +173,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private void increaseUsedOthersTaskCount() {
         this.usedOthersTaskCount++;
     }
-    
+
     public void resetUsedTaskCount() {
         usedTaskCount = 0;
     }
@@ -374,27 +374,27 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public boolean canRunNow(T consumption) {
-    	//Available slots
-    	boolean canRun = this.getUsedTaskCount() < this.getMaxTaskCount();
-    	canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !this.usesGPU(consumption));
-    	canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));
-    	canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !this.usesOthers(consumption));
-    	canRun = canRun && this.hasAvailable(consumption);
-    	
-    	return canRun;
+        // Available slots
+        boolean canRun = this.getUsedTaskCount() < this.getMaxTaskCount();
+        canRun = canRun && ((this.getUsedGPUTaskCount() < this.getMaxGPUTaskCount()) || !this.usesGPU(consumption));
+        canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));
+        canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !this.usesOthers(consumption));
+        canRun = canRun && this.hasAvailable(consumption);
+
+        return canRun;
     }
 
     public void endTask(T consumption) {
         logger.debug("End task received. Releasing resource." + consumption.getClass().toString());
         this.decreaseUsedTaskCount();
-        if (this.usesGPU(consumption)){
-        	this.decreaseUsedGPUTaskCount();
+        if (this.usesGPU(consumption)) {
+            this.decreaseUsedGPUTaskCount();
         }
-        if (this.usesFPGA(consumption)){
-        	this.decreaseUsedFPGATaskCount();
+        if (this.usesFPGA(consumption)) {
+            this.decreaseUsedFPGATaskCount();
         }
-        if (this.usesOthers(consumption)){
-        	this.decreaseUsedOthersTaskCount();
+        if (this.usesOthers(consumption)) {
+            this.decreaseUsedOthersTaskCount();
         }
         releaseResource(consumption);
     }
@@ -404,16 +404,16 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             // There are free task-slots
             T reserved = reserveResource(consumption);
             if (reserved != null) {
-                // Consumption can be hosted        	
+                // Consumption can be hosted
                 this.increaseUsedTaskCount();
-                if (this.usesGPU(consumption)){
-                	this.increaseUsedGPUTaskCount();
+                if (this.usesGPU(consumption)) {
+                    this.increaseUsedGPUTaskCount();
                 }
-                if (this.usesFPGA(consumption)){
-                	this.increaseUsedFPGATaskCount();
+                if (this.usesFPGA(consumption)) {
+                    this.increaseUsedFPGATaskCount();
                 }
-                if (this.usesOthers(consumption)){
-                	this.increaseUsedOthersTaskCount();
+                if (this.usesOthers(consumption)) {
+                    this.increaseUsedOthersTaskCount();
                 }
                 return reserved;
             } else {
@@ -434,11 +434,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     public abstract Integer fitCount(Implementation<?> impl);
 
     public abstract boolean hasAvailable(T consumption);
-    
+
     public abstract boolean usesGPU(T consumption);
-    
+
     public abstract boolean usesFPGA(T consumption);
-    
+
     public abstract boolean usesOthers(T consumption);
 
     public abstract T reserveResource(T consumption);

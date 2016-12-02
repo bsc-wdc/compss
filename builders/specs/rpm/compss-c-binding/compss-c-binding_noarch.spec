@@ -90,8 +90,8 @@ cd /opt/COMPSs/Bindings/c_pack/
 echo " - Add binaries to path"
 mkdir -p /opt/COMPSs/Runtime/scripts/system/c
 mkdir -p /opt/COMPSs/Runtime/scripts/user
-cp /opt/COMPSs/Bindings/c/bin/* /opt/COMPSs/Runtime/scripts/system/c
-cp /opt/COMPSs/Bindings/c/buildapp /opt/COMPSs/Runtime/scripts/user/
+cp /opt/COMPSs/Bindings/c_pack/bin/* /opt/COMPSs/Runtime/scripts/system/c
+cp /opt/COMPSs/Bindings/c_pack/buildapp /opt/COMPSs/Runtime/scripts/user/
 
 echo " - Remove unneeded sources"
 rm -rf /opt/COMPSs/Runtime/Bindings/c_pack/

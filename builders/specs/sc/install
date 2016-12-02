@@ -106,8 +106,8 @@
 
   # Set permissions
   echo "- Set COMPSs permissions"
-  chmod 755 -R ${targetDir}
-  chmod 777 -R ${targetDir}/Runtime/configuration/
+  chmod -R 755 ${targetDir}
+  chmod -R 777 ${targetDir}/Runtime/configuration/
 
   # End
   echo " "

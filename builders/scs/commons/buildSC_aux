@@ -264,8 +264,8 @@
 
   # SET TARGETDIR PERMISSIONS
   echo "- Set COMPSs permissions"
-  chmod 775 -R ${targetDir}
-  chmod 777 -R ${targetDir}/Runtime/configuration/
+  chmod -R 775 ${targetDir}
+  chmod -R 777 ${targetDir}/Runtime/configuration/
 
   # END
   exit 0

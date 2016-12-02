@@ -32,7 +32,7 @@
 	<properties>
 		<!-- BSC Components versions -->
 		<cepbatools-extrae.version>1.4</cepbatools-extrae.version>
-		<comm.version>1.4-111</comm.version>
+		<comm.version>1.4-113</comm.version>
 		<conn.version>1.0-41</conn.version>
 		<storage.version>1.0</storage.version>
 

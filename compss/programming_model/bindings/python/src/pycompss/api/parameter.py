@@ -41,8 +41,9 @@ class Type:
     STRING = 8
     FILE = 9
     OBJECT = 10
-    PERSISTENT = 11	# PSCO
-    SCO = 12
+    SCO = 11
+    PERSISTENT = 12	# PSCO
+
 
 
 class Parameter:

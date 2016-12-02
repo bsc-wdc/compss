@@ -8,6 +8,10 @@ Storage dummy connector
     
     storage.api code example.
 """
+from uuid import UUID
+from cPickle import load
+
+storage_path = '/tmp/'
 
 
 def init(config_file_path=None, **kwargs):
@@ -35,7 +39,7 @@ def finish(**kwargs):
     pass
 
 
-def getByID(obj):
+def getByID(id):
     """
     This functions retrieves an object from an external storage technology
     from the obj object.
@@ -51,7 +55,22 @@ def getByID(obj):
     print "|   ************* dummy storage api *************   |"
     print "|   *********************************************   |"
     print "-----------------------------------------------------"
-    return obj
+    if id is not None:
+        try:
+            # Validate that the uuid is uuid4
+            val = UUID(id, version=4)
+            file_name = id + '.PSCO'
+            file_path = storage_path + file_name
+            obj = load(open(file_path,'rb'))
+            return obj
+        except ValueError:
+            # The id does not complain uuid4 --> raise an exception
+            print "Error: the ID for getByID does not complain the uuid4 format."
+            raise ValueError('Using the dummy storage API getByID with wrong id.')
+    else:
+        # Using a None id --> raise an exception
+        print "Error: the ID for getByID is None."
+        raise ValueError('Using the dummy storage API getByID with None id.')
 
 
 class TaskContext(object):

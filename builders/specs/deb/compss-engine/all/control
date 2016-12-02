@@ -3,7 +3,7 @@ Version:
 Priority: optional
 Architecture: all
 Essential: no
-Depends: openjdk-8-jdk, graphviz, xdg-utils
+Depends: openjdk-8-jdk, graphviz, xdg-utils, uuid-runtime
 Replaces: compss-worker
 Maintainer: Cristian Ramon-Cortes <cristian.ramoncortes@bsc.es>
 Description: The BSC COMP Superscalar Engine.

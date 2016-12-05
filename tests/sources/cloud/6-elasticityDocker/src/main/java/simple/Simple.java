@@ -87,7 +87,7 @@ public class Simple {
 			System.out.println("[ATTENTION] Elasticity on VM's must be checked on result script");
 			System.out.println("** Application values OK **");
 			long sleepTime = creationTime*2*1000;
-			System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to ve removed");
+			System.out.println("Waiting " + sleepTime + " ms for the elastic VMs to be removed");
 			Thread.sleep(sleepTime);
 		} catch (Exception ioe) {
 			System.out.println("[ERROR] Exception found");

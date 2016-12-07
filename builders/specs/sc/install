@@ -70,6 +70,7 @@
   rm -rf ${targetDir}
   mkdir -p ${targetDir}
   cp -r ${scriptDir}/* ${targetDir}
+  sed -i -e 's#/opt/COMPSs/#'${targetDir}'#g'  ${targetDir}/Runtime/configuration/xml/projects/default_project.xml
   rm -rf ${targetDir}/Bindings/*
   echo "   Success"
 

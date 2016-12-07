@@ -130,8 +130,6 @@ AC_PATH_PROG(QUEUE_SUBMIT_LL, llsubmit, none)
 AC_PATH_PROG(QUEUE_SUBMIT_MN, mnsubmit, none)
 test x"$QUEUE_SUBMIT_PBS" = x"none" && test x"$QUEUE_SUBMIT_LL" = x"none" && test x"$QUEUE_SUBMIT_MN" = x"none" && AC_MSG_WARN([ queue job submission program missing ])
 
-AC_MSG_CHECKING([classads])
-AC_CHECK_CLASSADS_SSH
 dnl Initialize maintainer mode
 AM_MAINTAINER_MODE
 

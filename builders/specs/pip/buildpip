@@ -5,29 +5,18 @@
 # It needs as a command line argument with the version of the target distributable
 # The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
 # exist in the specified repository in pyCOMPSsResources/url file
-# WARNING: An internet connection is needed to make this script work
 
 COMPSS_VERSION=$1
 
 # add the version number as a resource
 echo $COMPSS_VERSION > pyCOMPSsResources/VERSION.txt
 
-# name of tar gz (and URL) in repository
-TGZ_NAME=COMPSs_${COMPSS_VERSION}.tar.gz
-TGZ_URL=$(cat pyCOMPSsResources/url)/$TGZ_NAME
-
 # create distributable folder 
 mkdir -p pyCOMPSs
-# get python package source from repository (avoid inconsistencies)
-wget $TGZ_URL
-tar -xzvf $TGZ_NAME
-rm $TGZ_NAME
-# copy python package to pyCOMPSs distributable root
-cp -rf COMPSs/Bindings/python/* pyCOMPSs/
-# remove COMPSs tmp folder (uncompressed tar)
-rm -rf COMPSs
+# copy python binding to root folder
+cp -rf ../../../compss/programming_model/bindings/python/* pyCOMPSs/
 # copy scripts and other files into the pyCOMPSs directory
-# please, avoid the temptation to replace all these lines by
+# please, resist the temptation to replace all these lines by
 # cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
 # It may be possible that not all of the files in that folder are
 # necessary or even appropriate for the installation

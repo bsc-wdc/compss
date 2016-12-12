@@ -28,7 +28,7 @@
   expectedTime=80s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --pythonpath=${base_app_dir}/src \
+     --pythonpath=${base_app_dir}/src/ \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \

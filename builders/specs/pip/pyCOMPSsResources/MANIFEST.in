@@ -1,0 +1,7 @@
+graft build
+include backend.py
+include VERSION.txt
+include url
+
+global-exclude *.pyc
+global-exclude *.class 

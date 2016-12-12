@@ -1,0 +1,59 @@
+#!/bin/bash -e
+# This script is intended to be called by the buildpackages script
+# However, it can be invoked alone and still function properly
+# An example usage would be ./buildpip 2.0
+# It needs as a command line argument with the version of the target distributable
+# The version should be valid and a COMPSS_${COMPSS_VERSION}.tar.gz file must
+# exist in the specified repository in pyCOMPSsResources/url file
+# WARNING: An internet connection is needed to make this script work
+
+COMPSS_VERSION=$1
+
+# add the version number as a resource
+echo $COMPSS_VERSION > pyCOMPSsResources/VERSION.txt
+
+# name of tar gz (and URL) in repository
+TGZ_NAME=COMPSs_${COMPSS_VERSION}.tar.gz
+TGZ_URL=$(cat pyCOMPSsResources/url)/$TGZ_NAME
+
+# create distributable folder 
+mkdir -p pyCOMPSs
+# get python package source from repository (avoid inconsistencies)
+wget $TGZ_URL
+tar -xzvf $TGZ_NAME
+rm $TGZ_NAME
+# copy python package to pyCOMPSs distributable root
+cp -rf COMPSs/Bindings/python/* pyCOMPSs/
+# remove COMPSs tmp folder (uncompressed tar)
+rm -rf COMPSs
+# copy scripts and other files into the pyCOMPSs directory
+# please, avoid the temptation to replace all these lines by
+# cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
+# It may be possible that not all of the files in that folder are
+# necessary or even appropriate for the installation
+cp pyCOMPSsResources/setup.py pyCOMPSs/
+cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
+cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
+cp pyCOMPSsResources/url pyCOMPSs/
+cp pyCOMPSsResources/backend.py pyCOMPSs/
+cp pyCOMPSsResources/README.txt pyCOMPSs/
+
+cd pyCOMPSs
+
+# Change permissions. This will avoid issues with, for example,
+# python's subprocess.call
+chmod -R 777 *
+# Create the tar.gz distributable
+# This should leave a .tar.gz in pyCOMPSs/dist
+python setup.py sdist
+cd ..
+
+# finally, move the pyCOMPSs distributable to packages/pip (tgz included)
+# first, delete previous versions (if any)
+rm -rf ../../packages/pip
+mkdir -p ../../packages/pip
+# change permissions
+chmod -R 777 pyCOMPSs
+# ...and move it to its final destination
+mv pyCOMPSs ../../packages/pip/
+

@@ -14,6 +14,13 @@ storage_path = '/tmp/'
 class SCO(object):
 
     id = None
+    alias = None
+
+    def __init__(self):
+        pass
+
+    def __init__(self, alias):
+        self.alias = alias
 
     def getID(self):
         return self.id

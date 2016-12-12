@@ -1,5 +1,5 @@
-#from distutils.core import setup, Extension
-from setuptools import setup, Extension
+from distutils.core import setup, Extension
+#from setuptools import setup, Extension
 from distutils.command.install_lib import install_lib
 from distutils import log
 

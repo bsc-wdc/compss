@@ -108,10 +108,10 @@ def main():
     retResA = compss_wait_on(retResA)
     retResB = compss_wait_on(retResB)   
 
-    fin_r = compss_open(fin)       # consolidated at the end of the execution. # Checked at test
-    finout_r = compss_open(finout) # consolidated at the end of the execution. # Checked at test
-    fout_r = compss_open(fout)     # consolidated at the end of the execution. # Checked at test
-    foutRes_r = compss_open(fretout) # consolidated at the end of the execution. # Checked at test
+    fin_r = compss_open(fin)               # consolidated at the end of the execution. # Checked at test
+    finout_r = compss_open(finout)         # consolidated at the end of the execution. # Checked at test
+    fout_r = compss_open(fout)             # consolidated at the end of the execution. # Checked at test
+    foutRes_r = compss_open(fretout)       # consolidated at the end of the execution. # Checked at test
     foutRes_r1 = compss_open(fretout1)     # consolidated at the end of the execution. # Checked at test
     foutRes_r2 = compss_open(fretout2)     # consolidated at the end of the execution. # Checked at test
     fin_r_c = fin_r.read()

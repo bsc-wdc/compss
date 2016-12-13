@@ -20,6 +20,20 @@ from distutils import log
 
 bindings_location = os.path.join('COMPSs', 'Bindings')
 
+
+'''
+	Check that system requeriments are satisfied
+'''
+def check_system():
+	if 'win' in sys.platform:
+		raise Exception('COMPSs does not support Windows')
+
+	def cool_version_info(info):
+		return '%s.%s.%s'%(info[0], info[1], info[2])
+
+	if (2, 7) != sys.version_info[:2]:
+		raise Exception('COMPSs does not support Python version %s'%(cool_version_info(sys.version_info)))
+
 def check_dependencies():
 	pass
 
@@ -34,11 +48,12 @@ target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
 	installation.
 '''
 if 'install' in sys.argv:
+	check_system()
 	check_dependencies()
 	try:
 		backend_install(target_path)
 	except:
-		print ('Something went wrong during COMPSs install process. Now leaving...')
+		raise Exception('Something went wrong during COMPSs install process.')
 
 '''
 	C extension for pyCOMPSs. Declaring it that way allows us

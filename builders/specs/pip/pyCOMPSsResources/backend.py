@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import os
 import sys
 import wget
@@ -42,6 +41,3 @@ export PYTHONPATH=$PYTHONPATH:%s/pycompss"%(pref, pref, pref, pref, site.getsite
 		open('/etc/profile.d/compss.sh', 'w').write(s)
 	except:
 		raise Exception('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')
-
-if __name__ == "__main__":
-	install()

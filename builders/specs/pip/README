@@ -66,7 +66,8 @@ A pycompss distributable can be installed in any of the following ways:
 	  downloaded and installed.
 
 	- From the pyCOMPSs folder. The pyCOMPSs folder contains the very same files as
-	  the dist/pycompss-$VERSION.tar.gz. You can install pycompss from this folder with
+	  the dist/pycompss-$VERSION.tar.gz (except for the tgz itself!).
+	  You can install pycompss from this folder with
 		python setup.py install
 
 COMPSs needs some environment variables. The pyCOMPSs installer leaves an script in
@@ -88,6 +89,9 @@ PyCOMPSs can be uninstalled (if it was previously installed with distutils and/o
 command:
 	sudo -E python -m pip uninstall pycompss
 
+After the PIP desinstallation, some files must be removed manually:
+	- The script at /etc/profile.d/compss.sh
+	- The path_to_your_site_packages/pycompss folder and all of its contents
 
 
 ======================================
@@ -179,12 +183,13 @@ A succesfull buildpip execution will leave in /trunk/builders/packages/pip
 the folder hierarchy and files listed below.
 Do not modify, add or delete any file on this folder.
 
+
 COMPSs
     ├── backend.py
     ├── backend.pyc
     ├── bin
     ├── dist
-    │   └── pycompss-2.0.tar.gz
+    │   └── pycompss-VERSION.tar.gz
     ├── install
     ├── LICENSE.txt
     ├── log
@@ -196,66 +201,7 @@ COMPSs
     ├── README.txt
     ├── setup.py
     ├── src
-    │   ├── ext
-    │   │   └── compssmodule.c
-    │   ├── __init__.py
-    │   └── pycompss
-    │       ├── api
-    │       │   ├── api.py
-    │       │   ├── constraint.py
-    │       │   ├── dummy
-    │       │   │   ├── api.py
-    │       │   │   ├── constraint.py
-    │       │   │   ├── __init__.py
-    │       │   │   ├── parameter.py
-    │       │   │   └── task.py
-    │       │   ├── __init__.py
-    │       │   ├── parameter.py
-    │       │   └── task.py
-    │       ├── functions
-    │       │   ├── data.py
-    │       │   ├── elapsedTime.py
-    │       │   ├── __init__.py
-    │       │   ├── __init__.pyc
-    │       │   ├── map.py
-    │       │   ├── reduce.py
-    │       │   ├── reduce.pyc
-    │       │   └── sort.py
-    │       ├── __init__.py
-    │       ├── interactive.py
-    │       ├── matlib
-    │       │   ├── algebra
-    │       │   │   ├── __init__.py
-    │       │   │   └── mean.py
-    │       │   ├── classification
-    │       │   │   ├── __init__.py
-    │       │   │   └── linearRegression.py
-    │       │   ├── clustering
-    │       │   │   ├── __init__.py
-    │       │   │   └── kmeans.py
-    │       │   └── __init__.py
-    │       ├── runtime
-    │       │   ├── binding.py
-    │       │   ├── __init__.py
-    │       │   └── launch.py
-    │       ├── storage
-    │       │   ├── api.py
-    │       │   ├── __init__.py
-    │       │   └── Object.py
-    │       ├── util
-    │       │   ├── dictconfig.py
-    │       │   ├── __init__.py
-    │       │   ├── jvmParser.py
-    │       │   ├── logs.py
-    │       │   ├── serialization
-    │       │   │   ├── extendedSupport.py
-    │       │   │   └── __init__.py
-    │       │   ├── serializer.py
-    │       │   └── sizer.py
-    │       └── worker
-    │           ├── __init__.py
-    │           ├── piper_worker.py
-    │           └── worker.py
+    │   ├── lots of source code files
     ├── url
     └── VERSION.txt
 

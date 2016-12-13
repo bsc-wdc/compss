@@ -30,7 +30,7 @@ def install(target_path):
 	tar.extractall('.')
 
 	if subprocess.call(['./COMPSs/install', target_path]) != 0:
-		raise
+		raise Exception('COMPSs install script did not return 0. Plase check stdout & stderr for more info.')
 	
 	pref = os.path.join(target_path, 'COMPSs')
 	try:
@@ -41,7 +41,7 @@ export PATH=$PATH:%s/Bindings/c/bin\n\
 export PYTHONPATH=$PYTHONPATH:%s/pycompss"%(pref, pref, pref, pref, site.getsitepackages()[0])
 		open('/etc/profile.d/compss.sh', 'w').write(s)
 	except:
-		print ('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')
+		raise Exception('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')
 
 if __name__ == "__main__":
 	install()

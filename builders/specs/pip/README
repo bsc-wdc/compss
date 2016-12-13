@@ -1,9 +1,121 @@
+======================================
+	PYCOMPSS PYPI DISTRIBUTABLE
+======================================
 
 This README contains information about the PIP distributable creation process.
 
-=============================
-Contained files
-=============================
+It is assumed that this README is placed (alongside with buildpip and the whole pyCOMPSsResources
+directory) in trunk/builders/specs/pip and that you have a trunk version consistent with
+the COMPS_VERSION.tar.gz supercomputer distributable that is going to be downloaded
+(this will be explained in detail later).
+
+If you want to install pyCOMPSs via distutils and/or PIP then you must have all the
+COMPSs dependencies satisfied.
+You must also have the JAVA_HOME environment variable defined.
+
+It is encouraged to read all sections of this README before proceeding on any modification or
+action on this package.
+
+======================================
+	CREATING THE DISTRIBUTABLE
+======================================
+
+The PyPI distributable can be created with the following command:
+	sudo -E ./buildpip $VERSION
+Where $VERSION contains the desired target version. For example, if
+you want to create a distributable for the 2.0.rc1337 version then
+the following command should be executed:
+	sudo -E ./buildpip 2.0.rc1337
+
+This will create the following files and directories:
+	- A PyCOMPSs directory in /trunk/builders/packages/pip.
+	  This directory contains the scripts and files necessary to
+	  install COMPSs and PyCOMPSs via distutils and/or PIP.
+
+	- A pycompss-rc1337.tar.gz file in /trunk/builders/packages/pip/pyCOMPSs/dist
+	  This .tar.gz contains the whole pyCOMPSs directory (except for the dist folder).
+	  This file is useful for testing. For example, if you type
+	  sudo -E python -m pip install pycompss-rc1337.tar.gz -v
+	  pip will try to install pycompss from this .tar.gz 
+
+======================================
+	INSTALLING PYCOMPSS
+======================================
+
+In order to install pyCOMPSs from a distributable you must:
+	- Have all COMPSs dependencies satisfied.
+	  These dependencies can be found on the COMPSs installation manual,
+	  section 2.2. The manual can be found at http://compss.bsc.es/releases/compss/2.0/docs/COMPSs_Installation_Manual.pdf?tracked=true
+	- Have JAVA_HOME properly defined. As a reminder, you must have a valid JDK installed (not JRE) and your
+	  JAVA_HOME must point to that path.
+
+A pycompss distributable can be installed in any of the following ways:
+	- From a .tar.gz distributable. Let's assume you have a pycompss-$VERSION.tar.gz
+	  created from the buildpip script. Then the following command: 
+		sudo -E python -m pip install pycompss-$VERSION.tar.gz
+	  Will install pycompss in your site-packages.
+
+	- From a pyPI repository (this will be clarified later). For example, if you
+	  type
+		sudo -E python -m pip install pycompss
+	  The latest pycompss version that was released on the live PyPI repository will be
+	  downloaded and installed.
+
+	- From the pyCOMPSs folder. The pyCOMPSs folder contains the very same files as
+	  the dist/pycompss-$VERSION.tar.gz. You can install pycompss from this folder with
+		python setup.py install
+
+WARNING:
+	Due to the unusual nature of this installation process, some errors may not stop the
+	installation, leading to incomplete, non-functional builds.
+	For that reason, it is recommended to run the pip install command with the flag -v (verbose)
+	set on.
+	It is also recommended to test pycompss installations when new versions or changes are made
+	and to redirect the standard output and the standard error to some files.
+
+======================================
+	UNINSTALLING PYCOMPSS
+======================================
+
+PyCOMPSs can be uninstalled (if it was previously installed with distutils and/or PIP) with the following
+command:
+	sudo -E python -m pip uninstall pycompss
+
+======================================
+	UPLOADING A DISTRIBUTABLE
+======================================
+
+*** PLEASE, READ THIS SECTION CAREFULLY ***
+
+It is recommended to read this guide about PIP packages and it is encouraged to
+have some experience with it(for example, create small, dummy packages and upload 
+them to the test repository):
+	http://peterdowns.com/posts/first-time-with-pypi.html
+
+A pycompss distributable can be uploaded to a repository and then be downloadable and
+installable by anyone with python and pip.
+
+In order to upload a PyPI package the following command must be executed:
+	python setup.py sdist upload -r pyPI_URL
+
+Usually pyPI_URL is one of these two:
+	- pyPI test repository: https://testpypi.python.org/pypi
+	- pyPI live repository: https://pypi.python.org/pypi
+
+You must have proper login credentials defined on your ~/.pypirc
+file (i.e: a .pypirc in your home directory)
+
+The login credentials are available at the wiki 
+
+WARNING: Be very careful when uploading pycompss distributables on pyPI.
+pyPI does not allow to re-upload a .tar.gz distributable for the same release. 
+Upload only well-tested installables!
+
+======================================
+	CONTAINED FILES
+======================================
+
+This folder contains the following folder hierarchy and files:
 
 buildpip
 ├── pyCOMPSsResources
@@ -12,9 +124,38 @@ buildpip
 │   ├── README.txt
 │   ├── setup.py
 │   ├── url
-│   └── VERSION.txt
 └── README
 
+README:
+	- This file.
+
+buildpip:
+	- Main script. sudo -E ./buildpip VERSION will create a PIP distributable named
+	  pycompss-${COMPSS_VERSION}.tar.gz in trunk/builders/packages/pip/pyCOMPSs/dist/ 
+	  Example: sudo -E ./buildpip 2.0 will create a pycompss-2.0.tar.gz
+
+pyCOMPSsResources/backend.py:
+	- Auxiliary script which downloads and installs COMPSs in the site-packages folder.
+	  It also places an script in /etc/profile.d/compss.sh which is equivalent to the
+	  compssenv script in the supercomputers installable.  
+
+pyCOMPSsResources/MANIFEST.in:
+	- A distutils manifest. This will determine what files will be included in
+	  the Python distributables. See https://docs.python.org/3/distutils/commandref.html
+	  for more clarification on how this file works.
+
+pyCOMPSsResources/README.txt:
+	- An user-oriented README file.
+
+pyCOMPSsResources/setup.py:
+	- Pip installable main script. This installs COMPSs and pyCOMPSs	
+
+pyCOMPSsResources/url:
+	- Repository
+
+An additional VERSION.txt file will be created (and NOT deleted) by the buildpip script.
+A manual modification of this file will have no effect on future PIP distributable builds
+since it will be automatically replaced by a new one.
 
 *************************************
 ** Department of Computer Science  **

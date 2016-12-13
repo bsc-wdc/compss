@@ -8,7 +8,7 @@ import tarfile
 import subprocess
 
 '''
-  Scripts that downloads the COMPSs installation from the specified repository and version
+  This is a function that downloads the COMPSs installable from the specified repository and version
   and installs it. It is intended to be called from the setup.py script when we are installing.  
   It also leaves a script on /etc/profile.d/compss.sh equivalent to the "compssenv" one on
   the supercomputers packages.
@@ -17,7 +17,7 @@ import subprocess
   possible that not all errors will be properly caught, leading to incomplete installations.
 '''
 
-def install():
+def install(target_path):
 	base_url = open('url','r').read().rstrip()
 	version_name = open('VERSION.txt','r').read().rstrip()
 	bulk_name = 'COMPSs_{0}.tar.gz'.format(version_name)
@@ -29,9 +29,10 @@ def install():
 	tar = tarfile.open(file_name, 'r:gz')
 	tar.extractall('.')
 
-	p = subprocess.call(['./COMPSs/install', sys.argv[1]])
+	if subprocess.call(['./COMPSs/install', target_path]) != 0:
+		raise
 	
-	pref = os.path.join(sys.argv[1], 'COMPSs')
+	pref = os.path.join(target_path, 'COMPSs')
 	try:
 		s="export IT_HOME=%s\n\
 export PATH=$PATH:%s/Runtime/scripts/user\n\
@@ -39,8 +40,6 @@ export CLASSPATH=$CLASSPATH:%s/Runtime/compss-engine.jar\n\
 export PATH=$PATH:%s/Bindings/c/bin\n\
 export PYTHONPATH=$PYTHONPATH:%s/pycompss"%(pref, pref, pref, pref, site.getsitepackages()[0])
 		open('/etc/profile.d/compss.sh', 'w').write(s)
-		if subprocess.call(['source', '/etc/profile.d/compss.sh']) != 0:
-			print ('There was some error during /etc/profile.d/compss.sh execution. Please, check it manually.')
 	except:
 		print ('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')
 

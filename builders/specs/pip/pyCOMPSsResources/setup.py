@@ -3,6 +3,7 @@ import platform
 import site
 import sys
 import os
+from backend import install as backend_install
 from distutils.core import setup, Extension
 from distutils.command.install import install
 from distutils import log
@@ -34,9 +35,10 @@ target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
 '''
 if 'install' in sys.argv:
 	check_dependencies()
-	if subprocess.call(['python', 'backend.py', target_path]) != 0:
+	try:
+		backend_install(target_path)
+	except:
 		print ('Something went wrong during COMPSs install process. Now leaving...')
-		exit(1)
 
 '''
 	C extension for pyCOMPSs. Declaring it that way allows us

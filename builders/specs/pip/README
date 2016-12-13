@@ -1,0 +1,23 @@
+
+This README contains information about the PIP distributable creation process.
+
+=============================
+Contained files
+=============================
+
+buildpip
+├── pyCOMPSsResources
+│   ├── backend.py
+│   ├── MANIFEST.in
+│   ├── README.txt
+│   ├── setup.py
+│   ├── url
+│   └── VERSION.txt
+└── README
+
+
+*************************************
+** Department of Computer Science  **
+** Barcelona Supercomputing Center **
+*************************************
+

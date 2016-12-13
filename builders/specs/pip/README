@@ -16,6 +16,8 @@ You must also have the JAVA_HOME environment variable defined.
 It is encouraged to read all sections of this README before proceeding on any modification or
 action on this package.
 
+
+
 ======================================
 	CREATING THE DISTRIBUTABLE
 ======================================
@@ -37,6 +39,8 @@ This will create the following files and directories:
 	  This file is useful for testing. For example, if you type
 	  sudo -E python -m pip install pycompss-rc1337.tar.gz -v
 	  pip will try to install pycompss from this .tar.gz 
+
+
 
 ======================================
 	INSTALLING PYCOMPSS
@@ -65,13 +69,16 @@ A pycompss distributable can be installed in any of the following ways:
 	  the dist/pycompss-$VERSION.tar.gz. You can install pycompss from this folder with
 		python setup.py install
 
+COMPSs needs some environment variables. The pyCOMPSs installer leaves an script in
+/etc/profile.d/compss.sh . You must restart your session or source the script.
+
 WARNING:
 	Due to the unusual nature of this installation process, some errors may not stop the
 	installation, leading to incomplete, non-functional builds.
-	For that reason, it is recommended to run the pip install command with the flag -v (verbose)
-	set on.
+	For this reason, it is recommended to run the pip install command with the flag -v (verbose).
 	It is also recommended to test pycompss installations when new versions or changes are made
 	and to redirect the standard output and the standard error to some files.
+
 
 ======================================
 	UNINSTALLING PYCOMPSS
@@ -80,6 +87,8 @@ WARNING:
 PyCOMPSs can be uninstalled (if it was previously installed with distutils and/or PIP) with the following
 command:
 	sudo -E python -m pip uninstall pycompss
+
+
 
 ======================================
 	UPLOADING A DISTRIBUTABLE
@@ -111,6 +120,7 @@ WARNING: Be very careful when uploading pycompss distributables on pyPI.
 pyPI does not allow to re-upload a .tar.gz distributable for the same release. 
 Upload only well-tested installables!
 
+
 ======================================
 	CONTAINED FILES
 ======================================
@@ -140,7 +150,7 @@ pyCOMPSsResources/backend.py:
 	  compssenv script in the supercomputers installable.  
 
 pyCOMPSsResources/MANIFEST.in:
-	- A distutils manifest. This will determine what files will be included in
+	- A distutils manifest. This will determine which files will be included in
 	  the Python distributables. See https://docs.python.org/3/distutils/commandref.html
 	  for more clarification on how this file works.
 
@@ -148,14 +158,107 @@ pyCOMPSsResources/README.txt:
 	- An user-oriented README file.
 
 pyCOMPSsResources/setup.py:
-	- Pip installable main script. This installs COMPSs and pyCOMPSs	
+	- Pip installable main script. This installs COMPSs and pyCOMPSs.
 
 pyCOMPSsResources/url:
-	- Repository
+	- Repository from the COMPSs installable will be downloaded. The install script will try to
+	  download and untar a COMPSs_$VERSION.tar.gz from that URL. 
 
-An additional VERSION.txt file will be created (and NOT deleted) by the buildpip script.
+An additional file named VERSION.txt will be created (and NOT deleted) by the buildpip script.
 A manual modification of this file will have no effect on future PIP distributable builds
 since it will be automatically replaced by a new one.
+
+
+
+======================================
+	   GENERATED	
+	PYCOMPSS FOLDER
+======================================
+
+A succesfull buildpip execution will leave in /trunk/builders/packages/pip
+the folder hierarchy and files listed below.
+Do not modify, add or delete any file on this folder.
+
+COMPSs
+    ├── backend.py
+    ├── backend.pyc
+    ├── bin
+    ├── dist
+    │   └── pycompss-2.0.tar.gz
+    ├── install
+    ├── LICENSE.txt
+    ├── log
+    │   ├── logging.json
+    │   ├── logging.json.debug
+    │   └── logging.json.off
+    ├── MANIFEST
+    ├── MANIFEST.in
+    ├── README.txt
+    ├── setup.py
+    ├── src
+    │   ├── ext
+    │   │   └── compssmodule.c
+    │   ├── __init__.py
+    │   └── pycompss
+    │       ├── api
+    │       │   ├── api.py
+    │       │   ├── constraint.py
+    │       │   ├── dummy
+    │       │   │   ├── api.py
+    │       │   │   ├── constraint.py
+    │       │   │   ├── __init__.py
+    │       │   │   ├── parameter.py
+    │       │   │   └── task.py
+    │       │   ├── __init__.py
+    │       │   ├── parameter.py
+    │       │   └── task.py
+    │       ├── functions
+    │       │   ├── data.py
+    │       │   ├── elapsedTime.py
+    │       │   ├── __init__.py
+    │       │   ├── __init__.pyc
+    │       │   ├── map.py
+    │       │   ├── reduce.py
+    │       │   ├── reduce.pyc
+    │       │   └── sort.py
+    │       ├── __init__.py
+    │       ├── interactive.py
+    │       ├── matlib
+    │       │   ├── algebra
+    │       │   │   ├── __init__.py
+    │       │   │   └── mean.py
+    │       │   ├── classification
+    │       │   │   ├── __init__.py
+    │       │   │   └── linearRegression.py
+    │       │   ├── clustering
+    │       │   │   ├── __init__.py
+    │       │   │   └── kmeans.py
+    │       │   └── __init__.py
+    │       ├── runtime
+    │       │   ├── binding.py
+    │       │   ├── __init__.py
+    │       │   └── launch.py
+    │       ├── storage
+    │       │   ├── api.py
+    │       │   ├── __init__.py
+    │       │   └── Object.py
+    │       ├── util
+    │       │   ├── dictconfig.py
+    │       │   ├── __init__.py
+    │       │   ├── jvmParser.py
+    │       │   ├── logs.py
+    │       │   ├── serialization
+    │       │   │   ├── extendedSupport.py
+    │       │   │   └── __init__.py
+    │       │   ├── serializer.py
+    │       │   └── sizer.py
+    │       └── worker
+    │           ├── __init__.py
+    │           ├── piper_worker.py
+    │           └── worker.py
+    ├── url
+    └── VERSION.txt
+
 
 *************************************
 ** Department of Computer Science  **

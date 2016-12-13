@@ -10,12 +10,13 @@ from distutils import log
 
 '''
 	Distutils installer. This script will be called by pip when:
-	- We want to create a distributable (dist) tar.gz
+	- We want to create a distributable (sdist) tar.gz
 	- We want to build the C extension (build)
 	- We want to install pyCOMPSs (install)
 
+
 	It can be invoked to do these functionalities with
-	python setup.py (install|dist|build)
+	python setup.py (install|sdist|build)
 '''
 
 bindings_location = os.path.join('COMPSs', 'Bindings')

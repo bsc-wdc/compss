@@ -23,11 +23,9 @@
 
   #----------------------------------------------------------------------------------
   # Create project XML
-  cp -f ${base_app_dir}/project_dockerProvider.xml ${base_app_dir}/project_dockerProvider.xml
   sed -i "s|LOCAL_USER|${LOCAL_USERNAME}|g" ${base_app_dir}/project_dockerProvider.xml
 
   # Create resources XML
-  cp -f ${base_app_dir}/resources_dockerProvider.xml ${base_app_dir}/resources_dockerProvider.xml
   sed -i "s|LOCAL_USER|${LOCAL_USERNAME}|g" ${base_app_dir}/resources_dockerProvider.xml
 
   #Create package

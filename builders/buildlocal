@@ -498,8 +498,8 @@ install() {
     sudo cp ${tmpDir}/compss/tools/monitor/scripts/compss-monitor /etc/init.d/compss-monitor
     sudo chmod 755 /etc/init.d/compss-monitor
 
-    system=$(which chkconfig)
-    if [ $? -eq 0 ]; then
+    system=$(which chkconfig | cat)
+    if [ "$system" != "" ]; then
       # Suse based distrs
       sudo chkconfig --add compss-monitor
     else 

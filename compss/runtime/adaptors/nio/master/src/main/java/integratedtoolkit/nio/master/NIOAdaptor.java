@@ -217,7 +217,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public NIOWorkerNode initWorker(String workerName, Configuration config) {
-        logger.debug("Init NIO Worker Node");
+        logger.debug("Init NIO Worker Node named " + workerName);
         NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
         nodes.add(worker);
         return worker;
@@ -230,14 +230,14 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void stop() {
-        logger.debug("NIO Adaptor stoping workers...");
+        logger.debug("NIO Adaptor stopping workers...");
         HashSet<NIOWorkerNode> workers = new HashSet<NIOWorkerNode>();
         workers.addAll(nodes);
 
         Semaphore sem = new Semaphore(0);
         ShutdownListener sl = new ShutdownListener(sem);
         for (NIOWorkerNode worker : workers) {
-            logger.debug("- Stopping worker" + worker.getName());
+            logger.debug("- Stopping worker " + worker.getName());
             sl.addOperation();
             worker.stop(sl);
         }
@@ -249,7 +249,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         } catch (Exception e) {
             logger.error("ERROR: Exception raised on worker shutdown");
         }
-        logger.debug("- Workers stoped");
+        logger.debug("- Workers stopped");
 
         logger.debug("- Shutting down TM...");
         tm.shutdown(null);

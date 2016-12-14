@@ -19,6 +19,18 @@ public class NIOConfiguration extends MethodConfiguration {
         super(adaptorName);
     }
 
+    public NIOConfiguration(NIOConfiguration clone){
+        super(clone);
+        this.minPort = clone.minPort;
+        this.maxPort = clone.maxPort;
+        this.remoteExecutionCommand = clone.remoteExecutionCommand;
+    }
+
+    @Override
+    public MethodConfiguration copy() {
+        return new NIOConfiguration(this);
+    }
+
     @Override
     public int getMinPort() {
         return minPort;

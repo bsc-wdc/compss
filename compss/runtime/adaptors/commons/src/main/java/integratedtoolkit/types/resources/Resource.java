@@ -271,7 +271,7 @@ public abstract class Resource implements Comparable<Resource> {
 
     public void retrieveData(boolean saveUniqueData) {
         if (debug) {
-            logger.debug("retriving data resource " + this.getName());
+            logger.debug("Retrieving data resource " + this.getName());
         }
         Semaphore sem = new Semaphore(0);
         SafeCopyListener listener = new SafeCopyListener(sem);
@@ -331,9 +331,7 @@ public abstract class Resource implements Comparable<Resource> {
     }
 
     public void stop(ShutdownListener sl) {
-
         this.deleteIntermediate();
-
         sl.addOperation();
         node.stop(sl);
     }

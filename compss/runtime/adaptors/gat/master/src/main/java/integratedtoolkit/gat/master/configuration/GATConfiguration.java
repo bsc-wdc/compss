@@ -34,6 +34,20 @@ public class GATConfiguration extends MethodConfiguration {
         }
     }
 
+    public GATConfiguration(GATConfiguration clone){
+        super(clone);
+        context = clone.context; // TODO: check if context should be cloned or this assignation is OK
+        usingGlobus = clone.usingGlobus;
+        userNeeded = clone.userNeeded;
+        queue = clone.queue;
+    }
+
+    @Override
+    public MethodConfiguration copy(){
+        return new GATConfiguration(this);
+    }
+
+
     private void initContext(String brokerAdaptor, String fileAdaptor) {
         this.context = new GATContext();
         this.context.addPreference("ResourceBroker.adaptor.name", brokerAdaptor);

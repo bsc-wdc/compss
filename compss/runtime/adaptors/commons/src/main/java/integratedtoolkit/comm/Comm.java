@@ -176,7 +176,6 @@ public class Comm {
                 logger.error("Error releasing storage library: " + e.getMessage());
             }
         }
-
         // Stop tracing system
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());

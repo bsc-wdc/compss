@@ -24,7 +24,6 @@ public class ShutdownListener {
             finished = operation == 0;
             failed = errors > 0;
         }
-
         if (finished) {
             if (failed) {
                 doFailures();

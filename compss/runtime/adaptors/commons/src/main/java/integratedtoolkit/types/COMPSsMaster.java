@@ -267,7 +267,7 @@ public class COMPSsMaster extends COMPSsNode {
                         }
                         node.sendData(ld, source, target, tgtData, reason, listener);
                     } catch (Exception e) {
-                        ErrorManager.warn("Not posible to sending data master to " + target.getPath(), e);
+                        ErrorManager.warn("Not possible to sending data master to " + target.getPath(), e);
                         continue;
                     }
                     logger.debug("Data " + ld.getName() + " sent.");

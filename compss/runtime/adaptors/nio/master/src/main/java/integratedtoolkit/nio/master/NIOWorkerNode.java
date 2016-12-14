@@ -168,13 +168,13 @@ public class NIOWorkerNode extends COMPSsWorker {
     			sl.notifyFailure(new UnstartedNodeException());
     			logger.error("Shutdown has failed");
     		}
-        	Connection c = NIOAgent.tm.startConnection(node);
-        	commManager.shuttingDown(this, c, sl);
-        	CommandShutdown cmd = new CommandShutdown(null, null);
-        	c.sendCommand(cmd);
+            Connection c = NIOAgent.tm.startConnection(node);
+            commManager.shuttingDown(this, c, sl);
+            CommandShutdown cmd = new CommandShutdown(null, null);
+            c.sendCommand(cmd);
 
-        	c.receive();
-        	c.finishConnection();
+            c.receive();
+            c.finishConnection();
         } else {
         	logger.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
         	workerStarter.setToStop();

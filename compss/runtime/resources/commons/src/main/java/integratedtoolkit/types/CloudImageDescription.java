@@ -5,10 +5,7 @@ import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class CloudImageDescription {    
@@ -123,7 +120,7 @@ public class CloudImageDescription {
 
     public void setPackages(List<ApplicationPackage> packages) {
         if (packages != null) {
-            this.packages = packages;
+            this.packages = new ArrayList<>(packages);
         }
     }
 
@@ -138,7 +135,7 @@ public class CloudImageDescription {
 
     public void setSharedDisks(HashMap<String, String> sharedDisks) {
         if (sharedDisks != null && !sharedDisks.isEmpty()) {
-            this.sharedDisks = sharedDisks;
+            this.sharedDisks = new HashMap<>(sharedDisks);
         }
     }
 
@@ -172,7 +169,7 @@ public class CloudImageDescription {
 
     public void setQueues(List<String> queues) {
         if (queues != null) {
-            this.queues = queues;
+            this.queues = new ArrayList<>(queues);
         }
     }
 
@@ -185,14 +182,14 @@ public class CloudImageDescription {
     }
 
     public void setConfig(MethodConfiguration config) {
-        this.config = config;
-        
+        this.config = config.copy();
+
         // Add adaptor ports in image properties for some connectors (i.e. JClouds)
         String maxPort = "-1";
         String minPort = "-1";
-        if (config != null) {
-            maxPort = String.valueOf(config.getMaxPort());
-            minPort = String.valueOf(config.getMinPort());
+        if (this.config != null) {
+            maxPort = String.valueOf(this.config.getMaxPort());
+            minPort = String.valueOf(this.config.getMinPort());
         }
         this.properties.put(AbstractConnector.ADAPTOR_MAX_PORT_PROPERTY_NAME, maxPort);
         this.properties.put(AbstractConnector.ADAPTOR_MIN_PORT_PROPERTY_NAME, minPort);

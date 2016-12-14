@@ -1,6 +1,7 @@
 package integratedtoolkit.types.resources.configuration;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,8 +37,13 @@ public class Configuration {
      */
     public Configuration(Configuration clone) {
         this.adaptorName = clone.adaptorName;
+
         this.limitOfTasks = clone.limitOfTasks;
-        for (java.util.Map.Entry<String, String> addProp : clone.additionalProperties.entrySet()) {
+        this.limitOfGPUTasks = clone.limitOfGPUTasks;
+        this.limitOfFPGATasks = clone.limitOfFPGATasks;
+        this.limitOfOTHERSTasks = clone.limitOfOTHERSTasks;
+
+        for (Entry<String, String> addProp : clone.additionalProperties.entrySet()) {
             additionalProperties.put(addProp.getKey(), addProp.getValue());
         }
     }

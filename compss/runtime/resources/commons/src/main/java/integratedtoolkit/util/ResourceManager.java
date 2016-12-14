@@ -153,7 +153,7 @@ public class ResourceManager {
              * Semaphore sem = new Semaphore(0); ShutdownListener sl = new ShutdownListener(sem);
              * resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping cloud workers...]"); for (Worker<?> r :
              * pool.getDynamicResources()) { // TODO: The worker is not really needed to be stopped because VM is going
-             * to be erased. // However, the app-files and the tracing files MUST be transfered r.stop(false, sl); }
+             * to be erased. // However, the app-files and the tracing files MUST be transferred r.stop(false, sl); }
              * resourcesLogger.debug("DEBUG_MSG = [Waiting for cloud workers to shutdown...]"); sl.enable(); try {
              * sem.acquire(); } catch (Exception e) {
              * resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on cloud worker shutdown]"); }
@@ -173,7 +173,7 @@ public class ResourceManager {
         // Physical worker (COMM) is erased now - because of cloud
         if (pool != null && !pool.getStaticResources().isEmpty()) {
             
-            resourcesLogger.debug("DEBUG_MSG = [Resource Manager retreiving data from workers...]");
+            resourcesLogger.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
             for (Worker<?> r : pool.getStaticResources()) {
                 r.retrieveData(false);
             }

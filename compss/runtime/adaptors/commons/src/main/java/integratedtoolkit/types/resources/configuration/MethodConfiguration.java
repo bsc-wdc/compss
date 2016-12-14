@@ -33,21 +33,26 @@ public class MethodConfiguration extends Configuration {
 
     public MethodConfiguration(MethodConfiguration clone) {
         super(clone);
-        host = clone.host;
-        user = clone.user;
+        this.host = clone.host;
+        this.user = clone.user;
 
-        installDir = clone.installDir;
-        workingDir = clone.workingDir;
+        this.installDir = clone.installDir;
+        this.workingDir = clone.workingDir;
+        this.sandboxWorkingDir = clone.sandboxWorkingDir;
 
-        totalComputingUnits = clone.totalComputingUnits;
-        totalGPUComputingUnits = clone.totalGPUComputingUnits;
-        totalFPGAComputingUnits = clone.totalFPGAComputingUnits;
-        totalOTHERComputingUnits = clone.totalOTHERComputingUnits;
+        this.totalComputingUnits = clone.totalComputingUnits;
+        this.totalGPUComputingUnits = clone.totalGPUComputingUnits;
+        this.totalFPGAComputingUnits = clone.totalFPGAComputingUnits;
+        this.totalOTHERComputingUnits = clone.totalOTHERComputingUnits;
 
-        appDir = clone.appDir;
-        classpath = clone.classpath;
-        pythonpath = clone.pythonpath;
-        libraryPath = clone.libraryPath;
+        this.appDir = clone.appDir;
+        this.classpath = clone.classpath;
+        this.pythonpath = clone.pythonpath;
+        this.libraryPath = clone.libraryPath;
+    }
+
+    public MethodConfiguration copy() {
+        return new MethodConfiguration(this);
     }
 
     public String getInstallDir() {

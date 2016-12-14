@@ -31,7 +31,6 @@ public class CreationThread extends Thread {
     private static final boolean debug = resourceLogger.isDebugEnabled();
 
     // Error and warn messages
-    private static final String ERROR_REUSING_MACHINE = "Error reusing resource";
     private static final String ERROR_ASKING_NEW_RESOURCE = "Error asking a new Resource to ";
     private static final String ERROR_WAITING_VM = "Error waiting for a machine that should be provided by ";
     private static final String ERROR_POWEROFF_VM = "Cannot poweroff the machine\n]";
@@ -69,7 +68,7 @@ public class CreationThread extends Thread {
      */
     public CreationThread(Operations operations, String name, String provider, ResourceCreationRequest rR, VM reused) {
         this.setName("Creation Thread " + name);
-        
+
         this.operations = operations;
         this.provider = provider;
         this.name = name;
@@ -121,7 +120,7 @@ public class CreationThread extends Thread {
                     r = prepareNewResource(granted);
                     operations.vmReady(granted);
                 } catch (Exception e) {
-                    runtimeLogger.error(ERROR_REUSING_MACHINE, e);
+                    runtimeLogger.error(ERROR_PREPARING_VM, e);
                     powerOff(granted);
                     notifyFailure();
                     return;

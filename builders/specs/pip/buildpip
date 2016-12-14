@@ -21,6 +21,7 @@ cp -rf ../../../compss/programming_model/bindings/python/* pyCOMPSs/
 # It may be possible that not all of the files in that folder are
 # necessary or even appropriate for the installation
 cp pyCOMPSsResources/setup.py pyCOMPSs/
+cp pyCOMPSsResources/pycompssenv pyCOMPSs/
 cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
 cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
 cp pyCOMPSsResources/url pyCOMPSs/

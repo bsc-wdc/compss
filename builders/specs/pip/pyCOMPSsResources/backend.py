@@ -33,11 +33,7 @@ def install(target_path):
 	
 	pref = os.path.join(target_path, 'COMPSs')
 	try:
-		s="export IT_HOME=%s\n\
-export PATH=$PATH:%s/Runtime/scripts/user\n\
-export CLASSPATH=$CLASSPATH:%s/Runtime/compss-engine.jar\n\
-export PATH=$PATH:%s/Bindings/c/bin\n\
-export PYTHONPATH=$PYTHONPATH:%s/pycompss"%(pref, pref, pref, pref, site.getsitepackages()[0])
+		s=open('pycompssenv', 'r').read()%(site.getsitepackages()[0], pref, pref, pref, pref, site.getsitepackages()[0])
 		open('/etc/profile.d/compss.sh', 'w').write(s)
 	except:
 		raise Exception('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')

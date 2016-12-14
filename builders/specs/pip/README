@@ -89,7 +89,7 @@ PyCOMPSs can be uninstalled (if it was previously installed with distutils and/o
 command:
 	sudo -E python -m pip uninstall pycompss
 
-After the PIP desinstallation, some files must be removed manually:
+After the PIP uninstall, some files must be removed manually:
 	- The script at /etc/profile.d/compss.sh
 	- The path_to_your_site_packages/pycompss folder and all of its contents
 
@@ -101,7 +101,7 @@ After the PIP desinstallation, some files must be removed manually:
 *** PLEASE, READ THIS SECTION CAREFULLY ***
 
 It is recommended to read this guide about PIP packages and it is encouraged to
-have some experience with it(for example, create small, dummy packages and upload 
+have some experience with it (for example, create small, dummy packages and upload 
 them to the test repository):
 	http://peterdowns.com/posts/first-time-with-pypi.html
 
@@ -116,7 +116,8 @@ Usually pyPI_URL is one of these two:
 	- pyPI live repository: https://pypi.python.org/pypi
 
 You must have proper login credentials defined on your ~/.pypirc
-file (i.e: a .pypirc in your home directory)
+file. Please, see the aforementioned tutorial for a proper pypirc
+example
 
 The login credentials are available at the wiki 
 

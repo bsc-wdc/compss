@@ -1,5 +1,7 @@
 graft build
 include backend.py
+
+include LICENSE.txt
 include VERSION.txt
 include url
 

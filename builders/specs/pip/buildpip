@@ -26,6 +26,7 @@ cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
 cp pyCOMPSsResources/url pyCOMPSs/
 cp pyCOMPSsResources/backend.py pyCOMPSs/
 cp pyCOMPSsResources/README.txt pyCOMPSs/
+cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
 
 cd pyCOMPSs
 

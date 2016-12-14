@@ -29,7 +29,7 @@ def install(target_path):
 	tar.extractall('.')
 
 	if subprocess.call(['./COMPSs/install', target_path]) != 0:
-		raise Exception('COMPSs install script did not return 0. Plase check stdout & stderr for more info.')
+		raise Exception('COMPSs install script ended with some error. Plase check stdout & stderr for more info.')
 	
 	pref = os.path.join(target_path, 'COMPSs')
 	try:

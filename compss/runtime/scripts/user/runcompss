@@ -598,6 +598,9 @@ check_args() {
 
   if [ -z "$uuid" ]; then
     uuid=$(uuidgen)
+    if [ -z "$uuid" ]; then
+      uuid=$(cat /proc/sys/kernel/random/uuid)
+    fi
   fi
 
   # MASTER
@@ -775,15 +778,14 @@ exec_c() {
     export CPP_PATH=$cp
   fi
 
-  if [ -f ${JAVA_HOME}/jre/lib/amd64/server/libjvm.so ]; then
-    local libjava=${JAVA_HOME}/jre/lib/amd64/server
-  elif [ -f ${JAVA_HOME}/jre/lib/i386/client/libjvm.so ]; then
-    local libjava=${JAVA_HOME}/jre/lib/i386/client
-  else
+  # Look for the JVM Library
+  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  if [ -z "$libjava" ]; then
     display_error "${JAVA_JRE_ERROR}"
   fi
+  libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/Bindings/bindings-common/lib:${IT_HOME}/Bindings/c/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${IT_HOME}/Bindings/bindings-common/lib:${IT_HOME}/Bindings/c/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 
@@ -818,16 +820,15 @@ exec_python() {
   else
     export PYTHONPATH=$cp:$PYTHONPATH
   fi
-        # Setup library path
-  if [ -f ${JAVA_HOME}/jre/lib/amd64/server/libjvm.so ]; then
-    local libjava=${JAVA_HOME}/jre/lib/amd64/server
-  elif [ -f ${JAVA_HOME}/jre/lib/i386/client/libjvm.so ]; then
-    local libjava=${JAVA_HOME}/jre/lib/i386/client
-  else
+
+  # Look for the JVM Library                                                                                                                                                            
+  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  if [ -z "$libjava" ]; then
     display_error "${JAVA_JRE_ERROR}"
   fi
+  libjavafolder=$(dirname $libjava)
 
-  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjava:${IT_HOME}/Bindings/bindings-common/lib
+  export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${IT_HOME}/Bindings/bindings-common/lib
 
   export JVM_OPTIONS_FILE=${jvm_options_file}
 

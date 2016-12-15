@@ -54,7 +54,7 @@
   fi
   
   if [ "${elasticity_termination_GOT}" != "${elasticity_termination_EXPECTED}" ]; then
-    echo "[ERROR] Elasticity not reaching minVM at the end (${elasticity_termination_GOT} -> Expected: ${elasticity_termination_EXPECTED}" | tee ${output_file}
+    echo "[ERROR] Elasticity not reaching minVM at the end (${elasticity_termination_GOT} -> Expected: ${elasticity_termination_EXPECTED})" | tee ${output_file}
     exit 6
   fi
 

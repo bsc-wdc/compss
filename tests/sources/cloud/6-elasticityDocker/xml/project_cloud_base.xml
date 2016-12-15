@@ -22,6 +22,10 @@
 					<Name>vm-keypair-location</Name>
 					<Value>~/.ssh/docker_keys</Value>
 				</Property>
+				<Property>
+					<Name>time-slot</Name>
+					<Value>1</Value>
+				</Property>
 			</Properties>
 
 			<Images>

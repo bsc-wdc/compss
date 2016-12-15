@@ -9,7 +9,7 @@
 
 		<Images>
 			<Image Name="compss/compss:1.4.rc09">
-				<CreationTime>110</CreationTime>
+				<CreationTime>1</CreationTime>
 				<Adaptors>
 					<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
 						<SubmissionSystem>

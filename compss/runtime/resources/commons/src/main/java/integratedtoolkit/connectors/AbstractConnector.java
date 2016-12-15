@@ -429,13 +429,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                 }
                 synchronized (vmsLock) {
                     if (vmsAlive.isEmpty()) {
-                        // LOGGER.info("MONITORSTATUS DEAD no VMs alive");
-                        long slTime = getSleepTime();
-                        if (meanCreationTime > slTime) {
-                            sleepTime = meanCreationTime;
-                        } else {
-                            sleepTime = slTime;
-                        }
+                        // LOGGER.info("MONITOR STATUS DEAD no VMs alive");
+                        sleepTime= getSleepTime();
                         LOGGER.debug("No VMs alive deadline sleep set to " + sleepTime + " ms.");
                         continue;
                     } else {
@@ -461,7 +456,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
                             } else {
                                 if (sleepTime > timeLeft - DELETE_SAFETY_INTERVAL) {
                                     sleepTime = timeLeft - DELETE_SAFETY_INTERVAL;
-                                    LOGGER.debug("Reseting sleep time because a interval near to finish " + sleepTime + " ms.");
+                                    LOGGER.debug("Resetting sleep time because a interval near to finish " + sleepTime + " ms.");
                                 }
                             }
                         }

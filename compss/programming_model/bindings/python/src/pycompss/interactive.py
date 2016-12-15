@@ -16,6 +16,8 @@ import pycompss.runtime.binding as binding
 from pycompss.runtime.binding import get_task_objects
 from random import randint
 import time
+from multiprocessing import Process
+
 
 try:
     # Import storage libraries if possible
@@ -26,15 +28,18 @@ except ImportError:
     from pycompss.storage.api import init as initStorage
     from pycompss.storage.api import finish as finishStorage
 
+
 storage = False
 myUuid = 0
 app_path = "InteractiveMode"
-
+running = False
+process = None
 
 # os.environ['IT_HOME'] + '/Runtime/configuration/xml/projects/default_project.xml',
-#os.environ['IT_HOME'] + '/Runtime/configuration/xml/resources/default_resources.xml',
+# os.environ['IT_HOME'] + '/Runtime/configuration/xml/resources/default_resources.xml',
 
-def start(log_level="off",
+'''
+def startP(log_level="off",
           o_c=False,
           debug=False,
           graph=False,
@@ -57,6 +62,52 @@ def start(log_level="off",
           scheduler='integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m'
           ):
+    global running
+    global process
+    if running:
+        print "You have currently a running PyCOMPSs instance."
+    else:
+        print "[iPyCOMPSs] Starting process..."
+
+        exportGlobals()
+
+        process = Process(target=start, args=(log_level, o_c, debug, graph, trace, monitor,
+                                              project_xml, resources_xml, summary, taskExecution,
+                                              storageConf, taskCount, appName, uuid, baseLogDir,
+                                              specificLogDir, extraeCfg, comm, masterName,
+                                              masterPort, scheduler, jvmWorkers, True))
+        process.daemon = True
+        process.start()
+        print "[iPyCOMPSs] Process started."
+        running = True
+'''
+
+
+
+def start(log_level="off",
+          o_c=False,
+          debug=False,
+          graph=False,
+          trace=False,
+          monitor=None,
+          project_xml='/opt/COMPSs/Runtime/configuration/xml/projects/default_project.xml',
+          resources_xml='/opt/COMPSs/Runtime/configuration/xml/resources/default_resources.xml',
+          summary=False,
+          taskExecution='compss',
+          storageConf=None,
+          taskCount=50,
+          appName='Interactive',
+          uuid=None,
+          baseLogDir=None,
+          specificLogDir=None,
+          extraeCfg=None,
+          comm='NIO',
+          masterName='',
+          masterPort='43000',
+          scheduler='integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler',
+          jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
+          forked=False,
+          ):
     it_home = os.environ['IT_HOME']
     pythonPath = os.environ['PYTHONPATH'] + ':' + os.getcwd() + '/'
     classpath = os.environ['CLASSPATH']
@@ -76,6 +127,7 @@ def start(log_level="off",
         print 'ERROR: Wrong tracing parameter ( [ True | basic ] | advanced | False)'
         return -1
 
+    '''
     # Super ugly, but I see no other way to define the app_path across the interactive execution without
     # making the user to define it explicitly.
     # It is necessary to define only one app_path because of the two decorators need to access the same information.
@@ -89,6 +141,8 @@ def start(log_level="off",
     # Inject app_path variable to user globals so that task and constraint decorators can get it.
     # userGlobals['app_path'] = os.getcwd() + '/' + "InteractiveMode" + str(randint(20000, 40000)) + '.py'
     userGlobals['app_path'] = os.getcwd() + '/' + "InteractiveMode" + str(time.strftime('%d%m%y_%H%M%S')) + '.py'
+    '''
+    exportGlobals()
 
     print "******************************************************"
     print "*************** PyCOMPSs Interactive *****************"
@@ -240,6 +294,10 @@ def start(log_level="off",
     # let the user write an interactive application
     print "PyCOMPSs Runtime started... Have fun!"
 
+    if forked:
+        while True:
+            pass
+
 
 def printSetup(log_level, o_c, debug, graph, trace, monitor,
           project_xml, resources_xml, summary, taskExecution, storageConf,
@@ -273,6 +331,25 @@ def printSetup(log_level, o_c, debug, graph, trace, monitor,
     output += "******************************************************\n"
     print output
     logger.debug(output)
+
+
+'''
+def stopP(sync=False):
+    # stopProcess(sync)
+    global running
+    global process
+    if running:
+        print "[iPyCOMPSs] Terminating process..."
+        process.terminate()
+        process = Process(target=stop, args=(sync))
+        process.start()
+        process.join()
+        process.terminate()
+        print "[iPyCOMPSs] Process terminated."
+        running = False
+    else:
+        print "[iPyCOMPSs] There is not PyCOMPSs instance running."
+'''
 
 
 def stop(sync=False):
@@ -314,5 +391,26 @@ def stop(sync=False):
 
     logger.debug("--- END ---")
     print "--- END ---"
+    # os._exit(00)  # Explicit kernel restart
 
     # --- Execution finished ---
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+
+def exportGlobals():
+    # Super ugly, but I see no other way to define the app_path across the interactive execution without
+    # making the user to define it explicitly.
+    # It is necessary to define only one app_path because of the two decorators need to access the same information.
+    # if the file is created per task, the constraint will not be able to work.
+    # Get ipython globals
+    ipython = globals()['__builtins__']['get_ipython']()
+    # import pprint
+    # pprint.pprint(ipython.__dict__, width=1)
+    # Extract user globals from ipython
+    userGlobals = ipython.__dict__['ns_table']['user_global']
+    # Inject app_path variable to user globals so that task and constraint decorators can get it.
+    # userGlobals['app_path'] = os.getcwd() + '/' + "InteractiveMode" + str(randint(20000, 40000)) + '.py'
+    userGlobals['app_path'] = os.getcwd() + '/' + "InteractiveMode" + str(time.strftime('%d%m%y_%H%M%S')) + '.py'

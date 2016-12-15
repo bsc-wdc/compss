@@ -22,7 +22,14 @@
     echo "Please define \$JAVA_HOME"
     exit 1
   fi
-  export JAVA_LIB_DIR=${JAVA_HOME}/jre/lib/amd64/server
+
+  # Look for the JVM Library                                                                                                                                                            
+  libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  if [ -z "$libjava" ]; then
+    echo "Cannot find JVM Library"
+    exit 1
+  fi
+  export JAVA_LIB_DIR=$(dirname $libjava)
 
   # Install and deploy on scriptDir (for C binding)
   echo "Install on scriptDir = $scriptDir for Bindings compilation"

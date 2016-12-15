@@ -76,29 +76,40 @@ process_task(PyObject *self, PyObject *args)
 
     	c_types[j] = (int)PyInt_AsLong(type);
     	c_directions[j] = (int)PyInt_AsLong(direction);
+
+    	//printf ("#### c_type: %d\n", c_types[j]);
+    	//printf ("#### c_direction: %d\n", c_directions[j]);
     	switch ((enum datatype) c_types[j]) {
 	    case file_dt:
-    		val_size += sizeof(char*);
-    		break;
+	        //printf ("#### file_dt\n");
+	        val_size += sizeof(char*);
+    	        break;
 	    case external_psco_dt:
+	        //printf ("#### external_psco_dt\n");
 		val_size += sizeof(char *);
 		break;
     	    case string_dt:
+    	        //printf ("#### string_dt\n");
     	    	val_size += sizeof(char*);
     		break;
     	    case int_dt:
+    	        //printf ("#### int_dt\n");
     	    	val_size += sizeof(int);
     	        break;
     	    case long_dt:
+    	        //printf ("#### long_dt\n");
     	    	val_size += sizeof(long);
     	        break;
     	    case double_dt:
+    	        //printf ("#### double_dt\n");
     	    	val_size += sizeof(double);
     	        break;
     	    case boolean_dt:
+    	        //printf ("#### boolean_dt\n");
     		val_size += sizeof(int);
     		break;
      	    default:
+     	        //printf ("#### default\n");
      		break;
         }
     }

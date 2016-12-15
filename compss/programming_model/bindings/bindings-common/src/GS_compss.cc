@@ -72,9 +72,9 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   JavaVMInitArgs vm_args;
   vector<JavaVMOption> options;
   
-  string line;                                        // buffer for line read
+  string line;                                           // buffer for line read
   const char *file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
-  ifstream fin;                                           // input file stream
+  ifstream fin;                                          // input file stream
   
   fin.open(file);
   if (fin.good()) {
@@ -149,6 +149,14 @@ JNIEnv* create_vm(JavaVM ** jvm) {
     debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
   }
   return env;
+}
+
+
+void destroy_vm(JavaVM * jvm) {
+  int ret = jvm->DestroyJavaVM();
+  if (ret < 0){
+    debug_printf("[   BINDING]  -  @destroy_vm  -  Unable to Destroy JVM - %i\n", ret);
+  }
 }
 
 
@@ -629,6 +637,11 @@ void GS_Off()
     env->ExceptionDescribe();
     exit(0);
   }
+  
+  destroy_vm(jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
+  // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
+  jvm = NULL;
+  
 }
 
 void GS_Get_AppDir(char **buf)

@@ -1,6 +1,5 @@
 package integratedtoolkit.nio.worker.executors.util;
 
-import java.io.File;
 import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +25,6 @@ public abstract class Invoker {
 
     private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
     private static final String ERROR_PERSISTENT_OBJ = "ERROR: Cannot getById persistent object";
-    private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task with Method Definition [";
     
     protected static final String ERROR_METHOD_DEFINITION = "Incorrect method definition for task of type ";
     protected static final String ERROR_TASK_EXECUTION = "ERROR: Exception executing task (user code)";
@@ -111,9 +109,6 @@ public abstract class Invoker {
         
         /* Check SCO persistence for return and target ************** */
         checkSCOPersistence();
-
-        /* Check files existence ************************************ */
-        checkJobFiles();
 
         /* Write to disk the updated values ************************* */
         writeUpdatedParameters();
@@ -320,33 +315,6 @@ public abstract class Invoker {
                 this.nt.getParams().getLast().setType(DataType.PSCO_T);
                 this.nt.getParams().getLast().setValue(id);
             }
-        }
-    }
-
-    private void checkJobFiles() throws JobExecutionException {
-        // Check if all the output files have been actually created (in case user has forgotten)
-        // No need to distinguish between IN or OUT files, because IN files will exist, and
-        // if there's one or more missing, they will be necessarily out.
-        boolean allOutFilesCreated = true;
-        for (int i = 0; i < this.numParams; i++) {
-            if (this.isFile[i]) {
-                String filepath = (String) this.values[i];
-                File f = new File(filepath);
-                if (!f.exists()) {
-                    StringBuilder errMsg = new StringBuilder();
-                    errMsg.append("ERROR: File with path '").append(this.values[i]);
-                    errMsg.append("' has not been generated for parameter number: ").append( String.valueOf(i + 1) );
-                    errMsg.append(" by task with Method Definition ").append(this.impl.getMethodDefinition());
-
-                    System.out.println(errMsg.toString());
-                    System.err.println(errMsg.toString());
-                    allOutFilesCreated = false;
-                }
-            }
-        }
-
-        if (!allOutFilesCreated) {
-            throw new JobExecutionException(ERROR_OUT_FILES + this.impl.getMethodDefinition());
         }
     }
 

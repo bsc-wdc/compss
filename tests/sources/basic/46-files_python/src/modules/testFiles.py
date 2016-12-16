@@ -1,7 +1,7 @@
 import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-
+import os.path
 
 class testFiles(unittest.TestCase):
 
@@ -93,6 +93,8 @@ class testFiles(unittest.TestCase):
         res = compss_wait_on(res)
         with compss_open(fout, 'r') as fout_r:
             content_r = fout_r.read()
+        fileInFolder = os.path.isfile(fout)
+        self.assertTrue(fileInFolder, "FILE_OUT is not in the final location")
         self.assertEqual(res, content, "strings are not equal: {}, {}".format(res, content))
         self.assertEqual(content_r, content, "strings are not equal: {}, {}".format(content_r, content))
 

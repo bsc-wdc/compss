@@ -502,8 +502,10 @@ public class DataInfoProvider {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
                         }
                     }
+		    logger.debug("Returned because persistent object");
+                    return rf;
                 }
-                return rf;
+                
             }
 
             // If no PSCO location is found, perform normal getData

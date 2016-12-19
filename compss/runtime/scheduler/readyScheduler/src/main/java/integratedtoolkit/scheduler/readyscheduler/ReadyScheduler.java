@@ -28,7 +28,7 @@ import java.util.PriorityQueue;
  */
 public class ReadyScheduler<P extends Profile, T extends WorkerResourceDescription> extends TaskScheduler<P, T> {
 
-    private static final int THRESHOLD = 50;
+    private static final int THRESHOLD = 1000;
 
     private ActionSet<P, T> dependingActions = new ActionSet<>();
     private ActionSet<P, T> unassignedReadyActions = new ActionSet<>();

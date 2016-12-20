@@ -12,8 +12,8 @@ usage() {
 
 
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  # baseVersion:	Refers to the main version: v		1.4
-  # Version: 		Refers to the current version: v.month  1.4.2
+  # baseVersion:	Refers to the main version: v		2.0
+  # Version: 		Refers to the current version: v.rcYYMM 2.0.rc1701
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   # Get base version from trunk
@@ -22,11 +22,11 @@ usage() {
   baseVersion=$(cat ${trunk_dir}/pom.xml | grep "compss.version" | tr ">" "\t" | awk {' print $2 '} | tr "<" "\t" | awk {' print $1 '})
 
   # Compute version
-  month=$(date +"%y%m")
+  yymm=$(date +"%y%m")
   if [[ ${baseVersion} == *rc* ]]; then
-    version=${baseVersion::-5}.rc${month}
+    version=${baseVersion::-5}.rc${yymm}
   else
-    version=${baseVersion}.rc${month}
+    version=${baseVersion}.rc${yymm}
   fi
 
   # Perform update process

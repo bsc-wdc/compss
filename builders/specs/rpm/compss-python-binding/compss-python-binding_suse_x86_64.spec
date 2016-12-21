@@ -1,5 +1,5 @@
 %define name	 	compss-python-binding 
-%define version 	2.0
+%define version 	2.0.rc1612
 %define release		1
 
 Requires: compss-bindings-common, python >= 2.7
@@ -7,7 +7,7 @@ Summary: The BSC COMP Superscalar Python Binding
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0
+License: Apache 2.0.rc1612
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux

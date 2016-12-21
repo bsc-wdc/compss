@@ -1,5 +1,5 @@
 %define name	 	compss-extrae 
-%define version 	2.0
+%define version 	2.0.rc1612
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-gfortran
@@ -7,7 +7,7 @@ Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0
+License: Apache 2.0.rc1612
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux

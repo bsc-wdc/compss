@@ -1,5 +1,5 @@
 %define name	 	compss-bindings-common 
-%define version 	2.0
+%define version 	2.0.rc1612
 %define release		1
 
 Requires: compss-engine, libtool, automake, make, gcc-c++
@@ -7,7 +7,7 @@ Summary: The C libraries shared by BSC COMP Superscalar Bindings
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0
+License: Apache 2.0.rc1612
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux

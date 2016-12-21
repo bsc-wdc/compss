@@ -1,5 +1,5 @@
 %define name	 	compss-worker
-%define version 	2.0
+%define version 	2.0.rc1612
 %define release		1
 
 Requires: java-1_8_0-openjdk
@@ -7,7 +7,7 @@ Summary: The BSC COMP Superscalar Runtime Worker
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0
+License: Apache 2.0.rc1612
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux

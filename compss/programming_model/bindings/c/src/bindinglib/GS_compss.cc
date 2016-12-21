@@ -10,8 +10,8 @@ void compss_on(void) {
 }
 
 void compss_off(void) {
-  GS_clean();
   GS_Off();
+  GS_clean();
 }
 
 void GS_clean() {

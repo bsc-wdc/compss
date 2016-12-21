@@ -6,11 +6,14 @@ GENERATORS_DIR=$(dirname "$0")
 NUM_WORKERS=$1
 COMPUTING_UNITS=$2
 MEMORY=$3
+SWARM_MANAGER_IP=$4
+IMAGE_NAME=$5
+CREATION_TIME=$6
 
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?> \n"
 echo -e "<ResourcesList> \n"
 
-for i in $(seq 1 $NUM_WORKERS); do  
+for i in $(seq 1 $NUM_WORKERS); do
     echo -e "\
     <ComputeNode Name=\"worker$i\"> \n\
         <Processor Name=\"MainProcessor\"> \n\
@@ -42,4 +45,85 @@ for i in $(seq 1 $NUM_WORKERS); do
     </ComputeNode> \n\
 "
 done
+echo -e "\
+    <CloudProvider Name=\"Docker\"> \n\
+        <Endpoint> \n\
+            <Server>tcp://$SWARM_MANAGER_IP</Server> \n\
+            <ConnectorJar>docker-conn.jar</ConnectorJar> \n\
+            <ConnectorClass>es.bsc.conn.docker.Docker</ConnectorClass> \n\
+        </Endpoint> \n\
+        <Images> \n\
+            <Image Name=\"$IMAGE_NAME\"> \n\
+                <CreationTime>$CREATION_TIME</CreationTime> \n\
+                <Adaptors> \n\
+                    <Adaptor Name=\"integratedtoolkit.nio.master.NIOAdaptor\"> \n\
+                        <SubmissionSystem> \n\
+                            <Interactive /> \n\
+                        </SubmissionSystem> \n\
+                        <Ports> \n\
+                            <MinPort>43000</MinPort> \n\
+                            <MaxPort>43003</MaxPort> \n\
+                        </Ports> \n\
+                    </Adaptor> \n\
+                    <Adaptor Name=\"integratedtoolkit.gat.master.GATAdaptor\"> \n\
+                        <SubmissionSystem> \n\
+                            <Batch> \n\
+                                <Queue>sequential</Queue> \n\
+                            </Batch> \n\
+                            <Interactive /> \n\
+                        </SubmissionSystem> \n\
+                        <BrokerAdaptor>sshtrilead</BrokerAdaptor> \n\
+                    </Adaptor> \n\
+                </Adaptors> \n\
+            </Image> \n\
+        </Images> \n\
+        <InstanceTypes> \n\
+            <InstanceType Name=\"small\"> \n\
+                <Processor Name=\"Processor1\"> \n\
+                    <ComputingUnits>1</ComputingUnits> \n\
+                </Processor> \n\
+                <Memory> \n\
+                    <Size>2.0</Size> \n\
+                </Memory> \n\
+                <Storage> \n\
+                    <Size>10.0</Size> \n\
+                </Storage> \n\
+            </InstanceType> \n\
+            <InstanceType Name=\"medium\"> \n\
+                <Processor Name=\"Processor1\"> \n\
+                    <ComputingUnits>2</ComputingUnits> \n\
+                </Processor> \n\
+                <Memory> \n\
+                    <Size>3.0</Size> \n\
+                </Memory> \n\
+                <Storage> \n\
+                    <Size>10.0</Size> \n\
+                </Storage> \n\
+            </InstanceType> \n\
+            <InstanceType Name=\"large\"> \n\
+                <Processor Name=\"Processor1\"> \n\
+                    <ComputingUnits>4</ComputingUnits> \n\
+                </Processor> \n\
+                <Memory> \n\
+                    <Size>4</Size> \n\
+                </Memory> \n\
+                <Storage> \n\
+                    <Size>10.0</Size> \n\
+                </Storage> \n\
+            </InstanceType> \n\
+            <InstanceType Name=\"extra_large\"> \n\
+                <Processor Name=\"Processor1\"> \n\
+                    <ComputingUnits>4</ComputingUnits> \n\
+                </Processor> \n\
+                <Memory> \n\
+                    <Size>8</Size> \n\
+                </Memory> \n\
+                <Storage> \n\
+                    <Size>10.0</Size> \n\
+                </Storage> \n\
+            </InstanceType> \n\
+        </InstanceTypes> \n\
+    </CloudProvider> \n\
+"
+
 echo "</ResourcesList>"

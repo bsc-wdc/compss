@@ -8,21 +8,25 @@ APP_IMAGE_NAME=$2               # Application image name. With username: 'john12
 ABS_CONTEXT=$3                  # Absolute path where the context dir is located. This must be specified by the app-image provider.
 COMPUTING_UNITS=$4
 MEMORY=$5
-shift 5 ; RUNCOMPSS_ARGS=$*     # From here on, the typical runcompss parameters you would use
+SWARM_MANAGER_IP=$6
+CREATION_TIME=$7
+MIN_VMS=$8
+MAX_VMS=$9
+shift 9 ; RUNCOMPSS_ARGS=$*     # From here on, the typical runcompss parameters you would use
 
 # This will include: creating the xml's inside master container, executing runcompss, and shutting down workers.
-master_command="/bin/bash -c '"  
+master_command="/bin/bash -c '"
 
 # Create project and resources
-master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-resources-xml $NUM_WORKERS $COMPUTING_UNITS $MEMORY > $ABS_CONTEXT/resources.xml ; "
-master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-project-xml $NUM_WORKERS > $ABS_CONTEXT/project.xml ; "
+master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-resources-xml $NUM_WORKERS $COMPUTING_UNITS $MEMORY $SWARM_MANAGER_IP $APP_IMAGE_NAME $CREATION_TIME > $ABS_CONTEXT/resources.xml ; "
+master_command="${master_command} /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-project-xml $NUM_WORKERS $APP_IMAGE_NAME $MIN_VMS $MAX_VMS > $ABS_CONTEXT/project.xml ; "
 
 # Add their path to the runcompss args
 RUNCOMPSS_ARGS=" --resources=\"$ABS_CONTEXT/resources.xml\" $RUNCOMPSS_ARGS"
 RUNCOMPSS_ARGS=" --project=\"$ABS_CONTEXT/project.xml\"  $RUNCOMPSS_ARGS"
 
 # Execute the runcompss command itself, from the context directory
-master_command="${master_command} cd \"${ABS_CONTEXT}\"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; " 
+master_command="${master_command} cd \"${ABS_CONTEXT}\"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss $RUNCOMPSS_ARGS ; "
 
 # After the execution ends, stop all the workers. This is, stop their sshd
 # Concatenating with ; to ALWAYS shutdown nodes even if the above commands fail
@@ -54,13 +58,13 @@ do
 echo -e "\
   worker$i:
     image: $APP_IMAGE_NAME
-    
+
     expose:
       - \"43000-43200\"
       - \"22\"
       - \"7\"
 
-    command: /bin/bash -c \"/usr/sbin/sshd -D \" 
+    command: /bin/bash -c \"/usr/sbin/sshd -D \"
 
     mem_limit: ${MEMORY}g
     cpu_shares: ${COMPUTING_UNITS}
@@ -76,12 +80,12 @@ echo -e "\
   master:
 
     image: $APP_IMAGE_NAME
-    
+
     expose:
       - \"43000-43200\"
-      
+
     command: ${master_command}
-    
+
     networks:
       - runcompss-docker-net
 "

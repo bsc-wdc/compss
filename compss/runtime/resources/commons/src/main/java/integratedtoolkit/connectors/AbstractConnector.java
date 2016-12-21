@@ -24,7 +24,7 @@ import integratedtoolkit.types.resources.ShutdownListener;
  *
  */
 public abstract class AbstractConnector implements Connector, Operations, Cost {
-    
+
     // Properties' names
     public static final String PROP_ESTIMATED_CREATION_TIME = "estimated-creation-time";
     public static final String PROP_MAX_VM_CREATION_TIME = "max-vm-creation-time";
@@ -34,14 +34,14 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     public static final String PROP_APP_NAME = "app-name";
     public static final String ADAPTOR_MAX_PORT_PROPERTY_NAME = "adaptor-max-port";
     public static final String ADAPTOR_MIN_PORT_PROPERTY_NAME = "adaptor-min-port";
-    
+
     // Constants
     protected static final long MIN_TO_S = 60;
     protected static final long S_TO_MS = 1_000;
     protected static final long ONE_HOUR = 3_600_000;
     protected static final long TWO_MIN = 120_000;
     protected static final long HALF_MIN = 30_000;
-    
+
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.CONNECTORS);
 
@@ -71,7 +71,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     /**
      * New abstract connector implementation
-     * 
+     *
      * @param providerName
      * @param props
      */
@@ -82,14 +82,14 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         vmsToDelete = new TreeSet<>();
         vmsAlive = new LinkedList<>();
         // ipToConnection = Collections.synchronizedMap(new HashMap<String, Connection>());
-        
+
         String estCreationTimeStr = props.get(PROP_ESTIMATED_CREATION_TIME);
         if (estCreationTimeStr != null) {
-            meanCreationTime = Integer.parseInt(estCreationTimeStr) * MIN_TO_S * S_TO_MS;
+            meanCreationTime = Integer.parseInt(estCreationTimeStr) * S_TO_MS;
         } else {
         	String maxCreationTimeStr = props.get(PROP_MAX_VM_CREATION_TIME);
         	if (maxCreationTimeStr != null) {
-        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * MIN_TO_S * S_TO_MS;
+        		meanCreationTime = Integer.parseInt(maxCreationTimeStr) * S_TO_MS;
         	} else {
         		meanCreationTime = INITIAL_CREATION_TIME;
         	}
@@ -107,7 +107,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     }
 
     /*
-     * 
+     *
      * Connector interface
      */
     @Override
@@ -215,8 +215,8 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
     }
 
     /**
-     * Closes the specific connector 
-     * 
+     * Closes the specific connector
+     *
      */
     protected abstract void close();
 
@@ -274,7 +274,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
         synchronized (this) {
             vmInfo.setStartTime( System.currentTimeMillis() );
             vmInfo.computeCreationTime();
-            
+
             long totaltime = meanCreationTime * createdVMs;
             totaltime += vmInfo.getCreationTime();
             createdVMs++;
@@ -358,7 +358,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     /**
      * Returns the machine cost per time slot for a given Resource Description @rd
-     * 
+     *
      * @param rd
      * @return
      */
@@ -495,7 +495,7 @@ public abstract class AbstractConnector implements Connector, Operations, Cost {
 
     /**
      * Ender Thread for JVM destruction
-     * 
+     *
      */
     private class Ender extends Thread {
 

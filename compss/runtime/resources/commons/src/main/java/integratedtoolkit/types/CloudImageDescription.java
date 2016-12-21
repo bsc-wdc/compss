@@ -8,8 +8,8 @@ import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import java.util.*;
 
 
-public class CloudImageDescription {    
-    
+public class CloudImageDescription {
+
     private final String providerName;
     private final String imageName;
     private final HashMap<String, String> properties;

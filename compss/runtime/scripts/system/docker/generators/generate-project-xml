@@ -10,6 +10,10 @@ fi
 
 NUM_WORKERS=$1
 
+IMAGE_NAME=$2
+MIN_VMS=$3
+MAX_VMS=$4
+
 echo -e "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?> \n"
 echo -e "<Project> \n"
 echo -e "<MasterNode/> \n"
@@ -23,6 +27,44 @@ do
         </ComputeNode> \n\
        "
 done
-     
-echo "</Project>"
 
+echo -e "\
+        <Cloud> \n\
+            <InitialVMs>0</InitialVMs> \n\
+            <MinimumVMs>$MIN_VMS</MinimumVMs> \n\
+            <MaximumVMs>$MAX_VMS</MaximumVMs> \n\
+            <CloudProvider Name=\"Docker\"> \n\
+                <LimitOfVMs>$MAX_VMS</LimitOfVMs> \n\
+                <Properties> \n\
+                    <!-- Abstract SSH Connector parameters --> \n\
+                    <Property> \n\
+                        <Name>vm-user</Name> \n\
+                        <Value>root</Value> \n\
+                    </Property> \n\
+                    <Property> \n\
+                        <Name>vm-keypair-name</Name> \n\
+                        <Value>id_rsa</Value> \n\
+                    </Property> \n\
+                    <Property> \n\
+                        <Name>vm-keypair-location</Name> \n\
+                        <Value>~/.ssh/</Value> \n\
+                    </Property> \n\
+                </Properties> \n\
+                <Images> \n\
+                    <Image Name=\"$IMAGE_NAME\"> \n\
+                        <InstallDir>/opt/COMPSs</InstallDir> \n\
+                        <WorkingDir>/root/</WorkingDir> \n\
+                        <User>root</User> \n\
+                    </Image> \n\
+                </Images> \n\
+                <InstanceTypes> \n\
+                    <InstanceType Name=\"small\" /> \n\
+                    <InstanceType Name=\"medium\" /> \n\
+                    <InstanceType Name=\"large\" /> \n\
+                    <InstanceType Name=\"extra_large\" /> \n\
+                </InstanceTypes> \n\
+            </CloudProvider> \n\
+        </Cloud> \n\
+        "
+
+echo "</Project>"

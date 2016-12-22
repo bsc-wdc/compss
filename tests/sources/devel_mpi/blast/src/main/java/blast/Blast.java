@@ -50,21 +50,24 @@ public class Blast {
         // Start execution
         Long startTotalTime = System.currentTimeMillis();
 
-        // Split sequence input file
-        System.out.println("Split sequence file");
-        splitSequenceFile();
-
-        // Submit tasks
-        alignSequences();
-
-        // Assembly process
-        String lastMerge = assembleSequences();
-
-        // Move result to expected output file
-        moveResult(lastMerge);
-
-        // Clean up partial results
-        cleanUp();
+        try {
+            // Split sequence input file
+            splitSequenceFile();
+    
+            // Submit tasks
+            alignSequences();
+    
+            // Assembly process
+            String lastMerge = assembleSequences();
+    
+            // Move result to expected output file
+            moveResult(lastMerge);
+        } catch (BlastException be) {
+            throw be;
+        } finally {
+            // Clean up partial results
+            cleanUp();
+        }
 
         // -------------------------------------------------------
         // Log timers
@@ -114,6 +117,8 @@ public class Blast {
     }
 
     private static void splitSequenceFile() throws BlastException {
+        System.out.println("Split sequence file");
+        
         // Read number of different sequences
         int nsequences = 0;
         try (BufferedReader bf = new BufferedReader(new FileReader(Blast.inputFileName))) {
@@ -157,6 +162,9 @@ public class Blast {
                         UUID index = UUID.randomUUID();
                         String partitionFile = Blast.tmpDir + "seqFile" + index + ".sqf";
                         String partitionOutput = Blast.tmpDir + "resFile" + index + ".result.txt";
+                        // Touch output file
+                        new FileOutputStream(partitionOutput).close();
+                        // Store fileNames
                         Blast.partialInputs.add(partitionFile);
                         Blast.partialOutputs.add(partitionOutput);
                     }
@@ -180,6 +188,17 @@ public class Blast {
                     System.err.print(msg);
                     throw new BlastException(msg, ioe);
                 }
+            }
+        }        
+        
+        if (Blast.debug) {
+            System.out.println("Input Files are: ");
+            for (int i = 0; i < Blast.partialInputs.size(); ++i) {
+                System.out.println("   - " + Blast.partialInputs.get(i));
+            }
+            System.out.println("Output Files are: ");
+            for (int i = 0; i < Blast.partialOutputs.size(); ++i) {
+                System.out.println("   - " + Blast.partialOutputs.get(i));
             }
         }
     }

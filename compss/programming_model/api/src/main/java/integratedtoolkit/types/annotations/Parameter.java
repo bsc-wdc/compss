@@ -5,6 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import integratedtoolkit.types.annotations.parameter.Type;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
@@ -13,36 +17,6 @@ import java.lang.annotation.Target;
  *
  */
 public @interface Parameter {
-
-    /**
-     * Parameter types
-     *
-     */
-    public static enum Type {
-        FILE, 
-        BOOLEAN, 
-        CHAR, 
-        STRING, 
-        BYTE, 
-        SHORT, 
-        INT, 
-        LONG, 
-        FLOAT, 
-        DOUBLE, 
-        OBJECT, 
-        UNSPECIFIED;
-    }
-
-    /**
-     * Direction types
-     *
-     */
-    public static enum Direction {
-        IN, 
-        OUT, 
-        INOUT;
-    }
-
 
     /**
      * Returns the type of the parameter
@@ -58,5 +32,12 @@ public @interface Parameter {
      */
     // Set default direction=IN for basic types
     Direction direction() default Direction.IN;
+
+    /**
+     * Returns if the parameter has been annotated as an stream entry
+     * 
+     * @return the stream entry of the parameter
+     */
+    Stream stream() default Stream.UNSPECIFIED;
 
 }

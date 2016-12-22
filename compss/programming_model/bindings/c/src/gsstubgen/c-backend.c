@@ -140,9 +140,12 @@ void generate_prolog()
   fprintf(workerFile, "\n");
   fprintf(workerFile, "int main(int argc, char **argv) {\n");
   fprintf(workerFile, "\n");
-  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName, hasTarget, numAppParams
+  // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName, 
+  //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
+  fprintf(workerFile, "\tprintf(\"\\n\");\n");
+  fprintf(workerFile, "\tprintf(\"----------------- C WORKER -----------------\\n\");\n");
   fprintf(workerFile, "\tprintf(\"Total number of parameters: %%d\\n\", argc);\n");
-  fprintf(workerFile, "\tif (argc < NUM_INTERNAL_ARGS) {\n");
+  fprintf(workerFile, "\tif (argc < MIN_NUM_INTERNAL_ARGS) {\n");
   fprintf(workerFile, "\t\tprintf(\"ERROR: Incorrect number of COMPSs internal parameters\\n\");\n");
   fprintf(workerFile, "\t\tprintf(\"Aborting...\\n\");\n");
   fprintf(workerFile, "\t\treturn -1;\n");	
@@ -154,14 +157,26 @@ void generate_prolog()
   fprintf(workerFile, "\tprintf(\"Task Id: %%s\\n\", argv[2]);\n");
   fprintf(workerFile, "\tprintf(\"Worker Debug: %%s\\n\", argv[3]);\n");
   fprintf(workerFile, "\tprintf(\"StorageConf: %%s\\n\", argv[4]);\n");
-  fprintf(workerFile, "\tprintf(\"ClassName: %%s\\n\", argv[5]);\n");
-  fprintf(workerFile, "\tprintf(\"MethodName: %%s\\n\", argv[6]);\n");
-  fprintf(workerFile, "\tprintf(\"HasTarget: %%s\\n\", argv[7]);\n");
-  fprintf(workerFile, "\tprintf(\"Num App Params: %%s\\n\", argv[8]);\n");
+  fprintf(workerFile, "\tprintf(\"MethodType: %%s\\n\", argv[5]);\n");
+  fprintf(workerFile, "\tprintf(\"ClassName: %%s\\n\", argv[6]);\n");
+  fprintf(workerFile, "\tprintf(\"MethodName: %%s\\n\", argv[7]);\n");
+  fprintf(workerFile, "\tprintf(\"NumSlaves: %%s\\n\", argv[8]);\n");
+  fprintf(workerFile, "\tint numSlaves=atoi(argv[8]);\n");
+  fprintf(workerFile, "\tfor(int i = 0; i < numSlaves; ++i) {\n");
+  fprintf(workerFile, "\t\tprintf(\"Slave %%d has name %%s\\n\", i, argv[NUM_BASE_ARGS + i]);\n");
+  fprintf(workerFile, "\t}\n");
+  fprintf(workerFile, "\tint NUM_INTERNAL_ARGS=NUM_BASE_ARGS + numSlaves;\n");
+  fprintf(workerFile, "\tprintf(\"NumComputingUnits: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+
+  fprintf(workerFile, "\tprintf(\"HasTarget: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+  fprintf(workerFile, "\tprintf(\"ReturnType: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+  fprintf(workerFile, "\tprintf(\"Num App Params: %%s\\n\", argv[NUM_INTERNAL_ARGS++]);\n");
+
   fprintf(workerFile, "\tprintf(\"Application Arguments:\\n\");\n");
   fprintf(workerFile, "\tfor(int i = NUM_INTERNAL_ARGS; i < argc; i++)\n");
   fprintf(workerFile, "\t\tprintf(\"\\t%%s\\n\",argv[i]);\n");
   fprintf(workerFile, "\n");
+
   // Get OpName and OpCode
   fprintf(workerFile, "\tenum operationCode opCod;\n");
   fprintf(workerFile, "\tchar *opName;\n");
@@ -176,9 +191,14 @@ void generate_prolog()
   fprintf(workerFile, "\t}\n");
   fprintf(workerFile, "\tprintf(\"OpCode: %%d\\n\", (int)opCod);\n");
   fprintf(workerFile, "\n");
+ 
+  // Add end header logger
+  fprintf(workerFile, "\tprintf(\"--------------------------------------------\\n\");\n");
+  fprintf(workerFile, "\tprintf(\"\\n\");\n");
+
   // OpCode switch
   fprintf(workerFile, "\tint arg_offset = NUM_INTERNAL_ARGS;\n");
-  fprintf(workerFile, "switch(opCod)\n");
+  fprintf(workerFile, "\tswitch(opCod)\n");
   fprintf(workerFile, "\t {\n");
  
   // Include file headers 
@@ -218,12 +238,12 @@ void generate_epilogue(void)
 {
   char *c;
   // Close switch clause
-  fprintf(workerFile, "}\n");
+  fprintf(workerFile, "\t}\n");
   fprintf(workerFile, "\n");
   // If this point is reached, no operation has been selected
   // Raise error for incorrect method execution
-  fprintf(workerFile, "printf(\"Incorrect Operation Code. Aborting...\\n\");\n");
-  fprintf(workerFile, "return -1;\n");
+  fprintf(workerFile, "\tprintf(\"Incorrect Operation Code. Aborting...\\n\");\n");
+  fprintf(workerFile, "\treturn -1;\n");
   fprintf(workerFile, "}\n");
   
   fprintf(includeFile, "\n");
@@ -307,7 +327,8 @@ static void generate_enum(FILE *outFile, function *first_function)
 
   // Add constants (according to COMPSs Runtime)
   fprintf(outFile, "static const int N_OPS=%d;\n", n);
-  fprintf(outFile, "static const int NUM_INTERNAL_ARGS = 10;\n");
+  fprintf(outFile, "static const int NUM_BASE_ARGS = 9;\n");
+  fprintf(outFile, "static const int MIN_NUM_INTERNAL_ARGS = 13;\n");
   fprintf(outFile, "static const int METHOD_NAME_POS = 7;\n");
   fprintf(outFile ,"\n");
 }
@@ -475,7 +496,6 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     i = j*3;
     
     if (arg->dir == out_dir || arg->dir == inout_dir) {
-      
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -684,59 +704,62 @@ static void generate_worker_case(FILE *outFile, function *func)
   fprintf(outFile, "\t\t\t \n");
   
   arg = func->first_argument;
-  while (arg != NULL) {
-    
+  while (arg != NULL) { 
     if (arg->dir == in_dir) {
+      // arg_offset -> type
+      // arg_offset+1 -> stream
+      // arg_offset+2 -> value
+      
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = argv[arg_offset][0];\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case boolean_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case short_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case long_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = atol(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case longlong_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = atoll(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case int_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case float_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = strtof(argv[arg_offset], NULL);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case double_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = strtod(argv[arg_offset], NULL);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = strdup(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case string_dt:
 	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
           //fprintf(outFile, "\t\t\t printf(\"String Num Words: %%d\\n\", %s_nwords);\n", arg->name);
 	  fprintf(outFile, "\t\t\t \n");
@@ -758,7 +781,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "\t\t\t }\n\n");
 	  break;
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -785,7 +808,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case float_dt:
 	case double_dt:
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -795,7 +818,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  break;
 	case string_dt:
 	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -806,7 +829,7 @@ static void generate_worker_case(FILE *outFile, function *func)
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
 	  fprintf(outFile, "\t\t\t %s = strdup(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
@@ -924,7 +947,7 @@ static void generate_worker_case(FILE *outFile, function *func)
   is_first_arg = 1;
   arg = func->first_argument;
   while (arg != NULL) {
-    i = j*3;
+    i = j*4;
     
     if (arg->dir == out_dir || arg->dir == inout_dir) {
       switch (arg->type) {

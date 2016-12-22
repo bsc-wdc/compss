@@ -1,7 +1,8 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 
 
 public class BasicTypeParameter extends Parameter {
@@ -27,8 +28,8 @@ public class BasicTypeParameter extends Parameter {
     private Object value;
 
 
-    public BasicTypeParameter(DataType type, DataDirection direction, Object value) {
-        super(type, direction);
+    public BasicTypeParameter(DataType type, Direction direction, Stream stream, Object value) {
+        super(type, direction, stream);
         this.value = value;
     }
 

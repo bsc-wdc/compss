@@ -53,8 +53,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       }
       
       objectMap[ref] = entry;
-      
-      
+   
     } else {
       debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
     }

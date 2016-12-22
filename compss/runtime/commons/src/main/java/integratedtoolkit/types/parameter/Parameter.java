@@ -1,7 +1,8 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 
 import java.io.Serializable;
 
@@ -15,24 +16,30 @@ public abstract class Parameter implements Serializable {
 
     // Parameter fields
     private DataType type;
-    private final DataDirection direction;
+    private final Direction direction;
+    private final Stream stream;
 
 
-    public Parameter(DataType type, DataDirection direction) {
+    public Parameter(DataType type, Direction direction, Stream stream) {
         this.type = type;
         this.direction = direction;
+        this.stream = stream;
     }
 
     public DataType getType() {
-        return type;
+        return this.type;
     }
 
     public void setType(DataType type) {
         this.type = type;
     }
 
-    public DataDirection getDirection() {
-        return direction;
+    public Direction getDirection() {
+        return this.direction;
+    }
+
+    public Stream getStream() {
+        return this.stream;
     }
 
 }

@@ -26,7 +26,7 @@ enum datatype {
         null_dt,
 };
 
-// MATCHES JAVA COMPSsRuntime API Enum
+// MATCHES JAVA COMPSsRuntime PARAMETER API Enum
 // Adds internal data representations
 enum direction {
         in_dir = 0, 
@@ -34,6 +34,15 @@ enum direction {
         inout_dir, 
 
         null_dir,
+};
+
+// MATCHED JAVA COMPSsRuntime PARAMETER API Enum
+// Adds stream representations
+enum stream {
+	STD_IN = 0,
+	STD_OUT,
+	STD_ERR,
+	UNSPECIFIED,
 };
 
 #endif /* PARAM_METADATA_H */

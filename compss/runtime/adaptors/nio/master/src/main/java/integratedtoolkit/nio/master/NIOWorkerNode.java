@@ -2,16 +2,13 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.Connection;
 import es.bsc.comm.nio.NIONode;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
+
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.data.listener.EventListener;
-import integratedtoolkit.types.data.location.DataLocation;
-import integratedtoolkit.types.job.Job;
-import integratedtoolkit.types.data.LogicalData;
-import integratedtoolkit.types.data.location.DataLocation.Protocol;
+
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -24,6 +21,12 @@ import integratedtoolkit.nio.commands.workerFiles.CommandGenerateWorkerDebugFile
 import integratedtoolkit.nio.dataRequest.DataRequest;
 import integratedtoolkit.nio.dataRequest.MasterDataRequest;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
+
+import integratedtoolkit.types.data.listener.EventListener;
+import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.job.Job;
+import integratedtoolkit.types.data.LogicalData;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.Transferable;
@@ -38,6 +41,8 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.util.ErrorManager;
 
 import java.util.LinkedList;

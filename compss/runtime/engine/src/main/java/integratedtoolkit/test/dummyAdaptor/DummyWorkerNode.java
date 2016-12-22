@@ -2,9 +2,10 @@ package integratedtoolkit.test.dummyAdaptor;
 
 import java.util.List;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.AnnounceException;
 import integratedtoolkit.exceptions.InitNodeException;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;

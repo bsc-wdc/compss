@@ -1,31 +1,9 @@
 package integratedtoolkit.api;
 
+import integratedtoolkit.types.annotations.parameter.Direction;
+
+
 public interface COMPSsRuntime {
-
-    // Parameter types
-    public enum DataType {
-        BOOLEAN_T, 
-        CHAR_T, 
-        BYTE_T, 
-        SHORT_T, 
-        INT_T, 
-        LONG_T, 
-        FLOAT_T, 
-        DOUBLE_T, 
-        STRING_T,   // Java: String , Bindings: String / small serialized object
-        FILE_T,     // Java: File , Bindings: File / Object serialized
-        OBJECT_T,   // Java: OBJ / SCO , Bindings: does not exist
-        PSCO_T,     // Java: PSCOs
-        EXTERNAL_PSCO_T  // Bindings: PSCOs
-    }
-
-    // Parameter directions
-    public enum DataDirection {
-        IN, 
-        OUT,
-        INOUT
-    }
-
 
     /*
      * ************************************ 
@@ -86,7 +64,7 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters);
-    
+
     /**
      * New Method task (from loader)
      * 
@@ -102,8 +80,8 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
-             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
+            boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * New Service task
@@ -121,9 +99,9 @@ public interface COMPSsRuntime {
      */
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters);
-    
+
     /**
-     * New service task (from loader) 
+     * New service task (from loader)
      * 
      * @param appId
      * @param namespace
@@ -139,8 +117,8 @@ public interface COMPSsRuntime {
      * @param parameters
      * @return
      */
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, 
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters);
 
     /**
      * Notifies the Runtime that there are no more tasks created by the current appId
@@ -158,7 +136,7 @@ public interface COMPSsRuntime {
     public void waitForAllTasks(Long appId);
 
     /*
-     * ************************************ 
+     * ************************************
      * DATA ACCESS METHODS
      ************************************/
     /**
@@ -168,7 +146,7 @@ public interface COMPSsRuntime {
      * @param mode
      * @return
      */
-    public String openFile(String fileName, DataDirection mode);
+    public String openFile(String fileName, Direction mode);
 
     /**
      * Deletes the specified version of a file

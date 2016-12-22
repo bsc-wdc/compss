@@ -7,9 +7,10 @@ import java.io.ObjectOutput;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.annotations.parameter.DataType;
 
 
 public abstract class AbstractMethodImplementation extends Implementation<MethodResourceDescription> implements Externalizable {

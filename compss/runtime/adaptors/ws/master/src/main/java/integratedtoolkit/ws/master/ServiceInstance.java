@@ -2,7 +2,6 @@ package integratedtoolkit.ws.master;
 
 import java.util.List;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.types.COMPSsNode;
@@ -14,6 +13,7 @@ import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.COMPSsWorker;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;

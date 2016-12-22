@@ -1,6 +1,6 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.types.data.listener.EventListener;

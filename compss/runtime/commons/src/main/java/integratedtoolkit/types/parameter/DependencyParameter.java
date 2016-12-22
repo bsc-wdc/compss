@@ -1,7 +1,9 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.Transferable;
 
@@ -18,8 +20,8 @@ public class DependencyParameter extends Parameter implements Transferable {
     private String dataTarget; // Full path with PROTOCOL
 
 
-    public DependencyParameter(DataType type, DataDirection direction) {
-        super(type, direction);
+    public DependencyParameter(DataType type, Direction direction, Stream stream) {
+        super(type, direction, stream);
     }
 
     public DataAccessId getDataAccessId() {

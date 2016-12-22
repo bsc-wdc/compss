@@ -2,8 +2,8 @@ package priorityTasks;
 
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Direction;
-import integratedtoolkit.types.annotations.Parameter.Type;
+import integratedtoolkit.types.annotations.parameter.Type;
+import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.task.Method;
 
 

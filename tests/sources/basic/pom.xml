@@ -73,6 +73,10 @@
 		<!-- Module 41 is 41-deleteFile_python -->
                 <module>42-monitor</module>
                 <module>43-distributedTask</module>
+                <!-- Module 44 is 44-argskwargs_python -->
+                <!-- Module 45 is 45-pscos_python -->
+                <!-- Module 46 is 46-files_python -->
+                <module>47-ompss</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

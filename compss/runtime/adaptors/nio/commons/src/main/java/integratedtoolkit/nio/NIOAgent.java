@@ -8,14 +8,18 @@ import es.bsc.comm.nio.NIOEventManager;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.log.Loggers;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.nio.commands.CommandDataDemand;
 import integratedtoolkit.nio.commands.CommandTracingID;
 import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.tracing.CommandGenerateDone;
 import integratedtoolkit.nio.dataRequest.DataRequest;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 

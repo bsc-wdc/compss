@@ -9,7 +9,7 @@
 #include "param_metadata.h"
 
 // Uncomment the following define to get debug information.
-// #define DEBUG_BINDING
+//#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args)
@@ -36,9 +36,14 @@ jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolki
 
 jmethodID midWaitForAllTasks; 	/* ID of the waitForAllTasks method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
-jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
-jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
-jobject jobjParDirOUT; 		/* Instance of the integratedtoolkit.api.COMPSsRuntime$DataDirection class */
+jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
+jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
+jobject jobjParDirOUT; 		/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
+
+jobject jobjParStreamSTDIN;     /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDOUT;    /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
+jobject jobjParStreamSTDERR;    /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
+jobject jobjParStreamUNSPECIFIED; /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
 
 jclass clsObject; 		/*  java.lang.Object class */
 jmethodID midObjCon; 		/* ID of the java.lang.Object class constructor method */
@@ -72,9 +77,9 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   JavaVMInitArgs vm_args;
   vector<JavaVMOption> options;
   
-  string line;                                           // buffer for line read
+  string line; // buffer for line read
   const char *file = strdup(getenv("JVM_OPTIONS_FILE")); // path to the file with jvm options
-  ifstream fin;                                          // input file stream
+  ifstream fin; // input file stream
   
   fin.open(file);
   if (fin.good()) {
@@ -147,10 +152,12 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   int ret = JNI_CreateJavaVM(jvm, (void**) &env, &vm_args);
   if (ret < 0){
     debug_printf("[   BINDING]  -  @create_vm  -  Unable to Launch JVM - %i\n", ret);
+  } else {
+    debug_printf("[   BINDING]  -  @create_vm  -  JVM Ready\n");
   }
+
   return env;
 }
-
 
 void destroy_vm(JavaVM * jvm) {
   int ret = jvm->DestroyJavaVM();
@@ -159,11 +166,14 @@ void destroy_vm(JavaVM * jvm) {
   }
 }
 
-
 void init_jni_types() {
-  jclass clsParDir; 		/* integratedtoolkit.api.COMPSsRuntime$DataDirection class */
-  jmethodID midParDirCon; 	/* ID of the integratedtoolkit.api.COMPSsRuntime$DataDirection class constructor method */
+  jclass clsParDir; 		/* integratedtoolkit.types.annotations.parameter.Direction class */
+  jmethodID midParDirCon; 	/* ID of the integratedtoolkit.types.annotations.parameter.Direction class constructor method */
+  jclass clsParStream;          /* integratedtoolkit.types.annotations.parameter.Stream class */
+  jmethodID midParStreamCon;    /* integratedtoolkit.types.annotations.parameter.Stream class constructor method */
   
+  debug_printf ("[   BINDING]  -  @Init JNI Types\n");
+
   // getApplicationDirectory method
   midAppDir = env->GetMethodID(clsITimpl, "getApplicationDirectory", "()Ljava/lang/String;");
   if (env->ExceptionOccurred()) {
@@ -191,9 +201,9 @@ void init_jni_types() {
     env->ExceptionDescribe();
     exit(0);
   }
-  
+
   // openFile method
-  midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Lintegratedtoolkit/api/COMPSsRuntime$DataDirection;)Ljava/lang/String;");
+  midOpenFile = env->GetMethodID(clsITimpl, "openFile", "(Ljava/lang/String;Lintegratedtoolkit/types/annotations/parameter/Direction;)Ljava/lang/String;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -214,12 +224,12 @@ void init_jni_types() {
   }
   
   // Parameter directions
-  clsParDir = env->FindClass("integratedtoolkit/api/COMPSsRuntime$DataDirection");
+  clsParDir = env->FindClass("integratedtoolkit/types/annotations/parameter/Direction");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
   }
-  midParDirCon = env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/api/COMPSsRuntime$DataDirection;");
+  midParDirCon = env->GetStaticMethodID(clsParDir, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/Direction;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -235,6 +245,38 @@ void init_jni_types() {
     exit(0);
   }
   jobjParDirOUT =  env->CallStaticObjectMethod(clsParDir, midParDirCon, env->NewStringUTF("OUT"));
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+
+  // Parameter streams
+  clsParStream = env->FindClass("integratedtoolkit/types/annotations/parameter/Stream");
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  midParStreamCon = env->GetStaticMethodID(clsParStream, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/Stream;");
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  jobjParStreamSTDIN =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDIN"));
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  jobjParStreamSTDOUT =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDOUT"));
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  jobjParStreamSTDERR =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("STDERR"));
+  if (env->ExceptionOccurred()) {
+    env->ExceptionDescribe();
+    exit(0);
+  }
+  jobjParStreamUNSPECIFIED =  env->CallStaticObjectMethod(clsParStream, midParStreamCon, env->NewStringUTF("UNSPECIFIED"));
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -325,23 +367,26 @@ void init_jni_types() {
 
 
 void process_param(void **params, int i, jobjectArray jobjOBJArr) {
-  int pv = i, pt = i + 1, pd = i + 2;
-  
-  void *parVal = params[pv];
-  int parType = *(int*)params[pt];
-  int parDirect = *(int*)params[pd];
-  
+  // params is of the form:     value type direction
+  // jobjOBJArr is of the form: value type direction stream
+ 
   debug_printf("[   BINDING]  -  @process_param\n");
+ 
+  void *parVal = params[3*i];
+  int parType = *(int*)params[3*i + 1];
+  int parDirect = *(int*)params[3*i + 2];
+
+  int pv = 4*i, pt = 4*i + 1, pd = 4*i + 2, ps = 4*i + 3;
   
-  jclass clsParType = NULL; /* integratedtoolkit.api.COMPSsRuntime$DataType class */
-  clsParType = env->FindClass("integratedtoolkit/api/COMPSsRuntime$DataType");
+  jclass clsParType = NULL; /* integratedtoolkit.types.annotations.parameter.DataType class */
+  clsParType = env->FindClass("integratedtoolkit/types/annotations/parameter/DataType");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
   }
   
   jmethodID midParTypeCon = NULL; /* ID of the integratedtoolkit.api.COMPSsRuntime$DataType class constructor method */
-  midParTypeCon = env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/api/COMPSsRuntime$DataType;");
+  midParTypeCon = env->GetStaticMethodID(clsParType, "valueOf", "(Ljava/lang/String;)Lintegratedtoolkit/types/annotations/parameter/DataType;");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -350,7 +395,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   jobject jobjParType = NULL;
   jobject jobjParVal = NULL;
   
-  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DT: %d\n", (enum datatype) parType);
+  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DATA_TYPE: %d\n", (enum datatype) parType);
   
   switch ( (enum datatype) parType) {
     case char_dt:
@@ -360,7 +405,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 	env->ExceptionDescribe();
 	exit(0);
       }
-      
+
+      debug_printf ("[   BINDING]  -  @process_param  -  Char: %c\n", *(char*)parVal);
+
       jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("CHAR_T"));
       if (env->ExceptionOccurred()) {
 	env->ExceptionDescribe();
@@ -388,6 +435,8 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 	env->ExceptionDescribe();
 	exit(0);
       }
+
+      debug_printf ("[   BINDING]  -  @process_param  -  Short: %hu\n", *(short*)parVal);
       
       jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("SHORT_T"));
       if (env->ExceptionOccurred()) {
@@ -479,7 +528,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
       }
       debug_printf ("[   BINDING]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
       
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("PSCO_T"));
+      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("EXTERNAL_PSCO_T"));
       if (env->ExceptionOccurred()) {
 	env->ExceptionDescribe();
 	exit(0);
@@ -506,12 +555,13 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     default:
       break;
   }
-  
+   
+  // Sets the parameter value and type 
   env->SetObjectArrayElement(jobjOBJArr, pv, jobjParVal);
   env->SetObjectArrayElement(jobjOBJArr, pt, jobjParType);
   
-  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DC: %d\n", (enum direction) parDirect);
-  
+  // Add param direction
+  debug_printf ("[   BINDING]  -  @process_param  -  ENUM DIRECTION: %d\n", (enum direction) parDirect);
   switch ((enum direction) parDirect) {
     case in_dir:
       env->SetObjectArrayElement(jobjOBJArr, pd, jobjParDirIN);
@@ -525,7 +575,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
     default:
       break;
   }
-  
+
+  // Add param stream
+  env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
 }
 
 // API functions
@@ -637,11 +689,10 @@ void GS_Off()
     env->ExceptionDescribe();
     exit(0);
   }
-  
-  destroy_vm(jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.
+
+  destroy_vm(jvm);  // Release jvm resources -- Does not work properly --> JNI bug: not releasing properly the resources, so it is not possible to recreate de JVM.                     
   // delete jvm;    // free(): invalid pointer: 0x00007fbc11ba8020 ***
   jvm = NULL;
-  
 }
 
 void GS_Get_AppDir(char **buf)
@@ -675,9 +726,9 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
   
-  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*3, clsObject, env->NewObject(clsObject,midObjCon));
+  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*4, clsObject, env->NewObject(clsObject,midObjCon));
   
-  for (int i=0; i<num_params*3; i+=3) {
+  for (int i = 0; i < num_params; i++) {
     debug_printf("[   BINDING]  -  @GS_ExecuteTask  -  Processing pos %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
@@ -701,13 +752,13 @@ void GS_RegisterCE(long _appId, char *class_name, char *method_name, int has_tar
   bool _has_return = false;
   if (has_return != 0) _has_return = true;
   
-  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*3, clsObject, env->NewObject(clsObject,midObjCon));
+  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*4, clsObject, env->NewObject(clsObject,midObjCon));
   
-  for (int i = 0; i < num_params*3; i += 3) {
+  for (int i = 0; i < num_params; i++) {
     debug_printf("[   BINDING]  -  @GS_RegisterCE  -  Processing pos %d\n", i);
     process_param(params, i, jobjOBJArr);
   }
-  
+
   env->CallVoidMethod(jobjIT, midRegisterCE, env->NewStringUTF(class_name), env->NewStringUTF(method_name), _has_target, _has_return, env->NewStringUTF(constraints), num_params, jobjOBJArr);
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
@@ -778,3 +829,4 @@ void GS_EmitEvent(int type, long id)
     }
   }
 }
+

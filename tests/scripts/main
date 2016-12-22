@@ -1,20 +1,58 @@
 #!/bin/bash
 
+  #----------------------------------------------------------------------------------------------- 
+  # SCRIPT CONSTANTS
+  #----------------------------------------------------------------------------------------------- 
+  ERROR_ENV_CONFIG="ERROR: Incorrect number of parameters. Environment or configuration not found"
+  ERROR_ENV="ERROR: Empty environment parameter"
+  ERROR_BAD_ENV="ERROR: BAD ENVIRONMENT PARAMETER."
+  ERROR_SKIP_VALUE="ERROR: Invalid skip value. Only true / false allowed"
+  ERROR_RETRY_VALUE="ERROR: Invalid retry value. Only integers bigger or equal to 1"
+  ERROR_CONFIG="ERROR: Empty configuration parameter"
+  ERROR_INVALID_ENV="ERROR: Unrecognised environment"
+  ERROR_LOAD_CONFIG="ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
+
+  DEFAULT_SKIP=true
+  DEFAULT_RETRY=3
+
+  #----------------------------------------------------------------------------------------------- 
+  # Display functions
+  #----------------------------------------------------------------------------------------------- 
+  # Displays usage
   info() {
-     echo "********************************"
-     echo "* Displaying tests information *"
-     echo "********************************"
-     echo "- Usage: ./main <environment> <configuration_file>"
-     echo " "
-     echo "- Available environments:"
-     echo "    - local / local_X"
-     echo "    - devel_X"
-     echo "    - cloudvpn / cloudvpn_X"
-     echo " "
-     echo " For further information look the README file or the documentation folder"
-     echo " "
+     cat << EOT
+Usage: $0 [options] environment configurationFile
+
+* Options:
+    -h                   Displays this help message
+    -n                   Displays test numbering
+    -s                   Enables test skipping
+    -S                   Disables test skipping
+    -r                   Sets test retries to ${DEFAULT_RETRY}
+    -R                   Disables test retries
+
+    --help               Displays this help message
+    --numbering          Displays test numbering
+    --skip=<boolean>     Sets skip boolean to given value (true / false)
+    --skip               Enables test skipping
+    --no-skip            Disables test skipping
+    --retry=<int>        Sets test retries to given value. Must be greater or equal to 1
+    --retry              Sets test retries to ${DEFAULT_RETRY}
+
+* Environment:
+    - local / local_X
+    - devel_X
+    - cloudvpn / cloudvpn_X
+
+* ConfigurationFile
+    - Filename under ../configurations folder or complete path for configuration file
+
+For further information look the README file or the documentation folder
+
+EOT
   }
 
+  # Displays test numbering
   numbering() {
      echo "************************************"
      echo "* Displaying local tests numbering *"
@@ -29,289 +67,407 @@
      echo " "
   }
 
-  #-----------------------------------------------------------------------------------------------
-  # GET AND CHECK ENVIRONMENT VALUE
-  environment=$1
-  if [ "${environment}" = "info" ]; then
-     info
-     exit 0
-  fi
+  # Displays parsing arguments errors
+  display_error() {
+    local error_msg=$1
 
-  if [ "${environment}" = "numbering" ]; then
-     numbering
-     exit 0
-  fi
+    echo $error_msg
+    echo " "
 
-  if [ "${environment:0:5}" != "local" ] && [ "${environment:0:5}" != "cloud" ] && [ "${environment:0:5}" != "devel" ]; then
-     echo " "
-     echo "ERROR: BAD ENVIRONMENT PARAMETER."
-     echo " "
-     info
-     exit 1
-  fi
+    info
+    exit 1
+  }
 
-  #-----------------------------------------------------------------------------------------------
-  # EXECUTE TESTS
-  #-----------------------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------------------------- 
+  # Parse arguments
+  #----------------------------------------------------------------------------------------------- 
+  get_args() {
+    # Parse script Options
+    while getopts hnsSrR-: flag; do
+      # Treat the argument
+      case "$flag" in
+        h)
+          # Display help
+          info
+          exit 0
+          ;;
+        n)
+          # Display numbering
+          numbering
+          exit 0
+          ;;
+        s)
+          # Enable skip test checker
+          skip=true
+          ;;
+        S)
+          # Disable skip test checker
+          skip=false
+          ;;
+        r)
+          # Enable default retry
+          retry=${DEFAULT_RETRY}
+          ;;
+        R)
+          # Disable retry
+          retry=1
+          ;;
+        -)
+          # Check more complex arguments
+          case "$OPTARG" in
+            help)
+              # Display help
+              info
+              exit 0
+              ;;
+            numbering)
+              # Display numbering
+              numbering
+              exit 0
+              ;;
+            skip=*)
+              skip=$(echo $OPTARG | sed -e 's/skip=//g')
+              ;;
+            skip)
+              skip=true
+              ;;
+            no-skip)
+              skip=false
+              ;;
+            retry=*)
+              retry=$(echo $OPTARG | sed -e 's/retry=//g')
+              ;;
+            retry)
+              retry=${DEFAULT_RETRY}
+              ;;
+            *)
+              # Flag didn't match any patern. Raise exception
+              display_error "Bad argument: $OPTARG"
+              ;;
+          esac
+          ;;
+        *)
+          # Flag didn't match any patern. End of COMPSs flags
+          break
+          ;;
+      esac
+    done
+  
+    # Shift script options
+    shift $((OPTIND-1))
+  
+    # Parse environment and configuration
+    if [ $# -ne 2 ]; then
+      display_error "${ERROR_ENV_CONFIG}"
+    else
+      environment=$1
+      configuration=$2
+    fi
+  }
 
+  check_args() {
+    if [ -z "${skip}" ]; then
+      skip=${DEFAULT_SKIP}
+    fi
 
-  #-----------------------------------------------------------------------------------------------
-  #LOCAL
-  if [ "${environment:0:5}" == "local" ]; then
-     #Set default environment variables
-     user=$(whoami)
-     if [[ $environment = *_* ]]; then
-        target_base_dir="/home/$user/tests_specific_local"
-     else 
-        target_base_dir="/home/$user/tests_all_local"
-     fi
-     IT_HOME="/opt/COMPSs/"
-     comm=integratedtoolkit.nio.master.NIOAdaptor
+    if [ "${skip}" != "true" ] && [ "${skip}" != "false" ]; then
+      display_error "${ERROR_SKIP_VALUE}"
+    fi
 
-     #Set environment variables from configuration file
-     configuration=$2
-     if [[ $configuration = */* ]]; then
-        source $configuration
-        if [ $? -ne 0 ]; then
-          exit 1
-        fi
-     else
-        source $(dirname $0)/../configurations/$configuration
-        if [ $? -ne 0 ]; then
-          exit 1
-        fi
-     fi
-     if [ -z "$JAVA_HOME" ]; then
-        echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
-        exit 1
-     fi 
+    if [ -z "${retry}" ]; then
+      retry=${DEFAULT_RETRY}
+    fi
 
-     #Set the rest of environment variables 
-     source_base_dir="$(pwd)/$(dirname $0)/../sources"
-     COMPSs_log_folder="$HOME/.COMPSs"
-     COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
+    if [ ${retry} -le 0 ]; then
+      display_error "${ERROR_RETRY_VALUE}"
+    fi
 
-     #Export base variables
-     export IT_HOME=$IT_HOME
-     export JAVA_HOME=$JAVA_HOME
+    if [ -z "${environment}" ]; then
+      display_error "${ERROR_ENV}"
+    fi
 
-     #Select between one execution or all tests
-     if [[ $environment = *_* ]]; then
-        test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
-        #Add 0 on numbers lower than 10
-        if [ $test -lt 10 ]; then
-           test=0$test
-        fi
+    if [ "${environment:0:5}" != "local" ] && [ "${environment:0:5}" != "cloud" ] && [ "${environment:0:5}" != "devel" ]; then
+      display_error "${ERROR_BAD_ENV}"
+    fi
 
-        #Select appName
-        appName=$(ls ${source_base_dir}/basic/ | grep $test)
-        if [ -z "$appName" ]; then
-           echo "[ERROR] Cannot find source folder"
-           echo "******* Allowed folders are: "
-           echo "$(ls ${source_base_dir}/basic/)"
-           exit 1
-        fi
+    if [ -z "${configuration}" ]; then
+      display_error "${ERROR_CONFIG}"
+    fi
+  }
 
-        #Compile tests
-        $(dirname $0)/compile_sources_local_specific ${source_base_dir} $appName
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
+  #----------------------------------------------------------------------------------------------- 
+  # Tests executors
+  #----------------------------------------------------------------------------------------------- 
+  execute_tests() {
+    if [ "${environment:0:5}" == "local" ]; then
+      execute_tests_local
+    elif [ "${environment:0:8}" = "cloudvpn" ]; then
+      execute_tests_cloudvpn
+    elif [ "${environment:0:5}" == "devel" ]; then
+      execute_tests_devel
+    else
+      display_error "${ERROR_INVALID_ENV}"
+    fi
+  }
 
-        #Deploy tests
-        $(dirname $0)/deploy_sources_local_specific ${source_base_dir} $appName $test ${target_base_dir}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
+  execute_tests_local() {
+    echo "Executing tests in LOCAL mode"
+    logArguments
+
+    # Set default environment variables
+    user=$(whoami)
+    if [[ $environment = *_* ]]; then
+       target_base_dir="/home/$user/tests_specific_local"
+    else
+       target_base_dir="/home/$user/tests_all_local"
+    fi
+    IT_HOME="/opt/COMPSs/"
+    comm=integratedtoolkit.nio.master.NIOAdaptor
+
+    # Set environment variables from configuration file
+    source_configuration
+
+    # Set the rest of environment variables 
+    source_base_dir="$(pwd)/$(dirname $0)/../sources"
+    COMPSs_log_folder="$HOME/.COMPSs"
+    COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
+
+    # Export base variables
+    export IT_HOME=$IT_HOME
+    export JAVA_HOME=$JAVA_HOME
+
+    # Select between one execution or all tests
+    if [[ $environment = *_* ]]; then
+      execute_tests_local_specific
+    else
+      execute_tests_local_all
+    fi
+  }
+
+  execute_tests_local_specific() {
+    test=$(echo ${environment:6} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+
+    # Add 0 on numbers lower than 10
+    if [ $test -lt 10 ]; then
+      test=0$test
+    fi
+
+    # Select appName
+    appName=$(ls ${source_base_dir}/basic/ | grep $test)
+    if [ -z "$appName" ]; then
+      echo "[ERROR] Cannot find source folder"
+      echo "******* Allowed folders are: "
+      echo "$(ls ${source_base_dir}/basic/)"
+      exit 1
+    fi
+
+    # Compile tests
+    $(dirname $0)/compile_sources_local_specific ${source_base_dir} $appName
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
+
+    # Deploy tests
+    $(dirname $0)/deploy_sources_local_specific ${source_base_dir} $appName $test ${target_base_dir}
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
      
-        #Erase IT folder
-        echo "---- Erase current .COMPSs folder"
-        rm -rf ${COMPSs_log_folder}
+    # Erase IT folder
+    echo "---- Erase current .COMPSs folder"
+    rm -rf ${COMPSs_log_folder}
 
-        #Execute tests
-        $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
-     else 
-        #Compile tests
-        $(dirname $0)/compile_sources_local ${source_base_dir}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
+    # Execute tests
+    $(dirname $0)/execute_local_specific ${test} ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    if [ $? -ne 0 ]; then
+      exit 1
+    else 
+      exit 0
+    fi
+  }
  
-        #Deploy tests
-        $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
+  execute_tests_local_all() {
+    # Compile tests
+    $(dirname $0)/compile_sources_local ${source_base_dir}
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
+ 
+    # Deploy tests
+    $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir}
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
      
-        # Erase COMPSs log folder
-        echo "---- Erase current .COMPSs folder"
-        rm -rf ${COMPSs_log_folder}
+    # Erase COMPSs log folder
+    echo "---- Erase current .COMPSs folder"
+    rm -rf ${COMPSs_log_folder}
 
-        #Execute tests
-        $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
-     fi
+    # Execute tests
+    $(dirname $0)/execute_local ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    if [ $? -ne 0 ]; then
+      exit 1
+    else
+      exit 0
+    fi
+  }
 
-     #Exit
-     exit 0
-  fi
+  execute_tests_cloudvpn() {
+    echo "Executing tests in CLOUDVPN mode"
+    logArguments
 
-  #-----------------------------------------------------------------------------------------------
-  #CLOUD VPN
-  if [ "${environment:0:8}" = "cloudvpn" ]; then
-     #Global exit variable
-     exitValue=0
+    # Global exit variable
+    exitValue=0
 
-     #Set default environment variables
-     user=$(whoami)
-     target_base_dir="/home/$user/tests_cloud_vpn"
-     logs_location="/home/$user"
-     IT_HOME="/opt/COMPSs/"
-     connector_server="https://bscgrid20.bsc.es:11443/"
-     connector_jar="rocci-conn.jar"
-     connector_class="es.bsc.conn.rocci.ROCCI"
-     comm=integratedtoolkit.nio.master.NIOAdaptor
-     remote_COMPSs=/opt/
+    # Set default environment variables
+    user=$(whoami)
+    target_base_dir="/home/$user/tests_cloud_vpn"
+    logs_location="/home/$user"
+    IT_HOME="/opt/COMPSs/"
+    connector_server="https://bscgrid20.bsc.es:11443/"
+    connector_jar="rocci-conn.jar"
+    connector_class="es.bsc.conn.rocci.ROCCI"
+    comm=integratedtoolkit.nio.master.NIOAdaptor
+    remote_COMPSs=/opt/
 
-     #Set environment variables from configuration file
-     configuration=$2
-     if [[ $configuration = */* ]]; then
-       source $configuration
-       if [ $? -ne 0 ]; then
-         exit 1
-       fi
-     else
-       source $(dirname $0)/../configurations/$configuration
-       if [ $? -ne 0 ]; then
-         exit 1
-       fi
-     fi
-     if [ -z "$JAVA_HOME" ]; then
-       echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
-       exit 1
-     fi
+    # Set environment variables from configuration file
+    source_configuration
 
-     #Set the rest of environment variables
-     COMPSs_location="${IT_HOME}"
-     COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
-     source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
-     log_folder="${target_base_dir}/logs"
-     template_id=107
-     vm_type="ubuntu"
-     cloud_owner="jenkins-test"
-     COMPSs_log_folder="$HOME/.COMPSs"
+    # Set the rest of environment variables
+    COMPSs_location="${IT_HOME}"
+    COMPSs_exec="${IT_HOME}/Runtime/scripts/user/runcompss"
+    source_base_dir="$(pwd)/$(dirname $0)/../sources/cloud"
+    log_folder="${target_base_dir}/logs"
+    template_id=107
+    vm_type="ubuntu"
+    cloud_owner="jenkins-test"
+    COMPSs_log_folder="$HOME/.COMPSs"
 
-     #Export base variables
-     export IT_HOME=$IT_HOME
-     export JAVA_HOME=$JAVA_HOME
+    # Export base variables
+    export IT_HOME=$IT_HOME
+    export JAVA_HOME=$JAVA_HOME
 
-     #Compile sources cloud
-     $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
+    # Compile sources cloud
+    $(dirname $0)/compile_sources_cloud_vpn ${source_base_dir}
 
-     #Deploy tests
-     $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class} ${remote_COMPSs}
-     if [ $? -ne 0 ]; then
-       exit 1
-     fi
+    # Deploy tests
+    $(dirname $0)/deploy_sources_cloud_vpn ${source_base_dir} ${target_base_dir} ${log_folder} ${COMPSs_location} ${cloud_owner} ${connector_server} ${connector_jar} ${connector_class} ${remote_COMPSs}
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
 
-     #Get test number to execute
-     if [ "${environment}" = "cloudvpn" ]; then
-       num_test="all"
-     else
-       num_test=$(echo ${environment:9} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
-     fi
-     #Check it's not faultTolerance test (not allowed on VPN mode)
-     if [ "${num_test}" = "1" ]; then
-       echo "[ERROR] TEST NUMBER 1 IS NOT ALLOWED ON VPN MODE"
-       exit 1
-     fi
+    # Get test number to execute
+    if [ "${environment}" = "cloudvpn" ]; then
+      num_test="all"
+    else
+      num_test=$(echo ${environment:9} | sed 's/.*0 *\([1-9]*[0-9]\).*/\1/')
+    fi 
+    # Check it's not faultTolerance test (not allowed on VPN mode)
+    if [ "${num_test}" = "1" ]; then
+      echo "[ERROR] TEST NUMBER 1 IS NOT ALLOWED ON VPN MODE"
+      exit 1
+    fi
 
-     # Erase COMPSs log folder
-     echo "---- Erase current .COMPSs folder"
-     rm -rf ${COMPSs_log_folder}
+    # Erase COMPSs log folder
+    echo "---- Erase current .COMPSs folder"
+    rm -rf ${COMPSs_log_folder}
 
-     #Execute tests
-     ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${num_test} ${template_id} ${vm_type} ${cloud_owner}
-     if [ $? -ne 0 ]; then
+    # Execute tests
+    ${target_base_dir}/execute_cloud_tests ${logs_location} ${log_folder} ${COMPSs_exec} ${comm} ${num_test} ${template_id} ${vm_type} ${cloud_owner} ${skip} ${retry}
+    if [ $? -ne 0 ]; then
        exitValue=1
-     fi
+    fi
 
-     #Exit
-     exit $exitValue
-  fi
+    # Exit
+    exit $exitValue
+  }
 
-  #-----------------------------------------------------------------------------------------------
-  #DEVEL
-  if [ "${environment:0:5}" == "devel" ]; then
-     #Set Default environment variables
-     user=$(whoami)
-     target_base_dir="/home/$user/tests_devel"
-     IT_HOME="/opt/COMPSs/"
-     java_apps="true" 
-     comm=integratedtoolkit.nio.master.NIOAdaptor
+  execute_tests_devel() {
+    echo "Executing tests in DEVEL mode"
+    logArguments
+ 
+    #Set Default environment variables
+    user=$(whoami)
+    target_base_dir="/home/$user/tests_devel"
+    IT_HOME="/opt/COMPSs/"
+    java_apps="true"
+    comm=integratedtoolkit.nio.master.NIOAdaptor
 
-     #Set environment variables from configuration file
-     configuration=$2
-     if [[ $configuration = */* ]]; then
-        source $configuration
-        if [ $? -ne 0 ]; then
-          exit 1
-        fi
-     else
-        source $(dirname $0)/../configurations/$configuration
-        if [ $? -ne 0 ]; then
-          exit 1
-        fi
-     fi
-     if [ -z "$JAVA_HOME" ]; then
-        echo "ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
-        exit 1
-     fi
+    # Set environment variables from configuration file
+    source_configuration
      
-     #Set the rest of environment variables 
-     source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
-     logs_location="$HOME"
-     COMPSs_log_folder="$HOME/.COMPSs"
-     COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
+    # Set the rest of environment variables 
+    source_base_dir="$(pwd)/$(dirname $0)/../sources/$environment"
+    logs_location="$HOME"
+    COMPSs_log_folder="$HOME/.COMPSs"
+    COMPSs_exec="$IT_HOME/Runtime/scripts/user/runcompss"
 
-     #Export base variables
-     export IT_HOME=$IT_HOME
-     export JAVA_HOME=$JAVA_HOME
+    # Export base variables
+    export IT_HOME=$IT_HOME
+    export JAVA_HOME=$JAVA_HOME
 
-     #Compile tests
-     if [ "$java_apps" == "true" ]; then
-        $(dirname $0)/compile_sources_devel ${source_base_dir}
-        if [ $? -ne 0 ]; then
-           exit 1
-        fi
-     fi 
-
-     #Deploy tests
-     $(dirname $0)/deploy_sources_devel ${source_base_dir} ${target_base_dir}
-     if [ $? -ne 0 ]; then
+    # Compile tests
+    if [ "$java_apps" == "true" ]; then
+      $(dirname $0)/compile_sources_devel ${source_base_dir}
+      if [ $? -ne 0 ]; then
         exit 1
-     fi
+      fi
+    fi
 
-     # Erase COMPSs log folder
-     echo "---- Erase current COMPSs log folder"
-     rm -rf ${COMPSS_log_folder}
+    # Deploy tests
+    $(dirname $0)/deploy_sources_devel ${source_base_dir} ${target_base_dir}
+    if [ $? -ne 0 ]; then
+      exit 1
+    fi
 
-     #Execute tests
-     $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder}
-     if [ $? -ne 0 ]; then
+    # Erase COMPSs log folder
+    echo "---- Erase current COMPSs log folder"
+    rm -rf ${COMPSS_log_folder}
+
+    # Execute tests
+    $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}
+    if [ $? -ne 0 ]; then
+      exit 1
+    else
+      exit 0
+    fi
+  }
+
+  logArguments() {
+    echo "  - Skip :       ${skip}"
+    echo "  - Retries:     ${retry}"
+    echo "  - Environment: ${environment}"
+    echo "  - CFG File:    ${configuration}"
+  }
+
+  source_configuration() {
+    if [[ $configuration = */* ]]; then
+      source $configuration
+      if [ $? -ne 0 ]; then
         exit 1
-     fi
+      fi
+    else
+      source $(dirname $0)/../configurations/$configuration
+      if [ $? -ne 0 ]; then
+        exit 1
+      fi
+    fi
 
-     #Exit
-     exit 0
-  fi
+    if [ -z "$JAVA_HOME" ]; then
+      echo "${ERROR_LOAD_CONFIG}"
+      exit 1
+    fi
+  }
+
 
   #-----------------------------------------------------------------------------------------------
-  # DEFAULT EXIT
-  exit 1
+  # MAIN
+  #----------------------------------------------------------------------------------------------- 
+  
+  # Get and check arguments
+  get_args $@
+  check_args
+
+  # Execute tests
+  execute_tests
 

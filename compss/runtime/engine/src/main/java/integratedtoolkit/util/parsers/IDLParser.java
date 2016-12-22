@@ -1,8 +1,9 @@
-package integratedtoolkit.util;
+package integratedtoolkit.util.parsers;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.util.CoreManager;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -7,10 +7,11 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.log.Loggers;
+
+import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.TaskDescription;
@@ -28,6 +29,7 @@ import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.uri.SimpleURI;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceScheduler;
 
@@ -91,7 +93,7 @@ public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDe
                         transferJobData(dp, listener);
                         break;
                     case SERVICE:
-                        if (dp.getDirection() != DataDirection.INOUT) {
+                        if (dp.getDirection() != Direction.INOUT) {
                             // For services we only transfer IN parameters because the only
                             // parameter that can be INOUT is the target
                             transferJobData(dp, listener);

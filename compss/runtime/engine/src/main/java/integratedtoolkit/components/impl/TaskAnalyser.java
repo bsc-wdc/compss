@@ -13,9 +13,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import storage.StubItf;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.log.Loggers;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
@@ -26,6 +28,7 @@ import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataAccessId.*;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
+import integratedtoolkit.types.parameter.ExternalObjectParameter;
 import integratedtoolkit.types.data.FileInfo;
 import integratedtoolkit.types.data.operation.ResultListener;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
@@ -34,6 +37,7 @@ import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
 import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
+
 import integratedtoolkit.util.ErrorManager;
 
 
@@ -188,11 +192,16 @@ public class TaskAnalyser {
                     daId = DIP.registerFileAccess(am, fp.getLocation());
                     break;
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
                     ObjectParameter pscop = (ObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     pscop.setType(DataType.PSCO_T);
                     daId = DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
+                    break;
+                case EXTERNAL_PSCO_T:
+                    ExternalObjectParameter externalPSCOp = (ExternalObjectParameter) p;
+                    // Check if its PSCO class and persisted to infer its type
+                    externalPSCOp.setType(DataType.EXTERNAL_PSCO_T);
+                    daId = DIP.registerObjectAccess(am, externalPSCOp.getValue(), externalPSCOp.getCode());
                     break;
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;

@@ -1,7 +1,8 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.types.parameter.DependencyParameter;
 
 
@@ -16,8 +17,8 @@ public class ObjectParameter extends DependencyParameter {
     private Object value;
 
 
-    public ObjectParameter(DataDirection direction, Object value, int hashCode) {
-        super(DataType.OBJECT_T, direction);
+    public ObjectParameter(Direction direction, Stream stream, Object value, int hashCode) {
+        super(DataType.OBJECT_T, direction, stream);
         this.value = value;
         this.hashCode = hashCode;
     }

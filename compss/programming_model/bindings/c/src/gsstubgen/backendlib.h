@@ -1,5 +1,3 @@
-
-
 #ifndef BACKENDLIB_H
 #define BACKENDLIB_H
 
@@ -10,6 +8,5 @@ void rename_if_clash(char *origin);
 FILE *create_without_overwrite(char *origin);
 char const *get_filename_base();
 void set_no_backups();
-
 
 #endif /* BACKENDLIB_H */

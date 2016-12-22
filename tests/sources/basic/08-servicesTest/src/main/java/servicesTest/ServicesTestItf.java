@@ -2,7 +2,7 @@ package servicesTest;
 
 import groupservice.Person;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.task.Method;
 import integratedtoolkit.types.annotations.task.Service;
 

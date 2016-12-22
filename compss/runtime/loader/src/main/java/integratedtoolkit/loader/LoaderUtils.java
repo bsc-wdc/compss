@@ -1,7 +1,7 @@
 package integratedtoolkit.loader;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
+
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.MPI;
@@ -15,6 +15,8 @@ import integratedtoolkit.types.annotations.task.repeatables.Methods;
 import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
 import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.util.ErrorManager;
 

@@ -1,10 +1,12 @@
 package integratedtoolkit.types.resources;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
+
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.UnstartedNodeException;
+
 import integratedtoolkit.log.Loggers;
+
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
@@ -24,6 +26,8 @@ import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.SharedDiskManager;
 

@@ -1,103 +1,153 @@
 package integratedtoolkit.worker.invokers;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+
+import integratedtoolkit.types.annotations.parameter.Stream;
 
 
 public class BinaryRunner {
 
     private static final String ERROR_PARAM_NOT_STRING = "ERROR: Binary parameter cannot be serialized to string";
-    private static final String ERROR_CLOSE_READER = "ERROR: Cannot close reader CMD output";
-    private static final String ERROR_PROC_EXEC = "ERROR: Exception executing MPI command";
+    private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
+    private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
+    private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
 
 
-    public static ArrayList<String> createCMDParametersFromValues(Object[] values) throws InvokeExecutionException {
+    /**
+     * Converts the values to the cmd standard and calculates with are the streamValues
+     * 
+     * @param values
+     * @param paramStreams
+     * @param streamValues
+     * @return
+     * @throws InvokeExecutionException
+     */
+    public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, StreamSTD streamValues) 
+            throws InvokeExecutionException {
+
         ArrayList<String> binaryParams = new ArrayList<>();
         for (int i = 0; i < values.length; ++i) {
-            if (values[i] != null && values[i].getClass().isArray()) {
-                try {
-                    binaryParams.addAll(serializeArrayParam(values[i]));
-                } catch (Exception e) {
-                    // Exception serializing to string the object
-                    throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                }
-            } else if (values[i] != null && values[i] instanceof Collection<?>) {
-                try {
-                    binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
-                } catch (Exception e) {
-                    // Exception serializing to string the object
-                    throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                }
-            } else {
-                // The value can be serialized to string directly
-                binaryParams.add(String.valueOf(values[i]));
+            switch (paramStreams[i]) {
+                case STDIN:
+                    streamValues.setStdIn((String) values[i]);
+                    break;
+                case STDOUT:
+                    streamValues.setStdOut((String) values[i]);
+                    break;
+                case STDERR:
+                    streamValues.setStdErr((String) values[i]);
+                    break;
+                case UNSPECIFIED:
+                    if (values[i] != null && values[i].getClass().isArray()) {
+                        try {
+                            binaryParams.addAll(serializeArrayParam(values[i]));
+                        } catch (Exception e) {
+                            // Exception serializing to string the object
+                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+                        }
+                    } else if (values[i] != null && values[i] instanceof Collection<?>) {
+                        try {
+                            binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
+                        } catch (Exception e) {
+                            // Exception serializing to string the object
+                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
+                        }
+                    } else {
+                        // The value can be serialized to string directly
+                        binaryParams.add(String.valueOf(values[i]));
+                    }
             }
         }
 
         return binaryParams;
     }
 
-    public static String executeCMD(String[] cmd) throws InvokeExecutionException {
+    /**
+     * Executes a given command @cmd with the stream redirections @streamValues
+     * 
+     * @param cmd
+     * @param hasReturn
+     * @param streamValues
+     * @return
+     * @throws InvokeExecutionException
+     */
+    public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues) throws InvokeExecutionException {
+        // Prepare command execution with redirections
+        ProcessBuilder builder = new ProcessBuilder(cmd);
+        String fileInPath = streamValues.getStdIn();
+        if (fileInPath != null) {
+            builder.redirectInput(new File(fileInPath));
+        }
+        String fileOutPath = streamValues.getStdOut();
+        if (fileOutPath != null) {
+            builder.redirectOutput(Redirect.appendTo(new File(fileOutPath)));
+        }
+        String fileErrPath = streamValues.getStdErr();
+        if (fileErrPath != null) {
+            builder.redirectError(Redirect.appendTo(new File(fileErrPath)));
+        }
+
         // Launch command
-        BinaryExecutionResult result = new BinaryExecutionResult();
-        Process p;
-        BufferedReader reader = null;
+        Process process = null;
+        int exitValue = -1;
         try {
-            // Execute command
-            p = Runtime.getRuntime().exec(cmd);
-
-            // Wait for completion and retrieve exitValue
-            int exitValue = p.waitFor();
-            result.setExitValue(exitValue);
-
-            // Store any process output
-            StringBuffer output = new StringBuffer();
-            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                output.append(line + "\n");
-            }
-            result.setOutputMessage(output.toString());
-
-            // Store any process error
-            StringBuffer error = new StringBuffer();
-            reader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            line = "";
-            while ((line = reader.readLine()) != null) {
-                error.append(line + "\n");
-            }
-            result.setErrorMessage(error.toString());
+            process = builder.start();
+            exitValue = process.waitFor();
         } catch (Exception e) {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
         } finally {
-            // Close reader
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new InvokeExecutionException(ERROR_CLOSE_READER, e);
-                }
-            }
-
-            // Print all process execution information
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + result.getExitValue());
-
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.out.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
-            System.out.println(result.getOutputMessage());
-
-            System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
-            System.err.println(result.getErrorMessage());
+            // Log binary execution
+            logBinaryExecution(process, exitValue, fileOutPath, fileErrPath);
         }
 
-        // Return
-        return result.getOutputMessage();
+        // Return exit value if requested, null if none
+        return hasReturn ? exitValue : null;
+    }
+
+    private static void logBinaryExecution(Process process, int exitValue, String fileOutPath, String fileErrPath) 
+            throws InvokeExecutionException {
+
+        // Print all process execution information
+        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        System.out.println("[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: " + exitValue);
+
+        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        System.out.println("[BINARY EXECUTION WRAPPER] CMD OUTPUT:");
+        if (process != null) {
+            try (BufferedReader outputReader = (fileOutPath != null) ? new BufferedReader(new FileReader(fileOutPath))
+                    : new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+
+                String line = null;
+                while ((line = outputReader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException ioe) {
+                throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
+            }
+        }
+
+        System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+        System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
+        if (process != null) {
+            try (BufferedReader errorReader = (fileErrPath != null) ? new BufferedReader(new FileReader(fileErrPath))
+                    : new BufferedReader(new InputStreamReader(process.getErrorStream()));) {
+
+                String line = null;
+                while ((line = errorReader.readLine()) != null) {
+                    System.err.println(line);
+                }
+            } catch (IOException ioe) {
+                throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
+            }
+        }
     }
 
     private static ArrayList<String> serializeArrayParam(Object value) throws Exception {
@@ -211,42 +261,41 @@ public class BinaryRunner {
     }
 
 
-    private static class BinaryExecutionResult {
+    public static class StreamSTD {
 
-        private int exitValue;
-        private String errorMessage;
-        private String outputMessage;
+        private String stdIn = null;
+        private String stdOut = null;
+        private String stdErr = null;
 
 
-        public BinaryExecutionResult() {
-            this.exitValue = -1;
-            this.errorMessage = "";
-            this.outputMessage = "";
+        public StreamSTD() {
+            // Nothing to do since all attributes have been initialized
         }
 
-        public int getExitValue() {
-            return exitValue;
+        public String getStdIn() {
+            return stdIn;
         }
 
-        public String getErrorMessage() {
-            return errorMessage;
+        public String getStdOut() {
+            return stdOut;
         }
 
-        public String getOutputMessage() {
-            return outputMessage;
+        public String getStdErr() {
+            return stdErr;
         }
 
-        public void setExitValue(int exitValue) {
-            this.exitValue = exitValue;
+        public void setStdIn(String stdIn) {
+            this.stdIn = stdIn;
         }
 
-        public void setErrorMessage(String errorMessage) {
-            this.errorMessage = errorMessage;
+        public void setStdOut(String stdOut) {
+            this.stdOut = stdOut;
         }
 
-        public void setOutputMessage(String outputMessage) {
-            this.outputMessage = outputMessage;
+        public void setStdErr(String stdErr) {
+            this.stdErr = stdErr;
         }
+
     }
 
 }

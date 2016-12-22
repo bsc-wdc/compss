@@ -5,16 +5,20 @@ import java.util.Iterator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
+
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
+
 import integratedtoolkit.types.implementations.AbstractMethodImplementation;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import storage.StorageException;
 import storage.StubItf;
 
@@ -39,7 +43,9 @@ public abstract class Invoker {
     protected final int numParams;
     protected final int totalNumberOfParams;
     protected final boolean hasTarget;
+    protected final boolean hasReturn;
     protected final Class<?>[] types;
+    protected final Stream[] streams;
     protected final Object[] values;
     private final String[] renamings;
     private final boolean[] isFile;
@@ -60,12 +66,14 @@ public abstract class Invoker {
         this.methodType = nt.getMethodType();
         this.impl = nt.getMethodImplementation();
         this.hasTarget = nt.isHasTarget();
+        this.hasReturn = nt.isHasReturn();
         this.numParams = nt.getNumParams();
 
         /* Parameters information ********************************** */
         this.totalNumberOfParams = this.hasTarget ? this.numParams - 1 : this.numParams; // Don't count target if needed (i.e. obj.func())
         this.types = new Class[this.totalNumberOfParams];
         this.values = new Object[this.totalNumberOfParams];
+        this.streams = new Stream[this.numParams];
         this.renamings = new String[this.numParams];
         this.isFile = new boolean[this.numParams];
         this.canBePSCO = new boolean[this.numParams];
@@ -98,6 +106,12 @@ public abstract class Invoker {
                 System.out.print(" " + v);
             }
             System.out.println();
+            
+            System.out.print("  * Parameter streams:");
+            for (Stream s : this.streams) {
+                System.out.print(" " + s.name());
+            }
+            System.out.println("");
         }
         
         this.retValue = null;
@@ -116,51 +130,53 @@ public abstract class Invoker {
     
     private void processParameter(NIOParam np, int i) throws JobExecutionException {
         // We need to use wrapper classes for basic types, reflection will unwrap automatically
+        this.streams[i] = np.getStream();
+        
         switch (np.getType()) {
             case BOOLEAN_T:
-                types[i] = boolean.class;
-                values[i] = np.getValue();
+                this.types[i] = boolean.class;
+                this.values[i] = np.getValue();
                 break;
             case CHAR_T:
-                types[i] = char.class;
-                values[i] = np.getValue();
+                this.types[i] = char.class;
+                this.values[i] = np.getValue();
                 break;
             case BYTE_T:
-                types[i] = byte.class;
-                values[i] = np.getValue();
+                this.types[i] = byte.class;
+                this.values[i] = np.getValue();
                 break;
             case SHORT_T:
-                types[i] = short.class;
-                values[i] = np.getValue();
+                this.types[i] = short.class;
+                this.values[i] = np.getValue();
                 break;
             case INT_T:
-                types[i] = int.class;
-                values[i] = np.getValue();
+                this.types[i] = int.class;
+                this.values[i] = np.getValue();
                 break;
             case LONG_T:
-                types[i] = long.class;
-                values[i] = np.getValue();
+                this.types[i] = long.class;
+                this.values[i] = np.getValue();
                 break;
             case FLOAT_T:
-                types[i] = float.class;
-                values[i] = np.getValue();
+                this.types[i] = float.class;
+                this.values[i] = np.getValue();
                 break;
             case DOUBLE_T:
-                types[i] = double.class;
-                values[i] = np.getValue();
+                this.types[i] = double.class;
+                this.values[i] = np.getValue();
                 break;
             case STRING_T:
-                types[i] = String.class;
-                values[i] = np.getValue();
+                this.types[i] = String.class;
+                this.values[i] = np.getValue();
                 break;
             case FILE_T:
-                types[i] = String.class;
-                values[i] = np.getValue();
-                writeFinalValue[i] = np.isWriteFinalValue();
+                this.types[i] = String.class;
+                this.values[i] = np.getValue();
+                this.writeFinalValue[i] = np.isWriteFinalValue();
                 break;
             case OBJECT_T:
-                renamings[i] = np.getValue().toString();
-                writeFinalValue[i] = np.isWriteFinalValue();
+                this.renamings[i] = np.getValue().toString();
+                this.writeFinalValue[i] = np.isWriteFinalValue();
 
                 // Get object
                 Object obj;
@@ -246,9 +262,9 @@ public abstract class Invoker {
                 }
                 break;
             case EXTERNAL_PSCO_T:
-                types[i] = String.class;
-                values[i] = np.getValue();
-                writeFinalValue[i] = np.isWriteFinalValue();
+                this.types[i] = String.class;
+                this.values[i] = np.getValue();
+                this.writeFinalValue[i] = np.isWriteFinalValue();
                 break;
         }
 
@@ -319,7 +335,6 @@ public abstract class Invoker {
     }
 
     private void writeUpdatedParameters() {
-
         // Write to disk the updated object parameters, if any (including the target)
         for (int i = 0; i < this.numParams; i++) {
             if (this.writeFinalValue[i]) {

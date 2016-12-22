@@ -1,7 +1,7 @@
 package integratedtoolkit.loader;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.loader.total.ObjectRegistry;
+import integratedtoolkit.types.annotations.parameter.Direction;
 
 
 public interface LoaderAPI {
@@ -13,7 +13,7 @@ public interface LoaderAPI {
      * @param mode
      * @return
      */
-    public String openFile(String fileName, DataDirection mode);
+    public String openFile(String fileName, Direction mode);
 
     /**
      * Returns the renaming of the last file version just transferred

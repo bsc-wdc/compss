@@ -1,12 +1,12 @@
 package integratedtoolkit.scheduler.defaultscheduler;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.comm.Comm;
+
 import integratedtoolkit.scheduler.defaultscheduler.utils.Verifiers;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
+
 import integratedtoolkit.types.DefaultScore;
 import integratedtoolkit.types.Score;
 import integratedtoolkit.types.TaskDescription;
@@ -23,6 +23,10 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import integratedtoolkit.util.CoreManager;
 
 import org.junit.After;
@@ -149,10 +153,10 @@ public class ScoresTest {
         DataInstanceId d2v2 = new DataInstanceId(2, 2);
         Comm.registerData(d2v2.getRenaming());
 
-        DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, DataDirection.IN);
+        DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED);
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
-        DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, DataDirection.IN);
+        DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
         TaskDescription params = new TaskDescription("", "", false, Constants.SINGLE_NODE, false, false, false, 

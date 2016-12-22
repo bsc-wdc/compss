@@ -3,6 +3,9 @@ package integratedtoolkit.gat.worker.utils;
 import java.lang.reflect.Method;
 
 import integratedtoolkit.util.ErrorManager;
+
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import integratedtoolkit.worker.invokers.GenericInvoker;
 import integratedtoolkit.worker.invokers.InvokeExecutionException;
 
@@ -37,10 +40,12 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Class<?>[] types, Object[] values) {
+    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Object[] values, boolean hasReturn,
+            Stream[] streams) {
+
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values);
+            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -48,10 +53,10 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Class<?>[] types, Object[] values) {
+    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values);
+            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -59,21 +64,21 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeOpenCLMethod(String kernel, Object target, Class<?>[] types, Object[] values) {
+    public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
         ErrorManager.error("ERROR: OpenCL is not supported");
 
         return null;
     }
 
-    public static Object invokeBinaryMethod(String binary, Object target, Class<?>[] types, Object[] values) {
+    public static Object invokeBinaryMethod(String binary, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values);
+            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
 
         return retValue;
     }
-    
+
 }

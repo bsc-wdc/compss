@@ -2,7 +2,6 @@ package integratedtoolkit.types.fake;
 
 import java.util.List;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.data.LogicalData;
@@ -16,6 +15,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.types.annotations.parameter.DataType;
 
 
 public class FakeNode extends COMPSsNode {

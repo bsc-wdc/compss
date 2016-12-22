@@ -1,10 +1,15 @@
 package integratedtoolkit.gat.worker;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.gat.worker.utils.Invokers;
+
 import integratedtoolkit.types.annotations.Constants;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 import integratedtoolkit.util.Tracer;
@@ -29,6 +34,7 @@ import storage.StubItf;
 public class GATWorker {
 
     private static final String WARN_UNSUPPORTED_TYPE = "WARNING: Unsupported data type";
+    private static final String WARN_UNSUPPORTED_STREAM = "WARNING: Unsupported data stream";
     private static final String ERROR_APP_PARAMETERS = "ERROR: Incorrect number of parameters";
     private static final String ERROR_STORAGE_CONF = "ERROR: Cannot load storage configuration file: ";
     private static final String ERROR_SERIALIZE_RETURN = "Error serializing object return value with renaming ";
@@ -46,11 +52,12 @@ public class GATWorker {
     private static MethodType methodType;
     private static String[] methodDefinition;
     private static boolean hasTarget;
+    private static boolean hasReturn;
     private static int numParams;
     private static int initialAppParamsPosition;
-    private static int finalAppParamsPosition;
 
     private static Class<?> types[];
+    private static Stream streams[];
     private static Object values[];
     private static boolean isFile[];
     private static boolean mustWrite[];
@@ -81,9 +88,6 @@ public class GATWorker {
 
         // Invoke method depending on its type
         invokeMethod();
-        if (GATWorker.retValue != null) {
-            GATWorker.retRenaming = args[GATWorker.finalAppParamsPosition + 1];
-        }
 
         // Post task execution
         serializeResults();
@@ -107,15 +111,7 @@ public class GATWorker {
         GATWorker.debug = Boolean.valueOf(args[0]);
         GATWorker.storageConf = args[1];
 
-        // Execution information for multi-node tasks
-        GATWorker.numNodes = Integer.parseInt(args[DEFAULT_FLAGS_SIZE]);
-        GATWorker.hostnames = new HashSet<String>();
-        for (int i = 0; i < numNodes; ++i) {
-            GATWorker.hostnames.add(args[DEFAULT_FLAGS_SIZE + 1 + i]);
-        }
-        GATWorker.cus = Integer.parseInt(args[DEFAULT_FLAGS_SIZE + GATWorker.numNodes + 1]);
-
-        int argPosition = DEFAULT_FLAGS_SIZE + numNodes + 2;
+        int argPosition = DEFAULT_FLAGS_SIZE;
         GATWorker.methodType = MethodType.valueOf(args[argPosition++]);
         GATWorker.methodDefinition = null;
         switch (GATWorker.methodType) {
@@ -145,8 +141,27 @@ public class GATWorker {
                 argPosition += 1;
                 break;
         }
+        
+        // Execution information for multi-node tasks
+        GATWorker.numNodes = Integer.parseInt(args[argPosition++]);
+        GATWorker.hostnames = new HashSet<String>();
+        for (int i = 0; i < numNodes; ++i) {
+            GATWorker.hostnames.add(args[argPosition++]);
+        }
+        GATWorker.cus = Integer.parseInt(args[argPosition++]);
 
+        // Get if has target or not
         GATWorker.hasTarget = Boolean.parseBoolean(args[argPosition++]);
+
+        // Get return type if specified
+        String returnType = args[argPosition++];
+        if (returnType == null || returnType.equals("null") || returnType.isEmpty()) {
+            GATWorker.hasReturn = false;
+        } else {
+            GATWorker.hasReturn = true;
+        }
+
+        // Get application number of parameters
         GATWorker.numParams = Integer.parseInt(args[argPosition++]);
         GATWorker.initialAppParamsPosition = argPosition;
 
@@ -187,12 +202,14 @@ public class GATWorker {
             GATWorker.values = new Object[GATWorker.numParams];
         }
 
+        GATWorker.streams = new Stream[GATWorker.numParams];
         GATWorker.isFile = new boolean[GATWorker.numParams];
         GATWorker.mustWrite = new boolean[GATWorker.numParams];
         GATWorker.renamings = new String[GATWorker.numParams];
 
         // Parse the parameter types and values
         DataType[] dataTypes = DataType.values();
+        Stream[] dataStream = Stream.values();
         int argPosition = GATWorker.initialAppParamsPosition;
         for (int i = 0; i < GATWorker.numParams; i++) {
             // We need to use wrapper classes for basic types, reflection will unwrap automatically
@@ -200,82 +217,92 @@ public class GATWorker {
             if (argType_index >= dataTypes.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType_index);
             }
-            DataType argType = DataType.values()[argType_index];
+            DataType argType = dataTypes[argType_index];
+            argPosition++;
+
+            int argStream_index = Integer.parseInt(args[argPosition]);
+            if (argStream_index >= dataStream.length) {
+                ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStream_index);
+            }
+            streams[i] = dataStream[argStream_index];
+            argPosition++;
+
             switch (argType) {
                 case FILE_T:
                     GATWorker.types[i] = String.class;
-                    GATWorker.values[i] = args[argPosition + 1];
+                    GATWorker.values[i] = args[argPosition++];
                     break;
                 case OBJECT_T:
-                    GATWorker.renamings[i] = (String) args[argPosition + 1];
-                    GATWorker.mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
+                    GATWorker.renamings[i] = (String) args[argPosition++];
+                    GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
                     retrieveObject(renamings[i], i);
-                    argPosition++;
                     break;
                 case PSCO_T:
-                    GATWorker.renamings[i] = (String) args[argPosition + 1];
-                    GATWorker.mustWrite[i] = ((String) args[argPosition + 2]).equals("W");
+                    GATWorker.renamings[i] = (String) args[argPosition++];
+                    GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
                     retrievePSCO(renamings[i], i);
-                    argPosition++;
                     break;
                 case EXTERNAL_PSCO_T:
                     GATWorker.types[i] = String.class;
-                    GATWorker.values[i] = args[argPosition + 1];
+                    GATWorker.values[i] = args[argPosition++];
                     break;
                 case BOOLEAN_T:
                     GATWorker.types[i] = boolean.class;
-                    GATWorker.values[i] = new Boolean(args[argPosition + 1]);
+                    GATWorker.values[i] = new Boolean(args[argPosition++]);
                     break;
                 case CHAR_T:
                     GATWorker.types[i] = char.class;
-                    GATWorker.values[i] = new Character(args[argPosition + 1].charAt(0));
+                    GATWorker.values[i] = new Character(args[argPosition++].charAt(0));
                     break;
                 case STRING_T:
                     GATWorker.types[i] = String.class;
-                    int numSubStrings = Integer.parseInt(args[argPosition + 1]);
+                    int numSubStrings = Integer.parseInt(args[argPosition++]);
                     String aux = "";
-                    for (int j = 2; j <= numSubStrings + 1; j++) {
-                        aux += args[argPosition + j];
-                        if (j < numSubStrings + 1) {
+                    for (int j = 0; j < numSubStrings; j++) {
+                        if (j != 0) {
                             aux += " ";
                         }
+                        aux += args[argPosition++];
                     }
                     GATWorker.values[i] = aux;
-                    argPosition += numSubStrings;
                     break;
                 case BYTE_T:
                     GATWorker.types[i] = byte.class;
-                    GATWorker.values[i] = new Byte(args[argPosition + 1]);
+                    GATWorker.values[i] = new Byte(args[argPosition++]);
                     break;
                 case SHORT_T:
                     GATWorker.types[i] = short.class;
-                    GATWorker.values[i] = new Short(args[argPosition + 1]);
+                    GATWorker.values[i] = new Short(args[argPosition++]);
                     break;
                 case INT_T:
                     GATWorker.types[i] = int.class;
-                    GATWorker.values[i] = new Integer(args[argPosition + 1]);
+                    GATWorker.values[i] = new Integer(args[argPosition++]);
                     break;
                 case LONG_T:
                     GATWorker.types[i] = long.class;
-                    GATWorker.values[i] = new Long(args[argPosition + 1]);
+                    GATWorker.values[i] = new Long(args[argPosition++]);
                     break;
                 case FLOAT_T:
                     GATWorker.types[i] = float.class;
-                    GATWorker.values[i] = new Float(args[argPosition + 1]);
+                    GATWorker.values[i] = new Float(args[argPosition++]);
                     break;
                 case DOUBLE_T:
                     GATWorker.types[i] = double.class;
-                    GATWorker.values[i] = new Double(args[argPosition + 1]);
+                    GATWorker.values[i] = new Double(args[argPosition++]);
                     break;
                 default:
                     ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType);
                     return;
             }
+            
             GATWorker.isFile[i] = argType.equals(DataType.FILE_T);
-            argPosition += 2;
         }
 
-        GATWorker.finalAppParamsPosition = argPosition;
+        // Retrieve return renaming if existing
+        if (GATWorker.hasReturn) {
+            // +1 = StreamType, +2 = value
+            GATWorker.retRenaming = args[argPosition + 2];
+        }
     }
 
     /**
@@ -410,16 +437,30 @@ public class GATWorker {
         for (int j = 0; j < GATWorker.methodDefinition.length; ++j) {
             System.out.println("  * Method Description " + j + ": " + GATWorker.methodDefinition[j]);
         }
+
         System.out.print("  * Parameter types:");
         for (Class<?> c : GATWorker.types) {
             System.out.print(" " + c.getName());
         }
         System.out.println("");
+
         System.out.print("  * Parameter values:");
         for (Object v : GATWorker.values) {
             System.out.print(" " + v);
         }
         System.out.println("");
+
+        System.out.print("  * Parameter streams:");
+        for (Stream s : GATWorker.streams) {
+            System.out.print(" " + s.name());
+        }
+        System.out.println("");
+        
+        if (GATWorker.hasReturn) {
+            System.out.println("  * Has return with renaming " + GATWorker.retRenaming);
+        } else {
+            System.out.println("  * Has NO return");
+        }
     }
 
     /**
@@ -463,23 +504,28 @@ public class GATWorker {
      * 
      */
     private static void invokeMethod() {
-        retValue = null;
+        GATWorker.retValue = null;
 
         switch (GATWorker.methodType) {
             case METHOD:
-                retValue = Invokers.invokeJavaMethod(methodDefinition[0], methodDefinition[1], target, types, values);
+                GATWorker.retValue = Invokers.invokeJavaMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
+                        GATWorker.target, GATWorker.types, GATWorker.values);
                 break;
             case MPI:
-                retValue = Invokers.invokeMPIMethod(methodDefinition[0], methodDefinition[1], target, types, values);
+                GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
+                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams);
                 break;
             case OMPSS:
-                retValue = Invokers.invokeOmpSsMethod(methodDefinition[0], target, types, values);
+                GATWorker.retValue = Invokers.invokeOmpSsMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
+                        GATWorker.hasReturn, GATWorker.streams);
                 break;
             case OPENCL:
-                retValue = Invokers.invokeOpenCLMethod(methodDefinition[0], target, types, values);
+                GATWorker.retValue = Invokers.invokeOpenCLMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
+                        GATWorker.hasReturn, GATWorker.streams);
                 break;
             case BINARY:
-                retValue = Invokers.invokeBinaryMethod(methodDefinition[0], target, types, values);
+                GATWorker.retValue = Invokers.invokeBinaryMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
+                        GATWorker.hasReturn, GATWorker.streams);
                 break;
         }
     }
@@ -525,7 +571,7 @@ public class GATWorker {
         }
 
         // Serialize the return value if existing
-        if (GATWorker.retValue != null) {
+        if (GATWorker.hasReturn && GATWorker.retValue != null) {
             // If the retValue is a PSCO and it is persisted, we only send the ID
             // Otherwise we treat the PSCO as a normal object
             if (GATWorker.retValue instanceof StubItf) {

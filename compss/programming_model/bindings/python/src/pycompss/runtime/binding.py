@@ -352,7 +352,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
             p.type = python_to_compss.get(val_type)
             if p.type is None:
                 if 'getID' in dir(p.value):  # criteria for persistent object
-                    p.type = Type.PERSISTENT
+                    p.type = Type.EXTERNAL_PSCO
                 else:
                     p.type = Type.OBJECT
             logger.debug("\n\t- Inferred type: %d" % p.type)
@@ -459,7 +459,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                 print("[ ERROR ]: Value: %s" % p.value)
                 raise       # raise the exception up tu launch.py in order to point where the error is in the user code.
                 # return fu  # the execution continues, but without processing this task
-        elif p.type == Type.PERSISTENT:
+        elif p.type == Type.EXTERNAL_PSCO:
             manage_persistent(p)
         elif p.type == Type.INT:
             if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
@@ -528,7 +528,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 
 
 def manage_persistent(p):
-    p.type = Type.PERSISTENT
+    p.type = Type.EXTERNAL_PSCO
     obj_id = p.value.getID()
     task_objects[obj_id] = obj_id 
     p.value = obj_id

@@ -9,7 +9,7 @@
   
   #----------------------------------------------------------------------------------
   # Check output standard out status
-  if [ -f ${output_log} ]; then
+  if [ -f ${output_file} ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then

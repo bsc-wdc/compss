@@ -4,11 +4,12 @@
   source_base_dir=$1
   target_base_dir=$2
   
-  # Compile C sub-program with MPI
+  # Compile C sub-programs
   mkdir ${target_base_dir}/bin/
-  gcc -o ${target_base_dir}/bin/helloWorldBINARY ${source_base_dir}/src/main/c/helloWorldBINARY.c
-  gcc -o ${target_base_dir}/bin/helloWorldOMPSS ${source_base_dir}/src/main/c/helloWorldOMPSS.c
-  mpicc -o ${target_base_dir}/bin/helloWorldMPI ${source_base_dir}/src/main/c/helloWorldMPI.c
+  in_out_err_binary="${base_app_dir}/bin/testIN_OUT_ERR"
+  out_err_binary="${base_app_dir}/bin/testOUT_ERR"
+  g++ -o ${target_base_dir}/bin/testIN_OUT_ERR ${source_base_dir}/src/main/c/testIN_OUT_ERR.c
+  g++ -o ${target_base_dir}/bin/testOUT_ERR ${source_base_dir}/src/main/c/testOUT_ERR.c
   
   # Copy files
   cp -f ${source_base_dir}/target/37-nonNativeTasks.jar ${target_base_dir}/nonNativeTasks.jar   

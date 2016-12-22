@@ -1,6 +1,6 @@
 package integratedtoolkit.nio;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
 
 import java.io.Externalizable;
 import java.io.IOException;

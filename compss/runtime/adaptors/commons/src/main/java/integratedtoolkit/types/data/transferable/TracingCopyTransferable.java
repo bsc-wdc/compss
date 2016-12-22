@@ -1,6 +1,6 @@
 package integratedtoolkit.types.data.transferable;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.data.Transferable;
 
 

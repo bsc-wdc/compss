@@ -1,6 +1,5 @@
 package integratedtoolkit.gat.master;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.exceptions.AnnounceException;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.gat.master.configuration.GATConfiguration;
@@ -21,6 +20,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+import integratedtoolkit.types.annotations.parameter.DataType;
 
 import org.gridlab.gat.GATContext;
 import org.gridlab.gat.URI;

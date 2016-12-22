@@ -9,19 +9,27 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.COMPSsRuntime;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.location.DataLocation;
+
 import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.components.monitor.impl.RuntimeMonitor;
+
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.loader.total.ObjectRegistry;
+
 import integratedtoolkit.log.Loggers;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
+import integratedtoolkit.types.parameter.ExternalObjectParameter;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.parameter.Parameter;
@@ -29,6 +37,7 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RuntimeConfigManager;
 import integratedtoolkit.util.Tracer;
@@ -50,15 +59,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static String COMPSs_VERSION = null;
     private static String COMPSs_BUILDNUMBER = null;
 
-    // Components
-    private static AccessProcessor ap;
-    private static TaskDispatcher<?, ?> td;
-
     // Boolean for initialization
     private static boolean initialized = false;
 
     // Object registry
     private static ObjectRegistry oReg;
+    
+    // Components
+    private static AccessProcessor ap;
+    private static TaskDispatcher<?, ?> td;
 
     // Monitor
     private static GraphGenerator graphMonitor;
@@ -67,6 +76,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     // Logger
     private static final Logger logger = LogManager.getLogger(Loggers.API);
 
+    
     static {
         // Load Runtime configuration parameters
         String propertiesLoc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
@@ -771,7 +781,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Returns the renaming of the file version opened
      */
     @Override
-    public String openFile(String fileName, DataDirection mode) {
+    public String openFile(String fileName, Direction mode) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
@@ -833,13 +843,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * **************************************************** 
      * PRIVATE HELPER METHODS
      ****************************************************/
-    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
+    private Parameter[] processParameters(int parameterCount, Object[] parameters) {        
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
         int i = 0;
         for (int npar = 0; npar < parameterCount; ++npar) {
             DataType type = (DataType) parameters[i + 1];
-            DataDirection direction = (DataDirection) parameters[i + 2];
+            Direction direction = (Direction) parameters[i + 2];
+            Stream stream = (Stream) parameters[i + 3];
 
             if (logger.isDebugEnabled()) {
                 logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -854,27 +865,38 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         logger.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
-                    pars[npar] = new FileParameter(direction, location);
+                    pars[npar] = new FileParameter(direction, stream, location);
                     break;
 
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
                 case OBJECT_T:                    
-                    pars[npar] = new ObjectParameter(direction, parameters[i], oReg.newObjectParameter(parameters[i])); // hashCode
+                    pars[npar] = new ObjectParameter(direction, 
+                                                        stream, 
+                                                        parameters[i], 
+                                                        oReg.newObjectParameter(parameters[i]) // hashCode
+                                                        ); 
+                    break;
+                    
+                case EXTERNAL_PSCO_T:
+                    pars[npar] = new ExternalObjectParameter(direction, 
+                                                        stream, 
+                                                        parameters[i], 
+                                                        oReg.newObjectParameter(parameters[i]) // hashCode
+                                                        );
                     break;
 
                 default:
                     /*
                      * Basic types (including String). The only possible direction is IN, warn otherwise
                      */
-                    if (direction != DataDirection.IN) {
+                    if (direction != Direction.IN) {
                         logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar 
                                 + " is a basic type, therefore it must have IN direction");
                     }
-                    pars[npar] = new BasicTypeParameter(type, DataDirection.IN, parameters[i]);
+                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, parameters[i]);
                     break;
             }
-            i += 3;
+            i += 4;
         }
 
         return pars;

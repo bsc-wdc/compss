@@ -1,5 +1,9 @@
 package testMPI;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import integratedtoolkit.api.COMPSs;
 import mpi.MPI;
 
@@ -67,29 +71,43 @@ public class Main {
     }
 
     private static void testMPISingleNode() {
-        String output = MPI.taskSingleMPI(data);
+        String outputFile = "mpiSingleOutput.txt";
+        int ev = MPI.taskSingleMPI(data, outputFile);
         
-        String[] lines = output.split("\n");
-        int sum = Integer.valueOf(lines[lines.length - 1]);
-
-        if (sum == totalSum) {
-            System.out.println("[MPI_SINGLE] Received value from task is correct");
-        } else {
-            System.out.println("[MPI_SINGLE] Received value from task is not correct: " + sum + " vs " + totalSum);
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
+            System.exit(1);
         }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI Task1: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile);
+            System.exit(1);
+        }
+        System.out.println("[LOG] Result must be checked on result script");
     }
 
     private static void testMPIMultipleNodes() {
-        String output = MPI.taskMultipleMPI(data);
+        String outputFile = "mpiMultipleOutput.txt";
+        int ev = MPI.taskMultipleMPI(data, outputFile);
         
-        String[] lines = output.split("\n");
-        int sum = Integer.valueOf(lines[lines.length - 1]);
-
-        if (sum == totalSum) {
-            System.out.println("[MPI_MULTIPLE] Received value from task is correct");
-        } else {
-            System.out.println("[MPI_MULTIPLE] Received value from task is not correct: " + sum + " vs " + totalSum);
+        if (ev != 0) {
+            System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
+            System.exit(1);
         }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI Task2: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile);
+            System.exit(1);
+        }
+        System.out.println("[LOG] Result must be checked on result script");
     }
 
 }

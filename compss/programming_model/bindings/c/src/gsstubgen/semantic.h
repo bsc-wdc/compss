@@ -1,5 +1,3 @@
-
-
 #ifndef SEMANTIC_H
 #define SEMANTIC_H
 
@@ -17,6 +15,7 @@ struct argument
 	char *classname;
 	enum datatype	type;
 	enum direction	dir;
+        enum stream     stream;
 	int passing_in_order;
 	int passing_out_order;
 	argument *next_argument;

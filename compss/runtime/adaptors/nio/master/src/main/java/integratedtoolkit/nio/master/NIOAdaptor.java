@@ -2,21 +2,19 @@ package integratedtoolkit.nio.master;
 
 import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Random;
-
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer.Destination;
+
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.exceptions.ConstructConfigurationException;
+
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.job.Job;
+
+import integratedtoolkit.util.ErrorManager;
+
 import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOMessageHandler;
 import integratedtoolkit.nio.NIOTask;
@@ -29,6 +27,8 @@ import integratedtoolkit.nio.dataRequest.DataRequest;
 import integratedtoolkit.nio.dataRequest.MasterDataRequest;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.master.configuration.NIOConfiguration;
+
+import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.data.location.DataLocation;
@@ -38,16 +38,18 @@ import integratedtoolkit.types.data.operation.copy.Copy;
 import integratedtoolkit.types.job.Job.JobHistory;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.resources.Resource;
-
-import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
-
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.configuration.Configuration;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
-import integratedtoolkit.util.ErrorManager;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;

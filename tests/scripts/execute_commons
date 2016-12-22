@@ -51,10 +51,10 @@
     local COMPSsLogFolder=$3
     local appBaseDir=$4
     local appLogDir=$5
+    local skip=$6
+    local MAX_RETRIES=$7
 
-    local MAX_RETRIES=3
-
-    if [ -f ${appBaseDir}/skip ]; then
+    if [ "${skip}" == "true" ] && [ -f ${appBaseDir}/skip ]; then
       # Mark test as skip
       results="${results}2"
     else
@@ -102,14 +102,20 @@
 
     # Test results
     while [ $pos -lt ${numTests} ]; do
-      if [ "${results:$pos:1}" == "0" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[32mOK"
-      elif [ "${results:$pos:1}" == "1" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[33mOK"
-      elif [ "${results:$pos:1}" == "2" ]; then
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[36mSKIP"
+      if [ $appCounter -lt 10 ]; then
+        printCounter="0$appCounter"
       else
-         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $appCounter ..................... \e[31mERROR"
+        printCounter="$appCounter"
+      fi
+
+      if [ "${results:$pos:1}" == "0" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[32mOK"
+      elif [ "${results:$pos:1}" == "1" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[33mOK"
+      elif [ "${results:$pos:1}" == "2" ]; then
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[36mSKIP"
+      else
+         echo -e "\e[34m [TEST RESULT] Application ${execType} BLOCK $printCounter ..................... \e[31mERROR"
       fi
       pos=$((pos+1))
       appCounter=$((appCounter+1))

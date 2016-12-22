@@ -9,13 +9,8 @@
   runtime_log="${target_log_folder}/runtime.log"
 
   #----------------------------------------------------------------------------------
-  # Check inout and output files consolidation
-  
-  
-  
-  #----------------------------------------------------------------------------------
   # Check output standard out status
-  if [ -f ${output_log} ]; then
+  if [ -f ${output_file} ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then
@@ -31,6 +26,10 @@
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
   fi
+
+  #----------------------------------------------------------------------------------
+  # TODO: Check inout and output files consolidation
+
 
   #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)

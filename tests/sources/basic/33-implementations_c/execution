@@ -59,7 +59,7 @@
      cp -rf ${COMPSs_log_folder}/Implementations_0${retryNum}/* ${target_log_folder}
 
      #Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder}
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${error_log} 
      exitValue=$?
   fi
   

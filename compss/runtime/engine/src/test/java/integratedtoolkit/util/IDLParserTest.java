@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.components.Processor;
+import integratedtoolkit.util.parsers.IDLParser;
 
 import java.util.HashMap;
 import java.util.LinkedList;

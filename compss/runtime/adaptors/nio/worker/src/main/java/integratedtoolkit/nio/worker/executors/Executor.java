@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.ITConstants.Lang;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
@@ -19,6 +18,7 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.util.RequestQueue;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 

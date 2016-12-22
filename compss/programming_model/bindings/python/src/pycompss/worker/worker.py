@@ -60,13 +60,26 @@ def compss_worker():
     args = sys.argv[6:]
     path = args[0]
     method_name = args[1]
-    has_target = args[2]
-    num_params = int(args[3])
 
-    args = args[4:]
+    numSlaves = int(args[2])
+    slaves = []
+    for i in range(2,2+numSlaves):
+        slaves.append(args[i])
+    argPosition = 3 + numSlaves
+
+    args = args[argPosition:]
+    cus=args[0]
+
+    args = args[1:]
+    has_target = args[0]
+    return_type = args[1]
+    num_params = int(args[2])
+
+    args = args[3:]
     pos = 0
     values = []
     types = []
+    streams = []
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
         pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
@@ -74,23 +87,28 @@ def compss_worker():
     # Get all parameter values
     logger.debug("Processing parameters:")
     for i in range(0, num_params):
-        ptype = int(args[pos])
-        types.append(ptype)
+        pType = int(args[pos])
+        pStream = int(args[pos + 1])
+        pValue = args[pos + 2]
 
         logger.debug("Parameter : " + str(i))
-        logger.debug("\t * Type : " + str(ptype))
-        logger.debug("\t * Value: " + str(args[pos + 1]))
+        logger.debug("\t * Type : " + str(pType))
+        logger.debug("\t * Stream : " + str(pStream))
+        logger.debug("\t * Value: " + str(pValue))
 
-        if ptype == Type.FILE:
-            values.append(args[pos + 1])
-        elif ptype == Type.PERSISTENT:
-            po = getByID(args[pos+1])
+        types.append(pType)
+        streams.append(pStream)
+
+        if pType == Type.FILE:
+            values.append(pValue)
+        elif pType == Type.EXTERNAL_PSCO:
+            po = getByID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
-        elif ptype == Type.STRING:
-            num_substrings = int(args[pos + 1])
+        elif pType == Type.STRING:
+            num_substrings = int(pValue)
             aux = ''
-            for j in range(2, num_substrings + 2):
+            for j in range(3, num_substrings + 3):
                 aux += args[pos + j]
                 if j < num_substrings + 1:
                     aux += ' '
@@ -108,29 +126,29 @@ def compss_worker():
             #######
             values.append(aux)
             pos += num_substrings
-        elif ptype == Type.INT:
-            values.append(int(args[pos + 1]))
-        elif ptype == Type.LONG:
-            l = long(args[pos + 1])
+        elif pType == Type.INT:
+            values.append(int(pValue))
+        elif pType == Type.LONG:
+            l = long(pValue)
             if l > JAVA_MAX_INT or l < JAVA_MIN_INT:
                 # A Python int was converted to a Java long to prevent overflow
                 # We are sure we will not overflow Python int, otherwise this
                 # would have been passed as a serialized object.
                 l = int(l)
             values.append(l)
-        elif ptype == Type.DOUBLE:
-            values.append(float(args[pos + 1]))
-        elif ptype == Type.BOOLEAN:
-            if args[pos + 1] == 'true':
+        elif pType == Type.DOUBLE:
+            values.append(float(pValue))
+        elif pType == Type.BOOLEAN:
+            if pValue == 'true':
                 values.append(True)
             else:
                 values.append(False)
-        # elif (ptype == Type.OBJECT):
+        # elif (pType == Type.OBJECT):
         #    pass
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
             exit(1)
-        pos += 2
+        pos += 3
 
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
@@ -253,9 +271,13 @@ if __name__ == "__main__":
     method_type = sys.argv[5]
     # class_name = sys.argv[6]
     # method_name = sys.argv[7]
-    # has_target = sys.argv[8] == 'true'
-    # num_params = int(sys.argv[9])
-    # params = sys.argv[10..]
+    # numSlaves = sys.argv[8]
+    # i = 8 + numSlaves
+    # slaves = sys.argv[9-i]
+    # numCus = sys.argv[i+1]
+    # has_target = sys.argv[i+2] == 'true'
+    # num_params = int(sys.argv[i+3])
+    # params = sys.argv[i+4..]
 
     if tracing:
         import pyextrae

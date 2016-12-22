@@ -1,6 +1,5 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
@@ -8,6 +7,7 @@ import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.annotations.parameter.Direction;
 
 import java.util.HashSet;
 
@@ -78,7 +78,7 @@ public class Score {
 
             // Obtain the scores for the host: number of task parameters that are located in the host
             for (Parameter p : parameters) {
-                if (p instanceof DependencyParameter && p.getDirection() != DataDirection.OUT) {
+                if (p instanceof DependencyParameter && p.getDirection() != Direction.OUT) {
                     DependencyParameter dp = (DependencyParameter) p;
                     DataInstanceId dId = null;
                     switch (dp.getDirection()) {

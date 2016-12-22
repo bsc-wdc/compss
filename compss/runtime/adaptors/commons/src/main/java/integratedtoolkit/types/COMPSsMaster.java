@@ -1,7 +1,7 @@
 package integratedtoolkit.types;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.comm.CommAdaptor;
 import integratedtoolkit.types.data.listener.EventListener;

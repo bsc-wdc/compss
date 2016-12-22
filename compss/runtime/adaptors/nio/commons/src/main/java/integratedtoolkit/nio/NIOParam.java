@@ -1,7 +1,9 @@
 package integratedtoolkit.nio;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.nio.commands.Data;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Stream;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.io.ObjectOutput;
 public class NIOParam implements Externalizable {
 
     private DataType type;
+    private Stream stream;
     private boolean preserveSourceData;
     private boolean writeFinalValue;
 
@@ -23,8 +26,9 @@ public class NIOParam implements Externalizable {
         // Only executed by externalizable
     }
 
-    public NIOParam(DataType type, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
+    public NIOParam(DataType type, Stream stream, boolean preserveSourceData, boolean writeFinalValue, Object value, Data data) {
         this.type = type;
+        this.stream = stream;
         this.value = value;
         this.preserveSourceData = preserveSourceData;
         this.writeFinalValue = writeFinalValue;
@@ -32,7 +36,11 @@ public class NIOParam implements Externalizable {
     }
 
     public DataType getType() {
-        return type;
+        return this.type;
+    }
+    
+    public Stream getStream() {
+        return this.stream;
     }
 
     public void setType(DataType type) {
@@ -40,48 +48,50 @@ public class NIOParam implements Externalizable {
     }
 
     public boolean isPreserveSourceData() {
-        return preserveSourceData;
+        return this.preserveSourceData;
     }
 
     public boolean isWriteFinalValue() {
-        return writeFinalValue;
+        return this.writeFinalValue;
     }
 
     public Object getValue() {
-        return value;
+        return this.value;
     }
 
     public void setValue(Object o) {
-        value = o;
+        this.value = o;
     }
 
     public Data getData() {
-        return data;
+        return this.data;
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        type = (DataType) in.readObject();
-        preserveSourceData = in.readBoolean();
-        writeFinalValue = in.readBoolean();
+        this.type = (DataType) in.readObject();
+        this.stream = (Stream) in.readObject();
+        this.preserveSourceData = in.readBoolean();
+        this.writeFinalValue = in.readBoolean();
 
-        value = in.readObject();
+        this.value = in.readObject();
         try {
-            data = (Data) in.readObject();
+            this.data = (Data) in.readObject();
         } catch (java.io.OptionalDataException e) {
-            data = null;
+            this.data = null;
         }
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(type);
-        out.writeBoolean(preserveSourceData);
-        out.writeBoolean(writeFinalValue);
+        out.writeObject(this.type);
+        out.writeObject(this.stream);
+        out.writeBoolean(this.preserveSourceData);
+        out.writeBoolean(this.writeFinalValue);
 
-        out.writeObject(value);
-        if (data != null) {
-            out.writeObject(data);
+        out.writeObject(this.value);
+        if (this.data != null) {
+            out.writeObject(this.data);
         }
     }
 
@@ -89,6 +99,7 @@ public class NIOParam implements Externalizable {
     public String toString() {
         StringBuilder sb = new StringBuilder("[PARAM");
         sb.append("[TYPE = ").append(type).append("]");
+        sb.append("[STREAM = ").append(stream).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(preserveSourceData).append("]");
         sb.append("[WRITE FINAL VALUE = ").append(writeFinalValue).append("]");
         sb.append("[VALUE = ").append(value).append("]");

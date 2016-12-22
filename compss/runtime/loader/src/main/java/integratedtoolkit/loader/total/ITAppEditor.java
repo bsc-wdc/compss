@@ -19,14 +19,18 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.loader.LoaderConstants;
 import integratedtoolkit.loader.LoaderUtils;
+
 import integratedtoolkit.log.Loggers;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
+import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Direction;
 import integratedtoolkit.types.annotations.SchedulerHints;
 import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.MPI;
@@ -34,6 +38,7 @@ import integratedtoolkit.types.annotations.task.OmpSs;
 import integratedtoolkit.types.annotations.task.OpenCL;
 import integratedtoolkit.types.annotations.task.Service;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
+
 import integratedtoolkit.util.EnvironmentLoader;
 
 
@@ -62,8 +67,9 @@ public class ITAppEditor extends ExprEditor {
     private static final String PROCEED = "$_ = $proceed(";
 
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
-    private static final String DATA_DIRECTION = DataDirection.class.getCanonicalName();
-
+    private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
+    private static final String DATA_STREAM = Stream.class.getCanonicalName();
+    
     private static final String CHECK_SCO_TYPE = "LoaderUtils.checkSCOType(";
     private static final String RUN_METHOD_ON_OBJECT = "LoaderUtils.runMethodOnObject(";
 
@@ -409,17 +415,18 @@ public class ITAppEditor extends ExprEditor {
         // Add the actual parameters of the method
         for (int i = 0; i < paramAnnot.length; i++) {
             Class<?> formalType = paramTypes[i];
-            Parameter.Type annotType = ((Parameter) paramAnnot[i][0]).type();
+            Parameter par = ((Parameter) paramAnnot[i][0]);
 
             /*
              * Append the value of the current parameter according to the type. Basic types must be wrapped by an object
              * first
              */
-            ParameterInformation infoParam = processParameterValue(i, formalType, annotType, ((Parameter) paramAnnot[i][0]).direction());
+            ParameterInformation infoParam = processParameterValue(i, par, formalType);
             toAppend.append(infoParam.getToAppend());
             toPrepend.insert(0, infoParam.getToPrepend());
             toAppend.append(infoParam.getType()).append(",");
-            toAppend.append(infoParam.getDirection());
+            toAppend.append(infoParam.getDirection()).append(",");
+            toAppend.append(infoParam.getStream());
 
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
@@ -450,19 +457,21 @@ public class ITAppEditor extends ExprEditor {
      * @param paramDirection
      * @return
      */
-    private ParameterInformation processParameterValue(int paramIndex, Class<?> formalType, Parameter.Type annotType,
-            Direction paramDirection) {
+    private ParameterInformation processParameterValue(int paramIndex, Parameter par, Class<?> formalType) {
+        Type annotType = par.type();
+        Direction paramDirection = par.direction();
+        Stream paramStream = par.stream();
+        
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         String type = "";
-        String direction = "";
 
-        if (annotType.equals(Parameter.Type.FILE)) {
+        if (annotType.equals(Type.FILE)) {
             // The File type needs to be specified explicitly, since its formal type is String
             type = DATA_TYPES + ".FILE_T";
             infoToAppend.append('$').append(paramIndex + 1).append(',');
             infoToPrepend.insert(0, itSRVar + ADD_TASK_FILE + "$" + (paramIndex + 1) + ");");
-        } else if (annotType.equals(Parameter.Type.STRING)) {
+        } else if (annotType.equals(Type.STRING)) {
             /*
              * Mechanism to make a String be treated like a list of chars instead of like another object. Dependencies
              * won't be watched for the string.
@@ -500,22 +509,11 @@ public class ITAppEditor extends ExprEditor {
             infoToAppend.append("$").append(paramIndex + 1).append(",");
         }
 
-        switch (paramDirection) {
-            case IN:
-                direction = DATA_DIRECTION + ".IN";
-                break;
-            case OUT:
-                direction = DATA_DIRECTION + ".OUT";
-                break;
-            case INOUT:
-                direction = DATA_DIRECTION + ".INOUT";
-                break;
-            default: // null
-                direction = DATA_DIRECTION + ".IN";
-                break;
-        }
-
-        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(), type, direction);
+        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), 
+                                                                    infoToPrepend.toString(), 
+                                                                    type, 
+                                                                    paramDirection,
+                                                                    paramStream);
         return infoParam;
     }
 
@@ -540,8 +538,10 @@ public class ITAppEditor extends ExprEditor {
             }
             // Add target object
             targetObj.append("$0,");
+            
             // Add type
             targetObj.append(CHECK_SCO_TYPE + "$0)");
+            
             // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
@@ -555,6 +555,9 @@ public class ITAppEditor extends ExprEditor {
             } else {// Service
                 targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
             }
+            
+            // Add binary stream
+            targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
         }
 
         return targetObj.toString();
@@ -585,7 +588,8 @@ public class ITAppEditor extends ExprEditor {
                  * *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
-                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT");
+                infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
+                    .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -653,6 +657,7 @@ public class ITAppEditor extends ExprEditor {
                 infoToPrepend.insert(0, "$_ = new " + compTypeName + dims + ';');
                 infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T");
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
+                infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
             } else {
                 /*
                  * ********************************* 
@@ -689,7 +694,10 @@ public class ITAppEditor extends ExprEditor {
                 }
 
                 infoToAppend.append("$_,").append(CHECK_SCO_TYPE + "$_)");
+                // Add direction
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
+                // Add stream binary
+                infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
             }
         }
 
@@ -932,81 +940,87 @@ public class ITAppEditor extends ExprEditor {
 
     private class ParameterInformation {
 
-        private String toAppend;
-        private String toPrepend;
-        private String type;
-        private String direction;
+        private final String toAppend;
+        private final String toPrepend;
+        private final String type;
+        private final Direction direction;
+        private final Stream stream;
 
 
-        ParameterInformation(String toAppend, String toPrepend, String type, String direction) {
+        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;
             this.direction = direction;
+            this.stream = stream;
         }
 
         public String getToAppend() {
-            return toAppend;
+            return this.toAppend;
         }
 
         public String getToPrepend() {
-            return toPrepend;
+            return this.toPrepend;
         }
 
         public String getType() {
-            return type;
+            return this.type;
         }
 
         public String getDirection() {
-            return direction;
+            return DATA_DIRECTION + "." + this.direction.name();
+        }
+        
+        public String getStream() {
+            return DATA_STREAM + "." + this.stream.name();
         }
 
     }
 
     private class ReturnInformation {
 
-        private String toAppend;
-        private String toPrepend;
-        private String afterExecution;
+        private final String toAppend;
+        private final String toPrepend;
+        private final String afterExecution;
 
 
-        ReturnInformation(String toAppend, String toPrepend, String afterExecution) {
+        public ReturnInformation(String toAppend, String toPrepend, String afterExecution) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.afterExecution = afterExecution;
         }
 
         public String getToAppend() {
-            return toAppend;
+            return this.toAppend;
         }
 
         public String getToPrepend() {
-            return toPrepend;
+            return this.toPrepend;
         }
 
         public String getAfterExecution() {
-            return afterExecution;
+            return this.afterExecution;
         }
 
     }
 
     private class CallInformation {
 
-        private String toAppend;
-        private String toPrepend;
+        private final String toAppend;
+        private final String toPrepend;
 
 
-        CallInformation(String toAppend, String toPrepend) {
+        public CallInformation(String toAppend, String toPrepend) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
         }
 
         public String getToAppend() {
-            return toAppend;
+            return this.toAppend;
         }
 
         public String getToPrepend() {
-            return toPrepend;
+            return this.toPrepend;
         }
 
     }

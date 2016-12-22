@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
         // Get data from args
         for (i = 1; i < argc; ++i) {
           data[i - 1] = atoi(argv[i]);
+          printf("  - DATA %d\n", data[i - 1]);
         }
     }
 

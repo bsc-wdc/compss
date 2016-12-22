@@ -1,6 +1,7 @@
 package integratedtoolkit.nio.dataRequest;
 
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.commands.Data;
 

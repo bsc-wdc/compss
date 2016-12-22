@@ -18,13 +18,14 @@
   # Create sandbox
   #-------------------------------------
   if [ ! -d $workingDir ]; then
-        /bin/mkdir -p $workingDir
+    mkdir -p $workingDir
   fi
   export IT_WORKING_DIR=$workingDir
-  sandbox=$(/bin/mktemp -d -p $workingDir)
+  sandbox=$(mktemp -d -p $workingDir)
   cd $workingDir
 
   echo "** Start worker.sh"
+  echo " - Lang       = $lang"
   echo " - WorkingDir = $workingDir"
   echo " - LibPath    = $libPath"
 
@@ -32,9 +33,9 @@
   # Remove obsolete files
   #-------------------------------------
   for ((i=0;i<$rmfilesNum;i++)); do
-	echo $1
- 	rm -f $1
- 	shift 1
+    echo $1
+    rm -f $1
+    shift 1
   done
 
   #-------------------------------------
@@ -73,12 +74,13 @@
   # Add support for non-native tasks
   methodType=$6
   if [ "$methodType" != "METHOD" ]; then
+    echo "Non-Native task. Switch to java invoker"
     lang=java
   fi
 
   cd $sandbox
   # Run the task with the language-dependent script
-  echo "** Starting language dependant script"
+  echo "** Starting language $lang dependant script"
   $scriptDir/worker_$lang.sh $@
   endCode=$?
   echo "** EndStatus = $endCode"

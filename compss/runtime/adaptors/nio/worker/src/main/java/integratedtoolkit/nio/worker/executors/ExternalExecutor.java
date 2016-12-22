@@ -1,7 +1,7 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -15,9 +15,12 @@ import integratedtoolkit.nio.worker.executors.util.OmpSsInvoker;
 import integratedtoolkit.nio.worker.executors.util.OpenCLInvoker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
+
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.annotations.parameter.DataType;
+
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 
@@ -216,11 +219,28 @@ public abstract class ExternalExecutor extends Executor {
         lArgs.add(impl.getDeclaringClass());
         lArgs.add(impl.getAlternativeMethodName());
         
+        // Slave nodes and cus description
+        lArgs.add(String.valueOf(nt.getSlaveWorkersNodeNames().size()));
+        lArgs.addAll(nt.getSlaveWorkersNodeNames());
+        lArgs.add(String.valueOf( nt.getResourceDescription().getTotalCPUComputingUnits() ));
+        
+        // Add target 
         lArgs.add(Boolean.toString(nt.isHasTarget()));
+        
+        // Add return type
+        if (nt.isHasReturn()) {
+            DataType returnType = nt.getParams().getLast().getType();
+            lArgs.add( Integer.toString(returnType.ordinal()) );
+        } else {
+            lArgs.add("null");
+        }
+        
+        // Add parameters
         lArgs.add(Integer.toString(nt.getNumParams()));
         for (NIOParam np : nt.getParams()) {
             DataType type = np.getType();
             lArgs.add(Integer.toString(type.ordinal()));
+            lArgs.add(Integer.toString(np.getStream().ordinal()));
             switch (type) {
                 case FILE_T:
                     lArgs.add(np.getValue().toString());

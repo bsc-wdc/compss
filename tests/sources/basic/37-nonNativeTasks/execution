@@ -21,24 +21,18 @@
   
   #----------------------------------------------------------------------------------
   # Binaries paths
-  helloWorldBINARY="${base_app_dir}/bin/helloWorldBINARY"
-  helloWorldMPI="${base_app_dir}/bin/helloWorldMPI"
-  helloWorldOMPSS="${base_app_dir}/bin/helloWorldOMPSS"
-  helloWorldOPENCL="${base_app_dir}/bin/helloWorldOPENCL"
-  export HELLO_WORLD_BINARY=${helloWorldBINARY}
-  export HELLO_WORLD_MPI=${helloWorldMPI}
-  export HELLO_WORLD_OMPSS=${helloWorldOMPSS}
-  export HELLO_WORLD_OPENCL=${helloWorldOPENCL}
+  in_out_err_binary="${base_app_dir}/bin/testIN_OUT_ERR"
+  out_err_binary="${base_app_dir}/bin/testOUT_ERR"
+  export IN_OUT_ERR_BINARY=${in_out_err_binary}
+  export OUT_ERR_BINARY=${out_err_binary}
   
   #----------------------------------------------------------------------------------
   # Run application 37 - Non Native Tasks
   echo
   echo "*** RUNNING JAVA APPLICATION NON NATIVE TASK"
   
-  echo "Binary: ${HELLO_WORLD_BINARY}"
-  echo "MPI Binary: ${HELLO_WORLD_MPI}"
-  echo "OmpSs Binary: ${HELLO_WORLD_OMPSS}"
-  echo "OpenCL Binary: ${HELLO_WORLD_OPENCL}"
+  echo "IN OUT ERR Binary: ${IN_OUT_ERR_BINARY}"
+  echo "OUT ERR Binary: ${OUT_ERR_BINARY}"
   
   output_log="${target_log_folder}/nonNativeTasks_0${retryNum}.outputlog"
   error_log="${target_log_folder}/nonNativeTasks_0${retryNum}.errorlog"

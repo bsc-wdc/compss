@@ -23,7 +23,7 @@ import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
 
 import integratedtoolkit.ITConstants;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
@@ -296,18 +296,15 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         }
 
         // Language-dependent arguments: app_dir classpath pythonpath debug storage_conf
+        // method_impl_type method_impl_params
         // numSlaves [slave1,..,slaveN] numCus
-        // method_impl_type method_impl_params has_target num_params par_type_1 par_1 ... par_type_n par_n
+        // has_target num_params par_type_1 par_1 ... par_type_n par_n
         lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
         
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);
-        
-        lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
-        lArgs.addAll(slaveWorkersNodeNames);
-        lArgs.add(String.valueOf( ((MethodResourceDescription)this.impl.getRequirements()).getTotalCPUComputingUnits() ));
         
         AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
         lArgs.add(String.valueOf(absImpl.getMethodType()));
@@ -339,7 +336,24 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 lArgs.add(binaryImpl.getBinary());
                 break;
         }
+        
+        // Slave nodes and cus description
+        lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
+        lArgs.addAll(slaveWorkersNodeNames);
+        lArgs.add(String.valueOf( ((MethodResourceDescription)this.impl.getRequirements()).getTotalCPUComputingUnits() ));
+        
+        // Add if has target parameter
         lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+        
+        // Add return type
+        if (taskParams.hasReturnValue()) {
+            Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
+            lArgs.add( Integer.toString(returnParam.getType().ordinal()) );
+        } else {
+            lArgs.add("null");
+        }
+        
+        // Add parameters
         int numParams = taskParams.getParameters().length;
         if (taskParams.hasReturnValue()) {
             numParams--;
@@ -348,6 +362,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         for (Parameter param : taskParams.getParameters()) {
             DataType type = param.getType();
             lArgs.add(Integer.toString(type.ordinal()));
+            lArgs.add(Integer.toString(param.getStream().ordinal()));
 
             switch (type) {
                 case FILE_T:

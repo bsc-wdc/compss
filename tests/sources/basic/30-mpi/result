@@ -9,7 +9,7 @@
 
   #----------------------------------------------------------------------------------
   # Check output standard out status
-  if [ -f ${output_log} ]; then
+  if [ -f ${output_file} ]; then
      result_expected="------------------------------------------------------------"
      test_result=$(tail -1 ${output_file})
      if [ "${result_expected}" != "${test_result}" ]; then
@@ -29,16 +29,22 @@
   #----------------------------------------------------------------------------------
   # Check MPI task execution status
   exitValue=0
+   
+  dotValue=$(cat ${output_file} | grep "TotalSum" | tr ":" "\t" | awk {' print $2 '})
   
-  singleGOT=$(cat ${output_file} | grep "\[MPI\_SINGLE\] Received value from task is correct")
-  if [ -z "${singleGOT}" ]; then
+  singleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task1" | tail -n 1 | awk {' print $NF '})
+  if [ $singleGOT -ne $dotValue ]; then
     echo "ERROR: Single MPI execution failed" | tee -a ${output_file}
+    echo "  GOT: $singleGOT" | tee -a ${output_file}
+    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
     exitValue=1
   fi
   
-  multipleGOT=$(cat ${output_file} | grep "\[MPI\_MULTIPLE\] Received value from task is correct")
-  if [ -z "${multipleGOT}" ]; then
+  multipleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task2" | tail -n 1 | awk {' print $NF '})
+  if [ $multipleGOT -ne $dotValue ]; then
     echo "ERROR: Multiple MPI execution failed" | tee -a ${output_file}
+    echo "  GOT: $multipleGOT" | tee -a ${output_file}
+    echo "  EXPECTED: $dotValue" | tee -a ${output_file}
     exitValue=1
   fi
   

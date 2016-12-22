@@ -1,7 +1,9 @@
 package integratedtoolkit.types.parameter;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
+
 import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.parameter.DependencyParameter;
 
@@ -17,8 +19,8 @@ public class FileParameter extends DependencyParameter {
     private DataLocation location;
 
 
-    public FileParameter(DataDirection direction, DataLocation location) {
-        super(DataType.FILE_T, direction);
+    public FileParameter(Direction direction, Stream stream, DataLocation location) {
+        super(DataType.FILE_T, direction, stream);
         this.location = location;
     }
 
@@ -30,5 +32,5 @@ public class FileParameter extends DependencyParameter {
     public String toString() {
         return location + " " + getType() + " " + getDirection();
     }
-    
+
 }

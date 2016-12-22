@@ -156,7 +156,7 @@ def execute_task(process_name, params):
 
         if ptype == Type.FILE:
             values.append(args[pos + 1])
-        elif (ptype == Type.PERSISTENT):
+        elif (ptype == Type.EXTERNAL_PSCO):
             po = getByID(args[pos + 1])
             values.append(po)
             pos = pos + 1  # Skip info about direction (R, W)

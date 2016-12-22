@@ -1,10 +1,12 @@
 package integratedtoolkit.types;
 
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
-import integratedtoolkit.api.COMPSsRuntime.DataType;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.parameter.Parameter;
+
+import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.annotations.parameter.Direction;
+
 import integratedtoolkit.util.CoreManager;
 
 import java.io.Serializable;
@@ -20,7 +22,7 @@ public class TaskDescription implements Serializable {
     private final TaskType type;
     private final String methodName;
     private final Integer coreId;
-    
+
     private final boolean priority;
     private final int numNodes;
     private final boolean mustReplicate;
@@ -31,17 +33,17 @@ public class TaskDescription implements Serializable {
     private final boolean hasReturn;
 
 
-    public TaskDescription(String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+    public TaskDescription(String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
-        
+
         this.type = TaskType.METHOD;
         this.methodName = methodName;
-        
+
         this.priority = isPrioritary;
         this.numNodes = numNodes;
         this.mustReplicate = isReplicated;
         this.mustDistribute = isDistributed;
-        
+
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         if (parameters.length == 0) {
@@ -49,24 +51,24 @@ public class TaskDescription implements Serializable {
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT 
-                                && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
+            this.hasReturn = (lastParam.getDirection() == Direction.OUT
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
         }
-        
+
         this.coreId = CoreManager.getCoreId(methodClass, methodName, hasTarget, hasReturn, parameters);
     }
 
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
             Parameter[] parameters) {
-        
+
         this.type = TaskType.SERVICE;
         this.methodName = operation;
-        
+
         this.priority = isPrioritary;
         this.numNodes = Constants.SINGLE_NODE;
         this.mustReplicate = !Constants.REPLICATED_TASK;
         this.mustDistribute = !Constants.DISTRIBUTED_TASK;
-        
+
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         if (parameters.length == 0) {
@@ -74,10 +76,10 @@ public class TaskDescription implements Serializable {
         } else {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == DataDirection.OUT 
-                                && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
+            this.hasReturn = (lastParam.getDirection() == Direction.OUT
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
         }
-        
+
         this.coreId = CoreManager.getCoreId(namespace, service, port, operation, hasTarget, hasReturn, parameters);
     }
 
@@ -92,23 +94,23 @@ public class TaskDescription implements Serializable {
     public boolean hasPriority() {
         return priority;
     }
-    
+
     public int getNumNodes() {
         return numNodes;
     }
-    
+
     public boolean isSingleNode() {
         return numNodes == Constants.SINGLE_NODE;
     }
-    
+
     public boolean isReplicated() {
         return mustReplicate;
     }
-    
+
     public boolean isDistributed() {
         return mustDistribute;
     }
-    
+
     public Parameter[] getParameters() {
         return parameters;
     }
@@ -130,12 +132,12 @@ public class TaskDescription implements Serializable {
         StringBuilder buffer = new StringBuilder();
 
         buffer.append("[Core id: ").append(this.coreId).append("]");
-        
+
         buffer.append(", [Priority: ").append(this.priority).append("]");
         buffer.append(", [NumNodes: ").append(this.numNodes).append("]");
         buffer.append(", [MustReplicate: ").append(this.mustReplicate).append("]");
         buffer.append(", [MustDistribute: ").append(this.mustDistribute).append("]");
-        
+
         buffer.append(", [").append(getName()).append("(");
         int numParams = this.parameters.length;
         if (this.hasTarget) {
@@ -151,7 +153,7 @@ public class TaskDescription implements Serializable {
             }
         }
         buffer.append(")]");
-        
+
         return buffer.toString();
     }
 

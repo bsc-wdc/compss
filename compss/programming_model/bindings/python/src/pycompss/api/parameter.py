@@ -17,7 +17,15 @@ PyCOMPSs API - Parameter
         - LONG
         - FLOAT
         - OBJECT
-    3. Parameter.
+        - PSCO
+        - EXTERNAL_PSCO
+    3. Stream.
+        - STDIN
+        - STDOUT
+        - STDERR
+        - UNSPECIFIED
+
+    4. Parameter.
 """
 
 
@@ -40,11 +48,16 @@ class Type:
     DOUBLE = 7
     STRING = 8
     FILE = 9
-    OBJECT = 10
-    SCO = 11
-    PERSISTENT = 12	# PSCO
+    OBJECT = 10         # Unavailable
+    PSCO = 11           # Unavailable
+    EXTERNAL_PSCO = 12	# PSCO
 
-
+# Numbers match both C and Java enums
+class Stream:
+    STDIN = 0
+    STDOUT = 1
+    STDERR = 2
+    UNSPECIFIED = 3
 
 class Parameter:
     """

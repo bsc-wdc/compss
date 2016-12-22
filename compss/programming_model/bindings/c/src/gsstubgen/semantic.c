@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -26,7 +24,6 @@
 
 
 extern int line;
-
 
 static interface *main_interface = NULL;
 static function *current_function = NULL;
@@ -188,7 +185,7 @@ void add_argument(enum direction dir, enum datatype dt, char *classname, char *n
 	new_argument = (argument *)malloc(sizeof(argument));
 	new_argument->name = strdup(name);
 
-	 switch (dt) {
+	switch (dt) {
 		 case char_dt:
 		 case wchar_dt:
 			 new_argument->classname = "char";

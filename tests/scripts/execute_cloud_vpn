@@ -10,6 +10,8 @@
   template_id=$6
   os_type=$7
   cloud_owner=$8
+  skip=$9
+  MAX_RETRIES=${10}
 
   cloud_base_dir="$(dirname $0)/apps_cloud"
   COMPSs_log_folder="${logs_location}/.COMPSs"
@@ -98,3 +100,4 @@
   #--------------------------------------------------------------------------------
   #EXIT
   exit $exitValue
+

@@ -5,7 +5,6 @@ import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
-import integratedtoolkit.api.COMPSsRuntime.DataDirection;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
@@ -13,6 +12,7 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.data.DataAccessId.RAccessId;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
@@ -145,7 +145,7 @@ public class WSJob extends Job<ServiceInstance> {
                     ServiceImplementation service = (ServiceImplementation) job.impl;
                     Parameter[] parameters = taskParams.getParameters();
                     for (int i = 0; i < taskParams.getParameters().length; i++) {
-                        if (parameters[i].getDirection() == DataDirection.IN) {
+                        if (parameters[i].getDirection() == Direction.IN) {
                             switch (parameters[i].getType()) {
                                 case OBJECT_T:
                                 case PSCO_T:

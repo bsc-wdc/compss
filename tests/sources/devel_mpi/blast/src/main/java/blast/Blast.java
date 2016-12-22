@@ -1,18 +1,3 @@
-/*
- *  Copyright 2002-2015 Barcelona Supercomputing Center (www.bsc.es)
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package blast;
 
 import java.io.BufferedReader;
@@ -25,247 +10,278 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.UUID;
+
+import binary.BINARY;
+
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import blast.BlastImpl;
+import blast.exceptions.BlastException;
 
 
 public class Blast {
 
-	private static boolean debug;
-	private static List<String> partialOutputs = null;
-	private static List<String> partialInputs = null;
+    private static final String ENV_BLAST_BINARY = "BLAST_BINARY";
 
-	public static void main(String args[]) throws Exception {
-		/*
-		 * Parameters: - 0: Debug - 1: Blast binary location - 2: Database Name
-		 * - 3: Input sequences path - 4: Fragments number - 5: Temporary
-		 * directory - 6: Output file -7: Command line Arguments
-		 */
+    private static boolean debug;
+    private static String databasePath;
+    private static String databaseName;
+    private static String inputFileName;
+    private static int numFragments;
+    private static String tmpDir;
+    private static String outputFileName;
+    private static String commandArgs;
 
-		debug = Boolean.parseBoolean(args[0]);
-		String blastBinary = args[1];
-		String databaseName = args[2];
-		String inputFileName = args[3];
-		String numFragments = args[4];
-		String temporaryDir = args[5];
-		String outputFileName = args[6];
+    private static List<String> partialOutputs = null;
+    private static List<String> partialInputs = null;
 
-		String commandArgs = " ";
-		for (int i = 7; i < args.length; i++) {
-			commandArgs += args[i] + " ";
-		}
 
-		print_header();
+    public static void main(String[] args) throws BlastException {
+        // Parse application parameters
+        parseArgs(args);
 
-		// Parsing database name
-		// Splitting the files model path string using a forward slash as
-		// delimiter
-		StringTokenizer st = new StringTokenizer(databaseName, "/");
-		String dbName = null;
+        // Log execution
+        logArgs();
 
-		while (st.hasMoreElements()) {
-			dbName = st.nextToken();
-		}
+        // -------------------------------------------------------
+        // Start execution
+        Long startTotalTime = System.currentTimeMillis();
 
-		if (debug) {
-			System.out.println("Parameters: ");
-			System.out.println("- Debug Enabled");
-			System.out.println("- Blast binary: " + blastBinary);
-			System.out.println("- Number of expected fragments: "
-					+ numFragments);
-			System.out.println("- Database Name with Path: " + databaseName);
-			System.out.println("- Database Name: " + dbName);
-			System.out.println("- Input Sequences File: " + inputFileName);
-			System.out.println("- Temporary Directory: " + temporaryDir);
-			System.out.println("- Output File: " + outputFileName);
-			System.out.println("- Command Line Arguments: " + commandArgs);
-			System.out.println(" ");
-		}
+        // Split sequence input file
+        System.out.println("Split sequence file");
+        splitSequenceFile();
 
-		Long startTotalTime = System.currentTimeMillis();
+        // Submit tasks
+        alignSequences();
 
-		try {
-			String lastMerge = "";
-			// Splitting sequences in desired number of fragments
-			try {
-				splitSequenceFile(inputFileName, temporaryDir, Integer.parseInt(numFragments));
-			} catch (Exception e) {
-				System.out.println("Error splitting input sequences.");
-				e.printStackTrace();
-			}
+        // Assembly process
+        String lastMerge = assembleSequences();
 
-			// Submitting the tasks
-			System.out.println("\nAligning Sequences:");
-			for (int i = 0; i < partialInputs.size(); i++) {
-				BlastImpl.align(databaseName, partialInputs.get(i), partialOutputs.get(i), blastBinary, commandArgs);
-			}
+        // Move result to expected output file
+        moveResult(lastMerge);
 
-			if (debug) {
-				System.out.println("\n - Number of fragments to assemble -> " + partialOutputs.size());
-			}
+        // Clean up partial results
+        cleanUp();
 
-			// Final assembly process
-			try {
-				// Final Assembly process -> Merge 2 by 2
-				int neighbor = 1;
-				while (neighbor < partialOutputs.size()) {
-					for (int result = 0; result < partialOutputs.size(); result += 2 * neighbor) {
-						if (result + neighbor < partialOutputs.size()) {
-							BlastImpl.assemblyPartitions( partialOutputs.get(result), partialOutputs.get(result + neighbor));
-							if (debug) {
-								System.out.println(" - Merging files -> " + partialOutputs.get(result) + " and " + partialOutputs.get(result + neighbor));
-							}
-							lastMerge = partialOutputs.get(result);
-						}
-					}
-					neighbor *= 2;
-				}
-			} catch (Exception e) {
-				System.out.println("Error assembling partial results to final result file.");
-				e.printStackTrace();
-			}
+        // -------------------------------------------------------
+        // Log timers
+        Long stopTotalTime = System.currentTimeMillis();
+        Long totalTime = (stopTotalTime - startTotalTime) / 1000;
+        System.out.println("- " + Blast.inputFileName + " sequences aligned successfully in " + totalTime + " seconds");
+        System.out.println("");
+    }
 
-			FileInputStream fis = new FileInputStream(lastMerge);
-			if (debug) {
-				System.out.println("\nMoving last merged file: " + lastMerge + " to " + outputFileName + " \n");
-			}
-			copyFile(fis, new File(outputFileName));
-			fis.close();
+    private static void parseArgs(String[] args) {
+        Blast.debug = Boolean.parseBoolean(args[0]);
+        Blast.databasePath = args[1];
+        Blast.inputFileName = args[2];
+        Blast.numFragments = Integer.parseInt(args[3]);
+        Blast.tmpDir = args[4];
+        Blast.outputFileName = args[5];
 
-			// Cleaning up partial results
-			CleanUp();
+        commandArgs = " ";
+        for (int i = 6; i < args.length; i++) {
+            commandArgs += args[i] + " ";
+        }
 
-			Long stopTotalTime = System.currentTimeMillis();
-			Long totalTime = (stopTotalTime - startTotalTime) / 1000;
-			System.out.println("- " + inputFileName + " sequences aligned successfully in " + totalTime + " seconds \n");
-		} catch (Exception e) {
-			System.out.println("Error:");
-			e.printStackTrace();
-		}
-	}
+        // Parsing database name
+        // Splitting the files model path string using a forward slash as delimiter
+        StringTokenizer st = new StringTokenizer(Blast.databasePath, "/");
+        Blast.databaseName = null;
+        while (st.hasMoreElements()) {
+            Blast.databaseName = st.nextToken();
+        }
+    }
 
-	private static void print_header() {
-		System.out.println("\nBLAST Sequence Alignment Tool:\n");
-	}
+    private static void logArgs() {
+        System.out.println("BLAST Sequence Alignment Tool");
+        System.out.println("");
 
-	private static void splitSequenceFile(String inputFileName, String temporaryDir, Integer numFragments) throws Exception {
-		int nsequences = 0;
-		int seqsPerFragment = 0;
-		String line = "";
-		BufferedReader bf = new BufferedReader(new FileReader(inputFileName));
+        System.out.println("Parameters: ");
+        System.out.println("- Blast binary: " + System.getenv(ENV_BLAST_BINARY));
+        System.out.println("- Debug: " + Blast.debug);
+        System.out.println("- Database Name with Path: " + Blast.databasePath);
+        System.out.println("- Database Name: " + Blast.databaseName);
+        System.out.println("- Input Sequences File: " + Blast.inputFileName);
+        System.out.println("- Number of expected fragments: " + Blast.numFragments);
+        System.out.println("- Temporary Directory: " + Blast.tmpDir);
+        System.out.println("- Output File: " + Blast.outputFileName);
+        System.out.println("- Command Line Arguments: " + Blast.commandArgs);
+        System.out.println("");
+    }
 
-		Long startSplit = System.currentTimeMillis();
+    private static void splitSequenceFile() throws BlastException {
+        // Read number of different sequences
+        int nsequences = 0;
+        try (BufferedReader bf = new BufferedReader(new FileReader(Blast.inputFileName))) {
+            String line = null;
+            while ((line = bf.readLine()) != null) {
+                if (line.contains(">")) {
+                    nsequences++;
+                }
+            }
+        } catch (IOException ioe) {
+            String msg = "ERROR: Cannot read input file " + Blast.inputFileName;
+            System.err.print(msg);
+            throw new BlastException(msg, ioe);
+        }
 
-		// Counting number of sequences
-		while ((line = bf.readLine()) != null) {
-			if (line.contains(">")) {
-				nsequences++;
-			}
-		}
-		bf.close();
+        System.out.println("- The total number of sequences is: " + nsequences);
 
-		System.out.println("- The total number of sequences is: " + nsequences);
+        // Calculate seqs per fragment and needed files
+        int seqsPerFragment = (int) Math.round(((double) nsequences / (double) Blast.numFragments));
+        Blast.partialInputs = new ArrayList<String>(Blast.numFragments);
+        Blast.partialOutputs = new ArrayList<String>(Blast.numFragments);
 
-		seqsPerFragment = (int) Math.round(((double) nsequences/(double) numFragments));
+        if (Blast.debug) {
+            System.out.println("- The total number of sequences of a fragment is: " + seqsPerFragment);
+            System.out.println("\n- Splitting sequences among fragment files...");
+        }
 
-		partialInputs = new ArrayList<String>(numFragments);
-		partialOutputs = new ArrayList<String>(numFragments);
+        // Split into files
+        int frag = 0;
+        boolean append = true;
+        BufferedWriter bw = null;
+        try (BufferedReader bf = new BufferedReader(new FileReader(Blast.inputFileName))) {
+            String line = null;
+            while ((line = bf.readLine()) != null) {
+                if (line.contains(">")) {
+                    if (bw != null) {
+                        bw.close();
+                    }
+                    if (frag < Blast.numFragments) {
+                        // Creating fragment
+                        UUID index = UUID.randomUUID();
+                        String partitionFile = Blast.tmpDir + "seqFile" + index + ".sqf";
+                        String partitionOutput = Blast.tmpDir + "resFile" + index + ".result.txt";
+                        Blast.partialInputs.add(partitionFile);
+                        Blast.partialOutputs.add(partitionOutput);
+                    }
+                    // Preparing for writing to next fragment
+                    bw = new BufferedWriter(new FileWriter(Blast.partialInputs.get((frag % Blast.numFragments)), append));
+                    frag++;
+                }
+                bw.write(line);
+                bw.newLine();
+            }
+        } catch (IOException ioe) {
+            String msg = "ERROR: Cannot read input file " + Blast.inputFileName;
+            System.err.print(msg);
+            throw new BlastException(msg, ioe);
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException ioe) {
+                    String msg = "ERROR: Cannot close BW";
+                    System.err.print(msg);
+                    throw new BlastException(msg, ioe);
+                }
+            }
+        }
+    }
 
-		if (debug) {
-			System.out.println("- The total number of sequences of a fragment is: " + seqsPerFragment);
-			System.out.println("\n- Splitting sequences among fragment files...");
-		}
+    /**
+     * Creates MAP Tasks
+     */
+    private static void alignSequences() throws BlastException {
+        System.out.println("");
+        System.out.println("Aligning Sequences:");
 
-		int frag = 0;
-		BufferedWriter bw = null;
-		boolean append = true;
-		bf = new BufferedReader(new FileReader(inputFileName));
+        String pParam = "-p blastx";
+        String dbParam = "-d " + Blast.databaseName;
+        String inputFlag = "-i ";
+        String outputFlag = "-o";
+        int numAligns = Blast.partialInputs.size();
+        Integer[] exitValues = new Integer[numAligns];
+        for (int i = 0; i < numAligns; i++) {
+            exitValues[i] = BINARY.align(pParam, dbParam, inputFlag, Blast.partialInputs.get(i), outputFlag, Blast.partialOutputs.get(i),
+                    Blast.commandArgs);
+        }
 
-		while ((line = bf.readLine()) != null) {
-			if (line.contains(">")) {
-				if (bw != null) {
-					bw.close();
-				}
-				if (frag < numFragments) {
-					// Creating fragment
-					UUID index = UUID.randomUUID();
-					String partitionFile = temporaryDir + "seqFile" + index + ".sqf";
-					String partitionOutput = temporaryDir + "resFile" + index + ".result.txt";
-					partialInputs.add(partitionFile);
-					partialOutputs.add(partitionOutput);
-				}
-				// Preparing for writing to next fragment
-				bw = new BufferedWriter(new FileWriter(partialInputs.get((frag % numFragments)), append));
-				frag++;
-			}
-			bw.write(line);
-			bw.newLine();
-		}
+        if (Blast.debug) {
+            System.out.println("");
+            System.out.println(" - Number of fragments to assemble -> " + Blast.partialOutputs.size());
+        }
 
-		// Closing the last intermediate file
-		bw.close();
-		bf.close();
+        // Enable this code if you wish to check the binary result (adds synchronization)
+        // for (int i = 0; i < numAligns; i++) {
+        // if (exitValues[i] != 0) {
+        // throw new BlastException("ERROR: Align task " + i + " finished with non-zero value");
+        // }
+        // }
+    }
 
-		Long splitTime = (System.currentTimeMillis() - startSplit)/1000;
-		System.out.println("- Sequences splitted in " + splitTime + " seconds \n");
-	}
+    /**
+     * Creates reduce tasks
+     * 
+     * @return fileName of last reduce
+     */
+    private static String assembleSequences() {
+        // MERGE-REDUCE
+        LinkedList<Integer> q = new LinkedList<Integer>();
+        for (int i = 0; i < Blast.partialOutputs.size(); i++) {
+            q.add(i);
+        }
 
-	private static void CleanUp() {
-		// Cleaning intermediate sequence input files
-		for (int i = 0; i < partialInputs.size(); i++) {
-			File fSeq = new File(partialInputs.get(i));
-			fSeq.delete();
-		}
+        int x = 0;
+        while (!q.isEmpty()) {
+            x = q.poll();
+            if (!q.isEmpty()) {
+                int y = q.poll();
 
-		for (int i = 0; i < partialOutputs.size(); i++) {
-			File fres = new File(partialOutputs.get(i));
-			fres.delete();
-		}
-	}
+                if (debug) {
+                    System.out.println(" - Merging files -> " + Blast.partialOutputs.get(x) + " and " + Blast.partialOutputs.get(y));
+                }
+                BlastImpl.assemblyPartitions(Blast.partialOutputs.get(x), Blast.partialOutputs.get(y));
+                q.add(x);
+            }
+        }
+        
+        return Blast.partialOutputs.get(0);
+    }
 
-	private static void copyFile(FileInputStream sourceFile, File destFile) throws IOException {
-		try (FileChannel source = sourceFile.getChannel();
-		        FileOutputStream outputDest = new FileOutputStream(destFile);
-		        FileChannel destination = outputDest.getChannel()) {
-		    
-		    destination.transferFrom(source, 0, source.size()); 
-		} catch (IOException ioe) {
-		    throw ioe;
-		}
-	}
+    private static void moveResult(String resultFile) throws BlastException {
+        if (Blast.debug) {
+            System.out.println("");
+            System.out.println("Moving last merged file: " + resultFile + " to " + Blast.outputFileName);
+            System.out.println("");
+        }
 
-	/*
-	 * private static void assemblyPartitions(List<String> partialOutputs,
-	 * String outputFileName, String temporaryDir){
-	 * 
-	 * String line = null; Long startAssemblyTime = System.currentTimeMillis();
-	 * 
-	 * try { //Cleaning intermediate sequence input files for(int i=0; i <
-	 * partialOutputs.size(); i++){ File fSeq = new File(temporaryDir+"seqFile"
-	 * + i + ".sqf"); fSeq.delete(); }
-	 * 
-	 * BufferedWriter bw = new BufferedWriter(new FileWriter(outputFileName));
-	 * 
-	 * for(int i=0; i < partialOutputs.size(); i++){ BufferedReader bf = new
-	 * BufferedReader(new FileReader(partialOutputs.get(i))); if(debug){
-	 * System.out
-	 * .println(" - Assembling partial output -> "+partialOutputs.get(i
-	 * )+" to final output file -> "+outputFileName); }
-	 * 
-	 * while ((line = bf.readLine()) != null) { bw.write(line); bw.newLine(); }
-	 * 
-	 * //Cleaning intermediate results file bf.close(); File partOut = new
-	 * File(partialOutputs.get(i)); partOut.delete();
-	 * 
-	 * } //Closing final output file bw.close(); } catch (Exception e){
-	 * System.out.println("Error assembling partial results to final result"); }
-	 * 
-	 * Long stopAssemblyTime = System.currentTimeMillis(); Long assemblyTime =
-	 * (stopAssemblyTime - startAssemblyTime)/1000;
-	 * System.out.println("- Sequences assembled in "
-	 * +assemblyTime+" seconds \n"); }
-	 */
+        try (FileInputStream fis = new FileInputStream(resultFile)) {
+            copyFile(fis, new File(Blast.outputFileName));
+        } catch (IOException ioe) {
+            String msg = "ERROR: Cannot copy file " + resultFile + " to " + Blast.outputFileName;
+            System.err.print(msg);
+            throw new BlastException(msg, ioe);
+        }
+    }
+
+    private static void copyFile(FileInputStream sourceFile, File destFile) throws IOException {
+        try (FileChannel source = sourceFile.getChannel();
+                FileOutputStream outputDest = new FileOutputStream(destFile);
+                FileChannel destination = outputDest.getChannel()) {
+
+            destination.transferFrom(source, 0, source.size());
+        } catch (IOException ioe) {
+            throw ioe;
+        }
+    }
+
+    private static void cleanUp() {
+        // Cleaning intermediate sequence input files
+        for (int i = 0; i < Blast.partialInputs.size(); i++) {
+            File fSeq = new File(Blast.partialInputs.get(i));
+            fSeq.delete();
+        }
+
+        for (int i = 0; i < Blast.partialOutputs.size(); i++) {
+            File fres = new File(Blast.partialOutputs.get(i));
+            fres.delete();
+        }
+    }
+
 }

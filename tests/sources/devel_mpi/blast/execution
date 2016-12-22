@@ -29,11 +29,15 @@
  
   debug=true
   binary=${base_app_dir}/binary/blastall
-  database=/sharedDisk/Blast/databases/swissprot/swissprot
-  sequences=/sharedDisk/Blast/sequences/sargasso_test.fasta
+  database=/home/cramonco/svn/bar/datasets/Blast/databases/swissprot/swissprot
+  sequences=/home/cramonco/svn/bar/datasets/Blast/sequences/sargasso_test.fasta
+  #database=/sharedDisk/Blast/databases/swissprot/swissprot
+  #sequences=/sharedDisk/Blast/sequences/sargasso_test.fasta
   numFrags=8
   tmpDir=/tmp/
   outputFile=${target_log_folder}/blastOut.txt
+ 
+  export BLAST_BINARY=$binary
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -43,7 +47,7 @@
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/blast.jar \
-     blast.Blast $debug $binary $database $sequences $numFrags $tmpDir $outputFile > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     blast.Blast $debug $database $sequences $numFrags $tmpDir $outputFile > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   #Check timeout
   if [[ "$?" = "124" ]]; then

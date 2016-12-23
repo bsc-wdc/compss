@@ -30,9 +30,7 @@ def _mean(X, n):
     return sum(X)/float(n)
 
 
-def mean(X, wait=False):
-    # chunked data
-    n = len(X)*len(X[0])
+def mean(X, n, wait=False):
     result = mergeReduce(reduce_add, [_mean(x, n) for x in X])
     if wait:
         from pycompss.api.api import compss_wait_on
@@ -55,10 +53,9 @@ def _mul(x, y):
     return x*y
 
 
-def std(X, m, wait=False):
+def std(X, m, n, wait=False):
     xs = [_norm(x, m) for x in X]
     xp = [_pow(x, 2) for x in xs]
-    n = len(X)*len(X[0])
     suma = mergeReduce(reduce_add, [_mean(x, n) for x in xp])
     if wait:
         from pycompss.api.api import compss_wait_on
@@ -71,19 +68,22 @@ def op_task(sum_x, sum_y, suma):
     return suma/float(math.sqrt(sum_x*sum_y))
 
 
+@task(returns=float)
+def multFrag(a, b):
+    p = zip(a, b)
+    result = 0
+    for (a, b) in p:
+        result += a * b
+    return result
+
+
 def pearson(X, Y, mx, my):
     xs = [_norm(x, mx) for x in X]
     ys = [_norm(y, my) for y in Y]
     xxs = [_pow(x, 2) for x in xs]
     yys = [_pow(y, 2) for y in ys]
 
-    xs = compss_wait_on(xs)
-    ys = compss_wait_on(ys)
-
-    aux = [zip(a, b) for (a, b) in [(x, y) for (x, y) in zip(xs, ys)]]
-    suma = mergeReduce(
-        reduce_add,
-        [mergeReduce(reduce_add, [_mul(a, b) for (a, b) in p]) for p in aux])
+    suma = mergeReduce(reduce_add, [multFrag(a, b) for (a,b) in zip(xs, ys)])
 
     sum_x = mergeReduce(reduce_add, map(_add, xxs))
     sum_y = mergeReduce(reduce_add, map(_add, yys))
@@ -91,28 +91,34 @@ def pearson(X, Y, mx, my):
     return r
 
 
-def fit(X, Y):
-    from pycompss.api.api import compss_wait_on
-    mx = mean(X)  # mx future object
-    my = mean(Y)  # my future object
-    r = pearson(X, Y, mx, my)
-    stdx = std(X, mx)
-    stdy = std(Y, mx)
-    stdx = compss_wait_on(stdx)
-    stdy = compss_wait_on(stdy)
-    r = compss_wait_on(r)
-
+#@task(returns=types.LambdaType)
+@task(returns=(float, float))
+def computeLine(r, stdy, stdx, my, mx):
     b = r * (math.sqrt(stdy) / math.sqrt(stdx))
-
-    mx = compss_wait_on(mx)
-    my = compss_wait_on(my)
-
     A = my - b*mx
 
-    def line(x):
-        return b*x+A
+    #def line(x):
+    #    return b*x-A
+    #line = lambda x: b*x-A
+    #return line
+    #return lambda x: b*x-A
+    return b, A
 
-    return line
+
+def fit(X, Y, n):
+    from pycompss.api.api import compss_wait_on
+    mx = mean(X, n)
+    my = mean(Y, n)
+    r = pearson(X, Y, mx, my)
+    stdx = std(X, mx, n)
+    stdy = std(Y, mx, n)
+
+    line = computeLine(r, stdy, stdx, my, mx)
+
+    line = compss_wait_on(line)
+    print line
+    return lambda x: line[0] * x + line[1]
+
 
 # if __name__ == "__main__":
 #     from numpy import arange
@@ -120,7 +126,7 @@ def fit(X, Y):
 #     from pylab import scatter, show, plot, savefig
 #     data = [[[1,2,3],[4,5,6]], [[1,2,3],[4,5,6]]]
 #     #data = [[list(randint(100, size=1000)) for _ in range(10)] for _ in range(2)]
-#     line = fit(data[0], data[1])
+#     line = fit(data[0], data[1], 6)
 #     print [line(x) for x in arange(0.0,100.0,1.0)]
 #     datax = [item for sublist in data[0] for item in sublist]
 #     datay = [item for sublist in data[1] for item in sublist]

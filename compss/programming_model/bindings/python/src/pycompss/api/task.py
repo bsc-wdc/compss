@@ -1,3 +1,18 @@
+#
+#  Copyright 2.02-2016 Barcelona Supercomputing Center (www.bsc.es)
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 """
 @author: etejedor
 @author: fconejer
@@ -73,10 +88,12 @@ class task(object):
         self.spec_args = inspect.getargspec(f)
         # print("self.spec_args: ", self.spec_args)
         # print("self.kwargs   : ", self.kwargs)
-        if self.spec_args and len(self.spec_args[0]) and self.spec_args[0][0] == 'self':
+        # will the first condition evaluate to false? spec_args will always be a named tuple, so
+        # it will always return true if evaluated as a bool
+        if self.spec_args.args and self.spec_args.args[0] == 'self':
             self.is_instance = True
         if self.kwargs['returns']:
-            self.spec_args[0].append('compss_retvalue')
+            self.spec_args.args.append('compss_retvalue')
 
         # Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
@@ -135,14 +152,13 @@ class task(object):
                     and (not is_nested):
                 # Called from worker code, run the method
                 from pycompss.util.serializer import serialize_objects
-
                 returns = self.kwargs['returns']
 
-                spec_args = self.spec_args[0]
+                spec_args = self.spec_args.args
                 # *args
-                aargs = self.spec_args[1]
+                aargs = self.spec_args.varargs
                 # **kwargs
-                aakwargs = self.spec_args[2]
+                aakwargs = self.spec_args.keywords
                 toadd = []
                 # Check if there is *arg parameter in the task
                 if aargs is not None:
@@ -151,7 +167,7 @@ class task(object):
                 if aakwargs is not None:
                     toadd.append(aakwargs)
                 if returns is not None:
-                    spec_args = spec_args[:-1] + toadd + spec_args[-1:]
+                    spec_args = spec_args[:-1] + toadd + [spec_args[-1]]
                 else:
                     spec_args = spec_args[:-1] + toadd
 
@@ -175,13 +191,13 @@ class task(object):
                     if returns is not None:
                         kargs.pop('compss_retvalue')
                     #real_values = real_values[:-1] + [kargs]
-
                 ret = f(*real_values, **kargs)  # Llamada real de la funcion f
 
                 if returns:
                     if isinstance(returns, list) or isinstance(returns, tuple): # multireturn
                         num_ret = len(returns)
-                        rets = args[-num_ret:]
+                        total_rets = len(args) - num_ret
+                        rets = args[total_rets:]
                         i = 0
                         for ret_filename in rets:
                             # print ret[i]
@@ -219,8 +235,8 @@ class task(object):
                 # parameter values.
                 # Be very careful with parameter position.
                 # The included are sorted by position. The rest may not.
-                num_params = len(self.spec_args[0])
-                if 'compss_retvalue' in self.spec_args[0]:
+                num_params = len(self.spec_args.args)
+                if 'compss_retvalue' in self.spec_args.args:
                     # if the task returns a value, appears as an argument
                     num_params -= 1
 
@@ -230,6 +246,8 @@ class task(object):
                     # There are default parameters
                     # Get the variable names and values that have been
                     # defined by default (get_default_args(f)).
+                    # default_params will have a list of pairs of the form
+                    # (argument, default_value)
                     default_params = get_default_args(f)
                     # dif = num_params - len(args)
                     # check_specified_params = False
@@ -239,7 +257,7 @@ class task(object):
                     argsl = list(args)  # given values
 
                     # Parameter Sorting
-                    for p in self.spec_args[0][len(args):num_params]:
+                    for p in self.spec_args.args[len(args):num_params]:
                         if p in kwargs:
                             argsl.append(kwargs[p])
                         else:
@@ -249,13 +267,12 @@ class task(object):
 
                     args = tuple(argsl)
 
-                spec_args = self.spec_args[0]
+                spec_args = self.spec_args.args
                 values = args
-
                 # *args
-                aargs = self.spec_args[1]
+                aargs = self.spec_args.varargs
                 # **kwargs
-                aakwargs = self.spec_args[2]
+                aakwargs = self.spec_args.keywords
                 num_args = len(args) - num_params  # # args
                 vals_names = list(spec_args[:num_params])
                 vals = list(args[:num_params])  # first values of args are the parameters
@@ -264,14 +281,14 @@ class task(object):
                 # if user uses *args
                 if aargs is not None:
                     arg_name.append(aargs)                      # Name used for the *args
-                    arg_vals.append(args[0 - num_args:])  # last values will compose the *args parameter
+                    arg_vals.append(args[num_params:])  # last values will compose the *args parameter
                 # if user uses **kwargs
                 if aakwargs is not None:
-                    arg_name.append(aakwargs)                    # Name used for the *args
-                    arg_vals.append(kwargs)                          # last values will compose the *args parameter
+                    arg_name.append(aakwargs)
+                    arg_vals.append(kwargs)
 
                 spec_args = vals_names + arg_name
-                if 'compss_retvalue' in self.spec_args[0]:
+                if 'compss_retvalue' in self.spec_args.args:
                     spec_args += ['compss_retvalue']
                 values = tuple(vals + arg_vals)
 
@@ -299,7 +316,8 @@ def get_default_args(f):
     @param f: Function to inspect for default parameters.
     """
     a = inspect.getargspec(f)
-    return zip(a.args[-len(a.defaults):], a.defaults)
+    num_params = len(a.args) - len(a.defaults)
+    return zip(a.args[num_params:], a.defaults)
 
 
 def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
@@ -355,7 +373,6 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             obj = deserialize_from_file(value)
-
             real_values.append(obj)
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))

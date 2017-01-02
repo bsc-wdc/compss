@@ -34,6 +34,7 @@ public abstract class ExternalExecutor extends Executor {
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
     private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
     private static final String ERROR_UNSUPPORTED_JOB_TYPE = "Bindings don't support non-native tasks";
+    private static final String ERROR_SERIALIZED_OBJ = "ERROR: Cannot obtain object";
 
     // Storage properties
     // Storage Conf
@@ -51,7 +52,7 @@ public abstract class ExternalExecutor extends Executor {
     private static final String EXECUTE_TASK_TAG    = "task";
 
     private final String writePipe; // Pipe for sending executions
-    private TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by us)
+    private final TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by us)
 
 
     public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe,
@@ -245,9 +246,19 @@ public abstract class ExternalExecutor extends Executor {
                 case FILE_T:
                     lArgs.add(np.getValue().toString());
                     break;
-                case PSCO_T:
                 case OBJECT_T:
+                case PSCO_T:
                     lArgs.add(np.getValue().toString());
+                    lArgs.add(np.isWriteFinalValue() ? "W" : "R");
+                    break;
+                case EXTERNAL_PSCO_T:
+                    String pscoId = null;
+                    try {
+                        pscoId = (String) nw.getObject(np.getValue().toString());
+                    } catch (SerializedObjectException soe) {
+                        throw new JobExecutionException(ERROR_SERIALIZED_OBJ, soe);
+                    }
+                    lArgs.add(pscoId);
                     lArgs.add(np.isWriteFinalValue() ? "W" : "R");
                     break;
                 case STRING_T:

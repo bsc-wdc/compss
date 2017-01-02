@@ -366,8 +366,10 @@ public class COMPSsMaster extends COMPSsNode {
                 path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
             case PSCO_T:
-            case EXTERNAL_PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
+                break;
+            case EXTERNAL_PSCO_T:
+                path = Protocol.OBJECT_URI.getSchema() + name;
                 break;
             default:
                 return null;

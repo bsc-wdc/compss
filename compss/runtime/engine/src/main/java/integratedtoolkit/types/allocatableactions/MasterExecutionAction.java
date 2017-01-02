@@ -189,8 +189,12 @@ public class MasterExecutionAction<P extends Profile, T extends WorkerResourceDe
                             targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
                             break;
                         case PSCO_T:
-                        case EXTERNAL_PSCO_T:
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
+                            break;
+                        case EXTERNAL_PSCO_T:
+                            // External PSCOs are treated as objects within the runtime
+                            // Its value is the PSCO Id
+                            targetProtocol = DataLocation.Protocol.OBJECT_URI.getSchema();
                             break;
                         default:
                             // Should never reach this point because only

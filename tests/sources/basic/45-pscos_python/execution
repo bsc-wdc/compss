@@ -52,7 +52,11 @@
      ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder}
      exitValue=$?
   fi
-  
+
+  #----------------------------------------------------------------------------------
+  # Clean PSCO files if any
+  rm -f /tmp/*.PSCO
+
   #----------------------------------------------------------------------------------
   #Return execution status
   exit $exitValue

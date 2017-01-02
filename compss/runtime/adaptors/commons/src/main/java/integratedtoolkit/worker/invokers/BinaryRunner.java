@@ -99,7 +99,12 @@ public class BinaryRunner {
         Process process = null;
         int exitValue = -1;
         try {
+            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
+            
+            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
+            System.out.println("[BINARY EXECUTION WRAPPER] Waiting for binary completion");
             exitValue = process.waitFor();
         } catch (Exception e) {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);

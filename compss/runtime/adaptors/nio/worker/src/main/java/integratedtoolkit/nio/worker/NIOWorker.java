@@ -351,213 +351,18 @@ public class NIOWorker extends NIOAgent {
                 wLogger.debug("- Checking transfers for data of parameter " + (String) param.getValue());
 
                 switch (param.getType()) {
-                    /* PSCOs */
                     case PSCO_T:
-                        String pscoId = (String) param.getValue();
-                        wLogger.debug("   - " + pscoId + " registered as PSCO.");
-                        // The replica must have been ordered by the master so the real object must be
-                        // catched or can be retrieved by the ID
-
-                        // Try if parameter is in cache
-                        wLogger.debug("   - Checking if " + pscoId + " is in cache.");
-                        boolean inCache = dataManager.checkPresence(pscoId);
-                        if (!inCache) {
-                            wLogger.debug("   - Retrieving psco " + pscoId + " from Storage");
-                            // Get Object from its ID
-                            Object obj = null;
-                            if (NIOTracer.isActivated()) {
-                                NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
-                            }
-                            try {
-                                obj = StorageItf.getByID(pscoId);
-                            } catch (StorageException e) {
-                                wLogger.error("Cannot getByID PSCO " + pscoId, e);
-                            } finally {
-                                if (NIOTracer.isActivated()) {
-                                    NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
-                                }
-                            }
-                            storeObject(pscoId, obj);
-                        }
-                        wLogger.debug("   - PSCO with id " + pscoId + " stored");
+                        askForPSCO(param);
                         break;
-
-                    /* OBJECTS */
                     case OBJECT_T:
-                        wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
-
-                        boolean catched = false;
-                        boolean locationsInCache = false;
-                        boolean existInHost = false;
-                        boolean askTransfer = false;
-                        // Try if parameter is in cache
-                        wLogger.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
-                        catched = dataManager.checkPresence((String) param.getValue());
-                        if (!catched) {
-                            // Try if any of the object locations is in cache
-                            wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are catched");
-                            for (NIOURI loc : param.getData().getSources()) {
-                                if (dataManager.checkPresence(loc.getPath())) {
-                                    // Object found
-                                    wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") location found in cache.");
-                                    try {
-                                        if (param.isPreserveSourceData()) {
-                                            wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue()
-                                                    + ") preserves sources. CACHE-COPYING");
-                                            Object o = Serializer.deserialize(loc.getPath());
-                                            storeObject((String) param.getValue(), o);
-                                        } else {
-                                            wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue()
-                                                    + ") erases sources. CACHE-MOVING");
-                                            Object o = dataManager.getObject(loc.getPath());
-                                            dataManager.remove(loc.getPath());
-                                            storeObject((String) param.getValue(), o);
-                                        }
-                                        locationsInCache = true;
-                                    } catch (IOException ioe) {
-                                        // If exception is raised, locationsInCache remains false. We log the exception
-                                        // and try host files
-                                        wLogger.error("IOException", ioe);
-                                    } catch (ClassNotFoundException e) {
-                                        // If exception is raised, locationsInCache remains false. We log the exception
-                                        // and try host files
-                                        wLogger.error("ClassNotFoundException", e);
-                                    }
-                                    // Stop looking for locations
-                                    break;
-                                }
-                            }
-
-                            if (!locationsInCache) {
-                                // Try if any of the object locations is in the host
-                                wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
-                                NIOURI loc = param.getData().getURIinHost(host);
-                                if (loc != null) {
-                                    wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") found at host.");
-                                    try {
-                                        File source = new File(workingDir + File.separator + loc.getPath());
-                                        File target = new File(workingDir + File.separator + param.getValue().toString());
-                                        if (param.isPreserveSourceData()) {
-                                            wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue()
-                                                    + ") preserves sources. COPYING");
-                                            wLogger.debug("         Source: " + source);
-                                            wLogger.debug("         Target: " + target);
-                                            Files.copy(source.toPath(), target.toPath());
-                                        } else {
-                                            wLogger.debug(
-                                                    "   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                                            wLogger.debug("         Source: " + source);
-                                            wLogger.debug("         Target: " + target);
-                                            if (!source.renameTo(target)) {
-                                                wLogger.error("Error renaming file from " + source.getAbsolutePath() 
-                                                    + " to " + target.getAbsolutePath());
-                                            }
-                                        }
-                                        // Move object to cache
-                                        Object o = Serializer.deserialize((String) param.getValue());
-                                        storeObject((String) param.getValue(), o);
-                                        existInHost = true;
-                                    } catch (IOException ioe) {
-                                        // If exception is raised, locationsInCache remains false. We log the exception
-                                        // and try host files
-                                        wLogger.error("IOException", ioe);
-                                    } catch (ClassNotFoundException e) {
-                                        // If exception is raised, locationsInCache remains false. We log the exception
-                                        // and try host files
-                                        wLogger.error("ClassNotFoundException", e);
-                                    }
-                                }
-
-                                if (!existInHost) {
-                                    // We must transfer the file
-                                    askTransfer = true;
-                                }
-                            }
-                        }
-
-                        // Request the transfer if needed
-                        if (askTransfer) {
-                            wLogger.info(
-                                    "- Parameter " + i + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
-                            DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
-                            addTransferRequest(dr);
-                        } else {
-                            // If no transfer, decrease the parameter counter
-                            // (we already have it)
-                            wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
-                            tt.decreaseParams();
-                        }
+                    case EXTERNAL_PSCO_T:
+                        askForObject(param, i, tt);
                         break;
-
-                    /* FILES */
                     case FILE_T:
-                        wLogger.debug("   - " + (String) param.getValue() + " registered as file.");
-
-                        boolean exists = false;
-                        boolean locationsInHost = false;
-                        askTransfer = false;
-
-                        // Try if parameter is in the host
-                        wLogger.debug("   - Checking if file " + (String) param.getValue() + " exists.");
-                        File f = new File(param.getValue().toString());
-                        exists = f.exists();
-                        if (!exists) {
-                            // Try if any of the locations is in the same host
-                            wLogger.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
-                            NIOURI loc = param.getData().getURIinHost(host);
-                            if (loc != null) {
-                                // Data is already present at host
-                                wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") found at host.");
-                                try {
-                                    File source = new File(loc.getPath());
-                                    File target = new File(param.getValue().toString());
-                                    if (param.isPreserveSourceData()) {
-                                        wLogger.debug(
-                                                "   - Parameter " + i + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-                                        wLogger.debug("         Source: " + source);
-                                        wLogger.debug("         Target: " + target);
-                                        Files.copy(source.toPath(), target.toPath());
-                                    } else {
-                                        wLogger.debug("   - Parameter " + i + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                                        wLogger.debug("         Source: " + source);
-                                        wLogger.debug("         Target: " + target);
-                                        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                                    }
-                                    locationsInHost = true;
-
-                                } catch (IOException ioe) {
-                                    wLogger.error("IOException", ioe);
-                                }
-                            }
-
-                            if (!locationsInHost) {
-                                // We must transfer the file
-                                askTransfer = true;
-                            }
-                        } else {
-                            // Check if it is not currently transferred
-                            if (getDataRequests(param.getData().getName()) != null) {
-                                askTransfer = true;
-                            }
-                        }
-
-                        // Request the transfer if needed
-                        if (askTransfer) {
-                            wLogger.info(
-                                    "- Parameter " + i + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
-                            DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
-                            addTransferRequest(dr);
-                        } else {
-                            // If no transfer, decrease the parameter counter
-                            // (we already have it)
-                            wLogger.info("- Parameter " + i + "(" + (String) param.getValue() + ") already exists.");
-                            tt.decreaseParams();
-                        }
+                        askForFile(param, i, tt);
                         break;
-
-                    /* OTHERS: External PSCOs (sending the id as string), Strings or basic types */
                     default:
-                        // The master should have erased all these parameters so we are never entering this section
+                        // OTHERS: Strings or basic types
                         // In any case, there is nothing to do for these type of parameters
                         break;
                 }
@@ -581,6 +386,198 @@ public class NIOWorker extends NIOAgent {
         }
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
+        }
+    }
+    
+    private void askForPSCO(NIOParam param) {
+        String pscoId = (String) param.getValue();
+        wLogger.debug("   - " + pscoId + " registered as PSCO.");
+        // The replica must have been ordered by the master so the real object must be
+        // catched or can be retrieved by the ID
+
+        // Try if parameter is in cache
+        wLogger.debug("   - Checking if " + pscoId + " is in cache.");
+        boolean inCache = dataManager.checkPresence(pscoId);
+        if (!inCache) {
+            wLogger.debug("   - Retrieving psco " + pscoId + " from Storage");
+            // Get Object from its ID
+            Object obj = null;
+            if (NIOTracer.isActivated()) {
+                NIOTracer.emitEvent(Tracer.Event.STORAGE_GETBYID.getId(), Tracer.Event.STORAGE_GETBYID.getType());
+            }
+            try {
+                obj = StorageItf.getByID(pscoId);
+            } catch (StorageException e) {
+                wLogger.error("Cannot getByID PSCO " + pscoId, e);
+            } finally {
+                if (NIOTracer.isActivated()) {
+                    NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
+                }
+            }
+            storeObject(pscoId, obj);
+        }
+        wLogger.debug("   - PSCO with id " + pscoId + " stored");
+    }
+    
+    private void askForObject(NIOParam param, int index, TransferringTask tt) {
+        wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
+
+        boolean askTransfer = false;
+        
+        // Try if parameter is in cache
+        wLogger.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
+        boolean catched = dataManager.checkPresence((String) param.getValue());
+        if (!catched) {
+            // Try if any of the object locations is in cache
+            boolean locationsInCache = false;
+            wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are catched");
+            for (NIOURI loc : param.getData().getSources()) {
+                if (dataManager.checkPresence(loc.getPath())) {
+                    // Object found
+                    wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") location found in cache.");
+                    try {
+                        if (param.isPreserveSourceData()) {
+                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                                    + ") preserves sources. CACHE-COPYING");
+                            Object o = Serializer.deserialize(loc.getPath());
+                            storeObject((String) param.getValue(), o);
+                        } else {
+                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                                    + ") erases sources. CACHE-MOVING");
+                            Object o = dataManager.getObject(loc.getPath());
+                            dataManager.remove(loc.getPath());
+                            storeObject((String) param.getValue(), o);
+                        }
+                        locationsInCache = true;
+                    } catch (IOException ioe) {
+                        // If exception is raised, locationsInCache remains false. We log the exception
+                        // and try host files
+                        wLogger.error("IOException", ioe);
+                    } catch (ClassNotFoundException e) {
+                        // If exception is raised, locationsInCache remains false. We log the exception
+                        // and try host files
+                        wLogger.error("ClassNotFoundException", e);
+                    }
+                    // Stop looking for locations
+                    break;
+                }
+            }
+
+            if (!locationsInCache) {
+                // Try if any of the object locations is in the host
+                boolean existInHost = false;
+                wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                NIOURI loc = param.getData().getURIinHost(host);
+                if (loc != null) {
+                    wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                    try {
+                        File source = new File(workingDir + File.separator + loc.getPath());
+                        File target = new File(workingDir + File.separator + param.getValue().toString());
+                        if (param.isPreserveSourceData()) {
+                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                                    + ") preserves sources. COPYING");
+                            wLogger.debug("         Source: " + source);
+                            wLogger.debug("         Target: " + target);
+                            Files.copy(source.toPath(), target.toPath());
+                        } else {
+                            wLogger.debug(
+                                    "   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                            wLogger.debug("         Source: " + source);
+                            wLogger.debug("         Target: " + target);
+                            if (!source.renameTo(target)) {
+                                wLogger.error("Error renaming file from " + source.getAbsolutePath() 
+                                    + " to " + target.getAbsolutePath());
+                            }
+                        }
+                        // Move object to cache
+                        Object o = Serializer.deserialize((String) param.getValue());
+                        storeObject((String) param.getValue(), o);
+                        existInHost = true;
+                    } catch (IOException ioe) {
+                        // If exception is raised, locationsInCache remains false. We log the exception
+                        // and try host files
+                        wLogger.error("IOException", ioe);
+                    } catch (ClassNotFoundException e) {
+                        // If exception is raised, locationsInCache remains false. We log the exception
+                        // and try host files
+                        wLogger.error("ClassNotFoundException", e);
+                    }
+                }
+
+                if (!existInHost) {
+                    // We must transfer the file
+                    askTransfer = true;
+                }
+            }
+        }
+
+        // Request the transfer if needed
+        askForTransfer(askTransfer, param, index, tt);
+    }
+    
+    private void askForFile(NIOParam param, int index, TransferringTask tt) {
+        wLogger.debug("   - " + (String) param.getValue() + " registered as file.");
+
+        boolean locationsInHost = false;
+        boolean askTransfer = false;
+
+        // Try if parameter is in the host
+        wLogger.debug("   - Checking if file " + (String) param.getValue() + " exists.");
+        File f = new File(param.getValue().toString());
+        if (!f.exists()) {
+            // Try if any of the locations is in the same host
+            wLogger.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
+            NIOURI loc = param.getData().getURIinHost(host);
+            if (loc != null) {
+                // Data is already present at host
+                wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                try {
+                    File source = new File(loc.getPath());
+                    File target = new File(param.getValue().toString());
+                    if (param.isPreserveSourceData()) {
+                        wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
+                        wLogger.debug("         Source: " + source);
+                        wLogger.debug("         Target: " + target);
+                        Files.copy(source.toPath(), target.toPath());
+                    } else {
+                        wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                        wLogger.debug("         Source: " + source);
+                        wLogger.debug("         Target: " + target);
+                        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                    }
+                    locationsInHost = true;
+                } catch (IOException ioe) {
+                    wLogger.error("IOException", ioe);
+                }
+            }
+
+            if (!locationsInHost) {
+                // We must transfer the file
+                askTransfer = true;
+            }
+        } else {
+            // Check if it is not currently transferred
+            if (getDataRequests(param.getData().getName()) != null) {
+                askTransfer = true;
+            }
+        }
+
+        // Request the transfer if needed
+        askForTransfer(askTransfer, param, index, tt);
+    }
+    
+    private void askForTransfer(boolean askTransfer, NIOParam param, int index, TransferringTask tt) {
+        // Request the transfer if needed
+        if (askTransfer) {
+            wLogger.info(
+                    "- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
+            DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
+            addTransferRequest(dr);
+        } else {
+            // If no transfer, decrease the parameter counter
+            // (we already have it)
+            wLogger.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
+            tt.decreaseParams();
         }
     }
 
@@ -735,7 +732,6 @@ public class NIOWorker extends NIOAgent {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
-                    // Nothing to do
                     Thread.currentThread().interrupt();
                 }
             }

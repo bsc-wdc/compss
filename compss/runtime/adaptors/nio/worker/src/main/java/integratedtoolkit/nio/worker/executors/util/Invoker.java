@@ -181,7 +181,7 @@ public abstract class Invoker {
                 // Get object
                 Object obj;
                 try {
-                    obj = this.nw.getObject(renamings[i]);
+                    obj = this.nw.getObject(this.renamings[i]);
                 } catch (SerializedObjectException soe) {
                     throw new JobExecutionException(ERROR_SERIALIZED_OBJ, soe);
                 }

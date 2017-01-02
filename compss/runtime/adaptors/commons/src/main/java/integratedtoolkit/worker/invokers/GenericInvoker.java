@@ -121,7 +121,7 @@ public class GenericInvoker {
         ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, streamValues);
 
         // Prepare command
-        String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
+        String[] cmd = new String[2];//NUM_BASE_BINARY_ARGS + binaryParams.size()];
         cmd[0] = binary;
         for (int i = 0; i < binaryParams.size(); ++i) {
             cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);

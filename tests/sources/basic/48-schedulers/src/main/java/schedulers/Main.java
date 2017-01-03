@@ -6,24 +6,23 @@ import java.io.IOException;
 
 
 public class Main {
-    
-    private static final int TASK_WIDTH = 6;
-    private static final int TASK_DEPTH = 2;
-    
+
     private static final String FILE_NAME = "counterFile_";
-    
+
     private static final int SLEEP_WAIT_FOR_RUNTIME = 4_000; // ms
-    
+
 
     public static void main(String[] args) {
         // Check and get parameters
-        if (args.length != 1) {
+        if (args.length != 3) {
             System.out.println("[ERROR] Bad number of parameters");
-            System.out.println("    Usage: schedulers.Main <counterValue>");
+            System.out.println("    Usage: schedulers.Main <taskWidth> <taskDepth> <counterValue>");
             System.exit(-1);
         }
-        int initialValue = Integer.parseInt(args[0]);
-        
+        int taskWidth = Integer.parseInt(args[0]);
+        int taskDepth = Integer.parseInt(args[1]);
+        int initialValue = Integer.parseInt(args[2]);
+
         // ------------------------------------------------------------------------
         // Initial sleep
         try {
@@ -34,9 +33,9 @@ public class Main {
 
         // ------------------------------------------------------------------------
         // Initialize files
-        for (int i = 0; i < TASK_WIDTH; ++i) {
+        for (int i = 0; i < taskWidth; ++i) {
             String counterName = FILE_NAME + i;
-            
+
             System.out.println("[INFO] Creating task " + i + " on file " + counterName + " with value " + initialValue);
             try {
                 FileOutputStream fos = new FileOutputStream(counterName);
@@ -50,16 +49,16 @@ public class Main {
 
         // ------------------------------------------------------------------------
         // Execute increment tasks
-        for (int depth = 0; depth < TASK_DEPTH; ++depth) {
-            for (int i = 0; i < TASK_WIDTH; ++i) {
+        for (int depth = 0; depth < taskDepth; ++depth) {
+            for (int i = 0; i < taskWidth; ++i) {
                 String counterName = FILE_NAME + i;
                 MainImpl.increment(counterName);
             }
         }
-       
+
         // ------------------------------------------------------------------------
         // Synchronize and read final value
-        for (int i = 0; i < TASK_WIDTH; ++i) {
+        for (int i = 0; i < taskWidth; ++i) {
             String counterName = FILE_NAME + i;
             try {
                 FileInputStream fis = new FileInputStream(counterName);

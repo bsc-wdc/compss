@@ -16,28 +16,34 @@ import integratedtoolkit.types.resources.Worker;
 
 public class ResourceEmptyScore extends Score {
 
+    /**
+     * Creates a new ResourceEmptyScore with the given values
+     * 
+     * @param actionScore
+     * @param waiting
+     * @param res
+     * @param impl
+     */
     public ResourceEmptyScore(double actionScore, double waiting, double res, double impl) {
         super(actionScore, waiting, res, impl);
     }
 
+    /**
+     * Creates a copy of the @clone ResourceEmptyScore
+     * 
+     * @param clone
+     */
     public ResourceEmptyScore(ResourceEmptyScore clone) {
         super(clone);
     }
 
-    @Override
-    public boolean isBetter(Score other) {
-        if (actionScore != other.actionScore) {
-            return actionScore > other.actionScore;
-        }
-        if (resourceScore != other.resourceScore) {
-            return resourceScore > other.resourceScore;
-        }
-        if (waitingScore != other.waitingScore) {
-            return waitingScore > other.waitingScore;
-        }
-        return this.implementationScore > other.implementationScore;
-    }
-
+    /**
+     * Calculates the score for a given worker @w and a given parameters @params
+     * 
+     * @param params
+     * @param w
+     * @return
+     */
     public static double calculateScore(TaskDescription params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
@@ -79,14 +85,23 @@ public class ResourceEmptyScore extends Score {
     }
 
     @Override
+    public boolean isBetter(Score other) {
+        if (actionScore != other.actionScore) {
+            return actionScore > other.actionScore;
+        }
+        if (resourceScore != other.resourceScore) {
+            return resourceScore > other.resourceScore;
+        }
+        if (waitingScore != other.waitingScore) {
+            return waitingScore > other.waitingScore;
+        }
+        return this.implementationScore > other.implementationScore;
+    }
+
+    @Override
     public String toString() {
-        /*
-         * return "[FIFOScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore +
-         * ", implementation:" + implementationScore + "]" + "]";
-         */
-        return "[action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore + ", implementation:"
-                + implementationScore + "]";
-        // + "]";
+        return "[ResourceEmptyScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
+                + ", implementation:" + implementationScore + "]" + "]";
     }
 
 }

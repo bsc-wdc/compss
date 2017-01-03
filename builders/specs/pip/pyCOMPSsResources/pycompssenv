@@ -1,6 +1,6 @@
 if [ "$EUID" -eq 0 ]; then
 
-	HAVE_PYCOMPSS=$(python2.7 -m pip freeze | grep pycompss)
+	HAVE_PYCOMPSS=$(python%s -m pip freeze | grep pycompss)
 
 	if [ -z "$HAVE_PYCOMPSS" ]; then
 		rm -rf %s/pycompss

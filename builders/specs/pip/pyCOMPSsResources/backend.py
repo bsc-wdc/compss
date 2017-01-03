@@ -33,7 +33,7 @@ def install(target_path):
 	
 	pref = os.path.join(target_path, 'COMPSs')
 	try:
-		s=open('pycompssenv', 'r').read()%(site.getsitepackages()[0], pref, pref, pref, pref, site.getsitepackages()[0])
+		s=open('pycompssenv', 'r').read()%(str(sys.version_info[0])+'.'+str(sys.version_info[1]), site.getsitepackages()[0], pref, pref, pref, pref, site.getsitepackages()[0])
 		open('/etc/profile.d/compss.sh', 'w').write(s)
 	except:
 		raise Exception('Unable to copy compsenvv to /etc/profile.d/compss.sh. Please, do it manually.')

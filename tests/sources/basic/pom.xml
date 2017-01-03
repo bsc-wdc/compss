@@ -77,6 +77,7 @@
                 <!-- Module 45 is 45-pscos_python -->
                 <!-- Module 46 is 46-files_python -->
                 <module>47-ompss</module>
+		<module>48-schedulers</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

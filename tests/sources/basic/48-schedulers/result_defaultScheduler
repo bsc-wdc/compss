@@ -3,6 +3,9 @@
   #Obtain parameters
   output_file=$1 
   target_log_folder=$2
+  TASK_WIDTH=$3
+  TASK_DEPTH=$4
+  INIT_VALUE=$5
   
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -28,17 +31,16 @@
 
   #---------------------------------------------------------------------------------- 
   # Compute result status
-  init_counter=$(cat ${output_file} | grep "\[INFO\] Creating task " | tr " " "\t" | awk {' print $(NF) '} | head -n 1)
-  final_counter_got=$(cat ${output_file} | grep "\[INFO\] Final counter value on file" | tr " " "\t" | awk {' print $(NF) '} | head -n 1)  
-  final_counter_expected=$((init_counter+2))
-
-  # Report result status
-  if [ "$final_counter_got" != "$final_counter_expected" ]; then
-     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
-     echo "EXPECTED FIRST INCREMENT: $final_counter_expected" | tee -a ${output_file}
-     echo "GOT:      $final_counter_got" | tee -a ${output_file}
-     exit 1
-  fi
+  final_counter_expected=$((INIT_VALUE+TASK_DEPTH))
+  final_counters_got=$(cat ${output_file} | grep "\[INFO\] Final counter value on file" | tr " " "\t" | awk {' print $(NF) '})  
+  
+  for got in ${final_counters_got}; do
+    if [ "${got}" != "${final_counter_expected}" ]; then
+      echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
+      echo "EXPECTED: ${final_counter_expected}" | tee -a ${output_file}
+      echo "GOT:      ${got}" | tee -a ${output_file}
+      exit 1
+    fi
+  done
   
   exit 0
-  

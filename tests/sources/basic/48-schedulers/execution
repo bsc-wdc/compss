@@ -11,6 +11,15 @@
   # Global exit variable
   exitValue=0
   
+  # Compute folder for tests in terms of retryNum
+  NUM_TESTS=2
+  testNum=$(((retryNum - 1)*NUM_TESTS + 1))
+  
+  # Select number of tasks width and depth
+  TASK_WIDTH=6
+  TASK_DEPTH=2
+  INIT_VALUE=1
+  
   #----------------------------------------------------------------------------------
   # Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
@@ -21,11 +30,14 @@
   mkdir -p /tmp/COMPSsWorker02/
   
   #----------------------------------------------------------------------------------
-  # Run application 48 - Schedulers
-  echo
-  echo "*** RUNNING JAVA APPLICATION SCHEDULERS"
-  output_log="${target_log_folder}/schedulers_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/schedulers_0${retryNum}.errorlog"
+  # Run application 1 - Default Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION DEFAULT SCHEDULER"
+  
+  log_folder="${target_log_folder}/defaultScheduler"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/defaultScheduler_0${retryNum}.outputlog"
+  error_log="${log_folder}/defaultScheduler_0${retryNum}.errorlog"
   expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
@@ -33,27 +45,72 @@
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
+     -t \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main 1 > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
      
      # Report time out
      echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
+     ev1=124
   else
      # Copy LOG files
-     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${retryNum}/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
   
      # Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} 
-     exitValue=$?
+     ${base_app_dir}/result_defaultScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ev1=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Run application 2 - FIFO Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION FIFO SCHEDULER"
+  
+  testNum=$((testNum + 1))
+  
+  log_folder="${target_log_folder}/fifoScheduler"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/fifoScheduler_0${retryNum}.outputlog"
+  error_log="${log_folder}/fifoScheduler_0${retryNum}.errorlog"
+  expectedTime=60s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     --scheduler=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler \
+     -t \
+     --classpath=${base_app_dir}/schedulers.jar \
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev2=124
+  else
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+  
+     # Check result
+     ${base_app_dir}/result_fifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ev2=$?
   fi
   
   #----------------------------------------------------------------------------------
   # Return execution status
+  exitValue=$ev1
+  if [ $ev2 -ne 0 ]; then
+     exitValue=$ev2
+  fi
+  
   exit $exitValue
-

@@ -39,10 +39,10 @@
       waitingScore=0
       implScore=0
       if [ "$actionScore" != "null" ]; then
-        actionScore=$(echo $actionScore | tr ":" " " | tr "," " " | awk {' print $2 '})
-        resourceScore=$(echo $resource | tr " " "\n" | sed -n 7p | tr ":" " " | tr "," " " | awk {' print $2 '})
-        waitingScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | awk {' print $2 '})
-        implScore=$(echo $resource | tr " " "\n" | sed -n 9p | tr ":" " " | tr "," " " | tr "]" " " | awk {' print $2 '})
+        actionScore=$(echo $resource | tr " " "\n" | sed -n 8p | tr ":" " " | tr "," " " | awk {' print $2 '})
+        resourceScore=$(echo $resource | tr " " "\n" | sed -n 9p | tr ":" " " | tr "," " " | awk {' print $2 '})
+        waitingScore=$(echo $resource | tr " " "\n" | sed -n 10p | tr ":" " " | tr "," " " | awk {' print $2 '})
+        implScore=$(echo $resource | tr " " "\n" | sed -n 11p | tr ":" " " | tr "," " " | tr "]" " " | awk {' print $2 '})
       fi
       
       # Update best

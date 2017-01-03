@@ -37,8 +37,9 @@ DEFAULT_COMMUNICATION_ADAPTOR=integratedtoolkit.nio.master.NIOAdaptor
 DEFFAULT_CONNECTOR=integratedtoolkit.connectors.DefaultSSHConnector
 DEFAULT_MASTER_PORT="[43000,44000]"
 DEFAULT_MASTER_NAME=""
-#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
-DEFAULT_SCHEDULER=integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
+#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler
+#DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler
+DEFAULT_SCHEDULER=integratedtoolkit.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
 DEFAULT_JVM_MASTER=""
 DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
@@ -101,8 +102,9 @@ show_opts() {
                                             Supported connectors: integratedtoolkit.connectors.DefaultSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
     --scheduler=<className>	            Class that implements the Scheduler for COMPSs
-                                            Supported schedulers: integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler
-                                                                  | integratedtoolkit.scheduler.readyscheduler.ReadyScheduler
+                                            Supported schedulers: integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler
+                                                                  | integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler
+                                                                  | integratedtoolkit.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler
                                             Default: ${DEFAULT_SCHEDULER}
     --library_path=<path>                   Non-standard directories to search for libraries (e.g. Java JVM library, Python library, C binding library)
                                             Default: Working Directory

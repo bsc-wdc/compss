@@ -3,14 +3,14 @@ package integratedtoolkit.types.allocatableactions;
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.SchedulingInformation;
-import integratedtoolkit.types.Score;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.scheduler.types.SchedulingInformation;
+import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.util.ResourceScheduler;
 import integratedtoolkit.types.data.operation.JobTransfersListener;
 import integratedtoolkit.types.implementations.Implementation;
@@ -46,9 +46,9 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     private int transferErrors = 0;
     private int executionErrors = 0;
     private LinkedList<Integer> jobs = new LinkedList<>();
-    
+
     // Resource execution information
-    private final ResourceScheduler<P,T> forcedResource;
+    private final ResourceScheduler<P, T> forcedResource;
     private T resourceConsumption;
 
 
@@ -62,7 +62,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
      */
     @SuppressWarnings("unchecked")
     public ExecutionAction(SchedulingInformation<P, T> schedulingInformation, TaskProducer producer, Task task,
-            ResourceScheduler<P,T> forcedResource) {
+            ResourceScheduler<P, T> forcedResource) {
 
         super(schedulingInformation);
 
@@ -92,12 +92,13 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
     /**
      * Returns the associated task
+     * 
      * @return
      */
     public Task getTask() {
         return this.task;
     }
-    
+
     /*
      * SCHEDULING OPERATIONS
      * 
@@ -155,8 +156,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
 
             doInputTransfers();
         } else {
-            ErrorManager
-                    .warn("Transfers for running task " + task.getId() + " on worker " + selectedResource.getName() + " have failed.");
+            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker " + selectedResource.getName() + " have failed.");
             this.notifyError();
         }
     }
@@ -319,17 +319,17 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     public int getPriority() {
         return task.getTaskDescription().hasPriority() ? 1 : 0;
     }
-    
+
     @Override
     public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
-        return targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
+        return targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        
+
         // COMPUTE RESOURCE CANDIDATES
         LinkedList<ResourceScheduler<?, ?>> candidates = new LinkedList<>();
         if (this.forcedResource != null) {
@@ -350,17 +350,20 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         Implementation<T> bestImpl = null;
         Score bestScore = null;
         int usefulResources = 0;
+
         for (ResourceScheduler<?, ?> w : candidates) {
             ResourceScheduler<P, T> worker = (ResourceScheduler<P, T>) w;
             if (executingResources.contains(w)) {
                 continue;
             }
-            Score resourceScore = worker.getResourceScore(this, task.getTaskDescription(), actionScore);
+            Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);
             usefulResources++;
             for (Implementation<T> impl : getCompatibleImplementations(worker)) {
-                Score implScore = worker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
-                debugString.append(" Resource ").append(w.getName()).append(" ").append(" Implementation ")
-                        .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
+                Score implScore = worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
+                if (debug) {
+                    debugString.append(" Resource ").append(w.getName()).append(" ").append(" Implementation ")
+                            .append(impl.getImplementationId()).append(" ").append(" Score ").append(implScore).append("\n");
+                }
                 if (Score.isBetter(implScore, bestScore)) {
                     bestWorker = worker;
                     bestImpl = impl;
@@ -368,7 +371,7 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
                 }
             }
         }
-        
+
         // CHECK SCHEDULING RESULT
         if (bestWorker == null) {
             logger.debug(debugString.toString());
@@ -396,16 +399,16 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
         Score bestScore = null;
 
         if ( // Resource is not compatible with the Core
-                !targetWorker.getResource().canRun(task.getTaskDescription().getId())
+        !targetWorker.getResource().canRun(task.getTaskDescription().getId())
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
             throw new UnassignedActionException();
         }
-        Score resourceScore = targetWorker.getResourceScore(this, task.getTaskDescription(), actionScore);
+        Score resourceScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
         debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
 
         for (Implementation<T> impl : getCompatibleImplementations(targetWorker)) {
-            Score implScore = targetWorker.getImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
+            Score implScore = targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
             debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
             if (Score.isBetter(implScore, bestScore)) {
                 bestWorker = targetWorker;
@@ -429,11 +432,11 @@ public abstract class ExecutionAction<P extends Profile, T extends WorkerResourc
     @Override
     public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
             throws BlockedActionException, UnassignedActionException {
-        
+
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
 
         if ( // Resource is not compatible with the implementation
-                !targetWorker.getResource().canRun(impl)
+        !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
             throw new UnassignedActionException();

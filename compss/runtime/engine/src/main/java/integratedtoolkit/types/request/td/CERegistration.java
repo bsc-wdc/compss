@@ -1,13 +1,13 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 
 import java.util.concurrent.Semaphore;
 
-import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.util.ResourceManager;

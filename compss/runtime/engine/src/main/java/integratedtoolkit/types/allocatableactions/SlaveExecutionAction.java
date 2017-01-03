@@ -1,12 +1,12 @@
 package integratedtoolkit.types.allocatableactions;
 
 import integratedtoolkit.components.impl.TaskProducer;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.scheduler.types.SchedulingInformation;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.data.operation.JobTransfersListener;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobStatusListener;
-import integratedtoolkit.types.SchedulingInformation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceScheduler;

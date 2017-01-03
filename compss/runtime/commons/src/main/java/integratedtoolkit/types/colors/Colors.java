@@ -35,7 +35,7 @@ public class Colors {
     public static final String COLOR_23 = String.format("#%02x%02x%02x", 0, 41, 0);
 
 
-    public Colors() {
+    private Colors() {
         throw new NonInstantiableException("Colors should not be instantiated");
     }
 

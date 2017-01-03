@@ -86,11 +86,7 @@ public class CoreManager {
     /**
      * Registers a new Method as Core Element if it doesn't exist
      * 
-     * @param declaringClass
-     * @param methodName
-     * @param hasTarget
-     * @param hasReturn
-     * @param parameters
+     * @param signature
      * 
      * @return the methodId assigned to the new Core Element
      */
@@ -108,6 +104,13 @@ public class CoreManager {
         return methodId;
     }
     
+    /**
+     * Registers a new Implementation for a given Core
+     * 
+     * @param coreId
+     * @param impls
+     * @param signs
+     */
     public static void registerImplementations(int coreId, Implementation<?>[] impls, String[] signs) {
         if (coreId < 0 || coreId >= coreCount) {
             ErrorManager.warn(WARN_UNREGISTERED_CORE_ELEMENT);

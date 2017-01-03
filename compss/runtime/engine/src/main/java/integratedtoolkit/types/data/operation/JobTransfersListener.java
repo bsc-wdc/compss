@@ -1,11 +1,11 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.scheduler.types.Profile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.data.listener.EventListener;
 import integratedtoolkit.types.resources.WorkerResourceDescription;

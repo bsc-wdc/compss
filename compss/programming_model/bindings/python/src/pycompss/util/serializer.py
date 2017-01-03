@@ -28,6 +28,7 @@ from serialization.extendedSupport import unpickle_module_object
 from serialization.extendedSupport import serialize_event
 from serialization.extendedSupport import serialize_lock
 from serialization.extendedSupport import serialize_ellipsis
+import time
 #from serialization.extendedSupport import serialize_quit 
 #from serialization.extendedSupport import restorefunction, reducefunction
 
@@ -71,6 +72,7 @@ def serialize_to_file(obj, file_name, force=False):
     @return: String -> the file name (same as the parameter)
     """
     logger.debug("Serialize to file: " + str(file_name))
+    start = time.time()
     if mmap_file_storage:
         if not os.path.exists(file_name) or force:
             d = dumps(obj, HIGHEST_PROTOCOL)
@@ -84,6 +86,7 @@ def serialize_to_file(obj, file_name, force=False):
             mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
             mm.write(d)
             mm.close()
+        logger.debug("Serialization lasted %d seconds" % (time.time() - start))
         return file_name
     else:
         if not os.path.exists(file_name) or force:
@@ -109,6 +112,7 @@ def serialize_to_file(obj, file_name, force=False):
                     else:
                         raise PicklingError(str(e))
             f.close()
+        logger.debug("Serialization lasted %d seconds" % (time.time() - start))
         return file_name
 
 
@@ -120,12 +124,14 @@ def deserialize_from_file(file_name):
     @return: The object deserialized.
     """
     logger.debug("Deserialize from file: " + str(file_name))
+    start = time.time()
     if mmap_file_storage:
         fd = os.open(file_name, os.O_RDONLY)
         mm = mmap.mmap(fd, 0, mmap.MAP_SHARED, mmap.PROT_READ)
         content = mm.read(-1)
         l = loads(content)
         mm.close()
+        logger.debug("Deserialization lasted %d seconds" % (time.time() - start))
         return l
     else:
         l = None
@@ -149,6 +155,7 @@ def deserialize_from_file(file_name):
         #    # Rebuild the object
         #    l = GeneratorWrapper(copy_generator(l.gen)[0], l.n, l.maxiter)
         f.close()
+        logger.debug("Deserialization lasted %d seconds" % (time.time() - start))
         return l
 
 
@@ -162,6 +169,7 @@ def serialize_objects(to_serialize):
                          ['object','file name'].
     """
     logger.debug("Serialize objects:")
+    start = time.time()
     for target in to_serialize:
         logger.debug("\t - " + str(target))
     if mmap_file_storage:
@@ -179,6 +187,7 @@ def serialize_objects(to_serialize):
             mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
             mm.write(d)
             mm.close()
+	logger.debug("Serialization lasted %d seconds" % (time.time() - start))
     else:
         for target in to_serialize:
             obj = target[0]
@@ -203,4 +212,5 @@ def serialize_objects(to_serialize):
                         pickle_module_object(obj, f, HIGHEST_PROTOCOL)
                     else:
                         raise PicklingError(str(e))
+            logger.debug("Serialization lasted %d seconds" % (time.time() - start))
             f.close()

@@ -7,9 +7,9 @@ import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Profile;
-import integratedtoolkit.types.SchedulingInformation;
-import integratedtoolkit.types.Score;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.scheduler.types.SchedulingInformation;
+import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.allocatableactions.StartWorkerAction;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.util.ResourceScheduler;
@@ -38,7 +38,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     private final ActionSet<P, T> blockedActions = new ActionSet<>();
     private int[] readyCounts = new int[CoreManager.getCoreCount()];
-    private final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<>();
+    protected final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<>();
 
 
     /**
@@ -63,7 +63,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * Introduces a new action in the Scheduler system. The method should place the action in a resource hurriedly
      *
      * @param action
-     *            Action to be schedule.
+     *            Action to be scheduled.
      */
     public final void newAllocatableAction(AllocatableAction<P, T> action) {
         if (!action.hasDataPredecessors()) {
@@ -72,7 +72,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                 readyCounts[coreId]++;
             }
         }
-        Score actionScore = getActionScore(action);
+        Score actionScore = generateActionScore(action);
         try {
             scheduleAction(action, actionScore);
             try {
@@ -102,7 +102,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
 
     /**
-     * Registers and action as completed and releases all the resource and data dependencies.
+     * Registers an action as completed and releases all the resource and data dependencies.
      *
      * @param action
      *            action that has finished
@@ -147,7 +147,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     try {
                         a.tryToLaunch();
                     } catch (InvalidSchedulingException ise) {
-                        Score aScore = getActionScore(a);
+                        Score aScore = generateActionScore(a);
                         boolean keepTrying = true;
                         for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
                             AllocatableAction<P, T> pre = action.getConstrainingPredecessors().get(i);
@@ -190,7 +190,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         try {
             action.error();
             resourceFree = resource.unscheduleAction(action);
-            Score actionScore = getActionScore(action);
+            Score actionScore = generateActionScore(action);
             try {
                 scheduleAction(action, actionScore);
                 try {
@@ -239,7 +239,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                 try {
                     a.tryToLaunch();
                 } catch (InvalidSchedulingException ise) {
-                    Score aScore = getActionScore(a);
+                    Score aScore = generateActionScore(a);
                     boolean keepTrying = true;
                     for (int i = 0; i < action.getConstrainingPredecessors().size() && keepTrying; ++i) {
                         AllocatableAction<P, T> pre = a.getConstrainingPredecessors().get(i);
@@ -301,7 +301,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             // Inspect blocked actions to be freed
             LinkedList<AllocatableAction<P, T>> stillBlocked = new LinkedList<>();
             for (AllocatableAction<P, T> action : blockedActions.removeAllCompatibleActions(worker)) {
-                Score actionScore = getActionScore(action);
+                Score actionScore = generateActionScore(action);
                 try {
                     logger.info("Unblocked Action: " + action);
                     scheduleAction(action, actionScore);
@@ -580,6 +580,12 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @throws integratedtoolkit.scheduler.types.Action.BlockedActionException
      *
      */
+    /*
+     * protected void scheduleAction(AllocatableAction<P, T> action, Score actionScore) throws BlockedActionException {
+     * try { action.schedule(actionScore); } catch (UnassignedActionException ure) { StringBuilder info = new
+     * StringBuilder("Scheduler has lost track of action "); info.append(action.toString());
+     * ErrorManager.fatal(info.toString()); } }
+     */
     protected void scheduleAction(AllocatableAction<P, T> action, Score actionScore) throws BlockedActionException {
         try {
             action.schedule(actionScore);
@@ -645,7 +651,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         return new SchedulingInformation<P, T>();
     }
 
-    public Score getActionScore(AllocatableAction<P, T> action) {
+    public Score generateActionScore(AllocatableAction<P, T> action) {
         return new Score(action.getPriority(), 0, 0, 0);
     }
 

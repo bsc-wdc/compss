@@ -14,10 +14,10 @@ import integratedtoolkit.types.request.td.WorkerUpdateRequest;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Worker;
@@ -38,9 +38,10 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
- * Component used as interface between the task analysis and the task scheduler
- * Manage and handles requests for task execution, task status, etc.
+ * Component used as interface between the task analysis and the task scheduler Manage and handles requests for task
+ * execution, task status, etc.
  * 
  * @param <P>
  * @param <T>
@@ -110,8 +111,8 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     @Override
     public void run() {
         while (keepGoing) {
-            String requestType="Not defined";
-        	try {
+            String requestType = "Not defined";
+            try {
                 TDRequest<P, T> request = requestQueue.take();
                 requestType = request.getType().toString();
                 if (Tracer.isActivated()) {
@@ -135,7 +136,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
-                logger.error("Error in request "+ requestType, e);
+                logger.error("Error in request " + requestType, e);
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
@@ -210,7 +211,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
         return request.getResponse();
     }
-    
+
     /**
      * Adds a new task summary request
      * 
@@ -218,7 +219,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
-        TaskSummaryRequest<P, T> request = new TaskSummaryRequest<P,T>(logger, sem);
+        TaskSummaryRequest<P, T> request = new TaskSummaryRequest<P, T>(logger, sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -358,6 +359,9 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
             scheduler = (TaskScheduler<P, T>) schedCnstr.newInstance();
+            if (debug) {
+                logger.debug("Loaded scheduler " + scheduler);
+            }
         } catch (Exception e) {
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);
         }

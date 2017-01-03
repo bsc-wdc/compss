@@ -60,7 +60,7 @@ public abstract class Resource implements Comparable<Resource> {
     // List of all created resources
     private static final LinkedList<Resource> availableResources = new LinkedList<Resource>();
 
-    private final String name;
+    protected final String name;
     private final COMPSsNode node;
     protected HashMap<String, String> sharedDisks;
 

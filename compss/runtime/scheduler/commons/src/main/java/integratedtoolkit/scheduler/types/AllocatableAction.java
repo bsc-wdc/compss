@@ -5,9 +5,6 @@ import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
-import integratedtoolkit.types.Profile;
-import integratedtoolkit.types.SchedulingInformation;
-import integratedtoolkit.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -315,6 +312,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public void tryToLaunch() throws InvalidSchedulingException {
         // gets the lock on the action
     	lock.lock();
+    	
         if ( // has an assigned resource where to run
         selectedResource != null && // has not been started yet
                 state == State.RUNNABLE && // has no data dependencies with other methods

@@ -2,7 +2,7 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
 import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
@@ -87,6 +87,9 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
             submitTask(ts, selectedResource);
         } else {
             // Normal task
+        	if (debug) {
+        		logger.debug("Submiting task " + task.getId());
+        	}
             task.setExecutionCount(numNodes);
             submitTask(ts, null);
         }

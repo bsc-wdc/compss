@@ -2,7 +2,7 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
 import integratedtoolkit.types.request.exceptions.ShutdownException;

@@ -7,9 +7,9 @@ import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Profile;
-import integratedtoolkit.types.SchedulingInformation;
-import integratedtoolkit.types.Score;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.scheduler.types.SchedulingInformation;
+import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -20,7 +20,7 @@ import integratedtoolkit.util.ResourceScheduler;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class Action<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
 
-    final int coreId;
+    private final int coreId;
 
 
     public Action(int coreId) {

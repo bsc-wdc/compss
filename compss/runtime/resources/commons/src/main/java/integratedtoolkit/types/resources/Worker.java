@@ -38,6 +38,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     private final int maxFPGATaskCount;
     private int usedOthersTaskCount = 0;
     private final int maxOthersTaskCount;
+       
 
     // Logger
     protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
@@ -380,7 +381,6 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         canRun = canRun && ((this.getUsedFPGATaskCount() < this.getMaxFPGATaskCount()) || !this.usesFPGA(consumption));
         canRun = canRun && ((this.getUsedOthersTaskCount() < this.getMaxOthersTaskCount()) || !this.usesOthers(consumption));
         canRun = canRun && this.hasAvailable(consumption);
-
         return canRun;
     }
 
@@ -458,5 +458,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public abstract Worker<?> getSchedulingCopy();
+    
+    @Override
+    public String toString(){
+		return "Worker " + description + " with usedTaskCount = " + usedTaskCount + " and maxTaskCount = " + maxTaskCount + " with the following description " + description;
+    }
 
 }

@@ -1,7 +1,7 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceManager;

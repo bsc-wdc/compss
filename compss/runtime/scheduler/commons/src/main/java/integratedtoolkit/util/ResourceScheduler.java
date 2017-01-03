@@ -2,8 +2,8 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Profile;
-import integratedtoolkit.types.Score;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
@@ -32,7 +32,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
     private final LinkedList<AllocatableAction<P, T>> running;
 
     // Task without enough resources to be executed right now
-    private final PriorityQueue<AllocatableAction<P, T>> blocked;
+    protected final PriorityQueue<AllocatableAction<P, T>> blocked;
 
     // Profile information of the task executions
     private Profile[][] profiles;
@@ -307,10 +307,9 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * @param actionScore
      * @return
      */
-    public Score getResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
-        long resourceScore = Score.getLocalityScore(params, myWorker);
-        return new Score(actionScore, 0, resourceScore, 0);
-
+    public Score generateResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
+        double resourceScore = Score.calculateScore(params, myWorker);
+        return new Score(actionScore.getActionScore(), 0, resourceScore, 0);
     }
     
     /**
@@ -322,12 +321,12 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * @param resourceScore
      * @return
      */
-    public Score getWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {      
+    public Score generateWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {      
     	double waitingScore = 2.0;
     	if (blocked.size() > 0) {
     		waitingScore = (double)(1/(double)blocked.size());
     	}
-    	return new Score(resourceScore,waitingScore,0);
+    	return new Score(resourceScore.getActionScore(), waitingScore, resourceScore.getResourceScore(), 0);
     }
 
     /**
@@ -339,9 +338,10 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * @param resourceScore
      * @return
      */
-    public Score getImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
         long implScore = this.getProfile(impl).getAverageExecutionTime();
-        return new Score(getWaitingScore(action, params, impl, resourceScore), (double)(1/(double)implScore));
+        Score waitingScore = generateWaitingScore(action, params, impl, resourceScore);
+        return new Score(waitingScore.getActionScore(), waitingScore.getWaitingScore(), waitingScore.getResourceScore(), (double)(1/(double)implScore));
     }
 
     /**

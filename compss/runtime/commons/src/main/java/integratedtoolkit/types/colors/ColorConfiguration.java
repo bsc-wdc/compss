@@ -36,7 +36,7 @@ public class ColorConfiguration {
     public static final int NUM_COLORS = COLORS.length;
 
 
-    public ColorConfiguration() {
+    private ColorConfiguration() {
         throw new NonInstantiableException("ColorConfiguration should not be instantiated");
     }
 

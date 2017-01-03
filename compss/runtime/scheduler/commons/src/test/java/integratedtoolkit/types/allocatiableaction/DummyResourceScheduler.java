@@ -1,7 +1,7 @@
 package integratedtoolkit.types.allocatiableaction;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.allocatiableaction.AllocatableActionTest.ResourceDependencies;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;

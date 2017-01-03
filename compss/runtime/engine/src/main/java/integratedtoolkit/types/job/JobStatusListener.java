@@ -3,7 +3,7 @@ package integratedtoolkit.types.job;
 import java.util.ArrayList;
 import java.util.List;
 
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.WorkerResourceDescription;

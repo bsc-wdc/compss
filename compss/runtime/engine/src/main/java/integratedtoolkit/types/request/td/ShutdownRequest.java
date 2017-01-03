@@ -2,7 +2,7 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.types.Profile;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;

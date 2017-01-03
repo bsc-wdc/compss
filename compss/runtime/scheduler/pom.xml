@@ -31,7 +31,9 @@
 	<!-- SUB-MODULES -->
 	<modules>
 		<module>commons</module>
-		<module>default</module>
+		<module>fullGraphScheduler</module>
 		<module>readyScheduler</module>
+        <module>fifoScheduler</module>
+        <module>resourceEmptyScheduler</module>
 	</modules>
 </project>

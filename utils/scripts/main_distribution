@@ -168,6 +168,7 @@
     local release_type=$1
 
     # Move built packages to master
+    ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${JENKINS_USER}@${MASTER_VM} rm -rf ${JENKINS_PACKAGES_PATH}
     ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${JENKINS_USER}@${MASTER_VM} mkdir -p ${JENKINS_PACKAGES_PATH}
     scp -r -o StrictHostKeyChecking=no ${package_base_folder}/${distr} ${JENKINS_USER}@${MASTER_VM}:${JENKINS_PACKAGES_PATH}
     if [ $? -ne 0 ]; then

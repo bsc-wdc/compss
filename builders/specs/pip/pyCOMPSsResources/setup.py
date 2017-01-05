@@ -23,12 +23,13 @@ bindings_location = os.path.join('COMPSs', 'Bindings')
 target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
 
 def check_system():
+	return # TEMPORARY!!! REMOVE LATER!!!
         '''
                 Checks that we have a proper python version and a
                 proper OS (i.e: not windows)
         '''
         if sys.version_info[:2] != (2, 7):
-                raise Exception('COMPSs does not support Python version %s', sys.version)
+                raise Exception('COMPSs does not support Python version %s'%sys.version)
         if 'win' in sys.platform:
                 raise Exception('COMPSs does not support Windows')
 
@@ -42,10 +43,7 @@ def check_system():
 '''
 if 'install' in sys.argv[1:]:
 	check_system()
-	try:
-		backend_install(target_path)
-	except:
-		raise Exception('Something went wrong during COMPSs installation process.')
+	backend_install(target_path)
 
 
 '''
@@ -90,7 +88,21 @@ setup (name='pycompss',
 	license='Apache 2.0',
 	platforms=['Linux', 'Mac OS-X'],
 	package_dir={'pycompss':os.path.join('src','pycompss')},
-	packages=['pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
+	packages=[
+		'pycompss',
+		'pycompss.api',
+		'pycompss.runtime',
+		'pycompss.worker',
+		'pycompss.storage',
+		'pycompss.util',
+		'pycompss.util.serialization',
+		'pycompss.api.dummy',
+		'pycompss.functions',
+		'pycompss.matlib',
+		'pycompss.matlib.algebra',
+		'pycompss.matlib.classification',
+		'pycompss.matlib.clustering'
+	],
 	package_data={'' : [os.path.join('log','logging.json'), os.path.join('log','logging.json.debug'), os.path.join('log','logging.json.off'), os.path.join('bin','worker_python.sh')]},
 	ext_modules=[compssmodule])
 

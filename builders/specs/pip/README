@@ -167,7 +167,10 @@ pyCOMPSsResources/setup.py:
 
 pyCOMPSsResources/url:
 	- Repository from the COMPSs installable will be downloaded. The install script will try to
-	  download and untar a COMPSs_$VERSION.tar.gz from that URL. 
+	  download and untar a COMPSs_$VERSION.tar.gz from that URL. There are also some additional url_
+	  files. These contain other possible urls that can be used for debugging purposes.
+	  For example, one may start a local server, put there a customized COMPSs_$VERSION.tar.gz file
+	  and test the installer locally with this new distribution.
 
 An additional file named VERSION.txt will be created (and NOT deleted) by the buildpip script.
 A manual modification of this file will have no effect on future PIP distributable builds
@@ -205,7 +208,6 @@ COMPSs
     │   ├── lots of source code files
     ├── url
     └── VERSION.txt
-
 
 *************************************
 ** Department of Computer Science  **

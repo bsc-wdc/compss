@@ -13,8 +13,7 @@ echo $COMPSS_VERSION > pyCOMPSsResources/VERSION.txt
 
 # create distributable folder 
 mkdir -p pyCOMPSs
-# copy python binding to root folder
-cp -rf ../../../compss/programming_model/bindings/python/* pyCOMPSs/
+
 # copy scripts and other files into the pyCOMPSs directory
 # please, resist the temptation to replace all these lines by
 # cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent

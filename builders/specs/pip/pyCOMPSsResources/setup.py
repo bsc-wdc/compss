@@ -20,7 +20,7 @@ from distutils import log
 '''
 
 bindings_location = os.path.join('COMPSs', 'Bindings')
-target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
+target_path = "/opt"
 
 def check_system():
 	return # TEMPORARY!!! REMOVE LATER!!!
@@ -86,23 +86,6 @@ setup (name='pycompss',
 	],
 	install_requires=['wget'],
 	license='Apache 2.0',
-	platforms=['Linux', 'Mac OS-X'],
-	package_dir={'pycompss':os.path.join('src','pycompss')},
-	packages=[
-		'pycompss',
-		'pycompss.api',
-		'pycompss.runtime',
-		'pycompss.worker',
-		'pycompss.storage',
-		'pycompss.util',
-		'pycompss.util.serialization',
-		'pycompss.api.dummy',
-		'pycompss.functions',
-		'pycompss.matlib',
-		'pycompss.matlib.algebra',
-		'pycompss.matlib.classification',
-		'pycompss.matlib.clustering'
-	],
-	package_data={'' : [os.path.join('log','logging.json'), os.path.join('log','logging.json.debug'), os.path.join('log','logging.json.off'), os.path.join('bin','worker_python.sh')]},
-	ext_modules=[compssmodule])
+	platforms=['Linux', 'Mac OS-X']
+	)
 

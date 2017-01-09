@@ -69,7 +69,7 @@ compssmodule = Extension('compss',
 '''
 	Setup function.
 '''
-setup (name='pycompss',
+setup (name='compss',
 	version=open('VERSION.txt').read().rstrip(),
 	description='Python Binding for COMP Superscalar Runtime',
 	long_description=open('README.txt').read(),

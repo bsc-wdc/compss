@@ -1,7 +1,11 @@
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.storage.Object import SCO
+# from pycompss.storage.Object import SCO
 
+from models import mySO
+
+'''
+# BUG: Check why it can not be defined in the same module -> pickling error.
 class mySO(SCO):
     value = 0
     def __init__(self, v):
@@ -12,7 +16,7 @@ class mySO(SCO):
       
     def put(self, v):
         self.value = v
-
+'''
 
 @task(returns=int)
 def myTask(p):

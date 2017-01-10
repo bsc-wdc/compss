@@ -8,4 +8,10 @@ public class BINARY {
         return -1;
     }
 
+    public static int align(String pFlag, String pMode, String dFlag, String database, String iFlag, String partitionFile, String oFlag,
+            String partitionOutput) {
+
+        return -1;
+    }
+
 }

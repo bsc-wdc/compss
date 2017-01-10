@@ -27,7 +27,7 @@
   error_log="${target_log_folder}/matmul_0${retryNum}.errorlog"
   expectedTime=180s
  
-  binary=${base_app_dir}/binary/matmul
+  binary=${base_app_dir}/bin/matmul
   MSIZE=8
   BSIZE=4
  

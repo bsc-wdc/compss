@@ -22,7 +22,7 @@
   #----------------------------------------------------------------------------------
   #Run application 1 - Test
   echo
-  echo "*** RUNNING PYTHON ARGS KWARGS TEST"
+  echo "*** RUNNING PYTHON PSCOs TEST"
   output_log="${target_log_folder}/python_test_0${retryNum}.outputlog"
   error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"  
   expectedTime=80s

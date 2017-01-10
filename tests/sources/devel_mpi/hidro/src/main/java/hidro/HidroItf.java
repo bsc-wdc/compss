@@ -8,7 +8,7 @@ import integratedtoolkit.types.annotations.task.Binary;
 
 public interface HidroItf {
 	
-	@Binary(binary = "${MATMUL_BINARY}")
+	@Binary(binary = "${HIDRO_BINARY}")
 	void multiplyAccumulative(
 		@Parameter(type = Type.FILE, direction = Direction.INOUT) String file1,
 		@Parameter(type = Type.FILE, direction = Direction.IN) String file2,

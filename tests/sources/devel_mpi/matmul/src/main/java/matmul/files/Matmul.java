@@ -7,7 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
-import binary.BINARY;
+import mpi.MPI;
 
 
 public class Matmul {
@@ -104,7 +104,7 @@ public class Matmul {
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
                 for (int k = 0; k < MSIZE; k++) {
-                    BINARY.multiplyAccumulative(CfileNames[i][j], AfileNames[i][k], BfileNames[k][j], BSIZE);
+                    MPI.multiplyAccumulative(BSIZE, AfileNames[i][k], BfileNames[k][j], CfileNames[i][j]);
                 }
             }
         }

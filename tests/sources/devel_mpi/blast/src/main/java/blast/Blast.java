@@ -151,8 +151,7 @@ public class Blast {
                         UUID index = UUID.randomUUID();
                         String partitionFile = Blast.tmpDir + "seqFile" + index + ".sqf";
                         String partitionOutput = Blast.tmpDir + "resFile" + index + ".result.txt";
-                        // Touch output file
-                        new FileOutputStream(partitionOutput).close();
+
                         // Store fileNames
                         Blast.partialInputs.add(partitionFile);
                         Blast.partialOutputs.add(partitionOutput);
@@ -207,8 +206,13 @@ public class Blast {
         int numAligns = Blast.partialInputs.size();
         Integer[] exitValues = new Integer[numAligns];
         for (int i = 0; i < numAligns; i++) {
-            exitValues[i] = BINARY.align(pFlag, pMode, dFlag, Blast.databasePath, iFlag, Blast.partialInputs.get(i), oFlag,
-                    Blast.partialOutputs.get(i), Blast.commandArgs);
+            if (Blast.commandArgs != null && !Blast.commandArgs.isEmpty()) {
+                exitValues[i] = BINARY.align(pFlag, pMode, dFlag, Blast.databasePath, iFlag, Blast.partialInputs.get(i), oFlag,
+                        Blast.partialOutputs.get(i), Blast.commandArgs);
+            } else {
+                exitValues[i] = BINARY.align(pFlag, pMode, dFlag, Blast.databasePath, iFlag, Blast.partialInputs.get(i), oFlag,
+                        Blast.partialOutputs.get(i));
+            }
         }
 
         if (Blast.debug) {

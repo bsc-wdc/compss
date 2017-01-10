@@ -5,7 +5,8 @@ from pycompss.api.parameter import *
 from models import mySO
 
 '''
-# BUG: Check why it can not be defined in the same module -> pickling error.
+# BUG: Pickling error in the dummy deserialization.
+
 class mySO(SCO):
     value = 0
     def __init__(self, v):

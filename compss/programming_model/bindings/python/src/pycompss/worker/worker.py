@@ -77,9 +77,12 @@ def compss_worker():
 
     args = args[3:]
     pos = 0
+
     values = []
     types = []
     streams = []
+    prefixes = []
+
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)
         pyextrae.event(TASK_EVENTS, PARAMETER_PROCESSING)
@@ -89,15 +92,18 @@ def compss_worker():
     for i in range(0, num_params):
         pType = int(args[pos])
         pStream = int(args[pos + 1])
-        pValue = args[pos + 2]
+        pPrefix = args[pos + 2]
+        pValue = args[pos + 3]
 
         logger.debug("Parameter : " + str(i))
         logger.debug("\t * Type : " + str(pType))
         logger.debug("\t * Stream : " + str(pStream))
+        logger.debug("\t * Prefix : " + str(pPrefix))
         logger.debug("\t * Value: " + str(pValue))
 
         types.append(pType)
         streams.append(pStream)
+        prefixes.append(pPrefix)
 
         if pType == Type.FILE:
             values.append(pValue)
@@ -108,7 +114,7 @@ def compss_worker():
         elif pType == Type.STRING:
             num_substrings = int(pValue)
             aux = ''
-            for j in range(3, num_substrings + 3):
+            for j in range(4, num_substrings + 4):
                 aux += args[pos + j]
                 if j < num_substrings + 1:
                     aux += ' '
@@ -125,6 +131,7 @@ def compss_worker():
                 aux = real_value
             #######
             values.append(aux)
+            logger.debug("\t * Final Value: " + str(aux))
             pos += num_substrings
         elif pType == Type.INT:
             values.append(int(pValue))
@@ -148,7 +155,7 @@ def compss_worker():
         else:
             logger.fatal("Invalid type (%d) for parameter %d" % (ptype, i))
             exit(1)
-        pos += 3
+        pos += 4
 
     if tracing:
         pyextrae.event(TASK_EVENTS, 0)

@@ -12,7 +12,7 @@
   taskTracing=false # Only available with NIO
   taskId=0 # Not used with GAT
 
-  echo "EXEC CMD: $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params"
+  echo "[WORKER_PYTHON.SH] EXEC CMD: $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params"
   python $PYCOMPSS_HOME/pycompss/worker/worker.py $taskTracing $taskId $params
 
   # Exit

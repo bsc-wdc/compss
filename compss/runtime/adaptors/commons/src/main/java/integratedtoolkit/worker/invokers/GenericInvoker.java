@@ -17,9 +17,10 @@ public class GenericInvoker {
     private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 
-    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object[] values, boolean hasReturn, Stream[] streams)
-            throws InvokeExecutionException {
+    public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object[] values, boolean hasReturn, Stream[] streams,
+            String[] prefixes) throws InvokeExecutionException {
 
+        System.out.println("");
         System.out.println("[MPI INVOKER] Begin MPI call to " + mpiBinary);
 
         // Command similar to
@@ -35,7 +36,7 @@ public class GenericInvoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, prefixes, streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_MPI_ARGS + binaryParams.size()];
@@ -68,9 +69,10 @@ public class GenericInvoker {
         return BinaryRunner.executeCMD(cmd, hasReturn, streamValues);
     }
 
-    public static Object invokeOmpSsMethod(String ompssBinary, Object[] values, boolean hasReturn, Stream[] streams)
+    public static Object invokeOmpSsMethod(String ompssBinary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes)
             throws InvokeExecutionException {
 
+        System.out.println("");
         System.out.println("[OMPSS INVOKER] Begin ompss call to " + ompssBinary);
 
         // Get COMPSS ENV VARS
@@ -82,7 +84,7 @@ public class GenericInvoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, prefixes, streamValues);
 
         // Prepare command
         String[] cmd = new String[NUM_BASE_OMPSS_ARGS + binaryParams.size()];
@@ -108,9 +110,10 @@ public class GenericInvoker {
         return BinaryRunner.executeCMD(cmd, hasReturn, streamValues);
     }
 
-    public static Object invokeBinaryMethod(String binary, Object[] values, boolean hasReturn, Stream[] streams)
+    public static Object invokeBinaryMethod(String binary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes)
             throws InvokeExecutionException {
 
+        System.out.println("");
         System.out.println("[BINARY INVOKER] Begin binary call to " + binary);
 
         // Command similar to
@@ -118,10 +121,10 @@ public class GenericInvoker {
 
         // Convert binary parameters and calculate binary-streams redirection
         StreamSTD streamValues = new StreamSTD();
-        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, streamValues);
+        ArrayList<String> binaryParams = BinaryRunner.createCMDParametersFromValues(values, streams, prefixes, streamValues);
 
         // Prepare command
-        String[] cmd = new String[2];//NUM_BASE_BINARY_ARGS + binaryParams.size()];
+        String[] cmd = new String[NUM_BASE_BINARY_ARGS + binaryParams.size()];
         cmd[0] = binary;
         for (int i = 0; i < binaryParams.size(); ++i) {
             cmd[NUM_BASE_BINARY_ARGS + i] = binaryParams.get(i);

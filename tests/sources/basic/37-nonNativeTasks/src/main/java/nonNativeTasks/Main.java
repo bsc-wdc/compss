@@ -41,6 +41,11 @@ public class Main {
         System.out.println("");
         System.out.println("[LOG] Test Return Types");
         testReturnType();
+        
+        // ------------------------------------------------------------------------
+        System.out.println("");
+        System.out.println("[LOG] Test prefixes");
+        testPrefixes();
 
         // ------------------------------------------------------------------------
         System.out.println("");
@@ -96,7 +101,13 @@ public class Main {
         System.out.println("[LOG] EV = " + ev);
     }
     
+    private static void testPrefixes() {
+        // Task without EV
+        System.out.println("[LOG] Launch Prefixes");
+        BINARY.taskWithPrefix(message);
 
+        COMPSs.waitForAllTasks();
+    }  
 
     private static void testInputRedirection() {
         // Task with FILE IN redirection

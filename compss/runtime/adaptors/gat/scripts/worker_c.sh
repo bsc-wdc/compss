@@ -12,14 +12,14 @@
   taskTracing=false # Only available with NIO
   taskId=0 # Not used with GAT
 
-  echo "EXEC CMD: ${app_dir}/worker/worker_c $taskTracing $taskId $params"
+  echo "[WORKER_C.SH] EXEC CMD: ${app_dir}/worker/worker_c $taskTracing $taskId $params"
   exec ${app_dir}/worker/worker_c $taskTracing $taskId $params
 
   # Exit
   if [ $? -eq 0 ]; then
-        exit 0
+    exit 0
   else
-        echo 1>&2 "Task execution failed"
-        exit 7
+    echo 1>&2 "Task execution failed"
+    exit 7
   fi
 

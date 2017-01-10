@@ -13,6 +13,12 @@ public class BINARY {
     }
 
     /*
+     * Simple tasks with prefixes
+     */
+    public static void taskWithPrefix(String message) {
+    }
+
+    /*
      * Tasks with STDIN redirection
      */
     public static void taskSTDINFileRedirection(String message, String fileIn) {

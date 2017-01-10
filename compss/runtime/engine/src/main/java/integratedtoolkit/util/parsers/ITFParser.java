@@ -6,6 +6,7 @@ import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.SchedulerHints;
@@ -102,7 +103,9 @@ public class ITFParser {
         /*
          * Construct signature and check parameters
          */
-        boolean hasStreams = constructSignatureAndCheckParameters(m, hasNonNative, calleeMethodSignature);
+        boolean[] hasAnnotations = constructSignatureAndCheckParameters(m, hasNonNative, calleeMethodSignature);
+        boolean hasStreams = hasAnnotations[0];
+        boolean hasPrefixes = hasAnnotations[1];
         
         /*
          * Check all annotations present at the method for versioning
@@ -113,7 +116,7 @@ public class ITFParser {
         }
         ArrayList<Implementation<?>> implementations = new ArrayList<>();
         ArrayList<String> signatures = new ArrayList<>();
-        checkDefinedImplementations(m, methodId, calleeMethodSignature, hasStreams, implementations, signatures);
+        checkDefinedImplementations(m, methodId, calleeMethodSignature, hasStreams, hasPrefixes, implementations, signatures);
         
         /*
          * Register all implementations
@@ -206,10 +209,11 @@ public class ITFParser {
      * @param calleeMethodSignature
      * @return
      */
-    private static boolean constructSignatureAndCheckParameters(java.lang.reflect.Method m, boolean hasNonNative, 
+    private static boolean[] constructSignatureAndCheckParameters(java.lang.reflect.Method m, boolean hasNonNative, 
             StringBuilder calleeMethodSignature) {
         
         boolean hasStreams = false;
+        boolean hasPrefixes = false; 
         
         String methodName = m.getName();
         boolean hasSTDIN = false;
@@ -254,6 +258,7 @@ public class ITFParser {
                         break;
                 }
                 hasStreams = hasStreams || !par.stream().equals(Stream.UNSPECIFIED);
+                hasPrefixes = hasPrefixes || !par.prefix().equals(Constants.PREFIX_EMTPY);
                 
                 // Check parameter annotation (warnings and errors)
                 checkParameterAnnotation(m, par, i, hasNonNative);
@@ -261,7 +266,8 @@ public class ITFParser {
         }
         calleeMethodSignature.append(")");
         
-        return hasStreams;
+        boolean[] hasAnnotation = {hasStreams, hasPrefixes};
+        return hasAnnotation;
     }
     
     /**
@@ -414,6 +420,7 @@ public class ITFParser {
                                                     Integer methodId,
                                                     StringBuilder calleeMethodSignature,
                                                     boolean hasStreams,
+                                                    boolean hasPrefixes,
                                                     ArrayList<Implementation<?>> implementations, 
                                                     ArrayList<String> signatures) {
         
@@ -441,6 +448,11 @@ public class ITFParser {
             // Warning for ignoring streams
             if (hasStreams) {
                 ErrorManager.warn("Java method " + methodName + " does not support stream annotations. SKIPPING stream annotation");
+            }
+            
+            // Warning for ignoring prefixes
+            if (hasPrefixes) {
+                ErrorManager.warn("Java method " + methodName + " does not support prefix annotations. SKIPPING prefix annotation");
             }
             
             String declaringClass = methodAnnot.declaringClass();

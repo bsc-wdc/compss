@@ -45,7 +45,7 @@
      --resources=${base_app_dir}/resources.xml \
      --debug \
      --comm=$comm \
-     -t \
+     -tg \
      --classpath=${base_app_dir}/schedulers.jar \
      schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
@@ -85,7 +85,7 @@
      --debug \
      --comm=$comm \
      --scheduler=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler \
-     -t \
+     -tg \
      --classpath=${base_app_dir}/schedulers.jar \
      schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

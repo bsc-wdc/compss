@@ -46,6 +46,7 @@ public abstract class Invoker {
     protected final boolean hasReturn;
     protected final Class<?>[] types;
     protected final Stream[] streams;
+    protected final String[] prefixes;
     protected final Object[] values;
     private final String[] renamings;
     private final boolean[] isFile;
@@ -74,6 +75,7 @@ public abstract class Invoker {
         this.types = new Class[this.totalNumberOfParams];
         this.values = new Object[this.totalNumberOfParams];
         this.streams = new Stream[this.numParams];
+        this.prefixes = new String[this.numParams];
         this.renamings = new String[this.numParams];
         this.isFile = new boolean[this.numParams];
         this.canBePSCO = new boolean[this.numParams];
@@ -97,19 +99,24 @@ public abstract class Invoker {
             System.out.print("  * Parameter types:");
             for (int i = 0; i < this.types.length; i++) {
                 System.out.print(" " + this.types[i].getName());
-
             }
-            System.out.println();
+            System.out.println("");
 
             System.out.print("  * Parameter values:");
             for (Object v : this.values) {
                 System.out.print(" " + v);
             }
-            System.out.println();
+            System.out.println("");
             
             System.out.print("  * Parameter streams:");
             for (Stream s : this.streams) {
                 System.out.print(" " + s.name());
+            }
+            System.out.println("");
+            
+            System.out.print("  * Parameter prefixes:");
+            for (String s : this.prefixes) {
+                System.out.print(" " + s);
             }
             System.out.println("");
         }
@@ -131,6 +138,7 @@ public abstract class Invoker {
     private void processParameter(NIOParam np, int i) throws JobExecutionException {
         // We need to use wrapper classes for basic types, reflection will unwrap automatically
         this.streams[i] = np.getStream();
+        this.prefixes[i] = np.getPrefix();
         
         switch (np.getType()) {
             case BOOLEAN_T:

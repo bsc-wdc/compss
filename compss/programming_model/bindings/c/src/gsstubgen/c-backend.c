@@ -623,7 +623,6 @@ static void generate_worker_case(FILE *outFile, function *func)
 {
   argument *arg;
   int j = 0;
-  int i = 0;
   int is_first_arg = 1;
   
   char *func_name = strdup(func->name);
@@ -708,58 +707,59 @@ static void generate_worker_case(FILE *outFile, function *func)
     if (arg->dir == in_dir) {
       // arg_offset -> type
       // arg_offset+1 -> stream
-      // arg_offset+2 -> value
+      // arg_offset+2 -> prefix
+      // arg_offset+3 -> value
       
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = argv[arg_offset][0];\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case boolean_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = argv[arg_offset]? 1 : 0;\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case short_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case long_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = atol(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case longlong_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = atoll(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case int_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = atoi(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case float_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = strtof(argv[arg_offset], NULL);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case double_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = strtod(argv[arg_offset], NULL);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = strdup(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case string_dt:
 	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t int %s_nwords = atoi(argv[arg_offset]);\n", arg->name);
           //fprintf(outFile, "\t\t\t printf(\"String Num Words: %%d\\n\", %s_nwords);\n", arg->name);
 	  fprintf(outFile, "\t\t\t \n");
@@ -781,7 +781,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "\t\t\t }\n\n");
 	  break;
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -808,7 +808,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case float_dt:
 	case double_dt:
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -818,7 +818,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  break;
 	case string_dt:
 	case wstring_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
@@ -829,7 +829,7 @@ static void generate_worker_case(FILE *outFile, function *func)
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case file_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 2;\n");
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t %s = strdup(argv[arg_offset]);\n", arg->name);
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
@@ -947,8 +947,6 @@ static void generate_worker_case(FILE *outFile, function *func)
   is_first_arg = 1;
   arg = func->first_argument;
   while (arg != NULL) {
-    i = j*4;
-    
     if (arg->dir == out_dir || arg->dir == inout_dir) {
       switch (arg->type) {
 	case char_dt:

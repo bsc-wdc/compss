@@ -426,7 +426,8 @@ public class ITAppEditor extends ExprEditor {
             toPrepend.insert(0, infoParam.getToPrepend());
             toAppend.append(infoParam.getType()).append(",");
             toAppend.append(infoParam.getDirection()).append(",");
-            toAppend.append(infoParam.getStream());
+            toAppend.append(infoParam.getStream()).append(",");
+            toAppend.append(infoParam.getPrefix());
 
             if (i < paramAnnot.length - 1) {
                 toAppend.append(",");
@@ -461,6 +462,7 @@ public class ITAppEditor extends ExprEditor {
         Type annotType = par.type();
         Direction paramDirection = par.direction();
         Stream paramStream = par.stream();
+        String paramPrefix = par.prefix();
         
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
@@ -513,7 +515,8 @@ public class ITAppEditor extends ExprEditor {
                                                                     infoToPrepend.toString(), 
                                                                     type, 
                                                                     paramDirection,
-                                                                    paramStream);
+                                                                    paramStream, 
+                                                                    paramPrefix);
         return infoParam;
     }
 
@@ -558,6 +561,8 @@ public class ITAppEditor extends ExprEditor {
             
             // Add binary stream
             targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
+            // Add emtpy prefix
+            targetObj.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
         }
 
         return targetObj.toString();
@@ -589,7 +594,8 @@ public class ITAppEditor extends ExprEditor {
                  */
                 String tempRetVar = "ret" + System.nanoTime();
                 infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
-                    .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
+                    .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED)
+                    .append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -658,6 +664,7 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append("$_,").append(DATA_TYPES + ".OBJECT_T");
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
+                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
             } else {
                 /*
                  * ********************************* 
@@ -698,6 +705,8 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append(',').append(DATA_DIRECTION + ".OUT");
                 // Add stream binary
                 infoToAppend.append(',').append(DATA_STREAM + ".UNSPECIFIED");
+                // Add empty prefix
+                infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
             }
         }
 
@@ -945,14 +954,16 @@ public class ITAppEditor extends ExprEditor {
         private final String type;
         private final Direction direction;
         private final Stream stream;
+        private final String prefix;
 
 
-        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream) {
+        public ParameterInformation(String toAppend, String toPrepend, String type, Direction direction, Stream stream, String prefix) {
             this.toAppend = toAppend;
             this.toPrepend = toPrepend;
             this.type = type;
             this.direction = direction;
             this.stream = stream;
+            this.prefix = prefix;
         }
 
         public String getToAppend() {
@@ -973,6 +984,10 @@ public class ITAppEditor extends ExprEditor {
         
         public String getStream() {
             return DATA_STREAM + "." + this.stream.name();
+        }
+        
+        public String getPrefix() {
+            return "\"" + this.prefix + "\"";
         }
 
     }

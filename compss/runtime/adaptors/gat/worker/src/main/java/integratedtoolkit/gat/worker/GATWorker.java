@@ -58,6 +58,7 @@ public class GATWorker {
 
     private static Class<?> types[];
     private static Stream streams[];
+    private static String prefixes[];
     private static Object values[];
     private static boolean isFile[];
     private static boolean mustWrite[];
@@ -203,6 +204,7 @@ public class GATWorker {
         }
 
         GATWorker.streams = new Stream[GATWorker.numParams];
+        GATWorker.prefixes = new String[GATWorker.numParams];
         GATWorker.isFile = new boolean[GATWorker.numParams];
         GATWorker.mustWrite = new boolean[GATWorker.numParams];
         GATWorker.renamings = new String[GATWorker.numParams];
@@ -224,9 +226,16 @@ public class GATWorker {
             if (argStream_index >= dataStream.length) {
                 ErrorManager.error(WARN_UNSUPPORTED_STREAM + argStream_index);
             }
-            streams[i] = dataStream[argStream_index];
+            GATWorker.streams[i] = dataStream[argStream_index];
             argPosition++;
-
+            
+            String prefix = args[argPosition];
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = Constants.PREFIX_EMTPY;
+            }
+            GATWorker.prefixes[i] = prefix;
+            argPosition++;
+            
             switch (argType) {
                 case FILE_T:
                     GATWorker.types[i] = String.class;
@@ -300,8 +309,8 @@ public class GATWorker {
 
         // Retrieve return renaming if existing
         if (GATWorker.hasReturn) {
-            // +1 = StreamType, +2 = value
-            GATWorker.retRenaming = args[argPosition + 2];
+            // +1 = StreamType, +2 = prefix, +3 = value
+            GATWorker.retRenaming = args[argPosition + 3];
         }
     }
 
@@ -433,7 +442,9 @@ public class GATWorker {
      */
     private static void logArguments() {
         // Print arguments information
-        System.out.println("WORKER - Parameters of execution:");
+        System.out.println("");
+        System.out.println("[GAT WORKER] ------------------------------------");
+        System.out.println("[GAT WORKER] Parameters of execution:");
         for (int j = 0; j < GATWorker.methodDefinition.length; ++j) {
             System.out.println("  * Method Description " + j + ": " + GATWorker.methodDefinition[j]);
         }
@@ -489,9 +500,9 @@ public class GATWorker {
         }
 
         if (GATWorker.debug) {
-            System.out.println("HOSTNAMES: " + hostnamesSTR.toString());
-            System.out.println("NUM_NODES: " + GATWorker.numNodes);
-            System.out.println("CPU_COMPUTING_UNITS: " + GATWorker.cus);
+            System.out.println("  * HOSTNAMES: " + hostnamesSTR.toString());
+            System.out.println("  * NUM_SLAVE_NODES: " + GATWorker.numNodes);
+            System.out.println("  * CPU_COMPUTING_UNITS: " + GATWorker.cus);
         }
 
         System.setProperty(Constants.COMPSS_HOSTNAMES, hostnamesSTR.toString());
@@ -504,6 +515,10 @@ public class GATWorker {
      * 
      */
     private static void invokeMethod() {
+        System.out.println("");
+        System.out.println("[GAT WORKER] ------------------------------------");
+        System.out.println("[GAT WORKER] Invoking task method");
+        
         GATWorker.retValue = null;
 
         switch (GATWorker.methodType) {
@@ -513,21 +528,24 @@ public class GATWorker {
                 break;
             case MPI:
                 GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams);
+                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
                 break;
             case OMPSS:
                 GATWorker.retValue = Invokers.invokeOmpSsMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
                 break;
             case OPENCL:
                 GATWorker.retValue = Invokers.invokeOpenCLMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
                 break;
             case BINARY:
                 GATWorker.retValue = Invokers.invokeBinaryMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
                 break;
         }
+        
+        System.out.println("");
+        System.out.println("[GAT WORKER] ------------------------------------");
     }
 
     /**

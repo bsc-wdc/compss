@@ -32,7 +32,7 @@ public class BinaryInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         logger.info("Invoked " + this.binary + " in " + this.nw.getHostName());
         try {
-            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.hasReturn, this.streams);
+            return GenericInvoker.invokeBinaryMethod(this.binary, this.values, this.hasReturn, this.streams, this.prefixes);
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

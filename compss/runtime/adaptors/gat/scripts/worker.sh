@@ -24,14 +24,15 @@
   sandbox=$(mktemp -d -p $workingDir)
   cd $workingDir
 
-  echo "** Start worker.sh"
-  echo " - Lang       = $lang"
-  echo " - WorkingDir = $workingDir"
-  echo " - LibPath    = $libPath"
+  echo "[WORKER.SH] Starting GAT Worker"
+  echo "[WORKER.SH]    - Lang       = $lang"
+  echo "[WORKER.SH]    - WorkingDir = $workingDir"
+  echo "[WORKER.SH]    - LibPath    = $libPath"
 
   #-------------------------------------
   # Remove obsolete files
   #-------------------------------------
+  echo "[WORKER.SH] Removing $rmfilesNum obsolete files"
   for ((i=0;i<$rmfilesNum;i++)); do
     echo $1
     rm -f $1
@@ -51,7 +52,6 @@
   if [ "$libPath" != "null" ]; then
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
   fi
-
 
   #-------------------------------------
   # Trace start event if needed
@@ -74,16 +74,18 @@
   # Add support for non-native tasks
   methodType=$6
   if [ "$methodType" != "METHOD" ]; then
-    echo "Non-Native task. Switch to java invoker"
+    echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
     lang=java
   fi
 
   cd $sandbox
   # Run the task with the language-dependent script
-  echo "** Starting language $lang dependant script"
+  echo " "
+  echo "[WORKER.SH] Starting language $lang dependant script"
   $scriptDir/worker_$lang.sh $@
   endCode=$?
-  echo "** EndStatus = $endCode"
+  echo " "
+  echo "[WORKER.SH] EndStatus = $endCode"
   cd $workingDir
 
   #-------------------------------------

@@ -28,12 +28,13 @@ import integratedtoolkit.types.annotations.parameter.DataType;
 
 
 public class NIOJob extends Job<NIOWorkerNode> {
-    
+
     private final List<String> slaveWorkersNodeNames;
 
-    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
-            List<String> slaveWorkersNodeNames, JobListener listener) {
-        
+
+    public NIOJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+
         super(taskId, taskParams, impl, res, listener);
         this.slaveWorkersNodeNames = slaveWorkersNodeNames;
     }
@@ -62,17 +63,17 @@ public class NIOJob extends Job<NIOWorkerNode> {
 
     public NIOTask prepareJob() {
         AbstractMethodImplementation absMethodImpl = (AbstractMethodImplementation) this.impl;
-        
+
         // If it is a native method, check that methodname is defined (otherwise define it from job parameters)
         // This is a workarround for Python
         if (absMethodImpl.getMethodType().equals(MethodType.METHOD)) {
             MethodImplementation mImpl = (MethodImplementation) absMethodImpl;
             String methodName = mImpl.getAlternativeMethodName();
-            if (methodName == null || methodName.isEmpty()){
+            if (methodName == null || methodName.isEmpty()) {
                 mImpl.setAlternativeMethodName(taskParams.getName());
             }
         }
-        
+
         boolean hasTarget = taskParams.hasTargetObject();
         boolean hasReturn = taskParams.hasReturnValue();
         LinkedList<NIOParam> params = addParams();
@@ -83,21 +84,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
         }
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(lang, 
-                                debug,
-                                absMethodImpl,
-                                hasTarget,
-                                hasReturn,
-                                params, 
-                                numParams, 
-                                reqs,
-                                this.slaveWorkersNodeNames,
-                                this.taskId, 
-                                this.taskParams.getId(),
-                                this.jobId, 
-                                this.history, 
-                                this.transferId
-                      );
+        NIOTask nt = new NIOTask(lang, debug, absMethodImpl, hasTarget, hasReturn, params, numParams, reqs, this.slaveWorkersNodeNames,
+                this.taskId, this.taskParams.getId(), this.jobId, this.history, this.transferId);
 
         return nt;
     }
@@ -128,7 +116,8 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     }
 
                     boolean writeFinalValue = !(dAccId instanceof RAccessId); // Only store W and RW
-                    np = new NIOParam(type, param.getStream(), preserveSourceData, writeFinalValue, value, (Data) dPar.getDataSource());
+                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value,
+                            (Data) dPar.getDataSource());
                     break;
 
                 default:
@@ -136,7 +125,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     value = btParB.getValue();
                     preserveSourceData = false; // Basic parameters are not preserved on Worker
                     writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(type, param.getStream(), preserveSourceData, writeFinalValue, value, null);
+                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value, null);
                     break;
             }
 

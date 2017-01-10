@@ -19,8 +19,8 @@ public class FileParameter extends DependencyParameter {
     private DataLocation location;
 
 
-    public FileParameter(Direction direction, Stream stream, DataLocation location) {
-        super(DataType.FILE_T, direction, stream);
+    public FileParameter(Direction direction, Stream stream, String prefix, DataLocation location) {
+        super(DataType.FILE_T, direction, stream, prefix);
         this.location = location;
     }
 

@@ -40,20 +40,30 @@
     fi
   done
   
-  # Check STDIN redirection from jobs (3 and 4)
-  msg=$'Hello World\nGood\nBye'
-  outJob3=$(cat ${target_log_folder}/jobs/job3_NEW.out | grep -A 3 "CMD OUTPUT" | tail -n 3)
+  # Check prefix message
+  msg="--message=Hello World"
+  outJob3=$(cat ${target_log_folder}/jobs/job3_NEW.out | grep -A 1 "CMD OUTPUT" | tail -n 1)
   if [ "${outJob3}" != "$msg" ]; then
-    echo "ERROR: Invalid input redirection" | tee -a ${output_file}
+    echo "ERROR: Invalid prefix input redirection" | tee -a ${output_file}
     echo "  GOT: $outJob3" | tee -a ${output_file}
     echo "  EXPECTED: $msg" | tee -a ${output_file}
     exit 1
   fi
   
+  # Check STDIN redirection from jobs (4 and 5)
+  msg=$'Hello World\nGood\nBye'
   outJob4=$(cat ${target_log_folder}/jobs/job4_NEW.out | grep -A 3 "CMD OUTPUT" | tail -n 3)
   if [ "${outJob4}" != "$msg" ]; then
     echo "ERROR: Invalid input redirection" | tee -a ${output_file}
     echo "  GOT: $outJob4" | tee -a ${output_file}
+    echo "  EXPECTED: $msg" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  outJob5=$(cat ${target_log_folder}/jobs/job5_NEW.out | grep -A 3 "CMD OUTPUT" | tail -n 3)
+  if [ "${outJob5}" != "$msg" ]; then
+    echo "ERROR: Invalid input redirection" | tee -a ${output_file}
+    echo "  GOT: $outJob5" | tee -a ${output_file}
     echo "  EXPECTED: $msg" | tee -a ${output_file}
     exit 1
   fi

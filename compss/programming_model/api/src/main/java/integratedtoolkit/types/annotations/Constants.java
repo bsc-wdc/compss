@@ -72,6 +72,10 @@ public class Constants {
      */
     public static final String COMPSS_NUM_THREADS = "COMPSS_NUM_THREADS";
 
+    /**
+     * Empty prefix for parameters
+     */
+    public static final String PREFIX_EMTPY = "null";
 
     // Private constructor to avoid instantiation
     private Constants() {

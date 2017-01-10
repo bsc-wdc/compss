@@ -16,7 +16,6 @@ import binary.BINARY;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import blast.BlastImpl;
 import blast.exceptions.BlastException;
@@ -28,7 +27,6 @@ public class Blast {
 
     private static boolean debug;
     private static String databasePath;
-    private static String databaseName;
     private static String inputFileName;
     private static int numFragments;
     private static String tmpDir;
@@ -53,13 +51,13 @@ public class Blast {
         try {
             // Split sequence input file
             splitSequenceFile();
-    
+
             // Submit tasks
             alignSequences();
-    
+
             // Assembly process
             String lastMerge = assembleSequences();
-    
+
             // Move result to expected output file
             moveResult(lastMerge);
         } catch (BlastException be) {
@@ -85,17 +83,9 @@ public class Blast {
         Blast.tmpDir = args[4];
         Blast.outputFileName = args[5];
 
-        commandArgs = " ";
+        Blast.commandArgs = "";
         for (int i = 6; i < args.length; i++) {
-            commandArgs += args[i] + " ";
-        }
-
-        // Parsing database name
-        // Splitting the files model path string using a forward slash as delimiter
-        StringTokenizer st = new StringTokenizer(Blast.databasePath, "/");
-        Blast.databaseName = null;
-        while (st.hasMoreElements()) {
-            Blast.databaseName = st.nextToken();
+            Blast.commandArgs += args[i] + " ";
         }
     }
 
@@ -107,7 +97,6 @@ public class Blast {
         System.out.println("- Blast binary: " + System.getenv(ENV_BLAST_BINARY));
         System.out.println("- Debug: " + Blast.debug);
         System.out.println("- Database Name with Path: " + Blast.databasePath);
-        System.out.println("- Database Name: " + Blast.databaseName);
         System.out.println("- Input Sequences File: " + Blast.inputFileName);
         System.out.println("- Number of expected fragments: " + Blast.numFragments);
         System.out.println("- Temporary Directory: " + Blast.tmpDir);
@@ -118,7 +107,7 @@ public class Blast {
 
     private static void splitSequenceFile() throws BlastException {
         System.out.println("Split sequence file");
-        
+
         // Read number of different sequences
         int nsequences = 0;
         try (BufferedReader bf = new BufferedReader(new FileReader(Blast.inputFileName))) {
@@ -189,8 +178,8 @@ public class Blast {
                     throw new BlastException(msg, ioe);
                 }
             }
-        }        
-        
+        }
+
         if (Blast.debug) {
             System.out.println("Input Files are: ");
             for (int i = 0; i < Blast.partialInputs.size(); ++i) {
@@ -210,15 +199,16 @@ public class Blast {
         System.out.println("");
         System.out.println("Aligning Sequences:");
 
-        String pParam = "-p blastx";
-        String dbParam = "-d " + Blast.databaseName;
-        String inputFlag = "-i ";
-        String outputFlag = "-o";
+        String pFlag = "-p";
+        String pMode = "blastx";
+        String dFlag = "-d";
+        String iFlag = "-i";
+        String oFlag = "-o";
         int numAligns = Blast.partialInputs.size();
         Integer[] exitValues = new Integer[numAligns];
         for (int i = 0; i < numAligns; i++) {
-            exitValues[i] = BINARY.align(pParam, dbParam, inputFlag, Blast.partialInputs.get(i), outputFlag, Blast.partialOutputs.get(i),
-                    Blast.commandArgs);
+            exitValues[i] = BINARY.align(pFlag, pMode, dFlag, Blast.databasePath, iFlag, Blast.partialInputs.get(i), oFlag,
+                    Blast.partialOutputs.get(i), Blast.commandArgs);
         }
 
         if (Blast.debug) {
@@ -259,7 +249,7 @@ public class Blast {
                 q.add(x);
             }
         }
-        
+
         return Blast.partialOutputs.get(0);
     }
 

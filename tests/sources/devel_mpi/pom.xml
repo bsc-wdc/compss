@@ -32,8 +32,8 @@
     <modules>
         <!-- BLOCK 1 -->
         <module>blast</module>
-	<!-- <module>matmul</module> -->
-	<!-- <module>cgpop</module> -->
-	<!-- <module>hidro</module> -->
+	<module>matmul</module>
+	<module>cgpop</module>
+	<module>hidro</module>
     </modules>
 </project>

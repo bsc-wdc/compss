@@ -242,6 +242,7 @@ public abstract class ExternalExecutor extends Executor {
             DataType type = np.getType();
             lArgs.add(Integer.toString(type.ordinal()));
             lArgs.add(Integer.toString(np.getStream().ordinal()));
+            lArgs.add(np.getPrefix());
             switch (type) {
                 case FILE_T:
                     lArgs.add(np.getValue().toString());

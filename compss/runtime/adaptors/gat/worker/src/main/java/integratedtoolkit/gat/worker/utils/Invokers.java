@@ -41,11 +41,11 @@ public class Invokers {
     }
 
     public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Object[] values, boolean hasReturn,
-            Stream[] streams) {
+            Stream[] streams, String[] prefixes) {
 
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams);
+            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams, prefixes);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -53,10 +53,11 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
+    public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
+            String[] prefixes) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams);
+            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams, prefixes);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -64,16 +65,18 @@ public class Invokers {
         return retValue;
     }
 
-    public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
+    public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, boolean hasReturn, Stream[] streams,
+            String[] prefixes) {
         ErrorManager.error("ERROR: OpenCL is not supported");
 
         return null;
     }
 
-    public static Object invokeBinaryMethod(String binary, Object target, Object[] values, boolean hasReturn, Stream[] streams) {
+    public static Object invokeBinaryMethod(String binary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
+            String[] prefixes) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams);
+            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams, prefixes);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }

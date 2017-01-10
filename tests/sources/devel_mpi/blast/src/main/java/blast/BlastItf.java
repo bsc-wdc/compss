@@ -12,15 +12,17 @@ public interface BlastItf {
     
     @Binary(binary = "${BLAST_BINARY}")
     int align(
-        @Parameter(type = Type.STRING, direction = Direction.IN) String pParam,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String dbParam,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String inputFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String pFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String pMode,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String dFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String database,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String iFlag,
         @Parameter(type = Type.FILE, direction = Direction.IN) String partitionFile,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String outputFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String partitionOutput,
         @Parameter(type = Type.STRING, direction = Direction.IN) String extraCMDArgs
     );
-
+    
 	@Method(declaringClass = "blast.BlastImpl")
 	@Constraints(computingUnits = "2")
 	void assemblyPartitions(

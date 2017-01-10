@@ -40,4 +40,11 @@ public @interface Parameter {
      */
     Stream stream() default Stream.UNSPECIFIED;
 
+    /**
+     * Returns the prefix of the parameter
+     * 
+     * @return the prefix of the parameter
+     */
+    String prefix() default Constants.PREFIX_EMTPY;
+
 }

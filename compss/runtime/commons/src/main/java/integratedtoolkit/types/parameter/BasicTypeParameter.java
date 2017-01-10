@@ -28,8 +28,8 @@ public class BasicTypeParameter extends Parameter {
     private Object value;
 
 
-    public BasicTypeParameter(DataType type, Direction direction, Stream stream, Object value) {
-        super(type, direction, stream);
+    public BasicTypeParameter(DataType type, Direction direction, Stream stream, String prefix, Object value) {
+        super(type, direction, stream, prefix);
         this.value = value;
     }
 

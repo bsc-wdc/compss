@@ -45,6 +45,8 @@ jobject jobjParStreamSTDOUT;    /* Instance of the integratedtoolkit.types.annot
 jobject jobjParStreamSTDERR;    /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
 jobject jobjParStreamUNSPECIFIED; /* Instance of the integratedtoolkit.types.annotations.parameter.Stream class */
 
+jstring jobjParPrefixEMPTY;     /* Instance of the integratedtoolkit.types.annotations.Constants.PREFIX_EMPTY */
+
 jclass clsObject; 		/*  java.lang.Object class */
 jmethodID midObjCon; 		/* ID of the java.lang.Object class constructor method */
 
@@ -281,7 +283,10 @@ void init_jni_types() {
     env->ExceptionDescribe();
     exit(0);
   }
-  
+
+  // Parameter prefix empty
+  jobjParPrefixEMPTY = env->NewStringUTF("null");
+
   // Parameter classes
   clsObject = env->FindClass("java/lang/Object");
   if (env->ExceptionOccurred()) {
@@ -368,7 +373,7 @@ void init_jni_types() {
 
 void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   // params is of the form:     value type direction
-  // jobjOBJArr is of the form: value type direction stream
+  // jobjOBJArr is of the form: value type direction stream prefix
  
   debug_printf("[   BINDING]  -  @process_param\n");
  
@@ -376,7 +381,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
   int parType = *(int*)params[3*i + 1];
   int parDirect = *(int*)params[3*i + 2];
 
-  int pv = 4*i, pt = 4*i + 1, pd = 4*i + 2, ps = 4*i + 3;
+  int pv = 5*i, pt = 5*i + 1, pd = 5*i + 2, ps = 5*i + 3, pp = 5*i + 4;
   
   jclass clsParType = NULL; /* integratedtoolkit.types.annotations.parameter.DataType class */
   clsParType = env->FindClass("integratedtoolkit/types/annotations/parameter/DataType");
@@ -578,6 +583,9 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
 
   // Add param stream
   env->SetObjectArrayElement(jobjOBJArr, ps, jobjParStreamUNSPECIFIED);
+
+  // Add param prefix
+  env->SetObjectArrayElement(jobjOBJArr, pp, jobjParPrefixEMPTY);
 }
 
 // API functions
@@ -726,7 +734,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   bool _has_target = false;
   if (has_target != 0) _has_target = true;
   
-  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*4, clsObject, env->NewObject(clsObject,midObjCon));
+  jobjOBJArr = (jobjectArray)env->NewObjectArray(num_params*5, clsObject, env->NewObject(clsObject,midObjCon));
   
   for (int i = 0; i < num_params; i++) {
     debug_printf("[   BINDING]  -  @GS_ExecuteTask  -  Processing pos %d\n", i);

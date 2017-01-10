@@ -23,6 +23,7 @@ import org.gridlab.gat.resources.ResourceDescription;
 import org.gridlab.gat.resources.SoftwareDescription;
 
 import integratedtoolkit.ITConstants;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
@@ -363,6 +364,12 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             DataType type = param.getType();
             lArgs.add(Integer.toString(type.ordinal()));
             lArgs.add(Integer.toString(param.getStream().ordinal()));
+            
+            String prefix = param.getPrefix();
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = Constants.PREFIX_EMTPY;
+            }
+            lArgs.add(param.getPrefix());
 
             switch (type) {
                 case FILE_T:

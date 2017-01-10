@@ -31,9 +31,9 @@
 
     # Log status if needed
     if [ "$debug" == "true" ]; then
-      echo "app_dir     $app_dir"
-      echo "classpath   $cp"
-      echo "pythonpath  $pythonpath"
+      echo "[WORKER_COMMONS.SH] - app_dir     $app_dir"
+      echo "[WORKER_COMMONS.SH] - classpath   $cp"
+      echo "[WORKER_COMMONS.SH] - pythonpath  $pythonpath"
     fi
   }
 

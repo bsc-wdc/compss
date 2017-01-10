@@ -1,5 +1,6 @@
 package integratedtoolkit.types.parameter;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -18,12 +19,18 @@ public abstract class Parameter implements Serializable {
     private DataType type;
     private final Direction direction;
     private final Stream stream;
+    private final String prefix;
 
 
-    public Parameter(DataType type, Direction direction, Stream stream) {
+    public Parameter(DataType type, Direction direction, Stream stream, String prefix) {
         this.type = type;
         this.direction = direction;
         this.stream = stream;
+        if (prefix == null || prefix.isEmpty()) {
+            this.prefix = Constants.PREFIX_EMTPY;
+        } else { 
+            this.prefix = prefix;
+        }
     }
 
     public DataType getType() {
@@ -40,6 +47,10 @@ public abstract class Parameter implements Serializable {
 
     public Stream getStream() {
         return this.stream;
+    }
+    
+    public String getPrefix() {
+        return this.prefix;
     }
 
 }

@@ -17,8 +17,8 @@ public class ObjectParameter extends DependencyParameter {
     private Object value;
 
 
-    public ObjectParameter(Direction direction, Stream stream, Object value, int hashCode) {
-        super(DataType.OBJECT_T, direction, stream);
+    public ObjectParameter(Direction direction, Stream stream, String prefix, Object value, int hashCode) {
+        super(DataType.OBJECT_T, direction, stream, prefix);
         this.value = value;
         this.hashCode = hashCode;
     }

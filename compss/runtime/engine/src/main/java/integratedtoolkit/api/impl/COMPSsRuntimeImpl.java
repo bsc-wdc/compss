@@ -851,6 +851,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             DataType type = (DataType) parameters[i + 1];
             Direction direction = (Direction) parameters[i + 2];
             Stream stream = (Stream) parameters[i + 3];
+            String prefix = (String) parameters[i + 4];
 
             if (logger.isDebugEnabled()) {
                 logger.debug("  Parameter " + (npar + 1) + " has type " + type.name());
@@ -865,13 +866,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         logger.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
-                    pars[npar] = new FileParameter(direction, stream, location);
+                    pars[npar] = new FileParameter(direction, stream, prefix, location);
                     break;
 
                 case PSCO_T:
                 case OBJECT_T:                    
                     pars[npar] = new ObjectParameter(direction, 
-                                                        stream, 
+                                                        stream,
+                                                        prefix,
                                                         parameters[i], 
                                                         oReg.newObjectParameter(parameters[i]) // hashCode
                                                         ); 
@@ -880,6 +882,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 case EXTERNAL_PSCO_T:
                     pars[npar] = new ExternalObjectParameter(direction, 
                                                         stream, 
+                                                        prefix,
                                                         parameters[i], 
                                                         oReg.newObjectParameter(parameters[i]) // hashCode
                                                         );
@@ -893,10 +896,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                         logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar 
                                 + " is a basic type, therefore it must have IN direction");
                     }
-                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, parameters[i]);
+                    pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
                     break;
             }
-            i += 4;
+            i += 5;
         }
 
         return pars;

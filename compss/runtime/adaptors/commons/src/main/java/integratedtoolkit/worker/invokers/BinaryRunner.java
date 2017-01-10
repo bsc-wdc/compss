@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.Stream;
 
 
@@ -30,8 +31,8 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, StreamSTD streamValues) 
-            throws InvokeExecutionException {
+    public static ArrayList<String> createCMDParametersFromValues(Object[] values, Stream[] paramStreams, String[] prefixes,
+            StreamSTD streamValues) throws InvokeExecutionException {
 
         ArrayList<String> binaryParams = new ArrayList<>();
         for (int i = 0; i < values.length; ++i) {
@@ -48,6 +49,9 @@ public class BinaryRunner {
                 case UNSPECIFIED:
                     if (values[i] != null && values[i].getClass().isArray()) {
                         try {
+                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                                binaryParams.add(prefixes[i]);
+                            }
                             binaryParams.addAll(serializeArrayParam(values[i]));
                         } catch (Exception e) {
                             // Exception serializing to string the object
@@ -55,6 +59,9 @@ public class BinaryRunner {
                         }
                     } else if (values[i] != null && values[i] instanceof Collection<?>) {
                         try {
+                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                                binaryParams.add(prefixes[i]);
+                            }
                             binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
                         } catch (Exception e) {
                             // Exception serializing to string the object
@@ -62,7 +69,11 @@ public class BinaryRunner {
                         }
                     } else {
                         // The value can be serialized to string directly
-                        binaryParams.add(String.valueOf(values[i]));
+                        if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                            binaryParams.add(prefixes[i] + String.valueOf(values[i]));
+                        } else {
+                            binaryParams.add(String.valueOf(values[i]));
+                        }
                     }
             }
         }
@@ -82,6 +93,7 @@ public class BinaryRunner {
     public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues) throws InvokeExecutionException {
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
+
         String fileInPath = streamValues.getStdIn();
         if (fileInPath != null) {
             builder.redirectInput(new File(fileInPath));
@@ -102,7 +114,7 @@ public class BinaryRunner {
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
-            
+
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] Waiting for binary completion");
             exitValue = process.waitFor();
@@ -117,7 +129,7 @@ public class BinaryRunner {
         return hasReturn ? exitValue : null;
     }
 
-    private static void logBinaryExecution(Process process, int exitValue, String fileOutPath, String fileErrPath) 
+    private static void logBinaryExecution(Process process, int exitValue, String fileOutPath, String fileErrPath)
             throws InvokeExecutionException {
 
         // Print all process execution information

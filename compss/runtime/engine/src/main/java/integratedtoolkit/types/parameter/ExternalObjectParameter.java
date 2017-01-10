@@ -17,14 +17,8 @@ public class ExternalObjectParameter extends DependencyParameter {
     private Object value;
 
 
-    public ExternalObjectParameter(Direction direction, Stream stream, Object value, int hashCode) {
-        super(DataType.EXTERNAL_PSCO_T, direction, stream);
-        this.value = value;
-        this.hashCode = hashCode;
-    }
-    
-    public ExternalObjectParameter(DataType type, Direction direction, Stream stream, Object value, int hashCode) {
-        super(type, direction, stream);
+    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, Object value, int hashCode) {
+        super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix);
         this.value = value;
         this.hashCode = hashCode;
     }

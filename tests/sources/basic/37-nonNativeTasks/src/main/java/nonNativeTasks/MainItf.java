@@ -21,6 +21,14 @@ public interface MainItf {
     int simpleTask2(
         @Parameter(type = Type.STRING, direction = Direction.IN) String message
     );
+    
+    /*
+     * Simple tasks with prefixes
+     */
+    @Binary(binary = "${OUT_ERR_BINARY}")
+    void taskWithPrefix(
+        @Parameter(type = Type.STRING, direction = Direction.IN, prefix="--message=") String message
+    );
 
     /*
      * Tasks with STDIN redirection

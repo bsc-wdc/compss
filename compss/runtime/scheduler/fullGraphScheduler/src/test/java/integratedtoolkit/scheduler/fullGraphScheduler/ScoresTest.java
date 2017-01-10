@@ -153,10 +153,10 @@ public class ScoresTest {
         DataInstanceId d2v2 = new DataInstanceId(2, 2);
         Comm.registerData(d2v2.getRenaming());
 
-        DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED);
+        DependencyParameter dpD1V1 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED, Constants.PREFIX_EMTPY);
         dpD1V1.setDataAccessId(new RAccessId(1, 1));
 
-        DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED);
+        DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED, Constants.PREFIX_EMTPY);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
         TaskDescription params = new TaskDescription("", "", false, Constants.SINGLE_NODE, false, false, false, 

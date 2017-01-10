@@ -1,0 +1,9 @@
+include backend.py
+
+include LICENSE.txt
+include VERSION.txt
+include compssenv
+include url
+
+global-exclude *.pyc
+global-exclude *.class 

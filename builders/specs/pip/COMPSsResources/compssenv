@@ -1,0 +1,19 @@
+if [ "$EUID" -eq 0 ]; then
+
+	HAVE_COMPSS=$(python##VERSION## -m pip freeze | grep ^compss)
+
+	if [ -z "$HAVE_COMPSS" ]; then
+		rm -f ##SITE_PACKAGES##/pycompss
+		rm -f ##SITE_PACKAGES##/compss.so
+		rm -rf ##COMPSS_PATH##
+		rm /etc/profile.d/compss.sh
+		exit 0
+	fi
+
+fi
+
+export IT_HOME=##COMPSS_PATH##
+export PATH=$PATH:##COMPSS_PATH##/Runtime/scripts/user
+export CLASSPATH=$CLASSPATH:##COMPSS_PATH##/Runtime/compss-engine.jar
+export PATH=$PATH:##COMPSS_PATH##/Bindings/c/bin
+export PYTHONPATH=$PYTHONPATH:##COMPSS_PATH##/Bindings/python

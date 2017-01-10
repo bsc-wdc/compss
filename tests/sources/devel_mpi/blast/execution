@@ -29,8 +29,8 @@
  
   debug=true
   binary=${base_app_dir}/binary/blastall
-  database=/home/cramonco/svn/bar/datasets/Blast/databases/swissprot/swissprot
-  sequences=/home/cramonco/svn/bar/datasets/Blast/sequences/sargasso_test.fasta
+  database=$HOME/svn/bar/datasets/Blast/databases/swissprot/swissprot
+  sequences=$HOME/svn/bar/datasets/Blast/sequences/sargasso_test.fasta
   #database=/sharedDisk/Blast/databases/swissprot/swissprot
   #sequences=/sharedDisk/Blast/sequences/sargasso_test.fasta
   numFrags=8

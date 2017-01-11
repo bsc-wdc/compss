@@ -36,8 +36,8 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
-    private final ActionSet<P, T> blockedActions = new ActionSet<>();
-    private int[] readyCounts = new int[CoreManager.getCoreCount()];
+    protected final ActionSet<P, T> blockedActions = new ActionSet<>();
+    protected int[] readyCounts = new int[CoreManager.getCoreCount()];
     protected final HashMap<Worker<T>, ResourceScheduler<P, T>> workers = new HashMap<>();
 
 
@@ -65,7 +65,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @param action
      *            Action to be scheduled.
      */
-    public final void newAllocatableAction(AllocatableAction<P, T> action) {
+    public void newAllocatableAction(AllocatableAction<P, T> action) {
         if (!action.hasDataPredecessors()) {
             if (action.getImplementations().length > 0) {
                 int coreId = action.getImplementations()[0].getCoreId();
@@ -107,7 +107,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @param action
      *            action that has finished
      */
-    public final void actionCompleted(AllocatableAction<P, T> action) {
+    public void actionCompleted(AllocatableAction<P, T> action) {
         ResourceScheduler<P, T> resource = action.getAssignedResource();
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();

@@ -18,6 +18,8 @@
   # Select number of tasks width and depth
   TASK_WIDTH=6
   TASK_DEPTH=2
+  #TASK_WIDTH=1
+  #TASK_DEPTH=8
   INIT_VALUE=1
   
   #----------------------------------------------------------------------------------
@@ -105,12 +107,141 @@
      ${base_app_dir}/result_fifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
      ev2=$?
   fi
+ 
+  #----------------------------------------------------------------------------------
+  # Run application 3 - LIFO Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION LIFO SCHEDULER"
   
+  testNum=$((testNum + 2))
+  
+  log_folder="${target_log_folder}/lifoScheduler"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/lifoScheduler_0${retryNum}.outputlog"
+  error_log="${log_folder}/lifoScheduler_0${retryNum}.errorlog"
+  expectedTime=60s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     --scheduler=integratedtoolkit.scheduler.lifoScheduler.LIFOScheduler \
+     -t \
+     --classpath=${base_app_dir}/schedulers.jar \
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev3=124
+  else
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+  
+     # Check result
+     ${base_app_dir}/result_lifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ev3=$?
+  fi
+ 
+  #----------------------------------------------------------------------------------
+  # Run application 4 - FIFO Data Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION FIFO DATA SCHEDULER"
+  
+  testNum=$((testNum + 2))
+  
+  log_folder="${target_log_folder}/fifoDataScheduler"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/fifoDataScheduler_0${retryNum}.outputlog"
+  error_log="${log_folder}/fifoDataScheduler_0${retryNum}.errorlog"
+  expectedTime=60s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     --scheduler=integratedtoolkit.scheduler.fifoDataScheduler.FIFODataScheduler \
+     -t \
+     --classpath=${base_app_dir}/schedulers.jar \
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev4=124
+  else
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+  
+     # Check result
+     ${base_app_dir}/result_fifoDataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ev4=$?
+  fi  
+
+  #----------------------------------------------------------------------------------
+  # Run application 5 - Data Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION DATA SCHEDULER"
+
+  testNum=$((testNum + 2))
+
+  log_folder="${target_log_folder}/dataScheduler"
+  mkdir -p ${log_folder}
+  output_log="${log_folder}/dataScheduler_0${retryNum}.outputlog"
+  error_log="${log_folder}/dataScheduler_0${retryNum}.errorlog"
+  expectedTime=60s
+
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     --scheduler=integratedtoolkit.scheduler.dataScheduler.DataScheduler \
+     -t \
+     --classpath=${base_app_dir}/schedulers.jar \
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     ev5=124
+  else
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
+
+     # Check result
+     ${base_app_dir}/result_dataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ev5=$?
+  fi
+
   #----------------------------------------------------------------------------------
   # Return execution status
   exitValue=$ev1
   if [ $ev2 -ne 0 ]; then
      exitValue=$ev2
   fi
-  
+  if [ $ev3 -ne 0 ]; then
+     exitValue=$ev3
+  fi
+  if [ $ev4 -ne 0 ]; then
+     exitValue=$ev4
+  fi
+  if [ $ev5 -ne 0 ]; then
+     exitValue=$ev5
+  fi
+
   exit $exitValue

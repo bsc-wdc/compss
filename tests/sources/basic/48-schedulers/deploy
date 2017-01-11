@@ -13,4 +13,8 @@
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
   cp -f ${source_base_dir}/result_defaultScheduler ${target_base_dir}/result_defaultScheduler
   cp -f ${source_base_dir}/result_fifoScheduler ${target_base_dir}/result_fifoScheduler
+  cp -f ${source_base_dir}/result_lifoScheduler ${target_base_dir}/result_lifoScheduler
+  cp -f ${source_base_dir}/result_fifoDataScheduler ${target_base_dir}/result_fifoDataScheduler
+  cp -f ${source_base_dir}/result_dataScheduler ${target_base_dir}/result_dataScheduler
+
   

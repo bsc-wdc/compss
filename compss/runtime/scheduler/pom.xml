@@ -34,6 +34,9 @@
 		<module>fullGraphScheduler</module>
 		<module>readyScheduler</module>
         <module>fifoScheduler</module>
+        <module>lifoScheduler</module>
+        <module>fifoDataScheduler</module>
         <module>resourceEmptyScheduler</module>
+        <module>dataLocality</module>
 	</modules>
 </project>

@@ -19,8 +19,9 @@ class SCO(object):
     def __init__(self):
         pass
 
-    def __init__(self, alias):
-        self.alias = alias
+    # Functionality Not Supported! use getByName instead.
+    #def __init__(self, alias):
+    #    self.alias = alias
 
     def getID(self):
         return self.id

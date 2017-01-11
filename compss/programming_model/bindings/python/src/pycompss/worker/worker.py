@@ -40,10 +40,14 @@ try:
     # Import storage libraries if possible
     from storage.api import getByID
     from storage.api import TaskContext
+    from storage.api import initWorker as initStorageAtWorker
+    from storage.api import finishWorker as finishStorageAtWorker
 except ImportError:
     # If not present, import dummy functions
     from pycompss.storage.api import getByID
     from pycompss.storage.api import TaskContext
+    from pycompss.storage.api import initWorker as initStorageAtWorker
+    from pycompss.storage.api import finishWorker as finishStorageAtWorker
 
 # Uncomment the next line if you do not want to reuse pyc files.
 # sys.dont_write_bytecode = True
@@ -106,7 +110,12 @@ def compss_worker():
         prefixes.append(pPrefix)
 
         if pType == Type.FILE:
-            values.append(pValue)
+            # check if it is a persistent object
+            if 'getID' in dir(pValue) and pValue.getID() is not None:
+                po = getByID(pValue.getID())
+                values.append(po)
+            else:
+                values.append(pValue)
         elif pType == Type.EXTERNAL_PSCO:
             po = getByID(pValue)
             values.append(po)
@@ -304,6 +313,9 @@ if __name__ == "__main__":
         # Default
         init_logging_worker(worker_path + '/../../log/logging.json')
 
+    # Initialize storage
+    initStorageAtWorker(config_file_path=storage_conf)
+
     # Init worker
     compss_worker()
     if tracing:
@@ -311,3 +323,5 @@ if __name__ == "__main__":
         # pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
 
+    # Finish storage
+    finishStorageAtWorker()

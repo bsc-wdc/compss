@@ -20,12 +20,11 @@ from distutils import log
 '''
 
 bindings_location = os.path.join('COMPSs', 'Bindings')
-target_path = "/opt"
+target_path = '/opt'
 
 def check_system():
-	return # TEMPORARY!!! REMOVE LATER!!!
         '''
-                Checks that we have a proper python version and a
+                Check that we have a proper python version and a
                 proper OS (i.e: not windows)
         '''
         if sys.version_info[:2] != (2, 7):
@@ -84,7 +83,6 @@ setup (name='compss',
         	'License :: OSI Approved :: Apache 2.0',
         	'Programming Language :: Python :: 2.7'
 	],
-	install_requires=['wget'],
 	license='Apache 2.0',
 	platforms=['Linux', 'Mac OS-X']
 	)

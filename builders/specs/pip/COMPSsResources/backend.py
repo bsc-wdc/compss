@@ -1,8 +1,8 @@
 import os
 import sys
-import wget
 import site
 import shutil
+import urllib
 import tarfile
 import subprocess
 
@@ -20,17 +20,16 @@ def install(target_path):
 	# download and decompress the COMPSs_version.tar.gz file	
 	base_url = open('url','r').read().rstrip()
 	version_name = open('VERSION.txt','r').read().rstrip()
-	bulk_name = 'COMPSs_{0}.tar.gz'.format(version_name)
+	tgz_name = 'COMPSs_{0}.tar.gz'.format(version_name)
 
-	full_url = os.path.join(base_url, bulk_name)
+	full_url = os.path.join(base_url, tgz_name)
 
-	file_name = wget.download(full_url)
+	urllib.urlretrieve(full_url, tgz_name)
 
-
-	tar = tarfile.open(file_name, 'r:gz')
+	tar = tarfile.open(tgz_name, 'r:gz')
 	tar.extractall('.')
 
-	os.remove(file_name)
+	os.remove(tgz_name)
 
 	# call the SuperComputers install script
 	if subprocess.call(['./COMPSs/install', target_path]) != 0:
@@ -54,8 +53,9 @@ def install(target_path):
 	# create symbolic links to the python package and its C extension, respectively
 	target_files = ['pycompss', 'compss.so']
 	for target_file in target_files:
-		try:
-			os.remove(os.path.join(site.getsitepackages()[0], target_file))
-		except:
-			os.symlink(os.path.join(pref, "Bindings", "python", target_file), os.path.join(site.getsitepackages()[0], target_file))
+		file_name = os.path.join(site.getsitepackages()[0], target_file)
+		# first, we will try to remove possible existing files from previous installations
+		if os.path.exists(file_name):
+			os.remove(file_name)
+		os.symlink(os.path.join(pref, 'Bindings', 'python', target_file), file_name)
 

@@ -349,9 +349,10 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 
         # Infer type if necessary
         if p.type is None:
+            logger.debug("Inferring type due to None pType.")
             p.type = python_to_compss.get(val_type)
             if p.type is None:
-                if 'getID' in dir(p.value):  # criteria for persistent object
+                if 'getID' in dir(p.value) and p.value.getID() is not None:      # criteria for persistent object
                     p.type = Type.EXTERNAL_PSCO
                 else:
                     p.type = Type.OBJECT
@@ -530,7 +531,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 def manage_persistent(p):
     p.type = Type.EXTERNAL_PSCO
     obj_id = p.value.getID()
-    task_objects[obj_id] = obj_id 
+    task_objects[obj_id] = obj_id
     p.value = obj_id
 
 

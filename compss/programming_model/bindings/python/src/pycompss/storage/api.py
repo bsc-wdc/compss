@@ -39,6 +39,31 @@ def finish(**kwargs):
     pass
 
 
+def initWorker(config_file_path=None, **kwargs):
+    '''
+    print "-----------------------------------------------------"
+    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    print "| Call to: init Worker function.                    |"
+    print "| Parameters: config_file_path = None"
+    for key in kwargs:
+        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
+    print "-----------------------------------------------------"
+    '''
+    pass
+
+
+def finishWorker(**kwargs):
+    '''
+    print "-----------------------------------------------------"
+    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    print "| Call to: finish Worker function.                  |"
+    for key in kwargs:
+        print "| Kwargs: Key %s - Value %s" % (key, kwargs[key])
+    print "-----------------------------------------------------"
+    '''
+    pass
+
+
 def getByID(id):
     """
     This functions retrieves an object from an external storage technology

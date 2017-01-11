@@ -29,7 +29,7 @@ import logging
 from functools import wraps
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pycompss.api.task')
 
 
 class task(object):
@@ -71,7 +71,10 @@ class task(object):
         # Add callee object parameter
         self.kwargs['self'] = Parameter(p_type=Type.OBJECT, p_direction=d)
         if self.kwargs['returns']:
-            self.kwargs['compss_retvalue'] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+            # check the return type:
+            retType = getReturnType(self.kwargs['returns'])
+            self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=Direction.OUT)
+            #self.kwargs['compss_retvalue'] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
         logger.debug("Init task...")
 
     def __call__(self, f):
@@ -98,7 +101,6 @@ class task(object):
         # Get module (for invocation purposes in the worker)
         mod = inspect.getmodule(f)
         self.module = mod.__name__
-
 
         if(self.module == '__main__' or
            self.module == 'pycompss.runtime.launch'):
@@ -280,7 +282,7 @@ class task(object):
                 arg_vals = []
                 # if user uses *args
                 if aargs is not None:
-                    arg_name.append(aargs)                      # Name used for the *args
+                    arg_name.append(aargs)              # Name used for the *args
                     arg_vals.append(args[num_params:])  # last values will compose the *args parameter
                 # if user uses **kwargs
                 if aakwargs is not None:
@@ -310,6 +312,42 @@ class task(object):
         return wrapped_f
 
 
+def getReturnType(value):
+    from pycompss.api.parameter import Type
+    # # Always file
+    return Type.FILE
+'''
+    # Return the correct type of the value returned (that will be within a file)
+    if type(value) is bool:
+        return Type.BOOLEAN
+    elif type(value) is str and len(value) == 1:
+        return Type.CHAR           # Char does not exist as char. Only for strings of length 1.
+    # elif type(value) is bytes:
+    #     return Type.STRING       # The 2.x bytes built-in is an alias to the str type.
+    # elif type(value) is short:   # short does not exist in python... they are integers.
+    #     return Type.SHORT
+    elif type(value) is int:
+        return Type.INT
+    elif type(value) is long:
+        return Type.LONG
+    elif type(value) is float:
+        return Type.FLOAT
+    # elif type(value) is double:  # In python, floats are doubles.
+    #     return Type.DOUBLE
+    elif type(value) is str:
+        return Type.STRING
+    # elif type(value) is :     # Unavailable
+    #     return Type.OBJECT
+    # elif type(value) is :     # Unavailable
+    #     return Type.PSCO
+    elif 'getID' in dir(value):
+        # It is a storage object, but at this point we do not know if its going to be persistent or not.
+        return Type.EXTERNAL_PSCO
+    else:
+        # Default type
+        return Type.FILE
+'''
+
 def get_default_args(f):
     """
     Returns a dictionary of arg_name:default_values for the input function
@@ -333,11 +371,21 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
     """
     from pycompss.api.parameter import Parameter, Type, Direction
     from pycompss.util.serializer import deserialize_from_file
+    try:
+        # Import storage libraries if possible
+        from storage.api import getByID
+    except ImportError:
+        # If not present, import dummy functions
+        from pycompss.storage.api import getByID
 
     # print "-----------------------------------"
     # print "values: ", values
     # print "spec_args: ", spec_args
     # print "deco_kwargs: ", deco_kwargs
+    # print "deco_kwargs[compss_retvalue]: ", deco_kwargs['compss_retvalue']
+    # # print "deco_kwargs[compss_retvalue].type: ", deco_kwargs['compss_retvalue'].type
+    # # print "deco_kwargs[compss_retvalue].value: ", deco_kwargs['compss_retvalue'].value
+    # # print "deco_kwargs[compss_retvalue].direction: ", deco_kwargs['compss_retvalue'].direction
     # print "compss_types: ", compss_types
     # print "returns: ", returns
     # print "-----------------------------------"
@@ -373,6 +421,8 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             obj = deserialize_from_file(value)
+            #if 'getID' in dir(obj) and obj.getID() is not None:   # dirty fix
+            #    obj = getByID(obj.getID())
             real_values.append(obj)
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))
@@ -394,7 +444,6 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
                 # if any exception arised, then it has to be a simple value
                 real_values.append(value)
         '''
-
     return real_values, to_serialize
 
 

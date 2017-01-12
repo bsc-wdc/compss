@@ -31,7 +31,7 @@ def check_system():
         # check Python version
         assert sys.version_info[:2] == (2, 7), 'COMPSs does not support Python version %s, only Python 2.7.x is supported'%sys.version
         # check os version
-        assert 'win' not in sys.platform, 'COMPSs doest not support Windows'
+        assert 'win' not in sys.platform, 'COMPSs does not support Windows'
         # check we have JAVA_HOME defined
         assert 'JAVA_HOME' in os.environ, 'JAVA_HOME is not defined'
 

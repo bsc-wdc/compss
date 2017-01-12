@@ -26,11 +26,15 @@ def check_system():
         '''
                 Check that we have a proper python version and a
                 proper OS (i.e: not windows)
+                Also, check that we have JAVA_HOME defined
         '''
-        if sys.version_info[:2] != (2, 7):
-                raise Exception('COMPSs does not support Python version %s'%sys.version)
-        if 'win' in sys.platform:
-                raise Exception('COMPSs does not support Windows')
+        # check Python version
+        assert sys.version_info[:2] == (2, 7), 'COMPSs does not support Python version %s, only Python 2.7.x is supported'%sys.version
+        # check os version
+        assert 'win' not in sys.platform, 'COMPSs doest not support Windows'
+        # check we have JAVA_HOME defined
+        assert 'JAVA_HOME' in os.environ, 'JAVA_HOME is not defined'
+
 
 '''
 	Pre-install operation: download and install COMPSs
@@ -70,7 +74,7 @@ compssmodule = Extension('compss',
 '''
 setup (name='compss',
 	version=open('VERSION.txt').read().rstrip(),
-	description='Python Binding for COMP Superscalar Runtime',
+	description='COMP Superscalar Runtime',
 	long_description=open('README.txt').read(),
 	author='The COMPSs team',
 	author_email='distributed_computing@bsc.es',

@@ -123,10 +123,12 @@ def compss_worker():
         elif pType == Type.STRING:
             num_substrings = int(pValue)
             aux = ''
+            first_substring = True
             for j in range(4, num_substrings + 4):
-                aux += args[pos + j]
-                if j < num_substrings + 1:
+                if not first_substring:
                     aux += ' '
+                first_substring = False
+                aux += args[pos + j]
             #######
             # Check if the string is really an object
             # Required in order to recover objects passed as parameters.

@@ -297,7 +297,12 @@ check_args() {
   if [ -z "${exec_time}" ]; then
     exec_time=${DEFAULT_EXEC_TIME}
   fi
-  convert_to_wc $exec_time
+
+  if [ -z "${WC_CONVERSION_FACTOR}" ]; then
+    convert_to_wc $exec_time
+  else
+    wc_limit=$(($exec_time * ${WC_CONVERSION_FACTOR}))   
+  fi
   
   if [ -z "${reservation}" ]; then
     reservation=${DEFAULT_RESERVATION}
@@ -445,14 +450,26 @@ EOT
 EOT
   fi
 
+  # Add argument when exclusive mode is available
+  if [ "${EXCLUSIVE_MODE}" != "disabled" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_EXCLUSIVE_NODES}
+EOT
+  fi
+  # Add argument when copy_env is defined
+  if [ -n "${QARG_COPY_ENV}" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_COPY_ENV}
+EOT
+  fi
+
   # Generic arguments
   cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_WALLCLOCK} $wc_limit
+#${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
 #${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${master_working_dir}
-#${QUEUE_CMD} ${QARG_JOB_OUT} compss-%J.out
-#${QUEUE_CMD} ${QARG_JOB_ERROR} compss-%J.err
+#${QUEUE_CMD} ${QARG_JOB_OUT} compss-${QJOB_ID}.out
+#${QUEUE_CMD} ${QARG_JOB_ERROR} compss-${QJOB_ID}.err
 #${QUEUE_CMD} ${QARG_NUM_NODES}${QUEUE_SEPARATOR}${num_nodes}
-#${QUEUE_CMD} ${QARG_EXCLUSIVE_NODES}
 EOT
 
   # Span argument if defined on queue system
@@ -465,7 +482,7 @@ EOT
   # Host list parsing before launch
   cat >> $TMP_SUBMIT_SCRIPT << EOT
   
-host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} | sed -e 's/\.[^\ ]*//g')
+host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
 master_node=\$(hostname)
 worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
 EOT

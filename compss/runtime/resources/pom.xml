@@ -63,5 +63,6 @@
 	<modules>
 		<module>commons</module>
 		<module>defaultSSH</module>
+		<!--module>defaultNoSSH</module-->
 	</modules>
 </project>

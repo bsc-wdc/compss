@@ -783,7 +783,7 @@ create_xml_files() {
 
   # Add worker slots on master if needed
   if [ ${worker_in_master_tasks} -ne 0 ]; then
-    add_compute_node "${master_node}${network}" ${worker_in_master_tasks} ${worker_in_master_memory}        
+    add_compute_node "${master_node}${network}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
   fi
 
   # Find the number of tasks to be executed on each node

@@ -85,6 +85,14 @@
   }
   
   setup_environment(){
+    # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
+    if [ -z "$LD_LIBRARY_PATH" ]; then
+        if [ -n "$LIBRARY_PATH" ]; then
+            export LD_LIBRARY_PATH=$LIBRARY_PATH
+            echo "[  INFO] LD_LIBRARY_PATH not defined set to LIBRARY_PATH"
+        fi
+    fi
+
     # Create sandbox
     if [ ! -d $workingDir ]; then
   	/bin/mkdir -p $workingDir

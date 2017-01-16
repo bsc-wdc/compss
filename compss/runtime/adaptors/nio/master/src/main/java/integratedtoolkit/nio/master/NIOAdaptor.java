@@ -208,8 +208,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
         }
 
-        if (!remoteExecutionCommand.equals(NIOConfiguration.SSH_REMOTE_EXECUTION_COMMAND)
-                && !remoteExecutionCommand.equals(NIOConfiguration.SRUN_REMOTE_EXECUTION_COMMAND)) {
+        if (!NIOConfiguration.AVAILABLE_REMOTE_EXECUTION_COMMANDS.contains(remoteExecutionCommand)){
             throw new ConstructConfigurationException("Invalid remote execution command on resources file");
         }
         config.setRemoteExecutionCommand(remoteExecutionCommand);

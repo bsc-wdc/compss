@@ -1,216 +1,196 @@
-"""
-@author: etejedor
-@author: fconejer
-
-PyCOMPSs Utils - Serializer
-===========================
-    This file contains all serialization methods.
-"""
-
-import sys
+#
+#  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 import os
-import mmap
-import math
-import logging
-from cPickle import load, dump
-from cPickle import loads, dumps
-from cPickle import HIGHEST_PROTOCOL, UnpicklingError, PicklingError
+import imp
 import types
-import marshal
-import thread, threading
-import copy_reg
-import types
-from serialization.extendedSupport import pickle_generator
-from serialization.extendedSupport import copy_generator
-from serialization.extendedSupport import GeneratorSnapshot
-from serialization.extendedSupport import pickle_module_object
-from serialization.extendedSupport import unpickle_module_object 
-from serialization.extendedSupport import serialize_event
-from serialization.extendedSupport import serialize_lock
-from serialization.extendedSupport import serialize_ellipsis
-import time
-#from serialization.extendedSupport import serialize_quit 
-#from serialization.extendedSupport import restorefunction, reducefunction
+import traceback
+import cStringIO as StringIO
+import cPickle as pickle
+from serialization.extendedSupport import copy_generator, pickle_generator, GeneratorSnapshot
+try:
+    import dill
+except:
+    import cPickle as dill
 
-copy_reg.pickle(threading._Event, serialize_event)
-copy_reg.pickle(thread.LockType, serialize_lock)
-copy_reg.pickle(type(Ellipsis), serialize_ellipsis)
-#copy_reg.pickle(type(quit), serialize_quit)
-#copy_reg.pickle(type(exit), serialize_quit) 
-#copy_reg.pickle(type(NotImplemented), serialize_quit)
-#copy_reg.constructor(restorefunction)
-#copy_reg.pickle(types.FunctionType, reducefunction)
-
-logger = logging.getLogger(__name__)
-
-
-# Enable or disable the use of mmap for the file read and write operations
-# cross-module variable (set/modified from launch.py)
-mmap_file_storage = False
-
-
-class GeneratorException(Exception):
+class SerializerException(Exception):
     pass
 
-
-#class GeneratorTaskException(Exception):
-#    pass
-#
-#class genTaskSerializer(object):
-#    def __init__(self, gen, n, maxiter):
-#        self.gen = gen
-#        self.n = n
-#        self.maxiter = maxiter
-
-
-def serialize_to_file(obj, file_name, force=False):
+def is_module_available(module_name):
     """
-    Serialize an object to file.
+    Checks if a module is available in the current Python installation.
+    @param module_name: Name of the module
+    @return: Boolean -> True if the module is available, False otherwise
+    """
+    try:
+        imp.find_module(module_name)
+        return True
+    except:
+        return False
+
+def object_belongs_to_module(obj, module_name):
+    """
+    Checks if a given object belongs to a given module.
+    @param obj: Object to be analysed
+    @param module_name: Name of the module we want to check
+    @return: Boolean -> True if obj belongs to the given module, False otherwise
+    """
+    return type(obj).__module__ == module_name
+
+def get_serializer_priority(obj=[]):
+    """
+    Computes the priority of the serializers.
+    @param obj: Object to be analysed.
+    @return: List -> The serializers sorted by priority in descending order
+    """
+    if is_module_available('numpy') and object_belongs_to_module(obj, 'numpy'):
+        # dill outperforms both pickle and cPickle when serializing numpy objects
+        return [dill, pickle]
+    # this order will work in almost the 90% of the cases because
+    # we will only serialize things as lambda functions when they are passed as a parameter
+    # of a function
+    # this is also the default retval for this function
+    return [pickle, dill]
+
+def get_serializers():
+    """
+    Returns a list with the available serializers in the most common order
+    (i.e: the order that will work for almost the 90% of our objects)
+    @return: List -> the available serializer modules
+    """
+    return get_serializer_priority()
+
+def serialize_to_handler(obj, handler):
+    """
+    Serialize an object to a handler.
+    This function assumes that the used serializers employ the "lazy-writing pratice"
+    i.e: they dont write until they really need it
+    @param obj: Object to be serialized.
+    @param file_handler: A handler object. It must implement methods like write, writeline and similar stuff
+    """
+    # get the serializer priority
+    serializer_priority = get_serializer_priority(obj)
+    i = 0
+    success = False
+    # lets try the serializers in the given priority
+    while i < len(serializer_priority) and not success:
+        # reset the handlers pointer to the first position
+        handler.seek(0)
+        serializer = serializer_priority[i]
+        # special case: obj is a generator
+        if isinstance(obj, types.GeneratorType):
+            try:
+                pickle_generator(obj, handler, serializer)
+                success = True
+            except:
+                pass
+        # general case
+        else:
+            try:
+                serializer.dump(obj, handler)
+                success = True
+            except:
+                pass
+        i += 1
+
+    # if ret_value is None then all the serializers have failed
+    if not success:
+        raise SerializerException('Cannot serialize object %s'%obj)
+
+def serialize_to_file(obj, file_name):
+    """
+    Serialize an object to a file.
     @param obj: Object to be serialized.
     @param file_name: File name where the object is going to be serialized.
-    @param force: Force serialization. Values = [True, False]. Default = False.
-    @return: String -> the file name (same as the parameter)
     """
-    logger.debug("Serialize to file: " + str(file_name))
-    start = time.time()
-    if mmap_file_storage:
-        if not os.path.exists(file_name) or force:
-            d = dumps(obj, HIGHEST_PROTOCOL)
-            size = sys.getsizeof(d)
-            if size > mmap.PAGESIZE:
-                size = int(mmap.PAGESIZE * (math.ceil(size / float(mmap.PAGESIZE))))
-            else:
-                size = int(mmap.PAGESIZE)
-            fd = os.open(file_name, os.O_CREAT | os.O_TRUNC | os.O_RDWR)
-            os.write(fd, '\x00' * size)
-            mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
-            mm.write(d)
-            mm.close()
-        logger.debug("Serialization lasted %d seconds" % (time.time() - start))
-        return file_name
-    else:
-        if not os.path.exists(file_name) or force:
-            f = open(file_name, 'wb')
-            if isinstance(obj, types.LambdaType) and obj.func_name == '<lambda>':
-                # The object is a lambda function
-                # The two conditions must be done since types.LambdaType equals types.FunctionType
-                marshal.dump(obj.func_code, f)
-            elif isinstance(obj, types.GeneratorType):
-                # The object is a generator - Save the state
-                pickle_generator(obj, f)
-            #elif isinstance(obj, GeneratorWrapper):
-            #    sg = genTaskSerializer(getPickled_generator(obj.gen), obj.n, obj.maxiter)
-            #    dump(sg, f)
-            else:
-                # All other objects are serialized using cPickle
-                try:
-                    dump(obj, f, HIGHEST_PROTOCOL)
-                except PicklingError, e:
-                    # Could not serialize the object. Probably it is a module object.
-                    if "Can't pickle <type 'module'>" in str(e):
-                        pickle_module_object(obj, f, HIGHEST_PROTOCOL)
-                    else:
-                        raise PicklingError(str(e))
-            f.close()
-        logger.debug("Serialization lasted %d seconds" % (time.time() - start))
-        return file_name
+    handler = open(file_name, 'wb')
+    serialize_to_handler(obj, handler)
+    handler.close()
+    return file_name
+
+def serialize_to_string(obj):
+    """
+    Serialize an object to a string.
+    @param obj: Object to be serialized.
+    @return: String -> the serialized content
+    """
+    handler = StringIO.StringIO()
+    serialize_to_handler(obj, handler)
+    ret = handler.getvalue()
+    handler.close()
+    return ret
 
 
-def deserialize_from_file(file_name):
+def deserialize_from_handler(handler):
     """
     Deserialize an object from a file.
     @param file_name: File name from where the object is going to
                       be deserialized.
     @return: The object deserialized.
     """
-    logger.debug("Deserialize from file: " + str(file_name))
-    start = time.time()
-    if mmap_file_storage:
-        fd = os.open(file_name, os.O_RDONLY)
-        mm = mmap.mmap(fd, 0, mmap.MAP_SHARED, mmap.PROT_READ)
-        content = mm.read(-1)
-        l = loads(content)
-        mm.close()
-        logger.debug("Deserialization lasted %d seconds" % (time.time() - start))
-        return l
-    else:
-        l = None
-        f = open(file_name, 'rb')
+    # get the most common order of the serializers
+    serializers = get_serializers()
+    # let's try to deserialize 
+    for serializer in serializers:
+        # reset the handler in case the previous serializer has used it
+        handler.seek(0)
         try:
-            l = load(f)
-            if isinstance(l, GeneratorSnapshot):
-                logger.debug("Found a generator when deserializing.")
-                raise GeneratorException
-            #if isinstance(l, genTaskSerializer):
-            #    logger.debug("Found a taskified generator when deserializing.")
-            #    raise GeneratorTaskException
-        except (UnpicklingError):  # It is a lambda function
-            f.seek(0, 0)
-            func = marshal.load(f)
-            l = types.FunctionType(func, globals())
-        except GeneratorException:
-            # It is a generator and needs to be unwrapped (from GeneratorSnapshot to generator).
-            l = copy_generator(l)[0]
-        #except GeneratorTaskException:
-        #    # Rebuild the object
-        #    l = GeneratorWrapper(copy_generator(l.gen)[0], l.n, l.maxiter)
-        f.close()
-        logger.debug("Deserialization lasted %d seconds" % (time.time() - start))
-        return l
+            ret = serializer.load(handler)
+            # special case: deserialized obj wraps a generator
+            if isinstance(ret, GeneratorSnapshot):
+                ret = copy_generator(ret)[0]
+            return ret
+        except:
+            pass
+    # we are not able to deserialize the contents from file_name with any of our
+    # serializers
+    raise SerializerException('Cannot deserialize object')
+
+def deserialize_from_file(file_name):
+    """
+    Deserializes the contents in a given file
+    @param file_name: Name of the file with the contents to be deserialized
+    @return: A deserialized object
+    """
+    handler = open(file_name, 'rb')
+    ret = deserialize_from_handler(handler)
+    handler.close()
+    return ret
+
+def deserialize_from_string(serialized_content):
+    """
+    Deserializes the contents in a given string
+    @param serialized_content: A string with serialized contents
+    @return: A deserialized object
+    """
+    handler = StringIO.StringIO(serialized_content)
+    ret = deserialize_from_handler(handler)
+    handler.close()
+    return ret
 
 
 def serialize_objects(to_serialize):
     """
     Serialize a list of objects to file.
+    If a single object fails to be serialized, then an Exception by
+    serialize_to_file will be thrown (and not caught)
     The structure of the parameter is
-    [[object1][file_name1], [object2][file_name2], ... , [objectN][file_nameN]].
+    [(object1, file_name1), ... , (objectN, file_nameN)].
     @param to_serialize: List of lists to be serialized.
                          Each sublist is composed of pairs
                          ['object','file name'].
     """
-    logger.debug("Serialize objects:")
-    start = time.time()
-    for target in to_serialize:
-        logger.debug("\t - " + str(target))
-    if mmap_file_storage:
-        for target in to_serialize:
-            obj = target[0]
-            file_name = target[1]
-            d = dumps(obj, HIGHEST_PROTOCOL)
-            size = sys.getsizeof(d)
-            if size > mmap.PAGESIZE:
-                size = int(mmap.PAGESIZE * (math.ceil(size / float(mmap.PAGESIZE))))
-            else:
-                size = int(mmap.PAGESIZE)
-            fd = os.open(file_name, os.O_CREAT | os.O_TRUNC | os.O_RDWR)
-            os.write(fd, '\x00' * size)
-            mm = mmap.mmap(fd, size, mmap.MAP_SHARED, mmap.PROT_WRITE)
-            mm.write(d)
-            mm.close()
-	logger.debug("Serialization lasted %d seconds" % (time.time() - start))
-    else:
-        for target in to_serialize:
-            obj = target[0]
-            file_name = target[1]
-            f = open(file_name, 'wb')
-            if isinstance(obj, types.FunctionType):
-                # The object is a function or a lambda
-                marshal.dump(obj.func_code, f)
-            elif isinstance(obj, types.GeneratorType):
-                # The object is a generator - Save the state
-                pickle_generator(obj, f)
-            #elif isinstance(obj, GeneratorWrapper):
-            #    sg = genTaskSerializer(getPickled_generator(obj.gen), obj.n, obj.maxiter)
-            #    dump(sg, f)
-            else:
-                # All other objects are serialized using cPickle
-                try:
-                    dump(obj, f, HIGHEST_PROTOCOL)
-                except PicklingError, e:
-                    # Could not serialize the object. Probably it is a module object.
-                    if "Can't pickle <type 'module'>" in str(e):
-                        pickle_module_object(obj, f, HIGHEST_PROTOCOL)
-                    else:
-                        raise PicklingError(str(e))
-            logger.debug("Serialization lasted %d seconds" % (time.time() - start))
-            f.close()
+    for (obj, file_name) in to_serialize:
+        serialize_to_file(obj, file_name)

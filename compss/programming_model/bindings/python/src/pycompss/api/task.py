@@ -27,6 +27,7 @@ import inspect
 import os
 import logging
 from functools import wraps
+from pycompss.util.serializer import serialize_objects, deserialize_from_file
 
 
 logger = logging.getLogger('pycompss.api.task')
@@ -153,7 +154,6 @@ class task(object):
             if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') \
                     and (not is_nested):
                 # Called from worker code, run the method
-                from pycompss.util.serializer import serialize_objects
                 returns = self.kwargs['returns']
 
                 spec_args = self.spec_args.args
@@ -370,7 +370,6 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
     @return: a list with the real values
     """
     from pycompss.api.parameter import Parameter, Type, Direction
-    from pycompss.util.serializer import deserialize_from_file
     try:
         # Import storage libraries if possible
         from storage.api import getByID

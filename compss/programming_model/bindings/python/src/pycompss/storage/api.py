@@ -9,7 +9,7 @@ Storage dummy connector
     storage.api code example.
 """
 from uuid import UUID
-from cPickle import load
+from pycompss.util.serializer import deserialize_from_file
 
 storage_path = '/tmp/'
 
@@ -86,7 +86,7 @@ def getByID(id):
             val = UUID(id, version=4)
             file_name = id + '.PSCO'
             file_path = storage_path + file_name
-            obj = load(open(file_path,'rb'))
+            obj = deserialize_from_file(file_path)
             return obj
         except ValueError:
             # The id does not complain uuid4 --> raise an exception

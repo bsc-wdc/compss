@@ -7,7 +7,7 @@ WARNING! Only for testing purposes.
 '''
 import os
 import uuid
-from cPickle import dump
+from pycompss.util.serializer import serialize_to_file
 
 storage_path = '/tmp/'
 
@@ -34,7 +34,7 @@ class SCO(object):
             file_path = storage_path + file_name
 
             # Serialize object and write to disk
-            dump(self, open(file_path, "wb"))
+            serialize_to_file(self, file_path)
 
     def delete(self):
         if self.id is None:

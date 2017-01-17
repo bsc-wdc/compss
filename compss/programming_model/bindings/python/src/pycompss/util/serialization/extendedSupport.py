@@ -258,14 +258,14 @@ def restorefunction(func_name, dump):
 
 # ----------------- GENERATORS --------------------
 
-def pickle_generator(f_gen, f):
+def pickle_generator(f_gen, f, serializer):
     '''
     Pickle a generator and store the serialization result in a file.
     :param f_gen: generator object.
     :param f: destination file for pickling generator.
     '''
     f_gen.next()  # jump one ahead for not to repeat when unpickling
-    pickle.dump(GeneratorSnapshot(f_gen), f)
+    serializer.dump(GeneratorSnapshot(f_gen), f)
 
 
 def unpickle_generator(f):

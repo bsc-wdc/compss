@@ -27,16 +27,14 @@ First, be sure that the target machine satisfies the mentioned dependencies on t
 
 The installation can be done in various alternative ways:
 
-* Use PIP to install the official pyCOMPSs version from the pypi live repository:
+* Use PIP to install the official PyCOMPSs version from the pypi live repository:
 sudo -E python2.7 -m pip install pycompss -v
 
-* Use PIP to install COMPSs from a compss .tar.gz
+* Use PIP to install PyCOMPSs from a pycompss-version.tar.gz file
 sudo -E python2.7 -m pip install pycompss-version.tar.gz -v
 
 * Use the setup.py script
 sudo -E python2.7 setup.py install
-
-
 
 *******************************************
 ** Workflows and Distributed Computing **

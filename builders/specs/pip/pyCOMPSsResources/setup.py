@@ -60,9 +60,9 @@ setup (name='pycompss',
 	maintainer_email='distributed_computing@bsc.es',
 	url='http://compss.bsc.es',
 	classifiers = [
-        	'Development Status :: 5 - Stable',
+        	'Development Status :: 5 - Production/Stable',
         	'Intended Audience :: Developers',
-        	'License :: OSI Approved :: Apache 2.0',
+        	'License :: OSI Approved',
         	'Programming Language :: Python :: 2.7'
 	],
 	license='Apache 2.0',

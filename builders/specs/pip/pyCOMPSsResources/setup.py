@@ -20,18 +20,20 @@ from distutils import log
 '''
 
 bindings_location = os.path.join('COMPSs', 'Bindings')
-target_path = "/opt"
+target_path = os.path.join(site.getsitepackages()[0], 'pycompss')
 
 def check_system():
-	return # TEMPORARY!!! REMOVE LATER!!!
         '''
-                Checks that we have a proper python version and a
+                Check that we have a proper python version and a
                 proper OS (i.e: not windows)
+                Also, check that we have JAVA_HOME defined
         '''
-        if sys.version_info[:2] != (2, 7):
-                raise Exception('COMPSs does not support Python version %s'%sys.version)
-        if 'win' in sys.platform:
-                raise Exception('COMPSs does not support Windows')
+        # check Python version
+        assert sys.version_info[:2] == (2, 7), 'COMPSs does not support Python version %s, only Python 2.7.x is supported'%sys.version
+        # check os version
+        assert 'win' not in sys.platform, 'COMPSs does not support Windows'
+        # check we have JAVA_HOME defined
+        assert 'JAVA_HOME' in os.environ, 'JAVA_HOME is not defined'
 
 '''
 	Pre-install operation: download and install COMPSs
@@ -45,31 +47,10 @@ if 'install' in sys.argv[1:]:
 	check_system()
 	backend_install(target_path)
 
-
-'''
-	C extension for pyCOMPSs. Declaring it that way allows us
-	to compile and place it with setup.py build.
-	This extension will generate a Python extension named compss
-	and will place a compss.so file in our site-packages.
-	This file will be properly deleted with pip uninstall.
-'''
-compssmodule = Extension('compss',
-        include_dirs = [
-            os.path.join(bindings_location, 'bindings-common', 'src'),
-            os.path.join(bindings_location, 'bindings-common', 'include')
-            ],
-        library_dirs = [
-            os.path.join(bindings_location, 'bindings-common', 'lib')
-            ],
-        libraries = ['bindings_common'],
-        extra_compile_args = ['-fPIC'],
-        sources = [os.path.join('src','ext','compssmodule.c')]
-)
-
 '''
 	Setup function.
 '''
-setup (name='compss',
+setup (name='pycompss',
 	version=open('VERSION.txt').read().rstrip(),
 	description='Python Binding for COMP Superscalar Runtime',
 	long_description=open('README.txt').read(),
@@ -84,7 +65,6 @@ setup (name='compss',
         	'License :: OSI Approved :: Apache 2.0',
         	'Programming Language :: Python :: 2.7'
 	],
-	install_requires=['wget'],
 	license='Apache 2.0',
 	platforms=['Linux', 'Mac OS-X']
 	)

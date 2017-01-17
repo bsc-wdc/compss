@@ -9,26 +9,26 @@
 COMPSS_VERSION=$1
 
 # add the version number as a resource
-echo $COMPSS_VERSION > COMPSsResources/VERSION.txt
+echo $COMPSS_VERSION > pyCOMPSsResources/VERSION.txt
 
 # create distributable folder 
-mkdir -p COMPSs
+mkdir -p pyCOMPSs
 
 # copy scripts and other files into the pyCOMPSs directory
 # please, resist the temptation to replace all these lines by
 # cp -rf pyCOMPSsResources/* pyCOMPSs/ or something equivalent
 # It may be possible that not all of the files in that folder are
 # necessary or even appropriate for the installation
-cp COMPSsResources/setup.py COMPSs/
-cp COMPSsResources/compssenv COMPSs/
-cp COMPSsResources/MANIFEST.in COMPSs/
-cp COMPSsResources/VERSION.txt COMPSs/
-cp COMPSsResources/url COMPSs/
-cp COMPSsResources/backend.py COMPSs/
-cp COMPSsResources/README.txt COMPSs/
-cp COMPSsResources/LICENSE.txt COMPSs/
+cp pyCOMPSsResources/setup.py pyCOMPSs/
+cp pyCOMPSsResources/pycompssenv pyCOMPSs/
+cp pyCOMPSsResources/MANIFEST.in pyCOMPSs/
+cp pyCOMPSsResources/VERSION.txt pyCOMPSs/
+cp pyCOMPSsResources/url pyCOMPSs/
+cp pyCOMPSsResources/backend.py pyCOMPSs/
+cp pyCOMPSsResources/README.txt pyCOMPSs/
+cp pyCOMPSsResources/LICENSE.txt pyCOMPSs/
 
-cd COMPSs
+cd pyCOMPSs
 
 # Change permissions. This will avoid issues with, for example,
 # python's subprocess.call
@@ -43,7 +43,7 @@ cd ..
 rm -rf ../../packages/pip
 mkdir -p ../../packages/pip
 # change permissions
-chmod -R 777 COMPSs
+chmod -R 777 pyCOMPSs
 # ...and move it to its final destination
-mv COMPSs ../../packages/pip/
+mv pyCOMPSs ../../packages/pip/
 

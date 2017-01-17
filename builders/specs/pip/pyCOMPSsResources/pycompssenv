@@ -1,13 +1,13 @@
 if [ "$EUID" -eq 0 ]; then
 
-	HAVE_PYCOMPSS=$(python##VERSION## -m pip freeze | grep ^compss)
+	read -r -p "This action will uninstall pyCOMPSs from your machine, are you sure? [Y/n]" RESPONSE
+	if [ "$RESPONSE" = "Y" ]; then
 
-	if [ -z "$HAVE_PYCOMPSS" ]; then
-		rm -f ##SITE_PACKAGES##/pycompss
-		rm -f ##SITE_PACKAGES##/compss.so
+		rm -rf ##SITE_PACKAGES##/pycompss
+		rm -rf ##SITE_PACKAGES##/compss.so
 		rm -rf ##COMPSS_PATH##
 		rm /etc/profile.d/compss.sh
-		exit 0
+
 	fi
 
 fi

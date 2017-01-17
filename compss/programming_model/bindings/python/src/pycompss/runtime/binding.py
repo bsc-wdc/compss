@@ -24,10 +24,6 @@ from collections import *
 
 import compss
 
-from cPickle import dumps
-from cPickle import PicklingError
-
-
 python_to_compss = {types.IntType: Type.INT,          # int
                     types.LongType: Type.LONG,        # long
                     types.FloatType: Type.DOUBLE,      # float
@@ -64,7 +60,7 @@ objs_written_by_mp = {}  # obj_id -> compss_file_name
 # init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json')
 logger = logging.getLogger(__name__)
 
-# Enable or disable small objects conversion to strings (using cPickle)
+# Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
@@ -377,14 +373,14 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                         logger.debug("The object size is less than 320 kb.")
                         real_value = p.value
                         try:
-                            v = dumps(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
+                            v = serialize_to_string(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
                             v = '\"' + v + '\"'
                             p.value = v
                             p.type = Type.STRING
                             logger.debug("Inferred type modified (Object converted to String).")
                             # more than one object converted to string may appear
                             max_obj_arg_size -= bytes
-                        except PicklingError:
+                        except SerializerException:
                             p.value = real_value
                             p.type = Type.OBJECT
                             logger.debug("The object cannot be converted due to: not serializable.")
@@ -549,7 +545,7 @@ def turn_into_file(p):
         # Main program generated the last version
         compss_file = objs_written_by_mp.pop(obj_id)
         logger.debug("Serializing object %d to file %s" % (obj_id, compss_file))
-        serialize_to_file(p.value, compss_file, True)
+        serialize_to_file(p.value, compss_file)
     p.value = file_name
 
 

@@ -13,12 +13,12 @@ import os
 import signal
 import sys
 import traceback
-from cPickle import loads, UnpicklingError
 from exceptions import ValueError
 from multiprocessing import Process
 from multiprocessing import Queue
 
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666
@@ -174,8 +174,8 @@ def execute_task(process_name, params):
             real_value = aux
             try:
                 # try to recover the real object
-                aux = loads(aux)
-            except (UnpicklingError, ValueError, EOFError):
+                aux = deserialize_from_string(aux)
+            except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = real_value
             #######
@@ -259,8 +259,6 @@ def execute_task(process_name, params):
     except ImportError, e:
         logger.exception("WORKER EXCEPTION ", e)
         logger.exception("Trying to recover!!!")
-        from pycompss.util.serializer import deserialize_from_file
-        from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
         # module_name = path.replace('.' + class_name, '')  # BUG - does not support same filename as a package

@@ -15,7 +15,7 @@ from pycompss.api.api import compss_start, compss_stop
 from pycompss.runtime.binding import get_logPath
 from pycompss.util.logs import init_logging
 from pycompss.util.jvmParser import convertToDict
-from cPickle import PicklingError
+from pycompss.util.serializer import SerializerException
 import traceback
 import pycompss.runtime.binding as binding
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         execfile(app_path)    # MAIN EXECUTION
         finishStorage()
         logger.debug("--- END ---")
-    except PicklingError:
+    except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)

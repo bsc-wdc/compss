@@ -13,10 +13,10 @@ import logging
 import os
 import sys
 import traceback
-from cPickle import loads, UnpicklingError
 from exceptions import ValueError
 
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
 SYNC_EVENTS = 8000666
@@ -136,8 +136,8 @@ def compss_worker():
             real_value = aux
             try:
                 # try to recover the real object
-                aux = loads(aux)
-            except (UnpicklingError, ValueError, EOFError):
+                aux = deserialize_from_string(aux)
+            except (SerializerException, ValueError, EOFError):
                 # was not an object
                 aux = real_value
             #######
@@ -222,8 +222,6 @@ def compss_worker():
     # ==========================================================================
     except ImportError:
         logger.debug("Could not import the module. Reason: Method in class.")
-        from pycompss.util.serializer import deserialize_from_file
-        from pycompss.util.serializer import serialize_to_file
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
         module_name = '.'.join(path.split('.')[0:-1])
@@ -257,7 +255,7 @@ def compss_worker():
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
             logger.debug("Serializing self to file")
             logger.debug("Obj: " + str(obj))
-            serialize_to_file(obj, file_name, force=True)
+            serialize_to_file(obj, file_name)
         else:
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)    # class must be first type

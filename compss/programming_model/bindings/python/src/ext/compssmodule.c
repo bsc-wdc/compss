@@ -80,18 +80,18 @@ process_task(PyObject *self, PyObject *args)
     	//printf ("#### c_type: %d\n", c_types[j]);
     	//printf ("#### c_direction: %d\n", c_directions[j]);
     	switch ((enum datatype) c_types[j]) {
-	    case file_dt:
-	        //printf ("#### file_dt\n");
-	        val_size += sizeof(char*);
-    	        break;
-	    case external_psco_dt:
-	        //printf ("#### external_psco_dt\n");
-		val_size += sizeof(char *);
-		break;
+    	    case file_dt:
+    	        //printf ("#### file_dt\n");
+    	        val_size += sizeof(char*);
+        	        break;
+    	    case external_psco_dt:
+    	        //printf ("#### external_psco_dt\n");
+        		val_size += sizeof(char *);
+        		break;
     	    case string_dt:
     	        //printf ("#### string_dt\n");
-    	    	val_size += sizeof(char*);
-    		break;
+        	    val_size += sizeof(char*);
+        		break;
     	    case int_dt:
     	        //printf ("#### int_dt\n");
     	    	val_size += sizeof(int);
@@ -131,12 +131,12 @@ process_task(PyObject *self, PyObject *args)
     			//printf ("####C#### \t Arg %d (FILE): %s, add %ld\n", j, *(char**)c_values, c_values);
     			c_values += sizeof(char*);
     			break;
-	    case external_psco_dt:
-                        s = PyString_AsString(val);
-                        *(char**)c_values = s;
-                        //printf ("####C#### \t Arg %d (PERSISTENT): %s, add %ld\n", j, *(char**)c_values, c_values);
-			c_values += sizeof(char*);
-			break;
+	       case external_psco_dt:
+                s = PyString_AsString(val);
+                *(char**)c_values = s;
+                //printf ("####C#### \t Arg %d (PERSISTENT): %s, add %ld\n", j, *(char**)c_values, c_values);
+			    c_values += sizeof(char*);
+			    break;
     	    case string_dt:
     	    	s = PyString_AsString(val);
     	    	*(char**)c_values = s;

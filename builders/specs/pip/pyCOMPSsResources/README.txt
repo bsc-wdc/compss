@@ -1,48 +1,45 @@
 =================
-COMP Superscalar
+PyCOMPSs 
 =================
 
-COMP Superscalar (COMPSs) is a framework which aims to ease the development and execution of applications for distributed infrastructures, such as Clusters, Grids and Clouds.
+PyCOMPSs is a framework which aims to ease the development and execution of Python parallel applications for distributed infrastructures, such as Clusters and Clouds.
+
 
 Overview
 -------------
-The COMP Superscalar (COMPSs) framework is mainly composed of a programming model which aims to ease the development of applications for distributed infrastructures, such as Clusters, Grids and Clouds and a runtime system that exploits the inherent parallelism of applications at execution time. The framework is complemented by a set of tools for facilitating the development, execution monitoring and post-mortem performance analysis.
+PyCOMPSs is the Python binding of COMPSs, a programming model and runtime which aims to ease the development of parallel applications for distributed infrastructures, such as Clusters and Clouds. The Programming model offers a sequential interface but at execution time the runtime system is able to exploit the inherent parallelism of applications at task level. The framework is complemented by a set of tools for facilitating the development, execution monitoring and post-mortem performance analysis. 
+
+A PyCOMPSs application is composed of tasks, which are methods annotated with decorators following the PyCOMPSs syntax. At execution time, the runtime builds a task graph that takes into account the data dependencies between tasks, and from this graph schedules and executes the tasks in the distributed infrastructure, taking also care of the required data transfers between nodes. 
 
 Official web page: http://compss.bsc.es
 
+
 Documentation
 -------------
-COMPSs documentation can be found at http://compss.bsc.es (Documentation tab)
+PyCOMPSs documentation can be found at http://compss.bsc.es (Documentation tab)
 
-* COMPSs_Installation_Manual.pdf
+(See "PIP" section in the installation manual)
 
-* COMPSs_User_Manual_App_Development.pdf
-* COMPSs_User_Manual_App_Execution.pdf
-
-* COMPSs_MareNostrum_Manual.pdf
-* Tracing_Manual.pdf
-
-* COMPSs_Developer_Manual.pdf
-
-Please, pay special attention to the "PIP" section in the installation manual.
 
 Installation
 -------------
-First, be sure that the target machine satisfies the mentioned dependencies on
-the installation manual.
+First, be sure that the target machine satisfies the mentioned dependencies on the installation manual.
 
-The installation can be done in various different ways.
+The installation can be done in various alternative ways:
 
-1) Use PIP to install the official COMPSs version from the pypi live repository:
-sudo -E python2.7 -m pip install compss -v
-2) Use PIP to install COMPSs from a compss .tar.gz
-sudo -E python2.7 -m pip install compss-version.tar.gz -v
-3) Use the setup.py script
+* Use PIP to install the official pyCOMPSs version from the pypi live repository:
+sudo -E python2.7 -m pip install pycompss -v
+
+* Use PIP to install COMPSs from a compss .tar.gz
+sudo -E python2.7 -m pip install pycompss-version.tar.gz -v
+
+* Use the setup.py script
 sudo -E python2.7 setup.py install
 
 
 
 *******************************************
-** Department of Computer Science **
-** Barcelona Supercomputing Center **
+** Workflows and Distributed Computing **
+** Department of Computer Science      **
+** Barcelona Supercomputing Center     **
 *******************************************  

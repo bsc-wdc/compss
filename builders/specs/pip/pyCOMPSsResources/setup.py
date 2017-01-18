@@ -61,11 +61,22 @@ setup (name='pycompss',
 	url='http://compss.bsc.es',
 	classifiers = [
         	'Development Status :: 5 - Production/Stable',
+			'Environment :: Console',
         	'Intended Audience :: Developers',
-        	'License :: OSI Approved',
-        	'Programming Language :: Python :: 2.7'
+        	'Intended Audience :: Science/Research',
+        	'License :: OSI Approved :: Apache Software License',
+			'Operating System :: POSIX :: Linux',
+			'Operating System :: Unix',
+        	'Programming Language :: C',
+        	'Programming Language :: C++',
+        	'Programming Language :: Java',
+            'Programming Language :: Python :: 2.7',
+        	'Topic :: Software Development',
+			'Topic :: Scientific/Engineering',
+			'Topic :: System :: Distributed Computing',
+			'Topic :: Utilities'
 	],
 	license='Apache 2.0',
-	platforms=['Linux', 'Mac OS-X']
+	platforms=['Linux']
 	)
 

@@ -29,7 +29,6 @@ All serialization/deserialization calls should be made using one of the followin
 - deserialize_from_string(serialized_content) -> loads the first object from the given string
 - deserialize_from_handler(handler) -> deserializes an object using the given handler, it also leaves the
                                        handler's pointer pointing to the end of the serialized object
-
 """
 import os
 import imp
@@ -93,8 +92,6 @@ def get_serializers():
 def serialize_to_handler(obj, handler):
     """
     Serialize an object to a handler.
-    This function assumes that the used serializers employ the "lazy-writing pratice"
-    i.e: they dont write until they really need it
     @param obj: Object to be serialized.
     @param file_handler: A handler object. It must implement methods like write, writeline and similar stuff
     """

@@ -60,6 +60,8 @@ def main_program():
     
     test_multireturn()
     
+    test_multireturn_multicall()
+
     test_moduleObject()
         
     
@@ -524,6 +526,24 @@ def test_multireturn():
         print "- Test multiple objects return: OK"
     else:           
         print "- Test multiple objects return: ERROR"
+
+
+def test_multireturn_multicall():
+    print "test_multireturn_multicall"
+    v,w = multireturn(10.0)
+    v,w = multireturn(10.0)
+    x = power(v)
+    y = power(w)
+    res = merge(x,y)
+    res = compss_wait_on(res)
+    a = compss_wait_on(x)
+    b = compss_wait_on(y)
+    if res == 500 and a == 100 and b == 400:
+        print "- Test multiple objects return (multicall): OK"
+    else:
+        print "- Test multiple objects return (multicall): ERROR"
+
+
 
 
 def test_moduleObject():

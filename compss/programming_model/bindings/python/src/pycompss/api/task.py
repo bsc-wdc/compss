@@ -1,5 +1,5 @@
 #
-#  Copyright 2.02-2016 Barcelona Supercomputing Center (www.bsc.es)
+#  Copyright 2.02-2017 Barcelona Supercomputing Center (www.bsc.es)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 """
 @author: etejedor
 @author: fconejer
+@author: srodrig1
 
 PyCOMPSs API - Task
 ===================

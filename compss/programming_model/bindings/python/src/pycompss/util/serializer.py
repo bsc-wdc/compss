@@ -13,6 +13,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+"""
+@author: srodrig1
+
+PyCOMPSs Utils: Data serializer/deserializer
+This file implements the main serialization/deserialization functions.
+All serialization/deserialization calls should be made using one of the following functions:
+
+- serialize_to_file(obj, file_name) -> dumps the object "obj" to the file "file_name"
+- serialize_to_string(obj) -> dumps the object "obj" to a string
+- serialize_to_handler(obj, handler) -> writes the serialized object using the specified handler
+                                        it also moves the handler's pointer to the end of the dump
+
+- deserialize_from_file(file_name) -> loads the first object from the tile "file_name"
+- deserialize_from_string(serialized_content) -> loads the first object from the given string
+- deserialize_from_handler(handler) -> deserializes an object using the given handler, it also leaves the
+                                       handler's pointer pointing to the end of the serialized object
+
+"""
 import os
 import imp
 import types
@@ -84,10 +102,11 @@ def serialize_to_handler(obj, handler):
     serializer_priority = get_serializer_priority(obj)
     i = 0
     success = False
+    original_position = handler.tell()
     # lets try the serializers in the given priority
     while i < len(serializer_priority) and not success:
         # reset the handlers pointer to the first position
-        handler.seek(0)
+        handler.seek(original_position)
         serializer = serializer_priority[i]
         # special case: obj is a generator
         if isinstance(obj, types.GeneratorType):
@@ -142,10 +161,11 @@ def deserialize_from_handler(handler):
     """
     # get the most common order of the serializers
     serializers = get_serializers()
+    original_position = handler.tell()
     # let's try to deserialize 
     for serializer in serializers:
         # reset the handler in case the previous serializer has used it
-        handler.seek(0)
+        handler.seek(original_position)
         try:
             ret = serializer.load(handler)
             # special case: deserialized obj wraps a generator

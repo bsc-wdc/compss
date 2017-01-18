@@ -117,12 +117,14 @@ def start(log_level="off",
           specificLogDir=None,
           extraeCfg=None,
           comm='NIO',
+          conn='integratedtoolkit.connectors.DefaultSSHConnector',
           masterName='',
           masterPort='43000',
-          scheduler='integratedtoolkit.scheduler.defaultscheduler.DefaultScheduler',
+          scheduler='integratedtoolkit.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
           forked=False,
           ):
+    cp = os.getcwd() + '/'
     it_home = os.environ['IT_HOME']
     pythonPath = os.environ['PYTHONPATH'] + ':' + os.getcwd() + '/'
     classpath = os.environ['CLASSPATH']
@@ -241,16 +243,17 @@ def start(log_level="off",
         jvm_options_file.write('-Dit.comm=integratedtoolkit.gat.master.GATAdaptor\n')
     else:
         jvm_options_file.write('-Dit.comm=integratedtoolkit.nio.master.NIOAdaptor\n')
+    jvm_options_file.write('-Dit.conn='+ conn +'\n')
     jvm_options_file.write('-Dit.masterName=' + masterName + '\n')
     jvm_options_file.write('-Dit.masterPort=' + masterPort + '\n')
     jvm_options_file.write('-Dit.scheduler=' + scheduler + '\n')
     jvm_options_file.write('-Dgat.adaptor.path=' + it_home + '/Dependencies/JAVA_GAT/lib/adaptors\n')
     jvm_options_file.write('-Dit.gat.broker.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dit.gat.file.adaptor=sshtrilead\n')
-    jvm_options_file.write('-Dit.worker.cp=' + classpath + '\n')
-    jvm_options_file.write('-Dit.worker.pythonpath=' + pythonPath + '\n')
+    jvm_options_file.write('-Dit.worker.cp=' + cp + ':' + classpath + '\n')
     jvm_options_file.write('-Dit.worker.jvm_opts=' + jvmWorkers + '\n')
-    jvm_options_file.write('-Djava.class.path=' + it_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write('-Djava.class.path=' + cp + ':' + it_home + '/Runtime/compss-engine.jar:' + classpath + '\n')
+    jvm_options_file.write('-Dit.worker.pythonpath=' + pythonPath + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
@@ -278,7 +281,6 @@ def start(log_level="off",
 
     logPath = get_logPath()
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=logPath + '/tmpFiles/')
-
     print "Log path : ", logPath
 
     # 2.0 logging
@@ -293,10 +295,11 @@ def start(log_level="off",
         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)
 
     logger = logging.getLogger("pycompss.runtime.launch")
+
     printSetup(log_level, o_c, debug, graph, trace, monitor,
                project_xml, resources_xml, summary, taskExecution, storageConf,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-               comm, masterName, masterPort, scheduler, jvmWorkers)
+               comm, conn, masterName, masterPort, scheduler, jvmWorkers)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % logPath)
@@ -317,7 +320,7 @@ def start(log_level="off",
 def printSetup(log_level, o_c, debug, graph, trace, monitor,
           project_xml, resources_xml, summary, taskExecution, storageConf,
           taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
-          comm, masterName, masterPort, scheduler, jvmWorkers):
+          comm, conn, masterName, masterPort, scheduler, jvmWorkers):
     logger = logging.getLogger("pycompss.runtime.launch")
     output = ""
     output += "******************************************************\n"
@@ -339,6 +342,7 @@ def printSetup(log_level, o_c, debug, graph, trace, monitor,
     output += "Specific log dir. : " + str(specificLogDir) + "\n"
     output += "Extrae CFG        : " + str(extraeCfg) + "\n"
     output += "COMM library      : " + str(comm) + "\n"
+    output += "CONN library      : " + str(conn) + "\n"
     output += "Master name       : " + str(masterName) + "\n"
     output += "Master port       : " + str(masterPort) + "\n"
     output += "Scheduler         : " + str(scheduler) + "\n"

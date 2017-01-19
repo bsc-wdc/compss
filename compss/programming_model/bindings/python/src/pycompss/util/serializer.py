@@ -209,5 +209,5 @@ def serialize_objects(to_serialize):
                          Each sublist is composed of pairs
                          ['object','file name'].
     """
-    for (obj, file_name) in to_serialize:
-        serialize_to_file(obj, file_name)
+    for obj_and_file in to_serialize:
+        serialize_to_file(*obj_and_file)

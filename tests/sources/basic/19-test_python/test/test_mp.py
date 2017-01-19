@@ -1,6 +1,7 @@
 """
 @author: etejedor
 @author: fconejer
+@author: srodrig1
 
 PyCOMPSs Testbench
 ==================

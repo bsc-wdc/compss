@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * Representation of a Task
  * 
@@ -22,14 +23,14 @@ public class Task implements Comparable<Task> {
 
 
     /**
-     *  Task states
+     * Task states
      *
      */
     public enum TaskState {
-        TO_ANALYSE, 
-        TO_EXECUTE, 
-        FINISHED, 
-        FAILED
+        TO_ANALYSE, // Task is beeing analysed
+        TO_EXECUTE, // Task can be executed
+        FINISHED, // Task has finished successfully
+        FAILED // Task has failed
     }
 
 
@@ -45,8 +46,8 @@ public class Task implements Comparable<Task> {
 
     // Scheduling info
     private Task enforcingTask;
-    private final List<ExecutionAction<?, ?>> executions;
-    
+    private final List<ExecutionAction<?, ?, ?>> executions;
+
     // Execution count information
     private int executionCount;
 
@@ -64,14 +65,14 @@ public class Task implements Comparable<Task> {
      * @param hasTarget
      * @param parameters
      */
-    public Task(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+    public Task(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
-        
+
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, 
-                                                    hasTarget, parameters);
+        this.taskDescription = new TaskDescription(methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+                parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();
         this.executions = new LinkedList<>();
@@ -193,7 +194,7 @@ public class Task implements Comparable<Task> {
     public void setEnforcingTask(Task task) {
         this.enforcingTask = task;
     }
-    
+
     /**
      * Returns whether the task is free or not
      * 
@@ -202,7 +203,7 @@ public class Task implements Comparable<Task> {
     public boolean isFree() {
         return (this.executionCount == 0);
     }
-    
+
     /**
      * Sets a new execution count for the task
      * 
@@ -211,7 +212,7 @@ public class Task implements Comparable<Task> {
     public void setExecutionCount(int executionCount) {
         this.executionCount = executionCount;
     }
-    
+
     /**
      * Decreases the execution count of the task
      * 
@@ -316,7 +317,7 @@ public class Task implements Comparable<Task> {
      * 
      * @param execution
      */
-    public void addExecution(ExecutionAction<?, ?> execution) {
+    public void addExecution(ExecutionAction<?, ?, ?> execution) {
         this.executions.add(execution);
     }
 
@@ -325,7 +326,7 @@ public class Task implements Comparable<Task> {
      * 
      * @return
      */
-    public List<ExecutionAction<?, ?>> getExecutions() {
+    public List<ExecutionAction<?, ?, ?>> getExecutions() {
         return executions;
     }
 

@@ -1,14 +1,12 @@
 package integratedtoolkit.scheduler.types.fake;
 
 import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class FakeImplementation<T extends WorkerResourceDescription> extends Implementation<T> {
+public class FakeImplementation extends Implementation<FakeResourceDescription> {
 
-    @SuppressWarnings("unchecked")
-    public FakeImplementation(int coreId, int implementationId, WorkerResourceDescription annot) {
-        super(coreId, implementationId, (T) annot);
+    public FakeImplementation(int coreId, int implementationId, FakeResourceDescription annot) {
+        super(coreId, implementationId, annot);
     }
 
     @Override

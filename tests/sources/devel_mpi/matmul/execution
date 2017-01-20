@@ -18,6 +18,7 @@
   #----------------------------------------------------------------------------------
   # Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
   
   #----------------------------------------------------------------------------------
   # Run application 1 - MATMUL
@@ -28,8 +29,8 @@
   expectedTime=180s
  
   binary=${base_app_dir}/bin/matmul
-  MSIZE=8
-  BSIZE=4
+  MSIZE=2
+  BSIZE=2
  
   export MATMUL_BINARY=$binary
 

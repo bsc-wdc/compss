@@ -4,7 +4,7 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
 
 
-public class ServiceWorker extends Worker<ServiceResourceDescription> {
+public class ServiceWorker extends Worker<ServiceResourceDescription, Implementation<ServiceResourceDescription>> {
 
     private String wsdl;
 
@@ -45,7 +45,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public Integer fitCount(Implementation<?> impl) {
+    public Integer fitCount(Implementation<ServiceResourceDescription> impl) {
         return Integer.MAX_VALUE;
     }
 
@@ -56,7 +56,6 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     
     @Override
     public boolean usesGPU(ServiceResourceDescription consumption){
-    	logger.debug("service worker");
     	return false;
     }
     
@@ -115,7 +114,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public boolean canRun(Implementation<?> implementation) {
+    public boolean canRun(Implementation<ServiceResourceDescription> implementation) {
         switch (implementation.getTaskType()) {
             case SERVICE:
                 ServiceResourceDescription s = (ServiceResourceDescription) implementation.getRequirements();
@@ -136,7 +135,7 @@ public class ServiceWorker extends Worker<ServiceResourceDescription> {
     }
 
     @Override
-    public Worker<?> getSchedulingCopy() {
+    public Worker<ServiceResourceDescription, Implementation<ServiceResourceDescription>> getSchedulingCopy() {
         return new ServiceWorker(this);
     }
 

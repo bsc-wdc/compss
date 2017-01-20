@@ -42,6 +42,9 @@ public class Matmul {
         initializeMatrix(AfileNames, true);
         initializeMatrix(BfileNames, true);
         initializeMatrix(CfileNames, false);
+        
+        // Wait for runtime
+        Thread.sleep(3_000);
 
         // Compute matrix multiplication C = A x B
         computeMultiplication();
@@ -101,10 +104,24 @@ public class Matmul {
 
     private static void computeMultiplication() {
         System.out.println("[LOG] Computing result");
+        Integer[][][] exitValues = new Integer[MSIZE][MSIZE][MSIZE];
+        
+        // Launch tasks
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
                 for (int k = 0; k < MSIZE; k++) {
-                    MPI.multiplyAccumulative(BSIZE, AfileNames[i][k], BfileNames[k][j], CfileNames[i][j]);
+                    exitValues[i][j][k] = MPI.multiplyAccumulative(BSIZE, AfileNames[i][k], BfileNames[k][j], CfileNames[i][j]);
+                }
+            }
+        }
+        
+        // Wait loop
+        for (int i = 0; i < MSIZE; i++) {
+            for (int j = 0; j < MSIZE; j++) {
+                for (int k = 0; k < MSIZE; k++) {
+                    if (exitValues[i][j][k] != 0) {
+                        System.err.println("[ERROR] Some task failed with exitValue " + exitValues[i][j][k]);
+                    }
                 }
             }
         }

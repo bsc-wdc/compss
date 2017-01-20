@@ -43,7 +43,7 @@ public class AlreadyAccessedRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         boolean aa = dip.alreadyAccessed(this.loc);
         this.response = aa;
         sem.release();

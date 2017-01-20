@@ -8,7 +8,7 @@ import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
 
-public class MethodWorker extends Worker<MethodResourceDescription> {
+public class MethodWorker extends Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> {
 
     private String name;
 
@@ -94,7 +94,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public Integer fitCount(Implementation<?> impl) {
+    public Integer fitCount(Implementation<MethodResourceDescription> impl) {
         if (impl.getTaskType() == TaskType.SERVICE) {
             return null;
         }
@@ -163,7 +163,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public boolean canRun(Implementation<?> implementation) {
+    public boolean canRun(Implementation<MethodResourceDescription> implementation) {
         switch (implementation.getTaskType()) {
             case METHOD:
                 MethodResourceDescription ctrs = (MethodResourceDescription) implementation.getRequirements();
@@ -186,7 +186,7 @@ public class MethodWorker extends Worker<MethodResourceDescription> {
     }
 
     @Override
-    public Worker<?> getSchedulingCopy() {
+    public Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> getSchedulingCopy() {
         return new MethodWorker(this);
     }
 

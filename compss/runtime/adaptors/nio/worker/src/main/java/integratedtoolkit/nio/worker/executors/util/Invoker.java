@@ -359,6 +359,9 @@ public abstract class Invoker {
         // PSCOs are already stored, skip them
         if (this.retValue != null) {
             String renaming = (String) this.nt.getParams().getLast().getValue();
+            if (debug) {
+                logger.debug("Store return value " + this.retValue + " as " + renaming);
+            }
             // Always stored because it can only be a OUT object
             this.nw.storeObject(renaming.substring(renaming.lastIndexOf('/') + 1), this.retValue);
         }

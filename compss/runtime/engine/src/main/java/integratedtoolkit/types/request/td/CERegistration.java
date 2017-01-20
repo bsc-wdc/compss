@@ -15,13 +15,14 @@ import integratedtoolkit.util.ResourceManager;
 import java.util.LinkedList;
 
 
-public class CERegistration<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class CERegistration<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     private Semaphore sem;
     private final String signature;
     private final String declaringClass;
     private final MethodResourceDescription mrd;
-	private String methodName;
+    private String methodName;
 
 
     public CERegistration(String signature, String methodName, String declaringClass, MethodResourceDescription mrd, Semaphore sem) {
@@ -52,7 +53,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
     }
 
     @Override
-    public void process(TaskScheduler<P, T> ts) {
+    public void process(TaskScheduler<P, T, I> ts) {
         int coreId = CoreManager.registerCoreId(signature);
 
         // TODO: Python only supports 1 implementation due to lack of interface

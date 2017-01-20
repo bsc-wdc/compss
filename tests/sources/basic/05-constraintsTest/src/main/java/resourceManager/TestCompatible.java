@@ -1,5 +1,8 @@
 package resourceManager;
 
+import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.MethodImplementation;
@@ -10,6 +13,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.util.CoreManager;
 
@@ -50,21 +54,23 @@ public class TestCompatible {
     }
 
     /*
-     * ************************************** 
-     * RESOURCE MANAGER TEST IMPLEMENTATION
+     * ************************************** RESOURCE MANAGER TEST IMPLEMENTATION
      * **************************************
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings("unchecked")
     private static void resourceManagerTest() {
         coreCount = CoreManager.getCoreCount();
+
+        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
+                .getOrchestrator();
 
         // Check for each implementation the correctness of its resources
         System.out.println("[LOG] Number of cores = " + coreCount);
         for (int coreId = 0; coreId < coreCount; coreId++) {
             System.out.println("[LOG] Checking Core" + coreId);
 
-            Action a = new Action(coreId);
-            HashMap<Worker<?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
+            Action a = new Action(orchestrator, coreId);
+            HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
 
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
@@ -82,14 +88,14 @@ public class TestCompatible {
 
     }
 
-    private static void checkCoreResources(int coreId, HashMap<Worker<?>, LinkedList<Implementation<?>>> hm) {
+    private static void checkCoreResources(int coreId, HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> hm) {
         // Revert Map
-        HashMap<Implementation<?>, LinkedList<Worker<?>>> hm_reverted = new HashMap<Implementation<?>, LinkedList<Worker<?>>>();
-        for (Entry<Worker<?>, LinkedList<Implementation<?>>> entry_hm : hm.entrySet()) {
+        HashMap<Implementation<?>, LinkedList<Worker<?, ?>>> hm_reverted = new HashMap<Implementation<?>, LinkedList<Worker<?, ?>>>();
+        for (Entry<Worker<?, ?>, LinkedList<Implementation<?>>> entry_hm : hm.entrySet()) {
             for (Implementation<?> impl : entry_hm.getValue()) {
-                LinkedList<Worker<?>> aux = hm_reverted.get(impl);
+                LinkedList<Worker<?, ?>> aux = hm_reverted.get(impl);
                 if (aux == null) {
-                    aux = new LinkedList<Worker<?>>();
+                    aux = new LinkedList<Worker<?, ?>>();
                 }
                 aux.add(entry_hm.getKey());
                 hm_reverted.put(impl, aux);
@@ -97,10 +103,10 @@ public class TestCompatible {
         }
 
         // Check Resources assigned to each implementation
-        for (java.util.Map.Entry<Implementation<?>, LinkedList<Worker<?>>> entry : hm_reverted.entrySet()) {
+        for (java.util.Map.Entry<Implementation<?>, LinkedList<Worker<?, ?>>> entry : hm_reverted.entrySet()) {
             System.out.println("[LOG] ** Checking Implementation " + entry.getKey());
             System.out.println("[LOG] **** Number of resources = " + entry.getValue().size());
-            for (Worker<?> resource : entry.getValue()) {
+            for (Worker<?, ?> resource : entry.getValue()) {
                 System.out.println("[LOG] **** Checking Resource " + resource.getName());
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
@@ -114,7 +120,7 @@ public class TestCompatible {
         }
     }
 
-    private static String checkResourcesAssignedToImpl(Implementation<?> impl, Worker<?> resource) {
+    private static String checkResourcesAssignedToImpl(Implementation<?> impl, Worker<?, ?> resource) {
         if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(Resource.Type.SERVICE))
                 || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(Resource.Type.WORKER))) {
             return "types";
@@ -130,8 +136,7 @@ public class TestCompatible {
             // System.out.println("-- Worker Details: " + wDescription);
 
             /*
-             * *********************************************** 
-             * COMPUTING UNITS
+             * *********************************************** COMPUTING UNITS
              ***********************************************/
             if ((iDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
                     && (wDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
@@ -140,8 +145,7 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** 
-             * PROCESSOR
+             * *********************************************** PROCESSOR
              ***********************************************/
             for (Processor ip : iDescription.getProcessors()) {
                 // Check if processor can be executed in worker
@@ -191,8 +195,7 @@ public class TestCompatible {
             }
 
             /*
-             * ***********************************************
-             * MEMORY
+             * *********************************************** MEMORY
              ***********************************************/
             if ((iDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
@@ -207,8 +210,7 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** 
-             * STORAGE
+             * *********************************************** STORAGE
              ***********************************************/
             if ((iDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
@@ -223,8 +225,7 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** 
-             * OPERATING SYSTEM
+             * *********************************************** OPERATING SYSTEM
              ***********************************************/
             if ((!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
                     && (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
@@ -245,16 +246,14 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** 
-             * APPLICATION SOFTWARE
+             * *********************************************** APPLICATION SOFTWARE
              ***********************************************/
             if (!(iDescription.getAppSoftware().isEmpty()) && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
                 return "appSoftware";
             }
 
             /*
-             * *********************************************** 
-             * HOST QUEUE
+             * *********************************************** HOST QUEUE
              ***********************************************/
             if (!(iDescription.getHostQueues().isEmpty()) && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
                 return "hostQueues";
@@ -280,8 +279,7 @@ public class TestCompatible {
         }
 
         /*
-         * *********************************************** 
-         * ALL CONSTAINT VALUES OK
+         * *********************************************** ALL CONSTAINT VALUES OK
          ***********************************************/
         return null;
     }

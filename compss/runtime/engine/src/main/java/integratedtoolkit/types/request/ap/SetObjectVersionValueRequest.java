@@ -34,7 +34,7 @@ public class SetObjectVersionValueRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         dip.setObjectVersionValue(renaming, value);
     }
 

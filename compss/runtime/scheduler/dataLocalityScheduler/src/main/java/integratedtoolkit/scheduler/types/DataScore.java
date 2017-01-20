@@ -8,6 +8,7 @@ import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.data.DataAccessId;
 import integratedtoolkit.types.data.DataInstanceId;
+import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.Resource;
@@ -44,7 +45,7 @@ public class DataScore extends Score {
      * @param w
      * @return
      */
-    public static double calculateScore(TaskDescription params, Worker<?> w) {
+    public static double calculateScore(TaskDescription params, Worker<?, ?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();
@@ -71,10 +72,13 @@ public class DataScore extends Score {
 
                     // Get hosts for resource score
                     if (dId != null) {
-                        HashSet<Resource> hosts = Comm.getData(dId.getRenaming()).getAllHosts();
-                        for (Resource host : hosts) {
-                            if (host == w) {
-                                resourceScore++;
+                        LogicalData dataLD = Comm.getData(dId.getRenaming());
+                        if (dataLD != null) {
+                            HashSet<Resource> hosts = dataLD.getAllHosts();
+                            for (Resource host : hosts) {
+                                if (host == w) {
+                                    resourceScore++;
+                                }
                             }
                         }
                     }
@@ -85,22 +89,8 @@ public class DataScore extends Score {
     }
 
     @Override
-    public boolean isBetter(Score other) {
-        if (actionScore != other.actionScore) {
-            return actionScore > other.actionScore;
-        }
-        if (resourceScore != other.resourceScore) {
-            return resourceScore > other.resourceScore;
-        }
-        if (waitingScore != other.waitingScore) {
-            return waitingScore > other.waitingScore;
-        }
-        return this.implementationScore > other.implementationScore;
-    }
-
-    @Override
     public String toString() {
-        return "[ResourceEmptyScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
+        return "[DataScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
                 + ", implementation:" + implementationScore + "]" + "]";
     }
 

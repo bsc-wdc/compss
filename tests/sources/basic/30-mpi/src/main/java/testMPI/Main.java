@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
-import integratedtoolkit.api.COMPSs;
 import mpi.MPI;
 
 
@@ -40,14 +39,14 @@ public class Main {
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test MPI with 1 node");
         testMPISingleNode();
-        
-        // ------------------------------------------------------------------------
-        System.out.println("[LOG] Wait for single node execution");
-        COMPSs.waitForAllTasks();
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] Test MPI with 2 node");
         testMPIMultipleNodes();
+
+        // ------------------------------------------------------------------------
+        System.out.println("[LOG] Test concurrent MPI with 2 node");
+        testMPIConcurrentMultipleNodes();
 
         // ------------------------------------------------------------------------
         System.out.println("[LOG] MPI Test finished");
@@ -73,7 +72,7 @@ public class Main {
     private static void testMPISingleNode() {
         String outputFile = "mpiSingleOutput.txt";
         int ev = MPI.taskSingleMPI(data, outputFile);
-        
+
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
             System.exit(1);
@@ -92,8 +91,8 @@ public class Main {
 
     private static void testMPIMultipleNodes() {
         String outputFile = "mpiMultipleOutput.txt";
-        int ev = MPI.taskMultipleMPI(data, outputFile);
-        
+        Integer ev = MPI.taskMultipleMPI(data, outputFile);
+
         if (ev != 0) {
             System.err.println("[ERROR] Process returned non-zero exit value: " + ev);
             System.exit(1);
@@ -107,6 +106,38 @@ public class Main {
             System.err.println("[ERROR] Cannot read output file " + outputFile);
             System.exit(1);
         }
+        System.out.println("[LOG] Result must be checked on result script");
+    }
+
+    private static void testMPIConcurrentMultipleNodes() {
+        String outputFile1 = "mpiMultipleOutput1.txt";
+        String outputFile2 = "mpiMultipleOutput2.txt";
+        Integer ev1 = MPI.taskConcurrentMultipleMPI(data, outputFile1);
+        Integer ev2 = MPI.taskConcurrentMultipleMPI(data, outputFile2);
+
+        if (ev1 != 0 || ev2 != 0) {
+            System.err.println("[ERROR] One process returned non-zero exit value: " + ev1 + " or " + ev2);
+            System.exit(1);
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile1))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI CONC Task1: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile1);
+            System.exit(1);
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(outputFile2))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println("[RESULT] MPI CONC Task2: " + line);
+            }
+        } catch (IOException ioe) {
+            System.err.println("[ERROR] Cannot read output file " + outputFile2);
+            System.exit(1);
+        }
+
         System.out.println("[LOG] Result must be checked on result script");
     }
 

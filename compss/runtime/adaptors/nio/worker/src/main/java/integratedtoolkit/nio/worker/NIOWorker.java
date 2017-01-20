@@ -791,7 +791,7 @@ public class NIOWorker extends NIOAgent {
                 try {
                     StorageItf.finish();
                 } catch (StorageException e) {
-                    wLogger.error("Error releasing storage library: " + e.getMessage());
+                    wLogger.error("Error releasing storage library: " + e.getMessage(), e);
                 }
             }
 
@@ -1031,7 +1031,7 @@ public class NIOWorker extends NIOAgent {
         String storageConf = args[18];
         executionType = args[19];
         
-        int numGPUs = new Integer(args[20]);
+        int numGPUs = Integer.parseInt(args[20]);
         
         
         /*

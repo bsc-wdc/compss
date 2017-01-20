@@ -20,6 +20,22 @@ public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
     }
 
     @Override
+    public int hashCode() {
+        return obj.hashCode();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof ObjectValue) {
+            ObjectValue<T> ov = (ObjectValue<T>) obj;
+            return this.hashCode() == ov.hashCode();
+        }
+
+        return false;
+    }
+
+    @Override
     public int compareTo(ObjectValue<T> o) {
         if (Score.isBetter(this.value, o.value)) {
             return -1;
@@ -29,4 +45,5 @@ public class ObjectValue<T> implements Comparable<ObjectValue<T>> {
             return 0;
         }
     }
+    
 }

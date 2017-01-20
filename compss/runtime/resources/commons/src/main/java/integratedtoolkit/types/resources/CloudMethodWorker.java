@@ -1,6 +1,7 @@
 package integratedtoolkit.types.resources;
 
 import integratedtoolkit.types.COMPSsWorker;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 
@@ -188,7 +189,7 @@ public class CloudMethodWorker extends MethodWorker {
     }
     
     @Override
-    public Worker<?> getSchedulingCopy() {
+    public Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> getSchedulingCopy() {
         return new CloudMethodWorker(this);
     }
     

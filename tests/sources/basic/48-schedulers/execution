@@ -12,14 +12,12 @@
   exitValue=0
   
   # Compute folder for tests in terms of retryNum
-  NUM_TESTS=2
+  NUM_TESTS=5
   testNum=$(((retryNum - 1)*NUM_TESTS + 1))
   
   # Select number of tasks width and depth
   TASK_WIDTH=6
   TASK_DEPTH=2
-  #TASK_WIDTH=1
-  #TASK_DEPTH=8
   INIT_VALUE=1
   
   #----------------------------------------------------------------------------------
@@ -113,7 +111,7 @@
   echo " "
   echo "*** RUNNING JAVA APPLICATION LIFO SCHEDULER"
   
-  testNum=$((testNum + 2))
+  testNum=$((testNum + 1))
   
   log_folder="${target_log_folder}/lifoScheduler"
   mkdir -p ${log_folder}
@@ -127,7 +125,7 @@
      --debug \
      --comm=$comm \
      --scheduler=integratedtoolkit.scheduler.lifoScheduler.LIFOScheduler \
-     -t \
+     -tg \
      --classpath=${base_app_dir}/schedulers.jar \
      schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
@@ -153,7 +151,7 @@
   echo " "
   echo "*** RUNNING JAVA APPLICATION FIFO DATA SCHEDULER"
   
-  testNum=$((testNum + 2))
+  testNum=$((testNum + 1))
   
   log_folder="${target_log_folder}/fifoDataScheduler"
   mkdir -p ${log_folder}
@@ -167,7 +165,7 @@
      --debug \
      --comm=$comm \
      --scheduler=integratedtoolkit.scheduler.fifoDataScheduler.FIFODataScheduler \
-     -t \
+     -tg \
      --classpath=${base_app_dir}/schedulers.jar \
      schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
@@ -193,7 +191,7 @@
   echo " "
   echo "*** RUNNING JAVA APPLICATION DATA SCHEDULER"
 
-  testNum=$((testNum + 2))
+  testNum=$((testNum + 1))
 
   log_folder="${target_log_folder}/dataScheduler"
   mkdir -p ${log_folder}
@@ -207,7 +205,7 @@
      --debug \
      --comm=$comm \
      --scheduler=integratedtoolkit.scheduler.dataScheduler.DataScheduler \
-     -t \
+     -tg \
      --classpath=${base_app_dir}/schedulers.jar \
      schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
 

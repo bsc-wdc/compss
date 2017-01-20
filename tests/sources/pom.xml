@@ -42,6 +42,11 @@
 				<artifactId>compss-api</artifactId>
                                 <version>${compss.version}</version>
                         </dependency>
+		        <dependency>
+			        <groupId>es.bsc.compss</groupId>
+		             	<artifactId>compss-engine</artifactId>
+                                <version>${compss.version}</version>
+		        </dependency>
                         <dependency>
                                 <groupId>es.bsc.compss</groupId>
 				<artifactId>compss-resources-commons</artifactId>

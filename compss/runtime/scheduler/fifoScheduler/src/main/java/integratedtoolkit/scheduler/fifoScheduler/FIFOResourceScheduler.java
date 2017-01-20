@@ -11,39 +11,68 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.implementations.Implementation;
 
 
-public class FIFOResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ReadyResourceScheduler<P, T> {
+public class FIFOResourceScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends ReadyResourceScheduler<P, T, I> {
 
     /**
      * New ready resource scheduler instance
      * 
      * @param w
      */
-    public FIFOResourceScheduler(Worker<T> w) {
+    public FIFOResourceScheduler(Worker<T, I> w) {
         super(w);
     }
 
+    /*
+     * ***************************************************************************************************************
+     * SCORES
+     * ***************************************************************************************************************
+     */
     @Override
-    public Score generateResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
-        return new FIFOScore(actionScore.getActionScore(), 0, Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount()), 0);
+    public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
+        LOGGER.debug("[FIFOResourceScheduler] Generate blocked score for action " + action);
+        double actionPriority = action.getPriority();
+        double waitingScore = -(double) action.getId();
+        double resourceScore = 0;
+        double implementationScore = 0;
 
+        return new FIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
     }
 
     @Override
-    public Score generateWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
-        return new Score(resourceScore.getActionScore(), 1.0 / (double) action.getId(), 0, 0);
+    public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
+        LOGGER.debug("[FIFOResourceScheduler] Generate resource score for action " + action);
+
+        double actionPriority = actionScore.getActionScore();
+        double waitingScore = -(double) action.getId();
+        double resourceScore = 0;
+        double implementationScore = 0;
+
+        return new FIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
     }
 
     @Override
-    public Score generateImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl,
-            Score resourceScore) {
-        Worker<T> w = myWorker;
-        if (w.canRunNow(impl.getRequirements())) {
-            return new FIFOScore(resourceScore.getActionScore(), 0, 0, 1.0 / (double) action.getId());
+    public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
+        LOGGER.debug("[FIFOResourceScheduler] Generate implementation score for action " + action);
+
+        if (myWorker.canRunNow(impl.getRequirements())) {
+            double actionPriority = resourceScore.getActionScore();
+            double waitingScore = resourceScore.getWaitingScore();
+            double resourcePriority = resourceScore.getResourceScore();
+            double implScore = -(double) action.getId();
+
+            return new FIFOScore(actionPriority, waitingScore, resourcePriority, implScore);
         } else {
+            // Implementation cannot be run
             return null;
         }
     }
 
+    /*
+     * ***************************************************************************************************************
+     * OTHER
+     * ***************************************************************************************************************
+     */
     @Override
     public String toString() {
         return "FIFOResourceScheduler@" + getName();

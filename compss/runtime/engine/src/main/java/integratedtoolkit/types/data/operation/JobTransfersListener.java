@@ -8,10 +8,12 @@ import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.data.listener.EventListener;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class JobTransfersListener<P extends Profile, T extends WorkerResourceDescription> extends EventListener {
+public class JobTransfersListener<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends EventListener {
 
     private int operation = 0;
     private int errors = 0;
@@ -20,10 +22,10 @@ public class JobTransfersListener<P extends Profile, T extends WorkerResourceDes
     private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
     private static final boolean debug = logger.isDebugEnabled();
 
-    private ExecutionAction<P, T> execution;
+    private ExecutionAction<P, T, I> execution;
 
 
-    public JobTransfersListener(ExecutionAction<P, T> execution) {
+    public JobTransfersListener(ExecutionAction<P, T, I> execution) {
         this.execution = execution;
     }
 

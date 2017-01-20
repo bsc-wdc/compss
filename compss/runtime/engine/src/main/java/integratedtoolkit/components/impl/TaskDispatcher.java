@@ -15,11 +15,13 @@ import integratedtoolkit.ITConstants;
 import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Task;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CEIParser;
@@ -46,14 +48,15 @@ import org.apache.logging.log4j.Logger;
  * @param <P>
  * @param <T>
  */
-public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescription> implements Runnable, ResourceUser, ActionOrchestrator {
+public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        implements Runnable, ResourceUser, ActionOrchestrator<P, T, I> {
 
     // Schedulers jars path
     private static final String SCHEDULERS_REL_PATH = File.separator + "Runtime" + File.separator + "scheduler";
 
     // Subcomponents
-    protected TaskScheduler<P, T> scheduler;
-    protected LinkedBlockingDeque<TDRequest<P, T>> requestQueue;
+    protected TaskScheduler<P, T, I> scheduler;
+    protected LinkedBlockingDeque<TDRequest<P, T, I>> requestQueue;
 
     // Scheduler thread
     protected Thread dispatcher;
@@ -71,6 +74,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      * Creates a new task dispatcher instance
      * 
      */
+    @SuppressWarnings("unchecked")
     public TaskDispatcher() {
         requestQueue = new LinkedBlockingDeque<>();
         dispatcher = new Thread(this);
@@ -87,6 +91,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
         // Initialize structures
         scheduler = constructScheduler();
+        if (scheduler != null) {
+            scheduler.setOrchestrator(this);
+        }
+
         keepGoing = true;
 
         if (Tracer.basicModeEnabled()) {
@@ -97,11 +105,9 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Tracer.disablePThreads();
         }
 
-        AllocatableAction.setOrchestrator(this);
-
         // Insert workers
-        for (Worker<?> w : ResourceManager.getAllWorkers()) {
-            Worker<T> worker = (Worker<T>) w;
+        for (Worker<?, ?> w : ResourceManager.getAllWorkers()) {
+            Worker<T, I> worker = (Worker<T, I>) w;
             scheduler.updatedWorker(worker);
         }
         logger.info("Initialization finished");
@@ -113,7 +119,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         while (keepGoing) {
             String requestType = "Not defined";
             try {
-                TDRequest<P, T> request = requestQueue.take();
+                TDRequest<P, T, I> request = requestQueue.take();
                 requestType = request.getType().toString();
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.getTDRequestEvent(request.getType().name()).getId(), Tracer.getRuntimeEventsType());
@@ -150,7 +156,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      * 
      * @param request
      */
-    private void addRequest(TDRequest<P, T> request) {
+    private void addRequest(TDRequest<P, T, I> request) {
         if (!requestQueue.offer(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "add request");
         }
@@ -161,7 +167,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      * 
      * @param request
      */
-    private void addPrioritaryRequest(TDRequest<P, T> request) {
+    private void addPrioritaryRequest(TDRequest<P, T, I> request) {
         if (!requestQueue.offerFirst(request)) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "add prioritary request");
         }
@@ -175,25 +181,25 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public void executeTask(TaskProducer producer, Task task) {
         if (debug) {
-            StringBuilder sb = new StringBuilder("Schedule tasks: ");
+            StringBuilder sb = new StringBuilder("Schedule task: ");
             sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
             logger.debug(sb);
         }
-        ExecuteTasksRequest<P, T> request = new ExecuteTasksRequest<P, T>(producer, task);
+        ExecuteTasksRequest<P, T, I> request = new ExecuteTasksRequest<>(producer, task);
         addRequest(request);
     }
 
     // Notification thread
     @Override
-    public void actionCompletion(AllocatableAction<?, ?> action) {
-        ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.COMPLETED);
+    public void actionCompletion(AllocatableAction<P, T, I> action) {
+        ActionUpdate<P, T, I> request = new ActionUpdate<>(action, ActionUpdate.Update.COMPLETED);
         addRequest(request);
     }
 
     // Notification thread
     @Override
-    public void actionError(AllocatableAction<?, ?> action) {
-        ActionUpdate<P, T> request = new ActionUpdate(action, ActionUpdate.Update.ERROR);
+    public void actionError(AllocatableAction<P, T, I> action) {
+        ActionUpdate<P, T, I> request = new ActionUpdate<>(action, ActionUpdate.Update.ERROR);
         addRequest(request);
     }
 
@@ -201,7 +207,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     @Override
     public WorkloadStatus getWorkload() {
         Semaphore sem = new Semaphore(0);
-        GetCurrentScheduleRequest<P, T> request = new GetCurrentScheduleRequest<P, T>(sem);
+        GetCurrentScheduleRequest<P, T, I> request = new GetCurrentScheduleRequest<>(sem);
         addPrioritaryRequest(request);
         try {
             sem.acquire();
@@ -219,7 +225,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public void getTaskSummary(Logger logger) {
         Semaphore sem = new Semaphore(0);
-        TaskSummaryRequest<P, T> request = new TaskSummaryRequest<P, T>(logger, sem);
+        TaskSummaryRequest<P, T, I> request = new TaskSummaryRequest<>(logger, sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -235,7 +241,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public String getCurrentMonitoringData() {
         Semaphore sem = new Semaphore(0);
-        MonitoringDataRequest<P, T> request = new MonitoringDataRequest<P, T>(sem);
+        MonitoringDataRequest<P, T, I> request = new MonitoringDataRequest<>(sem);
         addRequest(request);
         try {
             sem.acquire();
@@ -252,7 +258,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public void printCurrentGraph(BufferedWriter graph) {
         Semaphore sem = new Semaphore(0);
-        PrintCurrentGraphRequest<P, T> request = new PrintCurrentGraphRequest<P, T>(sem, graph);
+        PrintCurrentGraphRequest<P, T, I> request = new PrintCurrentGraphRequest<>(sem, graph);
         addRequest(request);
 
         // Synchronize until request has been processed
@@ -263,9 +269,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void updatedResource(Worker<?> r) {
-        WorkerUpdateRequest<P, T> request = new WorkerUpdateRequest(r);
+    public void updatedResource(Resource r) {
+        WorkerUpdateRequest<P, T, I> request = new WorkerUpdateRequest<>((Worker<T, I>) r);
         addPrioritaryRequest(request);
     }
 
@@ -279,7 +286,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             logger.debug("Updating CEI " + forName.getName());
         }
         Semaphore sem = new Semaphore(0);
-        UpdateLocalCEIRequest<P, T> request = new UpdateLocalCEIRequest<P, T>(forName, sem);
+        UpdateLocalCEIRequest<P, T, I> request = new UpdateLocalCEIRequest<>(forName, sem);
         addRequest(request);
 
         try {
@@ -306,7 +313,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             logger.debug("Registering CEI");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration<P, T> request = new CERegistration<P, T>(signature, methodName, declaringClass, constraints, sem);
+        CERegistration<P, T, I> request = new CERegistration<>(signature, methodName, declaringClass, constraints, sem);
         addRequest(request);
 
         try {
@@ -326,13 +333,18 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
-        ShutdownRequest<P, T> request = new ShutdownRequest<P, T>(sem);
+        ShutdownRequest<P, T, I> request = new ShutdownRequest<>(sem);
         addRequest(request);
         try {
             sem.acquire();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "TaskDispatcher[Instance" + this.hashCode() + "]";
     }
 
     private static void loadSchedulerJars() {
@@ -352,13 +364,13 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     }
 
     @SuppressWarnings("unchecked")
-    private TaskScheduler<P, T> constructScheduler() {
-        TaskScheduler<P, T> scheduler = null;
+    private TaskScheduler<P, T, I> constructScheduler() {
+        TaskScheduler<P, T, I> scheduler = null;
         try {
             String schedFQN = System.getProperty(ITConstants.IT_SCHEDULER);
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
-            scheduler = (TaskScheduler<P, T>) schedCnstr.newInstance();
+            scheduler = (TaskScheduler<P, T, I>) schedCnstr.newInstance();
             if (debug) {
                 logger.debug("Loaded scheduler " + scheduler);
             }

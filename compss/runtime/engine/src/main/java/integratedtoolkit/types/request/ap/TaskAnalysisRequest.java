@@ -25,7 +25,7 @@ public class TaskAnalysisRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         ta.processTask(task);
         td.executeTask(ap, task);
     }

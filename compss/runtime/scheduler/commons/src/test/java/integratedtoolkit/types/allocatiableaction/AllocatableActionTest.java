@@ -1,16 +1,19 @@
 package integratedtoolkit.types.allocatiableaction;
 
+import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.scheduler.types.SchedulingInformation;
-import integratedtoolkit.util.ResourceScheduler;
+import integratedtoolkit.types.fake.FakeActionOrchestrator;
+import integratedtoolkit.types.fake.FakeAllocatableAction;
+import integratedtoolkit.types.fake.FakeImplementation;
+import integratedtoolkit.types.fake.FakeResourceScheduler;
+import integratedtoolkit.types.fake.FakeSI;
 import integratedtoolkit.types.fake.FakeWorker;
 import integratedtoolkit.types.resources.MethodResourceDescription;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
 
 import java.util.HashSet;
@@ -25,23 +28,32 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 
-public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDescription> {
+public class AllocatableActionTest {
 
     private final MethodResourceDescription description;
-    private final ResourceScheduler<P, T> r;
+
+    private final TaskScheduler<Profile, MethodResourceDescription, FakeImplementation> ts;
+    private final FakeActionOrchestrator fao;
+    private final FakeResourceScheduler rs;
 
 
     public AllocatableActionTest() {
+        // Method resource description and its slots
         int maxSlots = 3;
-        this.description = new MethodResourceDescription();
-
-        // Slots
         Processor p = new Processor();
         p.setComputingUnits(maxSlots);
+        this.description = new MethodResourceDescription();
         this.description.addProcessor(p);
 
+        // Task Scheduler
+        this.ts = new TaskScheduler<>();
+
+        // Task Dispatcher
+        this.fao = new FakeActionOrchestrator(this.ts);
+        this.ts.setOrchestrator(this.fao);
+
         // Resource Scheduler
-        this.r = new DummyResourceScheduler<P, T>(new FakeWorker<T>(description, maxSlots));
+        this.rs = new FakeResourceScheduler(new FakeWorker(description, maxSlots));
     }
 
     @BeforeClass
@@ -67,9 +79,9 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
     public void testExecute() throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
         // Create one instance
         prepare(1);
-        AllocatableAction<P, T> instance = new AllocatableActionImpl<>(0);
+        FakeAllocatableAction instance = new FakeAllocatableAction(fao, 0);
         // Run it
-        instance.assignResources(r);
+        instance.assignResources(rs);
         instance.tryToLaunch();
         // Check if it was executed
         checkExecutions(new int[] { 1 });
@@ -98,14 +110,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndNoSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance0.tryToLaunch();
             completed(instance0);
             checkExecutions(new int[] { 1, 0, 0, 0 });
@@ -119,14 +131,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance1.addDataPredecessor(instance0);
             instance0.tryToLaunch();
             completed(instance0);
@@ -141,14 +153,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             addResourceDependency(instance0, instance1);
             instance0.tryToLaunch();
             completed(instance0);
@@ -163,14 +175,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
             instance0.tryToLaunch();
@@ -186,14 +198,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoDataSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             addResourceDependency(instance0, instance1);
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
@@ -209,14 +221,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
@@ -232,14 +244,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndDataAndResourceSuccessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance1.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance2);
             instance0.tryToLaunch();
@@ -255,14 +267,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance2.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance1);
             instance0.tryToLaunch();
@@ -281,14 +293,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoResourcesPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             addResourceDependency(instance0, instance2);
             addResourceDependency(instance1, instance2);
             instance0.tryToLaunch();
@@ -307,14 +319,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance2.addDataPredecessor(instance0);
             addResourceDependency(instance1, instance2);
             instance0.tryToLaunch();
@@ -333,14 +345,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testEndTwoPredecessors");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             addResourceDependency(instance0, instance2);
             instance2.addDataPredecessor(instance1);
             instance0.tryToLaunch();
@@ -360,36 +372,29 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         /*
          * Data dependency Graph
          * 
-         * 1 2 3
-         * \ | / 
-         *  \|/ 
-         *   4 
-         * /\ / \ 
-         *  5 6 
-         *   |
-         *   7
+         * 1 2 3 \ | / \|/ 4 /\ / \ 5 6 | 7
          */
         try {
             prepare(7);
-            AllocatableAction<P, T> task1 = new AllocatableActionImpl<>(0);
-            task1.assignResources(r);
-            AllocatableAction<P, T> task2 = new AllocatableActionImpl<>(1);
-            task2.assignResources(r);
-            AllocatableAction<P, T> task3 = new AllocatableActionImpl<>(2);
-            task3.assignResources(r);
-            AllocatableAction<P, T> task4 = new AllocatableActionImpl<>(3);
-            task4.assignResources(r);
+            FakeAllocatableAction task1 = new FakeAllocatableAction(fao, 0);
+            task1.assignResources(rs);
+            FakeAllocatableAction task2 = new FakeAllocatableAction(fao, 1);
+            task2.assignResources(rs);
+            FakeAllocatableAction task3 = new FakeAllocatableAction(fao, 2);
+            task3.assignResources(rs);
+            FakeAllocatableAction task4 = new FakeAllocatableAction(fao, 3);
+            task4.assignResources(rs);
             task4.addDataPredecessor(task1);
             task4.addDataPredecessor(task2);
             task4.addDataPredecessor(task3);
-            AllocatableAction<P, T> task5 = new AllocatableActionImpl<>(4);
-            task5.assignResources(r);
+            FakeAllocatableAction task5 = new FakeAllocatableAction(fao, 4);
+            task5.assignResources(rs);
             task5.addDataPredecessor(task4);
-            AllocatableAction<P, T> task6 = new AllocatableActionImpl<>(5);
-            task6.assignResources(r);
+            FakeAllocatableAction task6 = new FakeAllocatableAction(fao, 5);
+            task6.assignResources(rs);
             task6.addDataPredecessor(task4);
-            AllocatableAction<P, T> task7 = new AllocatableActionImpl<>(6);
-            task7.assignResources(r);
+            FakeAllocatableAction task7 = new FakeAllocatableAction(fao, 6);
+            task7.assignResources(rs);
             task7.addDataPredecessor(task4);
 
             /*
@@ -407,25 +412,18 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
             task2.tryToLaunch();
             checkExecutions(new int[] { 1, 1, 0, 0, 0, 0, 0 });
             completed(task1);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 0, 0, 0, 0 });
             completed(task2);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 0, 0, 0, 0 });
             completed(task3);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 1, 0, 0, 0 });
             completed(task4);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 0 });
             completed(task5);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 0 });
             completed(task6);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 1 });
             completed(task7);
-            ;
             checkExecutions(new int[] { 1, 1, 1, 1, 1, 1, 1 });
         } catch (Throwable e) {
             e.printStackTrace(System.out);
@@ -446,10 +444,10 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testOneError");
         try {
             prepare(2);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance0.assignResources(r);
-            instance1.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance0.assignResources(rs);
+            instance1.assignResources(rs);
             instance0.tryToLaunch();
             error(instance0);
             checkExecutions(new int[] { 1, 0 });
@@ -465,17 +463,17 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testOneFail");
         try {
             prepare(2);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance0.assignResources(r);
-            instance1.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance0.assignResources(rs);
+            instance1.assignResources(rs);
             instance0.tryToLaunch();
             error(instance0);
             checkExecutions(new int[] { 1, 0 });
             checkErrors(new int[] { 1, 0 });
             checkFailed(new int[] { 0, 0 });
 
-            instance0.assignResources(r);
+            instance0.assignResources(rs);
             instance0.tryToLaunch();
             error(instance0);
             checkExecutions(new int[] { 2, 0 });
@@ -491,14 +489,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testBasicErrorDependencies");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance1.addDataPredecessor(instance0);
             instance2.addDataPredecessor(instance0);
 
@@ -514,7 +512,7 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
             checkErrors(new int[] { 1, 0, 0, 0 });
             checkFailed(new int[] { 0, 0, 0, 0 });
 
-            instance0.assignResources(r);
+            instance0.assignResources(rs);
             addResourceDependency(instance3, instance0);
             completed(instance3);
             checkExecutions(new int[] { 2, 0, 0, 1 });
@@ -536,14 +534,14 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         System.out.println("testBasicFailDependencies");
         try {
             prepare(4);
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
             instance2.addDataPredecessor(instance0);
 
             addResourceDependency(instance0, instance1);
@@ -558,7 +556,7 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
             checkErrors(new int[] { 1, 0, 0, 0 });
             checkFailed(new int[] { 0, 0, 0, 0 });
 
-            instance0.assignResources(r);
+            instance0.assignResources(rs);
             instance0.tryToLaunch();
             checkExecutions(new int[] { 2, 1, 0, 0 });
             checkErrors(new int[] { 1, 0, 0, 0 });
@@ -584,26 +582,20 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
         try {
             prepare(6);
             /*
-             * Data dependencies: 1-->4 
-             * Graph execution 
-             *   2   5 
-             *  / \ / 
-             * 1~~~4 
-             *  \ / \ 
-             *   3   6
+             * Data dependencies: 1-->4 Graph execution 2 5 / \ / 1~~~4 \ / \ 3 6
              */
-            AllocatableAction<P, T> instance0 = new AllocatableActionImpl<>(0);
-            instance0.assignResources(r);
-            AllocatableAction<P, T> instance1 = new AllocatableActionImpl<>(1);
-            instance1.assignResources(r);
-            AllocatableAction<P, T> instance2 = new AllocatableActionImpl<>(2);
-            instance2.assignResources(r);
-            AllocatableAction<P, T> instance3 = new AllocatableActionImpl<>(3);
-            instance3.assignResources(r);
-            AllocatableAction<P, T> instance4 = new AllocatableActionImpl<>(4);
-            instance4.assignResources(r);
-            AllocatableAction<P, T> instance5 = new AllocatableActionImpl<>(5);
-            instance5.assignResources(r);
+            FakeAllocatableAction instance0 = new FakeAllocatableAction(fao, 0);
+            instance0.assignResources(rs);
+            FakeAllocatableAction instance1 = new FakeAllocatableAction(fao, 1);
+            instance1.assignResources(rs);
+            FakeAllocatableAction instance2 = new FakeAllocatableAction(fao, 2);
+            instance2.assignResources(rs);
+            FakeAllocatableAction instance3 = new FakeAllocatableAction(fao, 3);
+            instance3.assignResources(rs);
+            FakeAllocatableAction instance4 = new FakeAllocatableAction(fao, 4);
+            instance4.assignResources(rs);
+            FakeAllocatableAction instance5 = new FakeAllocatableAction(fao, 5);
+            instance5.assignResources(rs);
             instance3.addDataPredecessor(instance0);
             addResourceDependency(instance0, instance1);
             addResourceDependency(instance0, instance2);
@@ -619,7 +611,7 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
             checkExecutions(new int[] { 1, 1, 1, 0, 0, 0 });
             checkErrors(new int[] { 1, 0, 0, 0, 0, 0 });
             checkFailed(new int[] { 0, 0, 0, 0, 0, 0 });
-            instance0.assignResources(r);
+            instance0.assignResources(rs);
             instance0.tryToLaunch();
             checkExecutions(new int[] { 2, 1, 1, 0, 0, 0 });
             checkErrors(new int[] { 1, 0, 0, 0, 0, 0 });
@@ -647,35 +639,39 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
      --------------------- SCHEDULER ACTIONS ------------------
      ----------------------------------------------------------
      --------------------------------------------------------*/
-    public void completed(AllocatableAction<P, T> action)
+    public void completed(FakeAllocatableAction action)
             throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler<P, T> resource = action.getAssignedResource();
-        LinkedList<AllocatableAction<P, T>> dataFree = action.completed();
-        LinkedList<AllocatableAction<P, T>> resourceFree = resource.unscheduleAction(action);
-        HashSet<AllocatableAction<P, T>> freeTasks = new HashSet<AllocatableAction<P, T>>();
+
+        FakeResourceScheduler resource = (FakeResourceScheduler) action.getAssignedResource();
+        LinkedList<AllocatableAction<Profile, MethodResourceDescription, FakeImplementation>> dataFree = action.completed();
+        LinkedList<AllocatableAction<Profile, MethodResourceDescription, FakeImplementation>> resourceFree = resource
+                .unscheduleAction(action);
+        HashSet<AllocatableAction<Profile, MethodResourceDescription, FakeImplementation>> freeTasks = new HashSet<>();
         freeTasks.addAll(dataFree);
         freeTasks.addAll(resourceFree);
-        for (AllocatableAction<P, T> a : freeTasks) {
-            a.tryToLaunch();
+
+        for (AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> a : freeTasks) {
+            FakeAllocatableAction fa = (FakeAllocatableAction) a;
+            fa.tryToLaunch();
         }
     }
 
-    public void error(AllocatableAction<P, T> action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
-        ResourceScheduler<P, T> resource = action.getAssignedResource();
-        LinkedList<AllocatableAction<P, T>> resourceFree;
+    public void error(FakeAllocatableAction action) throws BlockedActionException, UnassignedActionException, InvalidSchedulingException {
+        FakeResourceScheduler resource = (FakeResourceScheduler) action.getAssignedResource();
+        LinkedList<AllocatableAction<Profile, MethodResourceDescription, FakeImplementation>> resourceFree;
         try {
             action.error();
             resourceFree = resource.unscheduleAction(action);
         } catch (FailedActionException fae) {
-            resourceFree = new LinkedList<AllocatableAction<P, T>>();
-            for (AllocatableAction<P, T> failed : action.failed()) {
+            resourceFree = new LinkedList<AllocatableAction<Profile, MethodResourceDescription, FakeImplementation>>();
+            for (AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> failed : action.failed()) {
                 resourceFree.addAll(resource.unscheduleAction(failed));
             }
         }
-        for (AllocatableAction<P, T> a : resourceFree) {
-            a.tryToLaunch();
+        for (AllocatableAction<Profile, MethodResourceDescription, FakeImplementation> a : resourceFree) {
+            FakeAllocatableAction fa = (FakeAllocatableAction) a;
+            fa.tryToLaunch();
         }
-
     }
 
     /*---------------------------------------------------------
@@ -685,118 +681,58 @@ public class AllocatableActionTest<P extends Profile, T extends WorkerResourceDe
      --------------------------------------------------------*/
 
     private void prepare(int size) {
-        AllocatableActionImpl.executions = new int[size];
-        AllocatableActionImpl.error = new int[size];
-        AllocatableActionImpl.failed = new int[size];
+        FakeAllocatableAction.resize(size);
     }
 
     private void checkExecutions(int[] pattern) {
-        if (pattern.length != AllocatableActionImpl.executions.length) {
-            fail("Unconsistent execution arrays. " + AllocatableActionImpl.executions.length + " results obtained and " + pattern.length
+        if (pattern.length != FakeAllocatableAction.getSize()) {
+            fail("Unconsistent execution arrays. " + FakeAllocatableAction.getSize() + " results obtained and " + pattern.length
                     + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != AllocatableActionImpl.executions[i]) {
+            if (pattern[i] != FakeAllocatableAction.getExecution(i)) {
                 fail("AllocatableAction " + i + " should be executed " + pattern[i] + " time and it was "
-                        + AllocatableActionImpl.executions[i]);
+                        + FakeAllocatableAction.getExecution(i));
             }
         }
     }
 
     private void checkErrors(int[] pattern) {
-        if (pattern.length != AllocatableActionImpl.error.length) {
-            fail("Unconsistent AllocatableActionImpl.error arrays. " + AllocatableActionImpl.error.length + " results obtained and "
+        if (pattern.length != FakeAllocatableAction.getSize()) {
+            fail("Unconsistent AllocatableActionImpl.error arrays. " + FakeAllocatableAction.getSize() + " results obtained and "
                     + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != AllocatableActionImpl.error[i]) {
+            if (pattern[i] != FakeAllocatableAction.getError(i)) {
                 fail("AllocatableAction " + i + " should had " + pattern[i] + " AllocatableActionImpl.error and it was "
-                        + AllocatableActionImpl.error[i]);
+                        + FakeAllocatableAction.getError(i));
             }
         }
     }
 
     private void checkFailed(int[] pattern) {
-        if (pattern.length != AllocatableActionImpl.failed.length) {
-            fail("Unconsistent AllocatableActionImpl.failed arrays. " + AllocatableActionImpl.failed.length + " results obtained and "
+        if (pattern.length != FakeAllocatableAction.getSize()) {
+            fail("Unconsistent AllocatableActionImpl.failed arrays. " + FakeAllocatableAction.getSize() + " results obtained and "
                     + pattern.length + " expected");
             return;
         }
         for (int i = 0; i < pattern.length; i++) {
-            if (pattern[i] != AllocatableActionImpl.failed[i]) {
+            if (pattern[i] != FakeAllocatableAction.getFailed(i)) {
                 fail("AllocatableAction " + i + " should had AllocatableActionImpl.failed " + pattern[i] + " time and it was "
-                        + AllocatableActionImpl.failed[i]);
+                        + FakeAllocatableAction.getFailed(i));
 
             }
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static void addResourceDependency(AllocatableAction<?, ?> pred, AllocatableAction<?, ?> succ) {
-        ResourceDependencies<?,?> dsiPred = (ResourceDependencies<?,?>) pred.getSchedulingInfo();
-        ResourceDependencies<?,?> dsiSucc = (ResourceDependencies<?,?>) succ.getSchedulingInfo();
+    public static void addResourceDependency(FakeAllocatableAction pred, FakeAllocatableAction succ) {
+        FakeSI dsiPred = (FakeSI) pred.getSchedulingInfo();
+        FakeSI dsiSucc = (FakeSI) succ.getSchedulingInfo();
         if (pred.isPending()) {
-            ((ResourceDependencies) dsiSucc).addPredecessor(pred);
-            ((ResourceDependencies) dsiPred).addSuccessor(succ);
-        }
-    }
-
-
-    public static class ResourceDependencies<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P, T> {
-
-        // Allocatable actions that the action depends on due to resource availability
-        private final LinkedList<AllocatableAction<P, T>> resourcePredecessors;
-
-        // Allocatable actions depending on the allocatable action due to resource availability
-        private final LinkedList<AllocatableAction<P, T>> resourceSuccessors;
-
-
-        public ResourceDependencies() {
-            resourcePredecessors = new LinkedList<AllocatableAction<P, T>>();
-            resourceSuccessors = new LinkedList<AllocatableAction<P, T>>();
-        }
-
-        public void addPredecessor(AllocatableAction<P, T> predecessor) {
-            resourcePredecessors.add(predecessor);
-        }
-
-        public boolean hasPredecessors() {
-            return !resourcePredecessors.isEmpty();
-        }
-
-        @Override
-        public final boolean isExecutable() {
-            return resourcePredecessors.isEmpty();
-        }
-
-        public LinkedList<AllocatableAction<P, T>> getPredecessors() {
-            return resourcePredecessors;
-        }
-
-        public void removePredecessor(AllocatableAction<P, T> successor) {
-            resourcePredecessors.remove(successor);
-        }
-
-        public void clearPredecessors() {
-            resourcePredecessors.clear();
-        }
-
-        public void addSuccessor(AllocatableAction<P, T> successor) {
-            resourceSuccessors.add(successor);
-        }
-
-        public LinkedList<AllocatableAction<P, T>> getSuccessors() {
-            return resourceSuccessors;
-        }
-
-        public synchronized void removeSuccessor(AllocatableAction<P, T> successor) {
-            resourceSuccessors.remove(successor);
-        }
-
-        public void clearSuccessors() {
-            resourceSuccessors.clear();
+            dsiSucc.addPredecessor(pred);
+            dsiPred.addSuccessor(succ);
         }
     }
 

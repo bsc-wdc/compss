@@ -1,11 +1,10 @@
 package integratedtoolkit.scheduler.types.fake;
 
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
 
-public class FakeWorker extends Worker<FakeResourceDescription> {
+public class FakeWorker extends Worker<FakeResourceDescription, FakeImplementation> {
 
     private final FakeResourceDescription available;
 
@@ -36,7 +35,7 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
     }
 
     @Override
-    public boolean canRun(Implementation<?> implementation) {
+    public boolean canRun(FakeImplementation implementation) {
         return true;
     }
 
@@ -73,30 +72,30 @@ public class FakeWorker extends Worker<FakeResourceDescription> {
             return available.canHost(consumption);
         }
     }
-    
+
     @Override
-    public boolean usesGPU(FakeResourceDescription consumption){
-    	logger.debug("fake worker");
-    	return false;
-    }
-    
-    @Override
-    public boolean usesFPGA(FakeResourceDescription consumption){
-    	return false;
-    }
-    
-    @Override
-    public boolean usesOthers(FakeResourceDescription consumption){
-    	return false;
+    public boolean usesGPU(FakeResourceDescription consumption) {
+        logger.debug("fake worker");
+        return false;
     }
 
     @Override
-    public Integer fitCount(Implementation<?> impl) {
+    public boolean usesFPGA(FakeResourceDescription consumption) {
+        return false;
+    }
+
+    @Override
+    public boolean usesOthers(FakeResourceDescription consumption) {
+        return false;
+    }
+
+    @Override
+    public Integer fitCount(FakeImplementation impl) {
         return 10;
     }
 
     @Override
-    public Worker<?> getSchedulingCopy() {
+    public Worker<FakeResourceDescription, FakeImplementation> getSchedulingCopy() {
         return new FakeWorker(this);
     }
 }

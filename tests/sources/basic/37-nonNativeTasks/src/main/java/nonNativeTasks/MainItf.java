@@ -22,6 +22,11 @@ public interface MainItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String message
     );
     
+    @Binary(binary = "${OUT_ERR_BINARY}")
+    Integer simpleTask3(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String message
+    );
+    
     /*
      * Simple tasks with prefixes
      */

@@ -70,8 +70,9 @@ public class TaskAnalyser {
 
     // Logger
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
-    private static final boolean debug = LOGGER.isDebugEnabled();
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String TASK_FAILED = "Task failed: ";
+    private static final String TASK_NOT_RELEASED = "Scheduler has not released task: ";
 
     // Graph drawing
     private static final boolean drawGraph = GraphGenerator.isEnabled();
@@ -166,7 +167,7 @@ public class TaskAnalyser {
         Parameter[] parameters = params.getParameters();
         for (int paramIdx = 0; paramIdx < parameters.length; paramIdx++) {
             Parameter p = parameters[paramIdx];
-            if (debug) {
+            if (DEBUG) {
                 LOGGER.debug("* Parameter : " + p);
             }
 
@@ -262,7 +263,7 @@ public class TaskAnalyser {
         int dataId = dp.getDataAccessId().getDataId();
         Task lastWriter = writers.get(dataId);
         if (lastWriter != null && lastWriter != currentTask) { // avoid self-dependencies
-            if (debug) {
+            if (DEBUG) {
                 LOGGER.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
                 LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
             }
@@ -317,7 +318,7 @@ public class TaskAnalyser {
             }
             idsWritten.add(dataId);
         }
-        if (debug) {
+        if (DEBUG) {
             LOGGER.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
         }
     }
@@ -329,13 +330,14 @@ public class TaskAnalyser {
      */
     public void endTask(Task task) {
         LOGGER.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
+
+        // Check status
         if (task.getStatus() == TaskState.FAILED) {
             ErrorManager.error(TASK_FAILED + task);
         }
 
-        // Update app id task count
-        task.decreaseExecutionCount();
-        if (task.isFree()) {
+        if (!task.isFree()) {
+            // Free dependencies
             Long appId = task.getAppId();
             Integer taskCount = appIdToTaskCount.get(appId) - 1;
             appIdToTaskCount.put(appId, taskCount);
@@ -360,7 +362,7 @@ public class TaskAnalyser {
                 if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
                     DependencyParameter dPar = (DependencyParameter) param;
                     DataAccessId dAccId = dPar.getDataAccessId();
-                    LOGGER.debug("Treating that data " + dPar.getDataTarget() + " has been accessed");
+                    LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
                     DIP.dataHasBeenAccessed(dAccId);
                 }
             }
@@ -432,6 +434,8 @@ public class TaskAnalyser {
         AccessMode am = request.getAccessMode();
         Semaphore sem = request.getSemaphore();
         Task lastWriter = writers.get(dataId);
+
+        // Graph description information
         if (drawGraph && lastWriter != null) {
             if (am == AccessMode.RW) {
                 writers.put(dataId, null);
@@ -448,6 +452,7 @@ public class TaskAnalyser {
                 LOGGER.error("Error adding task to graph file", e);
             }
         }
+
         if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
             sem.release();
         } else {

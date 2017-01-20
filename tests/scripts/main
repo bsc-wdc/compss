@@ -422,7 +422,7 @@ EOT
 
     # Erase COMPSs log folder
     echo "---- Erase current COMPSs log folder"
-    rm -rf ${COMPSS_log_folder}
+    rm -rf ${COMPSs_log_folder}
 
     # Execute tests
     $(dirname $0)/execute_devel ${COMPSs_exec} ${comm} ${target_base_dir} ${COMPSs_log_folder} ${skip} ${retry}

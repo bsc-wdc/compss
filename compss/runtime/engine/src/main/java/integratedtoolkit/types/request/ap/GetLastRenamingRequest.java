@@ -44,7 +44,7 @@ public class GetLastRenamingRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         String renaming = dip.getLastRenaming(this.code);
         response = renaming;
         sem.release();

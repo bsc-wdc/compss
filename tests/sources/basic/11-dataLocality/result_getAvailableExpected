@@ -79,7 +79,7 @@
     done
     # If task had no resource, look for forced schedule message
     if [ "$bestActionScore" == "null" ]; then
-     bestResourceId=$(cat $runtimelog | egrep "Scheduling MasterExecutionAction \( Task ${taskId},.*execution for worker" | awk {' print $17 '} | tr "@" " " | tr ":" " " | awk {' print $2 '})
+     bestResourceId=$(cat $runtimelog | egrep "Scheduling ExecutionAction \( Task ${taskId},.*on worker " | awk {' print $16 '})
     fi
     
     # Print result

@@ -47,7 +47,7 @@ public class GetResultFilesRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         ResultListener listener = new ResultListener(sem);
         TreeSet<Integer> writtenDataIds = ta.getAndRemoveWrittenFiles(this.appId);
         if (writtenDataIds != null) {

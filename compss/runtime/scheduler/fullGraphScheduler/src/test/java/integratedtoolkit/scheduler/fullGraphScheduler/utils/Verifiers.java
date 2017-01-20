@@ -6,9 +6,11 @@ import integratedtoolkit.scheduler.types.FullGraphScore;
 import integratedtoolkit.scheduler.types.Gap;
 import integratedtoolkit.scheduler.types.OptimizationWorker;
 import integratedtoolkit.scheduler.types.PriorityActionSet;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
-import integratedtoolkit.scheduler.types.fake.FakeAllocatableAction;
 import integratedtoolkit.scheduler.types.fake.FakeResourceDescription;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,15 +22,17 @@ import static org.junit.Assert.fail;
 
 public class Verifiers {
 
-    public static void verifyPriorityActions(PriorityActionSet obtained, AllocatableAction[] expected) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyPriorityActions(
+            PriorityActionSet<P, T, I> obtained, AllocatableAction<P, T, I>[] expected) {
+
         int idx = 0;
         if (obtained.size() != expected.length) {
             fail("Obtained lists doesn't match on size.");
         }
-        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue<>();
+        PriorityQueue<AllocatableAction<P, T, I>> obtainedCopy = new PriorityQueue<>();
         while (obtainedCopy.size() > 0) {
-            AllocatableAction action = obtainedCopy.poll();
-            AllocatableAction expectedAction = expected[idx];
+            AllocatableAction<P, T, I> action = obtainedCopy.poll();
+            AllocatableAction<P, T, I> expectedAction = expected[idx];
             if (!expectedAction.equals(action)) {
                 fail(expectedAction + " expected to be the most prioritary action and " + action + " was.");
             }
@@ -36,15 +40,16 @@ public class Verifiers {
         }
     }
 
-    public static void verifyPriorityActions(PriorityQueue<AllocatableAction> obtained, AllocatableAction[] expected) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyPriorityActions(
+            PriorityQueue<AllocatableAction<P, T, I>> obtained, AllocatableAction<P, T, I>[] expected) {
         int idx = 0;
         if (obtained.size() != expected.length) {
             fail("Obtained lists doesn't match on size.");
         }
-        PriorityQueue<AllocatableAction> obtainedCopy = new PriorityQueue<>();
+        PriorityQueue<AllocatableAction<P, T, I>> obtainedCopy = new PriorityQueue<>();
         while (obtainedCopy.size() > 0) {
-            AllocatableAction action = obtainedCopy.poll();
-            AllocatableAction expectedAction = expected[idx];
+            AllocatableAction<P, T, I> action = obtainedCopy.poll();
+            AllocatableAction<P, T, I> expectedAction = expected[idx];
             if (!expectedAction.equals(action)) {
                 fail(expectedAction + " expected to be the most prioritary action and " + action + " was.");
             }
@@ -52,14 +57,15 @@ public class Verifiers {
         }
     }
 
-    public static void verifyReadyActions(PriorityQueue<AllocatableAction> obtained, HashMap<AllocatableAction, Long> expectedReady) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyReadyActions(
+            PriorityQueue<AllocatableAction<P, T, I>> obtained, HashMap<AllocatableAction<P, T, I>, Long> expectedReady) {
         if (obtained.size() != expectedReady.size()) {
             fail("Obtained lists doesn't match on size.");
         }
         long lastTime = 0;
         while (obtained.size() > 0) {
-            AllocatableAction action = obtained.poll();
-            long start = ((FullGraphSchedulingInformation) action.getSchedulingInfo()).getExpectedStart();
+            AllocatableAction<P, T, I> action = obtained.poll();
+            long start = ((FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo()).getExpectedStart();
             if (start < lastTime) {
                 fail("Ready actions are not ordered according to the time");
             }
@@ -71,13 +77,14 @@ public class Verifiers {
         }
     }
 
-    public static void verifyWorkersPriority(LinkedList<OptimizationWorker> obtained, LinkedList<String> expected) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyWorkersPriority(
+            LinkedList<OptimizationWorker<P, T, I>> obtained, LinkedList<String> expected) {
         int idx = 0;
         if (obtained.size() != expected.size()) {
             fail("Obtained lists doesn't match on size.");
         }
         while (obtained.size() > 0) {
-            OptimizationWorker donor = obtained.poll();
+            OptimizationWorker<P, T, I> donor = obtained.poll();
             String donorName = donor.getName();
             String expectedName = expected.get(idx);
             if (!donorName.equals(expectedName)) {
@@ -87,7 +94,8 @@ public class Verifiers {
         }
     }
 
-    public static void verifyScore(FullGraphScore ds, long action, long data, long res, long impl, long start) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyScore(
+            FullGraphScore<P, T, I> ds, long action, long data, long res, long impl, long start) {
         if (action != ds.getActionScore()) {
             System.out.println("Scores do not match. Expected action score " + action + " and " + ds.getActionScore() + " obtianed.");
             fail("Scores do not match. Expected action score " + action + " and " + ds.getActionScore() + " obtianed.");
@@ -119,11 +127,12 @@ public class Verifiers {
         }
     }
 
-    public static void verifyUpdate(LinkedList<AllocatableAction>[] actions, long[][][] times) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyUpdate(
+            LinkedList<AllocatableAction<P, T, I>>[] actions, long[][][] times) {
         for (int coreId = 0; coreId < actions.length; coreId++) {
             for (int actionIdx = 0; actionIdx < actions[coreId].size(); actionIdx++) {
-                AllocatableAction action = actions[coreId].get(actionIdx);
-                FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) action.getSchedulingInfo();
+                AllocatableAction<P, T, I> action = actions[coreId].get(actionIdx);
+                FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
                 if (dsi.getExpectedStart() != times[coreId][actionIdx][0] || dsi.getExpectedEnd() != times[coreId][actionIdx][1]) {
                     System.out.println("Action " + action + " has not been updated properly.\n" + "Expected start at "
                             + times[coreId][actionIdx][0] + " and end at " + times[coreId][actionIdx][1] + "\n" + "Obtianed start at "
@@ -137,21 +146,29 @@ public class Verifiers {
         }
     }
 
-    public static void verifyGaps(LinkedList<Gap> gaps, Gap[] expectedGaps) {
-        for (Gap eg : expectedGaps) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyGaps(
+            LinkedList<Gap<P, T, I>> gaps, Gap<P, T, I>[] expectedGaps) {
+        for (Gap<P, T, I> eg : expectedGaps) {
             boolean found = false;
             /*
              * Iterator<OptimizationElement<Gap>> gapsIt = gaps.iterator(); while (gapsIt.hasNext()) {
              * OptimizationElement<Gap> oe = gapsIt.next(); Gap g = oe.getElement();
              */
-            Iterator<Gap> gapsIt = gaps.iterator();
+            Iterator<Gap<P, T, I>> gapsIt = gaps.iterator();
             while (gapsIt.hasNext()) {
-                Gap g = gapsIt.next();
-                if (g.getInitialTime() == eg.getInitialTime() && g.getEndTime() == eg.getEndTime() && g.getOrigin() == eg.getOrigin()
-                        && ((FakeResourceDescription) g.getResources()).checkEquals((FakeResourceDescription) eg.getResources())) {
-                    gapsIt.remove();
-                    found = true;
-                    break;
+                Gap<P, T, I> g = gapsIt.next();
+                if (g.getInitialTime() == eg.getInitialTime() 
+                        && g.getEndTime() == eg.getEndTime() 
+                        && g.getOrigin() == eg.getOrigin()) {
+                    
+                    FakeResourceDescription frd1 = (FakeResourceDescription) g.getResources();
+                    FakeResourceDescription frd2 = (FakeResourceDescription) eg.getResources();
+                    
+                    if (frd1.checkEquals(frd2)) {
+                        gapsIt.remove();
+                        found = true;
+                        break;
+                    }
                 }
             }
             if (!found) {
@@ -165,16 +182,18 @@ public class Verifiers {
         }
     }
 
-    public static void verifyInitialPlan(FakeAllocatableAction action, long executionTime, AllocatableAction... predecessors) {
+    @SuppressWarnings("unchecked")
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void verifyInitialPlan(
+            AllocatableAction<P, T, I> action, long executionTime, AllocatableAction<P, T, I>... predecessors) {
 
         long start = 0;
-        for (AllocatableAction predecessor : predecessors) {
-            FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) predecessor.getSchedulingInfo();
+        for (AllocatableAction<P, T, I> predecessor : predecessors) {
+            FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) predecessor.getSchedulingInfo();
             start = Math.max(start, dsi.getExpectedEnd());
         }
         long end = start + executionTime;
 
-        FullGraphSchedulingInformation dsi = (FullGraphSchedulingInformation) action.getSchedulingInfo();
+        FullGraphSchedulingInformation<P, T, I> dsi = (FullGraphSchedulingInformation<P, T, I>) action.getSchedulingInfo();
         if (dsi.getExpectedStart() != start) {
             System.out.println(action + " expected start time " + start + " obtained " + dsi.getExpectedStart());
             fail(action + " expected start time " + start + " obtained " + dsi.getExpectedStart());
@@ -190,7 +209,7 @@ public class Verifiers {
                             + "\tExpected :" + Arrays.asList(predecessors) + "\n" + "\tObtained :" + dsi.getPredecessors() + "\n");
             fail(action + " expected number of predecessors " + predecessors.length + " obtained " + dsi.getPredecessors().size());
         }
-        for (AllocatableAction predecessor : predecessors) {
+        for (AllocatableAction<P, T, I> predecessor : predecessors) {
             if (!dsi.getPredecessors().contains(predecessor)) {
                 System.out.println(predecessor + "expected to be a predecessor of " + action + " and it's not.\n" + "\tExpected :"
                         + Arrays.asList(predecessors) + "\n" + "\tObtained :" + dsi.getPredecessors() + "\n");

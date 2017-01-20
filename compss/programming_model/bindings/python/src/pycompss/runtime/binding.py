@@ -462,7 +462,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                         mode = get_compss_mode('in')
                         p.value = map(synchronize, p.value, [mode] * len(p.value))
                 turn_into_file(p)
-            except PicklingError:
+            except SerializerException:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
                 logger.exception("Pickling error exception: non-serializable object found as a parameter.")

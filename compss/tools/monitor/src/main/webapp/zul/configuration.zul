@@ -63,7 +63,7 @@
 			
 			<!-- Footer to go back -->
 			<south border="none" size="20%">
-				<hbox vflex="1" hflex="1" height="20%" align="center" pack="center" spacing="20px">
+				<hbox vflex="min" hflex="1" height="20%" align="center" pack="center" spacing="20px">
 					<button label="Back" href="/index.zul" />
 				</hbox>
 			</south>

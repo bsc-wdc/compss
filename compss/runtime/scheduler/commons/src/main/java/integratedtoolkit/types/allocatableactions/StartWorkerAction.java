@@ -1,5 +1,6 @@
 package integratedtoolkit.types.allocatableactions;
 
+import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
@@ -19,53 +20,64 @@ import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.ResourceManager;
-import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
 
 
-public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
+public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends AllocatableAction<P, T, I> {
 
-    private final ResourceScheduler<P, T> worker;
-    private final TaskScheduler<P, T> ts;
-    private final Implementation<T> impl;
+    private final TaskScheduler<P, T, I> ts;
+    private final ResourceScheduler<P, T, I> worker;
+    private final I impl;
 
 
+    /*
+     * ***************************************************************************************************************
+     * CONSTRUCTOR
+     * ***************************************************************************************************************
+     */
     @SuppressWarnings("unchecked")
-    public StartWorkerAction(SchedulingInformation<P, T> schedulingInformation, ResourceScheduler<P, T> worker, TaskScheduler<P, T> ts) {
-        super(schedulingInformation);
+    public StartWorkerAction(SchedulingInformation<P, T, I> schedulingInformation, ResourceScheduler<P, T, I> worker,
+            TaskScheduler<P, T, I> ts) {
+        super(schedulingInformation, ts.getOrchestrator());
         this.worker = worker;
         this.ts = ts;
         if (worker.getResource().getType() == Type.WORKER) {
             MethodWorker mw = (MethodWorker) worker.getResource();
-            impl = (Implementation<T>) new MethodImplementation("", "", null, null, mw.getDescription());
+            this.impl = (I) new MethodImplementation("", "", null, null, mw.getDescription());
         } else {
-            impl = (Implementation<T>) new ServiceImplementation(null, "", "", "", "");
+            this.impl = (I) new ServiceImplementation(null, "", "", "", "");
         }
     }
 
+    /*
+     * ***************************************************************************************************************
+     * EXECUTION AND LIFECYCLE MANAGEMENT
+     * ***************************************************************************************************************
+     */
     @Override
-    protected boolean areEnoughResources() {
-        Worker<T> w = selectedResource.getResource();
+    public boolean areEnoughResources() {
+        Worker<T, I> w = selectedResource.getResource();
         return w.canRunNow(w.getDescription());
     }
 
     @Override
     protected void reserveResources() {
-        Worker<T> w = selectedResource.getResource();
+        Worker<T, I> w = selectedResource.getResource();
         w.runTask(w.getDescription());
     }
 
     @Override
     protected void releaseResources() {
-        Worker<T> w = selectedResource.getResource();
+        Worker<T, I> w = selectedResource.getResource();
         w.endTask(w.getDescription());
     }
 
     @Override
     protected void doAction() {
         (new Thread() {
-            
+
             @Override
             public void run() {
                 Thread.currentThread().setName(selectedResource.getResource().getName() + " starter");
@@ -73,7 +85,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
                     selectedResource.getResource().start();
                     notifyCompleted();
                 } catch (InitNodeException e) {
-                    logger.error("Error starting resource", e);
+                    LOGGER.error("Error starting resource", e);
                     ErrorManager.warn("Exception creating worker. Check runtime.log for more details", e);
                     notifyError();
                 }
@@ -81,9 +93,14 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
         }).start();
     }
 
+    /*
+     * ***************************************************************************************************************
+     * EXECUTION TRIGGERS
+     * ***************************************************************************************************************
+     */
     @Override
     protected void doCompleted() {
-        logger.info("Worker " + worker.getName() + " is ready to execute tasks.");
+        LOGGER.info("Worker " + worker.getName() + " is ready to execute tasks.");
     }
 
     @Override
@@ -93,7 +110,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     protected void doFailed() {
-        Worker<T> wNode = worker.getResource();
+        Worker<T, I> wNode = this.worker.getResource();
 
         // Remove from the pool
         ResourceManager.removeWorker(wNode);
@@ -103,75 +120,78 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
         rd.reduce(rd);
 
         // Update the CE and Implementations that can run (none)
-        worker.getResource().updatedFeatures();
+        this.worker.getResource().updatedFeatures();
 
-        ts.updatedWorker(wNode);
+        this.ts.updatedWorker(wNode);
     }
 
+    /*
+     * ***************************************************************************************************************
+     * SCHEDULING MANAGEMENT
+     * ***************************************************************************************************************
+     */
     @Override
     public Integer getCoreId() {
         return null;
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
-        LinkedList<ResourceScheduler<?, ?>> workers = new LinkedList<>();
-        workers.add(worker);
+    public LinkedList<ResourceScheduler<P, T, I>> getCompatibleWorkers() {
+        LinkedList<ResourceScheduler<P, T, I>> workers = new LinkedList<>();
+        workers.add(this.worker);
         return workers;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Implementation<T>[] getImplementations() {
-        Implementation<T>[] impls = new Implementation[] { impl };
+    public Implementation<?>[] getImplementations() {
+        Implementation<?>[] impls = new Implementation[] { impl };
         return impls;
     }
 
     @Override
-    public boolean isCompatible(Worker<T> r) {
-        return (r == worker.getResource());
+    public boolean isCompatible(Worker<T, I> r) {
+        return (r == this.worker.getResource());
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        LinkedList<Implementation<T>> impls = new LinkedList<>();
-        if (r == worker) {
-            impls.add(impl);
+    public LinkedList<I> getCompatibleImplementations(ResourceScheduler<P, T, I> r) {
+        LinkedList<I> impls = new LinkedList<>();
+        if (r == this.worker) {
+            impls.add(this.impl);
         }
         return impls;
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
         return null;
     }
 
     @Override
     public void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.selectedResource = worker;
-        assignImplementation(impl);
-        worker.initialSchedule(this);
+        schedule(this.worker, this.impl);
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
-        this.selectedResource = targetWorker;
-        assignImplementation(impl);
-        targetWorker.initialSchedule(this);
-    }
-
-    @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl) 
+    public void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
         
-        this.selectedResource = targetWorker;
-        assignImplementation(impl);
-        targetWorker.initialSchedule(this);
+        // WARN: targetWorker is ignored
+        schedule(this.worker, this.impl);
+    }
+
+    @Override
+    public void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
+        // WARN: Parameter targetWorker and parameter impl are ignored
+        this.selectedResource = this.worker;
+        assignImplementation(this.impl);
+
+        this.worker.scheduleAction(this);
     }
 
     @Override
     public String toString() {
-        return "StartWorkerAction ( Worker " + worker.getName() + ")";
+        return "StartWorkerAction (Worker " + this.worker.getName() + ")";
     }
 
     @Override

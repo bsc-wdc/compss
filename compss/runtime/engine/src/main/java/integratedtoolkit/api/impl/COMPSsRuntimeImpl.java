@@ -19,7 +19,7 @@ import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.loader.total.ObjectRegistry;
 
 import integratedtoolkit.log.Loggers;
-
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -64,10 +64,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Object registry
     private static ObjectRegistry oReg;
-    
+
     // Components
     private static AccessProcessor ap;
-    private static TaskDispatcher<?, ?> td;
+    private static TaskDispatcher<?, ?, ?> td;
 
     // Monitor
     private static GraphGenerator graphMonitor;
@@ -76,7 +76,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     // Logger
     private static final Logger logger = LogManager.getLogger(Loggers.API);
 
-    
     static {
         // Load Runtime configuration parameters
         String propertiesLoc = System.getProperty(ITConstants.IT_CONFIG_LOCATION);
@@ -243,7 +242,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (System.getProperty(ITConstants.IT_TRACING) == null || System.getProperty(ITConstants.IT_TRACING).isEmpty()) {
             System.setProperty(ITConstants.IT_TRACING, ITConstants.DEFAULT_TRACING);
         }
-        if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null || System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).isEmpty()) {
+        if (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) == null
+                || System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).isEmpty()) {
             System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, ITConstants.DEFAULT_CUSTOM_EXTRAE_FILE);
         }
         if (System.getProperty(ITConstants.IT_TASK_EXECUTION) == null || System.getProperty(ITConstants.IT_TASK_EXECUTION).isEmpty()) {
@@ -302,9 +302,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ****************************************************
+     * ********************************************************************************************************
      * CONSTRUCTOR
-     ****************************************************/
+     * ********************************************************************************************************
+     */
     public COMPSsRuntimeImpl() {
         // Load COMPSs version and buildNumber
         try {
@@ -331,9 +332,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * **************************************************** 
+     * ********************************************************************************************************
      * COMPSsRuntime INTERFACE IMPLEMENTATION
-     ****************************************************/
+     * ********************************************************************************************************
+     */
     @SuppressWarnings("rawtypes")
     /**
      * Starts the COMPSs Runtime
@@ -364,7 +366,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             // Application
             synchronized (this) {
                 logger.debug("Initializing components");
-                
+
                 // Initialize object registry for bindings if needed
                 String lang = System.getProperty(ITConstants.IT_LANG);
                 if (lang != ITConstants.Lang.JAVA.name() && oReg == null) {
@@ -414,7 +416,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.Event.STOP.getId(), Tracer.Event.STOP.getType());
             }
-            
+
             // Add task summary
             boolean taskSummaryEnabled = System.getProperty(ITConstants.IT_TASK_SUMMARY) != null
                     && !System.getProperty(ITConstants.IT_TASK_SUMMARY).isEmpty()
@@ -467,6 +469,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
+     * Returns the action orchestrator associated to the runtime (only for testing purposes)
+     * 
+     * @return
+     */
+    public static ActionOrchestrator<?, ?, ?> getOrchestrator() {
+        return td;
+    }
+
+    /**
      * Registers a new CoreElement in the COMPSs Runtime
      * 
      */
@@ -499,25 +510,26 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
-        
+
         return executeTask(appId, methodClass, methodName, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
                 !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
     }
-    
+
     /**
      * Execute task: methods
      */
     @Override
-    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated, 
+    public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
             boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
-        
+
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
 
         logger.info("Creating task from method " + methodName + " in " + methodClass);
         if (logger.isDebugEnabled()) {
-            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug(
+                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -529,7 +541,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return task;
     }
-    
+
     /**
      * Execute task: services
      */
@@ -538,27 +550,28 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             int parameterCount, Object... parameters) {
 
         return executeTask(appId, namespace, service, port, operation, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
-                            !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
+                !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
     }
-    
+
     /**
      * Execute task: services
      */
     @Override
-    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, 
-            int numNodes, boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
+    public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean isPrioritary, int numNodes,
+            boolean isReplicated, boolean isDistributed, boolean hasTarget, int parameterCount, Object... parameters) {
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.TASK.getId(), Tracer.Event.TASK.getType());
         }
-        
+
         if (numNodes != Constants.SINGLE_NODE || isReplicated || isDistributed) {
             ErrorManager.fatal("ERROR: Unsupported feature for Services: multi-node, replicated or distributed");
         }
 
         logger.info("Creating task from service " + service + ", namespace " + namespace + ", port " + port + ", operation " + operation);
         if (logger.isDebugEnabled()) {
-            logger.debug("There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
+            logger.debug(
+                    "There " + (parameterCount > 1 ? "are " : "is ") + parameterCount + " parameter" + (parameterCount > 1 ? "s" : ""));
         }
 
         Parameter[] pars = processParameters(parameterCount, parameters);
@@ -615,13 +628,13 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public boolean deleteFile(String fileName) {
-    	if (logger.isDebugEnabled()) {
-            logger.debug("Access to delete file "+ fileName);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Access to delete file " + fileName);
         }
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.DELETE.getId(), Tracer.Event.DELETE.getType());
         }
-        
+
         logger.info("Deleting File " + fileName);
 
         // Parse the file name and translate the access mode
@@ -649,10 +662,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * **************************************************** 
+     * ********************************************************************************************************
      * LoaderAPI INTERFACE IMPLEMENTATION
-     ****************************************************/
-
+     * ********************************************************************************************************
+     */
+    
     /**
      * Returns a copy of the last file version
      */
@@ -677,7 +691,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             ErrorManager.fatal(ERROR_FILE_NAME);
             return null;
         }
-        
+
         FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
         DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
         String path;
@@ -718,8 +732,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
         boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
         if (validValue) {
-            // Main code is still performing the same modification. No need to
-            // register it as a new version.
+            // Main code is still performing the same modification. No need to register it as a new version.
             if (Tracer.isActivated()) {
                 Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
             }
@@ -727,10 +740,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             return null;
         }
 
+        // Otherwise we request it from a task
         Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()) );
+            logger.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
         }
 
         if (Tracer.isActivated()) {
@@ -773,9 +787,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * **************************************************** 
+     * ********************************************************************************************************
      * COMMON IN BOTH APIs
-     ****************************************************/
+     * ********************************************************************************************************
+     */
 
     /**
      * Returns the renaming of the file version opened
@@ -819,7 +834,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             ErrorManager.fatal(ERROR_FILE_NAME);
             return null;
         }
-        
+
         String finalPath;
         MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
         if (u != null) {
@@ -840,10 +855,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * **************************************************** 
+     * ********************************************************************************************************
      * PRIVATE HELPER METHODS
-     ****************************************************/
-    private Parameter[] processParameters(int parameterCount, Object[] parameters) {        
+     * ********************************************************************************************************
+     */
+    
+    private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable
         int i = 0;
@@ -870,22 +887,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     break;
 
                 case PSCO_T:
-                case OBJECT_T:                    
-                    pars[npar] = new ObjectParameter(direction, 
-                                                        stream,
-                                                        prefix,
-                                                        parameters[i], 
-                                                        oReg.newObjectParameter(parameters[i]) // hashCode
-                                                        ); 
+                case OBJECT_T:
+                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]) // hashCode
+                    );
                     break;
-                    
+
                 case EXTERNAL_PSCO_T:
-                    pars[npar] = new ExternalObjectParameter(direction, 
-                                                        stream, 
-                                                        prefix,
-                                                        parameters[i], 
-                                                        oReg.newObjectParameter(parameters[i]) // hashCode
-                                                        );
+                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, parameters[i],
+                            oReg.newObjectParameter(parameters[i]) // hashCode
+                    );
                     break;
 
                 default:
@@ -893,8 +903,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                      * Basic types (including String). The only possible direction is IN, warn otherwise
                      */
                     if (direction != Direction.IN) {
-                        logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar 
-                                + " is a basic type, therefore it must have IN direction");
+                        logger.warn(WARN_WRONG_DIRECTION + "Parameter " + npar + " is a basic type, therefore it must have IN direction");
                     }
                     pars[npar] = new BasicTypeParameter(type, Direction.IN, stream, prefix, parameters[i]);
                     break;
@@ -919,8 +928,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         String hostName = uri.getHost();
         if (hostName != null && !hostName.isEmpty()) {
             host = Resource.getResource(hostName);
-            if (host== null){
-            	ErrorManager.error("Host "+ hostName + " not found when creating data location.");
+            if (host == null) {
+                ErrorManager.error("Host " + hostName + " not found when creating data location.");
             }
         }
 

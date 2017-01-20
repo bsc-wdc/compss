@@ -80,18 +80,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
             List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
-     * Adds a new slave job to the node
-     * 
-     * @param taskId
-     * @param taskparams
-     * @param impl
-     * @param res
-     * @param listener
-     * @return
-     */
-    public abstract Job<?> newSlaveJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, JobListener listener);
-    
-    /**
      * Sends an specific data to the node
      * 
      * @param srcData

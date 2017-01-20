@@ -11,7 +11,7 @@ import integratedtoolkit.types.annotations.task.Method;
 public interface BlastItf {
     
     @Binary(binary = "${BLAST_BINARY}")
-    int align(
+    Integer align(
         @Parameter(type = Type.STRING, direction = Direction.IN) String pFlag, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String pMode,
         @Parameter(type = Type.STRING, direction = Direction.IN) String dFlag,
@@ -24,7 +24,7 @@ public interface BlastItf {
     );
     
     @Binary(binary = "${BLAST_BINARY}")
-    int align(
+    Integer align(
         @Parameter(type = Type.STRING, direction = Direction.IN) String pFlag, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String pMode,
         @Parameter(type = Type.STRING, direction = Direction.IN) String dFlag,

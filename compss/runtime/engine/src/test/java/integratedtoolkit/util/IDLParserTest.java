@@ -105,8 +105,7 @@ public class IDLParserTest {
         System.out.println("[IDL-Loader]: Checking Processor parameters (2)");
         assertEquals(p.getType(), "CPU");
         assertEquals(p.getComputingUnits(), 2);
-        
-        
+
         
         System.out.println("[IDL-Loader]: *** Checking Core Element 6");
         implList = readMethods.get(6);
@@ -144,9 +143,6 @@ public class IDLParserTest {
         System.out.println("[IDL-Loader]: Checking Processor 2 parameters (4)");
         assertEquals(p2.getType(), "GPU");
         assertEquals(p2.getComputingUnits(), 1); 
-        
-        
-        
 	}
 
 }

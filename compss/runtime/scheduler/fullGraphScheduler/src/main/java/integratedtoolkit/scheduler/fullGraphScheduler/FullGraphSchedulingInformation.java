@@ -3,6 +3,7 @@ package integratedtoolkit.scheduler.fullGraphScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
@@ -10,7 +11,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerResourceDescription> extends SchedulingInformation<P, T> {
+public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends SchedulingInformation<P, T, I> {
 
     // Lock to avoid multiple threads to modify the content at the same time
     private final ReentrantLock l = new ReentrantLock();
@@ -23,15 +25,15 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
     private int openGaps = 0;
 
     // Allocatable actions that the action depends on due to resource availability
-    private final LinkedList<AllocatableAction<P, T>> resourcePredecessors;
+    private final LinkedList<AllocatableAction<P, T, I>> resourcePredecessors;
 
     // Allocatable actions depending on the allocatable action due to resource availability
-    private LinkedList<AllocatableAction<P, T>> resourceSuccessors;
+    private LinkedList<AllocatableAction<P, T, I>> resourceSuccessors;
 
     // Action Scheduling is being optimized locally
     private boolean onOptimization = false;
     private boolean toReschedule = false;
-    private final LinkedList<AllocatableAction<P, T>> optimizingSuccessors;
+    private final LinkedList<AllocatableAction<P, T, I>> optimizingSuccessors;
 
 
     public FullGraphSchedulingInformation() {
@@ -45,7 +47,7 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         optimizingSuccessors = new LinkedList<>();
     }
 
-    public void addPredecessor(AllocatableAction<P, T> predecessor) {
+    public void addPredecessor(AllocatableAction<P, T, I> predecessor) {
         resourcePredecessors.add(predecessor);
     }
 
@@ -62,11 +64,11 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         return b;
     }
 
-    public LinkedList<AllocatableAction<P, T>> getPredecessors() {
+    public LinkedList<AllocatableAction<P, T, I>> getPredecessors() {
         return resourcePredecessors;
     }
 
-    public void removePredecessor(AllocatableAction<P, T> successor) {
+    public void removePredecessor(AllocatableAction<P, T, I> successor) {
         resourcePredecessors.remove(successor);
     }
 
@@ -74,15 +76,15 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         resourcePredecessors.clear();
     }
 
-    public void addSuccessor(AllocatableAction<P, T> successor) {
+    public void addSuccessor(AllocatableAction<P, T, I> successor) {
         resourceSuccessors.add(successor);
     }
 
-    public LinkedList<AllocatableAction<P, T>> getSuccessors() {
+    public LinkedList<AllocatableAction<P, T, I>> getSuccessors() {
         return resourceSuccessors;
     }
 
-    public void removeSuccessor(AllocatableAction<P, T> successor) {
+    public void removeSuccessor(AllocatableAction<P, T, I> successor) {
         resourceSuccessors.remove(successor);
     }
 
@@ -90,8 +92,8 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         resourceSuccessors.clear();
     }
 
-    public LinkedList<AllocatableAction<P, T>> replaceSuccessors(LinkedList<AllocatableAction<P, T>> newSuccessors) {
-        LinkedList<AllocatableAction<P, T>> oldSuccessors = resourceSuccessors;
+    public LinkedList<AllocatableAction<P, T, I>> replaceSuccessors(LinkedList<AllocatableAction<P, T, I>> newSuccessors) {
+        LinkedList<AllocatableAction<P, T, I>> oldSuccessors = resourceSuccessors;
         resourceSuccessors = newSuccessors;
         return oldSuccessors;
     }
@@ -125,12 +127,12 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         StringBuilder sb = new StringBuilder(
                 "\tlastUpdate: " + lastUpdate + "\n" + "\texpectedStart: " + expectedStart + "\n" + "\texpectedEnd:" + expectedEnd + "\n");
         sb.append("\t").append("schedPredecessors: ");
-        for (AllocatableAction<P, T> aa : getPredecessors()) {
+        for (AllocatableAction<P, T, I> aa : getPredecessors()) {
             sb.append(" ").append(aa);
         }
         sb.append("\n");
         sb.append("\t").append("schedSuccessors: ");
-        for (AllocatableAction<P, T> aa : getSuccessors()) {
+        for (AllocatableAction<P, T, I> aa : getSuccessors()) {
             sb.append(" ").append(aa);
         }
         sb.append("\n");
@@ -190,11 +192,11 @@ public class FullGraphSchedulingInformation<P extends Profile, T extends WorkerR
         return this.toReschedule;
     }
 
-    public void optimizingSuccessor(AllocatableAction<P, T> action) {
+    public void optimizingSuccessor(AllocatableAction<P, T, I> action) {
         optimizingSuccessors.add(action);
     }
 
-    public LinkedList<AllocatableAction<P, T>> getOptimizingSuccessors() {
+    public LinkedList<AllocatableAction<P, T, I>> getOptimizingSuccessors() {
         return optimizingSuccessors;
     }
 

@@ -3,6 +3,10 @@ package resourceManager;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
+import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -35,8 +39,8 @@ public class TestAvailable {
         System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
             Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
-        } catch (Exception e) {
-            // No need to handle such exceptions
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         // Run Available Resource Manager Test
@@ -111,7 +115,9 @@ public class TestAvailable {
         System.out.println("CONSUMED: " + consumed2);
         //System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
 
-        Action a = new Action(ce1);
+        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
+                .getOrchestrator();
+        Action a = new Action(orchestrator, ce1);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CORE reserve is not working");
             System.exit(-1);
@@ -134,7 +140,7 @@ public class TestAvailable {
          * Reserve and free for memorySize test
          * ***********************************************
          */
-        a = new Action(ce2);
+        a = new Action(orchestrator, ce2);
         // System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
         // System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce2)[0]);
 

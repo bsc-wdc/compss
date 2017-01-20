@@ -3,6 +3,7 @@ package integratedtoolkit.types.request.td;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -14,7 +15,8 @@ import java.util.concurrent.Semaphore;
  * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
  * the worker nodes of the resource pool.
  */
-public class GetCurrentScheduleRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class GetCurrentScheduleRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     /**
      * Current Schedule representation
@@ -69,7 +71,7 @@ public class GetCurrentScheduleRequest<P extends Profile, T extends WorkerResour
     }
 
     @Override
-    public void process(TaskScheduler<P, T> ts) throws ShutdownException {
+    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         response = new WorkloadStatus(CoreManager.getCoreCount());
         ts.getWorkloadState(response);
         sem.release();

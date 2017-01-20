@@ -3,10 +3,11 @@ package integratedtoolkit.types.request.td;
 import integratedtoolkit.components.ResourceUser.WorkloadStatus;
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.allocatableactions.MasterExecutionAction;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
+import integratedtoolkit.util.JobDispatcher;
 import integratedtoolkit.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
@@ -15,7 +16,8 @@ import java.util.concurrent.Semaphore;
 /**
  * This class represents a notification to end the execution
  */
-public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -51,10 +53,14 @@ public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescript
     }
 
     @Override
-    public void process(TaskScheduler<P, T> ts) throws ShutdownException {
-        // ts.shutdown();
+    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         logger.debug("Processing ShutdownRequest request...");
-        MasterExecutionAction.shutdown();
+
+        // Shutdown Job Dispatcher
+        JobDispatcher.shutdown();
+        ;
+
+        // Shutdown TaskScheduler
         ts.shutdown();
 
         // Print core state

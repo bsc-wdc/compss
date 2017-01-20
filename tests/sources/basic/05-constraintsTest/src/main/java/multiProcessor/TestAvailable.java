@@ -3,14 +3,20 @@ package multiProcessor;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 
+import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
+import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
 import integratedtoolkit.types.resources.Worker;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
 import integratedtoolkit.util.ResourceManager;
 
 import commons.Action;
 import commons.ConstantValues;
+
 
 /*
  * Checks the dynamic constraint management.
@@ -38,8 +44,8 @@ public class TestAvailable {
         System.out.println("[LOG] Waiting for Runtime to be loaded");
         try {
             Thread.sleep(ConstantValues.WAIT_FOR_RUNTIME_TIME);
-        } catch (Exception e) {
-            // No need to handle such exceptions
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         // Run Available Resource Manager Test
@@ -48,14 +54,11 @@ public class TestAvailable {
     }
 
     /*
-     * *************************************** 
-     * AVAILABLE RESOURCES TEST IMPLEMENTATION
-     * Resource 4 CPU CUs (internalMemory=1), 3GPUs CUS (internalMemory=2), 3 FPGA CUs, 3 OTHER CUs
-     * CE1 -> 2 CPU CUs, 2 GPU CUs (internalMemory=1), 1 FPGA CU)
-     * CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0)
-     * CE3 -> 1 CPU CUs, 2 GPU CU (internalMemory=3)
-     * CE4 -> 1 CPU CUs (internalMemory=3);
-     * ***************************************
+     * *************************************** AVAILABLE RESOURCES TEST IMPLEMENTATION
+     * 
+     * Resource 4 CPU CUs (internalMemory=1), 3GPUs CUS (internalMemory=2), 3 FPGA CUs, 3 OTHER CUs CE1 -> 2 CPU CUs, 2
+     * GPU CUs (internalMemory=1), 1 FPGA CU) CE2 -> 1 CPU CUs, 1 FPGA , 2 OTHER CUs , nodeMemSize= 2.0) CE3 -> 1 CPU
+     * CUs, 2 GPU CU (internalMemory=3) CE4 -> 1 CPU CUs (internalMemory=3); ***************************************
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void availableResourcesTest() {
@@ -121,95 +124,97 @@ public class TestAvailable {
             System.out.println("[ERROR] " + NAME_CORE_ELEMENT_4 + " not found.");
             System.exit(-1);
         }
-        
+
         Worker worker = ResourceManager.getWorker(NAME_WORKER);
 
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        
+
         /*
-         * ************************************************* 
-         * Check internal memory
+         * ************************************************* Check internal memory
          * ***********************************************
          */
-        Action a = new Action(ce3);
+        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
+                .getOrchestrator();
+        Action a = new Action(orchestrator, ce3);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources internalMemorySize filter inside Processor annotation is not working");
             System.exit(-1);
         }
-        
-        a = new Action(ce4);
+
+        a = new Action(orchestrator, ce4);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources processorInternalMemorySize filter is not working");
             System.exit(-1);
         }
 
         /*
-         * ************************************************* 
-         * Reserve and free for GPU and FPGA computingUnits test
+         * ************************************************* Reserve and free for GPU and FPGA computingUnits test
          * ***********************************************
          */
 
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
         System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1)[0]);
 
-        MethodResourceDescription consumed1 = (MethodResourceDescription)worker.runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+        MethodResourceDescription consumed1 = (MethodResourceDescription) worker
+                .runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
-        //Check Consumed: 2 CPUs 2 GPUs 1 FPGA
-        if (!checkDescription(consumed1, 2, 2 ,1, 0)){
-        	System.out.println("[ERROR] consumed resources for CPU + GPU + FPGA is not working");
-            System.exit(-1);
-        };
-        MethodResourceDescription remaining = ((MethodWorker)worker).getAvailable();
-        System.out.println("REMAINING: " + remaining);
-        //Check Remaining: 2CPUs 1GPU , 2FPGA 3 OTHER
-        if (!checkDescription(remaining, 2,1,2,3)){
-        	System.out.println("[ERROR] remaining resources for CPU + GPU + FPGA is not working");
+        // Check Consumed: 2 CPUs 2 GPUs 1 FPGA
+        if (!checkDescription(consumed1, 2, 2, 1, 0)) {
+            System.out.println("[ERROR] consumed resources for CPU + GPU + FPGA is not working");
             System.exit(-1);
         }
-        MethodResourceDescription consumed2 = (MethodResourceDescription)worker.runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+        ;
+        MethodResourceDescription remaining = ((MethodWorker) worker).getAvailable();
+        System.out.println("REMAINING: " + remaining);
+        // Check Remaining: 2CPUs 1GPU , 2FPGA 3 OTHER
+        if (!checkDescription(remaining, 2, 1, 2, 3)) {
+            System.out.println("[ERROR] remaining resources for CPU + GPU + FPGA is not working");
+            System.exit(-1);
+        }
+        MethodResourceDescription consumed2 = (MethodResourceDescription) worker
+                .runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
         System.out.println("CONSUMED: " + consumed2);
-        
-        //Check consumed 1 CPU 2 OTHER 1 FPGA
-        if (!checkDescription(consumed2, 1, 0 ,1, 2)){
-        	System.out.println("[ERROR] consumed resources for CPU + OTHER + FPGA is not working");
-            System.exit(-1);
-        }
-        remaining = ((MethodWorker)worker).getAvailable();
-        System.out.println("REMAINING: " + remaining);
-        //Check remaining 1CPU 1 GPU, 1 OTHER, 1 FPGA.
-        if (!checkDescription(remaining, 1, 1 ,1, 1)){
-        	System.out.println("[ERROR] remaining resources for CPU + OTHER + FPGA is not working");
-            System.exit(-1);
-        }
-        
 
-        a = new Action(ce1);
+        // Check consumed 1 CPU 2 OTHER 1 FPGA
+        if (!checkDescription(consumed2, 1, 0, 1, 2)) {
+            System.out.println("[ERROR] consumed resources for CPU + OTHER + FPGA is not working");
+            System.exit(-1);
+        }
+        remaining = ((MethodWorker) worker).getAvailable();
+        System.out.println("REMAINING: " + remaining);
+        // Check remaining 1CPU 1 GPU, 1 OTHER, 1 FPGA.
+        if (!checkDescription(remaining, 1, 1, 1, 1)) {
+            System.out.println("[ERROR] remaining resources for CPU + OTHER + FPGA is not working");
+            System.exit(-1);
+        }
+
+        a = new Action(orchestrator, ce1);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CPU + GPU + FPGA reserve is not working");
             System.exit(-1);
         }
-        
-        a = new Action(ce2);
+
+        a = new Action(orchestrator, ce2);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CPU + OTHER + FPGA reserve is not working");
             System.exit(-1);
         }
 
         worker.endTask(consumed1);
-        a = new Action(ce1);
+        a = new Action(orchestrator, ce1);
         if (!a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CPU + GPU + FPGA free is not working");
             System.exit(-1);
         }
-        
+
         worker.endTask(consumed2);
-        a = new Action(ce2);
+        a = new Action(orchestrator, ce2);
         if (!a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CPU + OTHER + FPGA free is not working");
             System.exit(-1);
         }
-        
+
         // System.out.println("FREE");
         // System.out.println("FREE");
         // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
@@ -218,15 +223,11 @@ public class TestAvailable {
         System.out.println("[LOG] * Multi-processors test passed");
     }
 
-	private static boolean checkDescription(MethodResourceDescription description,
-			int CPUcus, int GPUcus, int FPGAcus, int OTHERcus) {
-	    
-		return description != null && 
-		        description.getTotalCPUComputingUnits() == CPUcus && 
-				description.getTotalGPUComputingUnits() == GPUcus &&
-				description.getTotalFPGAComputingUnits() == FPGAcus &&
-				description.getTotalOTHERComputingUnits() == OTHERcus;
-		
-	}
+    private static boolean checkDescription(MethodResourceDescription description, int CPUcus, int GPUcus, int FPGAcus, int OTHERcus) {
+
+        return description != null && description.getTotalCPUComputingUnits() == CPUcus && description.getTotalGPUComputingUnits() == GPUcus
+                && description.getTotalFPGAComputingUnits() == FPGAcus && description.getTotalOTHERComputingUnits() == OTHERcus;
+
+    }
 
 }

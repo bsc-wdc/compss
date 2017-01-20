@@ -11,42 +11,71 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.implementations.Implementation;
 
 
-public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDescription> extends ReadyResourceScheduler<P, T> {
+public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends ReadyResourceScheduler<P, T, I> {
 
     /**
      * New ready resource scheduler instance
      * 
      * @param w
      */
-    public LIFOResourceScheduler(Worker<T> w) {
+    public LIFOResourceScheduler(Worker<T, I> w) {
         super(w);
     }
 
+    /*
+     * ***************************************************************************************************************
+     * SCORES
+     * ***************************************************************************************************************
+     */
     @Override
-    public Score generateResourceScore(AllocatableAction<P, T> action, TaskDescription params, Score actionScore) {
-        return new LIFOScore(actionScore.getActionScore(), 0, Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount()), 0);
+    public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
+        LOGGER.debug("[LIFOScheduler] Generate blocked score for action " + action);
+        double actionPriority = action.getPriority();
+        double waitingScore = (double) action.getId();
+        double resourceScore = 0;
+        double implementationScore = 0;
 
+        return new LIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
     }
 
     @Override
-    public Score generateWaitingScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl, Score resourceScore) {
-        return new Score(resourceScore.getActionScore(), action.getId(), 0, 0);
+    public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
+        LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
+
+        double actionPriority = actionScore.getActionScore();
+        double waitingScore = (double) action.getId();
+        double resourceScore = 0;
+        double implementationScore = 0;
+
+        return new LIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
     }
 
     @Override
-    public Score generateImplementationScore(AllocatableAction<P, T> action, TaskDescription params, Implementation<T> impl,
-            Score resourceScore) {
-        Worker<T> w = myWorker;
-        if (w.canRunNow(impl.getRequirements())) {
-            return new LIFOScore(resourceScore.getActionScore(), 0, 0, action.getId());
+    public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
+        LOGGER.debug("[LIFOScheduler] Generate implementation score for action " + action);
+
+        if (myWorker.canRunNow(impl.getRequirements())) {
+            double actionPriority = resourceScore.getActionScore();
+            double waitingScore = resourceScore.getWaitingScore();
+            double resourcePriority = resourceScore.getResourceScore();
+            double implScore = (double) action.getId();
+
+            return new LIFOScore(actionPriority, waitingScore, resourcePriority, implScore);
         } else {
+            // Implementation cannot be run
             return null;
         }
     }
 
+    /*
+     * ***************************************************************************************************************
+     * OTHER
+     * ***************************************************************************************************************
+     */
     @Override
     public String toString() {
-        return "FIFOResourceScheduler@" + getName();
+        return "LIFOResourceScheduler@" + getName();
     }
 
 }

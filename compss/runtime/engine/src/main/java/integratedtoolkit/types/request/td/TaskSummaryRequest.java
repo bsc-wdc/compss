@@ -2,6 +2,8 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.concurrent.Semaphore;
@@ -12,13 +14,14 @@ import org.apache.logging.log4j.Logger;
 /**
  * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
  */
-public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     /**
      * Semaphore where to synchronize until the operation is done
      */
     private Semaphore sem;
-    
+
     /**
      * Logger where to print information
      */
@@ -56,7 +59,7 @@ public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public void process(TaskScheduler<P, T> ts) {
+    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         ts.getTaskSummary(logger);
         sem.release();
     }

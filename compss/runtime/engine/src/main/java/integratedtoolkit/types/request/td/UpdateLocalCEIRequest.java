@@ -2,6 +2,8 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CEIParser;
 
@@ -12,7 +14,8 @@ import integratedtoolkit.util.ResourceManager;
 import java.util.LinkedList;
 
 
-public class UpdateLocalCEIRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class UpdateLocalCEIRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     private Class<?> ceiClass;
     private Semaphore sem;
@@ -51,7 +54,7 @@ public class UpdateLocalCEIRequest<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public void process(TaskScheduler<P, T> ts) {
+    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         logger.debug("Treating request to update core elements");
         LinkedList<Integer> newCores = CEIParser.loadJava(this.ceiClass);
         if (debug) {

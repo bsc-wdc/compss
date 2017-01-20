@@ -4,12 +4,13 @@ import integratedtoolkit.scheduler.fullGraphScheduler.FullGraphSchedulingInforma
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.LinkedList;
 
 
-public class FullGraphScore<P extends Profile, T extends WorkerResourceDescription> extends Score {
+public class FullGraphScore<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> extends Score {
 
     /*
      * ActionScore -> task Priority expectedDataAvailable -> expected time when data dependencies will be ready (take
@@ -25,59 +26,49 @@ public class FullGraphScore<P extends Profile, T extends WorkerResourceDescripti
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
 
-    public FullGraphScore(FullGraphScore<P, T> actionScore, double transferTime, double waiting, double resourceTime, double impl) {
+    public FullGraphScore(FullGraphScore<P, T, I> actionScore, double transferTime, double waiting, double resourceTime, double impl) {
         super(actionScore.getActionScore(), waiting, resourceTime, impl);
         expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean isBetter(Score other) {
-        FullGraphScore<P, T> otherDS = (FullGraphScore<P, T>) other;
-        if (actionScore != other.actionScore) {
-            return actionScore > other.actionScore;
+        FullGraphScore<P, T, I> otherDS = (FullGraphScore<P, T, I>) other;
+        if (this.actionScore != other.actionScore) {
+            return this.actionScore > other.actionScore;
         }
-        double ownEnd = expectedStart + implementationScore;
+        double ownEnd = this.expectedStart + this.implementationScore;
         double otherEnd = otherDS.expectedStart + other.implementationScore;
         return ownEnd < otherEnd;
     }
 
-    public static long getActionScore(AllocatableAction action) {
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> long getActionScore(
+            AllocatableAction<P, T, I> action) {
         return action.getPriority();
     }
 
-    public long getDataPredecessorTime(LinkedList<AllocatableAction<P, T>> predecessors) {
+    public long getDataPredecessorTime(LinkedList<AllocatableAction<P, T, I>> predecessors) {
         long dataTime = 0;
-        for (AllocatableAction<P, T> pred : predecessors) {
-            dataTime = Math.max(dataTime, ((FullGraphSchedulingInformation<P, T>) pred.getSchedulingInfo()).getExpectedEnd());
+        for (AllocatableAction<P, T, I> pred : predecessors) {
+            dataTime = Math.max(dataTime, ((FullGraphSchedulingInformation<P, T, I>) pred.getSchedulingInfo()).getExpectedEnd());
         }
         return dataTime;
     }
 
-    public double getActionScore() {
-        return actionScore;
-    }
-
     public double getExpectedDataAvailable() {
-        return expectedDataAvailable;
-    }
-
-    public double getResourceScore() {
-        return resourceScore;
+        return this.expectedDataAvailable;
     }
 
     public double getExpectedStart() {
-        return expectedStart;
-    }
-
-    public double getImplementationScore() {
-        return implementationScore;
+        return this.expectedStart;
     }
 
     @Override
     public String toString() {
-        return "action " + actionScore + " availableData " + expectedDataAvailable + " resource " + resourceScore + " expectedStart "
-                + expectedStart + " implementation" + implementationScore;
+        return "[FGScore = [action: " + this.actionScore + ", availableData: " + this.expectedDataAvailable + ", resource: "
+                + this.resourceScore + ", expectedStart: " + this.expectedStart + ", implementation:" + this.implementationScore + "]";
     }
 
 }

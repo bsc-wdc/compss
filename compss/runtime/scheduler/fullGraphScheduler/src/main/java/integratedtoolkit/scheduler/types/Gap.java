@@ -1,26 +1,28 @@
 package integratedtoolkit.scheduler.types;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.ResourceDescription;
+import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class Gap {
+public class Gap<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
 
     private final long initialTime;
     private long endTime;
-    private final AllocatableAction<?, ?> origin;
+    private final AllocatableAction<P, T, I> origin;
     private final ResourceDescription resources;
     private final int capacity;
 
 
-    public Gap(long start, AllocatableAction<?, ?> origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, AllocatableAction<P, T, I> origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.origin = origin;
         this.resources = resources.copy();
         this.capacity = capacity;
     }
 
-    public Gap(long start, long endTime, AllocatableAction<?, ?> origin, ResourceDescription resources, int capacity) {
+    public Gap(long start, long endTime, AllocatableAction<P, T, I> origin, ResourceDescription resources, int capacity) {
         this.initialTime = start;
         this.endTime = endTime;
         this.origin = origin;
@@ -36,7 +38,7 @@ public class Gap {
         return endTime;
     }
 
-    public AllocatableAction<?, ?> getOrigin() {
+    public AllocatableAction<P, T, I> getOrigin() {
         return origin;
     }
 

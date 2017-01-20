@@ -2,6 +2,8 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.ResourceManager;
@@ -12,7 +14,8 @@ import java.util.concurrent.Semaphore;
 /**
  * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
  */
-public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDescription> extends TDRequest<P, T> {
+public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends TDRequest<P, T, I> {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -74,15 +77,15 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
 
     @SuppressWarnings("unchecked")
     @Override
-    public void process(TaskScheduler<P, T> ts) {
+    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         String prefix = "\t";
         StringBuilder monitorData = new StringBuilder();
         monitorData.append(ts.getCoresMonitoringData(prefix));
 
         monitorData.append(prefix).append("<ResourceInfo>").append("\n");
         monitorData.append(ResourceManager.getPendingRequestsMonitorData(prefix + "\t"));
-        for (Worker<?> r : ResourceManager.getAllWorkers()) {
-            Worker<T> worker = (Worker<T>) r;
+        for (Worker<?, ?> r : ResourceManager.getAllWorkers()) {
+            Worker<T, I> worker = (Worker<T, I>) r;
             monitorData.append(prefix + "\t").append("<Resource id=\"" + worker.getName() + "\">").append("\n");
             // CPU, Core, Memory, Disk, Provider, Image --> Inside resource
             monitorData.append(r.getMonitoringData(prefix + "\t\t"));

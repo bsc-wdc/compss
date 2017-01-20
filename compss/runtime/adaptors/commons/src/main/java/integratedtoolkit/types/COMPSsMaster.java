@@ -31,15 +31,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+
 /**
- * Representation of the COMPSs Master Node
- * Only 1 instance per execution
+ * Representation of the COMPSs Master Node Only 1 instance per execution
  *
  */
 public class COMPSsMaster extends COMPSsNode {
 
     protected static final String ERROR_UNKNOWN_HOST = "ERROR: Cannot determine the IP address of the local host";
-    
+
     private static final String MASTER_NAME_PROPERTY = System.getProperty(ITConstants.IT_MASTER_NAME);
     private static final String UNDEFINED_MASTER_NAME = "master";
 
@@ -51,7 +51,7 @@ public class COMPSsMaster extends COMPSsNode {
      */
     public COMPSsMaster() {
         super();
-        
+
         // Initializing host attributes
         String hostName = "";
         if ((MASTER_NAME_PROPERTY != null) && (!MASTER_NAME_PROPERTY.equals("")) && (!MASTER_NAME_PROPERTY.equals("null"))) {
@@ -97,7 +97,7 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void sendData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        
+
         for (Resource targetRes : target.getHosts()) {
             COMPSsNode node = targetRes.getNode();
             if (node != this) {
@@ -117,7 +117,7 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        
+
         logger.info("Obtain Data " + ld.getName());
 
         /*
@@ -176,7 +176,8 @@ public class COMPSsMaster extends COMPSsNode {
                                         + target.getURIInHost(Comm.getAppHost()).getPath());
                             }
                             Files.copy((new File(copy.getFinalTarget())).toPath(),
-                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
                             if (tgtData != null) {
                                 tgtData.addLocation(target);
                             }
@@ -199,7 +200,8 @@ public class COMPSsMaster extends COMPSsNode {
                                         + target.getURIInHost(Comm.getAppHost()).getPath());
                             }
                             Files.copy((new File(copy.getFinalTarget())).toPath(),
-                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                                    new File(target.getURIInHost(Comm.getAppHost()).getPath()).toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING);
                             if (tgtData != null) {
                                 tgtData.addLocation(target);
                             }
@@ -224,11 +226,14 @@ public class COMPSsMaster extends COMPSsNode {
 
         // Checking if in master
         if (debug) {
-            logger.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost() + ").");
+            logger.debug("Checking if " + ld.getName() + " is at master (" + Comm.getAppHost().getName() + ").");
         }
 
         for (MultiURI u : ld.getURIs()) {
-            logger.debug(ld.getName() + " is at " + u.toString() + "(" + u.getHost() + ")");
+            if (debug) {
+                String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                logger.debug(ld.getName() + " is at " + u.toString() + "(" + hostname + ")");
+            }
             if (u.getHost() == Comm.getAppHost()) {
                 try {
                     if (debug) {
@@ -251,7 +256,8 @@ public class COMPSsMaster extends COMPSsNode {
                 }
             } else {
                 if (debug) {
-                    logger.debug("Data " + ld.getName() + " copy in " + u.getHost() + " not evaluated now");
+                    String hostname = (u.getHost() != null) ? u.getHost().getName() : "null";
+                    logger.debug("Data " + ld.getName() + " copy in " + hostname + " not evaluated now");
                 }
             }
 
@@ -342,15 +348,9 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
-            List<String> slaveWorkersNodeNames, JobListener listener) {
-        
-        // Cannot run jobs
-        return null;
-    }
-    
-    @Override
-    public Job<?> newSlaveJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener) {
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+
         // Cannot run jobs
         return null;
     }
@@ -401,13 +401,13 @@ public class COMPSsMaster extends COMPSsNode {
     @Override
     public boolean generatePackage() {
         // Should not be executed on a COMPSsMaster
-    	return false;
+        return false;
     }
 
     @Override
     public boolean generateWorkersDebugInfo() {
         // Should not be executed on a COMPSsMaster
-    	return false;
+        return false;
     }
 
 }

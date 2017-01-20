@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.LinkedList;
 
 import org.gridlab.gat.GATInvocationException;
+import org.gridlab.gat.GATObjectCreationException;
 import org.gridlab.gat.URI;
 import org.gridlab.gat.io.FileInterface;
 
@@ -159,7 +160,7 @@ public class GATCopy extends ImmediateCopy {
         throw new GATCopyException(exception);
     }
 
-    private void doCopy(org.gridlab.gat.URI src, org.gridlab.gat.URI dest) throws Exception {
+    private void doCopy(org.gridlab.gat.URI src, org.gridlab.gat.URI dest) throws GATCopyException {
         // Try to copy from each location until successful
         FileInterface f = null;
         logger.debug("RawPath: " + src.getRawPath());
@@ -176,10 +177,15 @@ public class GATCopy extends ImmediateCopy {
                 ErrorManager.warn(errorMessage);
                 logger.warn(errorMessage);
             }
-            throw new Exception(errorMessage);
+            throw new GATCopyException(errorMessage);
         }
-        f = org.gridlab.gat.GAT.createFile(GATAdaptor.getTransferContext(), src).getFileInterface();
-        f.copy(dest);
+        
+        try {
+            f = org.gridlab.gat.GAT.createFile(GATAdaptor.getTransferContext(), src).getFileInterface();
+            f.copy(dest);
+        } catch (GATObjectCreationException | GATInvocationException e) {
+            throw new GATCopyException(e);
+        }
     }
 
 }

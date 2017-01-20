@@ -2,6 +2,7 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.Worker;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.HashMap;
@@ -13,7 +14,7 @@ public class WorkerPool {
 
     // Resource Sets:
     // Static Resources (read from xml)
-    private HashMap<String, Worker<?>> staticSet;
+    private HashMap<String, Worker<?, ?>> staticSet;
     // Critical Resources (can't be destroyed by periodical resource policy)
     private HashMap<String, CloudMethodWorker> criticalSet;
     // Non Critical Resources (can be destroyed by periodical resource policy)
@@ -31,7 +32,7 @@ public class WorkerPool {
     }
 
     // Adds a new Resource on the Physical list
-    public void addStaticResource(Worker<?> newResource) {
+    public void addStaticResource(Worker<?, ?> newResource) {
         staticSet.put(newResource.getName(), newResource);
     }
 
@@ -42,22 +43,22 @@ public class WorkerPool {
     }
 
     public void coreElementUpdates(LinkedList<Integer> newCores) {
-        for (Worker<?> r : staticSet.values()) {
+        for (Worker<?, ?> r : staticSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (Worker<?> r : criticalSet.values()) {
+        for (CloudMethodWorker r : criticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
-        for (Worker<?> r : nonCriticalSet.values()) {
+        for (CloudMethodWorker r : nonCriticalSet.values()) {
             r.updatedCoreElements(newCores);
         }
     }
 
-    public Collection<Worker<?>> getStaticResources() {
+    public Collection<Worker<?, ?>> getStaticResources() {
         return staticSet.values();
     }
 
-    public Worker<?> getStaticResource(String resourceName) {
+    public Worker<?, ?> getStaticResource(String resourceName) {
         return staticSet.get(resourceName);
     }
 
@@ -78,9 +79,14 @@ public class WorkerPool {
         return resources;
     }
 
-    // returns all the resource information
-    public Worker<?> getResource(String resourceName) {
-        Worker<?> resource = null;
+    /**
+     * Returns all the resource information
+     * 
+     * @param resourceName
+     * @return
+     */
+    public Worker<?, ?> getResource(String resourceName) {
+        Worker<?, ?> resource = null;
         resource = staticSet.get(resourceName);
         if (resource == null) {
             resource = criticalSet.get(resourceName);
@@ -93,7 +99,7 @@ public class WorkerPool {
     }
 
     // Deletes a resource from the pool
-    public void delete(Worker<?> resource) {
+    public void delete(Worker<?, ?> resource) {
         String resourceName = resource.getName();
         // Remove resource from sets
         if (nonCriticalSet.remove(resourceName) == null) {
@@ -105,7 +111,7 @@ public class WorkerPool {
 
     // Returns a list with all coreIds that can be executed by the resource res
     public List<Integer> getExecutableCores(String res) {
-        Worker<?> resource = getResource(res);
+        Worker<?, ?> resource = getResource(res);
         if (resource == null) {
             return new LinkedList<Integer>();
         }
@@ -122,7 +128,7 @@ public class WorkerPool {
             }
 
             String resourceName;
-            for (Worker<?> res : staticSet.values()) {
+            for (Worker<?, ?> res : staticSet.values()) {
                 LinkedList<Integer> cores = res.getExecutableCores();
                 for (int i = 0; i < cores.size(); i++) {
                     runnable[cores.get(i)] = true;
@@ -156,27 +162,32 @@ public class WorkerPool {
         return criticalSet.values();
     }
 
-    // Returns the name of all the resources able to execute coreId
-    public LinkedList<Worker<?>> findAllResources() {
-        LinkedList<Worker<?>> workers = new LinkedList<>();
+    /**
+     * Returns the name of all the resources able to execute coreId
+     * 
+     * @return
+     */
+    public LinkedList<Worker<?, ?>> findAllResources() {
+        LinkedList<Worker<?, ?>> workers = new LinkedList<>();
+
         if (staticSet != null && !staticSet.isEmpty()) {
             Object[] arrayStaticSet = staticSet.values().toArray();
             for (int i = 0; i < arrayStaticSet.length; i++) {
-                workers.add((Worker<?>) arrayStaticSet[i]);
+                workers.add((Worker<?, ?>) arrayStaticSet[i]);
             }
         }
 
         if (criticalSet != null && !criticalSet.isEmpty()) {
             Object[] arrayCriticalSet = criticalSet.values().toArray();
             for (int i = 0; i < arrayCriticalSet.length; i++) {
-                workers.add((Worker<?>) arrayCriticalSet[i]);
+                workers.add((Worker<?, ?>) arrayCriticalSet[i]);
             }
         }
 
         if (nonCriticalSet != null && !nonCriticalSet.isEmpty()) {
             Object[] arrayNonCriticalSet = nonCriticalSet.values().toArray();
             for (int i = 0; i < arrayNonCriticalSet.length; i++) {
-                workers.add((Worker<?>) arrayNonCriticalSet[i]);
+                workers.add((Worker<?, ?>) arrayNonCriticalSet[i]);
             }
         }
 
@@ -196,7 +207,7 @@ public class WorkerPool {
         }
 
         int[] slots = new int[coreCount];
-        for (Worker<?> r : criticalSet.values()) {
+        for (CloudMethodWorker r : criticalSet.values()) {
             int[] resSlots = r.getSimultaneousTasks();
             for (int coreId = 0; coreId < coreCount; coreId++) {
                 slots[coreId] += resSlots[coreId];
@@ -215,19 +226,19 @@ public class WorkerPool {
         StringBuilder sb = new StringBuilder();
         // Resources
         sb.append(prefix).append("RESOURCES = [").append("\n");
-        for (Worker<?> r : staticSet.values()) {
+        for (Worker<?, ?> r : staticSet.values()) {
             sb.append(prefix).append("\t").append("RESOURCE = [").append("\n");
             sb.append(r.getResourceLinks(prefix + "\t\t")); // Adds resource information
             sb.append(prefix).append("\t").append("\t").append("SET = Static").append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
-        for (Worker<?> r : criticalSet.values()) {
+        for (CloudMethodWorker r : criticalSet.values()) {
             sb.append(prefix).append("\t").append("RESOURCE = [").append("\n");
             sb.append(r.getResourceLinks(prefix + "\t\t")); // Adds resource information
             sb.append(prefix).append("\t").append("\t").append("SET = Critical").append("\n");
             sb.append(prefix).append("\t").append("]").append("\n");
         }
-        for (Worker<?> r : nonCriticalSet.values()) {
+        for (CloudMethodWorker r : nonCriticalSet.values()) {
             sb.append(prefix).append("\t").append("RESOURCE = [").append("\n");
             sb.append(r.getResourceLinks(prefix + "\t\t")); // Adds resource information
             sb.append(prefix).append("\t").append("\t").append("SET = Non-Critical").append("\n");

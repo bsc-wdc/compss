@@ -1,16 +1,14 @@
 package integratedtoolkit.types.fake;
 
-import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
-public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
+public class FakeWorker extends Worker<MethodResourceDescription, FakeImplementation> {
 
-    @SuppressWarnings("unchecked")
-    public FakeWorker(WorkerResourceDescription description, int limitOfTasks) {
-        super("a", (T) description, new FakeNode(), limitOfTasks, null);
+    public FakeWorker(MethodResourceDescription description, int limitOfTasks) {
+        super("a", description, new FakeNode(), limitOfTasks, null);
     }
 
     @Override
@@ -29,43 +27,43 @@ public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
     }
 
     @Override
-    public boolean canRun(Implementation<?> implementation) {
+    public boolean canRun(FakeImplementation implementation) {
         return true;
     }
 
     @Override
-    public Integer fitCount(Implementation<?> impl) {
+    public Integer fitCount(FakeImplementation impl) {
         return 10;
     }
 
     @Override
-    public boolean hasAvailable(WorkerResourceDescription consumption) {
+    public boolean hasAvailable(MethodResourceDescription consumption) {
         return true;
-    }
-    
-    @Override
-    public boolean usesGPU(WorkerResourceDescription consumption){
-    	logger.debug("fake worker <T>");
-    	return false;
-    }
-    
-    @Override
-    public boolean usesFPGA(WorkerResourceDescription consumption){
-    	return false;
-    }
-    
-    @Override
-    public boolean usesOthers(WorkerResourceDescription consumption){
-    	return false;
     }
 
     @Override
-    public T reserveResource(T consumption) {
+    public boolean usesGPU(MethodResourceDescription consumption) {
+        logger.debug("fake worker <T>");
+        return false;
+    }
+
+    @Override
+    public boolean usesFPGA(MethodResourceDescription consumption) {
+        return false;
+    }
+
+    @Override
+    public boolean usesOthers(MethodResourceDescription consumption) {
+        return false;
+    }
+
+    @Override
+    public MethodResourceDescription reserveResource(MethodResourceDescription consumption) {
         return consumption;
     }
 
     @Override
-    public void releaseResource(WorkerResourceDescription consumption) {
+    public void releaseResource(MethodResourceDescription consumption) {
 
     }
 
@@ -75,7 +73,7 @@ public class FakeWorker<T extends WorkerResourceDescription> extends Worker<T> {
     }
 
     @Override
-    public Worker<T> getSchedulingCopy() {
+    public FakeWorker getSchedulingCopy() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

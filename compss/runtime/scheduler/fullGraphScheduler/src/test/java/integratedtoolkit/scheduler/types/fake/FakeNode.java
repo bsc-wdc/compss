@@ -53,11 +53,6 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newSlaveJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, JobListener jl) {
-        return null;
-    }
-
-    @Override
     public void start() {
     }
 

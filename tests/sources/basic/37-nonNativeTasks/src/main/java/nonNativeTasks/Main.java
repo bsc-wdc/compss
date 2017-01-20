@@ -99,6 +99,11 @@ public class Main {
         int ev = BINARY.simpleTask2(message);
 
         System.out.println("[LOG] EV = " + ev);
+        
+        // Task with EV syncrhonized on access
+        System.out.println("[LOG] Launch EV");
+        Integer ev2 = BINARY.simpleTask3(message);
+        System.out.println("[LOG] EV = " + ev2);
     }
     
     private static void testPrefixes() {

@@ -3,9 +3,11 @@ package commons;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
@@ -14,55 +16,57 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CoreManager;
-import integratedtoolkit.util.ResourceScheduler;
 
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
-public class Action<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
+public class Action extends AllocatableAction<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> {
 
     private final int coreId;
 
 
-    public Action(int coreId) {
-        super(new SchedulingInformation());
+    public Action(ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator,
+            int coreId) {
+
+        super(new SchedulingInformation<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>(), orchestrator);
         this.coreId = coreId;
     }
 
     @Override
-    protected boolean areEnoughResources() {
-        Worker r = selectedResource.getResource();
+    public boolean areEnoughResources() {
+        Worker<WorkerResourceDescription, Implementation<WorkerResourceDescription>> r = selectedResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker r = selectedResource.getResource();
+        Worker<WorkerResourceDescription, Implementation<WorkerResourceDescription>> r = selectedResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker r = selectedResource.getResource();
+        Worker<WorkerResourceDescription, Implementation<WorkerResourceDescription>> r = selectedResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>> getCompatibleWorkers() {
         return getCoreElementExecutors(coreId);
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
+    public LinkedList<Implementation<WorkerResourceDescription>> getCompatibleImplementations(
+            ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> r) {
         return r.getExecutableImpls(coreId);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Implementation<T>[] getImplementations() {
-        return (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
+    public Implementation<WorkerResourceDescription>[] getImplementations() {
+        return (Implementation<WorkerResourceDescription>[]) CoreManager.getCoreImplementations(coreId);
     }
 
     @Override
-    public boolean isCompatible(Worker<T> r) {
+    public boolean isCompatible(Worker<WorkerResourceDescription, Implementation<WorkerResourceDescription>> r) {
         return r.canRun(coreId);
     }
 
@@ -87,7 +91,9 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+    public Score schedulingScore(
+            ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> targetWorker,
+            Score actionScore) {
         return new Score(0, 0, 0, 0);
     }
 
@@ -97,31 +103,33 @@ public class Action<P extends Profile, T extends WorkerResourceDescription> exte
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> targetWorker,
+            Score actionScore) throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
-            throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> targetWorker,
+            Implementation<WorkerResourceDescription> impl) throws BlockedActionException, UnassignedActionException {
 
     }
 
-    public HashMap<Worker<T>, LinkedList<Implementation<T>>> findAvailableWorkers() {
-        HashMap<Worker<T>, LinkedList<Implementation<T>>> m = new HashMap<Worker<T>, LinkedList<Implementation<T>>>();
+    public HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> findAvailableWorkers() {
+        HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> m = new HashMap<>();
 
-        LinkedList<ResourceScheduler<?, ?>> compatibleWorkers = getCoreElementExecutors(coreId);
-        for (ResourceScheduler<?, ?> ui : compatibleWorkers) {
-            Worker<T> r = (Worker<T>) ui.getResource();
-            LinkedList<Implementation<T>> compatibleImpls = r.getExecutableImpls(coreId);
-            LinkedList<Implementation<T>> runnableImpls = new LinkedList<Implementation<T>>();
-            for (Implementation<?> impl : compatibleImpls) {
-                if (r.canRunNow((T) impl.getRequirements())) {
-                    runnableImpls.add((Implementation<T>) impl);
+        LinkedList<ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>> compatibleWorkers = getCoreElementExecutors(
+                coreId);
+        for (ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> ui : compatibleWorkers) {
+            Worker<WorkerResourceDescription, Implementation<WorkerResourceDescription>> r = ui.getResource();
+            LinkedList<Implementation<WorkerResourceDescription>> compatibleImpls = r.getExecutableImpls(coreId);
+            LinkedList<Implementation<?>> runnableImpls = new LinkedList<>();
+            for (Implementation<WorkerResourceDescription> impl : compatibleImpls) {
+                if (r.canRunNow(impl.getRequirements())) {
+                    runnableImpls.add(impl);
                 }
             }
             if (runnableImpls.size() > 0) {
-                m.put(r, runnableImpls);
+                m.put((Worker<?, ?>) r, runnableImpls);
             }
         }
         return m;

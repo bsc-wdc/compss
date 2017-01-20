@@ -396,7 +396,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         }
 
         // Don't add constraints if there only was processor info
-        if ((constraints.length != 1) || (!constraints[0].equals(""))) {
+        if (constraints.length != 1 || !"".equals(constraints[0])) {
             for (String c : constraints) {
                 String key = c.split("=")[0].trim();
                 String val = c.split("=")[1].trim();

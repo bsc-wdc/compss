@@ -14,14 +14,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-public abstract class Worker<T extends WorkerResourceDescription> extends Resource {
+public abstract class Worker<T extends WorkerResourceDescription, I extends Implementation<T>> extends Resource {
 
     protected final T description;
 
     // CoreIds that can be executed by this resource
     private LinkedList<Integer> executableCores;
     // Implementations that can be executed by the resource
-    private LinkedList<Implementation<T>>[] executableImpls;
+    private LinkedList<I>[] executableImpls;
     // ImplIds per core that can be executed by this resource
     private int[][] implSimultaneousTasks;
 
@@ -41,7 +41,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
        
 
     // Logger
-    protected static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
+    protected static final Logger logger = LogManager.getLogger(Loggers.RM_COMP);
     protected static final boolean debug = logger.isDebugEnabled();
 
 
@@ -87,7 +87,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         this.maxOthersTaskCount = config.getLimitOfOTHERSTasks();
     }
 
-    public Worker(Worker<T> w) {
+    public Worker(Worker<T,I> w) {
         super(w);
         this.coreSimultaneousTasks = w.coreSimultaneousTasks;
         this.idealSimultaneousTasks = w.idealSimultaneousTasks;
@@ -198,7 +198,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
             wasExecutable[coreId] = true;
         }
         this.executableCores.clear();
-        LinkedList<Implementation<T>>[] executableImpls = new LinkedList[coreCount];
+        LinkedList<I>[] executableImpls = new LinkedList[coreCount];
         int[][] implSimultaneousTasks = new int[coreCount][];
         int[] coreSimultaneousTasks = new int[coreCount];
         int[] idealSimultaneousTasks = new int[coreCount];
@@ -214,10 +214,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
                 }
             } else {
                 boolean executableCore = false;
-                Implementation<T>[] impls = (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
+                I[] impls = (I[]) CoreManager.getCoreImplementations(coreId);
                 implSimultaneousTasks[coreId] = new int[impls.length];
                 executableImpls[coreId] = new LinkedList<>();
-                for (Implementation<T> impl : impls) {
+                for (I impl : impls) {
                     if (canRun(impl)) {
                         int simultaneousCapacity = simultaneousCapacity(impl);
                         idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
@@ -250,10 +250,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         idealSimultaneousTasks = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             boolean executableCore = false;
-            Implementation<T>[] impls = (Implementation<T>[]) CoreManager.getCoreImplementations(coreId);
+            I[] impls = (I[]) CoreManager.getCoreImplementations(coreId);
             implSimultaneousTasks[coreId] = new int[impls.length];
             executableImpls[coreId] = new LinkedList<>();
-            for (Implementation<T> impl : impls) {
+            for (I impl : impls) {
                 if (canRun(impl)) {
                     int simultaneousCapacity = simultaneousCapacity(impl);
                     idealSimultaneousTasks[coreId] = Math.max(idealSimultaneousTasks[coreId], simultaneousCapacity);
@@ -275,11 +275,11 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return executableCores;
     }
 
-    public LinkedList<Implementation<T>>[] getExecutableImpls() {
+    public LinkedList<I>[] getExecutableImpls() {
         return executableImpls;
     }
 
-    public LinkedList<Implementation<T>> getExecutableImpls(int coreId) {
+    public LinkedList<I> getExecutableImpls(int coreId) {
         return executableImpls[coreId];
     }
 
@@ -291,7 +291,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return coreSimultaneousTasks;
     }
 
-    public Integer simultaneousCapacity(Implementation<?> impl) {
+    public Integer simultaneousCapacity(I impl) {
         return Math.min(fitCount(impl), this.getMaxTaskCount());
     }
 
@@ -341,18 +341,18 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     @SuppressWarnings("unchecked")
-    public LinkedList<Implementation<T>>[] getRunnableImplementations() {
+    public LinkedList<I>[] getRunnableImplementations() {
         int coreCount = CoreManager.getCoreCount();
-        LinkedList<Implementation<T>>[] runnable = new LinkedList[coreCount];
+        LinkedList<I>[] runnable = new LinkedList[coreCount];
         for (int coreId = 0; coreId < coreCount; coreId++) {
             runnable[coreId] = getRunnableImplementations(coreId);
         }
         return runnable;
     }
 
-    public LinkedList<Implementation<T>> getRunnableImplementations(int coreId) {
-        LinkedList<Implementation<T>> runnable = new LinkedList<>();
-        for (Implementation<T> impl : this.executableImpls[coreId]) {
+    public LinkedList<I> getRunnableImplementations(int coreId) {
+        LinkedList<I> runnable = new LinkedList<>();
+        for (I impl : this.executableImpls[coreId]) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
             }
@@ -364,9 +364,9 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         return this.idealSimultaneousTasks[coreId] > 0;
     }
 
-    public LinkedList<Implementation<?>> canRunNow(LinkedList<Implementation<T>> candidates) {
-        LinkedList<Implementation<?>> runnable = new LinkedList<>();
-        for (Implementation<T> impl : candidates) {
+    public LinkedList<I> canRunNow(LinkedList<I> candidates) {
+        LinkedList<I> runnable = new LinkedList<>();
+        for (I impl : candidates) {
             if (canRunNow((T) impl.getRequirements())) {
                 runnable.add(impl);
             }
@@ -385,7 +385,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
     }
 
     public void endTask(T consumption) {
-        logger.debug("End task received. Releasing resource." + consumption.getClass().toString());
+        if (debug) {
+            logger.debug("End task received. Releasing resource " + getName());
+        }
+        
         this.decreaseUsedTaskCount();
         if (this.usesGPU(consumption)) {
             this.decreaseUsedGPUTaskCount();
@@ -428,10 +431,10 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
 
     public abstract String getMonitoringData(String prefix);
 
-    public abstract boolean canRun(Implementation<?> implementation);
+    public abstract boolean canRun(I implementation);
 
     // Internal private methods depending on the resourceType
-    public abstract Integer fitCount(Implementation<?> impl);
+    public abstract Integer fitCount(I impl);
 
     public abstract boolean hasAvailable(T consumption);
 
@@ -457,7 +460,7 @@ public abstract class Worker<T extends WorkerResourceDescription> extends Resour
         w.announceDestruction();
     }
 
-    public abstract Worker<?> getSchedulingCopy();
+    public abstract Worker<T,I> getSchedulingCopy();
     
     @Override
     public String toString(){

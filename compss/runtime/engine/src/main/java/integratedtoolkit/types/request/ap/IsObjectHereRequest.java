@@ -47,7 +47,7 @@ public class IsObjectHereRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
         DataInstanceId dId = dip.getLastDataAccess(code);
         response = dip.isHere(dId);
         sem.release();

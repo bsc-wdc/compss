@@ -47,9 +47,7 @@ import org.apache.logging.log4j.Logger;
 public abstract class Resource implements Comparable<Resource> {
 
     public enum Type {
-        MASTER, 
-        WORKER, 
-        SERVICE
+        MASTER, WORKER, SERVICE
     }
 
 
@@ -117,7 +115,7 @@ public abstract class Resource implements Comparable<Resource> {
                 return r;
             }
         }
-        logger.warn("Resource with name "+ name + " not found");
+        logger.warn("Resource with name " + name + " not found");
         return null;
     }
 
@@ -205,12 +203,8 @@ public abstract class Resource implements Comparable<Resource> {
 
     public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, List<String> slaveWorkersNodeNames,
             JobListener listener) {
-        
+
         return node.newJob(taskId, taskParams, impl, this, slaveWorkersNodeNames, listener);
-    }
-    
-    public Job<?> newSlaveJob(int taskId, TaskDescription taskParams, Implementation<?> impl, JobListener listener) {
-        return node.newSlaveJob(taskId, taskParams, impl, this, listener);
     }
 
     public void getData(String dataId, String tgtDataId, Transferable reason, EventListener listener) {
@@ -318,17 +312,17 @@ public abstract class Resource implements Comparable<Resource> {
         if (this.getType() != Type.SERVICE) {
 
             if (Tracer.isActivated()) {
-                if (node.generatePackage()){
-                	getTracingPackageToMaster();
-                	if (debug) {
-                		logger.debug("Tracing package obtained for " + this.getName());
-                	}
+                if (node.generatePackage()) {
+                    getTracingPackageToMaster();
+                    if (debug) {
+                        logger.debug("Tracing package obtained for " + this.getName());
+                    }
                 }
             }
             if (debug) {
-                if (node.generateWorkersDebugInfo()){
-                	getWorkersDebugInfo();
-                	logger.debug("Workers Debug files obtained for " + this.getName());
+                if (node.generateWorkersDebugInfo()) {
+                    getWorkersDebugInfo();
+                    logger.debug("Workers Debug files obtained for " + this.getName());
                 }
             }
         }
@@ -347,8 +341,8 @@ public abstract class Resource implements Comparable<Resource> {
         SimpleURI fileOriginURI = node.getCompletePath(DataType.FILE_T, fileName);
 
         if (debug) {
-            logger.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : " + Comm.getAppHost().getAppLogDirPath() + "trace"
-                    + File.separator + fileName);
+            logger.debug("Copying tracing package from : " + fileOriginURI.getPath() + ",to : " + Comm.getAppHost().getAppLogDirPath()
+                    + "trace" + File.separator + fileName);
         }
 
         TracingCopyListener tracingListener = new TracingCopyListener(sem);

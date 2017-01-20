@@ -27,11 +27,11 @@ void fillMatrix(const char* fileName, int matrixSize, double* mat) {
 
 void storeMatrix(const char* fileName, int matrixSize, const double* mat) {
     int i, j;
-    
+
     FILE *file;
     file = fopen(fileName, "w");
 
-    printf("  - Open file %s with size %d.\n", fileName, matrixSize);
+    printf("  - Store matrix in file %s with size %d.\n", fileName, matrixSize);
     for(i = 0; i < matrixSize; i++) {
         for(j = 0; j < matrixSize; j++) {
             fprintf(file, "%lf ", mat[i*matrixSize + j]);

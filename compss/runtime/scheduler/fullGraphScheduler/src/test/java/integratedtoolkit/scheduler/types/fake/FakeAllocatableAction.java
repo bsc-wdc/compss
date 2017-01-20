@@ -1,30 +1,31 @@
 package integratedtoolkit.scheduler.types.fake;
 
+import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.fullGraphScheduler.FullGraphSchedulingInformation;
+import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 
 
-public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
+public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeResourceDescription, FakeImplementation> {
 
     private int id;
     private int priority;
-    private Implementation<T>[] impls;
+    private FakeImplementation[] impls;
 
 
-    public FakeAllocatableAction(int id, int priority, Implementation<T>[] impls) {
-        super(new FullGraphSchedulingInformation<P, T>());
+    public FakeAllocatableAction(ActionOrchestrator<FakeProfile, FakeResourceDescription, FakeImplementation> orchestrator, int id,
+            int priority, FakeImplementation[] impls) {
+
+        super(new FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>(), orchestrator);
+
         this.id = id;
         this.priority = priority;
         this.impls = impls;
@@ -48,51 +49,55 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     public void doFailed() {
     }
 
+    @Override
     public String toString() {
         return "AllocatableAction " + id;
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
-        LinkedList<Implementation<T>> ret = new LinkedList<>();
+    public LinkedList<FakeImplementation> getCompatibleImplementations(
+            ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> r) {
+        LinkedList<FakeImplementation> ret = new LinkedList<>();
         ret.addAll(Arrays.asList(impls));
+
         return ret;
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation>> getCompatibleWorkers() {
         return null;
     }
 
     @Override
-    public Implementation<T>[] getImplementations() {
+    public FakeImplementation[] getImplementations() {
         return this.impls;
     }
 
     @Override
-    public boolean isCompatible(Worker<T> r) {
+    public boolean isCompatible(Worker<FakeResourceDescription, FakeImplementation> r) {
         return true;
     }
 
     @Override
-    protected boolean areEnoughResources() {
-        Worker<T> r = selectedResource.getResource();
+    public boolean areEnoughResources() {
+        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
         return r.canRunNow(selectedImpl.getRequirements());
     }
 
     @Override
     protected void reserveResources() {
-        Worker<T> r = selectedResource.getResource();
+        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
         r.runTask(selectedImpl.getRequirements());
     }
 
     @Override
     protected void releaseResources() {
-        Worker<T> r = selectedResource.getResource();
+        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
         r.endTask(selectedImpl.getRequirements());
     }
 
-    public void selectExecution(ResourceScheduler<P, T> resource, Implementation<T> impl) {
+    public void selectExecution(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> resource,
+            FakeImplementation impl) {
         selectedResource = resource;
         selectedImpl = impl;
     }
@@ -103,28 +108,31 @@ public class FakeAllocatableAction<P extends Profile, T extends WorkerResourceDe
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
         this.assignImplementation(impls[0]);
         this.assignResources(targetWorker);
-        targetWorker.initialSchedule(this);
+        targetWorker.scheduleAction(this);
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
+    public void schedule(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> targetWorker, FakeImplementation impl)
             throws BlockedActionException, UnassignedActionException {
         this.assignImplementation(impl);
         this.assignResources(targetWorker);
-        targetWorker.initialSchedule(this);
+        targetWorker.scheduleAction(this);
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> targetWorker,
+            Score actionScore) {
         return null;
     }
 
     public String dependenciesDescription() {
         StringBuilder sb = new StringBuilder("Action" + id + "\n");
-        FullGraphSchedulingInformation<P, T> dsi = (FullGraphSchedulingInformation<P, T>) this.getSchedulingInfo();
+        FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation> dsi = (FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) this
+                .getSchedulingInfo();
         sb.append("\t depends on\n");
         sb.append("\t\tData : ").append(this.getDataPredecessors()).append("\n");
         sb.append("\t\tResource : ").append(dsi.getPredecessors()).append("\n");

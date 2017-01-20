@@ -864,7 +864,10 @@ exec_c() {
   # Look for the JVM Library
   libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    display_error "${JAVA_JRE_ERROR}"
+    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    if [ -z "$libjava" ]; then
+      display_error "${JAVA_JRE_ERROR}"
+    fi
   fi
   libjavafolder=$(dirname $libjava)
 
@@ -904,11 +907,14 @@ exec_python() {
     export PYTHONPATH=$cp:$PYTHONPATH
   fi
 
-  # Look for the JVM Library                                                                                                                                                            
+  # Look for the JVM Library
   libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    display_error "${JAVA_JRE_ERROR}"
-  fi
+    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    if [ -z "$libjava" ]; then
+      display_error "${JAVA_JRE_ERROR}"
+    fi
+  fi     
   libjavafolder=$(dirname $libjava)
 
   export LD_LIBRARY_PATH=$library_path:${LD_LIBRARY_PATH}:$libjavafolder:${IT_HOME}/Bindings/bindings-common/lib

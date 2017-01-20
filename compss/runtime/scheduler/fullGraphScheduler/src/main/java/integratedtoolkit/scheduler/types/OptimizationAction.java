@@ -1,5 +1,6 @@
 package integratedtoolkit.scheduler.types;
 
+import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
@@ -10,19 +11,19 @@ import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.util.ResourceScheduler;
 
 import java.util.LinkedList;
 
 
-public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription> extends AllocatableAction<P, T> {
+public class OptimizationAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+        extends AllocatableAction<P, T, I> {
 
-    public OptimizationAction() {
-        super(new FullGraphSchedulingInformation<P, T>());
+    public OptimizationAction(ActionOrchestrator<P, T, I> orchestrator) {
+        super(new FullGraphSchedulingInformation<P, T, I>(), orchestrator);
     }
 
     @Override
-    protected boolean areEnoughResources() {
+    public boolean areEnoughResources() {
         return true;
     }
 
@@ -61,7 +62,7 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public LinkedList<ResourceScheduler<?, ?>> getCompatibleWorkers() {
+    public LinkedList<ResourceScheduler<P, T, I>> getCompatibleWorkers() {
         return null;
     }
 
@@ -71,12 +72,12 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public boolean isCompatible(Worker<T> r) {
+    public boolean isCompatible(Worker<T, I> r) {
         return true;
     }
 
     @Override
-    public LinkedList<Implementation<T>> getCompatibleImplementations(ResourceScheduler<P, T> r) {
+    public LinkedList<I> getCompatibleImplementations(ResourceScheduler<P, T, I> r) {
         return null;
     }
 
@@ -86,7 +87,7 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public Score schedulingScore(ResourceScheduler<P, T> targetWorker, Score actionScore) {
+    public Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
         return null;
     }
 
@@ -96,13 +97,13 @@ public class OptimizationAction<P extends Profile, T extends WorkerResourceDescr
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Score actionScore) throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
 
     }
 
     @Override
-    public void schedule(ResourceScheduler<P, T> targetWorker, Implementation<T> impl)
-            throws BlockedActionException, UnassignedActionException {
+    public void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
 
     }
 

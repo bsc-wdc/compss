@@ -47,7 +47,10 @@ except ImportError:
 app_path = None
 
 
-if __name__ == "__main__":
+def main():
+
+    # TODO: get rid of that global variable (is it possible?)
+    global app_path
 
     compss_start()
 
@@ -102,7 +105,7 @@ if __name__ == "__main__":
         logger.debug("PyCOMPSs Log path: %s" % logPath)
         logger.debug("Storage configuration file: %s" % storage_conf)
         initStorage(config_file_path=storage_conf)
-        execfile(app_path)    # MAIN EXECUTION
+        execfile(app_path, globals())    # MAIN EXECUTION
         finishStorage()
         logger.debug("--- END ---")
     except SerializerException:
@@ -425,3 +428,10 @@ def pycompss_launch(app, args, kwargs):    # UNIFIED PORTAL - HBP
     compss_stop()
 
     return result
+
+
+'''
+    This is the PyCOMPSs entry point
+'''
+if __name__ == "__main__":
+    main()

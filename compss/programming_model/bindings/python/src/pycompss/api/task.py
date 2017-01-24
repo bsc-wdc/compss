@@ -126,8 +126,8 @@ class task(object):
                 # work as always
                 pass
 
-            i = -1
-            while True:
+            i = len(dirs) - 1
+            while i > 0:
                 new_l = len(path) - (len(dirs[i]) + 1)
                 path = path[0:new_l]
                 if "__init__.py" in os.listdir(path):

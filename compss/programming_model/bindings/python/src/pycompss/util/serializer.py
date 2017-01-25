@@ -31,12 +31,12 @@ All serialization/deserialization calls should be made using one of the followin
                                        handler's pointer pointing to the end of the serialized object
 """
 import os
-import imp
 import types
 import traceback
 import cStringIO as StringIO
 import cPickle as pickle
 from serialization.extendedSupport import copy_generator, pickle_generator, GeneratorSnapshot
+from object_properties import has_numpy_objects
 try:
     import dill
 except:
@@ -45,34 +45,13 @@ except:
 class SerializerException(Exception):
     pass
 
-def is_module_available(module_name):
-    """
-    Checks if a module is available in the current Python installation.
-    @param module_name: Name of the module
-    @return: Boolean -> True if the module is available, False otherwise
-    """
-    try:
-        imp.find_module(module_name)
-        return True
-    except:
-        return False
-
-def object_belongs_to_module(obj, module_name):
-    """
-    Checks if a given object belongs to a given module.
-    @param obj: Object to be analysed
-    @param module_name: Name of the module we want to check
-    @return: Boolean -> True if obj belongs to the given module, False otherwise
-    """
-    return type(obj).__module__ == module_name
-
 def get_serializer_priority(obj=[]):
     """
     Computes the priority of the serializers.
     @param obj: Object to be analysed.
     @return: List -> The serializers sorted by priority in descending order
     """
-    if is_module_available('numpy') and object_belongs_to_module(obj, 'numpy'):
+    if has_numpy_objects(obj):
         # dill outperforms both pickle and cPickle when serializing numpy objects
         return [dill, pickle]
     # this order will work in almost the 90% of the cases because

@@ -1,11 +1,9 @@
 import unittest
 from modules.testArgsKwargsFunctions import testArgsKwargsFunctions
-from modules.testArgsKwargsClassMethods import testArgsKwargsClassMethods
 from modules.testArgsKwargsInstanceMethods import testArgsKwargsInstanceMethods
 
 def main():
 	suite = unittest.TestLoader().loadTestsFromTestCase(testArgsKwargsFunctions)
-	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testArgsKwargsClassMethods))
 	suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testArgsKwargsInstanceMethods))
 	unittest.TextTestRunner(verbosity=2).run(suite)
 

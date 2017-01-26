@@ -33,6 +33,7 @@ from shutil import rmtree
 import types
 import os
 import re
+import sys
 import inspect
 import logging
 import traceback

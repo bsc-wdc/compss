@@ -23,6 +23,7 @@ For example, check if an object belongs to a module and so on.
 
 """
 import imp
+import inspect
 
 def is_module_available(module_name):
     """
@@ -49,7 +50,11 @@ def object_belongs_to_module(obj, module_name):
 def has_subobjects_of_module(obj, module_name):
     """
     Detects if an object belongs to a module or, at least, has
-    some sub-object that belongs to it.
+    some sub-object that belongs to it. We only iterate through
+    sub objects that are class instances. This is due to the fact
+    that, in Python, there are some objects that, when iterated,
+    change in some way. For example, file objects move their
+    pointer when iterated.
     @param obj: Object to be analysed
     @param module_name: Name of the module we want to check
     @return: Boolean -> True if obj or some subobject belongs to the given module, False otherwise
@@ -67,18 +72,18 @@ def has_subobjects_of_module(obj, module_name):
             # if this object belongs to our module return true
             if object_belongs_to_module(current_object, module_name):
                 return True
-            if hasattr(current_object, '__dict__'):
-            	map(object_stack.append, current_object.__dict__.values())
+            if hasattr(current_object, '__class__') and hasattr(current_object, '__dict__'):
+                map(object_stack.append, current_object.__dict__.values())
 
     # We have found no object that belongs to our module
     return False
 
 def has_numpy_objects(obj):
-	"""
-	Checks if the given object is a numpy object or
-	some of its subojects are.
-	@param obj: An object
-	@return: Boolean -> True if obj is a numpy objects (or some of 
-	its subobjects). False otherwise
-	"""
-	return has_subobjects_of_module(obj, 'numpy')
+    """
+    Checks if the given object is a numpy object or
+    some of its subojects are.
+    @param obj: An object
+    @return: Boolean -> True if obj is a numpy objects (or some of 
+    its subobjects). False otherwise
+    """
+    return has_subobjects_of_module(obj, 'numpy')

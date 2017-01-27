@@ -23,7 +23,10 @@ For example, check if an object belongs to a module and so on.
 
 """
 import imp
+import types
+import ctypes
 import inspect
+import collections
 
 def is_module_available(module_name):
     """
@@ -37,6 +40,22 @@ def is_module_available(module_name):
     except:
         return False
 
+def is_iterable(obj):
+    """
+    Checks if an object is iterable.
+    @param obj: Object to be checked
+    @return: Boolean -> True if obj is iterable, False otherwise
+    """
+    return isinstance(obj, collections.Iterable)
+
+def is_modified_by_iteration(obj):
+    """
+    Checks if an object is modified by iteration.
+    @param obj: Object to be analysed
+    @return: Boolean -> True if obj is modified by iteration, False otherwise
+    """
+    return not isinstance(obj, file) and not isinstance(obj, types.GeneratorType)
+
 def object_belongs_to_module(obj, module_name):
     """
     Checks if a given object belongs to a given module.
@@ -46,6 +65,33 @@ def object_belongs_to_module(obj, module_name):
     """
     return type(obj).__module__ == module_name
 
+
+def get_object_hierarchy(obj):
+    """
+    Generates a set of identifiers of objects that are obj or are under the
+    object hierarchy determined by obj.
+    @param obj: Object to be analysed
+    @yield: An integer with the id of an object from the object hierarchy of obj
+    """
+    object_stack = [obj]
+    vis = set()
+    while object_stack:
+        current_object = object_stack.pop()
+        current_object_id = id(current_object)
+
+        if not current_object_id in vis:
+            vis.add(current_object_id)
+            yield current_object_id
+            # NUMPY sub-objects (e.g: matrix elements) have undefined behaviour when dealing with
+            # their ids, so we cannot support them
+            # That means that a PyCOMPSs program that passes array slices as task arguments is considered
+            # a program with an undefined behaviour
+            if is_module_available('numpy') and object_belongs_to_module(current_object, 'numpy'):
+                continue
+            if hasattr(current_object, '__dict__'):
+                map(object_stack.append, current_object.__dict__.values())
+            elif is_iterable(current_object) and not is_modified_by_iteration(current_object):
+                map(object_stack.append, iter(current_object))
 
 def has_subobjects_of_module(obj, module_name):
     """
@@ -61,21 +107,9 @@ def has_subobjects_of_module(obj, module_name):
     """
     if not is_module_available(module_name):
         return False
-    object_stack = [obj]
-    vis = set()
-    while object_stack:
-        current_object = object_stack.pop()
-        current_object_id = id(current_object)
-        # if this is the first time we find this object...
-        if not current_object_id in vis:
-            vis.add(current_object_id)
-            # if this object belongs to our module return true
-            if object_belongs_to_module(current_object, module_name):
-                return True
-            if hasattr(current_object, '__class__') and hasattr(current_object, '__dict__'):
-                map(object_stack.append, current_object.__dict__.values())
-
-    # We have found no object that belongs to our module
+    for sub_object in get_object_hierarchy(obj):
+        if object_belongs_to_module(obj, module_name):
+            return True
     return False
 
 def has_numpy_objects(obj):

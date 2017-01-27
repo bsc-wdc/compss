@@ -23,19 +23,34 @@ PyCOMPSs Dummy API
 """
 
 
-def compss_wait_on(obj):
+def compss_open(obj):
     """
-    Dummy compss_wait_on.
-    :param obj: The object to wait on.
+    Dummy compss_open
+    :param obj: The object to open
     :return: The same object defined as parameter
     """
     return obj
 
 
-def compss_open(obj):
+def compss_delete(file_name):
     """
-    Dummy compss_open
-    :param obj: The object to open
+    Dummy compss_delete
+    :param file_name: File name.
+    """
+    pass
+  
+
+def wait_for_all_tasks():
+    """
+    Dummy wait_for_all_tasks
+    """
+    pass
+  
+
+def compss_wait_on(obj):
+    """
+    Dummy compss_wait_on
+    :param obj: The object to wait on.
     :return: The same object defined as parameter
     """
     return obj

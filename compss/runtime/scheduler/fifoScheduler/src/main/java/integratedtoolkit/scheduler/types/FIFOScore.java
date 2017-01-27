@@ -1,6 +1,8 @@
 package integratedtoolkit.scheduler.types;
 
 import integratedtoolkit.scheduler.types.Score;
+import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.resources.Resource;
 
 
 public class FIFOScore extends Score {
@@ -30,6 +32,18 @@ public class FIFOScore extends Score {
     public String toString() {
         return "[FIFOScore = [action:" + this.actionScore + ", resource:" + this.resourceScore + ", load:" + this.waitingScore
                 + ", implementation:" + this.implementationScore + "]";
+    }
+    
+    @Override
+    public boolean isBetter(Score other){
+        if (this.actionScore != other.actionScore) {
+            return this.actionScore > other.actionScore;
+        }
+        return this.implementationScore > other.implementationScore;
+    }
+    
+    public static double calculateScore(TaskDescription params, Resource w) {
+        return 1.0 / params.getId();
     }
 
 }

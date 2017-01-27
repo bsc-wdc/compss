@@ -59,7 +59,7 @@ public class LIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
         LOGGER.info("[LIFOScheduler] Generate Action Score for " + action);
-        return new LIFOScore(action.getPriority(), (double) action.getId(), 0, 0);
+        return new LIFOScore(action.getPriority(), 0, 0, (double) action.getId());
     }
 
     /*
@@ -83,6 +83,18 @@ public class LIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
             this.dependingActions.removeAction(action);
 
             Score actionScore = generateActionScore(action);
+            /*try {
+                action.schedule(actionScore);
+                tryToLaunch(action);
+                LOGGER.debug("[LIFOScheduler] Action " + action + " scheduled");
+                executableActions.add(action);
+            } catch (UnassignedActionException ex) {
+                LOGGER.debug("[LIFOScheduler] Adding action " + action + " to unassigned list");
+                this.unassignedReadyActions.addAction(action);
+            } catch (BlockedActionException e) {
+                LOGGER.debug("[LIFOScheduler] Adding action " + action + " to the blocked list");
+                blockedCandidates.add(action);
+            }*/
             try {
                 action.schedule(actionScore);
                 tryToLaunch(action);

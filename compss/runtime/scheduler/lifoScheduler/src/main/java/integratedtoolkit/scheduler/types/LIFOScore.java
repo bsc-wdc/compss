@@ -1,6 +1,8 @@
 package integratedtoolkit.scheduler.types;
 
 import integratedtoolkit.scheduler.types.Score;
+import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.resources.Resource;
 
 
 public class LIFOScore extends Score {
@@ -31,6 +33,18 @@ public class LIFOScore extends Score {
         return "[LIFOScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore + ", implementation:"
                 + implementationScore + "]" + "]";
 
+    }
+    
+    @Override
+    public boolean isBetter(Score other){
+        if (this.actionScore != other.actionScore) {
+            return this.actionScore > other.actionScore;
+        }
+        return this.implementationScore > other.implementationScore;
+    }
+    
+    public static double calculateScore(TaskDescription params, Resource w) {
+        return params.getId();
     }
 
 }

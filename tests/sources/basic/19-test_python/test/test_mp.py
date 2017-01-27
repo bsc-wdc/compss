@@ -51,11 +51,11 @@ def main_program():
 
     # test_argfunc()   # can not be done if the function is defined within the same file as __main__
                        # pickle limitation
-    test_lambda()
-    test_generator()
+    #test_lambda()
+    #test_generator()
     
-    test_lambda_return()
-    test_generator_return()
+    #test_lambda_return()
+    #test_generator_return()
   
     test_all_class_tasks()
     
@@ -63,7 +63,7 @@ def main_program():
     
     test_multireturn_multicall()
 
-    test_moduleObject()
+    #test_moduleObject()
         
     
 def test_function_primitives():

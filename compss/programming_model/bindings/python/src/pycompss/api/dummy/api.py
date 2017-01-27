@@ -40,7 +40,7 @@ def compss_delete(file_name):
     pass
   
 
-def wait_for_all_tasks():
+def waitForAllTasks():
     """
     Dummy wait_for_all_tasks
     """

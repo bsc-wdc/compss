@@ -68,7 +68,7 @@ def compss_delete(file_name):
     delete_file(file_name)
 
 
-def wait_for_all_tasks():
+def waitForAllTasks():
     """
     Perform a barrier when called.
     Stop until all the submitted tasks have finished.

@@ -32,6 +32,7 @@ from pycompss.runtime.binding import get_logPath
 from pycompss.util.logs import init_logging
 from pycompss.util.jvmParser import convertToDict
 from pycompss.util.serializer import SerializerException
+from pycompss.util.object_properties import is_module_available
 import traceback
 import pycompss.runtime.binding as binding
 
@@ -105,6 +106,12 @@ def main():
         logger.debug("PyCOMPSs Log path: %s" % logPath)
         logger.debug("Storage configuration file: %s" % storage_conf)
         initStorage(config_file_path=storage_conf)
+        if not is_module_available('dill'):
+            print "[ WARNING ]: Dill module is not installed."
+            print "             Dill is a pickle extension which is capable to serialize a wider variety of objects."
+            print "             It also offers a *great* speedup on numpy objects."
+            print "             PyCOMPSs can work without dill, but it is recommended to have it installed."
+            print "             You can install it via pip typing pip install dill, or (probably) with your package manager."
         execfile(app_path, globals())    # MAIN EXECUTION
         finishStorage()
         logger.debug("--- END ---")

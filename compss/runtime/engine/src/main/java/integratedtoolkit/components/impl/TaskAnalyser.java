@@ -336,8 +336,9 @@ public class TaskAnalyser {
             ErrorManager.error(TASK_FAILED + task);
         }
 
-        if (!task.isFree()) {
+        //if (!task.isFree()) {
             // Free dependencies
+            LOGGER.debug("Ending task " + task.getId());
             Long appId = task.getAppId();
             Integer taskCount = appIdToTaskCount.get(appId) - 1;
             appIdToTaskCount.put(appId, taskCount);
@@ -375,7 +376,8 @@ public class TaskAnalyser {
             }
 
             task.releaseDataDependents();
-        }
+        //}
+        
     }
 
     // Private method to check if a finished task is the last writer of its file parameters and eventually order the

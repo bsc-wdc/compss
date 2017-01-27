@@ -75,7 +75,7 @@ public class ResourceEmptyScheduler<P extends Profile, T extends WorkerResourceD
 
         // Schedules all possible free actions (LIFO type)
 
-        LOGGER.info("[ResourceEmptyScheduler] Treating dependency free actions");
+        LOGGER.info("[TaskScheduler] Treating " + executionCandidates.size() + " dependency free actions");
 
         LinkedList<AllocatableAction<P, T, I>> executableActions = new LinkedList<>();
         for (AllocatableAction<P, T, I> action : executionCandidates) {

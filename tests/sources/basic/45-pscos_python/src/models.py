@@ -44,3 +44,21 @@ class Result(SCO):
 
     def set(self, d):
     	self.myd = d
+    	
+    	
+# For Tiramisu mockup test
+
+class InputData(SCO):
+    '''
+    @ClassField images dict <<image_id:str>, value:list>
+    '''
+    images = {}
+    
+    def __init__(self):
+        pass
+        
+    def get(self):
+    	return self.images
+
+    def set(self, i):
+    	self.images = i

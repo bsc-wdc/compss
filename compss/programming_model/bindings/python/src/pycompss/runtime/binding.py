@@ -541,8 +541,22 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
     return fu
 
 
+'''
 def manage_persistent(p):
     if p.direction == Direction.IN:
+        p.type = Type.EXTERNAL_PSCO
+        obj_id = p.value.getID()
+        task_objects[obj_id] = obj_id
+        p.value = obj_id
+    else:
+        p.type = Type.OBJECT
+        turn_into_file(p)
+'''
+
+def manage_persistent(p):
+    obj_id = id(p.value)
+    file_name = objid_to_filename.get(obj_id)
+    if p.direction == Direction.IN and file_name is None and obj_id not in objs_written_by_mp:
         p.type = Type.EXTERNAL_PSCO
         obj_id = p.value.getID()
         task_objects[obj_id] = obj_id

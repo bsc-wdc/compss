@@ -25,7 +25,7 @@
       echo "${ERROR_AUTORECONF} on ${componentName}"
       exit 1
     fi
-    ./configure --prefix=${installationDir} --libdir=${installationtDir}/lib
+    ./configure --prefix=${installationDir} --libdir=${installationDir}/lib
     if [ $? -ne 0 ]; then
       echo "${ERROR_CONFIGURE} on ${componentName}"
       exit 1

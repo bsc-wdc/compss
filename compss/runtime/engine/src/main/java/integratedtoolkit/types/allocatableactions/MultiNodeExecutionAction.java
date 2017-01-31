@@ -154,7 +154,8 @@ public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourc
      */
     @Override
     public String toString() {
-        return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName() + ")";
+        return "MultiNodeExecutionAction ( Task " + task.getId() + ", CE name " + task.getTaskDescription().getName() + ") with GroupId = "
+                + this.multiNodeId;
     }
 
 }

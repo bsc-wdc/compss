@@ -1,5 +1,5 @@
 %define name	 	compss-bindings 
-%define version 	2.0.rc1612
+%define version		2.0.rc1612
 %define release		1
 
 Requires: compss-bindings-common, compss-c-binding, compss-python-binding
@@ -7,7 +7,7 @@ Summary: The BSC COMP Superscalar Runtime
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux

@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+  ERROR_AUTORECONF="Error: Some error occurred while executing autoreconf"
+  ERROR_CONFIGURE="Error: Some error occurred while executing configure"
+  ERROR_INSTALL="Error: Some error occurred while executing install"
+
   #######################################
   # HELPER FUNCTIONS
   #######################################
@@ -10,6 +14,27 @@
     ./clean.sh
     cd ${working_dir}/gsstubgen
     ./clean.sh
+  }
+
+  install() {
+    local installationDir=$1
+    local componentName=$2
+
+    autoreconf -fvi # force verbose install
+    if [ $? -ne 0 ]; then
+      echo "${ERROR_AUTORECONF} on ${componentName}"
+      exit 1
+    fi
+    ./configure --prefix=${installationDir} --libdir=${installationtDir}/lib
+    if [ $? -ne 0 ]; then
+      echo "${ERROR_CONFIGURE} on ${componentName}"
+      exit 1
+    fi
+    make clean install
+    if [ $? -ne 0 ]; then
+      echo "${ERROR_INSTALL} on ${componentName}"
+      exit 1
+    fi
   }
 
 
@@ -53,11 +78,12 @@
       echo "JAVA_HOME is not defined in the environment."
       echo "Please do: export JAVA_HOME=path_to_the_java_jdk_directory"
       echo " "
-      exit 1;
+      exit 1
   fi
   
   echo " "
   echo "- Installation directory: $build_root"
+  echo " "
   
   ######################################################
   # BINDINGLIB
@@ -66,7 +92,6 @@
     echo " "
     echo "Installing C/C++ Binding Library..."
     echo " "
-    cd $working_dir/bindinglib
     
     machine_arch=$(uname -p | /usr/bin/cut -c 1);
     if [[ $machine_arch == i ]]; then
@@ -76,20 +101,15 @@
     if [[ $machine_arch == x ]]; then
          arch="amd64"
          subfolder="server"
-    fi
-    
+    fi    
     echo "- ARCHITECTURE: $arch"
     echo "- SUB_FOLDER: $subfolder"
     export ARCH=$arch
     export SUBFLDR=$subfolder
-    autoreconf -fvim
-    ./configure --prefix=${build_root} --libdir=${build_root}/lib
-    make clean install
-    if [ $? -ne 0 ]; then 
-        echo " "
-        echo "BindingLib Installation failed, please check errors above!";
-        exit 1;
-    fi
+
+    cd $working_dir/bindinglib
+    install ${build_root} "Binding Library"
+    cd $working_dir
   fi
   
   ######################################################
@@ -98,31 +118,19 @@
   echo " "
   echo "Installing GS Builder Library..."
   echo " "
-  cd $working_dir/gsbuilder
-  autoreconf -fvim
-  ./configure --prefix=${build_root} --libdir=${build_root}/lib
-  make clean install
-  if [ $? -ne 0 ]; then 
-      echo " "
-      echo "GSBuilder Installation failed, please check errors above!";
-      exit 1;
-  fi
-  
+  cd ${working_dir}/gsbuilder
+  install ${build_root} "GS Builder"
+  cd ${working_dir}
+
   ######################################################
   # GSStubGen
   ######################################################
   echo " "
   echo "Installing GSStubGen..."
   echo " "
-  cd $working_dir/gsstubgen
-  autoreconf -fvim
-  ./configure --prefix=${build_root} --libdir=${build_root}/lib
-  make clean install
-  if [ $? -ne 0 ]; then 
-      echo " "
-      echo "GSStubGen Installation failed, please check errors above!";
-      exit 1;
-  fi
+  cd ${working_dir}/gsstubgen
+  install ${build_root} "GS Stub Gen"
+  cd ${working_dir}
   
   ######################################################
   # Log end message

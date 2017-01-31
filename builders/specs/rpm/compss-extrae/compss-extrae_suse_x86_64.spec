@@ -1,14 +1,14 @@
 %define name	 	compss-extrae 
-%define version 	2.0.rc1612
+%define version		2.0.rc1612
 %define release		1
 
-Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, gcc-fortran
+Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-fortran
 Suggests: papi, papi-devel
 Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
@@ -29,26 +29,6 @@ The BSC Extrae trace extraction tool.
 echo "* Building Extrae..."
 echo " "
 
-echo "   - Create deployment folders"
-mkdir -p COMPSs/Dependencies/extrae
-targetFullPath=$(pwd)/COMPSs/Dependencies/extrae
-
-echo "   - Configure, compile and install"
-cd extrae/
-./install ${targetFullPath}
-cd ..
-
-echo "   - Copy deployment files"
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
-
-echo "   - Erase sources"
-ls . | grep -v COMPSs | xargs rm -r
-
 echo "Extrae built"
 echo " "
 
@@ -56,9 +36,43 @@ echo " "
 %install
 echo "* Installing Extrae..."
 
+# Find JAVA_HOME
+if [ -z ${JAVA_HOME} ]; then
+  echo " - Finding JAVA_HOME installation"
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    if [ -z $libjvm ]; then
+      echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+      exit 1
+    fi
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+else
+  echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+    exit 1
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+fi
+
+echo "Using JAVA_HOME=${JAVA_HOME}"
+echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
+export JAVA_HOME=${JAVA_HOME}
+export JAVA_LIB_DIR=${JAVA_LIB_DIR}
+
+# Install
 echo " - Creating COMPSs Extrae structure..."
-mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Dependencies
-cp -r COMPSs/Dependencies/extrae $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/
+mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
+
+echo "   - Configure, compile and install"
+cd extrae
+./install $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae false
+cd ..
+
 echo " - COMPSs Extrae structure created"
 echo " "
 
@@ -73,11 +87,11 @@ echo " "
 
 #------------------------------------------------------------------------------------
 %post 
-echo "* Installing Extrae..."
+echo "* Installing COMPSs Extrae..."
 echo " "
 
 echo "Congratulations!"
-echo "Extrae Successfully installed!"
+echo "COMPSs Extrae Successfully installed!"
 echo " "
 
 
@@ -87,7 +101,7 @@ echo " "
 #------------------------------------------------------------------------------------
 %postun 
 rm -rf $RPM_BUILD_ROOT/opt/COMPSs/Dependencies/extrae
-echo "Extrae Successfully uninstalled!"
+echo "COMPSs Extrae Successfully uninstalled!"
 echo " "
 
 #------------------------------------------------------------------------------------

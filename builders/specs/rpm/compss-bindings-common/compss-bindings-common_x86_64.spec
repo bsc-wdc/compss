@@ -1,5 +1,5 @@
 %define name	 	compss-bindings-common 
-%define version 	2.0.rc1612
+%define version		2.0.rc1612
 %define release		1
 
 Requires: compss-engine, libtool, automake, make, gcc-c++
@@ -7,7 +7,7 @@ Summary: The C libraries shared by BSC COMP Superscalar Bindings
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
@@ -25,28 +25,8 @@ The C libraries shared by BSC COMP Superscalar Bindings.
 
 #------------------------------------------------------------------------------------
 %build
-echo "* Building COMP Superscalar Bindings-common..."
+echo "* Building COMP Superscalar Bindigs-common..."
 echo " "
-
-echo "   - Create deployment folders"
-mkdir -p COMPSs/Bindings/bindings-common
-targetFullPath=$(pwd)/COMPSs/Bindings/bindings-common
-
-echo "   - Configure, compile and install"
-cd bindings-common
-./install_common ${targetFullPath}
-cd ..
-
-echo "   - Copy deployment files"
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
-
-echo "   - Erase sources"
-ls . | grep -v COMPSs | xargs rm -r
 
 echo "COMP Superscalar Bindings-common built"
 echo " "
@@ -55,9 +35,43 @@ echo " "
 %install
 echo "* Installing COMPSs Bindings-common..."
 
+# Find JAVA_HOME
+if [ -z ${JAVA_HOME} ]; then
+  echo " - Finding JAVA_HOME installation"
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    if [ -z $libjvm ]; then
+      echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+      exit 1
+    fi
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+else
+  echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+    exit 1
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+fi
+
+echo "Using JAVA_HOME=${JAVA_HOME}"
+echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
+export JAVA_HOME=${JAVA_HOME}
+export JAVA_LIB_DIR=${JAVA_LIB_DIR}
+
+# Install
 echo " - Creating COMPSs Bindings-common structure..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
-cp -r COMPSs/Bindings/bindings-common $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
+
+echo "   - Configure, compile and install"
+cd bindings-common
+./install_common $RPM_BUILD_ROOT/opt/COMPSs/Bindings/bindings-common
+cd ..
+
 echo " - COMPSs Bindings-common structure created"
 echo " "
 

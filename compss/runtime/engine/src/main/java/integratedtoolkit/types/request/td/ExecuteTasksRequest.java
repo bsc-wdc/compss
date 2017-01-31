@@ -50,15 +50,17 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
 
     @Override
     public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
-        int coreID = task.getTaskDescription().getId();
+        int coreId = task.getTaskDescription().getId();
         if (debug) {
-            logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreID + ")");
+            logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreId + ")");
         }
 
         task.setStatus(TaskState.TO_EXECUTE);
         int numNodes = task.getTaskDescription().getNumNodes();
+        boolean isReplicated = task.getTaskDescription().isReplicated();
+        boolean isDistributed = task.getTaskDescription().isDistributed();
 
-        if (task.getTaskDescription().isReplicated()) {
+        if (isReplicated) {
             // Method annotation forces to replicate task to all nodes
             if (debug) {
                 logger.debug("Replicating task " + task.getId());
@@ -66,18 +68,15 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
 
             Collection<ResourceScheduler<P, T, I>> resources = ts.getWorkers();
             task.setExecutionCount(resources.size() * numNodes);
-
             for (ResourceScheduler<P, T, I> rs : resources) {
-                submitTask(ts, rs);
+                submitTask(ts, numNodes, rs);
             }
-        } else if (task.getTaskDescription().isDistributed()) {
+        } else if (isDistributed) {
             // Method annotation forces RoundRobin among nodes
             // WARN: This code is proportional to the number of resources, can lead to some overhead
             if (debug) {
                 logger.debug("Distributing task " + task.getId());
             }
-
-            task.setExecutionCount(numNodes);
 
             ResourceScheduler<P, T, I> selectedResource = null;
             int minNumTasksOfSameType = Integer.MAX_VALUE;
@@ -91,28 +90,29 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
                 }
             }
 
-            submitTask(ts, selectedResource);
+            task.setExecutionCount(numNodes);
+            submitTask(ts, numNodes, selectedResource);
         } else {
             // Normal task
             if (debug) {
                 logger.debug("Submitting task " + task.getId());
             }
+            
             task.setExecutionCount(numNodes);
-            submitTask(ts, null);
+            submitTask(ts, numNodes, null);
         }
 
         if (debug) {
-            logger.debug("Treated Scheduling request for task " + task.getId() + " (core " + coreID + ")");
+            logger.debug("Treated Scheduling request for task " + task.getId() + " (core " + coreId + ")");
         }
     }
 
-    private void submitTask(TaskScheduler<P, T, I> ts, ResourceScheduler<P, T, I> specificResource) {
+    private void submitTask(TaskScheduler<P, T, I> ts, int numNodes, ResourceScheduler<P, T, I> specificResource) {
         // A task can use one or more resources
-        int numNodes = task.getTaskDescription().getNumNodes();
         if (numNodes == 1) {
             submitSingleTask(ts, specificResource);
         } else {
-            submitMultiNodeTask(ts, specificResource);
+            submitMultiNodeTask(ts, numNodes, specificResource);
         }
     }
 
@@ -123,10 +123,9 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
         ts.newAllocatableAction(action);
     }
 
-    private void submitMultiNodeTask(TaskScheduler<P, T, I> ts, ResourceScheduler<P, T, I> specificResource) {
+    private void submitMultiNodeTask(TaskScheduler<P, T, I> ts, int numNodes, ResourceScheduler<P, T, I> specificResource) {
         logger.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask");
         // Can use one or more resources depending on the computingNodes
-        int numNodes = task.getTaskDescription().getNumNodes();
         MultiNodeGroup<P, T, I> group = new MultiNodeGroup<>(numNodes);
         for (int i = 0; i < numNodes; ++i) {
             MultiNodeExecutionAction<P, T, I> action = new MultiNodeExecutionAction<>(ts.generateSchedulingInformation(),

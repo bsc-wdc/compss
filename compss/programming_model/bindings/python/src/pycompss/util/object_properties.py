@@ -54,7 +54,7 @@ def is_modified_by_iteration(obj):
     @param obj: Object to be analysed
     @return: Boolean -> True if obj is modified by iteration, False otherwise
     """
-    return not isinstance(obj, file) and not isinstance(obj, types.GeneratorType)
+    return isinstance(obj, file) or isinstance(obj, types.GeneratorType)
 
 def object_belongs_to_module(obj, module_name):
     """

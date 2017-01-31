@@ -42,7 +42,7 @@ import integratedtoolkit.util.ErrorManager;
 
 
 /**
- * Class to analyse the data dependencies between tasks
+ * Class to analyze the data dependencies between tasks
  * 
  */
 public class TaskAnalyser {
@@ -72,7 +72,6 @@ public class TaskAnalyser {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TA_COMP);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
     private static final String TASK_FAILED = "Task failed: ";
-    private static final String TASK_NOT_RELEASED = "Scheduler has not released task: ";
 
     // Graph drawing
     private static final boolean drawGraph = GraphGenerator.isEnabled();
@@ -329,59 +328,73 @@ public class TaskAnalyser {
      * @param task
      */
     public void endTask(Task task) {
-        LOGGER.info("Notification received for task " + task.getId() + " with end status " + task.getStatus());
+        int taskId = task.getId();
+        boolean isFree = task.isFree();
+        TaskState taskState = task.getStatus();
+
+        LOGGER.info("Notification received for task " + taskId + " with end status " + taskState);
 
         // Check status
-        if (task.getStatus() == TaskState.FAILED) {
+        if (!isFree) {
+            LOGGER.debug("Task " + taskId + " is not registered as free. Waiting for other executions to end");
+            return;
+        }
+        if (taskState == TaskState.FAILED) {
             ErrorManager.error(TASK_FAILED + task);
+            return;
         }
 
-        //if (!task.isFree()) {
-            // Free dependencies
-            LOGGER.debug("Ending task " + task.getId());
-            Long appId = task.getAppId();
-            Integer taskCount = appIdToTaskCount.get(appId) - 1;
-            appIdToTaskCount.put(appId, taskCount);
-            if (taskCount == 0) {
-                Semaphore sem = appIdToSemaphore.remove(appId);
-                if (sem != null) { // App has notified that no more tasks are coming
-                    appIdToTaskCount.remove(appId);
-                    sem.release();
-                }
-            }
-
-            // Check if task is being waited
-            List<Semaphore> sems = waitedTasks.remove(task);
-            if (sems != null) {
-                for (Semaphore sem : sems) {
-                    sem.release();
-                }
-            }
-
-            for (Parameter param : task.getTaskDescription().getParameters()) {
-                DataType type = param.getType();
-                if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
-                    DIP.dataHasBeenAccessed(dAccId);
-                }
-            }
-
-            // Add the task to the set of finished tasks
-            // finishedTasks.add(task);
-            // Check if the finished task was the last writer of a file, but only if task generation has finished
-            if (appIdToSemaphore.get(appId) != null) {
-                checkResultFileTransfer(task);
-            }
-
-            task.releaseDataDependents();
-        //}
+        /*
+         * Treat end of task
+         */ 
+        LOGGER.debug("Ending task " + taskId);
         
+        // Free dependencies
+        Long appId = task.getAppId();
+        Integer taskCount = appIdToTaskCount.get(appId) - 1;
+        appIdToTaskCount.put(appId, taskCount);
+        if (taskCount == 0) {
+            Semaphore sem = appIdToSemaphore.remove(appId);
+            if (sem != null) {
+                // App has notified that no more tasks are coming
+                appIdToTaskCount.remove(appId);
+                sem.release();
+            }
+        }
+
+        // Check if task is being waited
+        List<Semaphore> sems = waitedTasks.remove(task);
+        if (sems != null) {
+            for (Semaphore sem : sems) {
+                sem.release();
+            }
+        }
+
+        for (Parameter param : task.getTaskDescription().getParameters()) {
+            DataType type = param.getType();
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
+                DependencyParameter dPar = (DependencyParameter) param;
+                DataAccessId dAccId = dPar.getDataAccessId();
+                LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());
+                DIP.dataHasBeenAccessed(dAccId);
+            }
+        }
+
+        // Check if the finished task was the last writer of a file, but only if task generation has finished
+        if (appIdToSemaphore.get(appId) != null) {
+            checkResultFileTransfer(task);
+        }
+
+        // Release data dependent tasks
+        task.releaseDataDependents();
     }
 
-    // Private method to check if a finished task is the last writer of its file parameters and eventually order the
-    // necessary transfers
+    /**
+     * Checks if a finished task is the last writer of its file parameters and, eventually, order the necessary
+     * transfers
+     * 
+     * @param t
+     */
     private void checkResultFileTransfer(Task t) {
         LinkedList<DataInstanceId> fileIds = new LinkedList<>();
         for (Parameter p : t.getTaskDescription().getParameters()) {

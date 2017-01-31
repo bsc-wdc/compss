@@ -1,5 +1,5 @@
 %define name	 	compss-extrae 
-%define version 	2.0.rc1612
+%define version		2.0.rc1612
 %define release		1
 
 Requires: compss-engine, libxml2 >= 2.5.0, libxml2-devel >= 2.5.0, libtool, automake, make, gcc-c++, gcc-gfortran
@@ -7,7 +7,7 @@ Summary: The BSC Extrae trace extraction tool
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
@@ -36,18 +36,32 @@ echo " "
 echo "* Installing Extrae..."
 
 # Find JAVA_HOME
-openjdk=$(rpm -qa | grep openjdk-1.8.0)
-libjvm=$(rpm -ql $openjdk | grep libjvm.so | head -n 1)
-export JAVA_LIB_DIR=$(dirname $libjvm)
-if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then
-  export JAVA_HOME="${libjvm/\/jre\/lib\/amd64\/server\/libjvm.so/}"
-elif test "${libjvm#*/jre/lib/i386/client/libjvm.so}" != "$libjvm"; then
-  export JAVA_HOME="${libjvm/\/jre\/lib\/i386\/client\/libjvm.so/}"
-elif [ -z $JAVA_HOME ]; then
-  echo "Please define \$JAVA_HOME"
-  exit 1
+if [ -z ${JAVA_HOME} ]; then
+  echo " - Finding JAVA_HOME installation"
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    if [ -z $libjvm ]; then
+      echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+      exit 1
+    fi
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+else
+  echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+    exit 1
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
 fi
-echo "Using JAVA_HOME=$JAVA_HOME"
+
+echo "Using JAVA_HOME=${JAVA_HOME}"
+echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
+export JAVA_HOME=${JAVA_HOME}
+export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Creating COMPSs Extrae structure..."

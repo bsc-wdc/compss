@@ -1,5 +1,5 @@
 %define name            compss-c-binding                                                                                                                                                
-%define version         2.0.rc1612
+%define version		2.0.rc1612
 %define release         1
 
 Requires: compss-bindings-common, libxml2-devel, boost-devel, tcsh
@@ -7,7 +7,7 @@ Summary: The BSC COMP Superscalar C-Binding
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
@@ -69,18 +69,32 @@ echo "* Installing COMPSs C-Binding..."
 echo " "
 
 # Find JAVA_HOME
-echo " - Finding JAVA_HOME installation"
-libjvm=$(find /etc/alternatives/java_sdk_1.8.0/ -name libjvm.so | head -n 1)
-export JAVA_LIB_DIR=$(dirname $libjvm)
-if test "${libjvm#*/jre/lib/amd64/server/libjvm.so}" != "$libjvm"; then
-  export JAVA_HOME="${libjvm/\/jre\/lib\/amd64\/server\/libjvm.so/}"
-elif test "${libjvm#*/jre/lib/i386/client/libjvm.so}" != "$libjvm"; then
-  export JAVA_HOME="${libjvm/\/jre\/lib\/i386\/client\/libjvm.so/}"
-elif [ -z $JAVA_HOME ]; then
-  echo "Please define \$JAVA_HOME"
-  exit 1
+if [ -z ${JAVA_HOME} ]; then
+  echo " - Finding JAVA_HOME installation"
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    if [ -z $libjvm ]; then
+      echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+      exit 1
+    fi
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+else
+  echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+    exit 1
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
 fi
-echo "Using JAVA_HOME=$JAVA_HOME"
+
+echo "Using JAVA_HOME=${JAVA_HOME}"
+echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
+export JAVA_HOME=${JAVA_HOME}
+export JAVA_LIB_DIR=${JAVA_LIB_DIR}
 
 # Install
 echo " - Configure, compile and install"

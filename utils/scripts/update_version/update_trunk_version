@@ -87,7 +87,7 @@ usage() {
   specFiles=$(find . -name *.spec)
   for spec in $specFiles; do
     echo "    $spec"
-    sed -i 's/'${previousVersion}'/'${newVersion}'/g' $spec
+    sed -i 's/\%define version\t\t'${previousVersion}'/\%define version\t\t'${newVersion}'/g' $spec
   done
   cd ${base_trunk_dir}
 

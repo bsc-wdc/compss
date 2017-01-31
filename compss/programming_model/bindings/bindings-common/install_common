@@ -1,11 +1,38 @@
 #!/bin/bash -e
 
+  JAVA_HOME_ERROR="Error: Cannot find Java JRE installation. Please set JAVA_HOME."
+  JAVA_JRE_ERROR="Error: Can't find JVM libraries in JAVA_HOME. Please check your Java JRE Installation."
+  ERROR_AUTORECONF="Error: Some error occurred while executing autoreconf"
+  ERROR_CONFIGURE="Error: Some error occurred while executing configure"
+  ERROR_INSTALL="Error: Some error occurred while executing install"
+
   #######################################
   # HELPER FUNCTIONS
   #######################################
   clean_env() {
     ./clean.sh
   }
+
+  install() {
+    local installationDir=$1
+
+    autoreconf -fvi # force verbose install
+    if [ $? -ne 0 ]; then
+      echo ${ERROR_AUTORECONF}
+      exit 1
+    fi
+    ./configure --prefix=${installationDir} --libdir=${installationDir}/lib
+    if [ $? -ne 0 ]; then
+      echo ${ERROR_CONFIGURE}
+      exit 1
+    fi
+    make clean install
+    if [ $? -ne 0 ]; then
+      echo ${ERROR_INSTALL}
+      exit 1
+    fi
+  }
+
 
   #######################################
   # MAIN
@@ -19,38 +46,32 @@
 
   # Check JAVA_HOME
   if [ -z "${JAVA_HOME}" ]; then
-    echo "Please define \$JAVA_HOME"
+    echo ${JAVA_HOME_ERROR}
     exit 1
   fi
 
-  # Look for the JVM Library                                                                                                                                                            
+  # Look for the JVM Library
   libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
   if [ -z "$libjava" ]; then
-    echo "Cannot find JVM Library"
-    exit 1
+    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    if [ -z "$libjava" ]; then
+      echo ${JAVA_JRE_ERROR}
+      exit 1
+    fi
   fi
   export JAVA_LIB_DIR=$(dirname $libjava)
 
   # Install and deploy on scriptDir (for C binding)
   echo "Install on scriptDir = $scriptDir for Bindings compilation"
-  autoreconf --force --install
-  ./configure --prefix=${scriptDir} --libdir=${scriptDir}/lib
-  make clean install
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
+  install ${scriptDir}
 
   # Install and deploy on target
   if [ $# -eq 1 ]; then
     echo "Install on target folder"
     targetDir=$1
-    autoreconf --force --install
-    ./configure --prefix=${targetDir} --libdir=${targetDir}/lib
-    make clean install
-    if [ $? -ne 0 ]; then
-      exit 1
-    fi
+    install ${targetDir}
   fi
 
   # All ok. Exit
   exit 0
+

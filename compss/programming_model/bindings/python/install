@@ -3,16 +3,20 @@
   targetDir=$1
   sourcesDir=$(pwd)
 
-  #Install
+  # Install
+  PYCOMPSS_HOME=${targetDir}
   echo "Installing in $PYCOMPSS_HOME"
-  python ${sourcesDir}/setup.py install --install-lib=${targetDir}
+  python ${sourcesDir}/setup.py install --install-lib=${PYCOMPSS_HOME}
   exitCode=$?
 
-  #Clean
+  # Clean
   rm -rf ${sourcesDir}/build
 
-  #Exit
+  # Exit
   if [ $exitCode -ne 0 ]; then
-	echo "Error in Python binding package";
-	exit 1;
+    echo "Error in Python binding package"
+    exit 1
+  else
+    exit 0
   fi
+

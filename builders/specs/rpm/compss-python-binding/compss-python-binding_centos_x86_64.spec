@@ -1,13 +1,13 @@
 %define name	 	compss-python-binding 
-%define version 	2.0.rc1612
+%define version		2.0.rc1612
 %define release		1
 
-Requires: compss-bindings-common, python
-Summary: The BSC COMP Superscalar Python Binding
+Requires: compss-bindings-common, python-devel
+Summary: The BSC COMP Superscalar Python-Binding
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: Apache 2.0.rc1612
+License: Apache 2.0
 Group: Development/Libraries
 Source: %{name}-%{version}.tar.gz
 Distribution: Linux
@@ -18,7 +18,7 @@ Prefix: /opt
 BuildArch: x86_64
 
 %description
-The BSC COMP Superscalar Python Binding.
+The BSC COMP Superscalar Python-Binding.
 
 %prep
 %setup -q
@@ -28,28 +28,6 @@ The BSC COMP Superscalar Python Binding.
 echo "* Building COMP Superscalar Python-Binding..."
 echo " "
 
-echo "   - Create deployment folders"
-mkdir -p COMPSs/Bindings/python
-targetFullPath=$(pwd)/COMPSs/Bindings/python
-
-echo "   - Configure, compile and install"
-cd bindings-common/
-./install_common
-cd ../python/
-./install $targetFullPath
-cd ..
-
-echo "   - Copy deployment files"
-#Doc
-cp changelog COMPSs/
-cp LICENSE COMPSs/
-cp NOTICE COMPSs/
-cp README COMPSs/
-cp RELEASE_NOTES COMPSs/
-
-echo "   - Erase sources"
-ls . | grep -v COMPSs | xargs rm -r
-
 echo "COMP Superscalar Python-Binding built"
 echo " "
 
@@ -57,19 +35,55 @@ echo " "
 %install
 echo "* Installing COMPSs Python-Binding..."
 
+# Find JAVA_HOME
+if [ -z ${JAVA_HOME} ]; then
+  echo " - Finding JAVA_HOME installation"
+  libjvm=$(rpm -ql java-1_8_0-openjdk-headless | grep libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    libjvm=$(rpm -ql java-1.8.0-openjdk-headless | grep libjvm.so | head -n 1)
+    if [ -z $libjvm ]; then
+      echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+      exit 1
+    fi
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+  JAVA_HOME=${JAVA_LIB_DIR}/../../../
+else
+  echo " - Using defined JAVA_HOME installation: ${JAVA_HOME}"
+  libjvm=$(find ${JAVA_HOME} -name libjvm.so | head -n 1)
+  if [ -z $libjvm ]; then
+    echo "ERROR: Invalid JAVA_HOME installation. No libjvm.so found"
+    exit 1
+  fi
+  JAVA_LIB_DIR=$(dirname $libjvm)
+fi
+
+echo "Using JAVA_HOME=${JAVA_HOME}"
+echo "Using JAVA_LIB_DIR=${JAVA_LIB_DIR}"
+export JAVA_HOME=${JAVA_HOME}
+export JAVA_LIB_DIR=${JAVA_LIB_DIR}
+
+# Install
 echo " - Creating COMPSs Python-Binding structure..."
 mkdir -p $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
-cp -r COMPSs/Bindings/python $RPM_BUILD_ROOT/opt/COMPSs/Bindings/
-echo " - COMPSs Python-Binding structure created"
+
+echo "   - Configure, compile and install"
+cd bindings-common/
+./install_common
+cd ../python
+./install $RPM_BUILD_ROOT/opt/COMPSs/Bindings/python
+cd ..
+
+echo " - COMPSs Runtime Python-Binding structure created"
 echo " "
 
 echo " - Setting COMPSs Python-Binding permissions..."
 chmod 755 -R $RPM_BUILD_ROOT/opt/COMPSs/Bindings/python
-echo " - COMPSs Python-Binding permissions set"
+echo " - COMPSs Runtime Python-Binding permissions set"
 echo " "
 
 echo "Congratulations!"
-echo "COMPSs Python-Bindings Successfully installed!"
+echo "COMPSs Python-Binding Successfully installed!"
 echo " "
 
 #------------------------------------------------------------------------------------

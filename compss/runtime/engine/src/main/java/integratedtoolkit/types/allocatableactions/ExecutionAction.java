@@ -385,10 +385,10 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
      */
     @Override
     protected void doCompleted() {
-        // Profile the resource and decrese the execution counter
+        // Profile the resource 
         selectedResource.profiledExecution(selectedImpl, profile);
         
-        // Set the task as finished and notify the producer
+        // Decrease the execution counter and set the task as finished and notify the producer
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);

@@ -2,12 +2,8 @@ package integratedtoolkit.types.allocatableactions;
 
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.components.impl.TaskProducer;
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
@@ -21,7 +17,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 
 /**
- * Representation of a Multi Node execution action
+ * Representation of a multi-node execution action
  * 
  * @param <P>
  * @param <T>
@@ -30,11 +26,8 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends ExecutionAction<P, T, I> {
 
-    // LOGGER
-    private static final Logger JOB_LOGGER = LogManager.getLogger(Loggers.JM_COMP);
-
     private final MultiNodeGroup<P, T, I> group;
-    private int multiNodeId;
+    private int multiNodeId = MultiNodeGroup.UNASSIGNED_ID;
 
 
     /**
@@ -91,16 +84,18 @@ public class MultiNodeExecutionAction<P extends Profile, T extends WorkerResourc
      */
     @Override
     protected void doAction() {
-        JOB_LOGGER.info("Registering action for task " + task.getId());
+        LOGGER.info("Registering action for task " + task.getId());
 
         this.multiNodeId = group.registerProcess(this);
         executionErrors = 0;
 
         if (this.multiNodeId == MultiNodeGroup.MASTER_GROUP_ID) {
             // The action is assigned as master, launch as a normal execution
+            LOGGER.info("Action registered as master for task " + task.getId() + " with groupId " + this.multiNodeId);
             super.doAction();
         } else {
             // The action is assigned as slave, it only waits for task execution
+            LOGGER.info("Action registered as slave for task " + task.getId() + " with groupId " + this.multiNodeId);
         }
     }
 

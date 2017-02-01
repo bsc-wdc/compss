@@ -1,7 +1,5 @@
 #!/bin/bash
 
-exit 1
-
   # Obtain parameters
   COMPSs_exec=$1
   comm=$2

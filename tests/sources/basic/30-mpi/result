@@ -32,7 +32,7 @@
    
   dotValue=$(cat ${output_file} | grep "TotalSum" | tr ":" "\t" | awk {' print $2 '})
   
-  singleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task1" | tail -n 1 | awk {' print $NF '})
+  singleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task1" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
   if [ $singleGOT -ne $dotValue ]; then
     echo "ERROR: Single MPI execution failed" | tee -a ${output_file}
     echo "  GOT: $singleGOT" | tee -a ${output_file}
@@ -40,7 +40,7 @@
     exitValue=1
   fi
   
-  multipleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task2" | tail -n 1 | awk {' print $NF '})
+  multipleGOT=$(cat ${output_file}| grep "\[RESULT\] MPI Task2" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
   if [ $multipleGOT -ne $dotValue ]; then
     echo "ERROR: Multiple MPI execution failed" | tee -a ${output_file}
     echo "  GOT: $multipleGOT" | tee -a ${output_file}
@@ -48,7 +48,7 @@
     exitValue=1
   fi
   
-  concurrent1GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task1" | tail -n 1 | awk {' print $NF '})
+  concurrent1GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task1" | grep "MULTIPLICATION_RESULT" | awk {' print $NF '})
   if [ $concurrent1GOT -ne $dotValue ]; then
     echo "ERROR: Concurrent1 Multiple MPI execution failed" | tee -a ${output_file}
     echo "  GOT: $concurrent1GOT" | tee -a ${output_file}
@@ -56,7 +56,7 @@
     exitValue=1
   fi
   
-  concurrent2GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task2" | tail -n 1 | awk {' print $NF '})
+  concurrent2GOT=$(cat ${output_file}| grep "\[RESULT\] MPI CONC Task2" | grep "MULTIPLICATION_RESULT"  | awk {' print $NF '})
   if [ $concurrent2GOT -ne $dotValue ]; then
     echo "ERROR: Concurrent2 Multiple MPI execution failed" | tee -a ${output_file}
     echo "  GOT: $concurrent2GOT" | tee -a ${output_file}
@@ -66,11 +66,47 @@
   
   #----------------------------------------------------------------------------------
   # Check that MPI command from multi-node task uses more than one host
-  jobOut=${target_log_folder}/jobs/job3_NEW.out
+  jobOut=${target_log_folder}/jobs/job2_NEW.out
   numNodesExpected=2
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | awk {' print $7 '} | tr "," "\n" | wc -l)
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
   if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
     echo "ERROR: Incorrect number of MPI Nodes for multi-node task." | tee -a ${output_file}
+    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+    exitValue=1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Check that MPI command from multi-node task uses two different hosts
+  jobOut=${target_log_folder}/jobs/job2_NEW.out
+  numNodesExpected=2
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $7 '} | tr "," "\n" | wc -l)
+  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
+    echo "ERROR: Multi-node task not using different hosts" | tee -a ${output_file}
+    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+    exitValue=1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Check that MPI command from multi-node concurrent task 1 uses more than one host
+  jobOut=${target_log_folder}/jobs/job3_NEW.out
+  numNodesExpected=2
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
+  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 1." | tee -a ${output_file}
+    echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
+    echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
+    exitValue=1
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Check that MPI command from multi-node concurrent task 2 uses more than one host
+  jobOut=${target_log_folder}/jobs/job3_NEW.out
+  numNodesExpected=2
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
+  if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
+    echo "ERROR: Incorrect number of MPI Nodes for multi-node concurrent task 2." | tee -a ${output_file}
     echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}
     echo "  EXPECTED: ${numNodesExpected}" | tee -a ${output_file}
     exitValue=1

@@ -91,9 +91,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
 
         // Initialize structures
         scheduler = constructScheduler();
-        if (scheduler != null) {
-            scheduler.setOrchestrator(this);
+        if (scheduler == null) {
+            ErrorManager.fatal(ERR_LOAD_SCHEDULER);
         }
+        scheduler.setOrchestrator(this);
 
         keepGoing = true;
 

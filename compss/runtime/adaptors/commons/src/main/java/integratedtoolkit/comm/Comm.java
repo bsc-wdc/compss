@@ -27,6 +27,7 @@ import integratedtoolkit.util.Tracer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -232,7 +233,7 @@ public class Comm {
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             location = DataLocation.createLocation(appHost, uri);
-        } catch (Exception e) {
+        } catch (IOException e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
 
@@ -265,7 +266,7 @@ public class Comm {
         try {
             SimpleURI uri = new SimpleURI(targetPath);
             location = DataLocation.createLocation(appHost, uri);
-        } catch (Exception e) {
+        } catch (IOException e) {
             ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
         }
 

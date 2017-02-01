@@ -671,6 +671,9 @@ public class NIOWorker extends NIOAgent {
         while (retries < MAX_RETRIES) {
             try {
                 c = tm.startConnection(masterNode);
+                if (c == null) {
+                    throw new Exception("Nullable connection");
+                }
                 break;
             } catch (Exception e) {
                 if (retries >= MAX_RETRIES) {

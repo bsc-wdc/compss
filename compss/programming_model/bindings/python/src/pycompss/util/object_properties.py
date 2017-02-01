@@ -40,21 +40,15 @@ def is_module_available(module_name):
     except:
         return False
 
-def is_iterable(obj):
+def is_basic_iterable(obj):
     """
-    Checks if an object is iterable.
-    @param obj: Object to be checked
-    @return: Boolean -> True if obj is iterable, False otherwise
-    """
-    return isinstance(obj, collections.Iterable)
-
-def is_modified_by_iteration(obj):
-    """
-    Checks if an object is modified by iteration.
+    Checks if an object is a basic iterable.
+    By basic iterable we want to mean objects that are iterable and from
+    a basic type.
     @param obj: Object to be analysed
-    @return: Boolean -> True if obj is modified by iteration, False otherwise
+    @return: Boolean -> True if obj is a basic iterable (see list below), False otherwise
     """
-    return isinstance(obj, file) or isinstance(obj, types.GeneratorType)
+    return isinstance(obj, (list, tuple, bytearray, buffer, xrange, set, frozenset, dict))
 
 def object_belongs_to_module(obj, module_name):
     """
@@ -70,6 +64,14 @@ def get_object_hierarchy(obj):
     """
     Generates a set of identifiers of objects that are obj or are under the
     object hierarchy determined by obj.
+
+    W A R N I N G: This function can give incomplete object hierarchies if there is
+    some object which is iterable and it is not included in our list. Since in python
+    __iter__ can modify objects and there is no way to know when this will happen without
+    explictly copying or iterating the object, then only a few safe types will be iterated.
+    Anyway, this will cover almost all the common Python codes one can find, even in
+    scientific environments.
+
     @param obj: Object to be analysed
     @yield: An integer with the id of an object from the object hierarchy of obj
     """
@@ -78,19 +80,12 @@ def get_object_hierarchy(obj):
     while object_stack:
         current_object = object_stack.pop()
         current_object_id = id(current_object)
-
         if not current_object_id in vis:
             vis.add(current_object_id)
             yield current_object
-            # NUMPY sub-objects (e.g: matrix elements) have undefined behaviour when dealing with
-            # their ids, so we cannot support them
-            # That means that a PyCOMPSs program that passes array slices as task arguments is considered
-            # a program with an undefined behaviour
-            if is_module_available('numpy') and object_belongs_to_module(current_object, 'numpy'):
-                continue
             if hasattr(current_object, '__dict__'):
                 map(object_stack.append, current_object.__dict__.values())
-            elif is_iterable(current_object) and not is_modified_by_iteration(current_object):
+            elif is_basic_iterable(current_object):
                 map(object_stack.append, iter(current_object))
 
 def has_subobjects_of_module(obj, module_name):

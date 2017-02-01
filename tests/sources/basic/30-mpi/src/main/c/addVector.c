@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     //-------------------------------------------
     // PROCESS 0 PRINTS THE RESULT
     if (myid == 0) {
-        printf("%d\n", result);
+        printf("MULTIPLICATION_RESULT %d\n", result);
     }
 
     //-------------------------------------------

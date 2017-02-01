@@ -463,6 +463,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * @return
      */
     public final LinkedList<AllocatableAction<P, T, I>> completed() {
+        LOGGER.info(this + " execution completed");
         // Mark as finished
         state = State.FINISHED;
 

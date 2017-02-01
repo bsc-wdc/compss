@@ -124,7 +124,7 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
     }
 
     private void submitMultiNodeTask(TaskScheduler<P, T, I> ts, int numNodes, ResourceScheduler<P, T, I> specificResource) {
-        logger.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask");
+        logger.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask with " + numNodes  + " nodes");
         // Can use one or more resources depending on the computingNodes
         MultiNodeGroup<P, T, I> group = new MultiNodeGroup<>(numNodes);
         for (int i = 0; i < numNodes; ++i) {

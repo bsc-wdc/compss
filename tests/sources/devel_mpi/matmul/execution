@@ -38,7 +38,7 @@
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \
-     -g \
+     -tg \
      --summary \
      --lang=java \
      --comm=$comm \

@@ -48,6 +48,7 @@
   echo " "
   echo "* Generating RPM package..."
   cd tmp/
+  export QA_SKIP_BUILD_ROOT=1
   rpmbuild --define "_topdir $PWD" -bb --clean SPECS/${package_name}_${mode}.spec
   if [ $? -ne 0 ]; then
 	echo "Error creating rpm";

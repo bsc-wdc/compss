@@ -108,7 +108,7 @@ def has_subobjects_of_module(obj, module_name):
     if not is_module_available(module_name):
         return False
     for sub_object in get_object_hierarchy(obj):
-        if object_belongs_to_module(obj, module_name):
+        if object_belongs_to_module(sub_object, module_name):
             return True
     return False
 

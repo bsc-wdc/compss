@@ -81,7 +81,7 @@ def get_object_hierarchy(obj):
 
         if not current_object_id in vis:
             vis.add(current_object_id)
-            yield current_object_id
+            yield current_object
             # NUMPY sub-objects (e.g: matrix elements) have undefined behaviour when dealing with
             # their ids, so we cannot support them
             # That means that a PyCOMPSs program that passes array slices as task arguments is considered

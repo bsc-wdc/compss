@@ -143,7 +143,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         Worker<T, I> w = selectedResource.getResource();
         w.endTask(resourceConsumption);
     }
-    
+
     @Override
     protected void doAction() {
         JOB_LOGGER.info("Ordering transfers to " + selectedResource + " to run task: " + task.getId());
@@ -156,7 +156,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         JobTransfersListener<P, T, I> listener = new JobTransfersListener<>(this);
         transferInputData(listener);
         listener.enable();
-    }    
+    }
 
     private final void transferInputData(JobTransfersListener<P, T, I> listener) {
         TaskDescription taskDescription = task.getTaskDescription();
@@ -205,12 +205,12 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             w.getData(srcName, tgtName, (LogicalData) null, param, listener);
         }
     }
-    
+
     /*
      * ***************************************************************************************************************
      * EXECUTED SUPPORTING THREAD ON JOB_TRANSFERS_LISTENER
      * ***************************************************************************************************************
-     */    
+     */
     /**
      * Code executed after some input transfers have failed
      * 
@@ -229,7 +229,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             this.notifyError();
         }
     }
-   
+
     /**
      * Code executed when all transfers have successed
      * 
@@ -377,7 +377,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             }
         }
     }
-    
+
     /*
      * ***************************************************************************************************************
      * EXECUTION TRIGGERS
@@ -385,15 +385,15 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
      */
     @Override
     protected void doCompleted() {
-        // Profile the resource 
+        // Profile the resource
         selectedResource.profiledExecution(selectedImpl, profile);
-        
+
         // Decrease the execution counter and set the task as finished and notify the producer
         task.decreaseExecutionCount();
         task.setStatus(TaskState.FINISHED);
         producer.notifyTaskEnd(task);
     }
-    
+
     @Override
     protected void doError() throws FailedActionException {
         if (this.executingResources.size() >= SCHEDULING_CHANCES) {
@@ -553,7 +553,10 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
                 || !targetWorker.getResource().canRun(task.getTaskDescription().getId())
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
-            LOGGER.warn("Worker " + targetWorker.getName() + " has not available resources to run " + this);
+
+            String message = "Worker " + (targetWorker == null ? "null" : targetWorker.getName()) + " has not available resources to run "
+                    + this;
+            LOGGER.warn(message);
             throw new UnassignedActionException();
         }
 
@@ -600,7 +603,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
                 || executingResources.contains(targetWorker)) {
-            
+
             LOGGER.warn("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
         }
@@ -612,7 +615,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         this.assignResources(targetWorker);
         targetWorker.scheduleAction(this);
     }
-    
+
     /*
      * ***************************************************************************************************************
      * OTHER

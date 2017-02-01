@@ -36,6 +36,10 @@ public class Classpath {
         } catch (NoSuchMethodException | SecurityException e) {
             // Method is always defined.
         }
+        if (method == null) {
+            throw new FileNotFoundException();
+        }
+        
         method.setAccessible(true);
         scanFolder(sysloader, method, directory, logger);
     }

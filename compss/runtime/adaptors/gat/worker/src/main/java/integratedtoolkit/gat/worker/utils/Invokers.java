@@ -28,6 +28,10 @@ public class Invokers {
         } catch (NoSuchMethodException e) {
             ErrorManager.error("Requested method not found");
         }
+        
+        if (method == null) {
+            ErrorManager.error("Requested method is null");
+        }
 
         // Invoke the requested method
         Object retValue = null;

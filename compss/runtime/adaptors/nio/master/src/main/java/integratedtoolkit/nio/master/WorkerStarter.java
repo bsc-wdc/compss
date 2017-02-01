@@ -7,7 +7,6 @@ import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.commands.CommandCheckWorker;
-import integratedtoolkit.nio.master.configuration.NIOConfiguration;
 import integratedtoolkit.nio.master.handlers.Ender;
 import integratedtoolkit.nio.master.handlers.ProcessOut;
 import integratedtoolkit.util.Tracer;

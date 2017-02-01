@@ -24,6 +24,7 @@ import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
 
 import java.io.File;
+import java.io.IOException;
 
 import static java.lang.Math.abs;
 
@@ -317,9 +318,8 @@ public abstract class NIOAgent {
                         Object o = Serializer.deserialize(t.getArray());
                         receivedValue(t.getDestination(), targetName, o, reqs);
                     }
-                } catch (Exception e) {
-                    System.err.println("Can not replicate received Data");
-                    e.printStackTrace(System.err);
+                } catch (IOException | ClassNotFoundException e) {
+                    logger.warn("Can not replicate received Data", e);
                 }
 
             }

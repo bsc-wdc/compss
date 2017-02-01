@@ -419,7 +419,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             if (actualLocation != null) {
                 logger.debug("Actual Location " + actualLocation.getPath());
             } else {
-                logger.debug("Actual Location is null ");
+                logger.debug("Actual Location is null");
             }
             LogicalData tgtData = c.getTargetData();
             if (tgtData != null) {

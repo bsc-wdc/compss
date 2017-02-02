@@ -50,14 +50,16 @@ def is_basic_iterable(obj):
     """
     return isinstance(obj, (list, tuple, bytearray, buffer, xrange, set, frozenset, dict))
 
+
 def object_belongs_to_module(obj, module_name):
     """
-    Checks if a given object belongs to a given module.
+    Checks if a given object belongs to a given module
+    (or some sub-module).
     @param obj: Object to be analysed
     @param module_name: Name of the module we want to check
     @return: Boolean -> True if obj belongs to the given module, False otherwise
     """
-    return type(obj).__module__ == module_name
+    return any(module_name == x for x in type(obj).__module__.split('.'))
 
 
 def get_object_hierarchy(obj):

@@ -551,20 +551,28 @@ check_args() {
   fi
 
   if [ -z "$lang" ]; then
-    # Try to infer language
-    isPython=$(file $fullAppPath | grep "Python" | cat)
-    isPythonCompiled=$(file $fullAppPath | grep "python" | cat)
-    isC=$(file $fullAppPath | grep "executable" | cat)
-    if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
+    # Try to infer language by extension
+    fileName=$(basename $fullAppPath)
+    extension=${fileName##*.}
+    if [ "$extension" == "py" ] || [ "$extension" == "pyc" ]; then
       echo "[  INFO] Inferred PYTHON language"
       lang=python
-    elif [ -n "$isC" ]; then
-      echo "[  INFO] Inferred C/C++ language"
-      lang=c
     else
-      # Lang cannot be infered or it's the default JAVA
-      echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
-      lang=${DEFAULT_LANGUAGE}
+      # Try to infer language by file command
+      isPython=$(file $fullAppPath | grep "Python" | cat)
+      isPythonCompiled=$(file $fullAppPath | grep "python" | cat)
+      isC=$(file $fullAppPath | grep "executable" | cat)
+      if [ -n "$isPython" ] || [ -n "$isPythonCompiled" ]; then
+        echo "[  INFO] Inferred PYTHON language"
+        lang=python
+      elif [ -n "$isC" ]; then
+        echo "[  INFO] Inferred C/C++ language"
+        lang=c
+      else
+        # Lang cannot be infered or it's the default JAVA
+        echo "[  INFO] Using default language: ${DEFAULT_LANGUAGE}"
+        lang=${DEFAULT_LANGUAGE}
+      fi
     fi
   elif [ "$lang" = "java" ]; then
     lang=java

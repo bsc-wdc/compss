@@ -109,7 +109,6 @@ def main():
         if not is_module_available('dill'):
             print "[ WARNING ]: Dill module is not installed."
             print "             Dill is a pickle extension which is capable to serialize a wider variety of objects."
-            print "             It also offers a *great* speedup on numpy objects."
             print "             PyCOMPSs can work without dill, but it is recommended to have it installed."
             print "             You can install it via pip typing pip install dill, or (probably) with your package manager."
         execfile(app_path, globals())    # MAIN EXECUTION

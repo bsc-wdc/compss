@@ -51,13 +51,6 @@ def get_serializer_priority(obj=[]):
     @param obj: Object to be analysed.
     @return: List -> The serializers sorted by priority in descending order
     """
-    if has_numpy_objects(obj):
-        # dill outperforms both pickle and cPickle when serializing numpy objects
-        return [dill, pickle]
-    # this order will work in almost the 90% of the cases because
-    # we will only serialize things as lambda functions when they are passed as a parameter
-    # of a function
-    # this is also the default retval for this function
     return [pickle, dill]
 
 def get_serializers():
@@ -94,7 +87,7 @@ def serialize_to_handler(obj, handler):
         # general case
         else:
             try:
-                serializer.dump(obj, handler)
+                serializer.dump(obj, handler, protocol=serializer.HIGHEST_PROTOCOL)
                 success = True
             except:
                 pass

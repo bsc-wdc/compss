@@ -20,24 +20,42 @@ PyCOMPSs API - LocalTask
 ===================
     This file contains the localtask decorator, which is intended to be a
     decorator for non-task functions that may receive future objects
-    as parameters (i.e: their inputs are pycompss task outputs)
+    as parameters (i.e: their inputs are pycompss task outputs).
 """
 from pycompss.api.api import compss_wait_on
 from pycompss.runtime.binding import Future
+from pycompss.util.replace import replace
+import ctypes
+import sys
+import gc
 
 def localtask(input_function):
-    def wrapped_function(*args, **kwargs):
+    from pycompss.runtime.binding import task_objects
 
+    def must_sync(obj):
+        return isinstance(obj, Future) or id(obj) in task_objects
+
+    def wrapped_function(*args, **kwargs):
+        gc.collect()
         _args = []
+        _kwargs = {}
         for arg in args:
-            if isinstance(arg, Future):
-                arg = compss_wait_on(arg)
+            if must_sync(arg):
+                old_id = id(arg)
+                new_val = compss_wait_on(arg)
+                replace(arg, new_val)
+                del task_objects[old_id]
             _args.append(arg)
 
         for (key, value) in kwargs.items():
-            if isinstance(value, Future):
-                kwargs[key] = compss_wait_on(value)
+            if must_sync(value):
+                old_id = id(value)
+                new_val = compss_wait_on(value)
+                replace(value, new_val)
+                del task_objects[old_id]
+            _kwargs[key] = value
 
-        return input_function(*_args, **kwargs)
+        return input_function(*_args, **_kwargs)
+
 
     return wrapped_function

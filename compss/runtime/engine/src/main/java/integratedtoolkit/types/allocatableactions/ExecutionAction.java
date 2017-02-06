@@ -509,6 +509,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         int usefulResources = 0;
         for (ResourceScheduler<P, T, I> worker : candidates) {
             if (executingResources.contains(worker)) {
+                if (DEBUG) {
+                    LOGGER.debug("Task already running on worker " + worker.getName());
+                }
                 continue;
             }
             Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);

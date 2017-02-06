@@ -1,6 +1,7 @@
 package integratedtoolkit.scheduler.lifoScheduler;
 
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,7 @@ import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.LIFOScore;
+import integratedtoolkit.scheduler.types.ObjectValue;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
@@ -78,40 +80,46 @@ public class LIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
         LOGGER.info("[LIFOScheduler] Treating dependency free actions");
 
-        LinkedList<AllocatableAction<P, T, I>> executableActions = new LinkedList<>();
+        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
         for (AllocatableAction<P, T, I> action : executionCandidates) {
-            this.dependingActions.removeAction(action);
-
             Score actionScore = generateActionScore(action);
-            /*try {
-                action.schedule(actionScore);
-                tryToLaunch(action);
-                LOGGER.debug("[LIFOScheduler] Action " + action + " scheduled");
-                executableActions.add(action);
-            } catch (UnassignedActionException ex) {
-                LOGGER.debug("[LIFOScheduler] Adding action " + action + " to unassigned list");
-                this.unassignedReadyActions.addAction(action);
-            } catch (BlockedActionException e) {
-                LOGGER.debug("[LIFOScheduler] Adding action " + action + " to the blocked list");
-                blockedCandidates.add(action);
-            }*/
+            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, actionScore);
+            LOGGER.debug("[LIFOScheduler] Releasing " + action);
+            this.dependingActions.removeAction(action);
+            executableActions.add(obj);
+        }
+        
+        LinkedList<AllocatableAction<P, T, I>> currentUnassignedReadyActions = this.unassignedReadyActions.removeAllActions();
+        for (AllocatableAction<P, T, I> action : currentUnassignedReadyActions) {
+            Score actionScore = generateActionScore(action);
+            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, actionScore);
+     
+            this.dependingActions.removeAction(action);
+            executableActions.add(obj);
+        }
+        
+        executionCandidates.clear();
+        
+        while (!executableActions.isEmpty()){
+            ObjectValue<AllocatableAction<P, T, I>> actionObject = executableActions.poll();
+            AllocatableAction<P, T, I> action = actionObject.getObject();
+            Score actionScore = actionObject.getScore();
+            LOGGER.debug("[LIFOScheduler] Treating action " + action);
             try {
                 action.schedule(actionScore);
+                LOGGER.debug("[LIFOScheduler] Action " + action + " scheduled in handleDependencyFreeActions");
                 tryToLaunch(action);
-                LOGGER.debug("[LIFOScheduler] Action " + action + " scheduled");
-                executableActions.add(action);
+                LOGGER.debug("[LIFOScheduler] Action " + action + " successfully launched");
+                //executionCandidates.add(action);
             } catch (UnassignedActionException ex) {
                 LOGGER.debug("[LIFOScheduler] Adding action " + action + " to unassigned list");
                 this.unassignedReadyActions.addAction(action);
             } catch (BlockedActionException e) {
                 LOGGER.debug("[LIFOScheduler] Adding action " + action + " to the blocked list");
                 blockedCandidates.add(action);
-            }
+            }    
         }
 
-        // We leave on executionCandidates the actions that have been scheduled (and can be launched)
-        executionCandidates.clear();
-        executionCandidates.addAll(executableActions);
     }
 
 }

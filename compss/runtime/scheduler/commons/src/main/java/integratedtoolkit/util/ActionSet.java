@@ -81,6 +81,23 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         }
         return runnable;
     }
+    
+    public LinkedList<AllocatableAction<P, T, I>> removeAllActions(){
+        LinkedList<AllocatableAction<P, T, I>> runnable = new LinkedList<>();
+        Iterator<AllocatableAction<P, T, I>> actions = this.noCore.iterator();
+        while (actions.hasNext()) {
+            AllocatableAction<P, T, I> action = actions.next();
+            actions.remove();
+            runnable.add(action);
+        }
+
+        for (int core = 0; core < this.coreIndexed.length; ++core) {
+            runnable.addAll(coreIndexed[core]);
+            this.coreIndexed[core] = new LinkedList<>();
+            this.counts[core] = 0;
+        }
+        return runnable;        
+    }
 
     public int[] getActionCounts() {
         return this.counts;

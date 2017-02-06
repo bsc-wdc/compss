@@ -172,8 +172,12 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     public final void addDataPredecessor(AllocatableAction<P, T, I> predecessor) {
         if (predecessor.isPending()) {
-            dataPredecessors.add(predecessor);
-            predecessor.dataSuccessors.add(this);
+            if (!dataPredecessors.contains(predecessor)){
+                dataPredecessors.add(predecessor);
+            }
+            if (!predecessor.dataSuccessors.contains(this)){
+                predecessor.dataSuccessors.add(this);    
+            }
         }
 
     }

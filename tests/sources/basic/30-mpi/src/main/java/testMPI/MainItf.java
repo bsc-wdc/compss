@@ -12,21 +12,21 @@ public interface MainItf {
 	
 	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "1")
 	@Constraints(computingUnits = "4")
-	public int taskSingleMPI(
+	int taskSingleMPI(
 		@Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
 		@Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
 	);
 	
 	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "2")
     @Constraints(computingUnits = "4")
-    public Integer taskMultipleMPI(
+    Integer taskMultipleMPI(
         @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
         @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
     );
 	
 	@MPI(binary = "${VEC_SUM_MPI_BINARY}", mpiRunner = "mpirun", computingNodes = "2")
 	@Constraints(computingUnits = "2")
-	public Integer taskConcurrentMultipleMPI(
+	Integer taskConcurrentMultipleMPI(
 	    @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] data,
 	    @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String fileOut
 	);

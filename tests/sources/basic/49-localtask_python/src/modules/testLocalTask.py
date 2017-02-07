@@ -147,7 +147,7 @@ class testLocalTask(unittest.TestCase):
             'cactus': 'plant'},
             original_object);
 
-
+    @unittest.skip("Speed test -> ignoring")
     def testHugeObjects(self):
         N = 5000
         A = square(np.eye(N)*np.random.rand(N))

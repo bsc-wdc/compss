@@ -1,3 +1,5 @@
+# SOURCE CODE TAKEN FROM BEN KURTOVIC'S GITHUB REPO replace.py FILE
+# https://gist.github.com/earwig/28a64ffb94d51a608e3d
 import ctypes
 from ctypes import pythonapi as api
 import sys

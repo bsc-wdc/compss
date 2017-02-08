@@ -19,13 +19,13 @@ public @interface SchedulerHints {
      * 
      * @return if the task must be replicated to all active workers
      */
-    boolean isReplicated() default !Constants.REPLICATED_TASK;
+    String isReplicated() default Constants.IS_NOT_REPLICATED_TASK;
 
     /**
      * Returns if the task must be evenly distributed among workers
      * 
      * @return if the task must be evenly distributed among workers
      */
-    boolean isDistributed() default !Constants.DISTRIBUTED_TASK;
+    String isDistributed() default Constants.IS_NOT_DISTRIBUTED_TASK;
 
 }

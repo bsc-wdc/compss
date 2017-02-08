@@ -42,7 +42,7 @@ public @interface OpenCL {
      * 
      * @return if the method has priority or not
      */
-    boolean priority() default !Constants.PRIORITY;
+    String priority() default Constants.IS_NOT_PRIORITARY_TASK;
 
     /**
      * Returns the method specific constraints

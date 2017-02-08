@@ -1,5 +1,6 @@
 package objectTest;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.parameter.Direction;
@@ -62,7 +63,7 @@ public interface ObjectTestItf {
 		int i
 	);
 	
-	@Method(declaringClass = "objectTest.A", isModifier = true)
+	@Method(declaringClass = "objectTest.A", isModifier = Constants.IS_MODIFIER)
 	Integer getAndSetIntField(
 		@Parameter(type = Type.INT, direction = Direction.IN)
 		int i

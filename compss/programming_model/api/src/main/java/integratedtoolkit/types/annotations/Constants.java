@@ -11,36 +11,46 @@ public class Constants {
      * 
      */
     public static final String UNASSIGNED = "[unassigned]";
-
+    
     /**
-     * Priority value
+     * Values for task priority
      * 
      */
-    public static final boolean PRIORITY = true;
+    public static final String IS_PRIORITARY_TASK = "true";
+    
+    public static final String IS_NOT_PRIORITARY_TASK = "false";
+
 
     /**
-     * Target modification boolean
+     * Values for target modification
      * 
      */
-    public static final boolean IS_MODIFIER = true;
+    public static final String IS_MODIFIER = "true";
+    
+    public static final String IS_NOT_MODIFIER = "false";
 
-    /**
-     * Single node value
-     * 
-     */
-    public static final int SINGLE_NODE = 1;
 
     /**
      * Replicated task execution
      * 
      */
-    public static final boolean REPLICATED_TASK = true;
+    public static final String IS_REPLICATED_TASK = "true";
+    
+    public static final String IS_NOT_REPLICATED_TASK = "false";
 
     /**
      * Distributed task execution
      * 
      */
-    public static final boolean DISTRIBUTED_TASK = true;
+    public static final String IS_DISTRIBUTED_TASK = "true";
+    
+    public static final String IS_NOT_DISTRIBUTED_TASK = "false";
+    
+    /**
+     * Single node value
+     * 
+     */
+    public static final int SINGLE_NODE = 1;
 
     /**
      * Processor types

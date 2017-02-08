@@ -1,5 +1,6 @@
 package replicatedTask;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.parameter.Direction;
@@ -17,7 +18,7 @@ public interface MainItf {
     );
 
     @Method(declaringClass = "replicatedTask.MainImpl")
-    @SchedulerHints(isReplicated = true)
+    @SchedulerHints(isReplicated = Constants.IS_REPLICATED_TASK)
     Pair globalTask(
         @Parameter(type = Type.OBJECT, direction = Direction.IN) Pair p,
         @Parameter(type = Type.INT, direction = Direction.IN) int newX

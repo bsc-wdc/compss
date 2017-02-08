@@ -1,5 +1,6 @@
 package distributedTask;
 
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Type;
@@ -18,7 +19,7 @@ public interface MainItf {
     
     @Method(declaringClass = "distributedTask.MainImpl")
     @Constraints(computingUnits = "1")
-    @SchedulerHints(isDistributed = true)
+    @SchedulerHints(isDistributed = Constants.IS_DISTRIBUTED_TASK)
     void distributedTask(
         @Parameter(type = Type.OBJECT, direction = Direction.IN) String msg
     );

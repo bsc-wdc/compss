@@ -66,8 +66,8 @@ public class TaskDescription implements Serializable {
 
         this.priority = isPrioritary;
         this.numNodes = Constants.SINGLE_NODE;
-        this.mustReplicate = !Constants.REPLICATED_TASK;
-        this.mustDistribute = !Constants.DISTRIBUTED_TASK;
+        this.mustReplicate = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
+        this.mustDistribute = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
 
         this.hasTarget = hasTarget;
         this.parameters = parameters;

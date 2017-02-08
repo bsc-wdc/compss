@@ -420,7 +420,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             // Add task summary
             boolean taskSummaryEnabled = System.getProperty(ITConstants.IT_TASK_SUMMARY) != null
                     && !System.getProperty(ITConstants.IT_TASK_SUMMARY).isEmpty()
-                    && Boolean.valueOf(System.getProperty(ITConstants.IT_TASK_SUMMARY));
+                    && Boolean.parseBoolean(System.getProperty(ITConstants.IT_TASK_SUMMARY));
             if (taskSummaryEnabled) {
                 td.getTaskSummary(logger);
             }
@@ -511,8 +511,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public int executeTask(Long appId, String methodClass, String methodName, boolean priority, boolean hasTarget, int parameterCount,
             Object... parameters) {
 
-        return executeTask(appId, methodClass, methodName, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
-                !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
+        return executeTask(appId, methodClass, methodName, priority, Constants.SINGLE_NODE,
+                Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
+                parameterCount, parameters);
     }
 
     /**
@@ -549,8 +550,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public int executeTask(Long appId, String namespace, String service, String port, String operation, boolean priority, boolean hasTarget,
             int parameterCount, Object... parameters) {
 
-        return executeTask(appId, namespace, service, port, operation, priority, Constants.SINGLE_NODE, !Constants.REPLICATED_TASK,
-                !Constants.DISTRIBUTED_TASK, hasTarget, parameterCount, parameters);
+        return executeTask(appId, namespace, service, port, operation, priority, Constants.SINGLE_NODE,
+                Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK), Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK), hasTarget,
+                parameterCount, parameters);
     }
 
     /**
@@ -666,7 +668,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * LoaderAPI INTERFACE IMPLEMENTATION
      * ********************************************************************************************************
      */
-    
+
     /**
      * Returns a copy of the last file version
      */
@@ -787,8 +789,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ********************************************************************************************************
-     * COMMON IN BOTH APIs
+     * ******************************************************************************************************** COMMON
+     * IN BOTH APIs
      * ********************************************************************************************************
      */
 
@@ -855,11 +857,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ********************************************************************************************************
-     * PRIVATE HELPER METHODS
+     * ******************************************************************************************************** PRIVATE
+     * HELPER METHODS
      * ********************************************************************************************************
      */
-    
+
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable

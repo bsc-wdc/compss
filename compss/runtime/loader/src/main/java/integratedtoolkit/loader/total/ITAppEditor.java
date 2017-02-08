@@ -318,16 +318,16 @@ public class ITAppEditor extends ExprEditor {
         executeTask.append(itAppIdVar).append(',');
         
         // Common values
-        boolean isPrioritary = !Constants.PRIORITY;
+        boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         int numNodes = Constants.SINGLE_NODE;
         
         // Scheduler hints values
-        boolean isReplicated = !Constants.REPLICATED_TASK;
-        boolean isDistributed = !Constants.DISTRIBUTED_TASK;
+        boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
+        boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
         if (declaredMethod.isAnnotationPresent(SchedulerHints.class)) {
             SchedulerHints schedAnnot = declaredMethod.getAnnotation(SchedulerHints.class);
-            isReplicated = schedAnnot.isReplicated();
-            isDistributed = schedAnnot.isDistributed();
+            isReplicated = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(schedAnnot.isReplicated()));
+            isDistributed = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(schedAnnot.isDistributed()));
         }
         
         // Specific implementation values
@@ -337,23 +337,23 @@ public class ITAppEditor extends ExprEditor {
             if (declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.task.Method.class)) {
                 integratedtoolkit.types.annotations.task.Method methodAnnot = 
                         declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
-                isPrioritary = methodAnnot.priority();
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(MPI.class)) {
                 MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
-                isPrioritary = mpiAnnot.priority();
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(mpiAnnot.priority()));
                 // Parse computingNodes from environment if needed
                 String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.computingNodes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                         ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
             } else if (declaredMethod.isAnnotationPresent(OmpSs.class)) {
                 OmpSs ompssAnnot = declaredMethod.getAnnotation(OmpSs.class);
-                isPrioritary = ompssAnnot.priority();
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(ompssAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(OpenCL.class)) {
                 OpenCL openCLAnnot = declaredMethod.getAnnotation(OpenCL.class);
-                isPrioritary = openCLAnnot.priority();
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(openCLAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(Binary.class)) {
                 Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
-                isPrioritary = binaryAnnot.priority();
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
             }
             
             executeTask.append("\"").append(className).append("\"").append(',');
@@ -550,7 +550,8 @@ public class ITAppEditor extends ExprEditor {
             if (isMethod) {
                 integratedtoolkit.types.annotations.task.Method methodAnnot = declaredMethod
                         .getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
-                if (methodAnnot.isModifier()) {
+                boolean isModifier = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.isModifier()));
+                if (isModifier) {
                     targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
                 } else {
                     targetObj.append(',').append(DATA_DIRECTION + ".IN");

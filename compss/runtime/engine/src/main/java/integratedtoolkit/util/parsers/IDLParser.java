@@ -175,6 +175,7 @@ public class IDLParser {
             MethodResourceDescription currConstraints, CImplementation implementation) {
 
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
+        StringBuilder implementationSignatureBuffer = new StringBuilder();
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
         // String returnType = splits[0];
@@ -186,6 +187,7 @@ public class IDLParser {
         } else {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
+        implementationSignatureBuffer.append(methodName).append("(");
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -220,22 +222,26 @@ public class IDLParser {
                 type = "STRING_T";
             }
             implementedTaskSignatureBuffer.append(type).append(",");
+            implementationSignatureBuffer.append(type).append(",");
             // String paramName = splits[i];
         }
         implementedTaskSignatureBuffer.deleteCharAt(implementedTaskSignatureBuffer.lastIndexOf(","));
+        implementationSignatureBuffer.deleteCharAt(implementationSignatureBuffer.lastIndexOf(","));
         implementedTaskSignatureBuffer.append(")");
+        implementationSignatureBuffer.append(")");
         if (implementation != null) {
             implementedTaskSignatureBuffer.append(implementation.getClassName());
         } else {
             implementedTaskSignatureBuffer.append(declaringClass);
         }
+        implementationSignatureBuffer.append(declaringClass);
 
         String taskSignature = implementedTaskSignatureBuffer.toString();
+        String implementationSignature = implementationSignatureBuffer.toString();
         // Adds a new Signature-Id if not exists in the TreeMap
         Integer methodId = CoreManager.registerCoreId(taskSignature);
-        // logger.debug("CoreId for task" + taskSignature +" is " +methodId);
+        logger.debug("CoreId for task" + taskSignature +" is " +methodId);
         updatedMethods.add(methodId);
-        MethodImplementation m = new MethodImplementation(declaringClass, methodName, methodId, 0, currConstraints);
         LinkedList<MethodImplementation> impls = readMethodImpls.get(methodId);
         LinkedList<String> signs = readMethodSignatures.get(methodId);
         if (impls == null) {
@@ -245,9 +251,10 @@ public class IDLParser {
             readMethodImpls.put(methodId, impls);
             readMethodSignatures.put(methodId, signs);
         }
+        MethodImplementation m = new MethodImplementation(declaringClass, methodName, methodId, impls.size(), currConstraints);
         logger.debug("[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + methodId);
         impls.add(m);
-        signs.add(taskSignature);
+        signs.add(implementationSignature);
     }
 
     private static MethodResourceDescription loadCConstraints(String line) {

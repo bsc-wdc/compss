@@ -71,7 +71,7 @@ public final class ErrorManager {
      */
     public static void warn(String msg, Exception e) {
         if (!stopping) {
-            prettyPrint(PREFIX_WARNING, msg, e, System.out);
+            prettyPrint(PREFIX_WARNING, msg, e, System.err);
         }
 
         if (logger != null) {

@@ -40,4 +40,10 @@ public class ObjectParameter extends DependencyParameter {
         return "OBJECT: hash code " + hashCode;
     }
 
+	@Override
+	public String getOriginalName() {
+		//Object do not have original name;
+		return DependencyParameter.NO_NAME;
+	}
+
 }

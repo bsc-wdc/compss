@@ -245,7 +245,8 @@ public abstract class ExternalExecutor extends Executor {
             lArgs.add(np.getPrefix());
             switch (type) {
                 case FILE_T:
-                    lArgs.add(np.getValue().toString());
+                	//Passing originalName link instead of renamed file
+                	lArgs.add(np.getOriginalName());
                     break;
                 case OBJECT_T:
                 case PSCO_T:

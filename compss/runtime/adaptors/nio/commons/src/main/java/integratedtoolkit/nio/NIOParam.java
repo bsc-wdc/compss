@@ -20,14 +20,16 @@ public class NIOParam implements Externalizable {
 
     private Object value;
     private Data data;
-
+    private String originalName;
+    
+    public static final String NO_NAME="NO_NAME";
 
     public NIOParam() {
         // Only executed by externalizable
     }
 
     public NIOParam(DataType type, Stream stream, String prefix, boolean preserveSourceData, boolean writeFinalValue, Object value,
-            Data data) {
+            Data data, String originalName) {
         this.type = type;
         this.stream = stream;
         this.prefix = prefix;
@@ -35,6 +37,7 @@ public class NIOParam implements Externalizable {
         this.preserveSourceData = preserveSourceData;
         this.writeFinalValue = writeFinalValue;
         this.data = data;
+        this.originalName = originalName;
     }
 
     public DataType getType() {
@@ -72,6 +75,14 @@ public class NIOParam implements Externalizable {
     public void setValue(Object o) {
         this.value = o;
     }
+    
+    public String getOriginalName() {
+        return this.originalName;
+    }
+    
+    public void setOriginalName(String originalName){
+    	this.originalName = originalName;
+    }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
@@ -80,7 +91,7 @@ public class NIOParam implements Externalizable {
         this.prefix = (String) in.readObject();
         this.preserveSourceData = in.readBoolean();
         this.writeFinalValue = in.readBoolean();
-
+        this.originalName = (String) in.readObject();
         this.value = in.readObject();
         try {
             this.data = (Data) in.readObject();
@@ -96,7 +107,7 @@ public class NIOParam implements Externalizable {
         out.writeObject(this.prefix);
         out.writeBoolean(this.preserveSourceData);
         out.writeBoolean(this.writeFinalValue);
-
+        out.writeObject(this.originalName);
         out.writeObject(this.value);
         if (this.data != null) {
             out.writeObject(this.data);
@@ -111,6 +122,7 @@ public class NIOParam implements Externalizable {
         sb.append("[PREFIX = ").append(this.prefix).append("]");
         sb.append("[PRESERVE SOURCE DATA = ").append(this.preserveSourceData).append("]");
         sb.append("[WRITE FINAL VALUE = ").append(this.writeFinalValue).append("]");
+        sb.append("[ORIGINAL NAME = ").append(this.originalName).append("]");
         sb.append("[VALUE = ").append(this.value).append("]");
         sb.append("[DATA ").append(this.data).append("]");
         sb.append("]");

@@ -1,6 +1,12 @@
 package integratedtoolkit.nio.worker.executors;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -131,25 +137,120 @@ public abstract class Executor implements Runnable {
         setEnvironmentVariables(hostnamesSTR.toString(), numNodes, cus, nt.getResourceDescription());
 
         // Execute task
+        File sandbox = null;
         try {
+        	sandbox = createSandBox(nt);
             int[] assignedCoreUnits = nw.bindCoreUnits(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits());
             int[] assignedGPUs = nw.bindGPUs(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits());
+            logger.debug("Binding renamed files to sandboxed original names for Job "+ nt.getJobId() );
+            bindOriginalFilenamesToRenames(nt, sandbox);
+            logger.debug("Executing Task of Job "+ nt.getJobId());
             executeTask(nw, nt, outputsBasename, assignedCoreUnits, assignedGPUs);
+            logger.debug("Removing renamed files to sandboxed original names for Job "+ nt.getJobId() );
+            removeOriginalFilenames(nt);
+            logger.debug("Checking generated files for Job "+ nt.getJobId() );
             checkJobFiles(nt);
+            return true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return false;
         } finally {
+        	if (sandbox!= null && sandbox.exists()){
+        		try {
+					Files.deleteIfExists(sandbox.toPath());
+				} catch (IOException e) {
+					logger.warn(" Error deleting sandbox" + e.getMessage());
+				}
+        	}
             nw.releaseCoreUnits(nt.getJobId());
             nw.releaseGPUs(nt.getJobId());
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
             }
         }
-
-        return true;
     }
-    private void checkJobFiles(NIOTask nt) throws JobExecutionException {
+    
+    /** Creates a sandbox for a task
+     * @param nt task description
+     * @return Sandbox dir
+     * @throws Exception
+     */
+    private File createSandBox(NIOTask nt) throws Exception {
+    	String workingDir = nw.getWorkingDir();
+		File sandboxBasePath = new File(workingDir + "sandBox" + File.separator + "job_" + nt.getJobId());
+		
+		if (sandboxBasePath.exists()){
+			sandboxBasePath.delete();
+		}
+    	Files.createDirectories(sandboxBasePath.toPath());
+    	return sandboxBasePath;
+    }
+    
+	/** Create symbolic links from files with the original name in task sandbox to the renamed file
+	 * @param nt task description
+	 * @param sandbox created sandbox
+	 * @throws Exception returns exception is a problem occurs during creation
+	 */
+	private void bindOriginalFilenamesToRenames(NIOTask nt, File sandbox) throws Exception{
+    	for (NIOParam param: nt.getParams()) {
+            if (param.getType().equals(DataType.FILE_T)){
+            	String renamedFilePath = (String)param.getValue();
+            	File renamedFile = new File(renamedFilePath);
+            	if (renamedFile.getName().equals(param.getOriginalName())){
+            			param.setOriginalName(renamedFilePath);
+            	}else{
+            		String newOrigFilePath = sandbox.getAbsolutePath()+File.separator+param.getOriginalName();
+            		logger.debug("Setting Original Name to " + newOrigFilePath);
+            		param.setOriginalName(newOrigFilePath);
+            		File newOrigFile = new File(newOrigFilePath);
+            		if (renamedFile.exists()){
+            			//IN or INOUT File creating a simbolinc link
+            			logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
+            			Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+            		}
+            	}
+            }
+    	}
+    	
+	}
+	/** Undo symbolic links and renames done with the original names in task sandbox to the renamed file
+	 * @param nt task description
+	 * @throws Exception returns exception is an unexpected case is found.
+	 */
+	private void removeOriginalFilenames(NIOTask nt) throws Exception{
+    	for (NIOParam param: nt.getParams()) {
+            if (param.getType().equals(DataType.FILE_T)){
+            	
+            	String renamedFilePath = (String)param.getValue();
+            	String newOriginalFilePath = param.getOriginalName();
+            	logger.debug("Treating file " + renamedFilePath );
+            	if (!renamedFilePath.equals(newOriginalFilePath)){
+            		File newOrigFile = new File(newOriginalFilePath);
+            		File renamedFile = new File(renamedFilePath);
+            		if (renamedFile.exists() && Files.isSymbolicLink(newOrigFile.toPath())){
+            			//If a symbolic link is created remove it (IN INOUT)
+            			logger.debug("Deleting symlink" + newOrigFile.toPath());
+            			Files.delete(newOrigFile.toPath());
+            		}else if (!renamedFile.exists() && newOrigFile.exists() && !Files.isSymbolicLink(newOrigFile.toPath())){
+            			//If an output file is created move to the renamed path (OUT Case)
+            			logger.debug("Moving "+ newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
+            			Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+            		}else {
+            			//Unexpected case
+            			logger.error("Unexpected case: A Problem occurred with File " + renamedFilePath +
+            				". Either this file or the original name " + newOriginalFilePath+ " do not exist.");
+            			System.err.println("Unexpected case: A Problem occurred with File " + renamedFilePath +
+            				". Either this file or the original name " + newOriginalFilePath+ " do not exist.");
+            			throw new JobExecutionException("A Problem occurred with File " + renamedFilePath +
+            				". Either this file or the original name " + newOriginalFilePath+ " do not exist.");
+            		}
+            	}
+            }
+    	}		
+	}
+    
+
+	private void checkJobFiles(NIOTask nt) throws JobExecutionException {
         // Check if all the output files have been actually created (in case user has forgotten)
         // No need to distinguish between IN or OUT files, because IN files will exist, and
         // if there's one or more missing, they will be necessarily out.

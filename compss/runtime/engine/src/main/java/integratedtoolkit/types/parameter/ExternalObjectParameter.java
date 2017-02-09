@@ -39,5 +39,11 @@ public class ExternalObjectParameter extends DependencyParameter {
     public String toString() {
         return "EXTERNAL OBJECT: hash code " + hashCode;
     }
+    
+    @Override
+	public String getOriginalName() {
+		//External Objects do not have original name;
+		return DependencyParameter.NO_NAME;
+	}
 
 }

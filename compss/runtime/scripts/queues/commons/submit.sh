@@ -238,6 +238,10 @@ get_args() {
             gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
+	  tasks_per_node=*)
+	    tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
+	    args_pass="$args_pass --$OPTARG"
+	    ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')
             ;;
@@ -325,13 +329,21 @@ check_args() {
   if [ -z "${num_switches}" ]; then
     num_switches=${DEFAULT_NUM_SWITCHES}
   fi
+
   if [ -z "${gpus_per_node}" ]; then
     gpus_per_node=${DEFAULT_GPUS_PER_NODE}
   fi
+
+  if [ -z "${tasks_per_node}" ]; then
+      tasks_per_node=${DEFAULT_TASKS_PER_NODE}
+  fi
+
   maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
+  
   if [ "${num_switches}" != "0" ] && [ ${maxnodes} -lt ${num_nodes} ]; then
     display_error "${ERROR_SWITCHES}"
   fi
+
   if [ ${num_nodes} -lt ${MIN_NODES_REQ_SWITCH} ] && [ "${num_switches}" != "0" ]; then
     display_error "${ERROR_NO_ASK_SWITCHES}"
   fi
@@ -467,10 +479,36 @@ EOT
   cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_WALLCLOCK}${QUEUE_SEPARATOR}$wc_limit
 #${QUEUE_CMD} ${QARG_WD}${QUEUE_SEPARATOR}${master_working_dir}
+EOT
+  # Add JOBID customizable stderr and stdout redirection when defined in queue system
+  if [ -n "${QARG_JOB_OUT}" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_JOB_OUT} compss-${QJOB_ID}.out
+EOT
+  fi
+  if [ -n "${QARG_JOB_ERROR}" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_JOB_ERROR} compss-${QJOB_ID}.err
+EOT
+  fi
+  # Add num nodes when defined in queue system
+  if [ -n "${QARG_NUM_NODES}" ]; then
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_NUM_NODES}${QUEUE_SEPARATOR}${num_nodes}
 EOT
+  fi
+  # Add num processes when defined in queue system
+  if [ -n "${QARG_NUM_PROCESSES}" ]; then 
+    if [ -n "${QNUM_PROCESSES_VALUE}" ]; then
+      eval processes=${QNUM_PROCESSES_VALUE}
+    else
+      processes=${tasks_per_node}
+    fi
+    echo "Requesting $processes processes"
+    cat >> $TMP_SUBMIT_SCRIPT << EOT
+#${QUEUE_CMD} ${QARG_NUM_PROCESSES}${QUEUE_SEPARATOR}${processes}
+EOT
+  fi
 
   # Span argument if defined on queue system
   if [ -n "${QARG_SPAN}" ]; then

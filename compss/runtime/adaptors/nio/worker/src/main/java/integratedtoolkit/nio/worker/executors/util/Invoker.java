@@ -179,7 +179,8 @@ public abstract class Invoker {
                 break;
             case FILE_T:
                 this.types[i] = String.class;
-                this.values[i] = np.getValue();
+                //Changed to original names instead of renamed
+                this.values[i] = np.getOriginalName();
                 this.writeFinalValue[i] = np.isWriteFinalValue();
                 break;
             case OBJECT_T:
@@ -346,12 +347,17 @@ public abstract class Invoker {
         // Write to disk the updated object parameters, if any (including the target)
         for (int i = 0; i < this.numParams; i++) {
             if (this.writeFinalValue[i]) {
-                Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
-                // Update task params for TaskResult command
-                this.nt.getParams().get(i).setValue(res);
-                
-                // The parameter is a file, an object that MUST be stored
-                this.nw.storeObject(renamings[i], res);
+            	switch (this.nt.getParams().get(i).getType()) {
+            		case FILE_T:
+            			this.nw.storeObject(renamings[i], this.nt.getParams().get(i).getValue());
+            			break;
+            		default:
+            			// Update task params for TaskResult command
+            			Object res = (this.hasTarget && i == this.numParams - 1) ? this.target.getValue() : this.values[i];
+            			this.nt.getParams().get(i).setValue(res);
+            			this.nw.storeObject(renamings[i], res);
+            	}
+               
             }
         }
 

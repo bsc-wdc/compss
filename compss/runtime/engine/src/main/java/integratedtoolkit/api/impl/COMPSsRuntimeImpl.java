@@ -878,14 +878,16 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
             switch (type) {
                 case FILE_T:
-                    DataLocation location = null;
                     try {
-                        location = createLocation((String) parameters[i]);
+                    	String fileName = (String) parameters[i];
+                    	String originalName = new File(fileName).getName();
+                    	DataLocation location = createLocation((String) parameters[i]);
+                        pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
                     } catch (Exception e) {
                         logger.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
-                    pars[npar] = new FileParameter(direction, stream, prefix, location);
+                    
                     break;
 
                 case PSCO_T:

@@ -17,16 +17,30 @@ public class FileParameter extends DependencyParameter {
 
     // File parameter fields
     private DataLocation location;
+    private String originalName;
 
 
-    public FileParameter(Direction direction, Stream stream, String prefix, DataLocation location) {
+    public FileParameter(Direction direction, Stream stream, String prefix, DataLocation location, String originalName) {
         super(DataType.FILE_T, direction, stream, prefix);
         this.location = location;
+        this.originalName = originalName;
+        
     }
 
     public DataLocation getLocation() {
         return location;
     }
+    
+    @Override
+    public String getOriginalName(){
+    	return originalName;
+    }
+    
+    @Override
+    public void setOriginalName(String originalName){
+    	this.originalName = originalName;
+    }
+    
 
     @Override
     public String toString() {

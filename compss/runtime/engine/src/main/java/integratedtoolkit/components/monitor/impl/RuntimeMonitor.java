@@ -113,8 +113,11 @@ public class RuntimeMonitor implements Runnable {
                 ResourceManager.printLoadInfo();
                 ResourceManager.printResourcesState();
                 Thread.sleep(sleepTime);
-            } catch (Exception e) {
-                logger.error(ERROR_GENERATING_DATA, e);
+            } catch (IOException ioe) {
+                logger.error(ERROR_GENERATING_DATA, ioe);
+            } catch (InterruptedException ie) {
+                logger.error(ERROR_GENERATING_DATA, ie);
+                Thread.currentThread().interrupt();
             }
         }
         running = false;
@@ -135,9 +138,12 @@ public class RuntimeMonitor implements Runnable {
 
             // Print current task graph
             printCurrentGraph();
-        } catch (Exception e) {
-            logger.error(ERROR_GENERATING_DATA, e);
+        } catch (IOException ioe) {
+            logger.error(ERROR_GENERATING_DATA, ioe);
+        } catch (InterruptedException ie) {
+            logger.error(ERROR_GENERATING_DATA, ie);
         }
+        
         // Clears the execution files
         if (!new File(monitorDirPath + "monitor.xml").delete()) {
             logger.error("Error clearing monitor.xml execution files");

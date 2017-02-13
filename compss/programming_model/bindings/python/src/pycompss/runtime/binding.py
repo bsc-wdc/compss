@@ -356,9 +356,9 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 
         val_type = type(p.value)
         is_future[i] = (val_type == Future)
-        logger.debug("Parameter " + spec_arg + "\n" +
-                     "\t- Value type: " + str(val_type) + "\n" +
-                     "\t- User-defined type: " + str(p.type))
+        logger.debug("Parameter " + spec_arg)
+        logger.debug("\t- Value type: " + str(val_type))
+        logger.debug("\t- User-defined type: " + str(p.type))
 
         # Infer type if necessary
         if p.type is None:
@@ -369,7 +369,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                     p.type = Type.EXTERNAL_PSCO
                 else:
                     p.type = Type.OBJECT
-            logger.debug("\n\t- Inferred type: %d" % p.type)
+            logger.debug("\t- Inferred type: %d" % p.type)
 
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
@@ -520,16 +520,16 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
             types_str += str(t) + " "
         for d in compss_directions:
             direct_str += str(d) + " "
-        logger.debug("Processing task:\n" +
-                     "\t- App id: " + str(app_id) + "\n" +
-                     "\t- Path: " + path + "\n" +
-                     "\t- Function name: " + f.__name__ + "\n" +
-                     "\t- Priority: " + str(has_priority) + "\n" +
-                     "\t- Has target: " + str(has_target) + "\n" +
-                     "\t- Num params: " + str(num_pars) + "\n" +
-                     "\t- Values: " + values_str + "\n" +
-                     "\t- COMPSs types: " + types_str + "\n" +
-                     "\t- COMPSs directions: " + direct_str)
+        logger.debug("Processing task:")
+        logger.debug("\t- App id: " + str(app_id))
+        logger.debug("\t- Path: " + path)
+        logger.debug("\t- Function name: " + f.__name__)
+        logger.debug("\t- Priority: " + str(has_priority))
+        logger.debug("\t- Has target: " + str(has_target))
+        logger.debug("\t- Num params: " + str(num_pars))
+        logger.debug("\t- Values: " + values_str)
+        logger.debug("\t- COMPSs types: " + types_str)
+        logger.debug("\t- COMPSs directions: " + direct_str)
 
     compss.process_task(app_id,
                         path,

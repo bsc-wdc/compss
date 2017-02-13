@@ -62,6 +62,16 @@
             "handlers": ["debug_file_handler","error_file_handler"],
             "propagate": "no"
         },
+        "pycompss.api.mpi": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
+        "pycompss.api.implement": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
         "pycompss.runtime.launch": {
             "level": "DEBUG",
             "handlers": ["debug_file_handler","error_file_handler"], 

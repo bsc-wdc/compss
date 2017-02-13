@@ -271,7 +271,93 @@ def TiramisuMockup():
 		print "- Python Tiramisu Mockup with PSCOs: ERROR"
 		return False	     
         
+
+@task(o2=OUT)
+def transform1_2(o1, o2):
+        pow2 = {}
+        images = o1.get()
+        for k,v in images.iteritems():
+	        l = []
+	        for value in v:
+		      l.append(value * value)
+                pow2[k] = l
+        o2.set(pow2)
+        print "Function: Pow 2."
+        print "Transformation 1 result in o2: ", o2.get()
+      
+@task(o2=OUT)
+def transform2_2(o1, o2):
+        add1 = {}
+        images = o1.get()
+        for k,v in images.iteritems():
+	        l = []
+	        for value in v:
+		      l.append(value + 1)
+                add1[k] = l
+        o2.set(add1)
+        print "Function: Add 1."
+        print "Transformation 2 result in o2: ", o2.get()
+      
+@task(returns=InputData, o2=OUT)
+def transform3_2(o1, o2):
+        mult3 = {}
+        images = o1.get()
+        for k,v in images.iteritems():
+	        l = []
+	        for value in v:
+		      l.append(value * 3)
+                mult3[k] = l
+        o2.set(mult3)
+        print "Function: Multiply per 3."
+        print "Transformation 3 result in o2: ", o2.get()
+        return o2
+
+
         
+def TiramisuMockup2():
+        from pycompss.api.api import compss_wait_on
+        '''
+        Tiramisu Mockup Test 2
+        '''
+        myobj = InputData()
+        myobj.set({'first':[1,1,1,1], 'second':[2,2,2,2], 'third':[3,3,3,3], 'fourth':[4,4,4,4]})
+        out1 = InputData()
+        out2 = InputData()
+        out3 = InputData()
+        myobj.makePersistent()
+        out1.makePersistent()
+        out2.makePersistent()
+        out3.makePersistent()
+        
+        result = ''
+        transform1_2(myobj, out1)
+        transform2_2(out1, out2)
+        result = transform3_2(out2, out3)
+        
+        result = compss_wait_on(result)
+        
+        import time
+        time.sleep(60)
+        
+        outTrans1 = compss_wait_on(out1)
+        outTrans2 = compss_wait_on(out2)
+        outTrans3 = compss_wait_on(out3)
+        
+        print "OUTPUTS:"
+        print "Transformation 1: ", outTrans1.get()
+        print "Transformation 2: ", outTrans2.get()
+        print "Transformation 3: ", outTrans3.get()
+        print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        print "RESULT: ", result.get()
+        print "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+        finalResults = result.get()
+        if all(x == 6 for x in finalResults['first']) and all(x == 15 for x in finalResults['second']) and all(x == 30 for x in finalResults['third']) and all(x == 51 for x in finalResults['fourth']):
+                print "- Python Tiramisu Mockup 2 with PSCOs: OK"
+		return True
+	else:
+		print "- Python Tiramisu Mockup 2 with PSCOs: ERROR"
+		return False
 
   
   
@@ -282,6 +368,7 @@ def main():
 	results['wordcount'] = WordCount()
 	results['wordcount2'] = WordCount2()
 	results['tiramisu'] = TiramisuMockup()
+	# results['tiramisu2'] = TiramisuMockup2()
 	if all(x for x in results.values()):
 	    print "- PSCOs TEST FINISHED SUCCESSFULLY."
 	else:

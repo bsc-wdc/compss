@@ -114,7 +114,14 @@ class task(object):
             # file_name = os.path.splitext(os.path.basename(mod.__file__))[0]
 
             # get the real module name from our launch.py variable
-            path = getattr(mod, "app_path")
+            try:
+                path = getattr(mod, "app_path")
+            except AttributeError:
+                # This exception is raised when the runtime is not running and the @task decorator is used.
+                print "ERROR!!! The runtime has not been started yet. The function will be ignored."
+                print "Please, start the runtime before using task decorated functions in order to avoid this error."
+                print "Suggestion: Use the 'runcompss' command or the 'start' function from pycompss.interactive module depending on your needs."
+                return
             dirs = path.split(os.path.sep)
             file_name = os.path.splitext(os.path.basename(path))[0]
             mod_name = file_name
@@ -451,8 +458,8 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
 ############### INTERACTIVE MODE AUXILIAR METHODS #########################
 ###########################################################################
 
-def updateTasksCodeFile(f, filePath):
-
+def updateTasksCodeFile(f, filePath):  # TODO: Check that the imports are not duplicated when a new task is appended.
+                                       # TODO: Check that if the user defines a function is also included for consistency (may be used within a task).
     if not os.path.exists(filePath):
         createTasksCodeFile(filePath)
     imports = getIPythonImports()     ######## [import\n, import\n, ...]
@@ -468,7 +475,7 @@ def updateTasksCodeFile(f, filePath):
     updateCodeFile(newImports, newCode, filePath)
 
     #print "Task appended to: ", filePath
-    print "Task appended."
+    print "Task definition detected."
 
 
 def createTasksCodeFile(filePath):

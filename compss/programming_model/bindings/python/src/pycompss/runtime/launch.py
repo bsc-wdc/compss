@@ -140,8 +140,8 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
                 graph=False,
                 trace=False,
                 monitor=None,
-                project_xml='Runtime/configuration/xml/projects/default_project.xml',
-                resources_xml='Runtime/configuration/xml/resources/default_resources.xml',
+                project_xml=None,
+                resources_xml=None,
                 summary=False,
                 taskExecution='compss',
                 storageConf=None,
@@ -182,8 +182,14 @@ def launch_pycompss_application(app, func, args=[], kwargs={},
     config = {}
     config['it_home'] = it_home
     config['debug'] = debug
-    config['project_xml'] = it_home + os.path.sep + project_xml
-    config['resources_xml'] = it_home + os.path.sep + resources_xml
+    if project_xml is None:
+        config['project_xml'] = it_home + os.path.sep + 'Runtime/configuration/xml/projects/default_project.xml'
+    else:
+        config['project_xml'] = project_xml
+    if resources_xml is None:
+        config['resources_xml'] = it_home + os.path.sep + 'Runtime/configuration/xml/resources/default_resources.xml'
+    else:
+        config['resources_xml'] = resources_xml
     config['summary'] = summary
     config['taskExecution'] = taskExecution
     config['storageConf'] = storageConf

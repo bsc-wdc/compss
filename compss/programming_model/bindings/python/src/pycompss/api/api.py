@@ -75,7 +75,7 @@ def waitForAllTasks():
     """
     barrier()
 
-
+#TODO: make it variadic (what to do with the to_write flag???)
 def compss_wait_on(obj, to_write=True):
     """
     Waits on an object.
@@ -169,7 +169,7 @@ def compss_wait_on(obj, to_write=True):
 #     else:
 #         mode = 'r'
 #     compss_mode = get_compss_mode(mode)
-#         
+#
 #     if isinstance(obj, Future) or not isinstance(obj, types.ListType):
 #         return synchronize(obj, compss_mode)
 #     else:

@@ -35,27 +35,24 @@ def localtask(input_function):
     def must_sync(obj):
         return isinstance(obj, Future) or id(obj) in task_objects
 
+    def sync_if_needed(obj):
+        if must_sync(obj):
+            old_id = id(obj)
+            new_val = compss_wait_on(obj)
+            replace(obj, new_val)
+            del task_objects[old_id]
+
     def wrapped_function(*args, **kwargs):
         gc.collect()
         _args = []
         _kwargs = {}
         for arg in args:
-            if must_sync(arg):
-                old_id = id(arg)
-                new_val = compss_wait_on(arg)
-                replace(arg, new_val)
-                del task_objects[old_id]
+            sync_if_needed(arg)
             _args.append(arg)
-
         for (key, value) in kwargs.items():
-            if must_sync(value):
-                old_id = id(value)
-                new_val = compss_wait_on(value)
-                replace(value, new_val)
-                del task_objects[old_id]
+            sync_if_needed(value)
             _kwargs[key] = value
 
         return input_function(*_args, **_kwargs)
-
 
     return wrapped_function

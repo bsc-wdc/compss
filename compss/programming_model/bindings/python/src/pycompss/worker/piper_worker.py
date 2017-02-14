@@ -379,13 +379,13 @@ def execute_task(process_name, storage_conf, params):
             types.insert(0, None)  # class must be first type
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                #if tracing:
+                #    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+                #if tracing:
+                #    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
     # ==========================================================================
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()

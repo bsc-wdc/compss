@@ -77,7 +77,7 @@ class task(object):
             retType = getReturnType(self.kwargs['returns'])
             self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=Direction.OUT)
             #self.kwargs['compss_retvalue'] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
-        logger.debug("Init task...")
+        logger.debug("Init @task decorator...")
 
     def __call__(self, f):
         """
@@ -144,6 +144,32 @@ class task(object):
                 else:
                     break
             self.module = mod_name
+
+        # Look for the decorator that has to do the registration
+        # Since the __init__ of the decorators is independent, there is no way to pass information through them.
+        # However, the __call__ method of the decorators can be used. The way that they are called is from bottom
+        # to top. So, the first one to call its __call__ method will always be @task.
+        # Consequently, the @task decorator __call__ method can detect the top decorator and pass a hint to order
+        # that decorator that has to do the registration (not the others).
+        gotFuncCode = False
+        func = f
+        while not gotFuncCode:
+            try:
+                funcCode = inspect.getsourcelines(func)
+                gotFuncCode = True
+            except IOError:
+                # There is one or more decorators below the @task --> undecorate until possible to get the func code.
+                # Example of this case: test 19: @timeit decorator below the @task decorator.
+                func = func.undecorated
+        topDecorator = getTopDecorator(funcCode)
+        logger.debug("[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(topDecorator)))
+        f.__who_registers__ = topDecorator
+        # Include the registering info related to @task
+        f.__to_register__ = {__name__: "@taskStuff"}
+        # Do the task register if I am the top decorator
+        if f.__who_registers__ == __name__:
+            logger.debug("[@TASK] I have to do the register of function %s in module %s" % (f.__name__, self.module))
+            logger.debug("[@TASK] %s" % str(f.__to_register__))
 
         logger.debug("Decorating function %s in module %s" % (f.__name__, self.module))
 
@@ -318,6 +344,22 @@ class task(object):
                 # First calling the pycompss library and then C library (bindings-commons).
 
         return wrapped_f
+
+
+def getTopDecorator(code):
+    # Code has two fields:
+    # code[0] = the entire function code.
+    # code[1] = the number of lines of the function code.
+    funcCode = code[0]
+    decoratorKeys = ("implement", "constraint", "mpi", "task")
+    decorators = [l for l in funcCode if l.strip().startswith('@')]  # Could be improved if it stops when the first line without @ is found.
+                                                                     # but we have to be care if a decorator is commented (# before @)
+                                                                     # The strip is due to the spaces that appear before functions definitions,
+                                                                     # such as class methods.
+    for dk in decoratorKeys:
+        for d in decorators:
+            if dk in d:
+                return "pycompss.api." + dk  # each decorator __name__
 
 
 def getReturnType(value):

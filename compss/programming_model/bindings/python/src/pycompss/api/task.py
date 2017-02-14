@@ -160,7 +160,7 @@ class task(object):
             except IOError:
                 # There is one or more decorators below the @task --> undecorate until possible to get the func code.
                 # Example of this case: test 19: @timeit decorator below the @task decorator.
-                func = func.undecorated
+                func = func.__wrapped__  
         topDecorator = getTopDecorator(funcCode)
         logger.debug("[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(topDecorator)))
         f.__who_registers__ = topDecorator

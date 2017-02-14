@@ -25,7 +25,7 @@
   echo "*** RUNNING JAVA APPLICATION PRIORITY TASKS"
   output_log="${target_log_folder}/priorityTasks_0${retryNum}.outputlog"
   error_log="${target_log_folder}/priorityTasks_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=120s
   normal=20
   priority=20
   

@@ -73,6 +73,7 @@ public abstract class ImmediateCopy extends Copy {
         synchronized (srcData) {
             end(DataOperation.OpEndState.OP_OK);
         }
+        logger.debug("[InmediateCopy] Performing Inmediate Copy for "+getName());
     }
 
     public abstract void specificCopy() throws CopyException;

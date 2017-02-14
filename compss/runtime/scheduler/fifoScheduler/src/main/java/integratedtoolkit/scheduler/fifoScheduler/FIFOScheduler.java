@@ -49,13 +49,13 @@ public class FIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        LOGGER.info("[FIFOScheduler] Generate scheduler for resource " + w.getName());
+        //LOGGER.info("[FIFOScheduler] Generate scheduler for resource " + w.getName());
         return new FIFOResourceScheduler<P, T, I>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[FIFOScheduler] Generate Action Score for " + action);
+        //LOGGER.info("[FIFOScheduler] Generate Action Score for " + action);
         return new FIFOScore(action.getPriority(), -(double) action.getId(), 0, 0);
     }
 
@@ -71,7 +71,7 @@ public class FIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
             LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
 
-        LOGGER.info("[FIFOScheduler] Treating dependency free actions");
+        //LOGGER.info("[FIFOScheduler] Treating dependency free actions");
 
         for (AllocatableAction<P, T, I> action : executionCandidates) {
             this.dependingActions.removeAction(action);

@@ -38,25 +38,21 @@ public class PythonExecutor extends ExternalExecutor {
         if (pythonPersistentWorker) {
             // The execution command in python is empty (the handler adds the pre-command and the application args)
         } else {
+            // Taskset string to bind the job
+            StringBuilder taskset = new StringBuilder();
+            taskset.append("taskset -c ");
+            taskset.append(assignedCoreUnits[0]);
+            for (int i = 1; i < assignedCoreUnits.length; i++){
+                taskset.append(",").append(assignedCoreUnits[i]);
+            }       
+            taskset.append(" ");
+            lArgs.add(taskset.toString());
+            
             lArgs.add("python");
             lArgs.add("-u");
             lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
         }
-        
-        //int numCUs = nt.getResourceDescription().getTotalCPUComputingUnits();
            
-        // Taskset string to bind the job
-		StringBuilder taskset = new StringBuilder();
-		taskset.append("taskset -c ");
-		taskset.append(assignedCoreUnits[0]);
-		for (int i = 1; i < assignedCoreUnits.length; i++){
-			taskset.append(",").append(assignedCoreUnits[i]);
-		}		
-		taskset.append(" ");
-
-		//lArgs.add(taskset.toString());
-        //lArgs.add(taskset.toString() + nw.getAppDir());
-        //lArgs.add(nw.getAppDir());
         return lArgs;
     }
 

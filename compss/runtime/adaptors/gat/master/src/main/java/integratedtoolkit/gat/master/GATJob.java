@@ -282,6 +282,23 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else {
             lArgs.add("0");
         }
+        
+        //Processing parameters to get symlinks pairs to create (symlinks) and how to pass parameters in the GAT Job(paramArgs
+        ArrayList<String> symlinks = new ArrayList<String>();
+        ArrayList<String> paramArgs = new ArrayList<String>();
+        String sandboxDir = getResourceNode().getWorkingDir()+File.separator+"sandBox" + File.separator + "job_"+this.jobId;
+        processParameters(sandboxDir, symlinks,paramArgs);
+        
+        //Adding info to create symlinks between renamed files and original names
+        if (symlinks.size()>0){
+        	lArgs.add(""+symlinks.size());
+        	lArgs.add(sandboxDir);
+        	lArgs.addAll(symlinks);
+        	
+        }else{
+        	lArgs.add("0");
+        }
+        
         lArgs.add(Boolean.toString(Tracer.isActivated()));
         lArgs.add(getHostName());
         if (debug) {
@@ -343,69 +360,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         lArgs.addAll(slaveWorkersNodeNames);
         lArgs.add(String.valueOf( ((MethodResourceDescription)this.impl.getRequirements()).getTotalCPUComputingUnits() ));
         
-        // Add if has target parameter
-        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
-        
-        // Add return type
-        if (taskParams.hasReturnValue()) {
-            Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
-            lArgs.add( Integer.toString(returnParam.getType().ordinal()) );
-        } else {
-            lArgs.add("null");
-        }
-        
-        // Add parameters
-        int numParams = taskParams.getParameters().length;
-        if (taskParams.hasReturnValue()) {
-            numParams--;
-        }
-        lArgs.add(Integer.toString(numParams));
-        for (Parameter param : taskParams.getParameters()) {
-            DataType type = param.getType();
-            lArgs.add(Integer.toString(type.ordinal()));
-            lArgs.add(Integer.toString(param.getStream().ordinal()));
-            
-            String prefix = param.getPrefix();
-            if (prefix == null || prefix.isEmpty()) {
-                prefix = Constants.PREFIX_EMTPY;
-            }
-            lArgs.add(param.getPrefix());
-
-            switch (type) {
-                case FILE_T:
-                    DependencyParameter dFilePar = (DependencyParameter) param;
-                    lArgs.add(dFilePar.getDataTarget());
-                    break;
-                case PSCO_T:
-                case EXTERNAL_PSCO_T:
-                    logger.error("GAT Adaptor does not support PSCO Types");
-                    listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
-                    break;
-                case OBJECT_T:
-                    DependencyParameter dPar = (DependencyParameter) param;
-                    DataAccessId dAccId = dPar.getDataAccessId();
-                    lArgs.add(dPar.getDataTarget());
-                    if (dAccId instanceof RAccessId) {
-                        lArgs.add("R");
-                    } else {
-                        lArgs.add("W"); // for the worker to know it must write the object to disk
-                    }
-                    break;
-                case STRING_T:
-                    BasicTypeParameter btParS = (BasicTypeParameter) param;
-                    // Check spaces
-                    String value = btParS.getValue().toString();
-                    int numSubStrings = value.split(" ").length;
-                    lArgs.add(Integer.toString(numSubStrings));
-                    lArgs.add(value);
-                    break;
-                default:
-                    // Basic Types
-                    BasicTypeParameter btParB = (BasicTypeParameter) param;
-                    lArgs.add(btParB.getValue().toString());
-                    break;
-            }
-        }
+        // Add parameter arguments already processed
+        lArgs.addAll(paramArgs);
 
         // Conversion vector -> array
         String[] arguments = new String[lArgs.size()];
@@ -519,6 +475,82 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     @Override
     public String getHostName() {
         return getResourceNode().getName();
+    }
+    
+    private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs){
+    	
+    	lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+        
+        // Add return type
+        if (taskParams.hasReturnValue()) {
+            Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
+            lArgs.add( Integer.toString(returnParam.getType().ordinal()) );
+        } else {
+            lArgs.add("null");
+        }
+        
+        // Add parameters
+        int numParams = taskParams.getParameters().length;
+        if (taskParams.hasReturnValue()) {
+            numParams--;
+        }
+        lArgs.add(Integer.toString(numParams));
+        for (Parameter param : taskParams.getParameters()) {
+            DataType type = param.getType();
+            lArgs.add(Integer.toString(type.ordinal()));
+            lArgs.add(Integer.toString(param.getStream().ordinal()));
+            
+            String prefix = param.getPrefix();
+            if (prefix == null || prefix.isEmpty()) {
+                prefix = Constants.PREFIX_EMTPY;
+            }
+            lArgs.add(param.getPrefix());
+
+            switch (type) {
+                case FILE_T:
+                    DependencyParameter dFilePar = (DependencyParameter) param;
+                    java.io.File f = new java.io.File(dFilePar.getDataTarget());
+                    if (!f.getName().equals(dFilePar.getOriginalName())){
+                    	//Add file to manage symlinks and renames
+                    	String originalName = sandboxPath+File.separator+dFilePar.getOriginalName();
+                    	symlinks.add(dFilePar.getDataTarget());
+                    	symlinks.add(dFilePar.getOriginalName());
+                    	lArgs.add(originalName);
+                    }else{
+                    	// Original and target is the same  nothing to do
+                    	lArgs.add(dFilePar.getDataTarget());
+                    }
+                    break;
+                case PSCO_T:
+                case EXTERNAL_PSCO_T:
+                    logger.error("GAT Adaptor does not support PSCO Types");
+                    listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
+                    break;
+                case OBJECT_T:
+                    DependencyParameter dPar = (DependencyParameter) param;
+                    DataAccessId dAccId = dPar.getDataAccessId();
+                    lArgs.add(dPar.getDataTarget());
+                    if (dAccId instanceof RAccessId) {
+                        lArgs.add("R");
+                    } else {
+                        lArgs.add("W"); // for the worker to know it must write the object to disk
+                    }
+                    break;
+                case STRING_T:
+                    BasicTypeParameter btParS = (BasicTypeParameter) param;
+                    // Check spaces
+                    String value = btParS.getValue().toString();
+                    int numSubStrings = value.split(" ").length;
+                    lArgs.add(Integer.toString(numSubStrings));
+                    lArgs.add(value);
+                    break;
+                default:
+                    // Basic Types
+                    BasicTypeParameter btParB = (BasicTypeParameter) param;
+                    lArgs.add(btParB.getValue().toString());
+                    break;
+            }
+        }
     }
 
 }

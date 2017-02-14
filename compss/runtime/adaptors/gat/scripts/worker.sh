@@ -21,7 +21,7 @@
     mkdir -p $workingDir
   fi
   export IT_WORKING_DIR=$workingDir
-  sandbox=$(mktemp -d -p $workingDir)
+  
   cd $workingDir
 
   echo "[WORKER.SH] Starting GAT Worker"
@@ -38,7 +38,38 @@
     rm -f $1
     shift 1
   done
-
+  
+  #-------------------------------------
+  # Managing Symlinks for files
+  #-------------------------------------
+  symlinkfilesNum=$1
+  shift 1
+  renames=""
+  if [ $symlinkfilesNum -ne 0 ]; then
+  	sandbox=$1
+  	shift 1
+  	if [ ! -d $sandbox ]; then
+    	mkdir -p $sandbox
+  	fi
+  	echo "[WORKER.SH] Creating $symlinkfilesNum symlink files"
+  	for ((i=0;i<$symlinkfilesNum;i=i+2)); do
+    	#Create symlink for in inout files
+    	if [ -f "$1" ]; then
+    		echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
+    		ln -s $1 ${sandbox}/${2}
+    	fi
+    	# Add to treat after task management
+    	if [ $i -eq 0 ]; then
+    		renames="$1 ${sandbox}/$2"
+    	else
+    		renames="$renames $1 ${sandbox}/$2"
+    	fi
+    	shift 2 
+  	done
+  else
+  	sandbox=$(mktemp -d -p $workingDir)
+  fi
+  
   #-------------------------------------
   # Get tracing status
   #-------------------------------------
@@ -96,8 +127,43 @@
   fi
 
   #-------------------------------------
+  # Undo symlinks and rename files
+  #-------------------------------------
+  if [ $symlinkfilesNum -ne 0 ]; then
+  	removeOrMove=0
+  	renamedFile=""
+  	echo "[WORKER.SH] Undo $symlinkfilesNum symlink files"
+  	for element in $renames; do
+    	#Check pair if firs
+    	if [ $removeOrMove -eq 0 ]; then
+    		if [ -f "$element" ]; then
+    			removeOrMove=1	
+    		else
+    			removeOrMove=2
+    			renamedFile=$element
+    		fi
+    	else
+    		if [ $removeOrMove -eq 1 ]; then
+    			echo "[WORKER.SH] Removing link $element"
+    			rm $element
+    		elif [ $removeOrMove -eq 2 ]; then
+    			echo "[WORKER.SH] Moving $element to $renamedFile"
+    			mv $element $renamedFile
+    		else
+    			echo 1>&2 "Incorrect operation when managing rename symlinks "
+				exit 7
+			fi
+    		removeOrMove=0
+  			renamedFile=""
+  		fi
+   
+  	done
+  fi
+  
+  #-------------------------------------
   # Clean sandbox
   #-------------------------------------
+  
   rm -rf $sandbox
 
   #-------------------------------------

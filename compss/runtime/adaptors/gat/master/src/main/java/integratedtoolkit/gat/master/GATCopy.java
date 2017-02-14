@@ -30,6 +30,7 @@ public class GATCopy extends ImmediateCopy {
 
     private static final String ERR_NO_TGT_URI = "No valid target URIs";
     private static final String ERR_NO_SRC_URI = "No valid source URIs";
+    private static final String DBG_PREFIX = "[GAT_COPY] ";
     private final Transferable reason;
 
 
@@ -52,11 +53,12 @@ public class GATCopy extends ImmediateCopy {
                 }
             }
         }
+        logger.debug(DBG_PREFIX + "GAT Specific Copy created");
     }
 
     @Override
     public void specificCopy() throws CopyException {
-        logger.debug("Performing GAT Specific Copy");
+        logger.debug(DBG_PREFIX + "Performing GAT Specific Copy for "+getName());
 
         // Fetch valid destination URIs
         LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
@@ -73,9 +75,9 @@ public class GATCopy extends ImmediateCopy {
         }
 
         if (selectedTargetURIs.isEmpty()) {
+        	logger.error(DBG_PREFIX + ERR_NO_TGT_URI);
             throw new GATCopyException(ERR_NO_TGT_URI);
         }
-
         // Fetch valid source URIs
         LinkedList<MultiURI> sourceURIs;
         LinkedList<URI> selectedSourceURIs = new LinkedList<>();
@@ -146,7 +148,7 @@ public class GATCopy extends ImmediateCopy {
                     // Try to copy from each location until successful
                 } catch (Exception e) {
                     exception.add("default logical file", e);
-                    logger.debug("Error copying file", e);
+                    logger.warn("Error copying file", e);
                     continue;
                 }
                 return;

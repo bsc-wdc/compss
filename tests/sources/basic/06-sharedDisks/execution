@@ -26,7 +26,7 @@
   echo "*** RUNNING JAVA APPLICATION SHARED DISKS"
   output_log="${target_log_folder}/sharedDisks_0${retryNum}.outputlog"
   error_log="${target_log_folder}/sharedDisks_0${retryNum}.errorlog"
-  expectedTime=30s
+  expectedTime=60s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project_sharedDisks.xml \

@@ -39,7 +39,7 @@ class constraint(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init constraint.")
+        logger.debug("Init @constraint decorator...")
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.
@@ -68,21 +68,27 @@ class constraint(object):
                 dirs = path.split(os.path.sep)
                 file_name = os.path.splitext(os.path.basename(path))[0]
                 mod_name = file_name
-                i = -1
 
-                while True:
+                i = len(dirs) - 1
+                while i > 0:
                     new_l = len(path) - (len(dirs[i]) + 1)
                     path = path[0:new_l]
                     if "__init__.py" in os.listdir(path):
-                        # Directory is a package
+                        # directory is a package
                         i -= 1
                         mod_name = dirs[i] + '.' + mod_name
                     else:
                         break
                 self.module = mod_name
 
-            logger.debug("Registering constraints for function %s of module %s"
-                         % (func.__name__, self.module))
+            # Include the registering info related to @constraint
+            func.__to_register__[__name__] = "@constraintStuff"
+            # Do the task register if I am the top decorator
+            if func.__who_registers__ == __name__:
+                logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                logger.debug("[@CONSTRAINT] %s" % str(func.__to_register__))
+
+            # logger.debug("Registering constraints for function %s of module %s" % (func.__name__, self.module))
             for key, value in self.kwargs.iteritems():
                 logger.debug("%s -> %s" % (key, value))
             set_constraints(func.__name__, self.module, self.kwargs)

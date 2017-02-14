@@ -1,4 +1,4 @@
-package integratedtoolkit.nio.worker;
+package integratedtoolkit.nio.worker.util;
 
 import java.io.PrintStream;
 import java.util.HashMap;

@@ -30,7 +30,7 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
      */
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[LIFOScheduler] Generate blocked score for action " + action);
+        //LOGGER.debug("[LIFOScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
         double waitingScore = (double) action.getId();
         double resourceScore = 0;
@@ -41,7 +41,7 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
+        //LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
 
         double actionPriority = actionScore.getActionScore();
         double waitingScore = 0;
@@ -53,7 +53,7 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
 
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[LIFOScheduler] Generate implementation score for action " + action);
+        //LOGGER.debug("[LIFOScheduler] Generate implementation score for action " + action);
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();

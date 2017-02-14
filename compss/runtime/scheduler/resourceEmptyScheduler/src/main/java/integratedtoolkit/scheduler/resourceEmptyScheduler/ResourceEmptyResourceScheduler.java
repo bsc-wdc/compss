@@ -30,7 +30,7 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
      */
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[ResourceEmptyScheduler] Generate blocked score for action " + action);
+        //LOGGER.debug("[ResourceEmptyScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
         double waitingScore = 2.0;
         if (this.blocked.size() > 0) {
@@ -44,7 +44,7 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
 
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[ResourceEmptyScheduler] Generate resource score for action " + action);
+        //LOGGER.debug("[ResourceEmptyScheduler] Generate resource score for action " + action);
 
         // Gets the action priority
         double actionPriority = actionScore.getActionScore();
@@ -60,14 +60,14 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
         double implementationScore = 0;
 
         ResourceEmptyScore score = new ResourceEmptyScore(actionPriority, waitingScore, resourceScore, implementationScore);
-        LOGGER.debug(score);
+        //LOGGER.debug(score);
 
         return score;
     }
 
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
+        //LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();
@@ -76,12 +76,12 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
             double implScore = 1.0 / ((double) this.getProfile(impl).getAverageExecutionTime());
 
             ResourceEmptyScore score = new ResourceEmptyScore(actionPriority, waitingScore, resourcePriority, implScore);
-            LOGGER.debug(score);
+            //LOGGER.debug(score);
 
             return score;
         } else {
             // Implementation cannot be run
-            LOGGER.debug("ResourceEmtpyScore evaluated to null");
+            //LOGGER.debug("ResourceEmtpyScore evaluated to null");
             return null;
         }
     }

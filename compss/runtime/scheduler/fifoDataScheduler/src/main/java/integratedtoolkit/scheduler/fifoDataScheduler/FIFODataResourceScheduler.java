@@ -30,7 +30,7 @@ public class FIFODataResourceScheduler<P extends Profile, T extends WorkerResour
      */
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[FIFODataResourceScheduler] Generate blocked score for action " + action);
+        //LOGGER.debug("[FIFODataResourceScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
         double waitingScore = -(double) action.getId();
         double resourceScore = 0;
@@ -41,7 +41,7 @@ public class FIFODataResourceScheduler<P extends Profile, T extends WorkerResour
 
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[FIFODataResourceScheduler] Generate resource score for action " + action);
+        //LOGGER.debug("[FIFODataResourceScheduler] Generate resource score for action " + action);
 
         double actionPriority = actionScore.getActionScore();
         double waitingScore = -(double) action.getId();
@@ -54,7 +54,7 @@ public class FIFODataResourceScheduler<P extends Profile, T extends WorkerResour
 
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
+        //LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();

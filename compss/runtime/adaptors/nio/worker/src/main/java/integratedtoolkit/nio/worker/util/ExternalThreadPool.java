@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.nio.worker.NIOWorker;
-import integratedtoolkit.nio.worker.ThreadPrintStream;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.StreamGobbler;

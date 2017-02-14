@@ -39,6 +39,7 @@ import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableGPUsException;
+import integratedtoolkit.nio.worker.util.ThreadPrintStream;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Serializer;
@@ -149,7 +150,7 @@ public class NIOWorker extends NIOAgent {
         }
 
         // Start Execution Manager
-        this.executionManager = new ExecutionManager(this, numJobThreads);
+        this.executionManager = new ExecutionManager(this, numJobThreads, numGPUs);
 
         if (tracing_level == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
@@ -194,6 +195,10 @@ public class NIOWorker extends NIOAgent {
     public static boolean isTracingEnabled() {
         return NIOTracer.isActivated();
     }
+    
+    public ExecutionManager getExecutionManager(){
+        return this.executionManager;
+    }
 
     public String getLang() {
         return this.lang;
@@ -232,7 +237,7 @@ public class NIOWorker extends NIOAgent {
      * @return
      * @throws UnsufficientAvailableCoresException
      */
-    public int[] bindCoreUnits(int jobId, int numCUs) throws UnsufficientAvailableCoresException {
+    public int[] bindCoreUnitss(int jobId, int numCUs) throws UnsufficientAvailableCoresException {
     	int assignedCoreUnits[] = new int[numCUs];
 		boolean done = false;
 		int numAssignedCores = 0;
@@ -254,7 +259,16 @@ public class NIOWorker extends NIOAgent {
 		if (!done) {
 		    throw new UnsufficientAvailableCoresException("Not enough available cores for task execution");
 		}
-
+		
+		assignedCoreUnits = executionManager.bindCPUs(jobId, numCUs);
+        if (wLogger.isDebugEnabled()) {
+            StringBuilder debugString = new StringBuilder();
+            debugString.append("[NIOWorker] Cores assigned: ");
+            for (int core : assignedCoreUnits){
+                debugString.append(core + " ");
+            }
+            wLogger.debug(debugString.toString());
+        }
 		return assignedCoreUnits;
     }
     
@@ -263,7 +277,7 @@ public class NIOWorker extends NIOAgent {
      * 
      * @param jobId
      */
-    public void releaseCoreUnits(int jobId){
+    public void releaseCoreUnitss(int jobId){
     	synchronized(boundCoreUnits){
 			for (int coreId = 0; coreId < boundCoreUnits.length; coreId++){
 				if (boundCoreUnits[coreId] == jobId) {
@@ -271,6 +285,7 @@ public class NIOWorker extends NIOAgent {
 				}
 			}
     	}
+    	executionManager.releaseCPUs(jobId);
     }
 
     
@@ -283,7 +298,7 @@ public class NIOWorker extends NIOAgent {
      * @return
      * @throws UnsufficientAvailableGPUsException
      */
-    public int[] bindGPUs(int jobId, int numGPUs) throws UnsufficientAvailableGPUsException {
+    public int[] bindGPUss(int jobId, int numGPUs) throws UnsufficientAvailableGPUsException {
     	int assignedGPUs[] = new int[numGPUs];
 		boolean done = false;
 		if (numGPUs == 0){
@@ -308,8 +323,8 @@ public class NIOWorker extends NIOAgent {
 		if (!done) {
 		    throw new UnsufficientAvailableGPUsException("Not enough available GPUs for task execution");
 		}
-		
-		return assignedGPUs;
+		return executionManager.bindGPUs(jobId, numGPUs); 
+		//return assignedGPUs;
     }
     
     /**
@@ -317,7 +332,7 @@ public class NIOWorker extends NIOAgent {
      * 
      * @param jobId
      */
-    public void releaseGPUs(int jobId){
+    public void releaseGPUss(int jobId){
     	synchronized(boundGPUs){
 			for (int GPUId = 0; GPUId < boundGPUs.length; GPUId++){
 				if (boundGPUs[GPUId] == jobId) {

@@ -1,6 +1,6 @@
 package integratedtoolkit.nio.worker.exceptions;
 
-public class UnsufficientAvailableGPUsException extends Exception {
+public class UnsufficientAvailableGPUsException extends UnsufficientAvailableComputingUnitsException {
 	/**
      * Exception Version UID are 2L in all Runtime
      */

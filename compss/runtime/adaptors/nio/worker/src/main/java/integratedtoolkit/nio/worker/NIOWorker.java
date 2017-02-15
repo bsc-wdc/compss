@@ -37,8 +37,6 @@ import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
-import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
-import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableGPUsException;
 import integratedtoolkit.nio.worker.util.ThreadPrintStream;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.util.ErrorManager;
@@ -169,7 +167,7 @@ public class NIOWorker extends NIOAgent {
 
     @Override
     public void setWorkerIsReady(String nodeName) {
-        // implemented on NIOAdaptor to notify that the worker is up and ready
+        // Implemented on NIOAdaptor to notify that the worker is up and ready
     }
 
     @Override
@@ -228,119 +226,6 @@ public class NIOWorker extends NIOAgent {
     public String getPythonpath() {
         return this.pythonpath;
     }
-    
-    /**
-     * Bind numCUs core units to the job
-     * 
-     * @param jobId
-     * @param numCUs
-     * @return
-     * @throws UnsufficientAvailableCoresException
-     */
-    public int[] bindCoreUnitss(int jobId, int numCUs) throws UnsufficientAvailableCoresException {
-    	int assignedCoreUnits[] = new int[numCUs];
-		boolean done = false;
-		int numAssignedCores = 0;
-	
-		// Assign free CUs to the job
-		synchronized(boundCoreUnits){
-		    for (int coreId = 0; coreId < boundCoreUnits.length && !done; ++coreId) {
-				if (boundCoreUnits[coreId] == -1) {		
-					boundCoreUnits[coreId] = jobId;
-    				assignedCoreUnits[numAssignedCores] = coreId;
-    				numAssignedCores++;
-				}
-				done = (numAssignedCores == numCUs);
-			}	
-		}
-		
-		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
-		// Raise exception
-		if (!done) {
-		    throw new UnsufficientAvailableCoresException("Not enough available cores for task execution");
-		}
-		
-		assignedCoreUnits = executionManager.bindCPUs(jobId, numCUs);
-        if (wLogger.isDebugEnabled()) {
-            StringBuilder debugString = new StringBuilder();
-            debugString.append("[NIOWorker] Cores assigned: ");
-            for (int core : assignedCoreUnits){
-                debugString.append(core + " ");
-            }
-            wLogger.debug(debugString.toString());
-        }
-		return assignedCoreUnits;
-    }
-    
-    /**
-     * Release core units occupied by the job
-     * 
-     * @param jobId
-     */
-    public void releaseCoreUnitss(int jobId){
-    	synchronized(boundCoreUnits){
-			for (int coreId = 0; coreId < boundCoreUnits.length; coreId++){
-				if (boundCoreUnits[coreId] == jobId) {
-					boundCoreUnits[coreId] = -1;
-				}
-			}
-    	}
-    	executionManager.releaseCPUs(jobId);
-    }
-
-    
-    
-    /**
-     * Bind numGPUs core units to the job
-     * 
-     * @param jobId
-     * @param numGPUs
-     * @return
-     * @throws UnsufficientAvailableGPUsException
-     */
-    public int[] bindGPUss(int jobId, int numGPUs) throws UnsufficientAvailableGPUsException {
-    	int assignedGPUs[] = new int[numGPUs];
-		boolean done = false;
-		if (numGPUs == 0){
-			done = true;
-		}
-		int numAssignedGPUs = 0;
-	
-		// Assign free GPUUs to the job
-		synchronized(boundGPUs){
-		    for (int GPUId = 0; GPUId < boundGPUs.length && !done; ++GPUId) {
-				if (boundGPUs[GPUId] == -1) {		
-					boundGPUs[GPUId] = jobId;
-    				assignedGPUs[numAssignedGPUs] = GPUId;
-    				numAssignedGPUs++;
-				}
-				done = (numAssignedGPUs == numGPUs);
-			}	
-		}
-		
-		// If the job doesn't have all the CUs it needs, it cannot run on occupied ones
-		// Raise exception
-		if (!done) {
-		    throw new UnsufficientAvailableGPUsException("Not enough available GPUs for task execution");
-		}
-		return executionManager.bindGPUs(jobId, numGPUs); 
-		//return assignedGPUs;
-    }
-    
-    /**
-     * Release GPUs occupied by the job
-     * 
-     * @param jobId
-     */
-    public void releaseGPUss(int jobId){
-    	synchronized(boundGPUs){
-			for (int GPUId = 0; GPUId < boundGPUs.length; GPUId++){
-				if (boundGPUs[GPUId] == jobId) {
-					boundGPUs[GPUId] = -1;
-				}
-			}
-    	}
-    }    
     
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {

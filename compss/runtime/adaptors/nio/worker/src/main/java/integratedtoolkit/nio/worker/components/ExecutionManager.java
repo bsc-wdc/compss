@@ -24,15 +24,16 @@ public class ExecutionManager {
 
     private static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXEC_MANAGER);
 
-    private JobsThreadPool pool;
+    private final JobsThreadPool pool;
 
     // Bound Resources
-    private ThreadBinder binderCPUs;
-    private ThreadBinder binderGPUs;
+    private final ThreadBinder binderCPUs;
+    private final ThreadBinder binderGPUs;
 
 
     public ExecutionManager(NIOWorker nw, int numThreads, int numGPUs) {
         logger.info("Instantiate Execution Manager");
+
         // Instantiate the language dependent thread pool
         String lang = nw.getLang();
         switch (Lang.valueOf(lang.toUpperCase())) {
@@ -46,19 +47,22 @@ public class ExecutionManager {
                 this.pool = new CThreadPool(nw, numThreads);
                 break;
             default:
+                this.pool = null;
                 // Print to the job.err file
                 logger.error("Incorrect language " + lang + " in worker " + nw.getHostName());
                 break;
         }
 
-        // Set every resource assigned job to -1 (no job assigned to that CU)
-        try{
-            this.binderCPUs = new ThreadBinderCPU(numThreads);
+        // Instantiate CPU binders
+        ThreadBinder tb;
+        try {
+            tb = new ThreadBinderCPU(numThreads);
+        } catch (InitializationException e) {
+            tb = new ThreadBinderUnaware(numThreads);
         }
-        catch (InitializationException e){
-            this.binderCPUs = new ThreadBinderUnaware(numThreads);
-        }
-        
+        this.binderCPUs = tb;
+
+        // Instantiate GPU Binders
         this.binderGPUs = new ThreadBinderUnaware(numGPUs);
     }
 

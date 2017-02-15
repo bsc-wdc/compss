@@ -486,6 +486,7 @@ public class GATWorker {
             ErrorManager.warn("Cannot obtain hostname. Loading default value " + hostname);
         }
         GATWorker.hostnames.add(hostname);
+        ++GATWorker.numNodes;
 
         boolean firstElement = true;
         StringBuilder hostnamesSTR = new StringBuilder();
@@ -501,7 +502,7 @@ public class GATWorker {
 
         if (GATWorker.debug) {
             System.out.println("  * HOSTNAMES: " + hostnamesSTR.toString());
-            System.out.println("  * NUM_SLAVE_NODES: " + GATWorker.numNodes);
+            System.out.println("  * NUM_NODES: " + GATWorker.numNodes);
             System.out.println("  * CPU_COMPUTING_UNITS: " + GATWorker.cus);
         }
 

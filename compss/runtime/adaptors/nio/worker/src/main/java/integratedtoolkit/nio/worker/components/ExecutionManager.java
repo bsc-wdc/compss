@@ -30,6 +30,8 @@ public class ExecutionManager {
     private final ThreadBinder binderCPUs;
     private final ThreadBinder binderGPUs;
 
+    public static final int CPUs = 0;
+    public static final int GPUs = 1;
 
     public ExecutionManager(NIOWorker nw, int numThreads, int numGPUs) {
         logger.info("Instantiate Execution Manager");

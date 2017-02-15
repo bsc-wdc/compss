@@ -1,0 +1,142 @@
+##################################################################################
+# CONFIGURATION EXAMPLE: test_1                                                  #
+# Configuration file example for phasing+imputation+GWAS using                   #
+# GuIDANCE with inputs in BED format.                                            #
+#                                                                                #
+# Description:                                                                   #
+# Suppose the next directories:                                                  #
+#                                                                                #
+# - Genotype inputs in BED format are in:                                        #
+#    /home/compss/workspace_java/guidance_0.9.8/inputs/BED                       #
+#                                                                                #
+# - Genetic map input files are in:                                              #
+#    /home/compss/workspace_java/guidance_0.9.8/inputs/genmap                    #
+#                                                                                #
+# - Reference panels input files are in:                                         #
+#    /home/compss/workspace_java/guidance_0.9.8/inputs/ref_panels                #
+#                                                                                #
+# - Outputs will be in: (See explanation at the end of the file)                 #
+#    /home/compss/workspace_java/guidance_0.9.8/tests/test_1/outputs             #
+#                                                                                #
+# NOTE: All lines starting with # are comments                                   #
+##################################################################################
+##################################################################################
+# General parameters                                                             #
+##################################################################################
+wfDeep                        = whole_workflow
+init_chromosome               = 21
+end_chromosome                = 22
+maf_threshold                 = 0.001
+info_threshold                = 0.500
+hwe_cohort_threshold          = -1
+hwe_cases_threshold           = -1
+hwe_controls_threshold        = 1e-6
+exclude_cgat_snps             = YES
+imputation_tool               = impute
+##################################################################################
+# Name of phenotype analysis and covariables separated by commas,                #
+# For example: PC1,PC2,PC3,PC4,sex                                               #
+##################################################################################
+test_types                    =phenoA,phenoB
+phenoA                        =phenotype:sex
+phenoB                        =phenotype:sex
+##################################################################################
+# Additional parameters for inputs, and outputs.                                 #
+##################################################################################
+chunk_size_analysis           = 2000000
+file_name_for_list_of_stages  = /home/compss/workspace_java/guidance_0.9.8/tests/test_1/list_of_stages_bed.txt
+remove_temporal_files         = NO
+compress_files                = NO
+input_format                  = BED
+##################################################################################
+# Mixed BED files information                                                    #
+##################################################################################
+mixed_cohort                  = EURvsAFR
+mixed_bed_file_dir            = /home/compss/workspace_java/guidance_0.9.8/inputs/BED 
+mixed_bed_file                = test_merge.bed
+mixed_bim_file                = test_merge.bim
+mixed_fam_file                = test_merge.fam
+mixed_sample_file_dir         = /home/compss/workspace_java/guidance_0.9.8/inputs/BED
+mixed_sample_file             = mixed.sample
+##################################################################################
+# Genetic map files information                                                  #
+##################################################################################
+genmap_file_dir               = /home/compss/workspace_java/guidance_0.9.8/inputs/genmap 
+genmap_file_chr_21            = genetic_map_chr_21_combined_b37.txt.gz
+genmap_file_chr_22            = genetic_map_chr_22_combined_b37.txt.gz
+##################################################################################
+# Reference Panels files information                                             #
+##################################################################################
+refpanel_number               = 2
+refpanel_combine              = YES
+refpanel_type                 = 1kg
+refpanel_file_dir             = /home/compss/workspace_java/guidance_0.9.8/inputs/ref_panels 
+refpanel_hap_file_chr_21      = 1kg_chr_21.haps.gz
+refpanel_hap_file_chr_22      = 1kg_chr_22.haps.gz
+refpanel_leg_file_chr_21      = 1kg_chr_21.legend.gz
+refpanel_leg_file_chr_22      = 1kg_chr_22.legend.gz
+refpanel_type                 = hapmap
+refpanel_file_dir             = /home/compss/workspace_java/guidance_0.9.8/inputs/ref_panels
+refpanel_hap_file_chr_21      = hapmap_chr_21.haps.gz
+refpanel_hap_file_chr_22      = hapmap_chr_22.haps.gz
+refpanel_leg_file_chr_21      = hapmap_chr_21.legend.gz
+refpanel_leg_file_chr_22      = hapmap_chr_22.legend.gz
+##################################################################################
+# Output directory information                                                   #
+##################################################################################
+outputdir                    = /home/compss/workspace_java/guidance_0.9.8/tests/test_1/outputs
+##################################################################################
+#                                                                                #
+# Output directory description:                                                  #
+##################################################################################
+# For this example the application creates the following output                  #
+# directory structure:                                                           #
+#                                                                                #
+# For phasing results and other common processes:                                #
+# outputs/EURvsAFR/common/mixed/Chr_21                                           #
+#                              /Chr_22                                           #
+#                                                                                #
+# For imputation results with 1kg reference panel:                               #
+# outputs/EURvsAFR/1kg/mixed/Chr_21                                              #
+#                              /Chr_22                                           #
+#                                                                                #
+# For the imputation results with hapmap reference panel:                        #
+# outputs/EURvsAFR/hapmap/mixed/Chr_21                                           #
+#                              /Chr_22                                           #
+#                                                                                #
+# For the association results using imputed data with 1kg                        #
+# and summary results:                                                           #
+# There will be a directore for each genotype analysis. For this                 #
+# examples, we have configured three phenotype analysis in the                   #
+# in the configuration file, as follows:                                         #
+#                                                                                #
+# test_types  =phenoA,phenoB                                                     #
+# phenoA      =phenotype:sex                                                     #
+# phenoB      =phenotype:sex                                                     #
+#                                                                                #
+# Then, the results will be:                                                     #
+# 1) For phenoA phenotype using 1kg reference panel:                             #
+# outputs/association/pheno_phenoA/EURvsAFR_for_1kg/Chr_21                       #
+#                                                  /Chr_22                       #
+#                                                  /summary                      #
+# 2) For phenoA phenotype using hapmap reference panel:                          #
+# outputs/association/pheno_phenoA/EURvsAFR_for_hapmap/Chr_21                    #
+#                                                     /Chr_22                    #
+#                                                     /summary                   #
+# 3) For phenoA phenotype using the combine of 1kg and hapmap reference panels:  #
+# outputs/association/pheno_phenoA/EURvsAFR_combined_panels_1kg_hapmap           #
+#                                                                                #
+# 4) For phenoB phenotype using 1kg reference panel:                             #
+# outputs/association/pheno_phenoB/EURvsAFR_for_1kg/Chr_21                       #
+#                                                  /Chr_22                       #
+#                                                  /summary                      #
+# 5) For phenoB phenotype using hapmap reference panel:                          #
+# outputs/association/pheno_phenoB/EURvsAFR_for_hapmap/Chr_21                    #
+#                                                     /Chr_22                    #
+#                                                     /summary                   #
+# 6) For phenoB phenotype using the combine of 1kg and hapmap reference panels:  #
+# outputs/association/pheno_phenoB/EURvsAFR_combined_panels_1kg_hapmap           #
+#                                                                                #
+# 7) For the cross-phenotype Analysis you will find results in:                  #
+# outputs/association/pheno_analysis/EURvsAFR/                                   #
+##################################################################################

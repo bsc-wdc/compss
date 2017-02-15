@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+	<SharedDisk Name="Disk1">
+        <Storage>
+            <Size>10.0</Size>
+        </Storage>
+    </SharedDisk>
+    
+    <ComputeNode Name="localhost">
+        <Processor Name="MainProcessor">
+            <ComputingUnits>4</ComputingUnits>
+            <Architecture>IA32</Architecture>
+        </Processor>
+        <Memory>
+        	<Size>8.0</Size>
+        </Memory>
+        <Adaptors>
+            <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+                <SubmissionSystem>
+                    <Interactive/>
+                </SubmissionSystem>
+                <Ports>
+                    <MinPort>43001</MinPort>
+                    <MaxPort>43002</MaxPort>
+                </Ports>
+            </Adaptor>
+            <Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+                <SubmissionSystem>
+                    <Batch>
+                        <Queue>sequential</Queue>
+                    </Batch>
+                    <Interactive/>
+                </SubmissionSystem>
+                <BrokerAdaptor>sshtrilead</BrokerAdaptor>
+            </Adaptor>
+        </Adaptors>
+        <SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/home/compss/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </ComputeNode>
+</ResourcesList>
+

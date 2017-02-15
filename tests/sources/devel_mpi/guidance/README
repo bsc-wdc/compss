@@ -1,0 +1,208 @@
+-----------------------------------
+Guidance Software version 0.9.6
+-----------------------------------
+
+Release number: 0.9.8
+Release date:   20-Jul-2016
+--------------------------
+
+Last update of this README : $LastChangedDate: 2016-07-20 13:19:48 +0100 (Wed, 20 Jul 2016) $
+Revision Number            : $Revision: 26 $
+Last revision              : $LastChangedRevision: 26 $
+Written by                 : Friman Sanchez C.
+                           : friman.sanchez@gmail.com
+Modified by                :
+
+Guidance web page      : http://cg.bsc.es/guidance/
+
+-------------------
+GENERAL USAGE NOTES
+-------------------
+- Be sure that your system is a x86-64 bits architecture
+
+--------------------
+CONTENT
+--------------------
+  1. What is Guidance?
+  2. Recommend first step to use Guidance
+  3. Installing Guidance
+  4. Using Guidance
+  5. License and Authors
+  6. Acknowledgements
+
+
+-------------------------------------------
+1. What is Guidance [1]
+-------------------------------------------
+  Guidance: An Integrated Framework for performing Large-scale Genome-wide Imputation,
+  Association Testing ang phenome-wide Association. Guidance is a research tool that 
+  efficiently performs large-scale genotype imputation, together with the corresponding 
+  association testing on huge amount of sample sizes and using large and dense reference 
+  panels, in a single execution and without user intervention, generating final graphical
+  and summary outputs. Guidance integrates state of the art tools for each of these 
+  steps, and it is directly portable to different computing platforms, ranging 
+  from desktop computers to distributed infrastructures, such as HPC clusters, 
+  grids and cloud systems, ensuring an efficient use of resources, without software 
+  modification or complex setup processes. A summary of the features are:
+
+  - It integrates the main stages that a robust GWAS workflow should meet, including 
+    haplotype pre-phasing, imputation and association testing. It also allows the 
+    use of common freely available and state of the art tools to perform each stage. 
+    Guidance is easily configurable and adaptable according to user requirements. 
+    The source code is freely available in case advanced users would like to perform 
+    specific modifications in the workflow.
+
+  - Guidance also allows merging the imputation results from several reference 
+    panels, (e.g., UK10K, and 1000 Genomes, etc.), and generates graphical and summary 
+    outputs providing amenable information to non-expert users for the biological 
+    interpretation of the results.
+
+  - Guidance is deployable on different type of platforms, ranging from simple 
+    desktop computers to distributed computing infrastructures, (e.g. shared memory 
+    machines, grids, HPC clusters and cloud environments) and makes them transparent 
+    to the users. Therefore, parameters like available processors, nodes, memory 
+    requirements, data transfer mechanisms, workload balance and disk space do not 
+    need to be directly managed by users.
+
+  - It accepts several input formats in which GWAS data is usually released, (.bed, 
+    .ped and .gen formats), achieves high-speed output delivery and generates 
+    simplified performance reports related to the imputation and GWAS processes.
+
+  - Guidance was implemented by means of COMP Superscalar (COMPSs) [2], a 
+    framework that aims to facilitate the development and execution of applications 
+    for distributed infrastructures, such as clusters, clouds or grids. In that 
+    sense, COMPSs provides (i) A simple programming model and (ii) a runtime system 
+    that controls the parallelization of the application without user intervention.
+
+  Guidance represents an ideal tool for large multi-center consortia, allowing 
+  whole-genome imputation in a standardized way across different institutions, without 
+  the need of sharing the individual-level data. Taken together, Guidance is the 
+  first unified solution for integrating imputation and association tests on modern 
+  computing environments and in a single execution.
+
+  References:
+
+  [1] Sanchez, F., Bonas, S., Guindo, M., Diaz, C., Tejedor, E., Badia R.M., Mercader J.M., 
+      and Torrents, D.  "Guidance: An integrated Framework for Large-scale Genome and Phenome-wide 
+      Association studies on Parallel Computing Platforms". Submmited.
+      http://cg.bsc.es/guidance/
+
+  [2] Tejedor, E. and Badia, R. M. (2008). COMP Superscalar: Bringing GRID Superscalar 
+      and GCM Together. In Proceedings of the 2008 Eighth IEEE International Symposium 
+      on Cluster Computing and the Grid, CCGRID 08, pages 185-193, Washington, DC, USA. 
+      IEEE Computer Society.
+      http://www.bsc.es/computer-sciences/grid-computing/comp-superscalar
+
+
+----------------------------------------------
+2. Recommended first step to test Guidance
+----------------------------------------------
+  We recommend to start using the VM that contains everything needed to run Guidance 
+  with some examples, on a desktop computer. This is the easiest way to start using 
+  Guidance in order to understand the process and the kind of results that Guidance
+  performs. You can download the VM from http://cg.bsc.es/guidance/.
+
+  The steps to use the VM are:
+
+  2.1 Download de VM described in the webpage according to your system. Depending on 
+      your internet connection, the downloading can take several minutes. Take into 
+      account that the VM format used is vmdk for for x86 and AMD64/Intel64-based 
+      systems, (X86-64 bits machines). Make sure your host machine corresponds to this 
+      architecture.
+
+  2.2 After downloading the VM, you can use any virtualization software package 
+      (like VirtualBox, Vware, etc) in order to use the VM. It is possible that you
+      will need to change the VM format file to any other accepted by your virtualization
+      software. See the documentation of your specific virtualization software in order 
+      to configure the machine. 
+
+      We also recommend you to configure the VM using the following parameters. Take 
+      into accout that these suggested parameters will depend on the features of your 
+      host machine:
+
+      - 4 CPUs.
+      - Around 8 GB of RAM memory. 
+      - Use Network Address Translation (NAT) as a network adapter. To run the examples
+        and using Guidance in the VM, it is not required internet access in your VM. 
+        Everything needed is already located into the VM.
+
+  2.3 Start the VM. The access information is:
+      - login   : user
+      - password: user
+
+  2.4 Inside the VM, open a terminal and go to the directory with the examples, by using 
+      the command line:
+
+      > cd /home/user/guidance
+
+  2.5 Open the README_for_examples document. You can do it from the command line by using 
+      kate editor:
+
+      > kate README_for_examples &
+
+      The README_for_examples file contains the instructions on how to run the examples 
+      in the VM. Follow the instructions of that document.
+
+-------------------------------------------
+3. Installing Guidance
+-------------------------------------------
+  3.1 Important: These instructions assume that COMPSs programming framework is already 
+      installed in your system, whatever it is, (e.g., Desktop, Cluter, Grid, Cloud, etc). 
+      If your system does not have any installation of COMPSs, please go to 
+
+       http://www.bsc.es/computer-sciences/grid-computing/comp-superscalar/ and
+       http://cg.bsc.es/guidance/
+
+       and follow the instructions on how to install COMPSs.
+
+  3.2 Go to the Guidance website: http://cg.bsc.es/guidance/ , download the 
+      source code guidance_X.Y.Z.tar.gz, and follow the instructions on how to install
+      the application depending on your computing platform.
+
+  3.3 There is a User Support mailing list related to Guidance. Users are encouraged
+      to consider subscribing to it. You can find all the information in:
+
+      http://cg.bsc.es/guidance/
+
+---------------------
+4. Using Guidance
+---------------------
+     Go to the Guidance website, and follow the instruction of the README_on_examples 
+     presented in the VM.
+
+     There is also a complete document that describes the list of parameters that Guidance
+     receives. Go to website and download the document "configuration_file_parameters.pdf".
+
+----------------------
+5. License and Authors
+----------------------
+
+  5.1 Please see the LICENSE text file that comes with this software. It describes the 
+      lincese, the terms and conditions for use, reproduction and distribution.
+
+  5.2 Authors: 
+    Java code has been written by:
+              Friman Sanchez C.
+              friman.sanchez@bsc.es
+              friman.sanchez@gmail.com
+
+    R code has been written by:
+              Silvia Bonas Guarch and Marta Guindo Martinez
+              silvia.bonas@bsc.es, marta.guindomartinez@bsc.es
+
+
+----------------------
+6. Acknowledgements
+----------------------
+  The authors wish to acknowledge the following persons for the invaluable 
+  contribution with key discussions and testing of this software:
+
+  We acknowledge PRACE for awarding us access to MareNostrum, based in Spain at 
+  Barcelona. The technical support group from the Barcelona Supercomputing Center is 
+  gratefully acknowledged. Finally, we thank all the Computational Genomics group at 
+  the BSC for their helpful discussions and valuable comments. We also acknowledge 
+  Elias Fos for designing the Guidance logo.
+
+  Also, we wish to thank the anonymous users that with their questions and bug 
+  report contribute this software improves in each release.
+-----------------------

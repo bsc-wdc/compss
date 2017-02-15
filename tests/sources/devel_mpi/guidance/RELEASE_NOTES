@@ -1,0 +1,42 @@
+-----------------------------
+Guidance Software
+-----------------------------
+
+Guidance: An integrated Framework for Genome-wide Imputation and Association Testing on Parallel Computing Platforms.
+Guidance is a research tool to phase, impute genotypes and perform association testing that requires minimal configuration 
+and delivers optimal and robust results. It is portable to different platforms, ranging from simple destktop computers 
+to distributed computing infrastructures, such as Clusters, Grids and Clouds, without software modifications or complex
+setup processes. Guidance allows merging the results from different reference panels, (e.g., UK10K, and 1000 Genomes),
+and generates graphical and summary outputs providing amenable information to non-expert users for the biological interpretation 
+of the results. 
+
+Guidance was implemented by means of COMP Superscalar (COMPSs) (Tejedor and Badia, 2008), a framework that aims to 
+facilitate the development and execution of applications for distributed infrastructures, such as clusters, clouds or grids. 
+In that sense, COMPSs provides (i) a simple programming model and (ii) a runtime system that controls the parallelization of 
+the application without user intervention.
+
+Release number: 0.9.8
+Release date:   20-Jul-2016
+--------------------------
+This is the first public release of the Guidance software.
+
+Implemented features:
+	* Workflow style execution of the following stages:
+		- Pre-phasing
+		- Imputation
+		- Post-inputation filtering
+		- Merging results from several panels
+		- Strand homogenization
+		- Association test
+		- Top-hit results
+                - Phenome-wide association
+		- Graphical results: Manhattan and QQ plots
+	* Workflow implementation on the COMPSs programming model.
+
+Bugfixes:
+-------------------------------
+
+
+
+Please find more details about the Guidance at: 
+	http://cg.bsc.es/guidance

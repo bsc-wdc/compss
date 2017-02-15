@@ -53,6 +53,9 @@
     <Logger name="integratedtoolkit.Worker.Executor" additivity="FALSE" level="off">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="integratedtoolkit.Worker.ThreadBinder" additivity="FALSE" level="off">
+      <AppenderRef ref="Console"/>
+    </Logger>
 
     <!-- STORAGE -->
     <!-- Integratedtoolkit.Storage: DEFAULT = OFF -->

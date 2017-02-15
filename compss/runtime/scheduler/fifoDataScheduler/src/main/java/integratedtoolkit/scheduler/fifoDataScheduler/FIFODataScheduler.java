@@ -2,11 +2,7 @@ package integratedtoolkit.scheduler.fifoDataScheduler;
 
 import java.util.LinkedList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.FIFODataScore;
@@ -27,10 +23,6 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends ReadyScheduler<P, T, I> {
 
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
-
-
     /**
      * Constructs a new Ready Scheduler instance
      * 
@@ -49,13 +41,13 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        //LOGGER.info("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
+        // LOGGER.info("[FIFODataScheduler] Generate scheduler for resource " + w.getName());
         return new FIFODataResourceScheduler<P, T, I>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        //LOGGER.info("[FIFODataScheduler] Generate Action Score for " + action);
+        // LOGGER.info("[FIFODataScheduler] Generate Action Score for " + action);
         return new FIFODataScore(action.getPriority(), -(double) action.getId(), 0, 0);
     }
 
@@ -71,7 +63,7 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
             LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
 
-        //LOGGER.info("[FIFODataScheduler] Treating dependency free actions");
+        // LOGGER.info("[FIFODataScheduler] Treating dependency free actions");
 
         for (AllocatableAction<P, T, I> action : executionCandidates) {
             this.dependingActions.removeAction(action);

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>                                                                                                                                 
+<Project>
+    <MasterNode>
+    	<SharedDisks>
+            <AttachedDisk Name="Disk1">
+                <MountPoint>/home/compss/</MountPoint>
+            </AttachedDisk>
+        </SharedDisks>
+    </MasterNode>
+
+    <ComputeNode Name="localhost">
+        <InstallDir>/opt/COMPSs</InstallDir>
+        <WorkingDir>/tmp/COMPSsWorkerLocalhost/</WorkingDir>
+    </ComputeNode>
+</Project>
+

@@ -19,6 +19,7 @@ import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.types.annotations.parameter.DataType;
@@ -137,8 +138,9 @@ public abstract class Executor implements Runnable {
         File sandbox = null;
         try {
         	sandbox = createSandBox(nt);
-            int[] assignedCoreUnits = nw.getExecutionManager().bindCPUs(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits());
-            int[] assignedGPUs = nw.getExecutionManager().bindGPUs(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits());
+        	ExecutionManager currentExecutorManager = nw.getExecutionManager();
+            int[] assignedCoreUnits = currentExecutorManager.bind(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits(), ExecutionManager.BINDER_TYPE.CPU);
+            int[] assignedGPUs = currentExecutorManager.bind(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits(), ExecutionManager.BINDER_TYPE.GPU);
             logger.debug("Binding renamed files to sandboxed original names for Job "+ nt.getJobId() );
             bindOriginalFilenamesToRenames(nt, sandbox);
             logger.debug("Executing Task of Job "+ nt.getJobId());
@@ -159,8 +161,8 @@ public abstract class Executor implements Runnable {
 					logger.warn(" Error deleting sandbox" + e.getMessage());
 				}
         	}
-            nw.getExecutionManager().releaseCPUs(nt.getJobId());
-            nw.getExecutionManager().releaseGPUs(nt.getJobId());
+            nw.getExecutionManager().release(nt.getJobId(), ExecutionManager.BINDER_TYPE.CPU);
+            nw.getExecutionManager().release(nt.getJobId(), ExecutionManager.BINDER_TYPE.GPU);
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.TASK_RUNNING.getType());
             }

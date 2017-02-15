@@ -1,6 +1,6 @@
 package integratedtoolkit.nio.worker.exceptions;
 
-public class UnsufficientAvailableCoresException extends Exception {
+public class UnsufficientAvailableCoresException extends UnsufficientAvailableComputingUnitsException {
 
     /**
      * Exception Version UID are 2L in all Runtime

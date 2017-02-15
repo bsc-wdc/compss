@@ -55,9 +55,9 @@ setup (name='pycompss',
 	description='Python Binding for COMP Superscalar Runtime',
 	long_description=open('README.txt').read(),
 	author='The COMPSs team',
-	author_email='distributed_computing@bsc.es',
+	author_email='support-compss@bsc.es',
 	maintainer='The COMPSs team',
-	maintainer_email='distributed_computing@bsc.es',
+	maintainer_email='support-compss@bsc.es',
 	url='http://compss.bsc.es',
 	classifiers = [
         	'Development Status :: 5 - Production/Stable',
@@ -79,4 +79,3 @@ setup (name='pycompss',
 	license='Apache 2.0',
 	platforms=['Linux']
 	)
-

@@ -25,7 +25,7 @@
   echo "*** RUNNING JAVA APPLICATION TRACING"
   output_log="${target_log_folder}/tracing_0${retryNum}.outputlog"
   error_log="${target_log_folder}/tracing_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
   tasks=10
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \

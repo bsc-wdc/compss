@@ -39,9 +39,23 @@
 
   set_env() {
     local bindingsDir=$(dirname $0)/../../../../../Bindings
-
-    # Set LD_LIBRARY_PATH related env
-    export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindigsDir}/bindings-common/lib:$LD_LIBRARY_PATH
+	# Set LD_LIBRARY_PATH related env
+    export LD_LIBRARY_PATH=${bindingsDir}/c/lib:${bindingsDir}/bindings-common/lib:$LD_LIBRARY_PATH
+	
+	# Look for the JVM Library
+  	if [ -n "${JAVA_HOME}" ]; then
+  		libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+  		if [ -z "$libjava" ]; then
+    		libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    		if [ -z "$libjava" ]; then
+      			echo "WARNNING: Java lib dir not found."
+    		fi
+  		fi
+  		if [ -n "$libjava" ]; then 
+  			libjavafolder=$(dirname $libjava)
+  			export LD_LIBRARY_PATH=${libjavafolder}:$LD_LIBRARY_PATH
+		fi
+	fi
 
     # Set classpath related env
     local gatworker_jar=$(dirname $0)/../../../../adaptors/gat/worker/compss-adaptors-gat-worker.jar

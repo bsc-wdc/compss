@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,7 @@ public class Comm {
     private static final String STORAGE_CONF = System.getProperty(ITConstants.IT_STORAGE_CONF);
     private static final String ADAPTORS_REL_PATH = File.separator + "Runtime" + File.separator + "adaptors";
 
-    private static final HashMap<String, CommAdaptor> adaptors = new HashMap<>();
+    private static final Map<String, CommAdaptor> adaptors = new ConcurrentHashMap<>();
 
     // Log and debug
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
@@ -69,7 +70,7 @@ public class Comm {
     /**
      * Communications initializer
      */
-    public static synchronized void init() {
+    public static void init() {
         appHost = new MasterResource();
         try {
             if (STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null")) {
@@ -105,7 +106,7 @@ public class Comm {
      * @return
      * @throws ConstructConfigurationException
      */
-    public static synchronized Configuration constructConfiguration(String adaptorName, Object project_properties,
+    public static Configuration constructConfiguration(String adaptorName, Object project_properties,
             Object resources_properties) throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
@@ -152,7 +153,7 @@ public class Comm {
      * @param config
      * @return
      */
-    public static synchronized COMPSsWorker initWorker(String name, Configuration config) {
+    public static COMPSsWorker initWorker(String name, Configuration config) {
         String adaptorName = config.getAdaptorName();
         CommAdaptor adaptor = adaptors.get(adaptorName);
         return adaptor.initWorker(name, config);
@@ -162,7 +163,7 @@ public class Comm {
      * Stops the communication layer. 
      * Clean FTM, Job, {GATJob, NIOJob} and WSJob
      */
-    public static synchronized void stop() {
+    public static void stop() {
         appHost.deleteIntermediate();
         for (CommAdaptor adaptor : adaptors.values()) {
             adaptor.stop();
@@ -348,7 +349,7 @@ public class Comm {
      * @param host
      * @return
      */
-    public static synchronized HashSet<LogicalData> getAllData(Resource host) {
+    public static HashSet<LogicalData> getAllData(Resource host) {
         // logger.debug("Get all data from host: " + host.getName());
         return host.getAllDataFromHost();
     }
@@ -384,7 +385,7 @@ public class Comm {
      * 
      * @return
      */
-    public static synchronized HashMap<String, CommAdaptor> getAdaptors() {
+    public static Map<String, CommAdaptor> getAdaptors() {
         return adaptors;
     }
 
@@ -392,7 +393,7 @@ public class Comm {
      * Stops all the submitted jobs
      * 
      */
-    public static synchronized void stopSubmittedjobs() {
+    public static void stopSubmittedjobs() {
         for (CommAdaptor adaptor : adaptors.values()) {
             adaptor.stopSubmittedJobs();
         }

@@ -104,7 +104,7 @@ public class KMeans {
 
     public static void main(String[] args) {
         int K = 4;
-        int iterations = 50;
+        int iterations = 20;
         int nPoints = 2000;
         int nDimensions = 2;
         int nFrags = 2;

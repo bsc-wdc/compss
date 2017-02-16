@@ -31,7 +31,7 @@
   #----------------------------------------------------------------------------------
   # Check transfers on worker files
   numTransfersNIO=$(grep -R "does not exist, requesting data transfer" ${target_log_folder}/workers/ | wc -l)
-  numTrasnfersGAT=$(cat ${runtime_log} | grep "GATCopy" | grep "$(hostname)" | grep -v "out" | grep -v "err" | grep -v "tar\.gz" | wc -l)
+  numTrasnfersGAT=$(cat ${runtime_log} | grep "GATCopy" | egrep "localhost|$(hostname)" | grep -v "out" | grep -v "err" | grep -v "tar\.gz" | wc -l)
   numTransfers=$((numTransfersNIO + numTrasnfersGAT))
   expectedNumTransfers=2
   if [ ${numTransfers} -ne ${expectedNumTransfers} ]; then

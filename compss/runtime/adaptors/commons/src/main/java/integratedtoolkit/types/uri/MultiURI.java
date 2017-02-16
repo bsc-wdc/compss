@@ -22,6 +22,12 @@ public class MultiURI implements Comparable<MultiURI> {
         this.host = host;
         this.path = path;
         this.internal = new HashMap<>();
+        try {
+			host.setInternalURI(this);
+		} catch (UnstartedNodeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     public void setInternalURI(String adaptor, Object uri) {
@@ -30,10 +36,6 @@ public class MultiURI implements Comparable<MultiURI> {
 
     public Object getInternalURI(String adaptor) throws UnstartedNodeException {
         Object o = internal.get(adaptor);
-        if (o == null) {
-            host.setInternalURI(this);
-            o = internal.get(adaptor);
-        }
         return o;
     }
 
@@ -59,7 +61,7 @@ public class MultiURI implements Comparable<MultiURI> {
     }
 
     public String debugString() {
-        StringBuilder sb = new StringBuilder(this.protocol.getSchema() + this.host.toString() + File.separator + this.path + "\n");
+        StringBuilder sb = new StringBuilder(this.protocol.getSchema() + this.host.getName() + File.separator + this.path + "\n");
         for (Entry<String, Object> e : internal.entrySet()) {
             sb.append("\t * ").append(e.getKey()).append(" -> ").append(e.getValue()).append("\n");
         }

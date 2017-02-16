@@ -38,7 +38,7 @@
   mkdir -p ${log_folder}
   output_log="${log_folder}/defaultScheduler_0${retryNum}.outputlog"
   error_log="${log_folder}/defaultScheduler_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -77,7 +77,7 @@
   mkdir -p ${log_folder}
   output_log="${log_folder}/fifoScheduler_0${retryNum}.outputlog"
   error_log="${log_folder}/fifoScheduler_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -117,7 +117,7 @@
   mkdir -p ${log_folder}
   output_log="${log_folder}/lifoScheduler_0${retryNum}.outputlog"
   error_log="${log_folder}/lifoScheduler_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -157,7 +157,7 @@
   mkdir -p ${log_folder}
   output_log="${log_folder}/fifoDataScheduler_0${retryNum}.outputlog"
   error_log="${log_folder}/fifoDataScheduler_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
@@ -197,7 +197,7 @@
   mkdir -p ${log_folder}
   output_log="${log_folder}/dataScheduler_0${retryNum}.outputlog"
   error_log="${log_folder}/dataScheduler_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=240s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

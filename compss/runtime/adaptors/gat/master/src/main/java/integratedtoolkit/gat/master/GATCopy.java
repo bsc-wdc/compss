@@ -78,6 +78,7 @@ public class GATCopy extends ImmediateCopy {
         	logger.error(DBG_PREFIX + ERR_NO_TGT_URI);
             throw new GATCopyException(ERR_NO_TGT_URI);
         }
+        logger.debug(DBG_PREFIX + "Selected target URIs" );
         // Fetch valid source URIs
         LinkedList<MultiURI> sourceURIs;
         LinkedList<URI> selectedSourceURIs = new LinkedList<>();
@@ -91,6 +92,7 @@ public class GATCopy extends ImmediateCopy {
                             selectedSourceURIs.add(internalURI);
                         }
                     } catch (UnstartedNodeException une) {
+                    	logger.error(DBG_PREFIX + "Exception selecting source URI");
                         throw new GATCopyException(une);
                     }
                 }
@@ -104,12 +106,14 @@ public class GATCopy extends ImmediateCopy {
                         selectedSourceURIs.add(internalURI);
                     }
                 } catch (UnstartedNodeException une) {
+                	logger.error(DBG_PREFIX + "Exception selecting source URI for " + getName());
                     throw new GATCopyException(une);
                 }
             }
 
             if (selectedSourceURIs.isEmpty()) {
                 if (srcData.isInMemory()) {
+                	logger.debug("Data for " + getName() + " is in memory");
                     try {
                         srcData.writeToStorage();
                         sourceURIs = srcData.getURIs();
@@ -124,6 +128,7 @@ public class GATCopy extends ImmediateCopy {
                         throw new GATCopyException(ERR_NO_SRC_URI);
                     }
                 } else {
+                	logger.error(DBG_PREFIX + ERR_NO_SRC_URI);
                     throw new GATCopyException(ERR_NO_SRC_URI);
                 }
             }

@@ -25,7 +25,7 @@
   echo "*** RUNNING PYTHON TASK's TRACING TEST WITH KMEANS"
   output_log="${target_log_folder}/pythonTaskTracing_0${retryNum}.outputlog"
   error_log="${target_log_folder}/pythonTaskTracing_0${retryNum}.errorlog"
-  expectedTime=60s
+  expectedTime=180s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --classpath=${base_app_dir}/test/ \

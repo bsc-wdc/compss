@@ -27,7 +27,7 @@
   output_log="${target_log_folder}/replicatedTask_0${retryNum}.outputlog"
   error_log="${target_log_folder}/replicatedTask_0${retryNum}.errorlog"
   final_graph_expected="${base_app_dir}/final_graph.dot"
-  expectedTime=60s
+  expectedTime=180s
   
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

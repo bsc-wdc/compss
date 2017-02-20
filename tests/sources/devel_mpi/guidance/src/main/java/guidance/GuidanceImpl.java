@@ -29,6 +29,9 @@
 package guidance;
 
 import java.util.zip.GZIPOutputStream;
+
+import guidance.exceptions.GuidanceTaskException;
+
 import java.io.File;
 import java.io.Reader;
 import java.io.BufferedReader;
@@ -51,10 +54,8 @@ import java.util.Hashtable;
 
 import java.util.Set;
 
-import java.nio.channels.FileChannel;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
-import static java.nio.file.StandardCopyOption.*;
+import java.nio.file.StandardCopyOption;
 import java.io.RandomAccessFile;
 import java.util.zip.GZIPInputStream;
 
@@ -249,7 +250,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void createRsIdList(String genOrBimFile, String exclCgatFlag, String pairsFile, String inputFormat, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running createRsIdList with parameters:");
@@ -400,7 +401,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void qctoolS(String imputeFile, String inclusionRsIdFile, String mafThresholdS, String filteredFile,
-            String filteredLogFile, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String filteredLogFile, String cmdToStore) throws GuidanceTaskException {
 
         String qctoolBinary = System.getenv("QCTOOLBINARY");
         if (qctoolBinary == null) {
@@ -517,7 +518,8 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void createListOfExcludedSnps(String shapeitHapsFile, String excludedSnpsFile, String exclCgatFlag, String exclSVFlag,
-            String cmdToStore) throws IOException, InterruptedException, Exception {
+            String cmdToStore) throws GuidanceTaskException {
+
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running createListOfExcludedSnps method:");
             System.out.println("[DEBUG] \t- Input shapeitHapsFile   : " + shapeitHapsFile);
@@ -527,80 +529,65 @@ public class GuidanceImpl {
             System.out.println("\n");
             System.out.println("[DEBUG] \t- Command: " + cmdToStore);
         }
+
         long startTime = System.currentTimeMillis();
 
         // We have to check the haplotypes file and extract tha allele information. For the format file used by shapeit,
         // the indices for alleles are:
-        // int rsIdIndex = 1;
-        int posIndex = 2;
-        int a1Index = 3;
-        int a2Index = 4;
+        // final int rsIdIndex = 1;
+        final int posIndex = 2;
+        final int a1Index = 3;
+        final int a2Index = 4;
         // And the column separator is:
-        String separator = " ";
-
-        // We have to make sure whether we are using renamed files of the original gz files.
-        // We detect this situation by scanning the last three characters of the file name:
-        String extension = shapeitHapsFile.substring(Math.max(0, shapeitHapsFile.length() - 3));
-        // System.out.println("DEBUG \t The file extension is: " + extension + " and the file is " + shapeitHapsFile);
-        String shapeitHapsFileGz = null;
-
-        GZIPInputStream inputGz = null;
-        Reader decoder = null;
-        BufferedReader br = null;
-
-        if (extension.equals(".gz")) {
-            shapeitHapsFileGz = shapeitHapsFile;
-        } else {
-            // If the renamed shapeitHapsFile exists, then an extended .gz version exists also.
-            shapeitHapsFileGz = shapeitHapsFile + ".gz";
-            // String imputeFileGz = imputeFile + ".gz";
-        }
-
-        inputGz = new GZIPInputStream(new FileInputStream(shapeitHapsFileGz));
-        decoder = new InputStreamReader(inputGz);
-        br = new BufferedReader(decoder);
+        final String separator = " ";
 
         // Array of string to store positions of SNPs to exclude
         ArrayList<String> excludeList = new ArrayList<String>();
 
-        // Then, we read the gz File line by line
-        String line = "";
-        while ((line = br.readLine()) != null) {
-            String[] splitted = line.split(separator);// delimiter defined previously.
-            // String allele1 = splitted[a1Index];
-            // String allele2 = splitted[a2Index];
-            String positionS = splitted[posIndex];
-            boolean excludeSNP = false;
+        try (GZIPInputStream inputGz = new GZIPInputStream(new FileInputStream(shapeitHapsFile));
+                Reader decoder = new InputStreamReader(inputGz);
+                BufferedReader br = new BufferedReader(decoder);) {
 
-            if (exclSVFlag.equals("YES")) {
-                if (!splitted[a1Index].equals("A") && !splitted[a1Index].equals("C") && !splitted[a1Index].equals("G")
-                        && !splitted[a1Index].equals("T")) {
-                    // This SNP is a SV because:
-                    // 1) It has more than one point: e.g "AAA.." or "ACG..."
-                    // 2) it is a deletion: e.g "-"
-                    excludeSNP = true;
-                }
-                if (!splitted[a2Index].equals("A") && !splitted[a2Index].equals("C") && !splitted[a2Index].equals("G")
-                        && !splitted[a2Index].equals("T")) {
-                    // This SNP is a SV because:
-                    // 1) It has more than one point: e.g "AAA.." or "ACG..."
-                    // 2) it is a deletion: e.g "-"
-                    excludeSNP = true;
-                }
-            }
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                String[] splitted = line.split(separator);
+                // String allele1 = splitted[a1Index];
+                // String allele2 = splitted[a2Index];
+                String positionS = splitted[posIndex];
+                boolean excludeSNP = false;
 
-            String allele = splitted[a1Index] + splitted[a2Index];
-            if (exclCgatFlag.equals("YES")) {
-                // Then we have to see if allele is AT TA GC CG to exclude it.
-                if (allele.equals("AT") || allele.equals("TA") || allele.equals("GC") || allele.equals("CG")) {
-                    excludeSNP = true;
+                if (exclSVFlag.equals("YES")) {
+                    if (!splitted[a1Index].equals("A") && !splitted[a1Index].equals("C") && !splitted[a1Index].equals("G")
+                            && !splitted[a1Index].equals("T")) {
+                        // This SNP is a SV because:
+                        // 1) It has more than one point: e.g "AAA.." or "ACG..."
+                        // 2) it is a deletion: e.g "-"
+                        excludeSNP = true;
+                    }
+                    if (!splitted[a2Index].equals("A") && !splitted[a2Index].equals("C") && !splitted[a2Index].equals("G")
+                            && !splitted[a2Index].equals("T")) {
+                        // This SNP is a SV because:
+                        // 1) It has more than one point: e.g "AAA.." or "ACG..."
+                        // 2) it is a deletion: e.g "-"
+                        excludeSNP = true;
+                    }
                 }
-            }
 
-            if (excludeSNP) {
-                // Store the positon in the excludeList
-                excludeList.add(positionS);
-            }
+                String allele = splitted[a1Index] + splitted[a2Index];
+                if (exclCgatFlag.equals("YES")) {
+                    // Then we have to see if allele is AT TA GC CG to exclude it.
+                    if (allele.equals("AT") || allele.equals("TA") || allele.equals("GC") || allele.equals("CG")) {
+                        excludeSNP = true;
+                    }
+                }
+
+                if (excludeSNP) {
+                    // Store the positon in the excludeList
+                    excludeList.add(positionS);
+                }
+            } // End while readline
+        } catch (IOException ioe) {
+            throw ioe;
         }
 
         // Finally we put the excludedList into the outputFile
@@ -608,16 +595,18 @@ public class GuidanceImpl {
         // We verify that a file with the same name does not exist. (It should not exist!!)
         File outputFile = new File(excludedSnpsFile);
         outputFile.createNewFile();
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-        for (int i = 0; i < excludeList.size(); i++) {
-            writer.write(excludeList.get(i) + "\n");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
+            for (int i = 0; i < excludeList.size(); i++) {
+                writer.write(excludeList.get(i) + "\n");
+            }
+            writer.flush();
+        } catch (IOException ioe) {
+            throw ioe;
         }
-        writer.flush();
-        writer.close();
 
         long stopTime = System.currentTimeMillis();
         long elapsedTime = (stopTime - startTime) / 1000;
+
         if (DEBUG) {
             System.out.println("\n[DEBUG] createListOfExcludedSnps startTime: " + startTime);
             System.out.println("\n[DEBUG] createListOfExcludedSnps endTime: " + stopTime);
@@ -628,6 +617,19 @@ public class GuidanceImpl {
 
     /**
      * Method to execute phasing task where input files are in BED format
+     * 
+     * @param chromo
+     * @param bedFile
+     * @param bimFile
+     * @param famFile
+     * @param gmapFile
+     * @param shapeitHapsFile
+     * @param shapeitSampleFile
+     * @param shapeitLogFile
+     * @param cmdToStore
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws Exception
      */
     public static void phasingBed(String chromo, String bedFile, String bimFile, String famFile, String gmapFile, String shapeitHapsFile,
             String shapeitSampleFile, String shapeitLogFile, String cmdToStore) throws IOException, InterruptedException, Exception {
@@ -666,12 +668,13 @@ public class GuidanceImpl {
         String cmd = null;
 
         if (chromo.equals("23")) {
-            cmd = shapeitBinary + " --input-bed " + bedFile + " " + bimFile + " " + famFile + " --input-map " + gmapFile
-                    + " --chrX --output-max " + shapeitHapsFileGz + " " + shapeitSampleFile
-                    + " --thread 16 --effective-size 20000 --output-log " + shapeitLogFile;
+            cmd = shapeitBinary + " --input-bed " + bedFile + " " + bimFile + " " + famFile + " --input-map " + gmapFile + " --chrX"
+                    + " --output-max " + shapeitHapsFileGz + " " + shapeitSampleFile + " --thread 16 --effective-size 20000"
+                    + " --output-log " + shapeitLogFile;
         } else {
             cmd = shapeitBinary + " --input-bed " + bedFile + " " + bimFile + " " + famFile + " --input-map " + gmapFile + " --output-max "
-                    + shapeitHapsFileGz + " " + shapeitSampleFile + " --thread 16 --effective-size 20000 --output-log " + shapeitLogFile;
+                    + shapeitHapsFileGz + " " + shapeitSampleFile + " --thread 16 --effective-size 20000" + " --output-log "
+                    + shapeitLogFile;
         }
 
         if (DEBUG) {
@@ -762,11 +765,11 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void phasing(String chromo, String inputGenFile, String inputSampleFile, String gmapFile, String shapeitHapsFile,
-            String shapeitSampleFile, String shapeitLogFile, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String shapeitSampleFile, String shapeitLogFile, String cmdToStore) throws GuidanceTaskException {
 
         String shapeitBinary = System.getenv("SHAPEITBINARY");
         if (shapeitBinary == null) {
-            throw new Exception("[phasing] Error, SHAPEITBINARY environment variable is not defined in .bashrc!!!");
+            throw new GuidanceTaskException("[phasing] Error, SHAPEITBINARY environment variable is not defined in .bashrc!!!");
         }
 
         if (DEBUG) {
@@ -884,191 +887,42 @@ public class GuidanceImpl {
     }
 
     /**
-     * Method to execute filterHaplotypes where input files are in GEN format
+     * Actions to do after filter haplotypes (decompress)
      * 
-     * @param hapsFile
-     * @param sampleFile
-     * @param excludedSnpsFile
      * @param filteredHapsFile
-     * @param filteredSampleFile
-     * @param filteredLogFile
-     * @param filteredHapsVcfFile
      * @param listOfSnpsFile
-     * @param cmdToStore
      * @throws IOException
-     * @throws InterruptedException
-     * @throws Exception
      */
-    public static void filterHaplotypes(String hapsFile, String sampleFile, String excludedSnpsFile, String filteredHapsFile,
-            String filteredSampleFile, String filteredLogFile, String filteredHapsVcfFile, String listOfSnpsFile, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
-
-        String shapeitBinary = System.getenv("SHAPEITBINARY");
-        if (shapeitBinary == null) {
-            throw new Exception("[phasing] Error, SHAPEITBINARY environment variable is not defined in .bashrc!!!");
-        }
-
-        if (DEBUG) {
-            System.out.println("\n[DEBUG] Running filterHaplotypes with parameters:");
-            System.out.println("[DEBUG] \t- shapeitBinary             : " + shapeitBinary);
-            System.out.println("[DEBUG] \t- Input hapsFile            : " + hapsFile);
-            System.out.println("[DEBUG] \t- Input sampleFile          : " + sampleFile);
-            System.out.println("[DEBUG] \t- Input excludedSnpsFile    : " + excludedSnpsFile);
-            System.out.println("[DEBUG] \t- Output filteredHapsFile   : " + filteredHapsFile);
-            System.out.println("[DEBUG] \t- Output filteredSampleFile : " + filteredSampleFile);
-            System.out.println("[DEBUG] \t- Output filteredLogFile     : " + filteredLogFile);
-            System.out.println("[DEBUG] \t- Output filteredHapsVcfFile : " + filteredHapsVcfFile);
-            System.out.println("[DEBUG] \t- Output lisfOfSnpsFile     : " + listOfSnpsFile);
-            System.out.println("\n");
-            System.out.println("[DEBUG] \t- Command: " + cmdToStore);
-
-            // Map<String, String> env = System.getenv();
-            // System.out.println("--------------------------------------");
-            // System.out.println("Environmental Variables in Master:");
-            // for (String envName : env.keySet()) {
-            // System.out.format("%s=%s%n",envName,env.get(envName));
-            // }
-            // System.out.println("--------------------------------------");
-        }
-        long startTime = System.currentTimeMillis();
-
-        // We have to make sure whether we are using renamed files of the original gz files.
-        // We detect this situation by scanning the last three characters:
-        String extension = hapsFile.substring(Math.max(0, hapsFile.length() - 3));
-        // System.out.println("DEBUG \t The file extension is: " + extension + " and the file is " + shapeitHapsFile);
-
-        String hapsFileGz = null;
-        if (extension.equals(".gz")) {
-            hapsFileGz = hapsFile;
-        } else {
-            // If hapsFile exists, then hapsFileGz exists also.
-            hapsFileGz = hapsFile + ".gz";
-            // String imputeFileGz = imputeFile + ".gz";
-        }
-
-        // Check if the file is genfile is gzip or not.
-        // This is done by checking the magic number of gzip files, which is 0x1f8b (the first two bytes)
-
-        /*
-         * String tmpGtoolGenFile = null; tmpGtoolGenFile = inputGenFile;
-         * 
-         * File tmpInputFile = new File(inputGenFile); RandomAccessFile raf = new RandomAccessFile(tmpInputFile, "r");
-         * long n = raf.readInt(); n = n & 0xFFFF0000; raf.close();
-         * 
-         * if (n == 0x1f8b0000) { System.out.println("[Shapeit] It seems the file " + inputGenFile +
-         * " is a gzip file. Magic Number is " + String.format("%x", n)); // Then,use a renamed file tmpGtoolGenFile =
-         * inputGenFile + ".gz"; //Now we rename shapeitHapsFileGz to shapeitHapsFile File source = new
-         * File(inputGenFile); File dest = new File(tmpGtoolGenFile); copyFile(source, dest); }
-         */
-
-        // Now we creat hapsFileGz
-        String filteredHapsFileGz = filteredHapsFile + ".gz";
-        String filteredHapsVcfFileGz = filteredHapsVcfFile + ".gz";
-
-        String cmd = null;
-        cmd = shapeitBinary + " -convert --input-haps " + hapsFileGz + " " + sampleFile + " --exclude-snp " + excludedSnpsFile + " "
-                + " --output-haps " + filteredHapsFileGz + " " + filteredSampleFile + " --output-log " + filteredLogFile + " --output-vcf "
-                + filteredHapsVcfFileGz;
-
-        if (DEBUG) {
-            System.out.println("\n[DEBUG] Command: " + cmd);
-            System.out.println(" ");
-        }
-
-        Process shapeitProc = Runtime.getRuntime().exec(cmd);
-        byte[] b = new byte[1024];
-        int read;
-
-        /* handling the streams so that dead lock situation never occurs. */
-        BufferedInputStream bisErr = new BufferedInputStream(shapeitProc.getErrorStream());
-        BufferedInputStream bisInp = new BufferedInputStream(shapeitProc.getInputStream());
-
-        BufferedOutputStream bosErr = new BufferedOutputStream(new FileOutputStream(filteredHapsFile + ".stderr"));
-        BufferedOutputStream bosInp = new BufferedOutputStream(new FileOutputStream(filteredHapsFile + ".stdout"));
-
-        // Ugly issue: If we run shapeit_v1, all the stdXXX is done stderr, and there is not stdout
-        // Ugly issue: If we run shapeit_v2, all the stdXXX is done stdout, and there is not stderr
-
-        while ((read = bisInp.read(b)) >= 0) {
-            bosInp.write(b, 0, read);
-        }
-
-        while ((read = bisErr.read(b)) >= 0) {
-            bosErr.write(b, 0, read);
-        }
-
-        bisErr.close();
-        bosErr.close();
-
-        bisInp.close();
-        bosInp.close();
-
-        // Check the proper ending of the process
-        int exitValue = shapeitProc.waitFor();
-        if (exitValue != 0) {
-            System.err.println("[filterHaplotypes] Warning executing shapeitProc job in mode -convert, exit value is: " + exitValue);
-            System.err.println("[filterHaplotypes]                         (This warning is not fatal).");
-            // throw new Exception("Error executing shapeitProc job, exit value is: " + exitValue);
-        }
-
-        // Ugly, because shapeit_v2 automatically puts the .log to the file.
-        // If there is not output in the impute process. Then we have to create some empty outputs.
-        String tmpFile = filteredLogFile + ".log";
-        File tmpFilteredLogFile = new File(tmpFile);
-        if (tmpFilteredLogFile.exists()) {
-            tmpFilteredLogFile.renameTo(new File(filteredLogFile));
-        }
-
-        System.err.println("[filterHaplotypes] Filtering haplotypes OK. Now we create the listofSnps...");
-
+    public static void postFilterHaplotypes(String filteredHapsFile, String listOfSnpsFile) throws GuidanceTaskException {
         // Now we have to create the list of snps and write them into the output file.
-        // Taking into account that shapeit had generated a gziped file, then we have to use GZIPInputStream.
-        GZIPInputStream inputGz = null;
-        Reader decoder = null;
-        BufferedReader br = null;
-
-        inputGz = new GZIPInputStream(new FileInputStream(filteredHapsFileGz));
-        decoder = new InputStreamReader(inputGz);
-        br = new BufferedReader(decoder);
-        boolean bool = false;
 
         File outFilteredFile = new File(listOfSnpsFile);
-
-        // Trys to create the file
-        bool = outFilteredFile.createNewFile();
+        boolean bool;
+        try {
+            bool = outFilteredFile.createNewFile();
+        } catch (IOException ioe) {
+            throw new GuidanceTaskException(ioe);
+        }
         // Print information about de existence of the file
         System.out.println("\n[DEBUG] \t- Output file " + listOfSnpsFile + " was succesfuly created? " + bool);
 
-        BufferedWriter writerFiltered = new BufferedWriter(new FileWriter(outFilteredFile));
+        // Taking into account that shapeit had generated a gziped file, then we have to use GZIPInputStream.
+        try (GZIPInputStream inputGz = new GZIPInputStream(new FileInputStream(filteredHapsFile));
+                Reader decoder = new InputStreamReader(inputGz);
+                BufferedReader br = new BufferedReader(decoder);
+                BufferedWriter writerFiltered = new BufferedWriter(new FileWriter(outFilteredFile))) {
 
-        String line = null;
-        while ((line = br.readLine()) != null) {
-            String[] splittedLine = line.split(" ");
-            String rsId = splittedLine[1];
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                String[] splittedLine = line.split(" ");
+                String rsId = splittedLine[1];
 
-            writerFiltered.write(rsId);
-            writerFiltered.newLine();
-        }
-
-        writerFiltered.flush();
-        writerFiltered.close();
-
-        // Now we rename filteredHapsFileGz to filteredHapsFile
-        File source = new File(filteredHapsFileGz);
-        File dest = new File(filteredHapsFile);
-        copyFile(source, dest);
-
-        source = new File(filteredHapsVcfFileGz);
-        dest = new File(filteredHapsVcfFile);
-        copyFile(source, dest);
-
-        long stopTime = System.currentTimeMillis();
-        long elapsedTime = (stopTime - startTime) / 1000;
-        if (DEBUG) {
-            System.out.println("\n[DEBUG] filterHaplotypes startTime: " + startTime);
-            System.out.println("\n[DEBUG] filterHaplotypes endTime: " + stopTime);
-            System.out.println("\n[DEBUG] filterHaplotypes elapsedTime: " + elapsedTime + " seconds");
-            System.out.println("\n[DEBUG] Finished execution of filterHaplotypes.");
+                writerFiltered.write(rsId);
+                writerFiltered.newLine();
+            }
+            writerFiltered.flush();
+        } catch (IOException ioe) {
+            throw new GuidanceTaskException(ioe);
         }
     }
 
@@ -1095,12 +949,11 @@ public class GuidanceImpl {
      */
     public static void imputeWithImpute(String gmapFile, String knownHapFile, String legendFile, String shapeitHapsFile,
             String shapeitSampleFile, String lim1S, String lim2S, String pairsFile, String imputeFile, String imputeFileInfo,
-            String imputeFileSummary, String imputeFileWarnings, String theChromo, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            String imputeFileSummary, String imputeFileWarnings, String theChromo, String cmdToStore) throws GuidanceTaskException {
 
         String impute2Binary = System.getenv("IMPUTE2BINARY");
         if (impute2Binary == null) {
-            throw new Exception("[impute] Error, IMPUTE2BINARY environment variable is not defined in .bashrc!!!");
+            throw new GuidanceTaskException("[impute] Error, IMPUTE2BINARY environment variable is not defined in .bashrc!!!");
         }
 
         if (DEBUG) {
@@ -1265,7 +1118,7 @@ public class GuidanceImpl {
             String filteredListOfSnpsFile, String imputedMMFileName, String imputedMMInfoFile,
             // String imputedMMDraftFile,
             String imputedMMErateFile, String imputedMMRecFile, String imputedMMDoseFile, String imputedMMLogFile, String theChromo,
-            String lim1S, String lim2S, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String lim1S, String lim2S, String cmdToStore) throws GuidanceTaskException {
 
         String minimacBinary = System.getenv("MINIMACBINARY");
         if (minimacBinary == null) {
@@ -1453,7 +1306,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void filterByInfo(String imputeFileInfo, String filteredFile, String threshold, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running filterByInfo with parameters:");
@@ -1533,7 +1386,7 @@ public class GuidanceImpl {
      */
     public static void filterByAll(String inputFile, String outputFile, String outputCondensedFile, String mafThresholdS,
             String infoThresholdS, String hweCohortThresholdS, String hweCasesThresholdS, String hweControlsThresholdS, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running filterByAll with parameters:");
@@ -1695,7 +1548,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void jointFilteredByAllFiles(String filteredByAllA, String filteredByAllB, String filteredByAllC, String rpanelName,
-            String rpanelFlag, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String rpanelFlag, String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running jointFilteredByAllFiles with parameters:");
@@ -1821,7 +1674,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void jointCondensedFiles(String inputAFile, String inputBFile, String outputFile, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running jointCondensedFiles with parameters:");
@@ -1920,7 +1773,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void combinePanelsComplex(String resultsPanelA, String resultsPanelB, String resultsPanelC, String chromoStart,
-            String chromoEnd, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String chromoEnd, String cmdToStore) throws GuidanceTaskException {
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running combinePanelsComplex with parameters:");
             System.out.println("[DEBUG] \t- resultsPanelA             : " + resultsPanelA);
@@ -2235,7 +2088,7 @@ public class GuidanceImpl {
      */
     public static void combineCondensedFiles(String filteredA, String filteredX, String combinedCondensedFile, String mafThresholdS,
             String infoThresholdS, String hweCohortThresholdS, String hweCasesThresholdS, String hweControlsThresholdS, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running combineCondensedFiles with parameters:");
@@ -2445,7 +2298,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void generateTopHitsAll(String resultsAFile, String resultsBFile, String outputTopHitFile, String pvaThreshold,
-            String cmdToStore) throws IOException, InterruptedException, Exception {
+            String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running generateTopHits with parameters:");
@@ -2633,7 +2486,7 @@ public class GuidanceImpl {
      */
     public static void generateQQManhattanPlots(String lastCondensedFile, String qqPlotFile, String manhattanPlotFile,
             String qqPlotTiffFile, String manhattanPlotTiffFile, String correctedPvaluesFile, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         String rScriptBinDir = System.getenv("RSCRIPTBINDIR");
         if (rScriptBinDir == null) {
@@ -2732,8 +2585,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void snptest(String mergedGenFile, String mergedSampleFile, String snptestOutFile, String snptestLogFile,
-            String responseVar, String covariables, String theChromo, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            String responseVar, String covariables, String theChromo, String cmdToStore) throws GuidanceTaskException {
 
         String snptestBinary = System.getenv("SNPTESTBINARY");
         if (snptestBinary == null) {
@@ -2877,7 +2729,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void mergeTwoChunks(String reduceFileA, String reduceFileB, String reduceFileC, String chrS, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running mergeTwoChunks with parameters:");
@@ -3145,7 +2997,7 @@ public class GuidanceImpl {
      */
     public static void collectSummary(String chr, String firstImputeFileInfo, String snptestOutFile, String reduceFile,
             String mafThresholdS, String infoThresholdS, String hweCohortThresholdS, String hweCasesThresholdS,
-            String hweControlsThresholdS, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String hweControlsThresholdS, String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running collectSummary with parameters:");
@@ -3412,7 +3264,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void initPhenoMatrix(String topHitsFile, String ttName, String rpName, String phenomeFile, String cmdToStore)
-            throws IOException, InterruptedException, Exception {
+            throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running initPhenoMatrix with parameters:");
@@ -3579,7 +3431,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void addToPhenoMatrix(String phenomeAFile, String topHitsFile, String ttName, String rpName, String phenomeBFile,
-            String cmdToStore) throws IOException, InterruptedException, Exception {
+            String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running addToPhenoMatrix with parameters:");
@@ -3767,7 +3619,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void filloutPhenoMatrix(String phenomeAFile, String filteredByAllFile, String filteredByAllXFile, String endChrS,
-            String ttName, String rpName, String phenomeBFile, String cmdToStore) throws IOException, InterruptedException, Exception {
+            String ttName, String rpName, String phenomeBFile, String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running filloutPhenoMatrix with parameters:");
@@ -4101,7 +3953,7 @@ public class GuidanceImpl {
      * @throws Exception
      */
     public static void finalizePhenoMatrix(String phenomeAFile, String phenomeBFile, String ttName, String rpName, String phenomeCFile,
-            String cmdToStore) throws IOException, InterruptedException, Exception {
+            String cmdToStore) throws GuidanceTaskException {
 
         if (DEBUG) {
             System.out.println("\n[DEBUG] Running finalizePhenoMatrix with parameters:");
@@ -4453,7 +4305,7 @@ public class GuidanceImpl {
      * @throws IOException
      */
     private static void copyFile(File source, File dest) throws IOException {
-        Files.copy(source.toPath(), dest.toPath(), REPLACE_EXISTING);
+        Files.copy(source.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     /**

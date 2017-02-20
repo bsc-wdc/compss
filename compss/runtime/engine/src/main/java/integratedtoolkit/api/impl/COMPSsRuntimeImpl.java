@@ -14,7 +14,6 @@ import integratedtoolkit.components.impl.AccessProcessor;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
 import integratedtoolkit.components.monitor.impl.RuntimeMonitor;
-
 import integratedtoolkit.loader.LoaderAPI;
 import integratedtoolkit.loader.total.ObjectRegistry;
 
@@ -611,14 +610,14 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * Freezes the task generation until all previous tasks have been executed
      */
     @Override
-    public void waitForAllTasks(Long appId) {
+    public void barrier(Long appId) {
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
         }
 
         // Wait until all tasks have finished
         logger.info("Barrier for app " + appId);
-        ap.waitForAllTasks(appId);
+        ap.barrier(appId);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.Event.WAIT_FOR_ALL_TASKS.getId(), Tracer.Event.WAIT_FOR_ALL_TASKS.getType());
@@ -879,15 +878,15 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             switch (type) {
                 case FILE_T:
                     try {
-                    	String fileName = (String) parameters[i];
-                    	String originalName = new File(fileName).getName();
-                    	DataLocation location = createLocation((String) parameters[i]);
+                        String fileName = (String) parameters[i];
+                        String originalName = new File(fileName).getName();
+                        DataLocation location = createLocation((String) parameters[i]);
                         pars[npar] = new FileParameter(direction, stream, prefix, location, originalName);
                     } catch (Exception e) {
                         logger.error(ERROR_FILE_NAME, e);
                         ErrorManager.fatal(ERROR_FILE_NAME, e);
                     }
-                    
+
                     break;
 
                 case PSCO_T:

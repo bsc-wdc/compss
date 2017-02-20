@@ -88,10 +88,6 @@ public class NIOWorker extends NIOAgent {
     private static ThreadPrintStream err;
     public static final String SUFFIX_OUT = ".out";
     public static final String SUFFIX_ERR = ".err";
-    
-    // Bound Resources
-    private int[] boundCoreUnits;
-    private int[] boundGPUs;
 
     static {
         try {
@@ -122,19 +118,7 @@ public class NIOWorker extends NIOAgent {
         this.appDir = appDir.equals("null") ? "" : appDir;
         this.libraryPath = libPath.equals("null") ? "" : libPath;
         this.classpath = classpath.equals("null") ? "" : classpath;
-        this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;
-        
-        // Set every resource assigned job to -1 (no job assigned to that CU)
-        this.boundCoreUnits = new int[numJobThreads];
-        for (int i = 0; i < numJobThreads; i++){
-        	boundCoreUnits[i] = -1;
-        }
-
-        this.boundGPUs = new int[numGPUs];
-        for (int i = 0; i < numGPUs; i++){
-        	boundGPUs[i] = -1;
-        }
-        
+        this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;        
         
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;

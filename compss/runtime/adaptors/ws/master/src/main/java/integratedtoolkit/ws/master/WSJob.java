@@ -6,6 +6,7 @@ import integratedtoolkit.util.RequestDispatcher;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.util.ThreadPool;
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.CannotLoadException;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.COMPSsNode;
 import integratedtoolkit.types.parameter.Parameter;
@@ -224,12 +225,13 @@ public class WSJob extends Job<ServiceInstance> {
             return client;
         }
 
-        private Object getObjectValue(DependencyParameter dp) throws Exception {
+        private Object getObjectValue(DependencyParameter dp) throws CannotLoadException {
             String renaming = ((RAccessId) dp.getDataAccessId()).getReadDataInstance().getRenaming();
             LogicalData ld = Comm.getData(renaming);
             if (!ld.isInMemory()) {
                 ld.loadFromStorage();
             }
+            
             return ld.getValue();
         }
     }

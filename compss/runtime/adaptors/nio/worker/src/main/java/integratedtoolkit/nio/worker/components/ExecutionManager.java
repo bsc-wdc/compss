@@ -10,7 +10,6 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
-import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableGPUsException;
 import integratedtoolkit.nio.worker.util.ThreadBinderUnaware;
 import integratedtoolkit.nio.worker.util.CThreadPool;
 import integratedtoolkit.nio.worker.util.JavaThreadPool;

@@ -60,8 +60,8 @@ public class NIOTask implements Externalizable {
      * @param transferGroupId
      */
     public NIOTask(String lang, boolean workerDebug, AbstractMethodImplementation impl, boolean hasTarget, boolean hasReturn,
-            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, 
-            int taskId, int taskType, int jobId, JobHistory hist, int transferGroupId) {
+            LinkedList<NIOParam> params, int numParams, MethodResourceDescription reqs, List<String> slaveWorkersNodeNames, int taskId,
+            int taskType, int jobId, JobHistory hist, int transferGroupId) {
 
         this.lang = lang;
         this.workerDebug = workerDebug;
@@ -132,7 +132,7 @@ public class NIOTask implements Externalizable {
     public boolean isHasTarget() {
         return this.hasTarget;
     }
-    
+
     /**
      * Returns if the task has return value or not
      * 

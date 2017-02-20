@@ -11,31 +11,29 @@ public class Constants {
      * 
      */
     public static final String UNASSIGNED = "[unassigned]";
-    
+
     /**
      * Values for task priority
      * 
      */
     public static final String IS_PRIORITARY_TASK = "true";
-    
-    public static final String IS_NOT_PRIORITARY_TASK = "false";
 
+    public static final String IS_NOT_PRIORITARY_TASK = "false";
 
     /**
      * Values for target modification
      * 
      */
     public static final String IS_MODIFIER = "true";
-    
-    public static final String IS_NOT_MODIFIER = "false";
 
+    public static final String IS_NOT_MODIFIER = "false";
 
     /**
      * Replicated task execution
      * 
      */
     public static final String IS_REPLICATED_TASK = "true";
-    
+
     public static final String IS_NOT_REPLICATED_TASK = "false";
 
     /**
@@ -43,9 +41,9 @@ public class Constants {
      * 
      */
     public static final String IS_DISTRIBUTED_TASK = "true";
-    
+
     public static final String IS_NOT_DISTRIBUTED_TASK = "false";
-    
+
     /**
      * Single node value
      * 
@@ -86,6 +84,12 @@ public class Constants {
      * Empty prefix for parameters
      */
     public static final String PREFIX_EMTPY = "null";
+
+    /**
+     * Skip prefix for parameters
+     */
+    public static final String PREFIX_SKIP = "#";
+
 
     // Private constructor to avoid instantiation
     private Constants() {

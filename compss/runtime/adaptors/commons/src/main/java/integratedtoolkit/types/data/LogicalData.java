@@ -1,6 +1,8 @@
 package integratedtoolkit.types.data;
 
 import integratedtoolkit.comm.Comm;
+import integratedtoolkit.exceptions.CannotLoadException;
+import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 
 import java.util.LinkedList;
@@ -20,6 +22,7 @@ import integratedtoolkit.util.SharedDiskManager;
 import integratedtoolkit.util.Tracer;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -118,7 +121,11 @@ public class LogicalData {
     public synchronized LinkedList<MultiURI> getURIs() {
         LinkedList<MultiURI> list = new LinkedList<>();
         for (DataLocation loc : this.locations) {
-            list.addAll(loc.getURIs());
+            LinkedList<MultiURI> locationURIs = loc.getURIs();
+            // Adds all the valid locations
+            if (locationURIs != null) {
+                list.addAll(locationURIs);
+            }
         }
         return list;
     }
@@ -264,9 +271,15 @@ public class LogicalData {
     /**
      * Loads the value of the LogicalData from a file
      * 
+     * @throws CannotLoadException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws StorageException
+     * @throws UnstartedNodeException
+     * 
      * @throws Exception
      */
-    public synchronized void loadFromStorage() throws Exception {
+    public synchronized void loadFromStorage() throws CannotLoadException {
         if (value != null) {
             // Value is already loaded in memory
             return;
@@ -281,15 +294,29 @@ public class LogicalData {
                     if (u == null) {
                         continue;
                     }
+
                     String path = u.getPath();
                     if (path.startsWith(File.separator)) {
-                        this.value = Serializer.deserialize(path);
+                        try {
+                            this.value = Serializer.deserialize(path);
+                        } catch (ClassNotFoundException | IOException e) {
+                            // Check next location since deserialization was invalid
+                            this.value = null;
+                            continue;
+                        }
 
                         String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
                         SimpleURI uri = new SimpleURI(targetPath);
-                        DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                        addLocation(tgtLoc);
+                        try {
+                            DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                            addLocation(tgtLoc);
+                        } catch (IOException e) {
+                            // Check next location since location was invalid
+                            this.value = null;
+                            continue;
+                        }
                     }
+
                     return;
                 case PERSISTENT:
                     PersistentLocation pLoc = (PersistentLocation) loc;
@@ -301,9 +328,9 @@ public class LogicalData {
                         this.value = StorageItf.getByID(pLoc.getId());
                         this.id = pLoc.getId();
                     } catch (StorageException se) {
-                        throw new Exception("ERROR: Cannot getById PSCO with id " + pLoc.getId(), se);
+                        // Check next location since cannot retrieve the object from the storage Back-end
+                        continue;
                     } finally {
-
                         if (Tracer.isActivated()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
                         }
@@ -311,15 +338,21 @@ public class LogicalData {
 
                     String targetPath = Protocol.OBJECT_URI.getSchema() + this.name;
                     SimpleURI uri = new SimpleURI(targetPath);
-                    DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
-                    addLocation(tgtLoc);
+                    try {
+                        DataLocation tgtLoc = DataLocation.createLocation(Comm.getAppHost(), uri);
+                        addLocation(tgtLoc);
+                    } catch (IOException e) {
+                        // Check next location since location was invalid
+                        this.value = null;
+                        continue;
+                    }
 
                     return;
             }
         }
 
         // Any location has been able to load the value
-        throw new Exception("Object has not any valid location available in the master");
+        throw new CannotLoadException("Object has not any valid location available in the master");
     }
 
     /**
@@ -415,10 +448,13 @@ public class LogicalData {
     public synchronized MultiURI alreadyAvailable(Resource targetHost) {
         for (DataLocation loc : locations) {
             MultiURI u = loc.getURIInHost(targetHost);
+            // If we have found a valid location, return it
             if (u != null) {
                 return u;
             }
         }
+
+        // All locations are invalid
         return null;
     }
 

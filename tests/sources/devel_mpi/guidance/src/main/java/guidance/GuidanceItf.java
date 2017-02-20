@@ -28,16 +28,44 @@
 
 package guidance;
 
+import guidance.utils.Environment;
 import integratedtoolkit.types.annotations.Constraints;
+import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.Method;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.types.annotations.parameter.Type;
 
 public interface GuidanceItf {
     
     // TODO: WARN
     // Task getAllele from GuidanceImpl is not defined as task
+    
+    @Binary(binary = "${" + Environment.EV_PLINKBINARY + "}")
+    @Constraints(computingUnits = "1", memorySize = "1.0")
+    Integer convertFromBedToBed(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String noWebFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bedPrefix, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String bedFile, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bimPrefix,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String bimFile,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String famPrefix, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String famFile, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String chrPrefix, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String chromo, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String recodeFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String outPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String newBedFileName,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String makeBedFlag, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, prefix = "#") String newBedFile, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, prefix = "#") String newBimFile, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, prefix = "#") String newFamFile, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, prefix = "#") String newLogFile, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String stdout, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String stderr
+    );
+    
 
    @Method(declaringClass = "guidance.GuidanceImpl")
    @Constraints(computingUnits="1", memorySize = "1.0f")
@@ -84,18 +112,29 @@ public interface GuidanceItf {
       @Parameter(type = Type.STRING, direction = Direction.IN) String cmdToStore
    );
     
-   @Method(declaringClass = "guidance.GuidanceImpl")
+   @Binary(binary = "${SHAPEITBINARY}")
    @Constraints(computingUnits="1", memorySize = "4.0f")
    void filterHaplotypes(
-      @Parameter(type = Type.FILE, direction = Direction.IN) String hapsFile,
-      @Parameter(type = Type.FILE, direction = Direction.IN) String sampleFile,
-      @Parameter(type = Type.FILE, direction = Direction.IN) String excludedSnpsFile,
-      @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredHapsFile,
-      @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredSampleFile,
-      @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredLogFile,
-      @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredHapsVcfFile,
-      @Parameter(type = Type.FILE, direction = Direction.OUT) String listOfSnpsFile,
-      @Parameter(type = Type.STRING, direction = Direction.IN) String cmdToStore
+       @Parameter(type = Type.STRING, direction = Direction.IN) String convertFlag, 
+       @Parameter(type = Type.STRING, direction = Direction.IN) String inputHapsPrefix, 
+       @Parameter(type = Type.FILE, direction = Direction.IN) String hapsFile, 
+       @Parameter(type = Type.FILE, direction = Direction.IN) String sampleFile,
+       @Parameter(type = Type.STRING, direction = Direction.IN) String exludeSnpPrefix, 
+       @Parameter(type = Type.FILE, direction = Direction.IN) String excludedSnpsFile, 
+       @Parameter(type = Type.STRING, direction = Direction.IN) String outputHapsPrefix, 
+       @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredHapsFile, 
+       @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredSampleFile,
+       @Parameter(type = Type.STRING, direction = Direction.IN) String outputLogPrefix, 
+       @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredLogFile, 
+       @Parameter(type = Type.STRING, direction = Direction.IN) String outputVcfPrefix, 
+       @Parameter(type = Type.FILE, direction = Direction.OUT) String filteredHapsVcfFile
+   );
+   
+   @Method(declaringClass = "guidance.GuidanceImpl")
+   @Constraints(computingUnits="1", memorySize = "4.0f")
+   void postFilterHaplotypes(
+       @Parameter(type = Type.FILE, direction = Direction.IN) String filteredHapsFile, 
+       @Parameter(type = Type.FILE, direction = Direction.OUT) String listOfSnpsFile
    );
 
    @Method(declaringClass = "guidance.GuidanceImpl")
@@ -111,18 +150,27 @@ public interface GuidanceItf {
       @Parameter(type = Type.STRING, direction = Direction.IN) String cmdToStore
    );
 
-   @Method(declaringClass = "guidance.GuidanceImpl")
+   @Binary(binary = "${SHAPEITBINARY}")
    @Constraints(computingUnits="16", memorySize = "20.0f")
    void phasingBed(
-      @Parameter(type = Type.STRING, direction = Direction.IN) String chromo,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String inputBedPrefix,
       @Parameter(type = Type.FILE, direction = Direction.IN) String bedFile,
       @Parameter(type = Type.FILE, direction = Direction.IN) String bimFile,
       @Parameter(type = Type.FILE, direction = Direction.IN) String famFile,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String inputMapPrefix,
       @Parameter(type = Type.FILE, direction = Direction.IN) String gmapFile,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String chrXPrefix,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String outputMaxPrefix,
       @Parameter(type = Type.FILE, direction = Direction.OUT) String shapeitHapsFile,
       @Parameter(type = Type.FILE, direction = Direction.OUT) String shapeitSampleFile,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String threadPrefix,
+      @Parameter(type = Type.INT, direction = Direction.IN) int numThreads,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String effectiveSizePrefix,
+      @Parameter(type = Type.INT, direction = Direction.IN) int effectiveSize,
+      @Parameter(type = Type.STRING, direction = Direction.IN) String outputLogPrefix,
       @Parameter(type = Type.FILE, direction = Direction.OUT) String shapeitLogFile,
-      @Parameter(type = Type.STRING, direction = Direction.IN) String cmdToStore
+      @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String shapeitStdOut,
+      @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String shapeitStdErr
    );
 
    @Method(declaringClass = "guidance.GuidanceImpl")

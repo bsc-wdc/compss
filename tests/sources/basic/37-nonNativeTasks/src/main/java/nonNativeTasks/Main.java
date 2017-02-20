@@ -92,7 +92,7 @@ public class Main {
         System.out.println("[LOG] Launch EV");
         BINARY.simpleTask1(message);
 
-        COMPSs.waitForAllTasks();
+        COMPSs.barrier();
         
         // Task with EV
         System.out.println("[LOG] Launch EV");
@@ -111,7 +111,7 @@ public class Main {
         System.out.println("[LOG] Launch Prefixes");
         BINARY.taskWithPrefix(message);
 
-        COMPSs.waitForAllTasks();
+        COMPSs.barrier();
     }  
 
     private static void testInputRedirection() {
@@ -120,7 +120,7 @@ public class Main {
         BINARY.taskSTDINFileRedirection(message, fileIn);
 
         System.out.println("[LOG] Wait for FILE IN redirection");
-        COMPSs.waitForAllTasks();
+        COMPSs.barrier();
 
         // ------------------------------------------------------------------------
         // Task with FILE IN redirection and EV

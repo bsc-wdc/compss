@@ -9,7 +9,7 @@
   set_env
 
   # Execution: launch the JVM to run the task
-  java -Xms128m -Xmx2048m -classpath $CLASSPATH integratedtoolkit.gat.worker.GATWorker $params
+  java -Xms128m -Xmx2048m -classpath $CLASSPATH integratedtoolkit.gat.worker.GATWorker $taskSandboxWorkingDir $params
  
   # Exit  
   if [ $? -eq 0 ]; then

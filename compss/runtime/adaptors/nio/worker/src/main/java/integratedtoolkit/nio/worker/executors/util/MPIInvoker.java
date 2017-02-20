@@ -1,5 +1,7 @@
 package integratedtoolkit.nio.worker.executors.util;
 
+import java.io.File;
+
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
@@ -20,8 +22,8 @@ public class MPIInvoker extends Invoker {
     private final String mpiBinary;
 
 
-    public MPIInvoker(NIOWorker nw, NIOTask nt, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, assignedCoreUnits);
+    public MPIInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         MPIImplementation mpiImpl = null;
@@ -55,7 +57,8 @@ public class MPIInvoker extends Invoker {
     private Object invokeMPIMethod() throws JobExecutionException {
         logger.info("Invoked " + this.mpiBinary + " in " + this.nw.getHostName());
         try {
-            return GenericInvoker.invokeMPIMethod(this.mpiRunner, this.mpiBinary, this.values, this.hasReturn, this.streams, this.prefixes);
+            return GenericInvoker.invokeMPIMethod(this.mpiRunner, this.mpiBinary, this.values, this.hasReturn, this.streams, this.prefixes,
+                    this.taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

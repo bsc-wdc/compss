@@ -40,8 +40,9 @@ public class GATWorker {
     private static final String ERROR_SERIALIZE_RETURN = "Error serializing object return value with renaming ";
     private static final String ERROR_OUTPUT_FILES = "ERROR: One or more OUT files have not been created by task '";
 
-    private static final int DEFAULT_FLAGS_SIZE = 2;
+    private static final int DEFAULT_FLAGS_SIZE = 3;
 
+    private static File taskSandboxWorkingDir;
     private static boolean debug;
     private static String storageConf;
 
@@ -109,8 +110,9 @@ public class GATWorker {
      */
     private static void parseArguments(String args[]) {
         // Default flags
-        GATWorker.debug = Boolean.valueOf(args[0]);
-        GATWorker.storageConf = args[1];
+        GATWorker.taskSandboxWorkingDir = new File(args[0]);
+        GATWorker.debug = Boolean.valueOf(args[1]);
+        GATWorker.storageConf = args[2];
 
         int argPosition = DEFAULT_FLAGS_SIZE;
         GATWorker.methodType = MethodType.valueOf(args[argPosition++]);
@@ -142,7 +144,7 @@ public class GATWorker {
                 argPosition += 1;
                 break;
         }
-        
+
         // Execution information for multi-node tasks
         GATWorker.numNodes = Integer.parseInt(args[argPosition++]);
         GATWorker.hostnames = new HashSet<String>();
@@ -228,14 +230,14 @@ public class GATWorker {
             }
             GATWorker.streams[i] = dataStream[argStream_index];
             argPosition++;
-            
+
             String prefix = args[argPosition];
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMTPY;
             }
             GATWorker.prefixes[i] = prefix;
             argPosition++;
-            
+
             switch (argType) {
                 case FILE_T:
                     GATWorker.types[i] = String.class;
@@ -303,7 +305,7 @@ public class GATWorker {
                     ErrorManager.error(WARN_UNSUPPORTED_TYPE + argType);
                     return;
             }
-            
+
             GATWorker.isFile[i] = argType.equals(DataType.FILE_T);
         }
 
@@ -466,7 +468,7 @@ public class GATWorker {
             System.out.print(" " + s.name());
         }
         System.out.println("");
-        
+
         if (GATWorker.hasReturn) {
             System.out.println("  * Has return with renaming " + GATWorker.retRenaming);
         } else {
@@ -519,7 +521,7 @@ public class GATWorker {
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
         System.out.println("[GAT WORKER] Invoking task method");
-        
+
         GATWorker.retValue = null;
 
         switch (GATWorker.methodType) {
@@ -529,22 +531,23 @@ public class GATWorker {
                 break;
             case MPI:
                 GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
-                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
+                        GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes,
+                        GATWorker.taskSandboxWorkingDir);
                 break;
             case OMPSS:
                 GATWorker.retValue = Invokers.invokeOmpSsMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
                 break;
             case OPENCL:
                 GATWorker.retValue = Invokers.invokeOpenCLMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
                 break;
             case BINARY:
                 GATWorker.retValue = Invokers.invokeBinaryMethod(GATWorker.methodDefinition[0], GATWorker.target, GATWorker.values,
-                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes);
+                        GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes, GATWorker.taskSandboxWorkingDir);
                 break;
         }
-        
+
         System.out.println("");
         System.out.println("[GAT WORKER] ------------------------------------");
     }

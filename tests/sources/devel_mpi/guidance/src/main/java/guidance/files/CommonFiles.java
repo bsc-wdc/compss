@@ -137,7 +137,6 @@ public class CommonFiles {
                 tmpFile = "mixed_" + cohort + "_chr_" + chromo + "_bed2bed.log";
                 GenericFile myMixedBedToBedLogFile = new GenericFile(theOutputDir, tmpFile, "decompressed", "none");
                 mixedBedToBedLogFile.add(myMixedBedToBedLogFile);
-
             } else if (inputFormat.equals(FORMAT_GEN)) {
                 /* We create the input gen file name */
                 // mixedGenDir.add(parsingArgs.getChrDir("mixed"));

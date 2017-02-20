@@ -2,6 +2,7 @@ package integratedtoolkit.components.impl;
 
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.components.monitor.impl.GraphGenerator;
+import integratedtoolkit.exceptions.CannotLoadException;
 import integratedtoolkit.components.impl.TaskProducer;
 
 import java.util.List;
@@ -42,7 +43,7 @@ import integratedtoolkit.types.request.ap.TasksStateRequest;
 import integratedtoolkit.types.request.ap.TransferObjectRequest;
 import integratedtoolkit.types.request.ap.TransferOpenFileRequest;
 import integratedtoolkit.types.request.ap.UnblockResultFilesRequest;
-import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
+import integratedtoolkit.types.request.ap.BarrierRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.uri.SimpleURI;
@@ -393,9 +394,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
      * 
      * @param appId
      */
-    public void waitForAllTasks(Long appId) {
+    public void barrier(Long appId) {
         Semaphore sem = new Semaphore(0);
-        if (!requestQueue.offer(new WaitForAllTasksRequest(appId, sem))) {
+        if (!requestQueue.offer(new BarrierRequest(appId, sem))) {
             ErrorManager.error(ERROR_QUEUE_OFFER + "wait for all tasks");
         }
 
@@ -610,7 +611,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
             try {
                 ld.loadFromStorage();
                 oUpdated = ld.getValue();
-            } catch (Exception e) {
+            } catch (CannotLoadException e) {
                 LOGGER.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
                 ErrorManager.fatal(ERROR_OBJECT_LOAD_FROM_STORAGE + ": " + ((ld == null) ? "null" : ld.getName()), e);
             }

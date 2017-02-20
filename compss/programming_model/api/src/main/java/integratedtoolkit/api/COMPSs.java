@@ -13,7 +13,7 @@ public class COMPSs {
      * Barrier
      * 
      */
-    public static void waitForAllTasks() {
+    public static void barrier() {
         // This is only a handler, it is never executed
         System.out.println(SKIP_MESSAGE);
     }

@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.executors.util;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.concurrent.Semaphore;
 
@@ -32,15 +33,15 @@ public class JavaInvoker extends Invoker {
     private static final String ERROR_CALLBACK_INTERRUPTED = "ERROR: External callback interrupted";
     private static final String ERROR_EXTERNAL_EXECUTION = "ERROR: External Task Execution failed";
     private static final String WARN_RET_VALUE_EXCEPTION = "WARN: Exception on externalExecution return value";
-    
+
     private final String className;
     private final String methodName;
     private final Method method;
 
 
-    public JavaInvoker(NIOWorker nw, NIOTask nt, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, assignedCoreUnits);
-        
+    public JavaInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+
         // Get method definition properties
         MethodImplementation methodImpl = null;
         try {
@@ -50,16 +51,16 @@ public class JavaInvoker extends Invoker {
         }
         this.className = methodImpl.getDeclaringClass();
         this.methodName = methodImpl.getAlternativeMethodName();
-        
+
         // Use reflection to get the requested method
         this.method = getMethod();
     }
-    
+
     @Override
     public Object invokeMethod() throws JobExecutionException {
         return invokeJavaMethod();
     }
-    
+
     private Method getMethod() throws JobExecutionException {
         Class<?> methodClass = null;
         Method method = null;
@@ -195,8 +196,8 @@ public class JavaInvoker extends Invoker {
 
         return retValue;
     }
-    
-    
+
+
     /**
      * Class to get the Storage Callback
      * 

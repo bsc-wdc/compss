@@ -21,9 +21,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      *
      */
     public enum Type {
-        PRIVATE, 
-        SHARED, 
-        PERSISTENT
+        PRIVATE, SHARED, PERSISTENT
     }
 
     /**
@@ -31,11 +29,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
      * 
      */
     public enum Protocol {
-        FILE_URI("file://"),
-        SHARED_URI("shared://"),
-        OBJECT_URI("object://"),
-        PERSISTENT_URI("storage://"),
-        ANY_URI("any://");
+        FILE_URI("file://"), SHARED_URI("shared://"), OBJECT_URI("object://"), PERSISTENT_URI("storage://"), ANY_URI("any://");
 
         private final String schema;
 
@@ -64,6 +58,7 @@ public abstract class DataLocation implements Comparable<DataLocation> {
     // Logger
     protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
     public static final String ERROR_INVALID_LOCATION = "ERROR: Invalid location URI";
+    public static final String ERROR_UNSTARTED_NODE = "ERROR: Cannot retrieve URIs from an unstarted node";
 
 
     /**

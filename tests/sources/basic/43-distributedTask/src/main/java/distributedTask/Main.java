@@ -30,7 +30,7 @@ public class Main {
         // ----------------------------------------------------------------------------
         // Wait completion
         System.out.println("[LOG] Wait for normal tasks completion");
-        COMPSs.waitForAllTasks();
+        COMPSs.barrier();
 
         // ----------------------------------------------------------------------------
         // Launch 2 distributed tasks (should go 1 to each worker)

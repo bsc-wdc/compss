@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
+import java.io.File;
 
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
@@ -30,14 +31,15 @@ public class JavaExecutor extends Executor {
             System.out.println("NUM_NODES: " + numNodes);
             System.out.println("CPU_COMPUTING_UNITS: " + cus);
         }
-        
+
         System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames.toString());
         System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
         System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
     }
 
     @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) throws JobExecutionException {
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
+            int[] assignedGPUs) throws JobExecutionException {
         /* Register outputs **************************************** */
         NIOWorker.registerOutputs(outputsBasename);
 
@@ -48,19 +50,19 @@ public class JavaExecutor extends Executor {
             Invoker invoker = null;
             switch (methodType) {
                 case METHOD:
-                    invoker = new JavaInvoker(nw, nt, assignedCoreUnits);
+                    invoker = new JavaInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case MPI:
-                    invoker = new MPIInvoker(nw, nt, assignedCoreUnits);
+                    invoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case OMPSS:
-                    invoker = new OmpSsInvoker(nw, nt, assignedCoreUnits);
+                    invoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case OPENCL:
-                    invoker = new OpenCLInvoker(nw, nt, assignedCoreUnits);
+                    invoker = new OpenCLInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case BINARY:
-                    invoker = new BinaryInvoker(nw, nt, assignedCoreUnits);
+                    invoker = new BinaryInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 default:
                     throw new JobExecutionException("Unrecognised method type");

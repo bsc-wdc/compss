@@ -133,7 +133,7 @@ public interface COMPSsRuntime {
      * 
      * @param appId
      */
-    public void waitForAllTasks(Long appId);
+    public void barrier(Long appId);
 
     /*
      * ************************************

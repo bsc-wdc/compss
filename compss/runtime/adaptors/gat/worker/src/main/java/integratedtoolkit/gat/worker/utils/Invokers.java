@@ -1,9 +1,9 @@
 package integratedtoolkit.gat.worker.utils;
 
+import java.io.File;
 import java.lang.reflect.Method;
 
 import integratedtoolkit.util.ErrorManager;
-
 import integratedtoolkit.types.annotations.parameter.Stream;
 
 import integratedtoolkit.worker.invokers.GenericInvoker;
@@ -28,7 +28,7 @@ public class Invokers {
         } catch (NoSuchMethodException e) {
             ErrorManager.error("Requested method not found");
         }
-        
+
         if (method == null) {
             ErrorManager.error("Requested method is null");
         }
@@ -45,11 +45,11 @@ public class Invokers {
     }
 
     public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object target, Object[] values, boolean hasReturn,
-            Stream[] streams, String[] prefixes) {
+            Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) {
 
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams, prefixes);
+            retValue = GenericInvoker.invokeMPIMethod(mpiRunner, mpiBinary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -58,10 +58,10 @@ public class Invokers {
     }
 
     public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes) {
+            String[] prefixes, File taskSandboxWorkingDir) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams, prefixes);
+            retValue = GenericInvoker.invokeOmpSsMethod(ompssBinary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }
@@ -70,17 +70,17 @@ public class Invokers {
     }
 
     public static Object invokeOpenCLMethod(String kernel, Object target, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes) {
+            String[] prefixes, File taskSandboxWorkingDir) {
         ErrorManager.error("ERROR: OpenCL is not supported");
 
         return null;
     }
 
     public static Object invokeBinaryMethod(String binary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes) {
+            String[] prefixes, File taskSandboxWorkingDir) {
         Object retValue = null;
         try {
-            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams, prefixes);
+            retValue = GenericInvoker.invokeBinaryMethod(binary, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             ErrorManager.error(ERROR_INVOKE, iee);
         }

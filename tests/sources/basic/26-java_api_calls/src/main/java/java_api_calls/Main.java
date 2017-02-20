@@ -37,7 +37,7 @@ public class Main {
 
         // ------------------------------------------------------------------------
         // API Call to wait for all tasks
-        COMPSs.waitForAllTasks();
+        COMPSs.barrier();
 
         // ------------------------------------------------------------------------
         // Read new value

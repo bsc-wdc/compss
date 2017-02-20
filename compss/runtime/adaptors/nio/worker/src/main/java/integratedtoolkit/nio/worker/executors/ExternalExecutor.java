@@ -24,6 +24,7 @@ import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
@@ -45,19 +46,20 @@ public abstract class ExternalExecutor extends Executor {
 
     // Piper script properties
     public static final int MAX_RETRIES = 3;
-    public static final String TOKEN_SEP            = " ";
-    public static final String TOKEN_NEW_LINE       = "\n";
-    public static final String END_TASK_TAG         = "endTask";
-    public static final String QUIT_TAG             = "quit";
-    private static final String EXECUTE_TASK_TAG    = "task";
+    public static final String TOKEN_SEP = " ";
+    public static final String TOKEN_NEW_LINE = "\n";
+    public static final String END_TASK_TAG = "endTask";
+    public static final String QUIT_TAG = "quit";
+    private static final String EXECUTE_TASK_TAG = "task";
 
     private final String writePipe; // Pipe for sending executions
-    private final TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager, started/stopped by us)
+    private final TaskResultReader taskResultReader; // Process result reader (initialized by PoolManager,
+                                                     // started/stopped by us)
 
 
     public ExternalExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe,
             TaskResultReader resultReader) {
-        
+
         super(nw, pool, queue);
 
         this.writePipe = writePipe;
@@ -80,44 +82,45 @@ public abstract class ExternalExecutor extends Executor {
     }
 
     @Override
-    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) throws Exception {
+    public void executeTask(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
+            int[] assignedGPUs) throws Exception {
         // Check if it is a native method or not
-        switch(nt.getMethodType()) {
+        switch (nt.getMethodType()) {
             case METHOD:
-                executeNativeMethod(nw, nt, outputsBasename, assignedCoreUnits, assignedGPUs);
+                executeNativeMethod(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs);
                 break;
             case BINARY:
-                BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, assignedCoreUnits);
+                BinaryInvoker binaryInvoker = new BinaryInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, binaryInvoker);
                 break;
             case MPI:
-                MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, assignedCoreUnits);
+                MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, mpiInvoker);
                 break;
             case OMPSS:
-                OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, assignedCoreUnits);
+                OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, ompssInvoker);
                 break;
             case OPENCL:
-                OpenCLInvoker openclInvoker = new OpenCLInvoker(nw, nt, assignedCoreUnits);
+                OpenCLInvoker openclInvoker = new OpenCLInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, openclInvoker);
                 break;
         }
     }
-    
-    private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, int[] assignedCoreUnits, int[] assignedGPUs) 
-            throws JobExecutionException, SerializedObjectException {
-        
-        ArrayList<String> args = getTaskExecutionCommand(nw, nt, nw.getWorkingDir(), assignedCoreUnits, assignedGPUs);
+
+    private void executeNativeMethod(NIOWorker nw, NIOTask nt, String outputsBasename, File taskSandboxWorkingDir, int[] assignedCoreUnits,
+            int[] assignedGPUs) throws JobExecutionException, SerializedObjectException {
+
+        ArrayList<String> args = getTaskExecutionCommand(nw, nt, taskSandboxWorkingDir.getAbsolutePath(), assignedCoreUnits, assignedGPUs);
         addArguments(args, nt, nw);
         String externalCommand = getArgumentsAsString(args);
 
-        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename 
-                + NIOWorker.SUFFIX_ERR + TOKEN_SEP + externalCommand;
+        String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
+                + externalCommand;
 
         executeExternal(nt.getJobId(), command, nt, nw);
     }
-    
+
     private void executeNonNativeMethod(String outputsBasename, Invoker invoker) throws JobExecutionException {
         /* Register outputs **************************************** */
         NIOWorker.registerOutputs(outputsBasename);
@@ -135,7 +138,7 @@ public abstract class ExternalExecutor extends Executor {
             System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - End task execution");
             /* Unregister outputs **************************************** */
             NIOWorker.unregisterOutputs();
-        } 
+        }
     }
 
     @Override
@@ -185,7 +188,8 @@ public abstract class ExternalExecutor extends Executor {
         logger.info("End Finishing ExternalExecutor");
     }
 
-    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs);
+    public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
+            int[] assignedGPUs);
 
     private String getArgumentsAsString(ArrayList<String> args) {
         StringBuilder sb = new StringBuilder();
@@ -208,34 +212,34 @@ public abstract class ExternalExecutor extends Executor {
         lArgs.add(Integer.toString(nt.getTaskId()));
         lArgs.add(Boolean.toString(nt.isWorkerDebug()));
         lArgs.add(STORAGE_CONF);
-        
+
         // The implementation to execute externally can only be METHOD but we double check it
         if (nt.getMethodType() != MethodType.METHOD) {
             throw new JobExecutionException(ERROR_UNSUPPORTED_JOB_TYPE);
         }
-        
+
         // Add method classname and methodname
         MethodImplementation impl = (MethodImplementation) nt.getMethodImplementation();
         lArgs.add(String.valueOf(impl.getMethodType()));
         lArgs.add(impl.getDeclaringClass());
         lArgs.add(impl.getAlternativeMethodName());
-        
+
         // Slave nodes and cus description
         lArgs.add(String.valueOf(nt.getSlaveWorkersNodeNames().size()));
         lArgs.addAll(nt.getSlaveWorkersNodeNames());
-        lArgs.add(String.valueOf( nt.getResourceDescription().getTotalCPUComputingUnits() ));
-        
-        // Add target 
+        lArgs.add(String.valueOf(nt.getResourceDescription().getTotalCPUComputingUnits()));
+
+        // Add target
         lArgs.add(Boolean.toString(nt.isHasTarget()));
-        
+
         // Add return type
         if (nt.isHasReturn()) {
             DataType returnType = nt.getParams().getLast().getType();
-            lArgs.add( Integer.toString(returnType.ordinal()) );
+            lArgs.add(Integer.toString(returnType.ordinal()));
         } else {
             lArgs.add("null");
         }
-        
+
         // Add parameters
         lArgs.add(Integer.toString(nt.getNumParams()));
         for (NIOParam np : nt.getParams()) {
@@ -245,8 +249,8 @@ public abstract class ExternalExecutor extends Executor {
             lArgs.add(np.getPrefix());
             switch (type) {
                 case FILE_T:
-                	//Passing originalName link instead of renamed file
-                	lArgs.add(np.getOriginalName());
+                    // Passing originalName link instead of renamed file
+                    lArgs.add(np.getOriginalName());
                     break;
                 case OBJECT_T:
                 case PSCO_T:

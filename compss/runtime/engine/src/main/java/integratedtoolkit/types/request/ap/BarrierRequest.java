@@ -8,13 +8,13 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
 
-public class WaitForAllTasksRequest extends APRequest {
+public class BarrierRequest extends APRequest {
 
     private Semaphore sem;
     private Long appId;
 
 
-    public WaitForAllTasksRequest(Long appId, Semaphore sem) {
+    public BarrierRequest(Long appId, Semaphore sem) {
         this.appId = appId;
         this.sem = sem;
     }
@@ -33,7 +33,7 @@ public class WaitForAllTasksRequest extends APRequest {
 
     @Override
     public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
-        ta.waitForAllTasks(this);
+        ta.barrier(this);
     }
 
     @Override

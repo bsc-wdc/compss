@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 
+/**
+ * Represents the different URIs associated to the same path in the same host
+ *
+ */
 public class MultiURI implements Comparable<MultiURI> {
 
     private final Protocol protocol;
@@ -21,13 +25,16 @@ public class MultiURI implements Comparable<MultiURI> {
         this.protocol = protocol;
         this.host = host;
         this.path = path;
+
         this.internal = new HashMap<>();
+        
+        // Try to register the URI now
         try {
-			host.setInternalURI(this);
-		} catch (UnstartedNodeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            host.setInternalURI(this);
+        } catch (UnstartedNodeException e) {
+            // We do not throw the exception because we do not want to block the application
+            // We will try to recover the URI on the getInternalURI method
+        }
     }
 
     public void setInternalURI(String adaptor, Object uri) {
@@ -35,7 +42,13 @@ public class MultiURI implements Comparable<MultiURI> {
     }
 
     public Object getInternalURI(String adaptor) throws UnstartedNodeException {
-        Object o = internal.get(adaptor);
+        Object o = internal.get(adaptor);  
+        
+        if (o == null) {
+            // Try to register the URI now
+            host.setInternalURI(this);
+            o = internal.get(adaptor);
+        }
         return o;
     }
 

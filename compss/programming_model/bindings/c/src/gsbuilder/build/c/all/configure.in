@@ -1,6 +1,7 @@
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT()
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE(all, 0.0.0)
 
@@ -36,6 +37,10 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
+
+#AX_BOOST_BASE(1.54)
+#AX_BOOST_SERIALIZATION
+
 #AC_PATH_PROG(SH, bash, none)
 #AC_PATH_PROG(SSH, ssh, none)
 #AC_PATH_PROG(CP, cp, none)

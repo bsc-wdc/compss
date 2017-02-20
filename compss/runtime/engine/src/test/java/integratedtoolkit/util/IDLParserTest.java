@@ -143,6 +143,29 @@ public class IDLParserTest {
         System.out.println("[IDL-Loader]: Checking Processor 2 parameters (4)");
         assertEquals(p2.getType(), "GPU");
         assertEquals(p2.getComputingUnits(), 1); 
+        System.out.println(readSignatures.get(6));   
 	}
 
+	@Test
+	public void classIDLTest()
+	{
+		String constraintsFile = this.getClass().getResource("class_test.idl").getPath();
+		LinkedList<Integer> updatedMethods = new LinkedList<>();
+        HashMap<Integer, LinkedList<MethodImplementation>> readMethods = new HashMap<>();
+        HashMap<Integer, LinkedList<String>> readSignatures = new HashMap<>();
+        int coreCount = IDLParser.parseIDLMethods(updatedMethods, readMethods, readSignatures, constraintsFile);
+		assertEquals(coreCount, 1);
+		assertEquals(readMethods.size(), 1);
+		System.out.println("[IDL-Loader]: *** Checking Core Element 0");
+        LinkedList<MethodImplementation> implList = readMethods.get(7);
+        assertNotNull(implList);
+        assertEquals(implList.size(), 1);
+        MethodImplementation impl = implList.get(0);
+        System.out.println(impl.getDeclaringClass());
+        assertEquals(impl.getDeclaringClass(), "Block");
+        System.out.println(impl.getCoreId());
+        System.out.println(readSignatures.get(7));
+        //assertEquals(1,2);
+	}
+	
 }

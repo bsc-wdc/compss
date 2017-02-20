@@ -39,50 +39,51 @@ int main(int argc, char **argv)
 
 	// Char (char_dt, wchar_dt)
 	char c = TEST_VALUE_CHAR;
-	char_size(c, &filename);
+	char_size(c, filename);
 	printf("[   TEST] Testing {in} char inside a task.\n");
 
 	// String (string_dt)
 	char *s = strdup(TEST_VALUE_STRING);
-	string_size(s, &filename);
+	string_size(s, filename);
 	printf("[   TEST] Testing {in} string inside a task.\n");
 
 	// Integer (int_dt)
 	int i = TEST_VALUE_INT;
-	int_size(i, &filename);
+	int_size(i, filename);
 	printf("[   TEST] Testing {in} int inside a task.\n");
 
 	// Short (short_dt)
 	short si = TEST_VALUE_SHORT;
-	short_size(si, &filename);
+	short_size(si, filename);
 	printf("[   TEST] Testing {in} short inside a task.\n");
 
 	// Long (long_dt)
 	long li = TEST_VALUE_LONG;
-	long_size(li, &filename);
+	long_size(li, filename);
 	printf("[   TEST] Testing {in} long inside a task.\n");
 
 	// Float (float_dt)
 	float f = TEST_VALUE_FLOAT;
-	float_size(f, &filename);
+	float_size(f, filename);
 	printf("[   TEST] Testing {in} float inside a task.\n");
 
 	// Double (double_dt)
 	double d = TEST_VALUE_DOUBLE;
-	double_size(d, &filename);
+	double_size(d, filename);
 	printf("[   TEST] Testing {in} double inside a task.\n");
 
 	// Boolean (boolean_dt)
 	int b = TEST_VALUE_BOOLEAN;
-	boolean_size(b, &filename);
+	boolean_size(b, filename);
 	printf("[   TEST] Testing {in} boolean inside a task.\n");
 
 	// File (file_dt)
 	printf("[   TEST] Testing file synchronization at master.\n");
 	string line;
-	compss_wait_on(filename);
+	
 	printf("[   TEST] Opening filename: %s.\n", filename);
-	ifstream output (filename);
+	ifstream output;
+	compss_ifstream(filename, output);
 	int nlines = 0;
 	if (output.is_open()) {
 	    while ( getline (output, line) ) {
@@ -97,23 +98,6 @@ int main(int argc, char **argv)
         cout << "Lines " << nlines << " of " << TEST_VALUE_NLINES << endl;
 	assert_master(nlines == TEST_VALUE_NLINES);
 
-	// Out parameters
-	out_parameters(&c, &s, &i, &si, &li, &f, &d, &b, &filename);
-
-	printf("[   TEST] Testing {in-out} char parameter...................\n");
-	compss_wait_on(c);
-	assert_master(c == TEST_VALUE_CHAR2);
-	printf("TEST PASSED.\n");
-
-	printf("[   TEST] Testing {in-out} string parameter.................\n");
-	compss_wait_on(s);
-	assert_master(strcmp(s,TEST_VALUE_STRING2) == 0);
-	printf("TEST PASSED.\n");
-
-	printf("[   TEST] Testing {in-out} int parameter....................\n");
-	compss_wait_on(i);
-	assert_master(i == TEST_VALUE_INT2);
-	printf("TEST PASSED.\n");
 
 	//student (object_dt)
 	student st;

@@ -1,5 +1,7 @@
 
 bin_PROGRAMS = PACKAGE-worker
+ACLOCAL_AMFLAGS=-I m4
+
 
 PACKAGE_worker_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(GS_HOME)/../bindings-common/include -I$../../../c/include -w
 

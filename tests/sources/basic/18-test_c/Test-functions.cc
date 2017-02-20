@@ -6,9 +6,9 @@
 #include "Test.h"
 #include "Test-constants.h"
 
-void char_size(char c, file *filename) {
+void char_size(char c, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} char parameter.......................");
 	assert_worker(fp, c == TEST_VALUE_CHAR);
@@ -18,9 +18,9 @@ void char_size(char c, file *filename) {
 }
 
 
-void string_size(char *s, file *filename) {
+void string_size(char *s, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} string parameter.......................");
 	assert_worker(fp, strcmp(s, TEST_VALUE_STRING ) == 0);
@@ -29,9 +29,9 @@ void string_size(char *s, file *filename) {
 	fclose(fp);
 }
 
-void int_size(int i, file *filename) {
+void int_size(int i, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} int parameter........................");
 	assert_worker(fp, i == TEST_VALUE_INT);
@@ -40,9 +40,9 @@ void int_size(int i, file *filename) {
 	fclose(fp);
 }
 
-void short_size(short si, file *filename) {
+void short_size(short si, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp,"[TEST_FILE] Testing {in} short parameter......................");
 	assert_worker(fp, si == TEST_VALUE_SHORT);
@@ -51,9 +51,9 @@ void short_size(short si, file *filename) {
 	fclose(fp);
 }
 
-void long_size(long li, file *filename) {
+void long_size(long li, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} long parameter.......................");
 	assert_worker(fp, li == TEST_VALUE_LONG);
@@ -62,9 +62,9 @@ void long_size(long li, file *filename) {
 	fclose(fp);
 }
 
-void float_size(float f, file *filename) {
+void float_size(float f, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} float parameter......................");
 	assert_worker(fp, f == TEST_VALUE_FLOAT);
@@ -73,9 +73,9 @@ void float_size(float f, file *filename) {
 	fclose(fp);
 }
 
-void double_size(double d, file *filename) {
+void double_size(double d, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} double parameter.....................");
 	assert_worker(fp, d == TEST_VALUE_DOUBLE);
@@ -84,9 +84,9 @@ void double_size(double d, file *filename) {
 	fclose(fp);
 }
 
-void boolean_size(int b, file *filename) {
+void boolean_size(int b, file filename) {
 	FILE *fp;
-	fp = fopen(*filename, "a");
+	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} boolean parameter....................");
 	assert_worker(fp, b == TEST_VALUE_BOOLEAN);
@@ -95,19 +95,6 @@ void boolean_size(int b, file *filename) {
 	fclose(fp);
 }
 
-void out_parameters(char *c, char **s, int *i, short *si, long *li, float *f, double *d, int *b, file *filename) {
-
-	*c = TEST_VALUE_CHAR2;
-	*s = strdup(TEST_VALUE_STRING2);
-	*i = TEST_VALUE_INT2;
-	*si = TEST_VALUE_SHORT2;
-	*li = TEST_VALUE_LONG2;
-	*f = TEST_VALUE_FLOAT2;
-	*d = TEST_VALUE_DOUBLE2;
-	*b = TEST_VALUE_BOOLEAN2;
-
-	return;
-}
 
 void objects(student *st) {
 

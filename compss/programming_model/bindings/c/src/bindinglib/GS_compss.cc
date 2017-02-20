@@ -22,6 +22,94 @@ void GS_clean() {
   }
 }
 
+
+void compss_ifstream(char * filename, ifstream& ifs) {
+  char *runtime_filename;
+
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+
+  GS_Get_File(filename, in_dir, &runtime_filename);
+
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+
+  ifs.open(runtime_filename);
+}
+
+
+void compss_ofstream(char * filename, ofstream& ofs) {
+  char *runtime_filename;
+
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+
+  GS_Get_File(filename, out_dir, &runtime_filename);
+
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+
+  ofs.open(runtime_filename);
+}
+
+
+FILE* compss_fopen(char * filename, char * mode) {
+
+  char *runtime_filename;
+  FILE* file;
+  enum direction dir;
+ 
+
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
+  
+  if (strcmp(mode, "r") == 0){
+	dir = in_dir;
+  }
+  else if (strcmp(mode, "w") == 0){
+        dir = out_dir;
+  }
+  else if (strcmp(mode, "a") == 0){
+        dir = inout_dir;
+  }
+  else if (strcmp(mode, "r+") == 0){
+        dir = inout_dir;
+  }
+  else if (strcmp(mode, "w+") == 0){
+        dir = out_dir;
+  }
+  else if (strcmp(mode, "a+") == 0){
+        dir = inout_dir;
+  }  
+
+
+  GS_Get_File(filename, dir, &runtime_filename);
+  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
+  
+  file = fopen(runtime_filename, mode);
+   
+
+  return file;
+
+}
+
+
+int delete_file(char * filename)
+{
+    int *result;
+    
+    GS_Delete_File(filename, &result);
+
+    return *result;
+}
+
+
+void waitForAllTasks()
+{
+
+    //long l_app_id = (long)app_id;
+    long int l_app_id = 0;
+    GS_Barrier(l_app_id);
+
+}
+
+
 int GS_register(void *ref, datatype type, direction dir, char *classname, char * &filename) {
   Entry entry;
   int result = 0;

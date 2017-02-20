@@ -1,0 +1,4 @@
+interface Matmul
+{
+        void Block::init(in int bSize, in double initVal);
+};

@@ -4,6 +4,7 @@ AC_INIT()
 
 AM_INIT_AUTOMAKE(compsuperscalar, 0.0.0)
 AC_PROG_LIBTOOL
+#AC_CONFIG_SUBDIRS([build/c/all build/c/master build/c/worker])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
@@ -51,6 +52,11 @@ AC_PATH_PROG([MKDIR], [mkdir], [none])
 AC_PATH_PROG([MV], [mv], [none])
 AC_PATH_PROG([TOUCH], [touch], [none])
 AC_PATH_PROG([SED], [sed], [none])
+
+#AX_BOOST_BASE(1.54)
+#AX_BOOST_SERIALIZATION
+
+#AC_CONFIG_LINKS([test.txt:test.txt])
 
 for cmd in $CC $LD $CHMOD $CAT $RM $CP $SSH $BASH $MKDIR $MV $TOUCH $AUTOHEADER $ACLOCAL $AUTOMAKE $AUTOCONF $AUTORECONF $LIBTOOLIZE  $MAKE $SED; do
 	if test x"$cmd" = x"none" ; then

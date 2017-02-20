@@ -2,6 +2,7 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
@@ -14,6 +15,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class CoreManager {
@@ -33,6 +37,10 @@ public class CoreManager {
     // Structure counters
     private static int coreCount = 0;
     private static int nextId = 0;
+    
+    // Loggers
+    private static final Logger jobLogger = LogManager.getLogger(Loggers.JM_COMP);
+
     
 
     static {

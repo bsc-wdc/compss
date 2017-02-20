@@ -153,11 +153,11 @@ public class WorkerStarter {
                 } catch (IllegalStateException e) {
                     logger.warn("Tried to shutdown vm while it was already being shutdown", e);
                 }
-                
+
                 return n;
             }
         }
-        
+
         if (toStop) {
             String msg = "[STOP]: Worker " + name + " stopped during creation because application is stopped";
             logger.warn(msg);
@@ -255,9 +255,9 @@ public class WorkerStarter {
         }
 
         /*
-         * ******************************************************** 
+         * ************************************************************************************************************
          * BUILD COMMAND
-         * *******************************************************
+         * ************************************************************************************************************
          */
         String[] cmd = new String[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + NIOAdaptor.NUM_PARAMS_NIO_WORKER + jvmFlags.length];
 
@@ -321,13 +321,13 @@ public class WorkerStarter {
 
         // GPU parameters
         cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
-        
-        //TODO: check if values have been set in runcompss or other configuration file
-        //      This is the insertion point of the current implementation
+
+        // TODO: check if values have been set in runcompss or other configuration file
+        // This is the insertion point of the current implementation
         // CPU parameters
         cmd[nextPosition++] = "0";
         cmd[nextPosition++] = "-";
-        
+
         return cmd;
     }
 

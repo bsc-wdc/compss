@@ -29,18 +29,23 @@ void usage() {
 
 int main(int argc, char *argv[]) {
     // Check and get parameters
+
     if (argc != 2) {
         usage();
         return -1;
     }
+
     string initialValue = argv[1];
     file fileName = strdup(FILE_NAME);
-    
+   
+    cout << FILE_NAME << endl;
+ 
     // Init compss
     compss_on();
     
     // Write file
-    ofstream fos (fileName);
+    ofstream fos;
+    compss_ofstream(fileName, fos);
     if (fos.is_open()) {
         fos << initialValue << endl;
         fos.close();
@@ -51,12 +56,12 @@ int main(int argc, char *argv[]) {
     cout << "Initial counter value is " << initialValue << endl;
        
     // Execute increment
-    increment(&fileName);
-    compss_wait_on(fileName);
+    increment(fileName);
     
     // Read new value
     string finalValue;
-    ifstream fis (fileName);
+    ifstream fis;
+    compss_ifstream(fileName, fis);
     if (fis.is_open()) {
         if (getline(fis, finalValue)) {
             cout << "Final counter value is " << finalValue << endl;
@@ -73,5 +78,6 @@ int main(int argc, char *argv[]) {
 
     // Close COMPSs and end
     compss_off();
+
     return 0;
 }

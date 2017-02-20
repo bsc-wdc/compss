@@ -1,0 +1,70 @@
+#!/bin/bash -e
+
+  #Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  retryNum=$6
+ 
+  #Global exit variable
+  exitValue=0
+
+  #----------------------------------------------------------------------------------
+  #Compiling C app
+  cd ${base_app_dir}
+  $(dirname ${COMPSs_exec})/buildapp Matmul
+  if [ $? -ne 0 ]; then
+     echo "[ERROR] Cannot compile C app. See errors above."
+     exit 1
+  fi
+
+  #----------------------------------------------------------------------------------
+  #Generating project.xml
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  sed -i '/<AppDir>/c<AppDir>'${base_app_dir}'\/<\/AppDir>' ${base_app_dir}/project.xml
+
+  #----------------------------------------------------------------------------------
+  #Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+
+  #----------------------------------------------------------------------------------
+  #Run application 1 - Test
+  echo
+  echo "*** RUNNING C APPLICATION TEST"
+  output_log="${target_log_folder}/matmul_objects_c_0${retryNum}.outputlog"
+  error_log="${target_log_folder}/matmul_objects_c_0${retryNum}.errorlog"
+  N=4
+  M=8
+  val=12.34
+  expectedTime=30s
+
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     ${base_app_dir}/master/Matmul $N $M $val > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  #Check timeout
+  if [[ "$?" = "124" ]]; then
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/Matmul_0${retryNum}/* ${target_log_folder}
+
+     #Report time out
+     echo "[WARNING] C Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     #Copy LOG files
+     cp -rf ${COMPSs_log_folder}/Matmul_0${retryNum}/* ${target_log_folder}
+
+     #Check result
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${error_log} 
+     exitValue=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  #Return execution status
+  exit $exitValue
+

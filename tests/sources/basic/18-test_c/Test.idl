@@ -8,6 +8,5 @@ interface TEST
 	void float_size(in float f, inout File filename);
 	void double_size(in double d, inout File filename);
 	void boolean_size(in boolean b, inout File filename);
-	void out_parameters(inout char c, inout string s, inout int i, inout short si, inout long li, inout float f, inout double d, inout boolean b, inout File filename);
 	void objects(inout student st);		
 };

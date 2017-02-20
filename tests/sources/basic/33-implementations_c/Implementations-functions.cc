@@ -20,12 +20,12 @@
 
 using namespace std;
 
-void increment(file *fileName) {
+void increment(file fileName) {
     cout << "INIT TASK" << endl;
-    cout << "Param: " << *fileName << endl;
+    cout << "Param: " << fileName << endl;
     // Read value
     char initialValue;
-    ifstream fis (*fileName);
+    ifstream fis (fileName);
     if (fis.is_open()) {        
         if (fis >> initialValue) {
             fis.close();
@@ -44,7 +44,7 @@ void increment(file *fileName) {
     cout << "FINAL VALUE: " << finalValue << endl;
     
     // Write new value
-    ofstream fos (*fileName);
+    ofstream fos (fileName);
     if (fos.is_open()) {
         fos << finalValue << endl;
         fos.close();
@@ -54,12 +54,12 @@ void increment(file *fileName) {
     cout << "END TASK" << endl;
 }
 
-void increment_2(file *fileName) {
+void increment_2(file fileName) {
     cout << "INIT TASK" << endl;
-    cout << "Param: " << *fileName << endl;
+    cout << "Param: " << fileName << endl;
     // Read value
     char initialValue;
-    ifstream fis (*fileName);
+    ifstream fis (fileName);
     if (fis.is_open()) {
         if (fis >> initialValue) {
             fis.close();
@@ -78,7 +78,7 @@ void increment_2(file *fileName) {
     cout << "FINAL VALUE: " << finalValue << endl;
 
     // Write new value
-    ofstream fos (*fileName);
+    ofstream fos (fileName);
     if (fos.is_open()) {
         fos << finalValue << endl;
         fos.close();

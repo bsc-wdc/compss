@@ -359,7 +359,7 @@ static void generate_prototype(FILE *outFile, function *current_function)
 	  fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
 	  break;
 	case object_dt:
-	  fprintf(outFile, "%s %s", current_argument->classname, current_argument->name);
+	  fprintf(outFile, "%s *%s", current_argument->classname, current_argument->name);
 	  break;
 	case string_dt:
 	case wstring_dt:
@@ -394,7 +394,7 @@ static void generate_prototype(FILE *outFile, function *current_function)
 	  fprintf(outFile, "%s *%s", c_out_types[current_argument->type], current_argument->name);
 	  break;
 	case file_dt:
-	  fprintf(outFile, "%s *%s", c_out_types[current_argument->type], current_argument->name);
+	  fprintf(outFile, "%s %s", c_out_types[current_argument->type], current_argument->name);
 	  break;
 	case void_dt:
 	case any_dt:
@@ -541,8 +541,8 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
 	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+2, i+2);
 	  break;
 	case file_dt:
-	  fprintf(outFile, "\t GS_register(%s, (datatype)%d, (direction)%d, \"%s\", *%s);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
-	  fprintf(outFile, "\t arrayObjs[%d] = %s;\n", i, arg->name);
+	  //fprintf(outFile, "\t GS_register(%s, (datatype)%d, (direction)%d, \"%s\", *%s);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
+	  fprintf(outFile, "\t arrayObjs[%d] = &%s;\n", i, arg->name);
 	  fprintf(outFile, "\t int param%d = %d;\n", i+1, arg->type);
 	  fprintf(outFile, "\t arrayObjs[%d] = &param%d;\n", i+1, i+1);
 	  fprintf(outFile, "\t int param%d = %d;\n", i+2, arg->dir);
@@ -557,7 +557,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
       switch (arg->type) {
 	case object_dt:
 	  fprintf(outFile, "\t char *%s_filename;\n", arg->name);
-	  fprintf(outFile, "\t found = GS_register(&%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
+	  fprintf(outFile, "\t found = GS_register(%s, (datatype)%d, (direction)%d, \"%s\", %s_filename);\n", arg->name, arg->type, arg->dir, arg->classname, arg->name);
 	  fprintf(outFile, "\t if (!found) {\n");
 	  fprintf(outFile, "\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
@@ -796,7 +796,7 @@ static void generate_worker_case(FILE *outFile, function *func)
       }
     }
     
-    if (arg->dir == inout_dir) {
+    if (arg->dir == inout_dir || arg->dir == out_dir) {
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -874,7 +874,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "%s", arg->name);
 	  break;
 	case object_dt:
-	  fprintf(outFile, "%s", arg->name);
+	  fprintf(outFile, "&%s", arg->name);
 	  break;
 	case string_dt:
 	case wstring_dt:
@@ -910,7 +910,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "&%s", arg->name);
 	  break;
 	case file_dt:
-	  fprintf(outFile, "&%s", arg->name);
+	  fprintf(outFile, "%s", arg->name);
 	  break;
 	case void_dt:
 	case any_dt:

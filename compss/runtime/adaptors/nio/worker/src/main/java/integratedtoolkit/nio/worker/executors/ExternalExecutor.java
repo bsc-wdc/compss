@@ -19,6 +19,7 @@ import integratedtoolkit.nio.worker.util.TaskResultReader;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.types.annotations.parameter.DataType;
 
 import integratedtoolkit.util.ErrorManager;
@@ -27,6 +28,7 @@ import integratedtoolkit.util.RequestQueue;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 

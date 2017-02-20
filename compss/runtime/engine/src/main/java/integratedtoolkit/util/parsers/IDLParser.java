@@ -160,9 +160,15 @@ public class IDLParser {
         }
         int indexOfSeparator = line.indexOf(CLASS_METHOD_SEPARATOR);
         if (indexOfSeparator > 0) {
-            String className = line.substring(indexOfSeparator);
-            String methodName = line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length(), line.length() - 1);
-            // logger.debug("New C method implementation: "+className+"::"+methodName);
+            String className = line.substring(0, indexOfSeparator);
+            //String methodName = line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length());
+            StringBuilder methodNameBuilder = new StringBuilder();
+            methodNameBuilder.append(className).append(CLASS_METHOD_SEPARATOR).append(line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length()));
+            String methodName = methodNameBuilder.toString();
+            //logger.debug("New C method implementation: "+className+"::"+methodName);
+            logger.debug("New C method implementation:");
+            logger.debug("\t Classname: " + className);
+            logger.debug("\t Methodname: " + methodName);
             return new CImplementation(className, methodName);
         } else {
             // logger.debug("New C method implementation: "+line);

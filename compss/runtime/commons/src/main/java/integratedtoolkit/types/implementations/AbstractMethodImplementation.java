@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
 
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.annotations.parameter.DataType;
@@ -52,8 +56,8 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
 
     public static String getSignature(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
             Parameter[] parameters) {
-        
-        StringBuilder buffer = new StringBuilder();
+    	
+        StringBuilder buffer = new StringBuilder();   
         buffer.append(methodName).append("(");
         
         switch(LANG) {

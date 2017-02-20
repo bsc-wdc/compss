@@ -7,6 +7,8 @@ else
 classads_sources =
 endif
 
+ACLOCAL_AMFLAGS=-I m4
+
 PACKAGE_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(GS_HOME)/../bindings-common/include -I$(GS_HOME)/include -w
 
 PACKAGE_SOURCES = empty.cc \

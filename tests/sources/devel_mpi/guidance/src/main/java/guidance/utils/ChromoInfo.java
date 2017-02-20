@@ -31,6 +31,7 @@ package guidance.utils;
 public class ChromoInfo {
 
     public static final int MAX_NUMBER_OF_CHROMOSOMES = 23;
+    public static final String MAX_NUMBER_OF_CHROMOSOMES_STR = "23";
     public static final int MAX_CHROMOSOME_LIMIT = 252_000_000;
     
     private int[] minSize = new int[MAX_NUMBER_OF_CHROMOSOMES];

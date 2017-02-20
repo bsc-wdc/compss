@@ -40,7 +40,6 @@ import java.util.Map;
 
 import binary.BINARY;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -81,8 +80,6 @@ public class Guidance {
      * @throws Exception
      */
     public static void main(String args[]) throws EnvironmentVariableException, IOException {
-        ArrayList<String> listOfCommands = new ArrayList<String>();
-
         // Verify that all environment variables have been defined correctly
         Environment.verify();
 
@@ -108,10 +105,8 @@ public class Guidance {
         }
         listOfStages.createNewFile();
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        String datestring = dateFormat.format(date);
-
+        ArrayList<String> listOfCommands = new ArrayList<>();
+        String datestring = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
         listOfCommands.add("####################################################################");
         listOfCommands.add("# List of tasks executed by Guidance workflow");
         listOfCommands.add("# Date: " + datestring);
@@ -151,42 +146,6 @@ public class Guidance {
         }
 
         System.out.println("[Guidance] Everything is working with Guidance, just wait...");
-    }
-
-    /**
-     * Method to print a all the environment variables of the system, It is only used for debug
-     * 
-     */
-    public static void printEnvVariables() {
-        long freeMemory = Runtime.getRuntime().freeMemory() / B_TO_GB;
-        long totalMemory = Runtime.getRuntime().totalMemory() / B_TO_GB;
-        long maxMemory = Runtime.getRuntime().maxMemory() / B_TO_GB;
-
-        System.out.println("JVM freeMemory: " + freeMemory);
-        System.out.println("JVM totalMemory also equals to initial heap size of JVM : " + totalMemory);
-        System.out.println("JVM maxMemory also equals to maximum heap size of JVM   : " + maxMemory);
-
-        Map<String, String> env = System.getenv();
-        System.out.println("--------------------------------------");
-        System.out.println("Environmental Variables in Master:");
-        for (String envName : env.keySet()) {
-            System.out.format("%s=%s%n", envName, env.get(envName));
-        }
-        System.out.println("--------------------------------------");
-
-        // ArrayList objects = new ArrayList();
-        // for (int ii = 0; ii < 10_000_000; ii++) {
-        // objects.add(("" + 10*2_710));
-        // }
-
-        freeMemory = Runtime.getRuntime().freeMemory() / B_TO_GB;
-        totalMemory = Runtime.getRuntime().totalMemory() / B_TO_GB;
-        maxMemory = Runtime.getRuntime().maxMemory() / B_TO_GB;
-
-        System.out.println("Used Memory in JVM: " + (maxMemory - freeMemory));
-        System.out.println("freeMemory in JVM: " + freeMemory);
-        System.out.println("totalMemory in JVM shows current size of java heap : " + totalMemory);
-        System.out.println("maxMemory in JVM: " + maxMemory);
     }
 
     /**
@@ -448,10 +407,13 @@ public class Guidance {
 
         /**
          * Now it is a good moment to start with the cleaning and compression of the temporal files. It should be done
-         * if variable removeTemporalFiles and compressFiles where enabled. We compress and clean in this order: -
-         * commonFilesInfo - imputationFilesInfo - assocFilesInfo Due to that currently COMPSs does not allow us to
-         * delete de temporal files, then we will compress them and then we create a text file that list the files that
-         * we want to clean. After the end of the execution, the user can delete them.
+         * if variable removeTemporalFiles and compressFiles where enabled. We compress and clean in this order: 
+         * - commonFilesInfo 
+         * - imputationFilesInfo 
+         * - assocFilesInfo 
+         * Due to that currently COMPSs does not allow us to delete the temporal files, then we will compress them and then
+         * we create a text file that list the files that we want to clean. After the end of the execution, 
+         * the user can delete them.
          */
         /*
          * try{ compressCommonFiles(parsingArgs, commonFilesInfo); } catch (Exception e){
@@ -475,7 +437,7 @@ public class Guidance {
     }
 
     /**
-     * Method that crea tes all the output directory structure for the results
+     * Method that creates all the output directory structure for the results
      * 
      * @param parsingArgs
      * @param myOutDir
@@ -496,7 +458,8 @@ public class Guidance {
         createDir(tmpOutDir);
 
         // We create the second directory: the REFPANEL directory.
-        // It can be => common: for files from the beginning to phasing
+        // It can be 
+        // => common: for files from the beginning to phasing
         // => PANEL : for files for imputation for each panel
 
         // Now I create the directories for common and combined
@@ -2322,6 +2285,19 @@ public class Guidance {
     }
 
     /**
+     * Method to print the general information of Guidance.
+     */
+    private static void printGuidancePackageVersion() {
+        System.out.println("[Guidance] *****************************************************************");
+        System.out.println("[Guidance] ** This is the Guidance framework to performing imputation,    **");
+        System.out.println("[Guidance] ** GWAS and Phenotype analysis of large scale GWAS datasets.   **");
+        System.out.println("[Guidance] ** Version: " + PACKAGE_VERSION + "                                   **");
+        System.out.println("[Guidance] ** Date release: 20-Jul-2016                                   **");
+        System.out.println("[Guidance] ** Contact: http://cg.bsc.es/guidance                          **");
+        System.out.println("[Guidance] ******************************************************************\n");
+    }
+
+    /**
      * Method to print the current status of each stage (0: unactive, 1:active) of Guidance workflow
      * 
      * @param parsingArgs
@@ -2359,16 +2335,39 @@ public class Guidance {
     }
 
     /**
-     * Method to print the general information of Guidance.
+     * Method to print a all the environment variables of the system, It is only used for debug
+     * 
      */
-    private static void printGuidancePackageVersion() {
-        System.out.println("[Guidance] *****************************************************************");
-        System.out.println("[Guidance] ** This is the Guidance framework to performing imputation,    **");
-        System.out.println("[Guidance] ** GWAS and Phenotype analysis of large scale GWAS datasets.   **");
-        System.out.println("[Guidance] ** Version: " + PACKAGE_VERSION + "                                   **");
-        System.out.println("[Guidance] ** Date release: 20-Jul-2016                                   **");
-        System.out.println("[Guidance] ** Contact: http://cg.bsc.es/guidance                          **");
-        System.out.println("[Guidance] ******************************************************************\n");
+    public static void printEnvVariables() {
+        long freeMemory = Runtime.getRuntime().freeMemory() / B_TO_GB;
+        long totalMemory = Runtime.getRuntime().totalMemory() / B_TO_GB;
+        long maxMemory = Runtime.getRuntime().maxMemory() / B_TO_GB;
+
+        System.out.println("JVM freeMemory: " + freeMemory);
+        System.out.println("JVM totalMemory also equals to initial heap size of JVM : " + totalMemory);
+        System.out.println("JVM maxMemory also equals to maximum heap size of JVM   : " + maxMemory);
+
+        Map<String, String> env = System.getenv();
+        System.out.println("--------------------------------------");
+        System.out.println("Environmental Variables in Master:");
+        for (String envName : env.keySet()) {
+            System.out.format("%s=%s%n", envName, env.get(envName));
+        }
+        System.out.println("--------------------------------------");
+
+        // ArrayList objects = new ArrayList();
+        // for (int ii = 0; ii < 10_000_000; ii++) {
+        // objects.add(("" + 10*2_710));
+        // }
+
+        freeMemory = Runtime.getRuntime().freeMemory() / B_TO_GB;
+        totalMemory = Runtime.getRuntime().totalMemory() / B_TO_GB;
+        maxMemory = Runtime.getRuntime().maxMemory() / B_TO_GB;
+
+        System.out.println("Used Memory in JVM: " + (maxMemory - freeMemory));
+        System.out.println("freeMemory in JVM: " + freeMemory);
+        System.out.println("totalMemory in JVM shows current size of java heap : " + totalMemory);
+        System.out.println("maxMemory in JVM: " + maxMemory);
     }
 
 }

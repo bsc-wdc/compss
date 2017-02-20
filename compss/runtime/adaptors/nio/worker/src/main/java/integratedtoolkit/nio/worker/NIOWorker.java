@@ -36,6 +36,7 @@ import integratedtoolkit.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
+import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.util.ThreadPrintStream;
 import integratedtoolkit.nio.NIOTracer;
@@ -50,8 +51,8 @@ public class NIOWorker extends NIOAgent {
     private static final int MAX_RETRIES = 5;
 
     // Logger
-    private static final Logger wLogger = LogManager.getLogger(Loggers.WORKER);
-    private static final boolean wLoggerDebug = wLogger.isDebugEnabled();
+    private static final Logger WORKER_LOGGER = LogManager.getLogger(Loggers.WORKER);
+    private static final boolean WORKER_LOGGER_DEBUG = WORKER_LOGGER.isDebugEnabled();
     private static final String EXECUTION_MANAGER_ERR = "Error starting ExecutionManager";
     private static final String DATA_MANAGER_ERROR = "Error starting DataManager";
     private static final String ERROR_INCORRECT_NUM_PARAMS = "Error: Incorrect number of parameters";
@@ -96,18 +97,18 @@ public class NIOWorker extends NIOAgent {
             System.setErr(err);
             System.setOut(out);
         } catch (Exception e) {
-            wLogger.error("Exception", e);
+            WORKER_LOGGER.error("Exception", e);
         }
     }
 
 
     public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, String appUuid, String lang, String hostName, String workingDir,
-            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs) {
+            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs, int amountSockets, String socketString) {
 
         super(snd, rcv, masterPort);
 
         // Log worker creation
-        wLogger.info("NIO Worker init");
+        WORKER_LOGGER.info("NIO Worker init");
 
         // Set attributes
         this.deploymentId = appUuid;
@@ -132,21 +133,30 @@ public class NIOWorker extends NIOAgent {
         }
 
         // Start Execution Manager
-        this.executionManager = new ExecutionManager(this, numJobThreads, numGPUs);
-
+        ExecutionManager em = null;
+        try {
+            em = new ExecutionManager(this, numJobThreads, amountSockets, socketString, numGPUs);
+        } catch (BadAmountSocketsException base) {
+            ErrorManager.fatal(base);
+            return;
+        } finally {
+            this.executionManager = em;
+        }
+        
         if (tracing_level == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
         }
-
+        
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
-        }
-
+        } 
+        
         if (tracing_level == NIOTracer.BASIC_MODE) {
             NIOTracer.disablePThreads();
         }
+         
     }
 
     @Override
@@ -213,7 +223,7 @@ public class NIOWorker extends NIOAgent {
     
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
-        wLogger.info("Received Job " + task);
+        WORKER_LOGGER.info("Received Job " + task);
 
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.Event.RECEIVED_NEW_TASK.getId(), NIOTracer.Event.RECEIVED_NEW_TASK.getType());
@@ -225,14 +235,14 @@ public class NIOWorker extends NIOAgent {
         }
 
         // Demand files
-        wLogger.info("Checking parameters");
+        WORKER_LOGGER.info("Checking parameters");
         TransferringTask tt = new TransferringTask(task);
         int i = 0;
         for (NIOParam param : task.getParams()) {
             i++;
             if (param.getData() != null) {
                 // Parameter has associated data
-                wLogger.debug("- Checking transfers for data of parameter " + (String) param.getValue());
+                WORKER_LOGGER.debug("- Checking transfers for data of parameter " + (String) param.getValue());
 
                 switch (param.getType()) {
                     case PSCO_T:
@@ -275,15 +285,15 @@ public class NIOWorker extends NIOAgent {
     
     private void askForPSCO(NIOParam param) {
         String pscoId = (String) param.getValue();
-        wLogger.debug("   - " + pscoId + " registered as PSCO.");
+        WORKER_LOGGER.debug("   - " + pscoId + " registered as PSCO.");
         // The replica must have been ordered by the master so the real object must be
         // catched or can be retrieved by the ID
 
         // Try if parameter is in cache
-        wLogger.debug("   - Checking if " + pscoId + " is in cache.");
+        WORKER_LOGGER.debug("   - Checking if " + pscoId + " is in cache.");
         boolean inCache = dataManager.checkPresence(pscoId);
         if (!inCache) {
-            wLogger.debug("   - Retrieving psco " + pscoId + " from Storage");
+            WORKER_LOGGER.debug("   - Retrieving psco " + pscoId + " from Storage");
             // Get Object from its ID
             Object obj = null;
             if (NIOTracer.isActivated()) {
@@ -292,7 +302,7 @@ public class NIOWorker extends NIOAgent {
             try {
                 obj = StorageItf.getByID(pscoId);
             } catch (StorageException e) {
-                wLogger.error("Cannot getByID PSCO " + pscoId, e);
+                WORKER_LOGGER.error("Cannot getByID PSCO " + pscoId, e);
             } finally {
                 if (NIOTracer.isActivated()) {
                     NIOTracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_GETBYID.getType());
@@ -300,33 +310,33 @@ public class NIOWorker extends NIOAgent {
             }
             storeObject(pscoId, obj);
         }
-        wLogger.debug("   - PSCO with id " + pscoId + " stored");
+        WORKER_LOGGER.debug("   - PSCO with id " + pscoId + " stored");
     }
     
     private void askForObject(NIOParam param, int index, TransferringTask tt) {
-        wLogger.debug("   - " + (String) param.getValue() + " registered as object.");
+        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
 
         boolean askTransfer = false;
         
         // Try if parameter is in cache
-        wLogger.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
+        WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
         boolean catched = dataManager.checkPresence((String) param.getValue());
         if (!catched) {
             // Try if any of the object locations is in cache
             boolean locationsInCache = false;
-            wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are catched");
+            WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are catched");
             for (NIOURI loc : param.getData().getSources()) {
                 if (dataManager.checkPresence(loc.getPath())) {
                     // Object found
-                    wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") location found in cache.");
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") location found in cache.");
                     try {
                         if (param.isPreserveSourceData()) {
-                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
                                     + ") preserves sources. CACHE-COPYING");
                             Object o = Serializer.deserialize(loc.getPath());
                             storeObject((String) param.getValue(), o);
                         } else {
-                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
                                     + ") erases sources. CACHE-MOVING");
                             Object o = dataManager.getObject(loc.getPath());
                             dataManager.remove(loc.getPath());
@@ -336,11 +346,11 @@ public class NIOWorker extends NIOAgent {
                     } catch (IOException ioe) {
                         // If exception is raised, locationsInCache remains false. We log the exception
                         // and try host files
-                        wLogger.error("IOException", ioe);
+                        WORKER_LOGGER.error("IOException", ioe);
                     } catch (ClassNotFoundException e) {
                         // If exception is raised, locationsInCache remains false. We log the exception
                         // and try host files
-                        wLogger.error("ClassNotFoundException", e);
+                        WORKER_LOGGER.error("ClassNotFoundException", e);
                     }
                     // Stop looking for locations
                     break;
@@ -350,26 +360,26 @@ public class NIOWorker extends NIOAgent {
             if (!locationsInCache) {
                 // Try if any of the object locations is in the host
                 boolean existInHost = false;
-                wLogger.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
+                WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " locations are in host");
                 NIOURI loc = param.getData().getURIinHost(host);
                 if (loc != null) {
-                    wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                    WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
                     try {
                         File source = new File(workingDir + File.separator + loc.getPath());
                         File target = new File(workingDir + File.separator + param.getValue().toString());
                         if (param.isPreserveSourceData()) {
-                            wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue()
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
                                     + ") preserves sources. COPYING");
-                            wLogger.debug("         Source: " + source);
-                            wLogger.debug("         Target: " + target);
+                            WORKER_LOGGER.debug("         Source: " + source);
+                            WORKER_LOGGER.debug("         Target: " + target);
                             Files.copy(source.toPath(), target.toPath());
                         } else {
-                            wLogger.debug(
+                            WORKER_LOGGER.debug(
                                     "   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                            wLogger.debug("         Source: " + source);
-                            wLogger.debug("         Target: " + target);
+                            WORKER_LOGGER.debug("         Source: " + source);
+                            WORKER_LOGGER.debug("         Target: " + target);
                             if (!source.renameTo(target)) {
-                                wLogger.error("Error renaming file from " + source.getAbsolutePath() 
+                                WORKER_LOGGER.error("Error renaming file from " + source.getAbsolutePath() 
                                     + " to " + target.getAbsolutePath());
                             }
                         }
@@ -380,11 +390,11 @@ public class NIOWorker extends NIOAgent {
                     } catch (IOException ioe) {
                         // If exception is raised, locationsInCache remains false. We log the exception
                         // and try host files
-                        wLogger.error("IOException", ioe);
+                        WORKER_LOGGER.error("IOException", ioe);
                     } catch (ClassNotFoundException e) {
                         // If exception is raised, locationsInCache remains false. We log the exception
                         // and try host files
-                        wLogger.error("ClassNotFoundException", e);
+                        WORKER_LOGGER.error("ClassNotFoundException", e);
                     }
                 }
 
@@ -400,38 +410,38 @@ public class NIOWorker extends NIOAgent {
     }
     
     private void askForFile(NIOParam param, int index, TransferringTask tt) {
-        wLogger.debug("   - " + (String) param.getValue() + " registered as file.");
+        WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
 
         boolean locationsInHost = false;
         boolean askTransfer = false;
 
         // Try if parameter is in the host
-        wLogger.debug("   - Checking if file " + (String) param.getValue() + " exists.");
+        WORKER_LOGGER.debug("   - Checking if file " + (String) param.getValue() + " exists.");
         File f = new File(param.getValue().toString());
         if (!f.exists()) {
             // Try if any of the locations is in the same host
-            wLogger.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
+            WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " exists in worker");
             NIOURI loc = param.getData().getURIinHost(host);
             if (loc != null) {
                 // Data is already present at host
-                wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
+                WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") found at host.");
                 try {
                     File source = new File(loc.getPath());
                     File target = new File(param.getValue().toString());
                     if (param.isPreserveSourceData()) {
-                        wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
-                        wLogger.debug("         Source: " + source);
-                        wLogger.debug("         Target: " + target);
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
+                        WORKER_LOGGER.debug("         Source: " + source);
+                        WORKER_LOGGER.debug("         Target: " + target);
                         Files.copy(source.toPath(), target.toPath());
                     } else {
-                        wLogger.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
-                        wLogger.debug("         Source: " + source);
-                        wLogger.debug("         Target: " + target);
+                        WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                        WORKER_LOGGER.debug("         Source: " + source);
+                        WORKER_LOGGER.debug("         Target: " + target);
                         Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
                     }
                     locationsInHost = true;
                 } catch (IOException ioe) {
-                    wLogger.error("IOException", ioe);
+                    WORKER_LOGGER.error("IOException", ioe);
                 }
             }
 
@@ -453,14 +463,14 @@ public class NIOWorker extends NIOAgent {
     private void askForTransfer(boolean askTransfer, NIOParam param, int index, TransferringTask tt) {
         // Request the transfer if needed
         if (askTransfer) {
-            wLogger.info(
+            WORKER_LOGGER.info(
                     "- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
             DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
             addTransferRequest(dr);
         } else {
             // If no transfer, decrease the parameter counter
             // (we already have it)
-            wLogger.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
+            WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") already exists.");
             tt.decreaseParams();
         }
     }
@@ -507,13 +517,13 @@ public class NIOWorker extends NIOAgent {
                     fos.write(errorMessage.getBytes());
                     fos.close();
                 } catch (IOException e) {
-                    wLogger.error("IOException", e);
+                    WORKER_LOGGER.error("IOException", e);
                 } finally {
                     if (fos != null) {
                         try {
                             fos.close();
                         } catch (IOException e) {
-                            wLogger.error("IOException", e);
+                            WORKER_LOGGER.error("IOException", e);
                         }
                     }
                 }
@@ -525,10 +535,10 @@ public class NIOWorker extends NIOAgent {
     @Override
     public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {   	
         if (type == Transfer.Destination.OBJECT) {
-            wLogger.info("Received data " + dataId + " with associated object " + object);
+            WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
             storeObject(dataId, object);
         } else {
-            wLogger.info("Received data " + dataId);
+            WORKER_LOGGER.info("Received data " + dataId);
         }
         for (DataRequest dr : achievedRequests) {
             WorkerDataRequest wdr = (WorkerDataRequest) dr;
@@ -561,7 +571,7 @@ public class NIOWorker extends NIOAgent {
                 break;
             } catch (Exception e) {
                 if (retries >= MAX_RETRIES) {
-                    wLogger.error("Exception sending Task notification", e);
+                    WORKER_LOGGER.error("Exception sending Task notification", e);
                     return;
                 } else {
                     try {
@@ -575,9 +585,9 @@ public class NIOWorker extends NIOAgent {
         }
 
         NIOTaskResult tr = new NIOTaskResult(taskID, nt.getParams());
-        if (wLogger.isDebugEnabled()) {
-            wLogger.debug("TASK RESULT FOR TASK ID " + taskID);
-            wLogger.debug(tr);
+        if (WORKER_LOGGER.isDebugEnabled()) {
+            WORKER_LOGGER.debug("TASK RESULT FOR TASK ID " + taskID);
+            WORKER_LOGGER.debug(tr);
         }
         CommandTaskDone cmd = new CommandTaskDone(this, tr, successful);
         c.sendCommand(cmd);
@@ -597,7 +607,7 @@ public class NIOWorker extends NIOAgent {
     // Check if this task is ready to execute
     private void executeTask(NIOTask task) {
         if (isWorkerDebugEnabled) {
-            wLogger.debug("Enqueueing job " + task.getJobId() + " for execution.");
+            WORKER_LOGGER.debug("Enqueueing job " + task.getJobId() + " for execution.");
         }
 
         // Execute the job
@@ -608,7 +618,7 @@ public class NIOWorker extends NIOAgent {
         // have N pending task transfer and will wait until they
         // are finished to send all the answers (blocking the task execution)
         if (isWorkerDebugEnabled) {
-            wLogger.debug("Notifying presence of all data for job " + task.getJobId() + ".");
+            WORKER_LOGGER.debug("Notifying presence of all data for job " + task.getJobId() + ".");
         }
 
         CommandDataReceived cdr = new CommandDataReceived(this, task.getTransferGroupId());
@@ -640,14 +650,14 @@ public class NIOWorker extends NIOAgent {
                 if (name.startsWith(File.separator)) {
                     File f = new File(name);
                     if (!f.delete()) {
-                        wLogger.error("Error removing file " + f.getAbsolutePath());
+                        WORKER_LOGGER.error("Error removing file " + f.getAbsolutePath());
                     }
                 } else {
                     removeFromCache(name);
                 }
             }
         } catch (Exception e) {
-            wLogger.error("Exception", e);
+            WORKER_LOGGER.error("Exception", e);
         }
     }
 
@@ -657,7 +667,7 @@ public class NIOWorker extends NIOAgent {
 
     // Shutdown the worker, at this point there are no active transfers
     public void shutdown(Connection closingConnection) {
-        wLogger.debug("Entering shutdown method on worker");
+        WORKER_LOGGER.debug("Entering shutdown method on worker");
         try {
             // Stop the Execution Manager
             executionManager.stop();
@@ -678,20 +688,20 @@ public class NIOWorker extends NIOAgent {
                 try {
                     StorageItf.finish();
                 } catch (StorageException e) {
-                    wLogger.error("Error releasing storage library: " + e.getMessage(), e);
+                    WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
                 }
             }
 
             // Remove workingDir
             if (removeWD) {
-                wLogger.debug("Erasing Worker Sandbox WorkingDir");
+                WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir");
                 String wDir = workingDir.substring(0, workingDir.indexOf(deploymentId) + deploymentId.length());
                 removeFolder(wDir);
             }
         } catch (Exception e) {
-            wLogger.error("Exception", e);
+            WORKER_LOGGER.error("Exception", e);
         }
-        wLogger.debug("Finish shutdown method on worker");
+        WORKER_LOGGER.debug("Finish shutdown method on worker");
     }
 
     private void removeFolder(String sandBox) throws IOException {
@@ -746,7 +756,7 @@ public class NIOWorker extends NIOAgent {
     @Override
     public String getObjectAsFile(String s) {
         // This method should never be called in the worker side
-        wLogger.warn("getObjectAsFile has been called in the worker side!");
+        WORKER_LOGGER.warn("getObjectAsFile has been called in the worker side!");
 
         return null;
     }
@@ -822,7 +832,7 @@ public class NIOWorker extends NIOAgent {
             try {
                 Files.copy(new File(outSource).toPath(), new File(outTarget).toPath());
             } catch (Exception e) {
-                wLogger.error("Exception", e);
+                WORKER_LOGGER.error("Exception", e);
             }
         } else {
             FileOutputStream fos = null;
@@ -831,13 +841,13 @@ public class NIOWorker extends NIOAgent {
                 fos.write("Empty file".getBytes());
                 fos.close();
             } catch (Exception e) {
-                wLogger.error("Exception", e);
+                WORKER_LOGGER.error("Exception", e);
             } finally {
                 if (fos != null) {
                     try {
                         fos.close();
                     } catch (Exception e) {
-                        wLogger.error("Exception", e);
+                        WORKER_LOGGER.error("Exception", e);
                     }
                 }
             }
@@ -850,7 +860,7 @@ public class NIOWorker extends NIOAgent {
             try {
                 Files.copy(new File(errSource).toPath(), new File(errTarget).toPath());
             } catch (Exception e) {
-                wLogger.error("Exception", e);
+                WORKER_LOGGER.error("Exception", e);
             }
         } else {
             FileOutputStream fos = null;
@@ -859,13 +869,13 @@ public class NIOWorker extends NIOAgent {
                 fos.write("Empty file".getBytes());
                 fos.close();
             } catch (Exception e) {
-                wLogger.error("Exception", e);
+                WORKER_LOGGER.error("Exception", e);
             } finally {
                 if (fos != null) {
                     try {
                         fos.close();
                     } catch (Exception e) {
-                        wLogger.error("Exception", e);
+                        WORKER_LOGGER.error("Exception", e);
                     }
                 }
             }
@@ -881,15 +891,15 @@ public class NIOWorker extends NIOAgent {
          * **************************************
          * Get arguments
          **************************************/
-        if (args.length != NUM_PARAMS_NIO_WORKER) {
-            if (wLoggerDebug) {
-                wLogger.debug("Received parameters: ");
-                for (int i = 0; i < args.length; ++i) {
-                    wLogger.debug("Param " + i + ":  " + args[i]);
-                }
-            }
-
+        if (args.length != (NUM_PARAMS_NIO_WORKER)) {
             ErrorManager.fatal(ERROR_INCORRECT_NUM_PARAMS);
+        }
+
+        if (WORKER_LOGGER_DEBUG) {
+            WORKER_LOGGER.debug("Received parameters: ");
+            for (int i = 0; i < args.length; ++i) {
+                WORKER_LOGGER.debug("Param " + i + ":  " + args[i]);
+            }
         }
 
         isWorkerDebugEnabled = Boolean.valueOf(args[0]);
@@ -920,38 +930,40 @@ public class NIOWorker extends NIOAgent {
         
         int numGPUs = Integer.parseInt(args[20]);
         
+        int amountSockets = Integer.parseInt(args[21]);
+        String socketString = args[22];        
         
         /*
          * ************************************** 
          * Print args
          **************************************/
         if (isWorkerDebugEnabled) {
-            wLogger.debug("jobThreads: " + String.valueOf(jobThreads));
-            wLogger.debug("maxSnd: " + String.valueOf(maxSnd));
-            wLogger.debug("maxRcv: " + String.valueOf(maxRcv));
+            WORKER_LOGGER.debug("jobThreads: " + String.valueOf(jobThreads));
+            WORKER_LOGGER.debug("maxSnd: " + String.valueOf(maxSnd));
+            WORKER_LOGGER.debug("maxRcv: " + String.valueOf(maxRcv));
 
-            wLogger.debug("WorkerName: " + workerIP);
-            wLogger.debug("WorkerPort: " + String.valueOf(wPort));
-            wLogger.debug("MasterPort: " + String.valueOf(mPort));
+            WORKER_LOGGER.debug("WorkerName: " + workerIP);
+            WORKER_LOGGER.debug("WorkerPort: " + String.valueOf(wPort));
+            WORKER_LOGGER.debug("MasterPort: " + String.valueOf(mPort));
 
-            wLogger.debug("App uuid: " + appUuid);
-            wLogger.debug("WorkingDir:" + workingDir);
-            wLogger.debug("Install Dir: " + installDir);
+            WORKER_LOGGER.debug("App uuid: " + appUuid);
+            WORKER_LOGGER.debug("WorkingDir:" + workingDir);
+            WORKER_LOGGER.debug("Install Dir: " + installDir);
 
-            wLogger.debug("Tracing: " + trace);
-            wLogger.debug("Extrae config File: " + extraeFile);
-            wLogger.debug("Host: " + host);
+            WORKER_LOGGER.debug("Tracing: " + trace);
+            WORKER_LOGGER.debug("Extrae config File: " + extraeFile);
+            WORKER_LOGGER.debug("Host: " + host);
 
-            wLogger.debug("LibraryPath: " + libPath);
-            wLogger.debug("Classpath: " + classpath);
-            wLogger.debug("Pythonpath: " + pythonpath);
+            WORKER_LOGGER.debug("LibraryPath: " + libPath);
+            WORKER_LOGGER.debug("Classpath: " + classpath);
+            WORKER_LOGGER.debug("Pythonpath: " + pythonpath);
 
-            wLogger.debug("StorageConf: " + storageConf);
-            wLogger.debug("executionType: " + executionType);
+            WORKER_LOGGER.debug("StorageConf: " + storageConf);
+            WORKER_LOGGER.debug("executionType: " + executionType);
             
-            wLogger.debug("Gpus per node: " + String.valueOf(numGPUs));
+            WORKER_LOGGER.debug("Gpus per node: " + String.valueOf(numGPUs));
 
-            wLogger.debug("Remove Sanbox WD: " + removeWD);
+            WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }
 
         /*
@@ -961,7 +973,7 @@ public class NIOWorker extends NIOAgent {
         System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
         try {
             if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
-                wLogger.warn("No storage configuration file passed");
+                WORKER_LOGGER.warn("No storage configuration file passed");
             } else {
                 StorageItf.init(storageConf);
             }
@@ -985,7 +997,7 @@ public class NIOWorker extends NIOAgent {
                 tracingID = Integer.parseInt(host);
                 NIOTracer.setWorkerInfo(installDir, workerIP, workingDir, tracingID);
             } catch (Exception e) {
-                wLogger.error("No valid hostID provided to the tracing system. Provided ID: " + host);
+                WORKER_LOGGER.error("No valid hostID provided to the tracing system. Provided ID: " + host);
             }
         }
 
@@ -994,28 +1006,28 @@ public class NIOWorker extends NIOAgent {
          * LAUNCH THE WORKER
          **************************************/
         NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, lang, workerIP, workingDir, installDir, appDir, libPath,
-                classpath, pythonpath, numGPUs);
+                classpath, pythonpath, numGPUs, amountSockets, socketString);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
         // Initialize the Transfer Manager
-        wLogger.debug("  Initializing the TransferManager structures...");
+        WORKER_LOGGER.debug("  Initializing the TransferManager structures...");
         try {
             tm.init(NIOEventManagerClass, null, mh);
         } catch (CommException ce) {
-            wLogger.error("Error initializing Transfer Manager on worker " + nw.getHostName(), ce);
+            WORKER_LOGGER.error("Error initializing Transfer Manager on worker " + nw.getHostName(), ce);
             // Shutdown the Worker since the error it is not recoverable
             nw.shutdown(null);
             return;
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
-        wLogger.debug("  Starting TransferManager Thread");
+        WORKER_LOGGER.debug("  Starting TransferManager Thread");
         tm.start();
         try {
             tm.startServer(new NIONode(null, wPort));
         } catch (CommException ce) {
-            wLogger.error("Error starting TransferManager Server at Worker" + nw.getHostName(), ce);
+            WORKER_LOGGER.error("Error starting TransferManager Server at Worker" + nw.getHostName(), ce);
             nw.shutdown(null);
             return;
         }
@@ -1032,7 +1044,7 @@ public class NIOWorker extends NIOAgent {
         try {
             tm.join();
         } catch (InterruptedException ie) {
-            wLogger.warn("TransferManager interrupted", ie);
+            WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();
         }
     }

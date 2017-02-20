@@ -7,6 +7,7 @@ import integratedtoolkit.ITConstants.Lang;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.worker.NIOWorker;
+import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableCoresException;
@@ -34,7 +35,7 @@ public class ExecutionManager {
         GPU, // GPU
     }
 
-    public ExecutionManager(NIOWorker nw, int numThreads, int numGPUs) {
+    public ExecutionManager(NIOWorker nw, int numThreads, int amountSockets, String socketString, int numGPUs) throws BadAmountSocketsException {
         logger.info("Instantiate Execution Manager");
 
         // Instantiate the language dependent thread pool
@@ -57,13 +58,7 @@ public class ExecutionManager {
         }
 
         // Instantiate CPU binders
-        ThreadBinder tb;
-        try {
-            tb = new ThreadBinderCPU(numThreads);
-        } catch (InitializationException e) {
-            tb = new ThreadBinderUnaware(numThreads);
-        }
-        this.binderCPUs = tb;
+        this.binderCPUs = new ThreadBinderCPU(numThreads, amountSockets, socketString);
 
         // Instantiate GPU Binders
         this.binderGPUs = new ThreadBinderUnaware(numGPUs);

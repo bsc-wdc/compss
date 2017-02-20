@@ -321,7 +321,13 @@ public class WorkerStarter {
 
         // GPU parameters
         cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
-
+        
+        //TODO: check if values have been set in runcompss or other configuration file
+        //      This is the insertion point of the current implementation
+        // CPU parameters
+        cmd[nextPosition++] = "0";
+        cmd[nextPosition++] = "-";
+        
         return cmd;
     }
 

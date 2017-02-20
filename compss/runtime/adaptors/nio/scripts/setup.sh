@@ -36,7 +36,7 @@
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
-    paramsToCOMPSsWorker=$*
+    paramsToCOMPSsWorker="${*:1:21}"
  
     # Catch some NIOWorker parameters
     debug=$1
@@ -55,7 +55,15 @@
     extraeFile=${17}
     hostId=${18}
     gpus=${21}
-    
+    amountSockets=${*:22:1}
+    socketString=${*:23:1}
+    if [ "$amountSockets" == "0" ]; then
+        amountSockets=$(lscpu | grep "NUMA node(s)" | awk '{ print $3 }')
+        socketString=$(lscpu | grep "NUMA.*CPU" | awk '{ print $4 }' | xargs -n$amountSockets | tr " " "/")
+    fi   
+
+    paramsToCOMPSsWorker="$paramsToCOMPSsWorker $amountSockets $socketString"
+
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
       echo "- HostName:   $hostName"

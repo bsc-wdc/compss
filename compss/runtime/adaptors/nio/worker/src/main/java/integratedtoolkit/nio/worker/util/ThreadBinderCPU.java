@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 
@@ -26,49 +27,41 @@ public class ThreadBinderCPU implements ThreadBinder {
     /**
      * Constructor for thread binder
      * 
-     * It is important to realize that NUMA node information is expected to be of type lowerBound-upperBound. In case
-     * the information is given in a different format (for example, lowerBound1-upperBound1, lowerBound2-upperBound2)
-     * the second interval won't be taken in account In case several lines references different NUMANodes (a single node
-     * has several CPU intervals), the system will consider each line as a different NUMANode
+     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups)
+     * In addition, "/" is used to separate sockets
+     * For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
      * 
      * @param numThreads
      *            amount of tasks to be launched in a given node
      * @throws InitializationException
      */
-    public ThreadBinderCPU(int numThreads) throws InitializationException {
+    public ThreadBinderCPU(int numThreads, int amountSockets, String socketString) throws BadAmountSocketsException {
         ArrayList<ArrayList<Integer>> computingUnitsIds = new ArrayList<>();
         int realAmountThreads = 0;
-        try {
-            Runtime rt = Runtime.getRuntime();
-            Process proc = rt.exec("lscpu");
-            BufferedReader stdOutput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            String s;
-            while ((s = stdOutput.readLine()) != null) {
-                if (s.contains("NUMA") && !s.contains("NUMA node(s)")) {
-                    String availableCPUs = s.replaceAll("\\s+", "").split(":")[1];
-                    String[] intervals = availableCPUs.split(",");
-                    ArrayList<Integer> currentIds = new ArrayList<>();
-                    for (String currentInterval : intervals) {
-                        String[] bounds = currentInterval.split("-");
-                        int lowerBound = Integer.parseInt(bounds[0]);
-                        int upperBound;
-                        if (bounds.length == 2) {
-                            upperBound = Integer.parseInt(bounds[1]);
-                        }
-                        else {
-                            upperBound = lowerBound;
-                        }
-                        realAmountThreads += (upperBound - lowerBound + 1);
-                        for (int i = 0; i < (upperBound - lowerBound + 1); i++) {
-                            currentIds.add(lowerBound + i);
-                        }
-                    }
-                    computingUnitsIds.add(currentIds);  
+        
+        String[] slots = socketString.split("/");
+        if (amountSockets != slots.length) {
+            throw new BadAmountSocketsException(amountSockets + " sockets declared but " + slots.length + " defined");
+        }
+        for (String availableCPUs : slots) {
+            String[] intervals = availableCPUs.split(",");
+            ArrayList<Integer> currentIds = new ArrayList<>();
+            for (String currentInterval : intervals) {
+                String[] bounds = currentInterval.split("-");
+                int lowerBound = Integer.parseInt(bounds[0]);
+                int upperBound;
+                if (bounds.length == 2) {
+                    upperBound = Integer.parseInt(bounds[1]);
+                }
+                else {
+                    upperBound = lowerBound;
+                }
+                realAmountThreads += (upperBound - lowerBound + 1);
+                for (int i = 0; i < (upperBound - lowerBound + 1); i++) {
+                    currentIds.add(lowerBound + i);
                 }
             }
-        } catch (IOException e) {
-            LOGGER.debug("[ThreadBinderCPU] Unable to obtain the total amount of sockets");
-            throw new InitializationException("Unable to obtain the total amount of sockets");
+            computingUnitsIds.add(currentIds);  
         }
         auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
     }

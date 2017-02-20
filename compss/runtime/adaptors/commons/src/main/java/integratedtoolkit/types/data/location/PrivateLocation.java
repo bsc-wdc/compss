@@ -30,6 +30,7 @@ public class PrivateLocation extends DataLocation {
     public LinkedList<MultiURI> getURIs() {
         LinkedList<MultiURI> list = new LinkedList<>();
         list.add(this.uri);
+
         return list;
     }
 
@@ -42,7 +43,7 @@ public class PrivateLocation extends DataLocation {
 
     @Override
     public MultiURI getURIInHost(Resource targetHost) {
-        if (uri.getHost() == targetHost) {
+        if (uri.getHost().equals(targetHost)) {
             return uri;
         } else {
             return null;

@@ -1,5 +1,6 @@
 package integratedtoolkit.worker.invokers;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import integratedtoolkit.types.annotations.Constants;
@@ -18,7 +19,7 @@ public class GenericInvoker {
 
 
     public static Object invokeMPIMethod(String mpiRunner, String mpiBinary, Object[] values, boolean hasReturn, Stream[] streams,
-            String[] prefixes) throws InvokeExecutionException {
+            String[] prefixes, File taskSandboxWorkingDir) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[MPI INVOKER] Begin MPI call to " + mpiBinary);
@@ -66,11 +67,11 @@ public class GenericInvoker {
         System.out.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues);
+        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues, taskSandboxWorkingDir);
     }
 
-    public static Object invokeOmpSsMethod(String ompssBinary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes)
-            throws InvokeExecutionException {
+    public static Object invokeOmpSsMethod(String ompssBinary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes,
+            File taskSandboxWorkingDir) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[OMPSS INVOKER] Begin ompss call to " + ompssBinary);
@@ -107,11 +108,11 @@ public class GenericInvoker {
         System.out.println("[OMPSS INVOKER] OmpSs STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues);
+        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues, taskSandboxWorkingDir);
     }
 
-    public static Object invokeBinaryMethod(String binary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes)
-            throws InvokeExecutionException {
+    public static Object invokeBinaryMethod(String binary, Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes,
+            File taskSandboxWorkingDir) throws InvokeExecutionException {
 
         System.out.println("");
         System.out.println("[BINARY INVOKER] Begin binary call to " + binary);
@@ -141,7 +142,7 @@ public class GenericInvoker {
         System.out.println("[BINARY INVOKER] Binary STDERR: " + streamValues.getStdErr());
 
         // Launch command
-        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues);
+        return BinaryRunner.executeCMD(cmd, hasReturn, streamValues, taskSandboxWorkingDir);
     }
 
 }

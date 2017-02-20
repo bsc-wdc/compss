@@ -42,15 +42,16 @@
   #-------------------------------------
   # Managing Symlinks for files
   #-------------------------------------
+  sandbox=$1
+  shift 1
+  if [ ! -d $sandbox ]; then
+    mkdir -p $sandbox
+  fi
+  
   symlinkfilesNum=$1
   shift 1
   renames=""
   if [ $symlinkfilesNum -ne 0 ]; then
-  	sandbox=$1
-  	shift 1
-  	if [ ! -d $sandbox ]; then
-    	mkdir -p $sandbox
-  	fi
   	echo "[WORKER.SH] Creating $symlinkfilesNum symlink files"
   	for ((i=0;i<$symlinkfilesNum;i=i+2)); do
     	#Create symlink for in inout files
@@ -66,8 +67,6 @@
     	fi
     	shift 2 
   	done
-  else
-  	sandbox=$(mktemp -d -p $workingDir)
   fi
   
   #-------------------------------------
@@ -103,7 +102,7 @@
   export IT_APP_DIR=$appDir
 
   # Add support for non-native tasks
-  methodType=$6
+  methodType=$7
   if [ "$methodType" != "METHOD" ]; then
     echo "[WORKER.SH] Non-native task detected. Switching to JAVA invoker."
     lang=java

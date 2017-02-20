@@ -34,7 +34,7 @@ jmethodID midEmitEvent; 	/* ID of the EmitEvent method in the integratedtoolkit.
 jmethodID midOpenFile; 		/* ID of the openFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 jmethodID midDeleteFile; 	/* ID of the deleteFile method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
-jmethodID midWaitForAllTasks; 	/* ID of the waitForAllTasks method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
+jmethodID midBarrier; 		/* ID of the barrier method in the integratedtoolkit.api.impl.COMPSsRuntimeImpl class  */
 
 jobject jobjParDirIN; 		/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
 jobject jobjParDirINOUT; 	/* Instance of the integratedtoolkit.types.annotations.parameter.Direction class */
@@ -218,8 +218,8 @@ void init_jni_types() {
     exit(0);
   }
   
-  // waitForAllTasks method
-  midWaitForAllTasks = env->GetMethodID(clsITimpl, "waitForAllTasks", "(Ljava/lang/Long;)V");
+  // barrier method
+  midBarrier = env->GetMethodID(clsITimpl, "barrier", "(Ljava/lang/Long;)V");
   if (env->ExceptionOccurred()) {
     env->ExceptionDescribe();
     exit(0);
@@ -813,14 +813,14 @@ void GS_Delete_File(char *file_name, int **buf)
 }
 
 
-void GS_WaitForAllTasks(long _appId)
+void GS_Barrier(long _appId)
 {
-  env->CallVoidMethod(jobjIT, midWaitForAllTasks, appId);
+  env->CallVoidMethod(jobjIT, midBarrier, appId);
   if (env->ExceptionOccurred()) {
       env->ExceptionDescribe();
       exit(0);
   }
-  debug_printf("[   BINDING]  -  @GS_WaitForAllTasks  -  APP id: %lu", appId);
+  debug_printf("[   BINDING]  -  @GS_Barrier  -  APP id: %lu", appId);
 }
 
 

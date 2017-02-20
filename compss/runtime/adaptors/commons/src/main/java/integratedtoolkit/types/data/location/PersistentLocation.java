@@ -5,6 +5,7 @@ import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.util.ErrorManager;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -36,20 +37,26 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> uris = new LinkedList<>();
-
-        // Retrieve URIs from Storage Back-end
+        // Retrieve locations from Back-end
+        List<String> locations = null;
         try {
-            for (String hostName : StorageItf.getLocations(this.id)) {
-                Resource host = Resource.getResource(hostName);
-                if (host != null) {
-                    uris.add(new MultiURI(Protocol.PERSISTENT_URI, host, this.id));
-                } else {
-                    logger.warn("Storage Back-End returned non-registered host " + hostName);
-                }
-            }
+            locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+        if (locations == null) {
+            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+
+        // Retrieve URIs from hosts
+        LinkedList<MultiURI> uris = new LinkedList<>();
+        for (String hostName : locations) {
+            Resource host = Resource.getResource(hostName);
+            if (host != null) {
+                uris.add(new MultiURI(Protocol.PERSISTENT_URI, host, this.id));
+            } else {
+                logger.warn("Storage Back-End returned non-registered host " + hostName + ". Skipping URI in host");
+            }
         }
 
         return uris;
@@ -57,21 +64,28 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public LinkedList<Resource> getHosts() {
-        LinkedList<Resource> hosts = new LinkedList<>();
-
-        // Retrieve URIs from Storage Back-end
         logger.debug("Get PSCO locations for " + this.id);
+
+        // Retrieve locations from Back-end
+        List<String> locations = null;
         try {
-            for (String hostName : StorageItf.getLocations(this.id)) {
-                Resource host = Resource.getResource(hostName);
-                if (host != null) {
-                    hosts.add(host);
-                } else {
-                    logger.warn("Storage Back-End returned non-registered host " + hostName);
-                }
-            }
+            locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+        if (locations == null) {
+            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+
+        // Get hosts
+        LinkedList<Resource> hosts = new LinkedList<>();
+        for (String hostName : locations) {
+            Resource host = Resource.getResource(hostName);
+            if (host != null) {
+                hosts.add(host);
+            } else {
+                logger.warn("Storage Back-End returned non-registered host " + hostName);
+            }
         }
 
         return hosts;
@@ -79,15 +93,22 @@ public class PersistentLocation extends DataLocation {
 
     @Override
     public MultiURI getURIInHost(Resource targetHost) {
-        // Retrieve URIs from Storage Back-end
+        // Retrieve locations from Back-end
+        List<String> locations = null;
         try {
-            for (String hostName : StorageItf.getLocations(this.id)) {
-                if (hostName.equals(targetHost.getName())) {
-                    return new MultiURI(Protocol.PERSISTENT_URI, targetHost, this.id);
-                }
-            }
+            locations = StorageItf.getLocations(this.id);
         } catch (StorageException e) {
             ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+        if (locations == null) {
+            ErrorManager.error("ERROR: Cannot retrieve locations of " + this.id + " from Storage Back-end");
+        }
+
+        // Get URIs in host
+        for (String hostName : locations) {
+            if (hostName.equals(targetHost.getName())) {
+                return new MultiURI(Protocol.PERSISTENT_URI, targetHost, this.id);
+            }
         }
 
         return null;

@@ -35,7 +35,7 @@ import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.parameter.FileParameter;
 import integratedtoolkit.types.parameter.ObjectParameter;
 import integratedtoolkit.types.request.ap.EndOfAppRequest;
-import integratedtoolkit.types.request.ap.WaitForAllTasksRequest;
+import integratedtoolkit.types.request.ap.BarrierRequest;
 import integratedtoolkit.types.request.ap.WaitForTaskRequest;
 
 import integratedtoolkit.util.ErrorManager;
@@ -485,7 +485,7 @@ public class TaskAnalyser {
      * 
      * @param request
      */
-    public void waitForAllTasks(WaitForAllTasksRequest request) {
+    public void barrier(BarrierRequest request) {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
 

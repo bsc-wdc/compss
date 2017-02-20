@@ -68,9 +68,9 @@ public class WorkerStarter {
     public void setWorkerIsReady() {
         workerIsReady = true;
     }
-    
-    public void setToStop(){
-    	toStop = true;
+
+    public void setToStop() {
+        toStop = true;
     }
 
     public NIONode startWorker() throws InitNodeException {
@@ -85,36 +85,38 @@ public class WorkerStarter {
         while (port <= maxPort && !toStop) {
             String[] command;
             if (pid != -1) {
-            	command = getStopCommand(pid);
-            	ProcessOut po = executeCommand(user, name, command);
-            	if (po == null){
-            		// Queue System managed worker starter
-            		logger.error("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name+ ". Retries not available in this option.");
-            		throw new InitNodeException("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name+ ". Retries not available in this option.");
-            	}else if (po.getExitValue() != 0) {
-            		// Normal starting process
-            		logger.error(ERROR_SHUTTING_DOWN_RETRY);
-            	}
+                command = getStopCommand(pid);
+                ProcessOut po = executeCommand(user, name, command);
+                if (po == null) {
+                    // Queue System managed worker starter
+                    logger.error("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name
+                            + ". Retries not available in this option.");
+                    throw new InitNodeException("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
+                            + name + ". Retries not available in this option.");
+                } else if (po.getExitValue() != 0) {
+                    // Normal starting process
+                    logger.error(ERROR_SHUTTING_DOWN_RETRY);
+                }
 
             }
 
             n = new NIONode(name, port);
             String nodeName = nw.getName();
             addresstoWorkerStarter.put(nodeName, this);
-            
+
             command = getStartCommand(nw, port);
             ProcessOut po = executeCommand(user, name, command);
-            if (po == null){
-            	// Queue System managed worker starter
-            	logger.debug("Worker process started by queue system.");
-            	pid = 0;
-            }else if (po.getExitValue() == 0) {
-            	String output = po.getOutput();
-            	String[] lines = output.split("\n");
-            	pid = Integer.parseInt(lines[lines.length - 1]);	
+            if (po == null) {
+                // Queue System managed worker starter
+                logger.debug("Worker process started by queue system.");
+                pid = 0;
+            } else if (po.getExitValue() == 0) {
+                String output = po.getOutput();
+                String[] lines = output.split("\n");
+                pid = Integer.parseInt(lines[lines.length - 1]);
             } else {
-            	throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user " 
-            			+ user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
+                throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user "
+                        + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
             }
             long delay = WAIT_TIME_UNIT;
             long totalWait = 0;
@@ -123,60 +125,64 @@ public class WorkerStarter {
 
             CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
             while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
-            	try {
-            		Thread.sleep(delay);
-            	} catch (InterruptedException ie) {
-            		Thread.currentThread().interrupt();
-            	}
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
 
-            	if (!workerIsReady) {
-            		if (debug) {
-            			logger.debug("Sending check command to worker " + nodeName);
-            		}
-            		Connection c = NIOAdaptor.tm.startConnection(n);
-            		c.sendCommand(cmd);
-            		c.receive();
-            		c.finishConnection();
+                if (!workerIsReady) {
+                    if (debug) {
+                        logger.debug("Sending check command to worker " + nodeName);
+                    }
+                    Connection c = NIOAdaptor.tm.startConnection(n);
+                    c.sendCommand(cmd);
+                    c.receive();
+                    c.finishConnection();
 
-            		totalWait += delay;
-            		delay = (delay < 3900) ? delay * 2 : 4000;
-            	}
+                    totalWait += delay;
+                    delay = (delay < 3900) ? delay * 2 : 4000;
+                }
             }
 
             if (!workerIsReady) {
                 ++port;
             } else {
-            	try {
-            		Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
-            	}
-            	catch (IllegalStateException e) {
-            		logger.warn("Tried to shutdown vm while it was already being shutdown", e);
-            	}
-            	nw.setStarted(true);
+                try {
+                    Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
+                } catch (IllegalStateException e) {
+                    logger.warn("Tried to shutdown vm while it was already being shutdown", e);
+                }
+                
                 return n;
             }
         }
-        if (toStop){
-        	logger.debug("[STOP]: Worker " + name + " stopped during creation because application is stopped");
-        	return null;
-        }else if (!workerIsReady) {
-        	logger.debug("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
-            throw new InitNodeException("[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".");
+        
+        if (toStop) {
+            String msg = "[STOP]: Worker " + name + " stopped during creation because application is stopped";
+            logger.warn(msg);
+            throw new InitNodeException(msg);
+        } else if (!workerIsReady) {
+            String msg = "[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
+            logger.warn(msg);
+            throw new InitNodeException(msg);
         } else {
-            return n; // should be unreachable statement
+            String msg = "[UNKNOWN]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
+            logger.warn(msg);
+            throw new InitNodeException(msg);
         }
     }
 
     // Ender function called from the JVM Ender Hook
     public void ender(NIOWorkerNode node, int pid) {
-        if (pid>0){
-        	String user = node.getUser();
+        if (pid > 0) {
+            String user = node.getUser();
 
-        	// Execute stop command
-        	String[] command = getStopCommand(pid);
-        	if (command!= null){
-        		executeCommand(user, node.getName(), command);
-        	}
+            // Execute stop command
+            String[] command = getStopCommand(pid);
+            if (command != null) {
+                executeCommand(user, node.getName(), command);
+            }
         }
     }
 
@@ -249,7 +255,7 @@ public class WorkerStarter {
         }
 
         /*
-         * ********************************************************
+         * ******************************************************** 
          * BUILD COMMAND
          * *******************************************************
          */
@@ -297,7 +303,7 @@ public class WorkerStarter {
         cmd[nextPosition++] = workerLibPath.isEmpty() ? "null" : workerLibPath;
         cmd[nextPosition++] = workerClasspath.isEmpty() ? "null" : workerClasspath;
         cmd[nextPosition++] = workerPythonpath.isEmpty() ? "null" : workerPythonpath;
-        
+
         // Tracing parameters
         cmd[nextPosition++] = String.valueOf(NIOTracer.getLevel());
         cmd[nextPosition++] = NIOTracer.getExtraeFile();
@@ -312,8 +318,8 @@ public class WorkerStarter {
         // Storage parameters
         cmd[nextPosition++] = storageConf;
         cmd[nextPosition++] = executionType;
-        
-        //GPU parameters
+
+        // GPU parameters
         cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
 
         return cmd;
@@ -329,14 +335,14 @@ public class WorkerStarter {
     }
 
     protected ProcessOut executeCommand(String user, String resource, String[] command) {
-        
-    	ProcessOut processOut = new ProcessOut();
-        
-    	String[] cmd = this.nw.getConfiguration().getRemoteExecutionCommand(user, resource, command);
-    	if (cmd==null){
-    		logger.warn("Worker configured to be sarted by queue system.");
-    		return null;
-    	}
+
+        ProcessOut processOut = new ProcessOut();
+
+        String[] cmd = this.nw.getConfiguration().getRemoteExecutionCommand(user, resource, command);
+        if (cmd == null) {
+            logger.warn("Worker configured to be sarted by queue system.");
+            return null;
+        }
         // Log command
         StringBuilder sb = new StringBuilder("");
         for (String param : cmd) {

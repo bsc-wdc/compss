@@ -1,5 +1,7 @@
 package integratedtoolkit.nio.worker.executors.util;
 
+import java.io.File;
+
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
@@ -15,8 +17,8 @@ public class OmpSsInvoker extends Invoker {
     private final String ompssBinary;
 
 
-    public OmpSsInvoker(NIOWorker nw, NIOTask nt, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, assignedCoreUnits);
+    public OmpSsInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         OmpSsImplementation ompssImpl = null;
@@ -32,7 +34,8 @@ public class OmpSsInvoker extends Invoker {
     public Object invokeMethod() throws JobExecutionException {
         logger.info("Invoked " + ompssBinary + " in " + nw.getHostName());
         try {
-            return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.hasReturn, this.streams, this.prefixes);
+            return GenericInvoker.invokeOmpSsMethod(this.ompssBinary, this.values, this.hasReturn, this.streams, this.prefixes,
+                    this.taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

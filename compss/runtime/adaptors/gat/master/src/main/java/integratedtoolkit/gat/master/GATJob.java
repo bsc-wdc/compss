@@ -51,12 +51,13 @@ import integratedtoolkit.util.Tracer;
 import java.util.LinkedList;
 import java.util.List;
 
+
 /**
  * Representation of a Job execution for COMPSs with GAT Adaptor
  * 
  */
 public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> implements MetricListener {
-    
+
     // Worker script path
     private static final String WORKER_SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
@@ -67,10 +68,9 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             && !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("")
             && !System.getProperty(ITConstants.IT_STORAGE_CONF).equals("null");
     private static final String STORAGE_CONF = IS_STORAGE_ENABLED ? System.getProperty(ITConstants.IT_STORAGE_CONF) : "null";
-    
 
     private static final String JOBS_DIR = System.getProperty(ITConstants.IT_APP_LOG_DIR) + "jobs" + java.io.File.separator;
-    
+
     private static final String JOB_STATUS = "job.status";
     private static final String RES_ATTR = "machine.node";
     private static final String CALLBACK_PROCESSING_ERR = "Error processing callback for job";
@@ -80,7 +80,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
     // Brokers - TODO: Problem if many resources used
     private Map<String, ResourceBroker> brokers = new TreeMap<String, ResourceBroker>();
-    
+
     private Job GATjob;
     // GAT context
     private final GATContext context;
@@ -106,7 +106,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
      */
     public GATJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
             boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
-        
+
         super(taskId, taskParams, impl, res, listener);
         this.context = context;
         this.userNeeded = userNeeded;
@@ -189,7 +189,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
          * transitions
          */
         if (newJobState == JobState.STOPPED) {
-
             if (Tracer.isActivated()) {
                 Integer slot = (Integer) sd.getAttributes().get("slot");
                 String host = getResourceNode().getHost();
@@ -268,7 +267,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         sd.setExecutable(targetPath + WORKER_SCRIPT_PATH + WORKER_SCRIPT_NAME);
         ArrayList<String> lArgs = new ArrayList<String>();
 
-        // Common arguments: language working_dir lib_path num_obsolete [obs1... obsN] tracing [event_type task_id slot_id]
+        // Common arguments: language working_dir lib_path num_obsolete [obs1... obsN] tracing [event_type task_id
+        // slot_id]
         lArgs.add(lang);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
@@ -282,23 +282,23 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else {
             lArgs.add("0");
         }
-        
-        //Processing parameters to get symlinks pairs to create (symlinks) and how to pass parameters in the GAT Job(paramArgs
+
+        // Processing parameters to get symlinks pairs to create (symlinks) and how to pass parameters in the GAT
+        // Job(paramArgs
         ArrayList<String> symlinks = new ArrayList<String>();
         ArrayList<String> paramArgs = new ArrayList<String>();
-        String sandboxDir = getResourceNode().getWorkingDir()+File.separator+"sandBox" + File.separator + "job_"+this.jobId;
-        processParameters(sandboxDir, symlinks,paramArgs);
-        
-        //Adding info to create symlinks between renamed files and original names
-        if (symlinks.size()>0){
-        	lArgs.add(""+symlinks.size());
-        	lArgs.add(sandboxDir);
-        	lArgs.addAll(symlinks);
-        	
-        }else{
-        	lArgs.add("0");
+        String sandboxDir = getResourceNode().getWorkingDir() + File.separator + "sandBox" + File.separator + "job_" + this.jobId;
+        processParameters(sandboxDir, symlinks, paramArgs);
+
+        // Adding info to create symlinks between renamed files and original names
+        lArgs.add(sandboxDir);
+        if (symlinks.size() > 0) {
+            lArgs.add("" + symlinks.size());
+            lArgs.addAll(symlinks);
+        } else {
+            lArgs.add("0");
         }
-        
+
         lArgs.add(Boolean.toString(Tracer.isActivated()));
         lArgs.add(getHostName());
         if (debug) {
@@ -313,25 +313,26 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             sd.addAttribute("slot", slot);
         }
 
-        // Language-dependent arguments: app_dir classpath pythonpath debug storage_conf
+        // Language-dependent arguments: taskSandbox_dir app_dir classpath pythonpath debug storage_conf
         // method_impl_type method_impl_params
         // numSlaves [slave1,..,slaveN] numCus
         // has_target num_params par_type_1 par_1 ... par_type_n par_n
+        lArgs.add(sandboxDir);
         lArgs.add(getResourceNode().getAppDir());
         lArgs.add(getClasspath());
         lArgs.add(getPythonpath());
-        
+
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);
-        
+
         AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
         lArgs.add(String.valueOf(absImpl.getMethodType()));
-        switch(absImpl.getMethodType()) {
+        switch (absImpl.getMethodType()) {
             case METHOD:
                 MethodImplementation methodImpl = (MethodImplementation) absImpl;
                 lArgs.add(methodImpl.getDeclaringClass());
                 String methodName = methodImpl.getAlternativeMethodName();
-                if (methodName == null || methodName.isEmpty()){
+                if (methodName == null || methodName.isEmpty()) {
                     methodName = taskParams.getName();
                 }
                 lArgs.add(methodName);
@@ -354,12 +355,12 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 lArgs.add(binaryImpl.getBinary());
                 break;
         }
-        
+
         // Slave nodes and cus description
         lArgs.add(String.valueOf(slaveWorkersNodeNames.size()));
         lArgs.addAll(slaveWorkersNodeNames);
-        lArgs.add(String.valueOf( ((MethodResourceDescription)this.impl.getRequirements()).getTotalCPUComputingUnits() ));
-        
+        lArgs.add(String.valueOf(((MethodResourceDescription) this.impl.getRequirements()).getTotalCPUComputingUnits()));
+
         // Add parameter arguments already processed
         lArgs.addAll(paramArgs);
 
@@ -369,7 +370,8 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         try {
             sd.setArguments(arguments);
         } catch (NullPointerException e) {
-            StringBuilder sb = new StringBuilder("Null argument parameter of job " + this.jobId + " " + absImpl.getMethodDefinition() + "\n");
+            StringBuilder sb = new StringBuilder(
+                    "Null argument parameter of job " + this.jobId + " " + absImpl.getMethodDefinition() + "\n");
             int i = 0;
             for (Parameter param : taskParams.getParameters()) {
                 sb.append("Parameter ").append(i).append("\n");
@@ -384,7 +386,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                             sb.append("\t Direction: " + "R").append("\n");
                         } else {
                             // for the worker to know it must write the object to disk
-                            sb.append("\t Direction: " + "W").append("\n"); 
+                            sb.append("\t Direction: " + "W").append("\n");
                         }
                     }
                 } else if (type == DataType.STRING_T) {
@@ -425,15 +427,15 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
          * sd.addAttribute(SoftwareDescription.SANDBOX_POSTSTAGE_STDERR, "false");
          */
         if (debug) { // Set standard output file for job
-            File outFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR 
-                    + "job" + jobId + "_" + this.getHistory() + ".out");
+            File outFile = GAT.createFile(context,
+                    Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".out");
             sd.setStdout(outFile);
         }
 
         if (debug || usingGlobus) {
             // Set standard error file for job
-            File errFile = GAT.createFile(context, Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR 
-                    + "job" + jobId + "_" + this.getHistory() + ".err");
+            File errFile = GAT.createFile(context,
+                    Protocol.ANY_URI.getSchema() + File.separator + JOBS_DIR + "job" + jobId + "_" + this.getHistory() + ".err");
             sd.setStderr(errFile);
         }
 
@@ -476,19 +478,19 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     public String getHostName() {
         return getResourceNode().getName();
     }
-    
-    private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs){
-    	
-    	lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
-        
+
+    private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs) {
+
+        lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
+
         // Add return type
         if (taskParams.hasReturnValue()) {
             Parameter returnParam = taskParams.getParameters()[taskParams.getParameters().length - 1];
-            lArgs.add( Integer.toString(returnParam.getType().ordinal()) );
+            lArgs.add(Integer.toString(returnParam.getType().ordinal()));
         } else {
             lArgs.add("null");
         }
-        
+
         // Add parameters
         int numParams = taskParams.getParameters().length;
         if (taskParams.hasReturnValue()) {
@@ -499,7 +501,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             DataType type = param.getType();
             lArgs.add(Integer.toString(type.ordinal()));
             lArgs.add(Integer.toString(param.getStream().ordinal()));
-            
+
             String prefix = param.getPrefix();
             if (prefix == null || prefix.isEmpty()) {
                 prefix = Constants.PREFIX_EMTPY;
@@ -510,15 +512,15 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 case FILE_T:
                     DependencyParameter dFilePar = (DependencyParameter) param;
                     java.io.File f = new java.io.File(dFilePar.getDataTarget());
-                    if (!f.getName().equals(dFilePar.getOriginalName())){
-                    	//Add file to manage symlinks and renames
-                    	String originalName = sandboxPath+File.separator+dFilePar.getOriginalName();
-                    	symlinks.add(dFilePar.getDataTarget());
-                    	symlinks.add(dFilePar.getOriginalName());
-                    	lArgs.add(originalName);
-                    }else{
-                    	// Original and target is the same  nothing to do
-                    	lArgs.add(dFilePar.getDataTarget());
+                    if (!f.getName().equals(dFilePar.getOriginalName())) {
+                        // Add file to manage symlinks and renames
+                        String originalName = sandboxPath + File.separator + dFilePar.getOriginalName();
+                        symlinks.add(dFilePar.getDataTarget());
+                        symlinks.add(dFilePar.getOriginalName());
+                        lArgs.add(originalName);
+                    } else {
+                        // Original and target is the same nothing to do
+                        lArgs.add(dFilePar.getDataTarget());
                     }
                     break;
                 case PSCO_T:

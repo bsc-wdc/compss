@@ -31,7 +31,7 @@ public class SharedLocation extends DataLocation {
         if (!diskPath.endsWith(File.separator)) {
             diskPath = diskPath + File.separator;
         }
-        
+
         return new MultiURI(this.protocol, host, diskPath + this.path);
     }
 
@@ -55,9 +55,10 @@ public class SharedLocation extends DataLocation {
             if (!diskPath.endsWith(File.separator)) {
                 diskPath = diskPath + File.separator;
             }
-            
+
             uris.add(new MultiURI(this.protocol, host, diskPath + path));
         }
+
         return uris;
     }
 

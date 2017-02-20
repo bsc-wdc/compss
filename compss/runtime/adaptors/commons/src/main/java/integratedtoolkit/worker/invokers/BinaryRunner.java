@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.Stream;
+import integratedtoolkit.util.Tracer;
 
 
 public class BinaryRunner {
@@ -47,34 +48,37 @@ public class BinaryRunner {
                     streamValues.setStdErr((String) values[i]);
                     break;
                 case UNSPECIFIED:
-                    if (values[i] != null && values[i].getClass().isArray()) {
-                        try {
-                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                                binaryParams.add(prefixes[i]);
+                    if (!prefixes[i].equals(Constants.PREFIX_SKIP)) {
+                        if (values[i] != null && values[i].getClass().isArray()) {
+                            try {
+                                if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                                    binaryParams.add(prefixes[i]);
+                                }
+                                binaryParams.addAll(serializeArrayParam(values[i]));
+                            } catch (Exception e) {
+                                // Exception serializing to string the object
+                                throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                             }
-                            binaryParams.addAll(serializeArrayParam(values[i]));
-                        } catch (Exception e) {
-                            // Exception serializing to string the object
-                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                        }
-                    } else if (values[i] != null && values[i] instanceof Collection<?>) {
-                        try {
-                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                                binaryParams.add(prefixes[i]);
+                        } else if (values[i] != null && values[i] instanceof Collection<?>) {
+                            try {
+                                if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                                    binaryParams.add(prefixes[i]);
+                                }
+                                binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
+                            } catch (Exception e) {
+                                // Exception serializing to string the object
+                                throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
                             }
-                            binaryParams.addAll(serializeCollectionParam((Collection<?>) values[i]));
-                        } catch (Exception e) {
-                            // Exception serializing to string the object
-                            throw new InvokeExecutionException(ERROR_PARAM_NOT_STRING, e);
-                        }
-                    } else {
-                        // The value can be serialized to string directly
-                        if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
-                            binaryParams.add(prefixes[i] + String.valueOf(values[i]));
                         } else {
-                            binaryParams.add(String.valueOf(values[i]));
+                            // The value can be serialized to string directly
+                            if (prefixes[i] != null && !prefixes[i].isEmpty() && !prefixes[i].equals(Constants.PREFIX_EMTPY)) {
+                                binaryParams.add(prefixes[i] + String.valueOf(values[i]));
+                            } else {
+                                binaryParams.add(String.valueOf(values[i]));
+                            }
                         }
                     }
+                    break;
             }
         }
 
@@ -90,9 +94,13 @@ public class BinaryRunner {
      * @return
      * @throws InvokeExecutionException
      */
-    public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues) throws InvokeExecutionException {
+    public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues, File taskSandboxWorkingDir)
+            throws InvokeExecutionException {
+        
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.directory(taskSandboxWorkingDir);
+        builder.environment().remove(Tracer.LD_PRELOAD);
 
         String fileInPath = streamValues.getStdIn();
         if (fileInPath != null) {

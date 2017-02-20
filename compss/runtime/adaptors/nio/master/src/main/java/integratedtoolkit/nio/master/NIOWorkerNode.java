@@ -57,13 +57,14 @@ import storage.StorageItf;
 
 public class NIOWorkerNode extends COMPSsWorker {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     private NIONode node;
     private final NIOConfiguration config;
     private final NIOAdaptor commManager;
     private boolean started = false;
     private WorkerStarter workerStarter;
+
 
     @Override
     public String getName() {
@@ -80,16 +81,17 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void start() throws InitNodeException {
         NIONode n = null;
         try {
-        	workerStarter = new WorkerStarter(this);
+            workerStarter = new WorkerStarter(this);
             n = workerStarter.startWorker();
         } catch (InitNodeException e) {
             ErrorManager.warn("There was an exception when initiating worker " + getName() + ".", e);
             throw e;
         }
         this.node = n;
+        this.started = true;
 
         if (NIOTracer.isActivated()) {
-            logger.debug("Initializing NIO tracer " + this.getName());
+            LOGGER.debug("Initializing NIO tracer " + this.getName());
             NIOTracer.startTracing(this.getName(), this.getUser(), this.getHost(), this.getLimitOfTasks());
         }
     }
@@ -140,9 +142,9 @@ public class NIOWorkerNode extends COMPSsWorker {
     public int getTotalComputingUnits() {
         return config.getTotalComputingUnits();
     }
-    
+
     public int getTotalGPUs() {
-    	return config.getTotalGPUComputingUnits();
+        return config.getTotalGPUComputingUnits();
     }
 
     public NIOConfiguration getConfiguration() {
@@ -159,20 +161,20 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
-            List<String> slaveWorkersNodeNames, JobListener listener) {
-        
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+
         return new NIOJob(taskId, taskParams, impl, res, slaveWorkersNodeNames, listener);
     }
 
     @Override
     public void stop(ShutdownListener sl) {
-    	if (started){
-    		logger.debug("Shutting down " + this.getName());
-    		if (node == null) {
-    			sl.notifyFailure(new UnstartedNodeException());
-    			logger.error("Shutdown has failed");
-    		}
+        if (started) {
+            LOGGER.debug("Shutting down " + this.getName());
+            if (node == null) {
+                sl.notifyFailure(new UnstartedNodeException());
+                LOGGER.error("Shutdown has failed");
+            }
             Connection c = NIOAgent.tm.startConnection(node);
             commManager.shuttingDown(this, c, sl);
             CommandShutdown cmd = new CommandShutdown(null, null);
@@ -181,9 +183,9 @@ public class NIOWorkerNode extends COMPSsWorker {
             c.receive();
             c.finishConnection();
         } else {
-        	logger.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
-        	workerStarter.setToStop();
-        	sl.notifyEnd();
+            LOGGER.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
+            workerStarter.setToStop();
+            sl.notifyEnd();
         }
     }
 
@@ -234,8 +236,8 @@ public class NIOWorkerNode extends COMPSsWorker {
     public void obtainData(LogicalData ld, DataLocation source, DataLocation target, LogicalData tgtData, Transferable reason,
             EventListener listener) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Obtain Data " + ld.getName() + " as " + target);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Obtain Data " + ld.getName() + " as " + target);
         }
 
         // If it has a PSCO location, it is a PSCO -> Order new StorageCopy
@@ -245,18 +247,18 @@ public class NIOWorkerNode extends COMPSsWorker {
                 return;
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Ordering deferred copy " + ld.getName() );
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Ordering deferred copy " + ld.getName());
         }
         orderCopy(new DeferredCopy(ld, source, target, tgtData, reason, listener));
     }
 
     private void orderStorageCopy(StorageCopy sc) {
-        logger.info("Order PSCO Copy for " + sc.getSourceData().getName());
-        if (logger.isDebugEnabled()) {
-            logger.debug("LD Target " + sc.getTargetData());
-            logger.debug("FROM: " + sc.getPreferredSource());
-            logger.debug("TO: " + sc.getTargetLoc());
+        LOGGER.info("Order PSCO Copy for " + sc.getSourceData().getName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("LD Target " + sc.getTargetData());
+            LOGGER.debug("FROM: " + sc.getPreferredSource());
+            LOGGER.debug("TO: " + sc.getTargetLoc());
         }
 
         LogicalData source = sc.getSourceData();
@@ -280,7 +282,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
 
-        logger.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
+        LOGGER.debug("Ask for new Replica of " + srcLD.getName() + " to " + targetHostname);
 
         // Get the PSCO to replicate
         String pscoId = srcLD.getId();
@@ -297,7 +299,7 @@ public class NIOWorkerNode extends COMPSsWorker {
 
         if (!currentLocations.contains(targetHostname)) {
             // Perform replica
-            logger.debug("Performing new replica for PSCO " + pscoId);
+            LOGGER.debug("Performing new replica for PSCO " + pscoId);
             if (NIOTracer.isActivated()) {
                 NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWREPLICA.getId(), NIOTracer.Event.STORAGE_NEWREPLICA.getType());
             }
@@ -310,7 +312,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 }
             }
         } else {
-            logger.debug("PSCO " + pscoId + " already present. Skip replica.");
+            LOGGER.debug("PSCO " + pscoId + " already present. Skip replica.");
         }
 
         // Update information
@@ -318,7 +320,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         if (targetLD != null) {
             targetLD.setId(pscoId);
         }
-        
+
         // Notify successful end
         sc.end(OpEndState.OP_OK);
     }
@@ -328,19 +330,19 @@ public class NIOWorkerNode extends COMPSsWorker {
         LogicalData srcLD = sc.getSourceData();
         LogicalData targetLD = sc.getTargetData();
 
-        logger.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname);
+        LOGGER.debug("Ask for new Version of " + srcLD.getName() + " with id " + srcLD.getId() + " to " + targetHostname);
 
         // Get the PSCOId to replicate
         String pscoId = srcLD.getId();
 
         // Perform version
-        logger.debug("Performing new version for PSCO " + pscoId);
+        LOGGER.debug("Performing new version for PSCO " + pscoId);
         if (NIOTracer.isActivated()) {
             NIOTracer.emitEvent(NIOTracer.Event.STORAGE_NEWVERSION.getId(), NIOTracer.Event.STORAGE_NEWVERSION.getType());
         }
         try {
             String newId = StorageItf.newVersion(pscoId, Comm.getAppHost().getName());
-            logger.debug("Register new new version of " + pscoId + " as " + newId);
+            LOGGER.debug("Register new new version of " + pscoId + " as " + newId);
             sc.setFinalTarget(newId);
             if (targetLD != null) {
                 targetLD.setId(newId);
@@ -359,7 +361,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     }
 
     private void orderCopy(DeferredCopy c) {
-        logger.info("Order Copy for " + c.getSourceData());
+        LOGGER.info("Order Copy for " + c.getSourceData());
 
         Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
         LogicalData ld = c.getSourceData();
@@ -370,14 +372,14 @@ public class NIOWorkerNode extends COMPSsWorker {
                 if (u != null) {
                     path = u.getPath();
                 } else {
-                	
+
                     path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
                 }
             } else {
                 path = c.getTargetLoc().getURIInHost(tgtRes).getPath();
             }
             c.setProposedSource(new Data(ld));
-            logger.debug("Setting final target in deferred copy " + path);
+            LOGGER.debug("Setting final target in deferred copy " + path);
             c.setFinalTarget(path);
             // TODO: MISSING CHECK IF FILE IS ALREADY BEEN COPIED IN A SHARED LOCATION
             ld.startCopy(c, c.getTargetLoc());
@@ -435,50 +437,50 @@ public class NIOWorkerNode extends COMPSsWorker {
 
     @Override
     public boolean generatePackage() {
-    	if (started){
-    		logger.debug("Sending command to generated tracing package for " + this.getHost());
-    		if(node == null) {
-    			logger.error("ERROR: Package generation for "+ this.getHost() +" has failed.");
-    			return false;
-    		}else{
-        
-    			Connection c = NIOAgent.tm.startConnection(node);
-    			CommandGeneratePackage cmd = new CommandGeneratePackage();
-    			c.sendCommand(cmd);
-    			c.receive();
-    			c.finishConnection();
-    			commManager.waitUntilTracingPackageGenerated();
-    			logger.debug("Tracing Package generated");
-    			return true;
-    		}
-    	}else{
-    		logger.debug("Worker " + this.getHost()+ " not started. No tracing package generated");
-    		return false;
-    	}
-    		
+        if (started) {
+            LOGGER.debug("Sending command to generated tracing package for " + this.getHost());
+            if (node == null) {
+                LOGGER.error("ERROR: Package generation for " + this.getHost() + " has failed.");
+                return false;
+            } else {
+
+                Connection c = NIOAgent.tm.startConnection(node);
+                CommandGeneratePackage cmd = new CommandGeneratePackage();
+                c.sendCommand(cmd);
+                c.receive();
+                c.finishConnection();
+                commManager.waitUntilTracingPackageGenerated();
+                LOGGER.debug("Tracing Package generated");
+                return true;
+            }
+        } else {
+            LOGGER.debug("Worker " + this.getHost() + " not started. No tracing package generated");
+            return false;
+        }
+
     }
 
     @Override
     public boolean generateWorkersDebugInfo() {
-    	if (started){
-    		logger.debug("Sending command to generate worker debug files for " + this.getHost());
-    		if (node == null) {
-    			logger.error("Worker debug files generation has failed.");
-    		}
-    		
-    		Connection c = NIOAgent.tm.startConnection(node);
-    		CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
-    		c.sendCommand(cmd);
-    		c.receive();
-    		c.finishConnection();
+        if (started) {
+            LOGGER.debug("Sending command to generate worker debug files for " + this.getHost());
+            if (node == null) {
+                LOGGER.error("Worker debug files generation has failed.");
+            }
 
-    		commManager.waitUntilWorkersDebugInfoGenerated();
-    		logger.debug("Worker debug files generated");
-    		return true;
-    	}else{
-    		logger.debug("Worker debug files not generated because worker was not started");
-    		return false;
-    	}
+            Connection c = NIOAgent.tm.startConnection(node);
+            CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
+            c.sendCommand(cmd);
+            c.receive();
+            c.finishConnection();
+
+            commManager.waitUntilWorkersDebugInfoGenerated();
+            LOGGER.debug("Worker debug files generated");
+            return true;
+        } else {
+            LOGGER.debug("Worker debug files not generated because worker was not started");
+            return false;
+        }
     }
 
     public void submitTask(NIOJob job, LinkedList<String> obsolete) throws UnstartedNodeException {
@@ -492,9 +494,9 @@ public class NIOWorkerNode extends COMPSsWorker {
         c.finishConnection();
     }
 
-	public void setStarted(boolean b) {
-		started=b;
-		
-	}
+    public void setStarted(boolean b) {
+        started = b;
+
+    }
 
 }

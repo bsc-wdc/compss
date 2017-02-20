@@ -1,5 +1,7 @@
 package integratedtoolkit.nio.worker.executors.util;
 
+import java.io.File;
+
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
@@ -11,8 +13,8 @@ public class OpenCLInvoker extends Invoker {
     private final String kernel;
 
 
-    public OpenCLInvoker(NIOWorker nw, NIOTask nt, int[] assignedCoreUnits) throws JobExecutionException {
-        super(nw, nt, assignedCoreUnits);
+    public OpenCLInvoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
+        super(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
 
         // Get method definition properties
         OpenCLImplementation openclImpl = null;

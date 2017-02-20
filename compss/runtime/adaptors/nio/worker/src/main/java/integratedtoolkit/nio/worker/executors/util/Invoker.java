@@ -1,5 +1,6 @@
 package integratedtoolkit.nio.worker.executors.util;
 
+import java.io.File;
 import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +36,7 @@ public abstract class Invoker {
 
     protected final NIOWorker nw;
     protected final NIOTask nt;
+    protected final File taskSandboxWorkingDir;
     protected final int[] assignedCoreUnits;
     private final boolean debug;
     
@@ -56,9 +58,10 @@ public abstract class Invoker {
     private Object retValue;
     
 
-    public Invoker(NIOWorker nw, NIOTask nt, int[] assignedCoreUnits) throws JobExecutionException {
+    public Invoker(NIOWorker nw, NIOTask nt, File taskSandboxWorkingDir, int[] assignedCoreUnits) throws JobExecutionException {
         this.nw = nw;
         this.nt = nt;
+        this.taskSandboxWorkingDir = taskSandboxWorkingDir;
         this.assignedCoreUnits = assignedCoreUnits;
         
         this.debug = NIOWorker.isWorkerDebugEnabled();

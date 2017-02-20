@@ -40,9 +40,9 @@ def compss_delete(file_name):
     pass
   
 
-def waitForAllTasks():
+def barrier():
     """
-    Dummy wait_for_all_tasks
+    Dummy barrier
     """
     pass
   

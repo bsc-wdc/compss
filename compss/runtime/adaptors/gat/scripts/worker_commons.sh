@@ -15,15 +15,16 @@
 
   get_parameters() {
     # Get paramters
-    app_dir=$1
-    cp=$2
-    pythonpath=$3
-    debug=$4
-    storageConf=$5
-    methodType=$6
+    taskSandboxWorkingDir=$1
+    app_dir=$2
+    cp=$3
+    pythonpath=$4
+    debug=$5
+    storageConf=$6
+    methodType=$7
 
     # Shit all parameters except method ones
-    shiftSizeForApp=3
+    shiftSizeForApp=4
     shift $shiftSizeForApp
    
     # Get method parameters

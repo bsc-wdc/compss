@@ -39,9 +39,6 @@ import integratedtoolkit.types.annotations.parameter.Type;
 
 public interface GuidanceItf {
     
-    // TODO: WARN
-    // Task getAllele from GuidanceImpl is not defined as task
-    
     @Binary(binary = "${" + Environment.EV_PLINKBINARY + "}")
     @Constraints(computingUnits = "1", memorySize = "1.0")
     Integer convertFromBedToBed(

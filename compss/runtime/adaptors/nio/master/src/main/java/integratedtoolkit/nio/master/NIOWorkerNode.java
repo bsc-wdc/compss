@@ -220,7 +220,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                     }
                 }
             }
-           
+
             String path = target.getURIInHost(Comm.getAppHost()).getPath();
             c.setFinalTarget(path);
             ld.startCopy(c, c.getTargetLoc());

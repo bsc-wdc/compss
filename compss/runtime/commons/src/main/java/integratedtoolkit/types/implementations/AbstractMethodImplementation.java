@@ -5,13 +5,9 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
 
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.annotations.parameter.DataType;
@@ -20,19 +16,21 @@ import integratedtoolkit.types.annotations.parameter.DataType;
 public abstract class AbstractMethodImplementation extends Implementation<MethodResourceDescription> implements Externalizable {
 
     private static final Lang LANG;
-    
+
+
     public enum MethodType {
-        METHOD,
-        MPI,
-        OMPSS,
-        OPENCL,
-        BINARY
+        METHOD, // For native methods
+        MPI, // For MPI methods
+        OMPSS, // For OmpSs methods
+        OPENCL, // For OpenCL methods
+        BINARY // For binary methods
     }
-    
+
+
     static {
         // Compute language
         Lang l = Lang.JAVA;
-        
+
         String langProperty = System.getProperty(ITConstants.IT_LANG);
         if (langProperty != null) {
             if (langProperty.equalsIgnoreCase("python")) {
@@ -41,26 +39,27 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
                 l = Lang.C;
             }
         }
-        
+
         LANG = l;
     }
-    
+
+
     public AbstractMethodImplementation() {
         // For externalizable
         super();
     }
-    
+
     public AbstractMethodImplementation(Integer coreId, Integer implementationId, MethodResourceDescription annot) {
         super(coreId, implementationId, annot);
     }
 
     public static String getSignature(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
             Parameter[] parameters) {
-    	
-        StringBuilder buffer = new StringBuilder();   
+
+        StringBuilder buffer = new StringBuilder();
         buffer.append(methodName).append("(");
-        
-        switch(LANG) {
+
+        switch (LANG) {
             case JAVA:
             case C:
                 int numPars = parameters.length;
@@ -85,25 +84,25 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
                 // There is no function overloading in Python
                 break;
         }
-        
+
         buffer.append(")").append(declaringClass);
         return buffer.toString();
     }
-    
+
     @Override
     public TaskType getTaskType() {
         return TaskType.METHOD;
     }
 
     public abstract MethodType getMethodType();
-    
+
     public abstract String getMethodDefinition();
-    
+
     @Override
     public String toString() {
         return super.toString();
     }
-    
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);

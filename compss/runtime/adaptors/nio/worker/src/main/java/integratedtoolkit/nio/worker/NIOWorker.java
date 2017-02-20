@@ -64,7 +64,7 @@ public class NIOWorker extends NIOAgent {
 
     // Application dependent attributes
     private static boolean isWorkerDebugEnabled;
-    
+
     private final String deploymentId;
     private final String lang;
     private final String host;
@@ -103,7 +103,8 @@ public class NIOWorker extends NIOAgent {
 
 
     public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, String appUuid, String lang, String hostName, String workingDir,
-            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs, int amountSockets, String socketString) {
+            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs, int amountSockets,
+            String socketString) {
 
         super(snd, rcv, masterPort);
 
@@ -119,8 +120,8 @@ public class NIOWorker extends NIOAgent {
         this.appDir = appDir.equals("null") ? "" : appDir;
         this.libraryPath = libPath.equals("null") ? "" : libPath;
         this.classpath = classpath.equals("null") ? "" : classpath;
-        this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;        
-        
+        this.pythonpath = pythonpath.equals("null") ? "" : pythonpath;
+
         // Set master node to null (will be set afterwards to the right value)
         this.masterNode = null;
 
@@ -142,21 +143,21 @@ public class NIOWorker extends NIOAgent {
         } finally {
             this.executionManager = em;
         }
-        
+
         if (tracing_level == NIOTracer.BASIC_MODE) {
             NIOTracer.enablePThreads();
         }
-        
+
         try {
             this.executionManager.init();
         } catch (InitializationException ie) {
             ErrorManager.error(EXECUTION_MANAGER_ERR, ie);
-        } 
-        
+        }
+
         if (tracing_level == NIOTracer.BASIC_MODE) {
             NIOTracer.disablePThreads();
         }
-         
+
     }
 
     @Override
@@ -175,7 +176,7 @@ public class NIOWorker extends NIOAgent {
     public boolean isMyUuid(String uuid) {
         return uuid.equals(this.deploymentId);
     }
-    
+
     public static boolean isWorkerDebugEnabled() {
         return isWorkerDebugEnabled;
     }
@@ -187,8 +188,8 @@ public class NIOWorker extends NIOAgent {
     public static boolean isTracingEnabled() {
         return NIOTracer.isActivated();
     }
-    
-    public ExecutionManager getExecutionManager(){
+
+    public ExecutionManager getExecutionManager() {
         return this.executionManager;
     }
 
@@ -220,7 +221,7 @@ public class NIOWorker extends NIOAgent {
     public String getPythonpath() {
         return this.pythonpath;
     }
-    
+
     @Override
     public void receivedNewTask(NIONode master, NIOTask task, LinkedList<String> obsoleteFiles) {
         WORKER_LOGGER.info("Received Job " + task);
@@ -282,7 +283,7 @@ public class NIOWorker extends NIOAgent {
             NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
         }
     }
-    
+
     private void askForPSCO(NIOParam param) {
         String pscoId = (String) param.getValue();
         WORKER_LOGGER.debug("   - " + pscoId + " registered as PSCO.");
@@ -312,12 +313,12 @@ public class NIOWorker extends NIOAgent {
         }
         WORKER_LOGGER.debug("   - PSCO with id " + pscoId + " stored");
     }
-    
+
     private void askForObject(NIOParam param, int index, TransferringTask tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as object.");
 
         boolean askTransfer = false;
-        
+
         // Try if parameter is in cache
         WORKER_LOGGER.debug("   - Checking if " + (String) param.getValue() + " is in cache.");
         boolean catched = dataManager.checkPresence((String) param.getValue());
@@ -331,13 +332,13 @@ public class NIOWorker extends NIOAgent {
                     WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") location found in cache.");
                     try {
                         if (param.isPreserveSourceData()) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
-                                    + ") preserves sources. CACHE-COPYING");
+                            WORKER_LOGGER.debug(
+                                    "   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. CACHE-COPYING");
                             Object o = Serializer.deserialize(loc.getPath());
                             storeObject((String) param.getValue(), o);
                         } else {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
-                                    + ") erases sources. CACHE-MOVING");
+                            WORKER_LOGGER
+                                    .debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. CACHE-MOVING");
                             Object o = dataManager.getObject(loc.getPath());
                             dataManager.remove(loc.getPath());
                             storeObject((String) param.getValue(), o);
@@ -368,19 +369,18 @@ public class NIOWorker extends NIOAgent {
                         File source = new File(workingDir + File.separator + loc.getPath());
                         File target = new File(workingDir + File.separator + param.getValue().toString());
                         if (param.isPreserveSourceData()) {
-                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue()
-                                    + ") preserves sources. COPYING");
+                            WORKER_LOGGER
+                                    .debug("   - Parameter " + index + "(" + (String) param.getValue() + ") preserves sources. COPYING");
                             WORKER_LOGGER.debug("         Source: " + source);
                             WORKER_LOGGER.debug("         Target: " + target);
                             Files.copy(source.toPath(), target.toPath());
                         } else {
-                            WORKER_LOGGER.debug(
-                                    "   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
+                            WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
                             WORKER_LOGGER.debug("         Source: " + source);
                             WORKER_LOGGER.debug("         Target: " + target);
                             if (!source.renameTo(target)) {
-                                WORKER_LOGGER.error("Error renaming file from " + source.getAbsolutePath() 
-                                    + " to " + target.getAbsolutePath());
+                                WORKER_LOGGER
+                                        .error("Error renaming file from " + source.getAbsolutePath() + " to " + target.getAbsolutePath());
                             }
                         }
                         // Move object to cache
@@ -408,7 +408,7 @@ public class NIOWorker extends NIOAgent {
         // Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
     }
-    
+
     private void askForFile(NIOParam param, int index, TransferringTask tt) {
         WORKER_LOGGER.debug("   - " + (String) param.getValue() + " registered as file.");
 
@@ -459,12 +459,11 @@ public class NIOWorker extends NIOAgent {
         // Request the transfer if needed
         askForTransfer(askTransfer, param, index, tt);
     }
-    
+
     private void askForTransfer(boolean askTransfer, NIOParam param, int index, TransferringTask tt) {
         // Request the transfer if needed
         if (askTransfer) {
-            WORKER_LOGGER.info(
-                    "- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
+            WORKER_LOGGER.info("- Parameter " + index + "(" + (String) param.getValue() + ") does not exist, requesting data transfer");
             DataRequest dr = new WorkerDataRequest(tt, param.getType(), param.getData(), (String) param.getValue());
             addTransferRequest(dr);
         } else {
@@ -533,7 +532,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     @Override
-    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {   	
+    public void receivedValue(Destination type, String dataId, Object object, LinkedList<DataRequest> achievedRequests) {
         if (type == Transfer.Destination.OBJECT) {
             WORKER_LOGGER.info("Received data " + dataId + " with associated object " + object);
             storeObject(dataId, object);
@@ -888,8 +887,7 @@ public class NIOWorker extends NIOAgent {
 
     public static void main(String[] args) {
         /*
-         * **************************************
-         * Get arguments
+         * ************************************** Get arguments
          **************************************/
         if (args.length != (NUM_PARAMS_NIO_WORKER)) {
             ErrorManager.fatal(ERROR_INCORRECT_NUM_PARAMS);
@@ -927,15 +925,14 @@ public class NIOWorker extends NIOAgent {
 
         String storageConf = args[18];
         executionType = args[19];
-        
+
         int numGPUs = Integer.parseInt(args[20]);
-        
+
         int amountSockets = Integer.parseInt(args[21]);
-        String socketString = args[22];        
-        
+        String socketString = args[22];
+
         /*
-         * ************************************** 
-         * Print args
+         * ************************************** Print args
          **************************************/
         if (isWorkerDebugEnabled) {
             WORKER_LOGGER.debug("jobThreads: " + String.valueOf(jobThreads));
@@ -960,15 +957,14 @@ public class NIOWorker extends NIOAgent {
 
             WORKER_LOGGER.debug("StorageConf: " + storageConf);
             WORKER_LOGGER.debug("executionType: " + executionType);
-            
+
             WORKER_LOGGER.debug("Gpus per node: " + String.valueOf(numGPUs));
 
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }
 
         /*
-         * ************************************** 
-         * Configure Storage
+         * ************************************** Configure Storage
          **************************************/
         System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
         try {
@@ -982,8 +978,7 @@ public class NIOWorker extends NIOAgent {
         }
 
         /*
-         * ************************************** 
-         * Configure tracing
+         * ************************************** Configure tracing
          **************************************/
         System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, extraeFile);
         tracing_level = Integer.parseInt(trace);
@@ -1002,8 +997,7 @@ public class NIOWorker extends NIOAgent {
         }
 
         /*
-         * ************************************** 
-         * LAUNCH THE WORKER
+         * ************************************** LAUNCH THE WORKER
          **************************************/
         NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, lang, workerIP, workingDir, installDir, appDir, libPath,
                 classpath, pythonpath, numGPUs, amountSockets, socketString);
@@ -1037,8 +1031,7 @@ public class NIOWorker extends NIOAgent {
         }
 
         /*
-         * ************************************** 
-         * JOIN AND END
+         * ************************************** JOIN AND END
          **************************************/
         // Wait for the Transfer Manager thread to finish (the shutdown is received on that thread)
         try {

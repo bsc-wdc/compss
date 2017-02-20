@@ -2,7 +2,6 @@ package integratedtoolkit.util;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.ITConstants.Lang;
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
@@ -16,15 +15,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 public class CoreManager {
 
     // Constants definition
     private static final String WARN_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition";
-    
+
     // Lang
     private static final Lang LANG;
 
@@ -33,20 +29,15 @@ public class CoreManager {
 
     private static Implementation<?>[][] implementations;
     private static String[][] signatures;
-    
+
     // Structure counters
     private static int coreCount = 0;
     private static int nextId = 0;
-    
-    // Loggers
-    private static final Logger jobLogger = LogManager.getLogger(Loggers.JM_COMP);
-
-    
 
     static {
         // Compute language
         Lang l = Lang.JAVA;
-        
+
         String langProperty = System.getProperty(ITConstants.IT_LANG);
         if (langProperty != null) {
             if (langProperty.equalsIgnoreCase("python")) {
@@ -55,7 +46,7 @@ public class CoreManager {
                 l = Lang.C;
             }
         }
-        
+
         LANG = l;
     }
 
@@ -77,7 +68,7 @@ public class CoreManager {
         } else {
             implementations = new Implementation[newCoreCount][];
         }
-        
+
         // Resize signatures
         if (signatures != null) {
             String[][] oldSignatures = signatures;
@@ -86,11 +77,11 @@ public class CoreManager {
         } else {
             signatures = new String[newCoreCount][];
         }
-        
+
         // Resize coreCount
         coreCount = newCoreCount;
     }
-    
+
     /**
      * Registers a new Method as Core Element if it doesn't exist
      * 
@@ -103,7 +94,7 @@ public class CoreManager {
 
         if (methodId == null) {
             methodId = nextId++;
-            
+
             if (signature != null && !signature.isEmpty()) {
                 SIGNATURE_TO_ID.put(signature, methodId);
             }
@@ -111,7 +102,7 @@ public class CoreManager {
 
         return methodId;
     }
-    
+
     /**
      * Registers a new Implementation for a given Core
      * 
@@ -124,7 +115,7 @@ public class CoreManager {
             ErrorManager.warn(WARN_UNREGISTERED_CORE_ELEMENT);
             return;
         }
-        
+
         implementations[coreId] = impls;
         signatures[coreId] = signs;
         for (String signature : signs) {
@@ -133,7 +124,7 @@ public class CoreManager {
             }
         }
     }
-    
+
     /**
      * Gets the map of registered signatures and coreIds
      * 
@@ -142,7 +133,7 @@ public class CoreManager {
     public static HashMap<String, Integer> getSignaturesToId() {
         return SIGNATURE_TO_ID;
     }
-    
+
     public static String getSignature(int coreId, int implId) {
         return signatures[coreId][implId];
     }
@@ -157,16 +148,17 @@ public class CoreManager {
      * @param parameters
      * @return
      */
-    public static Integer getCoreId(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
+    public static Integer getCoreId(String declaringClass, String methodName, boolean hasTarget, boolean hasReturn,
+            Parameter[] parameters) {
         Integer methodId = null;
         String signature = MethodImplementation.getSignature(declaringClass, methodName, hasTarget, hasReturn, parameters);
-        
+
         methodId = SIGNATURE_TO_ID.get(signature);
-        
+
         if (methodId == null) {
             methodId = nextId++;
             SIGNATURE_TO_ID.put(signature, methodId);
-            switch(LANG) {
+            switch (LANG) {
                 case JAVA:
                     // Declaring classes are already computed by versioning
                     break;
@@ -197,20 +189,20 @@ public class CoreManager {
      */
     public static Integer getCoreId(String namespace, String serviceName, String portName, String operation, boolean hasTarget,
             boolean hasReturn, Parameter[] parameters) {
-        
+
         Integer methodId = null;
         String signature = ServiceImplementation.getSignature(namespace, serviceName, portName, operation, hasTarget, hasReturn,
                 parameters);
         methodId = SIGNATURE_TO_ID.get(signature);
-        
+
         if (methodId == null) {
             methodId = nextId++;
             SIGNATURE_TO_ID.put(signature, methodId);
         }
-        
+
         return methodId;
     }
-    
+
     /**
      * Clears the internal structures
      */
@@ -218,16 +210,14 @@ public class CoreManager {
         implementations = null;
         signatures = null;
         SIGNATURE_TO_ID.clear();
-        
+
         coreCount = 0;
         nextId = 0;
     }
 
     /*
-     * ********************************************* 
-     * ********************************************* 
-     * ************** QUERY OPERATIONS ************* 
-     * *********************************************
+     * ********************************************* ********************************************* ************** QUERY
+     * OPERATIONS ************* *********************************************
      * *********************************************
      */
     /**
@@ -238,7 +228,7 @@ public class CoreManager {
     public static Implementation<?>[] getCoreImplementations(int coreId) {
         return implementations[coreId];
     }
-    
+
     /**
      * Returns the number of implementations of a Core Element
      * 
@@ -272,10 +262,8 @@ public class CoreManager {
     }
 
     /*
-     * ********************************************* 
-     * ********************************************* 
-     * ************** DEBUG OPERATIONS ************* 
-     * *********************************************
+     * ********************************************* ********************************************* ************** DEBUG
+     * OPERATIONS ************* *********************************************
      * *********************************************
      */
     public static String debugString() {
@@ -290,7 +278,7 @@ public class CoreManager {
         }
         return sb.toString();
     }
-    
+
     public static String debugSignaturesString() {
         StringBuilder sb = new StringBuilder();
         sb.append("REGISTERED SIGNATURES: \n");
@@ -299,7 +287,7 @@ public class CoreManager {
             sb.append(" with MethodId ").append(entry.getValue());
             sb.append("\n");
         }
-        
+
         return sb.toString();
     }
 

@@ -3,13 +3,11 @@ package integratedtoolkit.nio.worker.util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import integratedtoolkit.log.Loggers;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import integratedtoolkit.log.Loggers;
 
 import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
@@ -24,12 +22,12 @@ public class ThreadBinderCPU implements ThreadBinder {
     private ArrayList<ArrayList<Integer>> idList = new ArrayList<>();
     private ArrayList<ArrayList<Integer>> bindedCPUs = new ArrayList<>();
 
+
     /**
      * Constructor for thread binder
      * 
-     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups)
-     * In addition, "/" is used to separate sockets
-     * For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
+     * The format is the one followed by lscpu ("," to separate groups, "-" to separate bounds of groups) In addition,
+     * "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
      * 
      * @param numThreads
      *            amount of tasks to be launched in a given node
@@ -38,7 +36,7 @@ public class ThreadBinderCPU implements ThreadBinder {
     public ThreadBinderCPU(int numThreads, int amountSockets, String socketString) throws BadAmountSocketsException {
         ArrayList<ArrayList<Integer>> computingUnitsIds = new ArrayList<>();
         int realAmountThreads = 0;
-        
+
         String[] slots = socketString.split("/");
         if (amountSockets != slots.length) {
             throw new BadAmountSocketsException(amountSockets + " sockets declared but " + slots.length + " defined");
@@ -52,8 +50,7 @@ public class ThreadBinderCPU implements ThreadBinder {
                 int upperBound;
                 if (bounds.length == 2) {
                     upperBound = Integer.parseInt(bounds[1]);
-                }
-                else {
+                } else {
                     upperBound = lowerBound;
                 }
                 realAmountThreads += (upperBound - lowerBound + 1);
@@ -61,14 +58,14 @@ public class ThreadBinderCPU implements ThreadBinder {
                     currentIds.add(lowerBound + i);
                 }
             }
-            computingUnitsIds.add(currentIds);  
+            computingUnitsIds.add(currentIds);
         }
         auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
     }
-    
-    public ThreadBinderCPU(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds){
+
+    public ThreadBinderCPU(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds) {
         int realAmountThreads = 0;
-        for(ArrayList<Integer> currentBinds : this.idList) {
+        for (ArrayList<Integer> currentBinds : this.idList) {
             realAmountThreads += currentBinds.size();
         }
         auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
@@ -110,7 +107,7 @@ public class ThreadBinderCPU implements ThreadBinder {
                         currentSocketThreads.set(i, jobId);
                         assignedCoreUnits[numAssignedCores] = this.idList.get(socket).get(i);
                         ++numAssignedCores;
-                        //this.availableSlots.set(socket, this.availableSlots.get(socket) - 1);
+                        // this.availableSlots.set(socket, this.availableSlots.get(socket) - 1);
                     }
                 }
                 if (numAssignedCores == numCUs) {
@@ -149,13 +146,13 @@ public class ThreadBinderCPU implements ThreadBinder {
             handleSlotsFreeded();
         }
     }
-        
+
     private void auxiliarConstructor(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds, int totalAmountThreads) {
         this.idList = computingUnitsIds;
-        //Initialize de binds ArrayList
+        // Initialize de binds ArrayList
         for (ArrayList<Integer> currentSocket : this.idList) {
             ArrayList<Integer> currentBounds = new ArrayList<>();
-            for(int i = 0; i < currentSocket.size(); ++i){
+            for (int i = 0; i < currentSocket.size(); ++i) {
                 currentBounds.add(-1);
             }
             this.bindedCPUs.add(currentBounds);
@@ -184,9 +181,9 @@ public class ThreadBinderCPU implements ThreadBinder {
                 LOGGER.debug(sb.toString());
                 LOGGER.debug(sb2.toString());
             }
-        }  
+        }
     }
-    
+
     private int getAvailableSlots(ArrayList<Integer> socket) {
         int counter = 0;
         for (int i : socket) {

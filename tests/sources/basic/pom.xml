@@ -69,6 +69,7 @@
                 <module>36-environmentVariables</module>
                 <module>37-nonNativeTasks</module>
 		<!-- Module 38 is 38-environmentVariables_python -->
+                <!-- Module 39 is 39-barrier_python -->
 		<module>40-deleteFileJava</module>
 		<!-- Module 41 is 41-deleteFile_python -->
                 <module>42-monitor</module>
@@ -78,6 +79,10 @@
                 <!-- Module 46 is 46-files_python -->
                 <module>47-ompss</module>
 		<module>48-schedulers</module>
+                <!-- Module 49 is 49-localtask_python -->
+                <!-- Module 50 is 50-matmul_objects_c -->
+                <!-- Module 51 is 51-matmul_files_c -->
+
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

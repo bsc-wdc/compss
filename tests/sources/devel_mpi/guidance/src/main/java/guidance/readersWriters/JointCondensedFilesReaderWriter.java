@@ -1,18 +1,18 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
 
-public class JointCondensedFilesExecutor extends Executor {
+public class JointCondensedFilesReaderWriter extends ReaderWriter {
 
-    public JointCondensedFilesExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public JointCondensedFilesReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         // I read the header
         String line = br.readLine();
 

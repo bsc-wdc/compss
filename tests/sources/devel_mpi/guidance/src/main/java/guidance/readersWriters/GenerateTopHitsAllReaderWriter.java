@@ -1,4 +1,4 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,14 +12,14 @@ import java.util.Map.Entry;
 import guidance.utils.HashUtils;
 
 
-public class GenerateTopHitsAllExecutor extends Executor {
+public class GenerateTopHitsAllReaderWriter extends ReaderWriter {
 
-    public GenerateTopHitsAllExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public GenerateTopHitsAllReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         Double pvaThres = (Double) extraParams[0];
 
         TreeMap<String, String> fileTreeMap = new TreeMap<String, String>();

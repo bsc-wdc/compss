@@ -407,13 +407,10 @@ public class Guidance {
 
         /**
          * Now it is a good moment to start with the cleaning and compression of the temporal files. It should be done
-         * if variable removeTemporalFiles and compressFiles where enabled. We compress and clean in this order: 
-         * - commonFilesInfo 
-         * - imputationFilesInfo 
-         * - assocFilesInfo 
-         * Due to that currently COMPSs does not allow us to delete the temporal files, then we will compress them and then
-         * we create a text file that list the files that we want to clean. After the end of the execution, 
-         * the user can delete them.
+         * if variable removeTemporalFiles and compressFiles where enabled. We compress and clean in this order: -
+         * commonFilesInfo - imputationFilesInfo - assocFilesInfo Due to that currently COMPSs does not allow us to
+         * delete the temporal files, then we will compress them and then we create a text file that list the files that
+         * we want to clean. After the end of the execution, the user can delete them.
          */
         /*
          * try{ compressCommonFiles(parsingArgs, commonFilesInfo); } catch (Exception e){
@@ -458,7 +455,7 @@ public class Guidance {
         createDir(tmpOutDir);
 
         // We create the second directory: the REFPANEL directory.
-        // It can be 
+        // It can be
         // => common: for files from the beginning to phasing
         // => PANEL : for files for imputation for each panel
 
@@ -1181,27 +1178,24 @@ public class Guidance {
             String bedPrefix = "--bed";
             String bimPrefix = "--bim";
             String famPrefix = "--fam";
-            String chrPrefix = "--chr";
+            String chromoPrefix = "--chr";
             String recodeFlag = "--recode";
             String outPrefix = "--out";
             String makeBedFlag = "--make-bed";
-            String mixedBedFileName = mixedBedFile.substring(0, mixedBedFile.lastIndexOf('.'));
-            String stdout = mixedBedFileName + ".stdout";
-            String stderr = mixedBedFileName + ".stderr";
+            String stdout = mixedBedFile + ".stdout";
+            String stderr = mixedBedFile + ".stderr";
 
             // Store the command on the list
             String cmdToStore = ENV_VARS.PLINK_BINARY.value() + " " + noWebFlag + " " + bedPrefix + " " + bedFile + " " + bimPrefix + " "
-                    + bimFile + " " + famPrefix + " " + famFile + " " + chrPrefix + " " + theChromo + " " + recodeFlag + " " + outPrefix
-                    + " " + mixedBedFileName + " " + makeBedFlag + " #" + mixedBedFile + " #" + mixedBimFile + " #" + mixedFamFile + " #"
-                    + mixedBedToBedLogFile;
+                    + bimFile + " " + famPrefix + " " + famFile + " " + chromoPrefix + " " + theChromo + " " + recodeFlag + " " + outPrefix
+                    + " " + mixedBedFile + " " + makeBedFlag + " #" + mixedBedFile + " #" + mixedBimFile + " #" + mixedFamFile + " #"
+                    + mixedBedToBedLogFile + " stdout " + stdout + " stderr " + stderr;
             listOfCommands.add(cmdToStore);
 
             // Launch the task
             // We do not capture the ExitValue because the task will fail and we do not want to synchronize
-            BINARY.convertFromBedToBed(noWebFlag, bedPrefix, bedFile, bimPrefix, bimFile, famPrefix, famFile, chrPrefix, theChromo,
-                    recodeFlag, outPrefix, mixedBedFileName, makeBedFlag, mixedBedFile, mixedBimFile, mixedFamFile, mixedBedToBedLogFile,
-                    stdout, stderr);
-
+            BINARY.convertFromBedToBed(noWebFlag, bedPrefix, bedFile, bimPrefix, bimFile, famPrefix, famFile, chromoPrefix, theChromo,
+                    recodeFlag, outPrefix, mixedBedFile, makeBedFlag, mixedBimFile, mixedFamFile, mixedBedToBedLogFile, stdout, stderr);
         }
     }
 
@@ -1226,7 +1220,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.createRsIdList(mixedBimOrGenFile, exclCgatFlag, mixedPairsFile, inputFormat, cmdToStore);
+                GuidanceImpl.createRsIdList(mixedBimOrGenFile, exclCgatFlag, mixedPairsFile, inputFormat);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of createRsIdList task");
@@ -1281,7 +1275,8 @@ public class Guidance {
             String cmdToStore = ENV_VARS.SHAPEIT_BINARY.value() + " " + inputBedPrefix + " " + bedFile + " " + bimFile + " " + famFile + " "
                     + inputMapPrefix + " " + gmapFile + " " + chrXPrefix + " " + outputMaxPrefix + " " + shapeitHapsFile + " "
                     + shapeitSampleFile + " " + threadPrefix + " " + numThreads + " " + effectiveSizePrefix + " " + effectiveSize + " "
-                    + outputLogPrefix + " " + shapeitLogFile;
+                    + outputLogPrefix + " " + shapeitLogFile + " stdout " + shapeitStdOut + " stderr " + shapeitStdErr;
+
             listOfCommands.add(cmdToStore);
 
             // Launch the task
@@ -1299,7 +1294,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.createListOfExcludedSnps(shapeitHapsFile, excludedSnpsFile, exclCgatFlag, exclSVFlag, cmdToStore);
+                GuidanceImpl.createListOfExcludedSnps(shapeitHapsFile, excludedSnpsFile, exclCgatFlag, exclSVFlag);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of createListOfExcludedSnps task");
@@ -1328,6 +1323,7 @@ public class Guidance {
                 BINARY.filterHaplotypes(convertFlag, inputHapsPrefix, shapeitHapsFile, shapeitSampleFile, excludeSnpPrefix,
                         excludedSnpsFile, outputHapsPrefix, filteredHaplotypesFile, filteredHaplotypesSampleFile, outputLogPrefix,
                         filteredHaplotypesLogFile, outputVcfPrefix, filteredHaplotypesVcfFile);
+                
                 GuidanceImpl.postFilterHaplotypes(filteredHaplotypesFile, listOfSnpsFile);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
@@ -1368,30 +1364,28 @@ public class Guidance {
             // Prepare the parameter values
             String inputGenPrefix = "--input-gen";
             String inputMapPrefix = "--input-map";
-            String chrXPrefix = ((theChromo.equals("23")) ? "--chrX" : "");
-            String outputMaxPrefix = " --output-max ";
+            String chromoFlag = ((theChromo.equals("23")) ? "--chrX" : "");
+            String outputPrefix = " --output-max ";
             String threadPrefix = "--thread";
             String effectiveSizePrefix = "--effective-size";
             String outputLogPrefix = "--output-log";
             int numThreads = 16;
             int effectiveSize = 20_000;
+            String shapeitStdOut = shapeitHapsFile + ".stdout";
+            String shapeitStdErr = shapeitHapsFile + ".stderr";
 
             // Store the command on the list
             String cmdToStore = ENV_VARS.SHAPEIT_BINARY.value() + " " + inputGenPrefix + " " + genFile + " " + sampleFile + " "
-                    + inputMapPrefix + " " + gmapFile + " " + chrXPrefix + " " + outputMaxPrefix + " " + shapeitHapsFile + " "
+                    + inputMapPrefix + " " + gmapFile + " " + chromoFlag + " " + outputPrefix + " " + shapeitHapsFile + " "
                     + shapeitSampleFile + " " + threadPrefix + " " + numThreads + " " + effectiveSizePrefix + " " + effectiveSize + " "
-                    + outputLogPrefix + " " + shapeitLogFile;
+                    + outputLogPrefix + " " + shapeitLogFile + " stdout " + shapeitStdOut + " stderr " + shapeitStdErr;
             listOfCommands.add(cmdToStore);
 
             // Launch the task
-            try {
-                GuidanceImpl.phasing(theChromo, genFile, sampleFile, gmapFile, shapeitHapsFile, shapeitSampleFile, shapeitLogFile,
-                        cmdToStore);
-            } catch (GuidanceTaskException gte) {
-                // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of phasing task");
-                System.err.println(gte.getMessage());
-            }
+            BINARY.phasing(inputGenPrefix, genFile, sampleFile, inputMapPrefix, gmapFile, chromoFlag, outputPrefix, shapeitHapsFile,
+                    shapeitSampleFile, threadPrefix, numThreads, effectiveSizePrefix, effectiveSize, outputLogPrefix, shapeitLogFile,
+                    shapeitStdOut, shapeitStdErr);
+
         }
 
         if (parsingArgs.getStageStatus("createListOfExcludedSnps") == 1) {
@@ -1403,7 +1397,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.createListOfExcludedSnps(shapeitHapsFile, excludedSnpsFile, exclCgatFlag, exclSVFlag, cmdToStore);
+                GuidanceImpl.createListOfExcludedSnps(shapeitHapsFile, excludedSnpsFile, exclCgatFlag, exclSVFlag);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of createListOfExcludedSnps task");
@@ -1471,39 +1465,38 @@ public class Guidance {
             String hPrefix = "-h";
             String lPrefix = "-l";
             String knownHapsPrefix = "-known_haps_g";
-            String sampleGPrefix = "-sample_g";
+            String samplePrefix = "-sample_g";
             String intPrefix = "-int";
-            String chrXPrefix = ((chrS.equals("23")) ? "-chrX" : "");
-            String excludeSNPSPrefix = "-exclude_snps_g";
+            String chromoFlag = ((chrS.equals("23")) ? "-chrX" : "");
+            String exludeSnpsPrefix = "-exclude_snps_g";
             String imputeExcludedFlag = "-impute_excluded";
             String nePrefix = "-Ne";
-            int neValue = 20_000;
+            int ne = 20_000;
             String oPrefix = "-o";
             String iPrefix = "-i";
             String rPrefix = "-r";
             String wPrefix = "-w";
-            String noSampleFlag = "-no_sample_qc_info";
-            String ogzFlag = "-o_gz";
+            String noSampleQCFlag = "-no_sample_qc_info";
+            String oGzFlag = "-o_gz";
+            String stdOutFile = imputeFile + ".stdout";
+            String stdErrorFile = imputeFile + ".stderr";
 
             // Store the command on the list
             String cmdToStore = ENV_VARS.IMPUTE2_BINARY.value() + " " + prephasedFlag + " " + mPrefix + " " + gmapFile + " " + hPrefix + " "
-                    + knownHapFile + " " + lPrefix + " " + legendFile + " " + knownHapsPrefix + " " + shapeitHapsFile + " " + sampleGPrefix
-                    + " " + shapeitSampleFile + " " + intPrefix + " " + lim1S + " " + lim2S + " " + chrXPrefix + " " + excludeSNPSPrefix
-                    + " " + excludeSNPSPrefix + " " + imputeExcludedFlag + " " + nePrefix + " " + neValue + " " + oPrefix + " " + imputeFile
-                    + " " + iPrefix + " " + imputeFileInfo + " " + rPrefix + " " + imputeFileSummary + wPrefix + " " + imputeFileWarnings
-                    + " " + noSampleFlag + " " + ogzFlag;
+                    + knownHapFile + " " + lPrefix + " " + legendFile + " " + knownHapsPrefix + " " + shapeitHapsFile + " " + samplePrefix
+                    + " " + shapeitSampleFile + " " + intPrefix + " " + lim1S + " " + lim2S + " " + chromoFlag + " " + exludeSnpsPrefix
+                    + " " + pairsFile + " " + imputeExcludedFlag + " " + nePrefix + " " + ne + " " + oPrefix + " " + imputeFile + " "
+                    + iPrefix + " " + imputeFileInfo + " " + rPrefix + " " + imputeFileSummary + wPrefix + " " + imputeFileWarnings + " "
+                    + noSampleQCFlag + " " + oGzFlag + " stdout " + stdOutFile + " stderr " + stdErrorFile;
 
             listOfCommands.add(cmdToStore);
 
-            // Launch the task
-            try {
-                GuidanceImpl.imputeWithImpute(gmapFile, knownHapFile, legendFile, shapeitHapsFile, shapeitSampleFile, lim1S, lim2S,
-                        pairsFile, imputeFile, imputeFileInfo, imputeFileSummary, imputeFileWarnings, chrS, cmdToStore);
-            } catch (GuidanceTaskException gte) {
-                // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of impute task");
-                System.err.println(gte.getMessage());
-            }
+            // Launch task
+            BINARY.imputeWithImpute(prephasedFlag, mPrefix, gmapFile, hPrefix, knownHapFile, lPrefix, legendFile, knownHapsPrefix,
+                    shapeitHapsFile, samplePrefix, shapeitSampleFile, intPrefix, lim1S, lim2S, chromoFlag, exludeSnpsPrefix, pairsFile,
+                    imputeExcludedFlag, nePrefix, ne, oPrefix, imputeFile, iPrefix, imputeFileInfo, rPrefix, imputeFileSummary, wPrefix,
+                    imputeFileWarnings, noSampleQCFlag, oGzFlag, stdOutFile, stdErrorFile);
+
         }
     }
 
@@ -1531,34 +1524,40 @@ public class Guidance {
             String imputedMMInfoFile, String imputedMMErateFile, String imputedMMRecFile, String imputedMMDoseFile, String imputedMMLogFile,
             String chrS, String lim1S, String lim2S) {
 
-        String cmdToStore = null;
         if (parsingArgs.getStageStatus("imputeWithMinimac") == 1) {
-            // Submitting the impute task per chunk
-            if (chrS.equals("23")) {
-                cmdToStore = ENV_VARS.JAVA_HOME.value() + File.separator + "java imputationWithMinimac --vcfReference --refHaps "
-                        + knownHapFile + " --shape_haps " + filteredHapsFile + " --sample " + filteredSampleFile + " --snps "
-                        + filteredListOfSnpsFile + " --vcfstart " + lim1S + " --vcfend " + lim2S + " --chr " + chrS
-                        + " --vcfwindow --rounds 5 --states 200 --outInfo " + imputedMMInfoFile + " --outErate " + imputedMMErateFile
-                        + " --outRec " + imputedMMRecFile + " --outDose " + imputedMMDoseFile + " --outLog " + imputedMMLogFile;
-            } else {
-                cmdToStore = ENV_VARS.JAVA_HOME.value() + File.separator + "java imputationWithMinimac --vcfReference --refHaps "
-                        + knownHapFile + " --shape_haps " + filteredHapsFile + " --sample " + filteredSampleFile + " --snps "
-                        + filteredListOfSnpsFile + " --vcfstart " + lim1S + " --vcfend " + lim2S + " --chr " + chrS
-                        + " --vcfwindow --rounds 5 --states 200 --outInfo " + imputedMMInfoFile + " --outErate " + imputedMMErateFile
-                        + " --outRec " + imputedMMRecFile + " --outDose " + imputedMMDoseFile + " --outLog " + imputedMMLogFile;
-            }
+            // Prepare the parameter values
+            String vcfReferenceFlag = "--vcfReference";
+            String refHapsPrefix = "--refHaps";
+            String snpsPrefix = "--snps";
+            String shapeHapsPrefix = "--shape_haps";
+            String samplePrefix = "--sample";
+            String vcfStartPrefix = "--vcfstart";
+            String vcfEndPrefix = "--vcfend";
+            String chromoFlag = chrS.equals(ChromoInfo.MAX_NUMBER_OF_CHROMOSOMES_STR) ? "--chr" : "";
+            String vcfWindowPrefix = "--vcfwindow";
+            int vcfWindow = 250_000;
+            String roundsPrefix = "--rounds";
+            int rounds = 5;
+            String statesPrefix = "--states";
+            int states = 200;
+            String prefixPrefix = "--prefix";
+            String gzipFlag = "--gzip";
+            String stdErrFile = imputedMMFileName + ".stderr";
+
+            // Store the command on the list
+            String cmdToStore = ENV_VARS.MINIMAC_BINARY.value() + " " + vcfReferenceFlag + " " + refHapsPrefix + " " + knownHapFile + " "
+                    + snpsPrefix + " " + filteredListOfSnpsFile + " " + shapeHapsPrefix + " " + filteredHapsFile + " " + samplePrefix + " "
+                    + filteredSampleFile + " " + vcfStartPrefix + " " + lim1S + " " + vcfEndPrefix + " " + lim2S + " " + chromoFlag + " "
+                    + chrS + " " + vcfWindowPrefix + " " + vcfWindow + " " + roundsPrefix + " " + rounds + " " + statesPrefix + " " + states
+                    + " " + prefixPrefix + " " + imputedMMFileName + " " + gzipFlag + " # " + imputedMMInfoFile + " # " + imputedMMErateFile
+                    + " # " + imputedMMRecFile + " # " + imputedMMDoseFile + " stdout " + imputedMMLogFile + " stderr " + stdErrFile;
             listOfCommands.add(cmdToStore);
 
-            // Launch the task
-            try {
-                GuidanceImpl.imputeWithMinimac(knownHapFile, filteredHapsFile, filteredSampleFile, filteredListOfSnpsFile,
-                        imputedMMFileName, imputedMMInfoFile, imputedMMErateFile, imputedMMRecFile, imputedMMDoseFile, imputedMMLogFile,
-                        chrS, lim1S, lim2S, cmdToStore);
-            } catch (GuidanceTaskException gte) {
-                // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of imputationWithMinimac task");
-                System.err.println(gte.getMessage());
-            }
+            // Launch task
+            BINARY.imputeWithMinimac(vcfReferenceFlag, refHapsPrefix, knownHapFile, snpsPrefix, filteredListOfSnpsFile, shapeHapsPrefix,
+                    filteredHapsFile, samplePrefix, filteredSampleFile, vcfStartPrefix, lim1S, vcfEndPrefix, lim2S, chromoFlag, chrS,
+                    vcfWindowPrefix, vcfWindow, roundsPrefix, rounds, statesPrefix, states, prefixPrefix, imputedMMFileName, gzipFlag,
+                    imputedMMInfoFile, imputedMMErateFile, imputedMMRecFile, imputedMMDoseFile, imputedMMLogFile, stdErrFile);
         }
     }
 
@@ -1583,7 +1582,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.filterByInfo(imputeFileInfo, filteredRsIdFile, infoThresholdS, cmdToStore);
+                GuidanceImpl.filterByInfo(imputeFileInfo, filteredRsIdFile, infoThresholdS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of filterByInfo tasks for controls");
@@ -1609,17 +1608,36 @@ public class Guidance {
         String mafThresholdS = Double.toString(mafThreshold);
 
         if (parsingArgs.getStageStatus("qctoolS") == 1) {
+            // Prepare the parameter values
+            String gPrefix = "-g";
+            String ogPrefix = "-og";
+            String inclRSIdsPrefix = "-incl-rsids";
+            String omitChromosomeFlag = "-omit-chromosome";
+            String forceFlag = "-force";
+            String logPrefix = "-log";
+            String mafPrefix = "-maf";
+            String oneFlag = "1";
+            String stdOutFile = filteredFile + ".stdout";
+            String stdErrorFile = filteredFile + ".stderr";
+            String filteredFileGz = filteredFile + ".gz";
+
             // Store the command on the list
-            String cmdToStore = ENV_VARS.QCTOOL_BINARY.value() + " -g " + imputeFile + " -og " + filteredFile + " -incl-rsids "
-                    + filteredRsIdFile + " -omit-chromosome -force -log " + filteredLogFile + " -maf " + mafThresholdS + " 1";
+            String cmdToStore = ENV_VARS.QCTOOL_BINARY.value() + " " + gPrefix + " " + imputeFile + " " + ogPrefix + " " + filteredFile
+                    + " " + inclRSIdsPrefix + " " + filteredRsIdFile + " " + omitChromosomeFlag + " " + forceFlag + " " + logPrefix + " "
+                    + filteredLogFile + " " + mafPrefix + " " + mafThresholdS + " " + oneFlag + " stdout " + stdOutFile + " stderr "
+                    + stdErrorFile;
             listOfCommands.add(cmdToStore);
 
             // Launch the task
+            BINARY.qctoolS(gPrefix, imputeFile, ogPrefix, filteredFile, inclRSIdsPrefix, filteredRsIdFile, omitChromosomeFlag, forceFlag,
+                    logPrefix, filteredLogFile, mafPrefix, mafThresholdS, oneFlag, stdOutFile, stdErrorFile);
+
+            // Launch the post zip task
             try {
-                GuidanceImpl.qctoolS(imputeFile, filteredRsIdFile, mafThresholdS, filteredFile, filteredLogFile, cmdToStore);
+                GuidanceImpl.postSnptest(filteredFile, filteredFileGz);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of qctoolS tasks for controls");
+                System.err.println("[Guidance] Exception on zip post SNP Test files");
                 System.err.println(gte.getMessage());
             }
         }
@@ -1641,35 +1659,38 @@ public class Guidance {
     private static void doSnptest(ParseCmdLine parsingArgs, ArrayList<String> listOfCommands, String chrS, String mergedGenFile,
             String mergedSampleFile, String snptestOutFile, String snptestLogFile, String responseVar, String covariables) {
 
-        String cmdToStore = null;
-        String newStr = covariables.replace(',', ' ');
-
         if (parsingArgs.getStageStatus("snptest") == 1) {
+            // Prepare the parameter values
+            String covarsSTR = covariables.replace(',', ' ');
+            String dataPrefix = "-data";
+            String oPrefix = "-0";
+            String phenoPrefix = "-pheno";
+            String covarsFlag = covariables.equals("none") ? "" : " -cov_names " + covarsSTR;
+            String hweFlag = "-hwe";
+            String logPrefix = "-log";
+            final String chromo23Flags = "-method newml -assume_chromosome X -stratify_on sex -frequentist 1";
+            final String chromoOtherFlags = "-method em -frequentist 1 2 3 4 5";
+            String chromoFlag = chrS.equals(ChromoInfo.MAX_NUMBER_OF_CHROMOSOMES_STR) ? chromo23Flags : chromoOtherFlags;
+            String stdOutFile = snptestLogFile + ".stdout";
+            String stdErrFile = snptestLogFile + ".stderr";
+            String snpTestOutFileGz = snptestOutFile + ".gz";
+
             // Store the command on the list
-            if (covariables.equals("none")) {
-                cmdToStore = ENV_VARS.SNPTEST_BINARY.value() + " -data " + mergedGenFile + " " + mergedSampleFile + " -o " + snptestOutFile
-                        + " -pheno " + responseVar + " -hwe -log " + snptestLogFile;
-            } else {
-                cmdToStore = ENV_VARS.SNPTEST_BINARY.value() + " -data " + mergedGenFile + " " + mergedSampleFile + " -o " + snptestOutFile
-                        + " -pheno " + responseVar + " -cov_names " + newStr + " -hwe -log " + snptestLogFile;
-            }
-
-            // Different parameters for chromo 23 (X) and the rest.
-            if (chrS.equals("23")) {
-                cmdToStore = cmdToStore + " -method newml -assume_chromosome X -stratify_on sex -frequentist 1";
-            } else {
-                cmdToStore = cmdToStore + " -method em -frequentist 1 2 3 4 5";
-            }
-
+            String cmdToStore = ENV_VARS.SNPTEST_BINARY.value() + dataPrefix + " " + mergedGenFile + " " + mergedSampleFile + " " + oPrefix
+                    + " " + snptestOutFile + " " + phenoPrefix + " " + responseVar + " " + covarsFlag + " " + hweFlag + " " + logPrefix
+                    + " " + snptestLogFile + " " + chromoFlag + " " + stdOutFile + " " + stdErrFile;
             listOfCommands.add(cmdToStore);
 
             // Launch the task
+            BINARY.snptest(dataPrefix, mergedGenFile, mergedSampleFile, oPrefix, snptestOutFile, phenoPrefix, responseVar, covarsFlag,
+                    hweFlag, logPrefix, snptestLogFile, chromoFlag, stdOutFile, stdErrFile);
+
+            // Launch the post zip task
             try {
-                GuidanceImpl.snptest(mergedGenFile, mergedSampleFile, snptestOutFile, snptestLogFile, responseVar, covariables, chrS,
-                        cmdToStore);
+                GuidanceImpl.postSnptest(snptestOutFile, snpTestOutFileGz);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of snptest task");
+                System.err.println("[Guidance] Exception on zip post SNP Test files");
                 System.err.println(gte.getMessage());
             }
         }
@@ -1707,7 +1728,7 @@ public class Guidance {
             // Launch the task
             try {
                 GuidanceImpl.collectSummary(chrS, imputeFileInfo, snptestOutFile, summaryFile, mafThresholdS, infoThresholdS,
-                        hweCohortThresholdS, hweCasesThresholdS, hweControlsThresholdS, cmdToStore);
+                        hweCohortThresholdS, hweCasesThresholdS, hweControlsThresholdS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of collectSummary task");
@@ -1736,7 +1757,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.jointCondensedFiles(condensedA, condensedB, condensedC, cmdToStore);
+                GuidanceImpl.jointCondensedFiles(condensedA, condensedB, condensedC);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of jointCondensedFiles task");
@@ -1767,7 +1788,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.jointFilteredByAllFiles(filteredByAllA, filteredByAllB, filteredByAllC, rpanelName, rpanelFlag, cmdToStore);
+                GuidanceImpl.jointFilteredByAllFiles(filteredByAllA, filteredByAllB, filteredByAllC, rpanelName, rpanelFlag);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of getBestSnps task");
@@ -1797,7 +1818,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.generateTopHitsAll(filteredFile, filteredXFile, topHitsResults, pvaThrS, cmdToStore);
+                GuidanceImpl.generateTopHitsAll(filteredFile, filteredXFile, topHitsResults, pvaThrS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of generateTopHits task");
@@ -1822,21 +1843,30 @@ public class Guidance {
             String qqPlotFile, String manhattanPlotFile, String qqPlotTiffFile, String manhattanPlotTiffFile, String correctedPvaluesFile) {
 
         if (parsingArgs.getStageStatus("generateQQManhattanPlots") == 1) {
+            // Prepare the parameter values
+            String stdOutFile = correctedPvaluesFile + ".stdout";
+            String stdErrFile = correctedPvaluesFile + ".stderr";
+
             // Store the command on the list
             String cmdToStore = ENV_VARS.R_SCRIPT_BIN_DIR.value() + File.separator + "Rscript " + ENV_VARS.R_SCRIPT_DIR.value()
                     + File.separator + "qqplot_manhattan.R " + condensedFile + " " + qqPlotFile + " " + manhattanPlotFile + " "
-                    + qqPlotTiffFile + " " + manhattanPlotTiffFile + " " + correctedPvaluesFile;
+                    + qqPlotTiffFile + " " + manhattanPlotTiffFile + " " + correctedPvaluesFile + " stdout " + stdOutFile + " stderr "
+                    + stdErrFile;
             listOfCommands.add(cmdToStore);
 
-            // Launch the task
+            // Launch the unzip task
+            String condensedFileUnzip = condensedFile + ".temp1";
             try {
-                GuidanceImpl.generateQQManhattanPlots(condensedFile, qqPlotFile, manhattanPlotFile, qqPlotTiffFile, manhattanPlotTiffFile,
-                        correctedPvaluesFile, cmdToStore);
+                GuidanceImpl.preGenerateQQManhattanPlots(condensedFile, condensedFileUnzip);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
-                System.err.println("[Guidance] Exception trying the execution of generateQQManhattanPlots task");
+                System.err.println("[Guidance] Exception trying to generate the pre QQ Manhattan Plot files");
                 System.err.println(gte.getMessage());
             }
+
+            // Launch the task
+            BINARY.generateQQManhattanPlots(condensedFileUnzip, qqPlotFile, manhattanPlotFile, qqPlotTiffFile, manhattanPlotTiffFile,
+                    correctedPvaluesFile, stdOutFile, stdErrFile);
         }
     }
 
@@ -1862,7 +1892,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.combinePanelsComplex(resultsPanelA, resultsPanelB, lastResultFile, startChrS, endChrS, cmdToStore);
+                GuidanceImpl.combinePanelsComplex(resultsPanelA, resultsPanelB, lastResultFile, startChrS, endChrS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of combinePanelsComplex task");
@@ -1905,7 +1935,7 @@ public class Guidance {
             // Launch the task
             try {
                 GuidanceImpl.combineCondensedFiles(filteredA, filteredX, combinedCondensedFile, mafThresholdS, infoThresholdS,
-                        hweCohortThresholdS, hweCasesThresholdS, hweControlsThresholdS, cmdToStore);
+                        hweCohortThresholdS, hweCasesThresholdS, hweControlsThresholdS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of combineCondensedFile task");
@@ -1935,7 +1965,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.mergeTwoChunks(reduceA, reduceB, reduceC, theChromo, cmdToStore);
+                GuidanceImpl.mergeTwoChunks(reduceA, reduceB, reduceC, theChromo);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of mergeTwoChunks task");
@@ -1979,7 +2009,7 @@ public class Guidance {
             // Launch the task
             try {
                 GuidanceImpl.filterByAll(inputFile, outputFile, outputCondensedFile, mafThresholdS, infoThresholdS, hweCohortThresholdS,
-                        hweCasesThresholdS, hweControlsThresholdS, cmdToStore);
+                        hweCasesThresholdS, hweControlsThresholdS);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of filterByAll task");
@@ -2009,7 +2039,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.initPhenoMatrix(topHitsFile, ttName, rpName, phenomeFile, cmdToStore);
+                GuidanceImpl.initPhenoMatrix(topHitsFile, ttName, rpName, phenomeFile);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of initPhenoMatrix task");
@@ -2040,7 +2070,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.addToPhenoMatrix(phenomeFileA, topHitsFile, ttName, rpName, phenomeFileB, cmdToStore);
+                GuidanceImpl.addToPhenoMatrix(phenomeFileA, topHitsFile, ttName, rpName, phenomeFileB);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of addToPhenoMatrix task");
@@ -2073,8 +2103,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.filloutPhenoMatrix(phenomeFileA, filteredByAllFile, filteredByAllXFile, endChrS, ttName, rpName, phenomeFileB,
-                        cmdToStore);
+                GuidanceImpl.filloutPhenoMatrix(phenomeFileA, filteredByAllFile, filteredByAllXFile, endChrS, ttName, rpName, phenomeFileB);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of filloutPhenoMatrix task");
@@ -2105,7 +2134,7 @@ public class Guidance {
 
             // Launch the task
             try {
-                GuidanceImpl.finalizePhenoMatrix(phenomeFileA, phenomeFileB, ttName, rpName, phenomeFileC, cmdToStore);
+                GuidanceImpl.finalizePhenoMatrix(phenomeFileA, phenomeFileB, ttName, rpName, phenomeFileC);
             } catch (GuidanceTaskException gte) {
                 // COMPSs: This code is never reached since exception causes task to fail
                 System.err.println("[Guidance] Exception trying the execution of finalizePhenoMatrix task");

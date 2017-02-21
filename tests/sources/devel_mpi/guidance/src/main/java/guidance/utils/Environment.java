@@ -21,6 +21,7 @@ public class Environment {
     public static final String EV_SHAPEITBINARY = "SHAPEITBINARY";
     public static final String EV_IMPUTE2BINARY = "IMPUTE2BINARY";
     public static final String EV_SNPTESTBINARY = "SNPTESTBINARY";
+    public static final String EV_MINIMACBINARY = "MINIMACBINARY";
 
     public static final String EV_JAVA_HOME = "JAVA_HOME";
 
@@ -37,6 +38,7 @@ public class Environment {
         QCTOOL_BINARY(System.getenv(EV_QCTOOLBINARY)), // QCTool
         SHAPEIT_BINARY(System.getenv(EV_SHAPEITBINARY)), // Shapeit
         IMPUTE2_BINARY(System.getenv(EV_IMPUTE2BINARY)), // Impute2
+        MINIMAC_BINARY(System.getenv(EV_MINIMACBINARY)), // Minimac
         SNPTEST_BINARY(System.getenv(EV_SNPTESTBINARY)), // SNP Test
         JAVA_HOME(System.getenv(EV_JAVA_HOME)), // Java home
         JAVA_BINARY(JAVA_HOME.value() + File.separator + "java");

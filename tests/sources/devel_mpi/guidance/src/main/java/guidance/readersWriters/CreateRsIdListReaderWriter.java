@@ -1,4 +1,4 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -7,14 +7,14 @@ import java.io.IOException;
 import guidance.GuidanceImpl;
 
 
-public class CreateRsIdListExecutor extends Executor {
+public class CreateRsIdListReaderWriter extends ReaderWriter {
 
-    public CreateRsIdListExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public CreateRsIdListReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         String exclCgatFlag = (String) extraParams[0];
         String inputFormat = (String) extraParams[1];
 

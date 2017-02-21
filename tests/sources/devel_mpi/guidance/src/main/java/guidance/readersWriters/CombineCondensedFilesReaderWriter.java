@@ -1,4 +1,4 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,14 +9,14 @@ import guidance.utils.ChromoInfo;
 import guidance.utils.HashUtils;
 
 
-public class CombineCondensedFilesExecutor extends Executor {
+public class CombineCondensedFilesReaderWriter extends ReaderWriter {
 
-    public CombineCondensedFilesExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public CombineCondensedFilesReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         Double mafThreshold = (Double) extraParams[0];
         Double infoThreshold = (Double) extraParams[1];
         Double hweCohortThreshold = (Double) extraParams[2];

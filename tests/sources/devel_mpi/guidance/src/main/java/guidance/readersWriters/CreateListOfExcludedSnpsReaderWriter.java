@@ -1,4 +1,4 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import guidance.GuidanceImpl;
 
 
-public class CreateListOfExcludedSnpsExecutor extends Executor {
+public class CreateListOfExcludedSnpsReaderWriter extends ReaderWriter {
 
-    public CreateListOfExcludedSnpsExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public CreateListOfExcludedSnpsReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         String exclCgatFlag = (String) extraParams[0];
         String exclSVFlag = (String) extraParams[1];
         // final int rsIdIndex = (int) extraParams[2];

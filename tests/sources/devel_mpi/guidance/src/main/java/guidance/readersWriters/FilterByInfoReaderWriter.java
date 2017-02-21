@@ -1,18 +1,18 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
 
-public class FilterByInfoExecutor extends Executor {
+public class FilterByInfoReaderWriter extends ReaderWriter {
 
-    public FilterByInfoExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public FilterByInfoReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         // Retrieve parameters
         int infoIndex = (int) extraParams[0];
         int rsIdIndex = (int) extraParams[1];

@@ -1,4 +1,4 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,7 +13,7 @@ import java.util.zip.GZIPInputStream;
 import guidance.exceptions.GuidanceTaskException;
 
 
-public abstract class Executor {
+public abstract class ReaderWriter {
 
     protected final String inputFilePath;
     protected final String outputFilePath;
@@ -21,7 +21,7 @@ public abstract class Executor {
     protected final boolean append;
 
 
-    public Executor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public ReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         this.inputFilePath = inputFilePath;
         this.outputFilePath = outputFilePath;
         this.isInputGz = isInputGz;
@@ -50,12 +50,12 @@ public abstract class Executor {
                 : new BufferedReader(new FileReader(inputFilePath));
                 BufferedWriter bw = new BufferedWriter(new FileWriter(outputFilePath, append))) {
 
-            execute(br, bw, extraParams);
+            readWrite(br, bw, extraParams);
         } catch (IOException ioe) {
             throw new GuidanceTaskException("[ERROR] processing A file", ioe);
         }
     }
 
-    protected abstract void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException;
+    protected abstract void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException;
 
 }

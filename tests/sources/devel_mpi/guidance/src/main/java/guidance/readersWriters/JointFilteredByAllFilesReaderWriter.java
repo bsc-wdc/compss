@@ -1,18 +1,18 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
 
-public class JointFilteredByAllFilesExecutor extends Executor {
+public class JointFilteredByAllFilesReaderWriter extends ReaderWriter {
 
-    public JointFilteredByAllFilesExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public JointFilteredByAllFilesReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         String rPanelName = (String) extraParams[0];
         boolean putRefpanel = false;
 

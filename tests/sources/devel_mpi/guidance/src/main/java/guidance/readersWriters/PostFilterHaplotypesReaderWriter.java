@@ -1,18 +1,18 @@
-package guidance.executors;
+package guidance.readersWriters;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
 
-public class PostFilterHaplotypesExecutor extends Executor {
+public class PostFilterHaplotypesReaderWriter extends ReaderWriter {
 
-    public PostFilterHaplotypesExecutor(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
+    public PostFilterHaplotypesReaderWriter(String inputFilePath, String outputFilePath, boolean isInputGz, boolean append) {
         super(inputFilePath, outputFilePath, isInputGz, append);
     }
 
     @Override
-    public void execute(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
+    public void readWrite(BufferedReader br, BufferedWriter bw, Object... extraParams) throws IOException {
         String line = null;
         while ((line = br.readLine()) != null) {
             String[] splittedLine = line.split(" ");

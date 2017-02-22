@@ -57,31 +57,39 @@
     gpus=${21}
     amountSockets=${*:22:1}
     socketString=${*:23:1}
-    if [ "$amountSockets" == "0" ]; then
+    if [ "$amountSockets" == "" -o "$amountSockets" == "0" ]; then
         amountSockets=$(lscpu | grep "NUMA node(s)" | awk '{ print $3 }')
-        socketString=$(lscpu | grep "NUMA.*CPU" | awk '{ print $4 }' | xargs -n$amountSockets | tr " " "/")
+        if [ "$amountSockets" != "" ]; then
+            socketString=$(lscpu | grep "NUMA.*CPU" | awk '{ print $4 }' | xargs -n$amountSockets | tr " " "/")
+        fi
     fi   
+    if [ "$amountSockets" == "" -o "$amountSockets" == "" ]; then
+        amountSockets="1"
+        socketString="0-"$(($numThreads - 1))
+    fi 
 
     paramsToCOMPSsWorker="$paramsToCOMPSsWorker $amountSockets $socketString"
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
-      echo "- HostName:   $hostName"
-      echo "- WorkerPort: ${worker_port}"
-      echo "- WorkingDir: $workingDir"
-      echo "- InstallDir: $installDir"
-      echo "- NumThreads: $numThreads"
-      echo "- Gpus/node:  $gpus"
-      echo "- JVM Opts:   $jvmFlags"
+      echo "- HostName:          $hostName"
+      echo "- WorkerPort:        ${worker_port}"
+      echo "- WorkingDir:        $workingDir"
+      echo "- InstallDir:        $installDir"
+      echo "- NumThreads:        $numThreads"
+      echo "- Gpus/node:         $gpus"
+      echo "- Amount of sockets: $amountSockets"
+      echo "- Socket string:     $socketString"
+      echo "- JVM Opts:          $jvmFlags"
 
-      echo "- AppUUID:    ${appUuid}"
-      echo "- Lang:       ${lang}"
-      echo "- AppDir:     $appDirNW"
-      echo "- libPath:    $libPathNW"
-      echo "- Classpath:  $cpNW"
-      echo "- Pythonpath: $pythonpath"
-      echo "- Tracing:    $tracing"
-      echo "- ExtraeFile: ${extraeFile}"
+      echo "- AppUUID:           ${appUuid}"
+      echo "- Lang:              ${lang}"
+      echo "- AppDir:            $appDirNW"
+      echo "- libPath:           $libPathNW"
+      echo "- Classpath:         $cpNW"
+      echo "- Pythonpath:        $pythonpath"
+      echo "- Tracing:           $tracing"
+      echo "- ExtraeFile:        ${extraeFile}"
     fi
 
     # Calculate Log4j file

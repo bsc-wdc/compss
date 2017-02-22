@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cp namelist.newpost $1
+cp new_postall.f $1
+cp lmimjm.inc $1
+
+cd $1
+
+rm new_postall.x
+rm *.nc
+
+ifort -mcmodel=large -shared-intel -assume byterecl -fixed -132 -O3 -fp-model fast=2 -convert big_endian -I/gpfs/apps/MN3/NETCDF/3.6.3/include new_postall.f -L/gpfs/apps/MN3/NETCDF/3.6.3/lib -lnetcdf -lnetcdff -o new_postall.x
+chmod 755 new_postall.x 
+
+./new_postall.x
+ncrcat new_pout_*.nc NMMB-BSC-CTM_$3_$2.nc
+
+rm new_postall.x
+rm namelist.newpost
+rm new_postall.f
+rm lmimjm.inc
+
+exit

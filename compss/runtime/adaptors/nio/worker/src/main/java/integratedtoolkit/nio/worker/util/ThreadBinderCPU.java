@@ -85,11 +85,7 @@ public class ThreadBinderCPU implements ThreadBinder {
 
         // Assign free CUs to the job
         synchronized (this.bindedCPUs) {
-            /*
-             * if (debug) { StringBuilder sb = new StringBuilder("[ThreadBinderCPUs] Available slots for task " + jobId
-             * + ": "); sb.append(this.availableSlots.get(0)); for (int i = 1; i < this.availableSlots.size(); ++i){
-             * sb.append(" " + this.availableSlots.get(i)); } logger.debug(sb.toString()); }
-             */
+            
             usedSockets = recursiveBindingComputingUnits(jobId, numCUs, 0);
 
             // If the job doesn't have all the CUs it needs, it cannot run on occupied ones

@@ -1,5 +1,5 @@
 %define name            compss-c-binding                                                                                                                                                
-%define version		2.0.r.rc1702
+%define version		2.0.rc1702
 %define release         1
 
 Requires: compss-bindings-common, libxml2-devel, boost-devel, tcsh

@@ -1,6 +1,6 @@
 #!/bin/bash -e
  
-  COMPSs_version=2.0.r.rc1702 
+  COMPSs_version=2.0.rc1702 
   rpm_distrs="centos suse"
   deb_distrs="ubuntu debian"
  

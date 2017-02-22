@@ -24,7 +24,7 @@ usage() {
   # Compute version
   yymm=$(date +"%y%m")
   if [[ ${baseVersion} == *rc* ]]; then
-    version=${baseVersion::-9}.rc${yymm}
+    version=${baseVersion::-7}.rc${yymm}
   else
     version=${baseVersion}.rc${yymm}
   fi

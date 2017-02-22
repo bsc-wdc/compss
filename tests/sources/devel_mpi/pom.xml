@@ -34,5 +34,6 @@
         <module>blast</module>
 	<module>matmul</module>
 	<module>guidance</module>
+	<module>nmmb</module>
     </modules>
 </project>

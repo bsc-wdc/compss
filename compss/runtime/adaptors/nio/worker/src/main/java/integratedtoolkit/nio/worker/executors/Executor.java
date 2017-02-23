@@ -237,8 +237,10 @@ public abstract class Executor implements Runnable {
                     File newOrigFile = new File(newOrigFilePath);
                     if (renamedFile.exists()) {
                         // IN or INOUT File creating a symbolic link
-                        logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
-                        Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                    	if (!newOrigFile.exists()){
+                    		logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
+                    		Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                    	}
                     }
                 }
             }
@@ -274,6 +276,8 @@ public abstract class Executor implements Runnable {
                         // If an output file is created move to the renamed path (OUT Case)
                         logger.debug("Moving " + newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
                         Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                    } else if (renamedFile.exists() && !newOrigFile.exists()){
+                    	logger.debug("Repeated data for " +renamedFilePath+". Nothing to do");
                     } else {
                         // Unexpected case
                         logger.error("Unexpected case: A Problem occurred with File " + renamedFilePath

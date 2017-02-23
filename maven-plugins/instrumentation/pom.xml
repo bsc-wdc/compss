@@ -7,8 +7,8 @@
   <parent>
                 <groupId>es.bsc.compss</groupId>
                 <artifactId>compss-trunk</artifactId>
-<version>2.0.rc1702</version>
-                <relativePath>..</relativePath>
+		<version>2.0.rc1702</version>
+                <relativePath>../..</relativePath>
   </parent>
 
   <name>Instrumentation Maven Mojo</name>
@@ -17,13 +17,13 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-<version>2.0.rc1702</version>
+      <version>2.0</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.maven</groupId>
     	<artifactId>maven-project</artifactId>
-<version>2.0.rc1702</version>
-	</dependency>
+        <version>2.0</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

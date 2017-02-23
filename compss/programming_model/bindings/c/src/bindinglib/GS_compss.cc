@@ -100,7 +100,7 @@ int delete_file(char * filename)
 }
 
 
-void waitForAllTasks()
+void compss_barrier()
 {
 
     //long l_app_id = (long)app_id;

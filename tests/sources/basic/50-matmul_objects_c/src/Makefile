@@ -1,8 +1,5 @@
 GCC=g++
-MCC=mcxx
-#CFLAGS=-std=c++11 -DDEBUG_BINDING -g -I. -I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
 CFLAGS=-std=c++0x -g -fpermissive -I. -I/apps/COMPSs/Trunk2/Bindings/c/include -I/apps/COMPSs/Trunk2/Bindings/bindings-common/include -I/apps/BOOST/1.57/include 
-#-I/opt/COMPSs/Bindings/c/include -I/opt/COMPSs/Bindings/bindings-common/include
 
 CFILES=Block.cc Matrix.cc
 C_OBJ=Block.o Matrix.o
@@ -18,8 +15,8 @@ compile_master:
 
 compile_worker:
 	@echo "Building application for workers..."
-	$(MCC) --ompss -DCOMPSS_WORKER $(CFLAGS) -c Block.cc
-	$(MCC) --ompss -DCOMPSS_WORKER $(CFLAGS) -c Matrix.cc 
+	$(GCC) -DCOMPSS_WORKER $(CFLAGS) -c Block.cc
+	$(GCC) -DCOMPSS_WORKER $(CFLAGS) -c Matrix.cc 
 	ar rvs libworker.a $(C_OBJ)
 	ranlib libworker.a
 

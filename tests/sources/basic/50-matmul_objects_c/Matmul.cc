@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 		gettimeofday(&t_init_end, NULL);
 		gettimeofday(&t_comp_start, NULL);
 
-		waitForAllTasks();		
+		compss_barrier();		
 
 		for (int i=0; i<N; i++) {
                 	for (int j=0; j<N; j++) {

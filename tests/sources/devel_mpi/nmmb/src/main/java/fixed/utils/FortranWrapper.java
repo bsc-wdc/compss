@@ -6,7 +6,8 @@ public class FortranWrapper {
     public static final String FFLAGS = "-mcmodel=large -shared-intel -convert big_endian -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check";
     public static final String OFLAG = "-o";
 
-    public static final String SUFFIX_SRC = ".f90";
+    public static final String SUFFIX_F90_SRC = ".f90";
+    public static final String SUFFIX_F_SRC = ".f";
     public static final String SUFFIX_EXE = ".x";
 
     public static final String BOTSOILTYPE = "botsoiltype";
@@ -25,7 +26,9 @@ public class FortranWrapper {
     public static final String TOPSOILTYPE = "topsoiltype";
     public static final String VCGENERATOR = "vcgenerator";
 
-    public static final String[] FORTRAN_FILES = new String[] { BOTSOILTYPE, GFDLCO2, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW,
+    public static final String[] FORTRAN_F90_FILES = new String[] { BOTSOILTYPE, GFDLCO2, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW,
             SMMOUNT, ROUGHNESS, STDH, STDHTOPO, SNOWALBEDO, TOPO, TOPOSEAMASK, TOPSOILTYPE, VCGENERATOR };
+
+    public static final String[] FORTRAN_F_FILES = new String[] { GFDLCO2 };
 
 }

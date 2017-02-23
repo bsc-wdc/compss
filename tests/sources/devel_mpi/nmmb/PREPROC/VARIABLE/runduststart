@@ -1,0 +1,13 @@
+#!/bin/ksh
+
+ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -mcmodel=large -shared-intel -convert big_endian -c dust_start.f
+ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -mcmodel=large -shared-intel -convert big_endian -o dust_start.x dust_start.o
+
+./dust_start.x 
+
+echo Finished dust_start
+rm *.o
+rm *.x
+
+exit
+

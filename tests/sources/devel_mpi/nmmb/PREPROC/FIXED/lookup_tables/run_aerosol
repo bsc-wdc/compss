@@ -1,0 +1,129 @@
+#!/bin/bash
+
+  #--------------------------------------------------------- 
+  # HELPER FUNCTIONS
+  #---------------------------------------------------------
+  process_lookup() {
+    local lookupSrcFile=$1
+    local datarh=$2
+    local lookupOutFile=$3
+  
+    # Clean previous binary
+    rm -f lookup_aerosol.x
+  
+    # Compile
+    ifort -mcmodel=large \
+          -shared-intel \
+          -convert big_endian \
+          -traceback \
+          -assume byterecl \
+          -O3 \
+          -fp-model precise \
+          -fp-stack-check \
+          -o lookup_aerosol.x \
+          ${lookupSrcFile}
+  
+    # Clean temp source
+    rm -f ${lookupSrcFile}
+  
+    # Execute
+    ./lookup_aerosol.x ${datarh} > ${lookupOutFile}
+    cat fort.7 >> ${lookupOutFile}
+    cat fort.8 >> ${lookupOutFile}
+  
+    # Clean fort files
+    rm -f fort.?
+  }
+
+  clean() {
+    rm -f lookup_aerosol.x
+    rm -f LOOKUP_aerosol_ssa_rh??.f
+    rm -f fort.?
+  }
+
+
+  #--------------------------------------------------------- 
+  # MAIN PROCESS
+  #---------------------------------------------------------
+  
+  # Trap exit to clean tmp files
+  trap EXIT clean
+
+  SRC_FILE=LOOKUP_aerosol_ssa-rh.f
+
+  # This script receives a parameter for each lookup_aerosol2.dat.rhXX file
+  datrh00=$1
+  datrh50=$2
+  datrh70=$3
+  datrh80=$4
+  datrh90=$5
+  datrh95=$6
+  datrh99=$7
+
+  #--------------------------------------------------------- 
+  # lookup_aerosol2.dat.rh00         D2WF=1.0
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh00.f
+  outFile=lookup_aerosol.out.rh00
+  
+  sed -e 's/CCCC/1.0/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh00 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh50         D2WF=1.6
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh50.f
+  outFile=lookup_aerosol.out.rh50
+  
+  sed -e 's/CCCC/1.6/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh50 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh70         D2WF=1.8
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh70.f
+  outFile=lookup_aerosol.out.rh70
+  
+  sed -e 's/CCCC/1.8/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh70 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh80         D2WF=2.0
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh80.f
+  outFile=lookup_aerosol.out.rh80
+  
+  sed -e 's/CCCC/2.0/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh80 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh90         D2WF=2.4
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh90.f
+  outFile=lookup_aerosol.out.rh90
+  
+  sed -e 's/CCCC/2.4/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh90 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh95         D2WF=2.9
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh95.f
+  outFile=lookup_aerosol.out.rh95
+  
+  sed -e 's/CCCC/2.9/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh95 ${outFile}
+  
+  #---------------------------------------------------------
+  # lookup_aerosol2.dat.rh99         D2WF=4.8
+  tmpSrcFile=LOOKUP_aerosol_ssa_rh99.f
+  outFile=lookup_aerosol.out.rh99
+  
+  sed -e 's/CCCC/4.8/g' ${SRC_FILE} > ${tmpSrcFile}
+  
+  process_lookup ${tmpSrcFile} $datarh99 ${outFile}
+  
+  #---------------------------------------------------------
+  # END
+  exit
+

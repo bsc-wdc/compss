@@ -1,0 +1,57 @@
+The programs in this directory prepare initial conditions for model
+runs and other data that change in time.  
+
+The grib data are fetched from NCEP ftp sites.  Please change the
+e-mail address for anonymous ftp in get* scripts.
+
+The geographical data are taken from the directory ../geodata.  The
+intermediate and final fields are stored in the directory ../output,
+except for the sst grib data that are fetched to this directory.
+
+The data grids and the model grid are defined in *.inc files.  The
+file lmimjm.inc defines the model grid for the f77 programs, and 
+must agree with the file modelgrid.inc used in f90 programs.
+
+The following interactive scripts do the first part of preprocessing
+depending on domain size and cycle time:
+
+PREPGLOB00 (global domain)
+PREPGLOB12 (global domain)
+PREPREG00  (regional domain)
+PREPREG12  (regional domain)
+
+For reginal domain set the parameters that define the boundary
+conditions in PREPREG* in getgfs and degribgfs and ihrend in 
+allprep.f
+
+!-----------------------------------------------------------------------
+      ihr=0
+      if(global) then
+        ihrend=0
+      else
+        ihrend=48
+      endif
+      ihboco=3
+      tboco=ihboco*3600.
+      rtboco=1./tboco
+!-----------------------------------------------------------------------
+
+
+Run the appropriate interactive script depending on domain size and 
+cycle time:
+
+PREPGLOB00 (global domain)
+PREPGLOB12 (global domain)
+PREPREG00  (regional domain)
+PREPREG12  (regional domain)
+
+Then run the batch job allprep.f by 
+
+llsubmit run
+
+Don't forget to edit the run script the first time if necessary.
+
+N.B.
+The file ../output/dsg is now available and if you wish you can go
+back to the directory ../fixed807 and run the script runco2 to
+generate the co2 transmission functions for the GFDL Eta radiation.

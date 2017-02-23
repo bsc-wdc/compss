@@ -1,0 +1,29 @@
+###########################################################
+##   Script for preparing global initial data for NMM UMO
+###########################################################
+echo "----------------------------------------------------------"
+echo "Begin preparation regional."
+echo "----------------------------------------------------------"
+echo "---degrib gfs global data---------------------------------"
+./degribgfs_generic_05.sh NN EE UP pgrbf ../output
+echo "---reformat the data for further processing---------------"
+./runcnv_rrtm
+echo "---degrib 0.5 deg sst-------------------------------------"
+./rundegribsst
+echo "---prepare climatological albedo--------------------------"
+./runalbedo
+echo "---prepare rrtm climatological albedos--------------------"
+./runalbedorrtm1deg
+echo "---prepare climatological vegetation fraction-------------"
+./runvegfrac
+echo "---prepare z0 and initial ustar---------------------------"
+./runz0vegustar
+echo "---interpolate to model grid and execute allprep (fcst)---"
+./run_rrtm
+echo "---prepare the dust related variable (soildust)-----------"
+./compile_read_paul_source
+./runduststart
+echo "----------------------------------------------------------"
+echo "Have a nice day."
+echo "----------------------------------------------------------"
+exit

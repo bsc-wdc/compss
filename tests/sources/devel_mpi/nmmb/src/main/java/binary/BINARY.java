@@ -6,23 +6,23 @@ public class BINARY {
         return null;
     }
 
-    public static Integer smmount(String seamaskDEM, String heightDEM) {
+    public static Integer smmount(String topoDir, String seamaskDEM, String heightDEM) {
         return null;
     }
 
-    public static Integer landuse(String landuse, String kount_landuse) {
+    public static Integer landuse(String landuseDir, String landuse, String kount_landuse) {
         return null;
     }
 
-    public static Integer landusenew(String landusenew, String kount_landusenew) {
+    public static Integer landusenew(String gtopDir, String landusenew, String kount_landusenew) {
         return null;
     }
 
-    public static Integer topo(String heightmean) {
+    public static Integer topo(String topoDir, String heightmean) {
         return null;
     }
 
-    public static Integer stdh(String seamaskDEM, String heightmean, String stdh) {
+    public static Integer stdh(String seamaskDEM, String heightmean, String topoDir, String stdh) {
         return null;
     }
 
@@ -30,17 +30,17 @@ public class BINARY {
         return null;
     }
 
-    public static Integer topsoiltype(String seamaskDEM, String topsoiltype) {
+    public static Integer topsoiltype(String seamaskDEM, String soiltypeDir, String topsoiltype) {
         return null;
     }
 
-    public static Integer botsoiltype(String seamaskDEM, String botsoiltype) {
+    public static Integer botsoiltype(String seamaskDEM, String soiltypePath, String botsoiltype) {
         return null;
     }
 
     public static Integer toposeamask(String seamaskDEM, String seamask, String height, String landuse, String topsoiltype,
             String botsoiltype) {
-        
+
         return null;
     }
 
@@ -48,11 +48,11 @@ public class BINARY {
         return null;
     }
 
-    public static Integer deeptemperature(String seamask, String deeptemperature) {
+    public static Integer deeptemperature(String seamask, String soiltempPath, String deeptemperature) {
         return null;
     }
 
-    public static Integer snowalbedo(String snowalbedo) {
+    public static Integer snowalbedo(String maxsnowalbDir, String snowalbedo) {
         return null;
     }
 
@@ -60,15 +60,17 @@ public class BINARY {
         return null;
     }
 
-    public static Integer roughness(String roughness) {
+    public static Integer roughness(String roughnessDir, String roughness) {
         return null;
     }
 
-    public static Integer gfdlco2(String dsg, String co2_trans) {
+    public static Integer gfdlco2(String dsg, String co2_data_dir, String co2_trans) {
         return null;
     }
-    
-    public static Integer run_aerosol(String lookup_aerosol2) {
+
+    public static Integer run_aerosol(String lookup_aerosol2_rh00, String lookup_aerosol2_rh50, String lookup_aerosol2_rh70,
+            String lookup_aerosol2_rh80, String lookup_aerosol2_rh90, String lookup_aerosol2_rh95, String lookup_aerosol2_rh99) {
+        
         return null;
     }
 

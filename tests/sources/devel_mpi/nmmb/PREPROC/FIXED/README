@@ -1,0 +1,27 @@
+The programs in this directory define the geographical data that
+do not change in time on the model grid.  The raw data used for 
+this purpose are located in the directory ../geodata.  The output
+fields are stored in the directory ../output that you have to
+create first.
+
+The .inc files define the model grid and the data grids.
+
+To define the fields on the model grid run the interactive script
+RUNFIXED.  This takes some time since huge data files are
+processed.  However this needs to be done only the first time the
+specific model grid is used. The output fields have recognizable 
+names.
+
+N.B.
+If you use the GFDL Eta radiation, you will need precomputed co2
+transmission functions for your specific distribution of model
+levels.  To get the transmission functions, later on you can set
+the appropriate flag in the model configuration file to 1. 
+Alternatively, you can run the script runco2 in this directory.
+For this you need the input data that are in ../geodata/co2data 
+and the file ../output/dsg that is not available yet, but will be
+defined after running the program allprep.f in the directory
+../vrbl807.  The file lmimjm.inc describes the model grid for the
+f70 program gfdlco2.f and must agree with the modelgrid.inc file
+used in the f90 programs.  For further instructions see the N.B.
+in ../vrbl807/README.

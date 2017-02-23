@@ -1,0 +1,5 @@
+ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -convert big_endian -mcmodel=large -shared-intel -c vegfrac.f90
+ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -convert big_endian -mcmodel=large -shared-intel -o vegfrac.x vegfrac.o
+./vegfrac.x
+rm *.o
+rm *.x

@@ -1,0 +1,9 @@
+
+ifort -mcmodel=large -shared-intel -convert big_endian -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -c degribsst.f
+ifort -mcmodel=large -shared-intel -convert big_endian -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -o degribsst.x degribsst.o -L../../MODEL/libs/w3lib-2.0.2  -lw3_4 -L../../MODEL/libs/bacio -lbacio_4
+
+./degribsst.x
+
+rm *.o
+rm *.x
+

@@ -90,13 +90,13 @@ FILE* compss_fopen(char * filename, char * mode) {
 }
 
 
-int delete_file(char * filename)
+void compss_delete_file(char * filename)
 {
     int *result;
     
     GS_Delete_File(filename, &result);
 
-    return *result;
+    return;
 }
 
 

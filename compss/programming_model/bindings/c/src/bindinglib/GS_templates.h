@@ -44,7 +44,7 @@ void compss_on(void);
 void compss_off(void);
 void compss_ifstream(char * filename, ifstream& ifs);
 void compss_ofstream(char * filename, ofstream& ofs);
-int delete_file(char * filename);
+void compss_delete_file(char * filename);
 void compss_barrier();
 FILE* compss_fopen(char * filename, char * mode);
 template <class T> void compss_wait_on(T &obj);

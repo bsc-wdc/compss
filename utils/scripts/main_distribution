@@ -177,7 +177,20 @@
     fi
 
     # Ask the repo manager to upload them
-    result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
+    local MAX_RETRIES=3
+    local SLEEP_BETWEEN_RETRIES=60s
+    local retries=0
+    local result="FAIL"
+    while [ "${result}" != "DONE" ] && [ ${retries} -lt ${MAX_RETRIES} ]; do
+      result=$(curl -X POST "http://compss.bsc.es/COMPSsRepositoryService/COMPSsRepo/update?job=${JENKINS_JOB}&distribution=${distr}&type=${release_type}")
+      retries=$((retries + 1))
+    
+      if [ "${result}" != "DONE" ]; then
+        sleep ${SLEEP_BETWEEN_RETRIES}
+      fi
+    done
+   
+    # Check final exit status
     if [ "${result}" != "DONE" ]; then
       display_error "Cannot export packages"
       exit 1

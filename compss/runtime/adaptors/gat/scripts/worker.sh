@@ -56,8 +56,10 @@
   	for ((i=0;i<$symlinkfilesNum;i=i+2)); do
     	#Create symlink for in inout files
     	if [ -f "$1" ]; then
-    		echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
-    		ln -s $1 ${sandbox}/${2}
+    		if [ -f "$2" ]; then
+    			echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
+    			ln -s $1 ${sandbox}/${2}
+    		fi
     	fi
     	# Add to treat after task management
     	if [ $i -eq 0 ]; then
@@ -144,10 +146,14 @@
     	else
     		if [ $removeOrMove -eq 1 ]; then
     			echo "[WORKER.SH] Removing link $element"
-    			rm $element
+    			if [ -f "$element" ]; then
+    				rm $element
+    			fi
     		elif [ $removeOrMove -eq 2 ]; then
     			echo "[WORKER.SH] Moving $element to $renamedFile"
-    			mv $element $renamedFile
+    			if [ -f "$element" ]; then
+    				mv $element $renamedFile
+    			fi
     		else
     			echo 1>&2 "Incorrect operation when managing rename symlinks "
 				exit 7

@@ -29,8 +29,16 @@
   propertiesFile=${scriptDir}/nmmb_compss.properties
 
   enqueue_compss \
+    --exec_time=10 \
     --num_nodes=2 \
+    --job_dependency=None \
     --tasks_per_node=16 \
-    --classpath=${scriptDir} \
+    --master_working_dir=. \
+    --worker_working_dir=scratch \
+    --classpath=${scriptDir}/../nmmb.jar \
+    --network=infiniband \
+    --log_level=debug \
+    --tracing=false \
+    --graph=false \
     nmmb.Nmmb ${propertiesFile}
-  
+

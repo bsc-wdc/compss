@@ -11,18 +11,22 @@ public class FileManagement {
      * @param file
      */
     public static void deleteAll(File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files != null) {
-                // File is a folder and it is not empty, delete recursively
-                for (File f : files) {
-                    deleteAll(f);
+        if (file != null) {
+            if (file.isDirectory()) {
+                File[] files = file.listFiles();
+                if (files != null) {
+                    // File is a folder and it is not empty, delete recursively
+                    for (File f : files) {
+                        deleteAll(f);
+                    }
                 }
             }
-        }
 
-        // File is either an empty folder or a file
-        file.delete();
+            // File is either an empty folder or a file
+            file.delete();
+        } else {
+            // File doesn't exist, nothing to erase
+        }
     }
 
 }

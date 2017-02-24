@@ -161,8 +161,8 @@ public class NMMBConfigManager {
         return config.getString(NMMBConstants.END_DATE_NAME);
     }
 
-    public boolean getInitChem() {
-        return config.getBoolean(NMMBConstants.INIT_CHEM_NAME);
+    public int getInitChem() {
+        return config.getInt(NMMBConstants.INIT_CHEM_NAME);
     }
 
 }

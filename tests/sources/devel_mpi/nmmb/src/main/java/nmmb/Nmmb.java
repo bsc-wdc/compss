@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.text.ParseException;
@@ -87,7 +86,7 @@ public class Nmmb {
 
     // -----------------------------------------------------------------------
     // Select IC of chemistry for run with COUPLE_DUST_INIT=0
-    private static boolean INIT_CHEM;
+    private static int INIT_CHEM;
 
     // -----------------------------------------------------------------------
     // Couple dust
@@ -108,7 +107,7 @@ public class Nmmb {
 
     // -----------------------------------------------------------------------
     // Format conversion variables
-    private static final SimpleDateFormat STR_TO_DATE = new SimpleDateFormat("yyyy/MM/dd");
+    private static final SimpleDateFormat STR_TO_DATE = new SimpleDateFormat("yyyyMMdd");
     private static final long ONE_DAY_IN_SECONDS = 1 * 24 * 60 * 60;
 
     // -----------------------------------------------------------------------
@@ -272,21 +271,39 @@ public class Nmmb {
     private static void prepareExecution() {
         LOGGER_MAIN.info("Preparing execution...");
 
-        // Clean output folder
-        LOGGER_MAIN.debug("Clean output folder : " + UMO_OUT);
-        // TODO: FileManagement.deleteAll(new File(UMO_OUT));
+        // Define folders
+        String outputPath = UMO_OUT;
+        String outputCasePath = OUTNMMB + CASE + File.separator + "output" + File.separator;
+        String outputSymPath = UMO_PATH + "PREPROC" + File.separator + "output";
 
-        // Define and create output folder by case
-        String outputCasePath = UMO_OUT + File.separator + "OUTPUT" + CASE + "output";
+        // Clean folders
+        LOGGER_MAIN.debug("Clean output folder : " + outputPath);
+        FileManagement.deleteAll(new File(outputPath));
+        LOGGER_MAIN.debug("Clean output folder : " + outputCasePath);
+        FileManagement.deleteAll(new File(outputCasePath));
+        LOGGER_MAIN.debug("Clean output folder : " + outputSymPath);
+        FileManagement.deleteAll(new File(outputSymPath));
+
+        // Create empty files
+        LOGGER_MAIN.debug("Create output folder : " + outputPath);
+        if (!new File(outputPath).mkdirs()) {
+            LOGGER_MAIN.error("[ERROR] Cannot create output folder");
+            LOGGER_MAIN.error("Aborting...");
+            System.exit(1);
+        }
         LOGGER_MAIN.debug("Create output folder : " + outputCasePath);
-        new File(outputCasePath).mkdirs();
+        if (!new File(outputCasePath).mkdirs()) {
+            LOGGER_MAIN.error("[ERROR] Cannot create output case folder");
+            LOGGER_MAIN.error("Aborting...");
+            System.exit(1);
+        }
 
         // Symbolic link for preprocess
         LOGGER_MAIN.debug("Symbolic link for PREPROC output folder");
-        Path existingFilePath = Paths.get(outputCasePath);
-        Path symLinkPath = Paths.get(UMO_OUT + File.separator + "PREPROC" + File.separator + "output");
+        LOGGER_MAIN.debug("   - From: " + outputCasePath);
+        LOGGER_MAIN.debug("   - To:   " + outputSymPath);
         try {
-            Files.createSymbolicLink(symLinkPath, existingFilePath);
+            Files.createSymbolicLink(Paths.get(outputSymPath), Paths.get(outputCasePath));
         } catch (IOException ioe) {
             LOGGER_MAIN.error("[ERROR] Cannot create output symlink", ioe);
             LOGGER_MAIN.error("Aborting...");
@@ -299,16 +316,16 @@ public class Nmmb {
     private static void doFixed() {
         LOGGER_FIXED.info("Enter fixed process");
 
-        String modelgridTMPFilePath = FIX + "modelgrid_rrtm.tmp";
-        String lmimjmTMPFilePath = FIX + "lmimjm_rrtm.tmp";
-        String modelgridFilePath = FIX + "modelgrid.inc";
-        String lmimjmFilePath = FIX + "lmimjm.inc";
+        String modelgridTMPFilePath = FIX + "include" + File.separator + "modelgrid_rrtm.tmp";
+        String lmimjmTMPFilePath = FIX + "include" + File.separator + "lmimjm_rrtm.tmp";
+        String modelgridFilePath = FIX + "include" + File.separator + "modelgrid.inc";
+        String lmimjmFilePath = FIX + "include" + File.separator + "lmimjm.inc";
 
         // Clean some files
         LOGGER_FIXED.debug("Delete previous: " + modelgridFilePath);
-        // TODO: FileManagement.deleteAll(new File(modelgridFilePath));
+        //TODO: FileManagement.deleteAll(new File(modelgridFilePath));
         LOGGER_FIXED.debug("Delete previous: " + lmimjmFilePath);
-        // TODO: FileManagement.deleteAll(new File(lmimjmFilePath));
+        //TODO: FileManagement.deleteAll(new File(lmimjmFilePath));
 
         // Prepare files
         BashCMDExecutor cmdModelgrid = new BashCMDExecutor("sed");
@@ -328,7 +345,10 @@ public class Nmmb {
         cmdModelgrid.addArgument(">");
         cmdModelgrid.addArgument(modelgridFilePath);
         try {
-            cmdModelgrid.execute();
+            int ev = cmdModelgrid.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
         } catch (CommandException ce) {
             LOGGER_FIXED.error("[ERROR] Error performing sed command on model grid " + modelgridTMPFilePath, ce);
             LOGGER_FIXED.error("Aborting...");
@@ -352,7 +372,10 @@ public class Nmmb {
         cmdLmimjm.addArgument(">");
         cmdLmimjm.addArgument(lmimjmFilePath);
         try {
-            cmdLmimjm.execute();
+            int ev = cmdLmimjm.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
         } catch (CommandException ce) {
             LOGGER_FIXED.error("[ERROR] Error performing sed command on Lmimjm " + lmimjmTMPFilePath, ce);
             LOGGER_FIXED.error("Aborting...");

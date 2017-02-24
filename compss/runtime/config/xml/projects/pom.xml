@@ -1,12 +1,13 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-project-schema</artifactId>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-xml-schemas</artifactId>
-<version>2.0.rc1702</version>
+		<version>2.0.rc1702</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -25,21 +26,21 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<!-- Log4j -->
 		<dependency>
-                        <groupId>org.apache.logging.log4j</groupId>
-                        <artifactId>log4j-core</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
 		</dependency>
-		<!--  Apache Commons IO (FileUtils) -->
+		<!-- Apache Commons IO (FileUtils) -->
 		<dependency>
-	                <groupId>commons-io</groupId>
-                        <artifactId>commons-io</artifactId>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -72,5 +73,5 @@
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>			
+	</build>
 </project>

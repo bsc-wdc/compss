@@ -98,9 +98,9 @@ public class Nmmb {
     private static final String OUTNMMB = System.getenv(NMMBConstants.ENV_NAME_OUTNMMB) + File.separator;
     private static final String UMO_OUT = System.getenv(NMMBConstants.ENV_NAME_UMO_OUT) + File.separator;
 
-    private static final String FIX = System.getenv(NMMBConstants.ENV_NAME_FIX) + File.separator;
     public static final String FIX_FOR_ITF = "/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/";
-    private static final String LOOKUP_TABLES_DIR = FIX + "lookup_tables" + File.separator;
+    public static final String LOOKUP_TABLES_DIR_FOR_ITF = "/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/";
+    private static final String FIX = System.getenv(NMMBConstants.ENV_NAME_FIX) + File.separator;
     private static final String GEODATA_DIR = FIX + "geodata" + File.separator;
     private static final String GTOPO_DIR = FIX + "GTOPO30" + File.separator;
     private static final String OUTPUT = System.getenv(NMMBConstants.ENV_NAME_OUTPUT);
@@ -147,7 +147,7 @@ public class Nmmb {
         setExecutionVariables();
 
         // Prepare the execution
-        prepareExecution();
+        // TODO: prepareExecution();
 
         // Fixed process (do before main time looping)
         if (DO_FIXED) {
@@ -315,6 +315,7 @@ public class Nmmb {
 
     private static void doFixed() {
         LOGGER_FIXED.info("Enter fixed process");
+        LOGGER_FIXED.debug("   - FIX PATH : " + FIX);
 
         String modelgridTMPFilePath = FIX + "include" + File.separator + "modelgrid_rrtm.tmp";
         String lmimjmTMPFilePath = FIX + "include" + File.separator + "lmimjm_rrtm.tmp";
@@ -323,9 +324,9 @@ public class Nmmb {
 
         // Clean some files
         LOGGER_FIXED.debug("Delete previous: " + modelgridFilePath);
-        //TODO: FileManagement.deleteAll(new File(modelgridFilePath));
+        FileManagement.deleteAll(new File(modelgridFilePath));
         LOGGER_FIXED.debug("Delete previous: " + lmimjmFilePath);
-        //TODO: FileManagement.deleteAll(new File(lmimjmFilePath));
+        FileManagement.deleteAll(new File(lmimjmFilePath));
 
         // Prepare files
         BashCMDExecutor cmdModelgrid = new BashCMDExecutor("sed");

@@ -121,7 +121,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String co2_trans
     );
 
-    @Binary(binary = Nmmb.FIX_FOR_ITF + BinaryWrapper.RUN_AEROSOL)
+    @Binary(binary = Nmmb.LOOKUP_TABLES_DIR_FOR_ITF + BinaryWrapper.RUN_AEROSOL)
     Integer run_aerosol(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh00,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh50, 

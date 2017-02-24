@@ -40,14 +40,14 @@ SYNC_EVENTS = 8000666
 # Should be equal to Tracer.java definitions
 TASK_EVENTS = 8000010
 
+# Rank 110-119 reserved to events launched from task.py
 PROCESS_CREATION = 100
 WORKER_INITIALIZATION = 102
 PARAMETER_PROCESSING = 103
 LOGGING = 104
-TASK_EXECUTION = 105
+MODULES_IMPORT = 105
 WORKER_END = 106
 PROCESS_DESTRUCTION = 107
-MODULES_IMPORT = 108
 
 if sys.version_info >= (2, 7):
     import importlib
@@ -218,9 +218,6 @@ def compss_worker():
             logger.debug("Module successfully loaded (Python version < 2.7")
 
         with TaskContext(logger, values, config_file_path=storage_conf):
-            if tracing:
-                pyextrae.eventandcounters(TASK_EVENTS, 0)
-                pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
             getattr(module, method_name)(*values, compss_types=types)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -262,9 +259,6 @@ def compss_worker():
             types.insert(0, Type.OBJECT)
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -277,9 +271,6 @@ def compss_worker():
             types.insert(0, None)    # class must be first type
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                if tracing:
-                    pyextrae.eventandcounters(TASK_EVENTS, 0)
-                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 getattr(klass, method_name)(*values, compss_types=types)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -292,11 +283,15 @@ def compss_worker():
         logger.exception(''.join(line for line in lines))
         exit(1)
 
-
 if __name__ == "__main__":
 
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
+    import os
+    if tracing:
+    	os.environ["TRACING_ENABLED"] = "True"
+    else:
+        os.environ["TRACING_ENABLED"] = "False" 
     taskId = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]

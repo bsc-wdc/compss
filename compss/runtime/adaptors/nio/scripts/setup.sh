@@ -57,15 +57,22 @@
     gpus=${21}
     amountSockets=${*:22:1}
     socketString=${*:23:1}
+    #No data set by the user
     if [ "$amountSockets" == "" -o "$amountSockets" == "0" ]; then
-        amountSockets=$(lscpu | grep "NUMA node(s)" | awk '{ print $3 }')
-        if [ "$amountSockets" != "" ]; then
-            socketString=$(lscpu | grep "NUMA.*CPU" | awk '{ print $4 }' | xargs -n$amountSockets | tr " " "/")
-        fi
+        amountSockets=$(lscpu | grep "Socket(s)" | awk '{ print $2 }')
+        CoresPerSocket=$(lscpu | grep "Core(s) per socket" | awk '{ print $4 }')
+        CUperSocket=$(($(lscpu | grep "Thread(s) per core" | awk '{ print $4 }') * $CoresPerSocket))
+        socketString="0-"$(($CUperSocket - 1))
+        for i in $(seq 1 $(($amountSockets - 1))); do
+            socketString=$socketString"/"$((i * CUperSocket))"-"$(($((i + 1)) * CUperSocket - 1))
+        done
     fi   
+    #No data set by the user and lscpu didn't manage to get the good architecture
+    #It is assumed that the amount of threads specified in the resources file is equal to the number of cores in theworker
     if [ "$amountSockets" == "" -o "$amountSockets" == "" ]; then
         amountSockets="1"
-        socketString="0-"$(($numThreads - 1))
+        realAmountThreads=$(lscpu | grep "CPU(s)" | grep -v -E ",|-" | awk '{ print $2 }')
+        socketString="0-"$(($realAmountThreads - 1))
     fi 
 
     paramsToCOMPSsWorker="$paramsToCOMPSsWorker $amountSockets $socketString"

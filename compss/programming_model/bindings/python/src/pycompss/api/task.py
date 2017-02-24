@@ -30,6 +30,13 @@ import logging
 from functools import wraps
 from pycompss.util.serializer import serialize_objects, deserialize_from_file
 
+SYNC_EVENTS = 8000666
+
+# Should be equal to Tracer.java definitions
+TASK_EVENTS = 8000010
+
+TASK_EXECUTION = 120
+SERIALIZATION = 121
 
 logger = logging.getLogger('pycompss.api.task')
 
@@ -177,6 +184,7 @@ class task(object):
         def wrapped_f(*args, **kwargs):
             # Check if this call is nested using the launch_pycompss_module
             # function from launch.py.
+
             is_nested = False
             istack = inspect.stack()
             for i_s in istack:
@@ -188,6 +196,15 @@ class task(object):
             if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') \
                     and (not is_nested):
                 # Called from worker code, run the method
+                #try:
+                    #from pycompss.worker.worker import tracing
+                import os
+                tracing = os.environ["TRACING_ENABLED"] == "True"
+                if tracing:
+                    import pyextrae
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
+                    
                 returns = self.kwargs['returns']
 
                 spec_args = self.spec_args.args
@@ -227,8 +244,17 @@ class task(object):
                     if returns is not None:
                         kargs.pop('compss_retvalue')
                     #real_values = real_values[:-1] + [kargs]
+                    
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                    
                 ret = f(*real_values, **kargs)  # Llamada real de la funcion f
-
+                
+                if tracing:
+                    pyextrae.eventandcounters(TASK_EVENTS, 0)
+                    pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
+                    
                 if returns:
                     if isinstance(returns, list) or isinstance(returns, tuple): # multireturn
                         num_ret = len(returns)
@@ -243,7 +269,6 @@ class task(object):
                     else:                         # simple return
                         ret_filename = args[-1]
                         to_serialize.append((ret, ret_filename))
-
                 if len(to_serialize) > 0:
                     serialize_objects(to_serialize)
             else:

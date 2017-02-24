@@ -123,10 +123,12 @@ public abstract class Tracer {
         WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"), 
         PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"), 
         LOGGING(104, INSIDE_TASKS_TYPE, "Logging"), 
-        TASK_EXECUTION(105, INSIDE_TASKS_TYPE, "User Method Execution"), 
+        MODULES_IMPORT(105, INSIDE_TASKS_TYPE, "Python Modules import"),
         WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"), 
         PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction"),
-        MODULES_IMPORT(108, INSIDE_TASKS_TYPE, "Python Modules import");
+
+        TASK_EXECUTION(120, INSIDE_TASKS_TYPE, "User Method Execution"), 
+        SERIALIZATION(121, INSIDE_TASKS_TYPE, "Python Serialization");
 
         private final int id;
         private final int type;

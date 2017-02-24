@@ -32,6 +32,7 @@
   cp -rf ${trunk_rel_path}/RELEASE_NOTES ${target}
   cp -rf ${trunk_rel_path}/tests ${target}
   cp -rf ${trunk_rel_path}/performance_analysis ${target}
+  cp -rf ${trunk_rel_path}/maven-plugins ${target}
   cp -rf ${trunk_rel_path}/pom.xml ${target}
 
   cd tmp/SOURCES/

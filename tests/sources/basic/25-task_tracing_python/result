@@ -18,10 +18,12 @@
   WORKER_INITIALIZATION=102
   PARAMETER_PROCESSING=103
   LOGGING=104
-  TASK_EXECUTION=105
+  MODULES_IMPORT=105
   WORKER_END=106
   PROCESS_DESTRUCTION=107
-  MODULES_IMPORT=108
+
+  TASK_EXECUTION=120
+  SERIALIZATION=121
 
   #----------------------------------------------------------------------------------
   # Check that task-bindings events are present and the # is correct
@@ -33,10 +35,11 @@
       evts_type2=$(grep -c ":${TASK_EVENTS}:${WORKER_INITIALIZATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type3=$(grep -c ":${TASK_EVENTS}:${PARAMETER_PROCESSING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type4=$(grep -c ":${TASK_EVENTS}:${LOGGING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      evts_type5=$(grep -c ":${TASK_EVENTS}:${TASK_EXECUTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type5=$(grep -c ":${TASK_EVENTS}:${MODULES_IMPORT}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type6=$(grep -c ":${TASK_EVENTS}:${WORKER_END}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_type7=$(grep -c ":${TASK_EVENTS}:${PROCESS_DESTRUCTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
-      evts_type8=$(grep -c ":${TASK_EVENTS}:${MODULES_IMPORT}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type8=$(grep -c ":${TASK_EVENTS}:${TASK_EXECUTION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_type9=$(grep -c ":${TASK_EVENTS}:${SERIALIZATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
       sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
@@ -75,8 +78,12 @@
          echo "[ERROR] Incorrect number of type 8 worker end events. [${evts_type8}/${number_of_tasks}]"
          errors=true
       fi
+      if [ "${evts_type9}" != "$((${number_of_tasks} * 2))" ]; then
+         echo "[ERROR] Incorrect number of type 9 worker end events. [${evts_type9}/$((${number_of_tasks} * 2))]"
+         errors=true
+      fi 
 
-      start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}+${evts_type8}))
+      start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}+${evts_type8}+${evts_type9}))
       if [ "$start_evts" != "$end_evts" ] ; then
         echo "[ERROR] Number of start and end emits are not equal"
         errors=true

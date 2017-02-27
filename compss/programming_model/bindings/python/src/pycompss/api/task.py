@@ -167,7 +167,7 @@ class task(object):
             except IOError:
                 # There is one or more decorators below the @task --> undecorate until possible to get the func code.
                 # Example of this case: test 19: @timeit decorator below the @task decorator.
-                func = func.__wrapped__  
+                func = func.__wrapped__
         topDecorator = getTopDecorator(funcCode)
         logger.debug("[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, self.module, str(topDecorator)))
         f.__who_registers__ = topDecorator
@@ -184,7 +184,6 @@ class task(object):
         def wrapped_f(*args, **kwargs):
             # Check if this call is nested using the launch_pycompss_module
             # function from launch.py.
-
             is_nested = False
             istack = inspect.stack()
             for i_s in istack:
@@ -196,15 +195,11 @@ class task(object):
             if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') \
                     and (not is_nested):
                 # Called from worker code, run the method
-                #try:
-                    #from pycompss.worker.worker import tracing
-                import os
-                tracing = os.environ["TRACING_ENABLED"] == "True"
+                tracing = kwargs['compss_tracing']
                 if tracing:
                     import pyextrae
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
-                    
                 returns = self.kwargs['returns']
 
                 spec_args = self.spec_args.args
@@ -244,17 +239,17 @@ class task(object):
                     if returns is not None:
                         kargs.pop('compss_retvalue')
                     #real_values = real_values[:-1] + [kargs]
-                    
+
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                    
+
                 ret = f(*real_values, **kargs)  # Llamada real de la funcion f
-                
+
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
-                    
+
                 if returns:
                     if isinstance(returns, list) or isinstance(returns, tuple): # multireturn
                         num_ret = len(returns)
@@ -279,7 +274,7 @@ class task(object):
                 # Check the type of the function called.
                 # inspect.ismethod(f) does not work here,
                 # for methods python hasn't wrapped the function as a method yet
-                # Everything is still a function here, can't distinguish yet 
+                # Everything is still a function here, can't distinguish yet
                 # with inspect.ismethod or isfunction
                 ftype = Function_Type.FUNCTION
                 class_name = ''
@@ -292,7 +287,7 @@ class task(object):
                             ftype = Function_Type.CLASS_METHOD
                             class_name = args[0].__name__
 
-                # Check the parameters in order to allow default and specific 
+                # Check the parameters in order to allow default and specific
                 # parameter values.
                 # Be very careful with parameter position.
                 # The included are sorted by position. The rest may not.

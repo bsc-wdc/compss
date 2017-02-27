@@ -76,7 +76,7 @@ def compss_worker():
     logger = logging.getLogger('pycompss.worker.worker')
 
     logger.debug("Starting Worker")
-    
+
     args = sys.argv[6:]
     path = args[0]
     method_name = args[1]
@@ -218,7 +218,8 @@ def compss_worker():
             logger.debug("Module successfully loaded (Python version < 2.7")
 
         with TaskContext(logger, values, config_file_path=storage_conf):
-            getattr(module, method_name)(*values, compss_types=types)
+            getattr(module, method_name)(*values, compss_types=types,
+            compss_tracing=tracing)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
                 pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -259,7 +260,8 @@ def compss_worker():
             types.insert(0, Type.OBJECT)
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                getattr(klass, method_name)(*values, compss_types=types)
+                getattr(klass, method_name)(*values, compss_types=types,
+                compss_tracing=tracing)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -271,7 +273,8 @@ def compss_worker():
             types.insert(0, None)    # class must be first type
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                getattr(klass, method_name)(*values, compss_types=types)
+                getattr(klass, method_name)(*values,
+                compss_types=types, compss_tracing=tracing)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -287,11 +290,6 @@ if __name__ == "__main__":
 
     # Emit sync event if tracing is enabled
     tracing = sys.argv[1] == 'true'
-    import os
-    if tracing:
-    	os.environ["TRACING_ENABLED"] = "True"
-    else:
-        os.environ["TRACING_ENABLED"] = "False" 
     taskId = int(sys.argv[2])
     log_level = sys.argv[3]
     storage_conf = sys.argv[4]

@@ -18,9 +18,10 @@
 
 PyCOMPSs API - LocalTask
 ===================
-    This file contains the localtask decorator, which is intended to be a
+    This file contains the @local decorator, which is intended to be a
     decorator for non-task functions that may receive future objects
     as parameters (i.e: their inputs are pycompss task outputs).
+    It also handles INOUTs
 """
 from pycompss.api.api import compss_wait_on
 from pycompss.runtime.binding import Future
@@ -29,7 +30,7 @@ import ctypes
 import sys
 import gc
 
-def localtask(input_function):
+def local(input_function):
     from pycompss.runtime.binding import task_objects
 
     def must_sync(obj):

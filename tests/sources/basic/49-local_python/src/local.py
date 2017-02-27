@@ -1,9 +1,9 @@
 import unittest
-from modules.testLocalTask import testLocalTask
+from modules.testLocal import testLocal
 
 
 def main():
-    suite = unittest.TestLoader().loadTestsFromTestCase(testLocalTask)
+    suite = unittest.TestLoader().loadTestsFromTestCase(testLocal)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

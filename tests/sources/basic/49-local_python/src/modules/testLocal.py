@@ -5,7 +5,7 @@ from C import C
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import compss_wait_on
-from pycompss.api.localtask import localtask
+from pycompss.api.local import local
 
 @task(v=IN, returns=list)
 def inc(v):
@@ -29,23 +29,23 @@ def merge_dict(d):
     d.update(sub_dict)
     del d['dict']
 
-@localtask
+@local
 def remove_trump(d):
     del d['trump']
 
-@localtask
+@local
 def solve_equation_system(A, b):
     return np.linalg.solve(A, b)
 
-@localtask
+@local
 def scale_vector(v, k):
     return [k*x for x in v]
 
-@localtask
+@local
 def abuse_me(positional, positional_default=3, *args, **kwargs):
     return (positional, positional_default, len(args), len(kwargs))
 
-class testLocalTask(unittest.TestCase):
+class testLocal(unittest.TestCase):
 
     def testFunctionalUsage(self):
         aa = [0, 0, 0]

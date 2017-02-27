@@ -34,19 +34,19 @@
      --debug \
      --comm=$comm \
      --lang=python \
-     ${base_app_dir}/src/localtask.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     ${base_app_dir}/src/local.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/localtask.py_0${retryNum}/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/local.py_0${retryNum}/* ${target_log_folder}
 
      #Report timeout
      echo "[WARNING] Python Application timed out" >> ${output_log}
      exitValue=124
   else
      #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/localtask.py_0${retryNum}/* ${target_log_folder}
+     cp -rf ${COMPSs_log_folder}/local.py_0${retryNum}/* ${target_log_folder}
   
      #Check result
      ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder}

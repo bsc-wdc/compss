@@ -82,6 +82,7 @@
                 <!-- Module 49 is 49-localtask_python -->
                 <!-- Module 50 is 50-matmul_objects_c -->
                 <!-- Module 51 is 51-matmul_files_c -->
+                <!-- Module 52 is 52-deleteFile_c -->
 
 		<!-- Add new modules below. Respect numbering -->
 	</modules>

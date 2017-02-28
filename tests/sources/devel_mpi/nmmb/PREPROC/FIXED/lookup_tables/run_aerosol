@@ -26,23 +26,41 @@
           -fp-stack-check \
           -o ${scriptDir}/lookup_aerosol.x \
           ${lookupSrcFile}
-  
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Cannot compile ${lookupSrcFile}"
+      exit 1 
+    fi
+ 
     # Clean temp source
     rm -f ${lookupSrcFile}
   
     # Execute
     ${scriptDir}/lookup_aerosol.x ${datarh} > ${lookupOutFile}
-    cat ${scriptDir}/fort.7 >> ${lookupOutFile}
-    cat ${scriptDir}/fort.8 >> ${lookupOutFile}
-  
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Cannot execute ${lookupSrcFile} with ${datarh}"
+      exit 1 
+    fi
+
+    cat fort.7 >> ${lookupOutFile}
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Cannot retrieve fort.7 file"
+      exit 1 
+    fi
+
+    cat fort.8 >> ${lookupOutFile}
+    if [ $? -ne 0 ]; then
+      echo "[ERROR] Cannot retrieve fort.8 file"
+      exit 1 
+    fi
+
     # Clean fort files
-    rm -f ${scriptDir}/fort.?
+    rm -f fort.?
   }
 
   clean() {
     rm -f ${scriptDir}/lookup_aerosol.x
     rm -f ${scriptDir}/LOOKUP_aerosol_ssa_rh??.f
-    rm -f ${scriptDir}/fort.?
+    rm -f fort.?
   }
 
 

@@ -2,7 +2,10 @@ package binary;
 
 public class BINARY {
 
-    public static Integer fortranCompiler(String flags, String oPrefix, String executable, String source) {
+    public static Integer fortranCompiler(String mcFlag, String sharedFlag, String covertPrefix, String convertValue, String tracebackFlag,
+            String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue, String stackFlag,
+            String oFlag, String executable, String source) {
+
         return null;
     }
 
@@ -70,7 +73,7 @@ public class BINARY {
 
     public static Integer run_aerosol(String lookup_aerosol2_rh00, String lookup_aerosol2_rh50, String lookup_aerosol2_rh70,
             String lookup_aerosol2_rh80, String lookup_aerosol2_rh90, String lookup_aerosol2_rh95, String lookup_aerosol2_rh99) {
-        
+
         return null;
     }
 

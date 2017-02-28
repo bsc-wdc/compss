@@ -1,9 +1,7 @@
-package nmmb.utils;
+package nmmb.configuration;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-
-import nmmb.constants.NMMBConstants;
 
 
 /**

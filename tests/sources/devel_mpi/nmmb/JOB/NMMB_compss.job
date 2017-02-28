@@ -39,6 +39,6 @@
     --network=infiniband \
     --log_level=debug \
     --tracing=false \
-    --graph=false \
+    --graph=true \
     nmmb.Nmmb ${propertiesFile}
 

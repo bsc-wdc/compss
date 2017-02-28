@@ -121,8 +121,10 @@
 !***  define the local file name
 !-----------------------------------------------------------------------
 !
-      infile1= roughness_dir // 'surface_N_Africa_1_4x1_4deg_V01.dat'
-      infile2= roughness_dir // 'surface_NE_Asia_1_4x1_4deg_V01.dat'
+      infile1 = trim(roughness_dir) &
+// 'surface_N_Africa_1_4x1_4deg_V01.dat'
+      infile2 = trim(roughness_dir) &
+// 'surface_NE_Asia_1_4x1_4deg_V01.dat'
 !
  202  format(28X,F4.2)
  203  format(46X,E8.2)

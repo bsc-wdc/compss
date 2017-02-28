@@ -1,4 +1,4 @@
-package fixed.utils;
+package nmmb.utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -6,6 +6,10 @@ import org.apache.logging.log4j.Logger;
 import nmmb.loggers.LoggerNames;
 
 
+/**
+ * Helper class to print messages
+ *
+ */
 public class MessagePrinter {
 
     // Loggers

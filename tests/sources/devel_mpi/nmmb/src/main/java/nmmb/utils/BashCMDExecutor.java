@@ -1,9 +1,11 @@
 package nmmb.utils;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
+import java.lang.ProcessBuilder.Redirect;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,6 +16,10 @@ import nmmb.exceptions.CommandException;
 import nmmb.loggers.LoggerNames;
 
 
+/**
+ * Helper class to execute bash commands
+ *
+ */
 public class BashCMDExecutor {
 
     private static final Logger LOGGER = LogManager.getLogger(LoggerNames.BASH_CMD);
@@ -24,11 +30,13 @@ public class BashCMDExecutor {
 
     private final String command;
     private final List<String> arguments;
+    private String redirectOutput;
 
 
     public BashCMDExecutor(String command) {
         this.command = command;
         this.arguments = new LinkedList<>();
+        this.redirectOutput = null;
     }
 
     public void addArgument(String arg) {
@@ -38,6 +46,10 @@ public class BashCMDExecutor {
     public void addFlagAndValue(String flag, String value) {
         this.arguments.add(flag);
         this.arguments.add(value);
+    }
+
+    public void redirectOutput(String filePath) {
+        this.redirectOutput = filePath;
     }
 
     public int execute() throws CommandException {
@@ -51,6 +63,11 @@ public class BashCMDExecutor {
             cmd[i++] = arg;
         }
         ProcessBuilder builder = new ProcessBuilder(cmd);
+
+        // Add redirection if needed
+        if (this.redirectOutput != null) {
+            builder.redirectOutput(Redirect.appendTo(new File(this.redirectOutput)));
+        }
 
         // Launch command
         Process process = null;
@@ -73,7 +90,7 @@ public class BashCMDExecutor {
         return exitValue;
     }
 
-    private static void logBinaryExecution(Process process, int exitValue) throws CommandException {
+    private void logBinaryExecution(Process process, int exitValue) throws CommandException {
 
         // Print all process execution information
         LOGGER.debug("[CMD EXECUTION WRAPPER] ------------------------------------");
@@ -82,7 +99,9 @@ public class BashCMDExecutor {
         LOGGER.debug("[CMD EXECUTION WRAPPER] ------------------------------------");
         LOGGER.debug("[CMD EXECUTION WRAPPER] CMD OUTPUT:");
         if (process != null) {
-            try (BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            try (BufferedReader outputReader = (this.redirectOutput != null) ? new BufferedReader(new FileReader(this.redirectOutput))
+                    : new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+
                 String line = null;
                 while ((line = outputReader.readLine()) != null) {
                     LOGGER.debug(line);
@@ -111,6 +130,10 @@ public class BashCMDExecutor {
         StringBuilder sb = new StringBuilder(this.command);
         for (String arg : this.arguments) {
             sb.append(" ").append(arg);
+        }
+
+        if (this.redirectOutput != null) {
+            sb.append(" > ").append(this.redirectOutput);
         }
 
         return sb.toString();

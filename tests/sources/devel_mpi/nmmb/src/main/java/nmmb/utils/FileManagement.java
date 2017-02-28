@@ -3,29 +3,58 @@ package nmmb.utils;
 import java.io.File;
 
 
+/**
+ * Helper class to manage the file system
+ *
+ */
 public class FileManagement {
 
     /**
-     * Deletes a folder recursively
+     * Deletes the file specified by the filePath
      * 
-     * @param file
+     * @param filePath
+     * @return
      */
-    public static void deleteAll(File file) {
-        if (file != null) {
-            if (file.isDirectory()) {
-                File[] files = file.listFiles();
-                if (files != null) {
-                    // File is a folder and it is not empty, delete recursively
-                    for (File f : files) {
-                        deleteAll(f);
-                    }
-                }
-            }
+    public static boolean deleteFile(String filePath) {
+        File file = new File(filePath);
+        try {
+            return file.delete();
+        } catch (SecurityException se) {
+            return false;
+        }
+    }
 
-            // File is either an empty folder or a file
-            file.delete();
-        } else {
-            // File doesn't exist, nothing to erase
+    /**
+     * Fault tolerant method to erase a file or folder recursively Does not raise any exception when file is not erased
+     * 
+     * @param fileOrFolder
+     * @return
+     */
+    public static void deleteFileOrFolder(File fileOrFolder) {
+        try {
+            if (fileOrFolder != null) {
+                if (fileOrFolder.isDirectory()) {
+                    File folder = fileOrFolder;
+                    // Clean all the childs
+                    File[] childs = folder.listFiles();
+                    if (childs != null) {
+                        for (File child : childs) {
+                            deleteFileOrFolder(child);
+                        }
+                    }
+                    // Clean the empty directory
+                    folder.delete();
+                } else {
+                    // It is a file, we can delete it automatically
+                    File file = fileOrFolder;
+
+                    file.delete();
+                }
+            } else {
+                // The file is not valid, skip
+            }
+        } catch (SecurityException se) {
+            // Skip
         }
     }
 

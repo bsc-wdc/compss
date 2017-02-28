@@ -80,7 +80,7 @@ end if
       enddo
 !-----------------------------------------------------------------------
       fname='00001-00180.00001-00180'
-      infile = maxsnowalb_dir // fname
+      infile = trim(maxsnowalb_dir) // fname
       open(unit=1,file=infile,status='old' &
           ,access='direct',form='unformatted',recl=kdatamax)
       read(1,rec=1) ialbd1
@@ -88,7 +88,7 @@ end if
       print*,'Read ',infile
 !
       fname='00181-00360.00001-00180'
-      infile = maxsnowalb_dir // fname
+      infile = trim(maxsnowalb_dir) // fname
       open(unit=1,file=infile,status='old' &
           ,access='direct',form='unformatted',recl=kdatamax)
       read(1,rec=1) ialbd2

@@ -1,9 +1,23 @@
-package fixed.utils;
+package nmmb.fixed.utils;
 
+/**
+ * Contains the filenames of the fortran executables used by the FIXED phase
+ * 
+ */
 public class FortranWrapper {
 
     public static final String FC = "ifort";
-    public static final String FFLAGS = "-mcmodel=large -shared-intel -convert big_endian -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check";
+    public static final String MC_FLAG = "-mcmodel=large";
+    public static final String SHARED_FLAG = "-shared-intel";
+    public static final String CONVERT_PREFIX = "-convert";
+    public static final String CONVERT_VALUE = "big_endian";
+    public static final String TRACEBACK_FLAG = "-traceback";
+    public static final String ASSUME_PREFIX = "-assume";
+    public static final String ASSUME_VALUE = "byterecl";
+    public static final String OPT_FLAG = "-O3";
+    public static final String FPMODEL_PREFIX = "-fp-model";
+    public static final String FPMODEL_VALUE = "precise";
+    public static final String STACK_FLAG = "-fp-stack-check";
     public static final String OFLAG = "-o";
 
     public static final String SUFFIX_F90_SRC = ".f90";
@@ -26,8 +40,8 @@ public class FortranWrapper {
     public static final String TOPSOILTYPE = "topsoiltype";
     public static final String VCGENERATOR = "vcgenerator";
 
-    public static final String[] FORTRAN_F90_FILES = new String[] { BOTSOILTYPE, GFDLCO2, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW,
-            SMMOUNT, ROUGHNESS, STDH, STDHTOPO, SNOWALBEDO, TOPO, TOPOSEAMASK, TOPSOILTYPE, VCGENERATOR };
+    public static final String[] FORTRAN_F90_FILES = new String[] { BOTSOILTYPE, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW, SMMOUNT,
+            ROUGHNESS, STDH, STDHTOPO, SNOWALBEDO, TOPO, TOPOSEAMASK, TOPSOILTYPE, VCGENERATOR };
 
     public static final String[] FORTRAN_F_FILES = new String[] { GFDLCO2 };
 

@@ -7,9 +7,13 @@
     local lookupSrcFile=$1
     local datarh=$2
     local lookupOutFile=$3
+
+    echo "SRC FILE: $lookupSrcFile"
+    echo "DATA RH:  $datarh"
+    echo "OUT FILE: $lookupOutFile"
   
     # Clean previous binary
-    rm -f lookup_aerosol.x
+    rm -f ${scriptDir}/lookup_aerosol.x
   
     # Compile
     ifort -mcmodel=large \
@@ -20,25 +24,25 @@
           -O3 \
           -fp-model precise \
           -fp-stack-check \
-          -o lookup_aerosol.x \
+          -o ${scriptDir}/lookup_aerosol.x \
           ${lookupSrcFile}
   
     # Clean temp source
     rm -f ${lookupSrcFile}
   
     # Execute
-    ./lookup_aerosol.x ${datarh} > ${lookupOutFile}
-    cat fort.7 >> ${lookupOutFile}
-    cat fort.8 >> ${lookupOutFile}
+    ${scriptDir}/lookup_aerosol.x ${datarh} > ${lookupOutFile}
+    cat ${scriptDir}/fort.7 >> ${lookupOutFile}
+    cat ${scriptDir}/fort.8 >> ${lookupOutFile}
   
     # Clean fort files
-    rm -f fort.?
+    rm -f ${scriptDir}/fort.?
   }
 
   clean() {
-    rm -f lookup_aerosol.x
-    rm -f LOOKUP_aerosol_ssa_rh??.f
-    rm -f fort.?
+    rm -f ${scriptDir}/lookup_aerosol.x
+    rm -f ${scriptDir}/LOOKUP_aerosol_ssa_rh??.f
+    rm -f ${scriptDir}/fort.?
   }
 
 
@@ -47,23 +51,24 @@
   #---------------------------------------------------------
   
   # Trap exit to clean tmp files
-  trap EXIT clean
+  trap clean EXIT
 
-  SRC_FILE=LOOKUP_aerosol_ssa-rh.f
+  scriptDir=$(dirname $0)
+  SRC_FILE=${scriptDir}/LOOKUP_aerosol_ssa-rh.f
 
   # This script receives a parameter for each lookup_aerosol2.dat.rhXX file
-  datrh00=$1
-  datrh50=$2
-  datrh70=$3
-  datrh80=$4
-  datrh90=$5
-  datrh95=$6
-  datrh99=$7
+  datarh00=$1
+  datarh50=$2
+  datarh70=$3
+  datarh80=$4
+  datarh90=$5
+  datarh95=$6
+  datarh99=$7
 
   #--------------------------------------------------------- 
   # lookup_aerosol2.dat.rh00         D2WF=1.0
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh00.f
-  outFile=lookup_aerosol.out.rh00
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh00.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh00
   
   sed -e 's/CCCC/1.0/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -71,8 +76,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh50         D2WF=1.6
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh50.f
-  outFile=lookup_aerosol.out.rh50
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh50.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh50
   
   sed -e 's/CCCC/1.6/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -80,8 +85,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh70         D2WF=1.8
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh70.f
-  outFile=lookup_aerosol.out.rh70
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh70.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh70
   
   sed -e 's/CCCC/1.8/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -89,8 +94,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh80         D2WF=2.0
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh80.f
-  outFile=lookup_aerosol.out.rh80
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh80.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh80
   
   sed -e 's/CCCC/2.0/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -98,8 +103,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh90         D2WF=2.4
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh90.f
-  outFile=lookup_aerosol.out.rh90
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh90.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh90
   
   sed -e 's/CCCC/2.4/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -107,8 +112,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh95         D2WF=2.9
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh95.f
-  outFile=lookup_aerosol.out.rh95
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh95.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh95
   
   sed -e 's/CCCC/2.9/g' ${SRC_FILE} > ${tmpSrcFile}
   
@@ -116,8 +121,8 @@
   
   #---------------------------------------------------------
   # lookup_aerosol2.dat.rh99         D2WF=4.8
-  tmpSrcFile=LOOKUP_aerosol_ssa_rh99.f
-  outFile=lookup_aerosol.out.rh99
+  tmpSrcFile=${scriptDir}/LOOKUP_aerosol_ssa_rh99.f
+  outFile=${scriptDir}/lookup_aerosol.out.rh99
   
   sed -e 's/CCCC/4.8/g' ${SRC_FILE} > ${tmpSrcFile}
   

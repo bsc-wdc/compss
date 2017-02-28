@@ -63,6 +63,9 @@ real(kind=4),dimension(1:imi,1:jmi):: &
  height &                    !
 ,seamask
 
+integer num, length, stat
+character*256 topo_dir, output_height, output_sea
+
 !-----------------------------------------------------------------------
       data fname &
       /'                                                              '/ 
@@ -160,9 +163,6 @@ real(kind=4),dimension(1:imi,1:jmi):: &
         enddo
       enddo
 
-integer num, length, stat
-character*256 topo_dir, output_height, output_sea
-
 if (command_argument_count().gt.0) then 
   call get_command_argument(1,topo_dir,length,stat)
   call get_command_argument(2,output_sea,length,stat)
@@ -181,7 +181,7 @@ end if
 !--process data tile by data tile--------------------------------------
       do n=1,nend 
 !----------------------------------------------------------------------
-        fname= topo_dir // ctile(n) // '.DEM'
+        fname=trim(topo_dir)//trim(ctile(n))//'.DEM'
 !----------------------------------------------------------------------
         awlo=twb(n)
         aelo=teb(n)

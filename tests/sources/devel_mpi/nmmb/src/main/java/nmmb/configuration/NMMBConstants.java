@@ -1,4 +1,6 @@
-package nmmb.constants;
+package nmmb.configuration;
+
+import java.text.SimpleDateFormat;
 
 public class NMMBConstants {
 
@@ -83,5 +85,11 @@ public class NMMBConstants {
     public static final String ENV_NAME_OUTPUT = "OUTPUT";
     public static final String ENV_NAME_UMO_OUT = "UMO_OUT";
     public static final String ENV_NAME_OUTNMMB = "OUTNMMB";
+    
+    // -----------------------------------------------------------------------
+    // Format conversion constants
+    public static final SimpleDateFormat STR_TO_DATE = new SimpleDateFormat("yyyyMMdd");
+    public static final long ONE_DAY_IN_SECONDS = 1 * 24 * 60 * 60;
+    
 
 }

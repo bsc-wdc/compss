@@ -1998,7 +1998,7 @@ C         IR=1,IQ=1 IS FOR COMMON /CO2BD3/ IN RADIATION CODE...
 C           FOR THE CONSOLIDATED 490-850 CM-1 BAND...
 CNOV89
       ICO2TP=61
-      co2_data = co2_data_dir // 'tr49t85_asci.dat'
+      co2_data = trim(co2_data_dir) // 'tr49t85_asci.dat'
       OPEN (UNIT=ICO2TP,FILE=co2_data,FORM='FORMATTED')
 CNOV89
       IR = 1
@@ -2042,7 +2042,7 @@ C===>  INTERPOLATE DESIRED CO2 DATA FROM THE DETAILED(109,109) GRID..
 C         IR=2,IQ=2 IS FOR COMMON /CO2BD2/ IN RADIATION CODE...
 C           FOR THE CONSOLIDATED 490-670 CM-1 BAND...
       ICO2TP=62
-      co2_data = co2_data_dir // 'tr49t67_asci.dat' 
+      co2_data = trim(co2_data_dir) // 'tr49t67_asci.dat' 
       OPEN (UNIT=ICO2TP,FILE=co2_data,FORM='FORMATTED')
       IR = 2
       RATIO = 1.0
@@ -2055,7 +2055,7 @@ C===>  INTERPOLATE DESIRED CO2 DATA FROM THE DETAILED(109,109) GRID..
 C         IR=3,IQ=3 IS FOR COMMON /CO2BD4/ IN RADIATION CODE...
 C           FOR THE CONSOLIDATED 670-850 CM-1 BAND...
       ICO2TP=63
-      co2_data = co2_data_dir // 'tr67t85_asci.dat' 
+      co2_data = trim(co2_data_dir) // 'tr67t85_asci.dat' 
       OPEN (UNIT=ICO2TP,FILE=co2_data,FORM='FORMATTED')
       IR = 3
       RATIO = 1.0

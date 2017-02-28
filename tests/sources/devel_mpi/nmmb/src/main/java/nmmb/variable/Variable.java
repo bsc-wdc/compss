@@ -1,4 +1,4 @@
-package variable;
+package nmmb.variable;
 
 public class Variable {
 

@@ -178,7 +178,7 @@ end if
         write(*,1100) (seamask(i,j),i=1,imi,35)
       enddo
 !-----------------------------------------------------------------------
-      outfile = input_seamask
+      outfile = output_seamask
       open(unit=1,file=outfile,status='unknown' &
           ,form='unformatted')
       write(1) seamask

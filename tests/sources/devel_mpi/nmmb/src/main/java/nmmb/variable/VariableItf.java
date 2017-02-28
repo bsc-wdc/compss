@@ -1,4 +1,4 @@
-package variable;
+package nmmb.variable;
 
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Type;

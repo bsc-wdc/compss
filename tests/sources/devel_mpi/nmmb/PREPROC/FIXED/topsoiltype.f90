@@ -100,7 +100,7 @@ end if
           i2=i1+idatamax-1
           write(fname,1000) i1,i2,j1,j2
 !-----------------------------------------------------------------------
-          infile = soiltype_dir // fname
+          infile = trim(soiltype_dir) // fname
           open(unit=1,file=infile,status='old' &
               ,access='direct',form='unformatted',recl=kdatamax) 
           read(1,rec=1) ichar

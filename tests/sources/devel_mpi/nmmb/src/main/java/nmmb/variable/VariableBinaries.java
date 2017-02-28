@@ -1,4 +1,4 @@
-package variable;
+package nmmb.variable;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

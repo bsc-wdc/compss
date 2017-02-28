@@ -95,7 +95,7 @@ end if
           i2=i1+idatamax-1
           write(fname,1000) i1,i2,j1,j2
 !-----------------------------------------------------------------------
-          infile = topo_dir // fname
+          infile = trim(topo_dir) // fname
           open(unit=1,file=infile,status='old' &
               ,access='direct',form='unformatted',recl=lrecl,CONVERT="BIG_ENDIAN") 
           read(1,rec=1) ichar

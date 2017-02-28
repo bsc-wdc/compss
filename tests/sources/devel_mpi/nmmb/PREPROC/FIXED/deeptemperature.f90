@@ -89,7 +89,7 @@ end if
 !-----------------------------------------------------------------------
 print*,'kdatamax',kdatamax
       fname='00001-00180.00001-00180'
-      infile = input_soiltemp_path // fname
+      infile = trim(input_soiltemp_path) // fname
       open(unit=1,file=infile,status='old' &
           ,access='direct',form='unformatted',recl=kdatamax2,CONVERT="BIG_ENDIAN")
       read(1,rec=1) itemp1
@@ -97,7 +97,7 @@ print*,'kdatamax',kdatamax
       print*,'Read ',infile
 !
       fname='00181-00360.00001-00180'
-      infile = input_soiltemp_path // fname
+      infile = trim(input_soiltemp_path) // fname
       open(unit=1,file=infile,status='old' &
           ,access='direct',form='unformatted',recl=kdatamax2,CONVERT="BIG_ENDIAN")
       read(1,rec=1) itemp2

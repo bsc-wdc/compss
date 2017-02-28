@@ -89,6 +89,10 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Plugin to instrument the class during compilation -->
+			<!-- <plugin> <groupId>es.bsc.compss.maven</groupId> <artifactId>instrumentation</artifactId> 
+				<version>2.0.rc1702</version> <executions> <execution> <phase>process-classes</phase> 
+				<goals> <goal>instrument</goal> </goals> </execution> </executions> </plugin> -->
 
 			<!-- Copiar el nmmb.jar al basedir -->
 			<plugin>

@@ -33,7 +33,7 @@
       real(kind=4),parameter :: pi=3.141592653589793238                 &
                                ,dtr=pi/180.
 !
-      character(128) :: infile1,infile2,outfile
+      character(256) :: infile1,infile2,outfile
 !
       integer(kind=4) :: i,idata,idatabase,m,n,jflip                    &
                         ,j,jdata,l,ksum,jdatap1,idatap1

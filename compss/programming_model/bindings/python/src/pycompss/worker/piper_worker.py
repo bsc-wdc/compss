@@ -324,7 +324,7 @@ def execute_task(process_name, storage_conf, params):
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-            getattr(module, method_name)(*values, compss_types=types)
+            getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -367,7 +367,7 @@ def execute_task(process_name, storage_conf, params):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types)
+                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -382,7 +382,7 @@ def execute_task(process_name, storage_conf, params):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types)
+                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

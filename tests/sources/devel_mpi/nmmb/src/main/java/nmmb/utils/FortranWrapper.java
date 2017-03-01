@@ -1,4 +1,4 @@
-package nmmb.fixed.utils;
+package nmmb.utils;
 
 /**
  * Contains the filenames of the fortran executables used by the FIXED phase
@@ -24,6 +24,9 @@ public class FortranWrapper {
     public static final String SUFFIX_F_SRC = ".f";
     public static final String SUFFIX_EXE = ".x";
 
+    /*
+     * FIXED FORTRAN FILES
+     */
     public static final String BOTSOILTYPE = "botsoiltype";
     public static final String GFDLCO2 = "gfdlco2";
     public static final String DEEPTEMPERATURE = "deeptemperature";
@@ -40,9 +43,28 @@ public class FortranWrapper {
     public static final String TOPSOILTYPE = "topsoiltype";
     public static final String VCGENERATOR = "vcgenerator";
 
-    public static final String[] FORTRAN_F90_FILES = new String[] { BOTSOILTYPE, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW, SMMOUNT,
-            ROUGHNESS, STDH, STDHTOPO, SNOWALBEDO, TOPO, TOPOSEAMASK, TOPSOILTYPE, VCGENERATOR };
+    public static final String[] FIXED_FORTRAN_F90_FILES = new String[] { BOTSOILTYPE, DEEPTEMPERATURE, ENVELOPE, LANDUSE, LANDUSENEW,
+            SMMOUNT, ROUGHNESS, STDH, STDHTOPO, SNOWALBEDO, TOPO, TOPOSEAMASK, TOPSOILTYPE, VCGENERATOR };
 
-    public static final String[] FORTRAN_F_FILES = new String[] { GFDLCO2 };
+    public static final String[] FIXED_FORTRAN_F_FILES = new String[] { GFDLCO2 };
+
+    /*
+     * VARIABLE FORTRAN FILES
+     */
+    public static final String ALBEDO = "albedo";
+    public static final String ALBEDO_RRTM_1DEG = "albedorrtm1deg";
+    public static final String ALLPREP_RRTM = "allprep_rrtm";
+    public static final String CNV_RRTM = "cnv_rrtm";
+    public static final String DEGRIB_SST = "degribsst";
+    public static final String DUST_START = "dust_start";
+    public static final String GFS2MODEL = "gfs2model_rrtm";
+    public static final String INC_RRTM = "inc_rrtm";
+    public static final String VEG_FRAC = "vegfrac";
+    public static final String Z0_VEGUSTAR = "z0vegustar";
+
+    public static final String[] VARIABLE_FORTRAN_F90_FILES = new String[] { ALBEDO, ALBEDO_RRTM_1DEG, ALLPREP_RRTM, CNV_RRTM, VEG_FRAC,
+            Z0_VEGUSTAR };
+
+    public static final String[] VARIABLE_FORTRAN_F_FILES = new String[] { DEGRIB_SST, DUST_START, GFS2MODEL, INC_RRTM };
 
 }

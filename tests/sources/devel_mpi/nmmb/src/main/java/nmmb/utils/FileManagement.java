@@ -1,6 +1,10 @@
 package nmmb.utils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 
 /**
@@ -17,6 +21,20 @@ public class FileManagement {
      */
     public static boolean deleteFile(String filePath) {
         File file = new File(filePath);
+        try {
+            return file.delete();
+        } catch (SecurityException se) {
+            return false;
+        }
+    }
+
+    /**
+     * Deletes the file given
+     * 
+     * @param file
+     * @return
+     */
+    public static boolean deleteFile(File file) {
         try {
             return file.delete();
         } catch (SecurityException se) {
@@ -56,6 +74,16 @@ public class FileManagement {
         } catch (SecurityException se) {
             // Skip
         }
+    }
+
+    public static boolean copyFile(String srcPath, String targetPath) {
+        try {
+            Files.copy(Paths.get(srcPath), Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
+        } catch (UnsupportedOperationException | IOException | SecurityException e) {
+            return false;
+        }
+
+        return true;
     }
 
 }

@@ -1,7 +1,0 @@
-rm -f read_paul_source.x
-
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -mcmodel=large -shared-intel -convert big_endian -I/gpfs/apps/MN3/NETCDF/3.6.3/include read_paul_source.f90 -L/gpfs/apps/MN3/NETCDF/3.6.3/lib -lnetcdff -lnetcdf -o read_paul_source.x
-
-./read_paul_source.x
-
-rm source_out.nc 

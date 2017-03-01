@@ -5,11 +5,21 @@ import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.task.Binary;
 import nmmb.configuration.NMMBEnvironment;
-import nmmb.fixed.utils.BinaryWrapper;
-import nmmb.fixed.utils.FortranWrapper;
+import nmmb.utils.BinaryWrapper;
+import nmmb.utils.FortranWrapper;
 
 
 public interface NmmbItf {
+    
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** FIXED STEP *******************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
     
     @Binary(binary = FortranWrapper.FC)
     Integer fortranCompiler(
@@ -141,6 +151,193 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh90, 
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh95, 
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh99
+    );
+    
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** VARIABLE STEP ****************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.DEGRIB_GFS_GENERIC)
+    void degribgfs_generic_05(
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String CW,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String ICEC,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SH,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILT2,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILT4,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILW2,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILW4,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String TT,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String VV,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String HH,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String PRMSL,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILT1,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILT3,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILW1,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SOILW3,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String SST_TS,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String UU,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String WEASD
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.GFS2MODEL + FortranWrapper.SUFFIX_EXE)
+    void gfs2model_rrtm(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String CW,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String ICEC,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SH,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILT2,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILT4,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILW2,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILW4,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String TT,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String VV,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String HH,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String PRMSL,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILT1,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILT3,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILW1,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SOILW3,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String SST_TS,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String UU,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String WEASD,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String GFS_file
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.INC_RRTM + FortranWrapper.SUFFIX_EXE)
+    void inc_rrtm(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String Deco
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.CNV_RRTM + FortranWrapper.SUFFIX_EXE)
+    void cnv_rrtm(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outtmp,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outmst,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outsst,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outsno,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outcic,      
+        @Parameter(type = Type.FILE, direction = Direction.IN) String Deco
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
+    void degribsst(
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String llgsst05
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO + FortranWrapper.SUFFIX_EXE)
+    void albedo(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedo,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedobase
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO_RRTM_1DEG + FortranWrapper.SUFFIX_EXE)
+    void albedorrtm(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedorrtm
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.VEG_FRAC + FortranWrapper.SUFFIX_EXE)
+    void vegfrac(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String vegfrac
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.Z0_VEGUSTAR + FortranWrapper.SUFFIX_EXE)
+    void z0vegfrac(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String landuse,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String topsoiltype,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String height,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String stdh,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String vegfrac,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String z0base,      
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String z0,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String ustar
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALLPREP_RRTM + FortranWrapper.SUFFIX_EXE)
+    void allprep(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llgsst05,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String sst05,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String height,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String stdh,
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String deeptemperature,
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String snowalbedo,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String z0,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String z0base,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String landuse,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String landusenew,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String topsoiltype,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String vegfrac,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String albedorrtm,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llgsst,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llgsno,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llgcic,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llsmst,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llstmp,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedorrtmcorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String dzsoil,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String tskin,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String sst,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String snow,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String snowheight,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String cice,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String seamaskcorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String landusecorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String landusenewcorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String topsoiltypecorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String vegfraccorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String z0corr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String z0basecorr,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String emissivity,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String canopywater,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String frozenprecratio,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String smst,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String sh2o,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String stmp,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String dsg,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String fcst,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String albedo,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String ustar
+    );
+    
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.READ_PAUL_SOURCE)
+    void readpaulsource(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String source,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String sourceNETCDF
+    );
+    
+    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DUST_START + FortranWrapper.SUFFIX_EXE)
+    void dust_start(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String soildust,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String snow,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String topsoiltypecorr,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String landusecorr,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String landusenewcorr,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String kount_landuse,       
+        @Parameter(type = Type.FILE, direction = Direction.IN) String kount_landusenew,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String vegfrac,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String height,      
+        @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source,          
+        @Parameter(type = Type.FILE, direction = Direction.IN) String z0corr,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String roughness
     );
     
 }

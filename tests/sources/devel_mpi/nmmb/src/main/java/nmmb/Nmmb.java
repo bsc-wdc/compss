@@ -13,8 +13,8 @@ import nmmb.configuration.NMMBConfigManager;
 import nmmb.configuration.NMMBConstants;
 import nmmb.configuration.NMMBEnvironment;
 import nmmb.configuration.NMMBParameters;
-import nmmb.fixed.utils.FortranWrapper;
 import nmmb.loggers.LoggerNames;
+import nmmb.utils.FortranWrapper;
 import nmmb.utils.MessagePrinter;
 
 
@@ -53,10 +53,10 @@ public class Nmmb {
         nmmbParams.prepareFixedExecution();
 
         /* Build the fortran executables *************************************************/
-        Integer[] compilationEvs = new Integer[FortranWrapper.FORTRAN_F90_FILES.length + FortranWrapper.FORTRAN_F_FILES.length];
+        Integer[] compilationEvs = new Integer[FortranWrapper.FIXED_FORTRAN_F90_FILES.length + FortranWrapper.FIXED_FORTRAN_F_FILES.length];
         int i = 0;
         MessagePrinter.printInfoMsg("Building fixed executables");
-        for (String fortranFile : FortranWrapper.FORTRAN_F90_FILES) {
+        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
 
@@ -65,7 +65,7 @@ public class Nmmb {
                     FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
                     FortranWrapper.OFLAG, executable, src);
         }
-        for (String fortranFile : FortranWrapper.FORTRAN_F_FILES) {
+        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F_SRC;
             compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG, FortranWrapper.CONVERT_PREFIX,
@@ -99,7 +99,8 @@ public class Nmmb {
         fixedBinariesEvs[i++] = BINARY.smmount(topoDir, seamaskDEM, heightDEM);
 
         MessagePrinter.printInfoMsg("Generate landuse file");
-        String landuseDataDir = NMMBEnvironment.GEODATA_DIR + "landuse_30s" + File.separator;;
+        String landuseDataDir = NMMBEnvironment.GEODATA_DIR + "landuse_30s" + File.separator;
+        ;
         String landuse = NMMBEnvironment.OUTPUT + "landuse";
         String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
         fixedBinariesEvs[i++] = BINARY.landuse(landuseDataDir, landuse, kount_landuse);
@@ -186,14 +187,14 @@ public class Nmmb {
 
         /* Clean Up binaries ************************************************************/
         MessagePrinter.printInfoMsg("Clean up executables");
-        for (String fortranFile : FortranWrapper.FORTRAN_F90_FILES) {
+        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
             if (f.exists()) {
                 f.delete();
             }
         }
-        for (String fortranFile : FortranWrapper.FORTRAN_F_FILES) {
+        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
             if (f.exists()) {
@@ -207,12 +208,208 @@ public class Nmmb {
         LOGGER_FIXED.info("Fixed process finished");
     }
 
-    /**
-     * Performs the VARIABLE step
-     * 
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** VARIABLE STEP ****************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
      */
-    private static void doVariable(NMMBParameters nmmbParams) {
+    private static void doVariable(NMMBParameters nmmbParams, Date currentDate, String folderOutputCase) {
         LOGGER_VARIABLE.info("Enter variable process");
+
+        /* Prepare execution **************************************************************/
+        nmmbParams.prepareVariableExecution(currentDate);
+
+        /* Build the fortran executables *************************************************/
+        Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length
+                + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length];
+        int i = 0;
+        LOGGER_VARIABLE.info("Building fixed executables");
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
+
+            compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG, FortranWrapper.CONVERT_PREFIX,
+                    FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG, FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE,
+                    FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
+                    FortranWrapper.OFLAG, executable, src);
+        }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F_SRC;
+            compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG, FortranWrapper.CONVERT_PREFIX,
+                    FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG, FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE,
+                    FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
+                    FortranWrapper.OFLAG, executable, src);
+        }
+        // Sync master to wait for compilation
+        for (i = 0; i < compilationEvs.length; ++i) {
+            LOGGER_VARIABLE.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
+            if (compilationEvs[i] != 0) {
+                LOGGER_VARIABLE.error("[ERROR] Error compiling binary " + i);
+                LOGGER_VARIABLE.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        MessagePrinter.printInfoMsg("Finished building fixed executables");
+
+        /* Begin binary calls ***********************************************************/
+        final int NUM_BINARIES = 12;
+        Integer[] variableBinariesEvs = new Integer[NUM_BINARIES];
+        i = 0;
+
+        LOGGER_VARIABLE.info("degrib gfs global data");
+        String CW = NMMBEnvironment.OUTPUT + "00_CW.dump";
+        String ICEC = NMMBEnvironment.OUTPUT + "00_ICEC.dump";
+        String SH = NMMBEnvironment.OUTPUT + "00_SH.dump";
+        String SOILT2 = NMMBEnvironment.OUTPUT + "00_SOILT2.dump";
+        String SOILT4 = NMMBEnvironment.OUTPUT + "00_SOILT4.dump";
+        String SOILW2 = NMMBEnvironment.OUTPUT + "00_SOILW2.dump";
+        String SOILW4 = NMMBEnvironment.OUTPUT + "00_SOILW4.dump";
+        String TT = NMMBEnvironment.OUTPUT + "00_TT.dump";
+        String VV = NMMBEnvironment.OUTPUT + "00_VV.dump";
+        String HH = NMMBEnvironment.OUTPUT + "00_HH.dump";
+        String PRMSL = NMMBEnvironment.OUTPUT + "00_PRMSL.dump";
+        String SOILT1 = NMMBEnvironment.OUTPUT + "00_SOILT1.dump";
+        String SOILT3 = NMMBEnvironment.OUTPUT + "00_SOILT3.dump";
+        String SOILW1 = NMMBEnvironment.OUTPUT + "00_SOILW1.dump";
+        String SOILW3 = NMMBEnvironment.OUTPUT + "00_SOILW3.dump";
+        String SST_TS = NMMBEnvironment.OUTPUT + "00_SST_TS.dump";
+        String UU = NMMBEnvironment.OUTPUT + "00_UU.dump";
+        String WEASD = NMMBEnvironment.OUTPUT + "00_WEASD.dump";
+        variableBinariesEvs[i++] = BINARY.degribgfs_generic_05(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1,
+                SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD);
+
+        LOGGER_VARIABLE.info("GFS 2 Model");
+        String GFS_file = NMMBEnvironment.OUTPUT + "131140000.gfs";
+        variableBinariesEvs[i++] = BINARY.gfs2model_rrtm(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1, SOILT3,
+                SOILW1, SOILW3, SST_TS, UU, WEASD, GFS_file);
+
+        LOGGER_VARIABLE.info("INC RRTM");
+        String deco = NMMBEnvironment.VRB_INCLUDE_DIR + "deco.inc";
+        variableBinariesEvs[i++] = BINARY.inc_rrtm(GFS_file, deco);
+
+        LOGGER_VARIABLE.info("CNV RRTM");
+        String llspl000 = NMMBEnvironment.OUTPUT + "llspl.000";
+        String outtmp = NMMBEnvironment.OUTPUT + "llstmp";
+        String outmst = NMMBEnvironment.OUTPUT + "llsmst";
+        String outsst = NMMBEnvironment.OUTPUT + "llgsst";
+        String outsno = NMMBEnvironment.OUTPUT + "llgsno";
+        String outcic = NMMBEnvironment.OUTPUT + "llgcic";
+        variableBinariesEvs[i++] = BINARY.cnv_rrtm(GFS_file, llspl000, outtmp, outmst, outsst, outsno, outcic, deco);
+
+        LOGGER_VARIABLE.info("Degrib 0.5 deg sst");
+        String llgsst05 = NMMBEnvironment.OUTPUT + "llgsst05";
+        variableBinariesEvs[i++] = BINARY.degribsst(llgsst05);
+
+        LOGGER_VARIABLE.info("Prepare climatological albedo");
+        String seamask = NMMBEnvironment.OUTPUT + "seamask";
+        String albedo = NMMBEnvironment.OUTPUT + "albedo";
+        String albedobase = NMMBEnvironment.OUTPUT + "albedobase";
+        variableBinariesEvs[i++] = BINARY.albedo(llspl000, seamask, albedo, albedobase);
+
+        LOGGER_VARIABLE.info("Prepare rrtm climatological albedos");
+        String albedorrtm = NMMBEnvironment.OUTPUT + "albedorrtm";
+        variableBinariesEvs[i++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm);
+
+        LOGGER_VARIABLE.info("Prepare climatological vegetation fraction");
+        String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
+        variableBinariesEvs[i++] = BINARY.vegfrac(llspl000, seamask, vegfrac);
+
+        LOGGER_VARIABLE.info("Prepare z0 and initial ustar");
+        String landuse = NMMBEnvironment.OUTPUT + "landuse";
+        String topsoiltype = NMMBEnvironment.OUTPUT + "topsoiltype";
+        String height = NMMBEnvironment.OUTPUT + "height";
+        String stdh = NMMBEnvironment.OUTPUT + "stdh";
+        String z0base = NMMBEnvironment.OUTPUT + "z0base";
+        String z0 = NMMBEnvironment.OUTPUT + "z0";
+        String ustar = NMMBEnvironment.OUTPUT + "ustar";
+        variableBinariesEvs[i++] = BINARY.z0vegfrac(seamask, landuse, topsoiltype, height, stdh, vegfrac, z0base, z0, ustar);
+
+        LOGGER_VARIABLE.info("Interpolate to model grid and execute allprep (fcst)");
+        String sst05 = NMMBEnvironment.OUTPUT + "sst05";
+        String deeptemperature = NMMBEnvironment.OUTPUT + "deeptemperature";
+        String snowalbedo = NMMBEnvironment.OUTPUT + "snowalbedo";
+        String landusenew = NMMBEnvironment.OUTPUT + "landusenew";
+        String llgsst = NMMBEnvironment.OUTPUT + "llgsst";
+        String llgsno = NMMBEnvironment.OUTPUT + "llgsno";
+        String llgcic = NMMBEnvironment.OUTPUT + "llgcic";
+        String llsmst = NMMBEnvironment.OUTPUT + "llsmst";
+        String llstmp = NMMBEnvironment.OUTPUT + "llstmp";
+        String albedorrtmcorr = NMMBEnvironment.OUTPUT + "albedorrtmcorr";
+        String dzsoil = NMMBEnvironment.OUTPUT + "dzsoil";
+        String tskin = NMMBEnvironment.OUTPUT + "tskin";
+        String sst = NMMBEnvironment.OUTPUT + "sst";
+        String snow = NMMBEnvironment.OUTPUT + "snow";
+        String snowheight = NMMBEnvironment.OUTPUT + "snowheight";
+        String cice = NMMBEnvironment.OUTPUT + "cice";
+        String seamaskcorr = NMMBEnvironment.OUTPUT + "seamaskcorr";
+        String landusecorr = NMMBEnvironment.OUTPUT + "landusecorr";
+        String landusenewcorr = NMMBEnvironment.OUTPUT + "landusenewcorr";
+        String topsoiltypecorr = NMMBEnvironment.OUTPUT + "topsoiltypecorr";
+        String vegfraccorr = NMMBEnvironment.OUTPUT + "vegfraccorr";
+        String z0corr = NMMBEnvironment.OUTPUT + "z0corr";
+        String z0basecorr = NMMBEnvironment.OUTPUT + "z0basecorr";
+        String emissivity = NMMBEnvironment.OUTPUT + "emissivity";
+        String canopywater = NMMBEnvironment.OUTPUT + "canopywater";
+        String frozenprecratio = NMMBEnvironment.OUTPUT + "frozenprecratio";
+        String smst = NMMBEnvironment.OUTPUT + "smst";
+        String sh2o = NMMBEnvironment.OUTPUT + "sh2o";
+        String stmp = NMMBEnvironment.OUTPUT + "stmp";
+        String dsg = NMMBEnvironment.OUTPUT + "dsg";
+        String fcst = NMMBEnvironment.OUTPUT + "fcst";
+        variableBinariesEvs[i++] = BINARY.allprep(llspl000, llgsst05, sst05, height, seamask, stdh, deeptemperature, snowalbedo, z0, z0base,
+                landuse, landusenew, topsoiltype, vegfrac, albedorrtm, llgsst, llgsno, llgcic, llsmst, llstmp, albedorrtmcorr, dzsoil,
+                tskin, sst, snow, snowheight, cice, seamaskcorr, landusecorr, landusenewcorr, topsoiltypecorr, vegfraccorr, z0corr,
+                z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar);
+
+        LOGGER_VARIABLE.info("Prepare the dust related variable (soildust)");
+        String source = NMMBEnvironment.OUTPUT + "source";
+        String sourceNETCDF = NMMBEnvironment.OUTPUT + "source.nc";
+        variableBinariesEvs[i++] = BINARY.readpaulsource(seamask, source, sourceNETCDF);
+
+        LOGGER_VARIABLE.info("Dust Start");
+        String soildust = NMMBEnvironment.OUTPUT + "soildust";
+        String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
+        String kount_landusenew = NMMBEnvironment.OUTPUT + "kount_landusenew";
+        String roughness = NMMBEnvironment.OUTPUT + "roughness";
+        variableBinariesEvs[i++] = BINARY.dust_start(llspl000, soildust, snow, topsoiltypecorr, landusecorr, landusenewcorr, kount_landuse,
+                kount_landusenew, vegfrac, height, seamask, source, z0corr, roughness);
+
+        /* Wait for binaries completion and check exit value *****************************/
+        for (i = 0; i < variableBinariesEvs.length; ++i) {
+            LOGGER_VARIABLE.debug("Execution of " + i + " binary ended with status " + variableBinariesEvs[i]);
+            if (variableBinariesEvs[i] != 0) {
+                LOGGER_VARIABLE.error("[ERROR] Error executing binary " + i);
+                LOGGER_VARIABLE.error("Aborting...");
+                System.exit(1);
+            }
+        }
+        
+        /* Clean Up binaries ************************************************************/
+        LOGGER_VARIABLE.info("Clean up executables");
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+
+        /* Post execution **************************************************************/
+        nmmbParams.postVariableExecution(folderOutputCase);
+
         LOGGER_VARIABLE.info("Variable process finished");
     }
 
@@ -220,7 +417,7 @@ public class Nmmb {
      * Performs the UMO Model simulation step
      * 
      */
-    private static void doUMOModel(NMMBParameters nmmbParams) {
+    private static void doUMOModel(NMMBParameters nmmbParams, Date currentDate) {
         LOGGER_UMO_MODEL.info("Enter UMO Model process");
         LOGGER_UMO_MODEL.info("UMO Model process finished");
     }
@@ -229,7 +426,7 @@ public class Nmmb {
      * Performs the POST step
      * 
      */
-    private static void doPost(NMMBParameters nmmbParams) {
+    private static void doPost(NMMBParameters nmmbParams, Date currentDate) {
         LOGGER_POST.info("Enter post process");
         LOGGER_POST.info("Post process finished");
     }
@@ -278,26 +475,27 @@ public class Nmmb {
         Date currentDate = nmmbParams.START_DATE;
         while (!currentDate.after(nmmbParams.END_DATE)) {
             String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+            String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) : String.valueOf(nmmbParams.HOUR);
+
             LOGGER_MAIN.info(currentDateSTR + " simulation started");
 
             // Define model output folder by case and date
-            // FOLDER_OUTPUT_CASE = OUTNMMB + File.separator + CASE;
-            // FOLDER_OUTPUT = OUTNMMB + File.separator + CASE + File.separator + STR_TO_DATE.format(CURRENT_DATE) +
-            // HOUR;
+            String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
+            String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR + hourSTR;
 
             // Vrbl process
             if (nmmbParams.DO_VRBL) {
-                doVariable(nmmbParams);
+                doVariable(nmmbParams, currentDate, folderOutputCase);
             }
 
             // UMO model run
             if (nmmbParams.DO_UMO) {
-                doUMOModel(nmmbParams);
+                doUMOModel(nmmbParams, currentDate);
             }
 
             // Post process
             if (nmmbParams.DO_POST) {
-                doPost(nmmbParams);
+                doPost(nmmbParams, currentDate);
             }
 
             LOGGER_MAIN.info(currentDateSTR + " simulation finished");

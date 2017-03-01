@@ -2,6 +2,7 @@ package nmmb.configuration;
 
 import java.text.SimpleDateFormat;
 
+
 public class NMMBConstants {
 
     // -----------------------------------------------------------------------
@@ -60,6 +61,7 @@ public class NMMBConstants {
     public static final String HIST_M_NAME = "HIST_M";
     public static final String BOCO_NAME = "BOCO";
     public static final String TYPE_GFSINIT_NAME = "TYPE_GFSINIT";
+    public static final String TYPE_GFSINIT_FNL = "FNL";
 
     // -----------------------------------------------------------------------
     // Select configuration of POSTPROC (DO_POST)
@@ -78,18 +80,20 @@ public class NMMBConstants {
     public static final String COUPLE_DUST_INIT_NAME = "COUPLE_DUST";
 
     // -----------------------------------------------------------------------
-    // -----------------------------------------------------------------------
     // Environment variable names
     public static final String ENV_NAME_UMO_PATH = "UMO_PATH";
     public static final String ENV_NAME_FIX = "FIX";
+    public static final String ENV_NAME_VRB = "VRB";
     public static final String ENV_NAME_OUTPUT = "OUTPUT";
     public static final String ENV_NAME_UMO_OUT = "UMO_OUT";
     public static final String ENV_NAME_OUTNMMB = "OUTNMMB";
-    
+    public static final String ENV_NAME_FNL = "FNL";
+    public static final String ENV_NAME_GFS = "GFS";
+
     // -----------------------------------------------------------------------
     // Format conversion constants
     public static final SimpleDateFormat STR_TO_DATE = new SimpleDateFormat("yyyyMMdd");
+    public static final SimpleDateFormat COMPACT_STR_TO_DATE = new SimpleDateFormat("yyMMdd");
     public static final long ONE_DAY_IN_SECONDS = 1 * 24 * 60 * 60;
-    
 
 }

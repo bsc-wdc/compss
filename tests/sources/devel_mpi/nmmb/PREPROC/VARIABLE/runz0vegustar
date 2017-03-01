@@ -1,5 +1,0 @@
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -convert big_endian -mcmodel=large -shared-intel -c z0vegustar.f90
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -convert big_endian -mcmodel=large -shared-intel -o z0vegustar.x z0vegustar.o
-./z0vegustar.x
-rm *.o
-rm *.x

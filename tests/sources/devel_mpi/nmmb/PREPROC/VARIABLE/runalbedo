@@ -1,5 +1,0 @@
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check  -mcmodel=large -shared-intel -convert big_endian -c albedo.f90
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check  -mcmodel=large -shared-intel -convert big_endian -o albedo.x albedo.o 
-./albedo.x
-rm *.o
-rm *.x

@@ -163,4 +163,20 @@ public class NMMBConfigManager {
         return config.getInt(NMMBConstants.INIT_CHEM_NAME);
     }
 
+    public int getHour() {
+        return config.getInt(NMMBConstants.HOUR_NAME);
+    }
+
+    public int getNHours() {
+        return config.getInt(NMMBConstants.NHOURS_NAME);
+    }
+
+    public int getBoco() {
+        return config.getInt(NMMBConstants.BOCO_NAME);
+    }
+
+    public String getTypeGFSInit() {
+        return config.getString(NMMBConstants.TYPE_GFSINIT_NAME);
+    }
+
 }

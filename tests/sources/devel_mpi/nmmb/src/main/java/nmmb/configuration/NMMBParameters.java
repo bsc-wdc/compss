@@ -22,6 +22,7 @@ public class NMMBParameters {
     // Loggers
     private static final Logger LOGGER_MAIN = LogManager.getLogger(LoggerNames.NMMB_MAIN);
     private static final Logger LOGGER_FIXED = LogManager.getLogger(LoggerNames.NMMB_FIXED);
+    private static final Logger LOGGER_VARIABLE = LogManager.getLogger(LoggerNames.NMMB_VARIABLE);
 
     // -----------------------------------------------------------------------
     // MN settings
@@ -65,6 +66,10 @@ public class NMMBParameters {
     // Select START and ENDING Times
     public Date START_DATE;
     public Date END_DATE;
+    public int HOUR;
+    public int NHOURS;
+    public int BOCO;
+    public String TYPE_GFSINIT;
 
     // -----------------------------------------------------------------------
     // Select configuration of POSTPROC (DO_POST)
@@ -141,6 +146,10 @@ public class NMMBParameters {
             LOGGER_MAIN.error("Aborting...");
             System.exit(1);
         }
+        HOUR = nmmbConfiguration.getHour();
+        NHOURS = nmmbConfiguration.getNHours();
+        BOCO = nmmbConfiguration.getBoco();
+        TYPE_GFSINIT = nmmbConfiguration.getTypeGFSInit();
 
         // -----------------------------------------------------------------------
         // Select configuration of POSTPROC (DO_POST)
@@ -198,12 +207,12 @@ public class NMMBParameters {
     }
 
     public void prepareFixedExecution() {
-        LOGGER_FIXED.debug("   - INCLUDE PATH : " + NMMBEnvironment.INCLUDE_DIR);
+        LOGGER_FIXED.debug("   - INCLUDE PATH : " + NMMBEnvironment.FIX_INCLUDE_DIR);
 
-        String modelgridTMPFilePath = NMMBEnvironment.INCLUDE_DIR + "modelgrid_rrtm.tmp";
-        String lmimjmTMPFilePath = NMMBEnvironment.INCLUDE_DIR + "lmimjm_rrtm.tmp";
-        String modelgridFilePath = NMMBEnvironment.INCLUDE_DIR + "modelgrid.inc";
-        String lmimjmFilePath = NMMBEnvironment.INCLUDE_DIR + "lmimjm.inc";
+        String modelgridTMPFilePath = NMMBEnvironment.FIX_INCLUDE_DIR + "modelgrid_rrtm.tmp";
+        String lmimjmTMPFilePath = NMMBEnvironment.FIX_INCLUDE_DIR + "lmimjm_rrtm.tmp";
+        String modelgridFilePath = NMMBEnvironment.FIX_INCLUDE_DIR + "modelgrid.inc";
+        String lmimjmFilePath = NMMBEnvironment.FIX_INCLUDE_DIR + "lmimjm.inc";
 
         // Clean some files
         LOGGER_FIXED.debug("Delete previous: " + modelgridFilePath);
@@ -265,6 +274,230 @@ public class NMMBParameters {
         } catch (CommandException ce) {
             LOGGER_FIXED.error("[ERROR] Error performing sed command on Lmimjm " + lmimjmTMPFilePath, ce);
             LOGGER_FIXED.error("Aborting...");
+            System.exit(1);
+        }
+    }
+
+    public void prepareVariableExecution(Date currentDate) {
+        LOGGER_VARIABLE.debug("   - OUTPUT PATH : " + NMMBEnvironment.OUTPUT);
+
+        // Clean specific files
+        final String[] outputFiles = new String[] { "sst2dvar_grb_0.5", "fcst", "llstmp", "llsmst", "llgsno", "llgcic", "llgsst",
+                "llspl.000", "llgsst05", "albedo", "albase", "vegfrac", "z0base", "z0", "ustar", "sst05", "dzsoil", "tskin", "sst", "snow",
+                "snowheight", "cice", "seamaskcorr", "landusecorr", "landusenewcorr", "topsoiltypecorr", "vegfraccorr", "z0corr",
+                "z0basecorr", "emissivity", "canopywater", "frozenprecratio", "smst", "sh2o", "stmp" };
+
+        for (String file : outputFiles) {
+            String filePath = NMMBEnvironment.OUTPUT + file;
+            if (!FileManagement.deleteFile(filePath)) {
+                LOGGER_VARIABLE.debug("Cannot erase previous " + file + " because it doesn't exist.");
+            }
+        }
+
+        // Clean regular expr files
+        File folder = new File(NMMBEnvironment.OUTPUT);
+        for (File file : folder.listFiles()) {
+            if ((file.getName().endsWith(".gfs")) || (file.getName().startsWith("gfs.")) || (file.getName().startsWith("boco."))
+                    || (file.getName().startsWith("boco_chem."))) {
+
+                if (!FileManagement.deleteFile(file)) {
+                    LOGGER_VARIABLE.debug("Cannot erase previous " + file.getName() + " because it doesn't exist.");
+                }
+
+            }
+        }
+
+        // Clean files on VRB
+        String sstgrbFilePath = NMMBEnvironment.VRB + "sstgrb";
+        if (!FileManagement.deleteFile(sstgrbFilePath)) {
+            LOGGER_VARIABLE.debug("Cannot erase previous sstgrb because it doesn't exist.");
+        }
+        
+        String llgridFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid.inc";
+        if (!FileManagement.deleteFile(llgridFilePath)) {
+            LOGGER_VARIABLE.debug("Cannot erase previous llgrid.inc because it doesn't exist.");
+        }
+
+        // Prepare files
+        String fullDate = NMMBConstants.STR_TO_DATE.format(currentDate);
+        String compactDate = NMMBConstants.COMPACT_STR_TO_DATE.format(currentDate);
+        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
+        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+
+        String llgridSrcFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid_rrtm_" + TYPE_GFSINIT + ".tmp";
+        String llgridFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid.inc";
+        BashCMDExecutor cmdllgrid = new BashCMDExecutor("sed");
+        cmdllgrid.addFlagAndValue("-e", "s/LLL/" + nHoursSTR + "/");
+        cmdllgrid.addFlagAndValue("-e", "s/HH/" + hourSTR + "/");
+        cmdllgrid.addFlagAndValue("-e", "s/UPBD/" + String.valueOf(BOCO) + "/");
+        cmdllgrid.addFlagAndValue("-e", "s/YYYYMMDD/" + compactDate + "/");
+        cmdllgrid.addArgument(llgridSrcFile);
+        cmdllgrid.redirectOutput(llgridFile);
+        try {
+            int ev = cmdllgrid.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_VARIABLE.error("[ERROR] Error performing sed command on model grid " + llgridSrcFile, ce);
+            LOGGER_VARIABLE.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Check domain
+        if (DOMAIN) {
+            if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
+                try {
+                    String link = NMMBEnvironment.FNL + "fnl_" + fullDate + "_" + hourSTR + "_00";
+                    String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
+                    Files.createSymbolicLink(Paths.get(link), Paths.get(target));
+                } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
+                    LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
+                    LOGGER_VARIABLE.error("Aborting...");
+                    System.exit(1);
+                }
+            } else {
+                LOGGER_VARIABLE.info("Converting wafs.00.0P5DEG from grib2 to grib1");
+                String input = NMMBEnvironment.GFS + "wafs.00.0P5DEG";
+                String output = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
+
+                BashCMDExecutor cnvgrib = new BashCMDExecutor("cnvgrib");
+                cnvgrib.addArgument("-g21");
+                cnvgrib.addArgument(input);
+                cnvgrib.addArgument(output);
+                try {
+                    int ev = cnvgrib.execute();
+                    if (ev != 0) {
+                        throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+                    }
+                } catch (CommandException ce) {
+                    LOGGER_VARIABLE.error("[ERROR] Error performing cnvgrib command", ce);
+                    LOGGER_VARIABLE.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        } else {
+            // Domain is 1
+            if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
+                for (int i = HOUR; i < BOCO; i += NHOURS) {
+                    try {
+                        String iStr = (i < 10) ? "0" + String.valueOf(i) : String.valueOf(i);
+                        int dDay = i / 24;
+                        int hDay = i % 24;
+                        String hDayStr = (hDay < 10) ? "0" + String.valueOf(hDay) : String.valueOf(hDay);
+                        String dayDateStr = NMMBConstants.COMPACT_STR_TO_DATE
+                                .format(currentDate.toInstant().plusSeconds(dDay * NMMBConstants.ONE_DAY_IN_SECONDS));
+
+                        String link = NMMBEnvironment.FNL + "fnl_" + dayDateStr + "_" + hDayStr + "_00";
+                        String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
+                        Files.createSymbolicLink(Paths.get(link), Paths.get(target));
+                    } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
+                        LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
+                        LOGGER_VARIABLE.error("Aborting...");
+                        System.exit(1);
+                    }
+                }
+            } else {
+                for (int i = 0; i < BOCO; i += NHOURS) {
+                    String iStr = (i < 10) ? "0" + String.valueOf(i) : String.valueOf(i);
+                    String input = NMMBEnvironment.GFS + "wafs." + iStr + ".0P5DEG";
+                    String output = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
+
+                    BashCMDExecutor cnvgrib = new BashCMDExecutor("cnvgrib");
+                    cnvgrib.addArgument("-g21");
+                    cnvgrib.addArgument(input);
+                    cnvgrib.addArgument(output);
+                    try {
+                        int ev = cnvgrib.execute();
+                        if (ev != 0) {
+                            throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+                        }
+                    } catch (CommandException ce) {
+                        LOGGER_VARIABLE.error("[ERROR] Error performing cnvgrib command", ce);
+                        LOGGER_VARIABLE.error("Aborting...");
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+
+        // Prepare modelgrid and lmimjm files
+        String modelgridTMPFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "modelgrid_rrtm.tmp";
+        String lmimjmTMPFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "lmimjm_rrtm.tmp";
+        String modelgridFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "modelgrid.inc";
+        String lmimjmFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "lmimjm.inc";
+
+        // Clean some files
+        LOGGER_VARIABLE.debug("Delete previous: " + modelgridFilePath);
+        if (!FileManagement.deleteFile(modelgridFilePath)) {
+            LOGGER_VARIABLE.debug("Cannot erase previous modelgrid because it doesn't exist.");
+        }
+        LOGGER_VARIABLE.debug("Delete previous: " + lmimjmFilePath);
+        if (!FileManagement.deleteFile(lmimjmFilePath)) {
+            LOGGER_VARIABLE.debug("Cannot erase previous lmimjm because it doesn't exist.");
+        }
+
+        // Prepare files
+        BashCMDExecutor cmdModelgrid = new BashCMDExecutor("sed");
+        cmdModelgrid.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdModelgrid.addArgument(modelgridTMPFilePath);
+        cmdModelgrid.redirectOutput(modelgridFilePath);
+        try {
+            int ev = cmdModelgrid.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_VARIABLE.error("[ERROR] Error performing sed command on model grid " + modelgridTMPFilePath, ce);
+            LOGGER_VARIABLE.error("Aborting...");
+            System.exit(1);
+        }
+
+        BashCMDExecutor cmdLmimjm = new BashCMDExecutor("sed");
+        cmdLmimjm.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdLmimjm.addArgument(lmimjmTMPFilePath);
+        cmdLmimjm.redirectOutput(lmimjmFilePath);
+        try {
+            int ev = cmdLmimjm.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_VARIABLE.error("[ERROR] Error performing sed command on Lmimjm " + lmimjmTMPFilePath, ce);
+            LOGGER_VARIABLE.error("Aborting...");
+            System.exit(1);
+        }
+
+    }
+
+    public void postVariableExecution(String targetFolder) {
+        String srcFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "lmimjm.inc";
+        String targetFilePath = targetFolder + "lmimjm.inc";
+        if (!FileManagement.copyFile(srcFilePath, targetFilePath)) {
+            LOGGER_VARIABLE.error("[ERROR] Error copying lmimjm.inc file to " + targetFolder);
+            LOGGER_VARIABLE.error("Aborting...");
             System.exit(1);
         }
     }

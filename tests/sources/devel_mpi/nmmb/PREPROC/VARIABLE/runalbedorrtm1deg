@@ -1,7 +1,0 @@
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -mcmodel=large -shared-intel -convert big_endian -c albedorrtm1deg.f90
-ifort -traceback -assume byterecl -O3 -fp-model precise -fp-stack-check -mcmodel=large -shared-intel -convert big_endian -o albedorrtm1deg.x albedorrtm1deg.o
-
-./albedorrtm1deg.x
-
-rm *.o
-rm *.x

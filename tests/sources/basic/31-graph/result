@@ -44,8 +44,8 @@
   
   if [ $expectedDeps -ne $gotDeps ]; then
     echo "[ERROR] Obtained graph file is not as expected" | tee -a ${output_file}
-    echo "EXPECTED DEPS: ${expectedDeps}"
-    echo "GOT DEPS:      ${gotDeps}"
+    echo "EXPECTED DEPS: ${expectedDeps}" | tee -a ${output_file}
+    echo "GOT DEPS:      ${gotDeps}" | tee -a ${output_file}
     exit 1
   fi
   

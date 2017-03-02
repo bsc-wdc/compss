@@ -15,30 +15,99 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
+     * ******************** COMPILE STEP *****************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+    @Binary(binary = FortranWrapper.FC)
+    Integer fortranCompiler(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String mcFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sharedFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String covertPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String convertValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String tracebackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumePrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumeValue, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String optFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source
+    );
+    
+    @Binary(binary = FortranWrapper.FC)
+    Integer fortranCompileObject(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String mcFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sharedFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String covertPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String convertValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String tracebackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumePrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumeValue, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String optFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String cFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String source, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String object
+    );
+    
+    @Binary(binary = FortranWrapper.FC)
+    Integer fortranCompileWithObject(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String mcFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sharedFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String covertPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String convertValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String tracebackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumePrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumeValue, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String optFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String source, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String object
+    );
+    
+    @Binary(binary = FortranWrapper.FC)
+    Integer fortranCompilerWithW3(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String mcFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sharedFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String covertPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String convertValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String tracebackFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumePrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String assumeValue, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String optFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String w3libDir, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLibDir,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String w3Lib,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLib,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source
+    );
+    
+    
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
      * ******************** FIXED STEP *******************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    
-    @Binary(binary = FortranWrapper.FC)
-    Integer fortranCompiler(
-            @Parameter(type = Type.STRING, direction = Direction.IN) String mcFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String sharedFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String covertPrefix, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String convertValue,
-            @Parameter(type = Type.STRING, direction = Direction.IN) String tracebackFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String assumePrefix, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String assumeValue, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String optFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
-            @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
-            @Parameter(type = Type.STRING, direction = Direction.IN) String executable, 
-            @Parameter(type = Type.FILE, direction = Direction.IN) String source
-        );   
-
     @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.SMMOUNT + FortranWrapper.SUFFIX_EXE)
     Integer smmount(
         @Parameter(type = Type.STRING, direction = Direction.IN) String topoDir,
@@ -153,6 +222,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh99
     );
     
+    
     /*
      * ***************************************************************************************************
      * ***************************************************************************************************
@@ -162,9 +232,8 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.DEGRIB_GFS_GENERIC)
-    void degribgfs_generic_05(
+    Integer degribgfs_generic_05(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String CW,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String ICEC,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String SH,
@@ -186,7 +255,7 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.GFS2MODEL + FortranWrapper.SUFFIX_EXE)
-    void gfs2model_rrtm(
+    Integer gfs2model_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String CW,
         @Parameter(type = Type.FILE, direction = Direction.IN) String ICEC,
         @Parameter(type = Type.FILE, direction = Direction.IN) String SH,
@@ -209,13 +278,13 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.INC_RRTM + FortranWrapper.SUFFIX_EXE)
-    void inc_rrtm(
+    Integer inc_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String Deco
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.CNV_RRTM + FortranWrapper.SUFFIX_EXE)
-    void cnv_rrtm(
+    Integer cnv_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String outtmp,
@@ -227,13 +296,13 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
-    void degribsst(
+    Integer degribsst(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String llgsst05,
         @Parameter(type = Type.STRING, direction = Direction.IN) String sstfileinPath
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO + FortranWrapper.SUFFIX_EXE)
-    void albedo(
+    Integer albedo(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String albedo,
@@ -242,7 +311,7 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO_RRTM_1DEG + FortranWrapper.SUFFIX_EXE)
-    void albedorrtm(
+    Integer albedorrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String albedorrtm,
@@ -250,7 +319,7 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.VEG_FRAC + FortranWrapper.SUFFIX_EXE)
-    void vegfrac(
+    Integer vegfrac(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String vegfrac,
@@ -258,7 +327,7 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.Z0_VEGUSTAR + FortranWrapper.SUFFIX_EXE)
-    void z0vegfrac(
+    Integer z0vegfrac(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.IN) String landuse,
         @Parameter(type = Type.FILE, direction = Direction.IN) String topsoiltype,
@@ -271,7 +340,7 @@ public interface NmmbItf {
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALLPREP_RRTM + FortranWrapper.SUFFIX_EXE)
-    void allprep(
+    Integer allprep(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String llgsst05,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String sst05,
@@ -323,14 +392,14 @@ public interface NmmbItf {
     
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.READ_PAUL_SOURCE)
-    void readpaulsource(
+    Integer readpaulsource(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String source,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String sourceNETCDF
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DUST_START + FortranWrapper.SUFFIX_EXE)
-    void dust_start(
+    Integer dust_start(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String soildust,
         @Parameter(type = Type.FILE, direction = Direction.IN) String snow,

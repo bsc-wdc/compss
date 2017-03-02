@@ -2,7 +2,7 @@
 !----------------------------------------------------------------------!
 !     z. janjic, feb. 2005                                             !
 !----------------------------------------------------------------------!
-      include 'llgrid05.inc'
+      include 'include/llgrid05.inc'
 !-----------------------------------------------------------------------
 !    note:  this subroutine degribs sst and the algorithm assumes
 !    a 0.5 deg global sst field in the llgrid05.inc format
@@ -11,11 +11,17 @@
 !
       dimension gllsst05(imll,jmll)
 !-----------------------------------------------------------------------
+
+      character*256 param1, sstfileinPath
+      call getarg(1,param1)
+      call getarg(2,sstfileinPath)
+
       insst=39
       indxst=0
+
       call gribst(insst,indxst,imll,jmll,gllsst05,ierr)
 !-----------------------------------------------------------------------
-      open(unit=3,file='../output/llgsst05',status='unknown'
+      open(unit=3,file=param1,status='unknown'
      1,    form='unformatted')
       write(3) gllsst05
       close(3)
@@ -94,7 +100,7 @@
       jpds(6) = igrd(igrid,2)
       jpds(7) = igrd(igrid,3)
 !
-      call baopen(lugb,'sstgrb',iretba)
+      call baopen(lugb,sstfileinPath,iretba)
 !      print*,'*** gribst back from baopen unit#, iret=',lugb,iretba
 !      print*,lugb,lugi,imll*jmll,j,jpds,jgds,kf,k,kpds,kgds
 

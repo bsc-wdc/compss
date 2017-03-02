@@ -26,12 +26,12 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !-----------------------------------------------------------------------
 !
-      include 'llgrid.inc'
+      include 'include/llgrid.inc'
 !
 !-----------------------------------------------------------------------
 !
-      call getarg(1,chr2)
-      read(chr2,*)ihr2
+      ihr2 = 00
+
 !
 !!! Oriol
       print*,'Initialize tables'
@@ -124,6 +124,10 @@
      &                20, 10,  7,  5,  3,  2,  1/
 !
       common /estab/esat(15000:45000),es(15000:45000)
+
+      character*256 param19
+      call getarg(19,param19)
+
 !!! Oriol
 !
 !-----------------------------------------------------------------------
@@ -333,18 +337,18 @@
 !***  create filename
 !-----------------------------------------------------------------------
 !
-      open(22,file='date.txt',form='formatted')
-      read(22,*)idate
-      close(22)
+!      open(22,file='date.txt',form='formatted')
+!      read(22,*)idate
+!      close(22)
 !
-      iyr=idate/1000000
-      imo=(idate-iyr*1000000)/10000
-      idy=(idate-iyr*1000000-imo*10000)/100
-      ihr=(idate-iyr*1000000-imo*10000-idy*100)/1
-      ijulday=julday_laps(idy,imo,iyr)
+!      iyr=idate/1000000
+!      imo=(idate-iyr*1000000)/10000
+!      idy=(idate-iyr*1000000-imo*10000)/100
+!      ihr=(idate-iyr*1000000-imo*10000-idy*100)/1
+!      ijulday=julday_laps(idy,imo,iyr)
 !
-      write(filename,'(i2.2,i3.3,i2.2,i2.2)')
-     &   iyr,ijulday,ihr,ihr2
+!      write(filename,'(i2.2,i3.3,i2.2,i2.2)')
+!     &   iyr,ijulday,ihr,ihr2
 !
 !-----------------------------------------------------------------------
 !
@@ -354,7 +358,7 @@
 !***  Open temporary output file
 !-----------------------------------------------------------------------
 !
-      open(1,file='../output/'//filename//'.gfs'
+      open(1,file = param19
      & ,status='unknown',form='unformatted',CONVERT='BIG_ENDIAN')
 !
 !-----------------------------------------------------------------------
@@ -435,6 +439,11 @@
      &      ,cldw(nx,ny,nz)                                                 !<-- Isobaric Cloud water
      &      ,slp(nx,ny,nsfc)
      &      ,temp(nx,ny)
+
+      character*256 param1,param2,param3,param4,param5,param6,param7
+      character*256 param8,param9,param10,param11,param12,param13
+      character*256 param14,param15,param16,param17,param18
+
 !
 !-----------------------------------------------------------------------
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -448,6 +457,25 @@
 !
 !-----------------------------------------------------------------------
 !
+
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+      call getarg(4,param4)
+      call getarg(5,param5)
+      call getarg(6,param6)
+      call getarg(7,param7)
+      call getarg(8,param8)
+      call getarg(9,param9)
+      call getarg(10,param10)
+      call getarg(11,param11)
+      call getarg(12,param12)
+      call getarg(13,param13)
+      call getarg(14,param14)
+      call getarg(15,param15)
+      call getarg(16,param16)
+      call getarg(17,param17)
+      call getarg(18,param18)
       
 !
       do k=1,nz
@@ -479,7 +507,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_PRMSL.dump',status='old'
+      open(11,file=param11,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -491,7 +519,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILT1.dump',status='old'
+      open(11,file=param12,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -503,7 +531,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILW1.dump',status='old'
+      open(11,file=param14,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -515,7 +543,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILT2.dump',status='old'
+      open(11,file=param4,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -527,7 +555,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILW2.dump',status='old'
+      open(11,file=param6,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -539,7 +567,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILT3.dump',status='old'
+      open(11,file=param13,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -551,7 +579,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILW3.dump',status='old'
+      open(11,file=param15,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -563,7 +591,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILT4.dump',status='old'
+      open(11,file=param5,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -575,7 +603,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SOILW4.dump',status='old'
+      open(11,file=param7,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -587,7 +615,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_WEASD.dump',status='old'
+      open(11,file=param18,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -599,7 +627,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_ICEC.dump',status='old'
+      open(11,file=param2,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -611,7 +639,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      open(11,file='../output/'//chr2//'_SST_TS.dump',status='old'
+      open(11,file=param16,status='old'
      &       ,form='unformatted')
       read(11)temp
         do j=1,ny
@@ -685,7 +713,7 @@
 !
       write(*,*)'------------- TEMP -----------------'
 !
-      open(11,file='../output/'//chr2//'_TT.dump',status='old'
+      open(11,file=param8,status='old'
      &       ,form='unformatted')
         do k=1,nz
       read(11)temp
@@ -706,7 +734,7 @@
 !
       write(*,*)'-------------- UW ------------------'
 !
-      open(11,file='../output/'//chr2//'_UU.dump',status='old'
+      open(11,file=param17,status='old'
      &       ,form='unformatted')
         do k=1,nz
       read(11)temp
@@ -727,7 +755,7 @@
 !
       write(*,*)'-------------- VW ------------------'
 !
-      open(11,file='../output/'//chr2//'_VV.dump',status='old'
+      open(11,file=param9,status='old'
      &       ,form='unformatted')
         do k=1,nz
       read(11)temp
@@ -748,7 +776,7 @@
 !
       write(*,*)'-------------- HT ------------------'
 !
-      open(11,file='../output/'//chr2//'_HH.dump',status='old'
+      open(11,file=param10,status='old'
      &       ,form='unformatted')
         do k=1,nz
       read(11)temp
@@ -769,7 +797,7 @@
 !
       write(*,*)'-------------- SH ------------------'
 !
-      open(11,file='../output/'//chr2//'_SH.dump',status='old'
+      open(11,file=param3,status='old'
      &       ,form='unformatted')
 !!! Oriol        do k=1,nz-10
 !!! KARSTEN      do k=1,nz-5
@@ -792,7 +820,7 @@
 !
       write(*,*)'------------- CLDW -----------------'
 !
-      open(11,file='../output/'//chr2//'_CW.dump',status='old'
+      open(11,file=param1,status='old'
      &       ,form='unformatted')
 !!! Oriol        do k=1,nz-10
 !!! KARSTEN      do k=1,nz-5

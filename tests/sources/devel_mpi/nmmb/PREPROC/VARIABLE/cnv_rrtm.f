@@ -25,10 +25,20 @@
      &           '/
       data intgrs/32*0/
       data month/31,28,31,30,31,30,31,31,30,31,30,31/
+
+      character*256 param1,param2,param3,param4,param5,param6,param7
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+      call getarg(4,param4)
+      call getarg(5,param5)
+      call getarg(6,param6)
+      call getarg(7,param7)
+
 !
 !-----------------------------------------------------------------------
-      open(1,file='flist',status='unknown')
-      rewind 1
+!      open(1,file='flist',status='unknown')
+!      rewind 1
 !-----------------------------------------------------------------------
 !
  1000 format(a)
@@ -38,15 +48,16 @@
 !
 !-----------------------------------------------------------------------
 !
-              do kread=1,20
+!              do kread=1,20
 !
 !-----------------------------------------------------------------------
 !***  read the file name
 !-----------------------------------------------------------------------
 !
-      read(1,2100,end=200) fname
-      write(*,1000) fname
+!      read(1,2100,end=200) fname
+!      write(*,1000) fname
 !
+      fname = '../output/131140000.gfs'
       do k=1,9
         intgrs(k)=iachar(fname(k+10:k+10))-48
       enddo
@@ -94,20 +105,22 @@
 !
 !-----------------------------------------------------------------------
 !
-      infile=fname(1:41)
-      outfil='../output/llspl.0'//fname(18:19)
-      outtmp='../output/llstmp'
-      outmst='../output/llsmst'
-      outsst='../output/llgsst'
-      outsno='../output/llgsno'
-      outcic='../output/llgcic'
+
+      infile=param1
+      outfil=param2
+      outtmp=param3
+      outmst=param4
+      outsst=param5
+      outsno=param6
+      outcic=param7
+
 !
 !-----------------------------------------------------------------------
       call io(idat,ihrst,ihr,infile,outfil
      &       ,outtmp,outmst,outsst,outsno,outcic)
 !-----------------------------------------------------------------------
 !
-      enddo
+!      enddo
  200  close(1)
 !
 !-----------------------------------------------------------------------
@@ -123,7 +136,7 @@
      &             ,outtmp,outmst,outsst,outsno,outcic)
 
 !-----------------------------------------------------------------------
-      include 'deco.inc'
+      include 'include/deco.inc'
 !-----------------------------------------------------------------------
 !
       logical run

@@ -4,7 +4,7 @@
 !
 !-----------------------------------------------------------------------
 !!! KARSTEN
-      include 'llgrid.inc'
+      include 'include/llgrid.inc'
 !!! KARSTEN
 !-----------------------------------------------------------------------
       character*64 fname,infile
@@ -15,6 +15,11 @@
       real*4 alat1,alat2,alon0
 !-----------------------------------------------------------------------
 !
+
+      character*256 param1,param2
+      call getarg(1,param1)
+      call getarg(2,param2)
+
  1000 format(a)
  2000 format(' ***  year=',i4,' month=',i2,' day=',i2,' ihrst=',i2,
      &       ' ihr=',i3,'  ***')
@@ -28,16 +33,17 @@
 ! 
 !-----------------------------------------------------------------------
 !
-      open(1,file='flist',status='unknown')
+!      open(1,file='flist',status='unknown')
 !
 !-----------------------------------------------------------------------
 !***  read the first file name
 !-----------------------------------------------------------------------
 !
-      read(1,2100,end=200) fname
-      write(*,1000) fname
-      infile=fname(1:38)
-      open(unit=2,file=infile,status='old',form='unformatted')
+!      read(1,2100,end=200) fname
+!      write(*,1000) fname
+!      infile=fname(1:38)
+
+      open(unit=2,file=param1,status='old',form='unformatted')
 !
 !!! KARSTEN
       read(2) nx2,ny2,ldm,nx2,ny2,ip,jp,nsfcfld,gproj
@@ -78,7 +84,7 @@
 !
 !----------------------------------------------------------------------
 !
-      open(unit=3,file='deco.inc'
+      open(unit=3,file=param2
      &     ,status='unknown',form='formatted')
       write(3,2200) bowest,bosout
      &             ,boeast,bonort

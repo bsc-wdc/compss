@@ -4,7 +4,7 @@ program z0ustar
 !-----------------------------------------------------------------------
 implicit none
 !-----------------------------------------------------------------------
-include 'modelgrid.inc'
+include 'include/modelgrid.inc'
 !-----------------------------------------------------------------------
 character(23):: &
  fname                       !
@@ -44,42 +44,54 @@ data z0vegtbl / &
 !,0.010,  0.040,  0.060,  0.050,  0.030,  0.001 &
 !,0.010,  0.150,  0.010,  0.000,  0.000,  0.000/
 !-----------------------------------------------------------------------
+
+      character*256 param1,param2,param3,param4,param5,param6,param7,param8,param9
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+      call getarg(4,param4)
+      call getarg(5,param5)
+      call getarg(6,param6)
+      call getarg(7,param7)
+      call getarg(8,param8)
+      call getarg(9,param9)
+
  1100 format(25f5.0)
  1200 format(25f5.4)
       infile='                                                         '
       outfile='                                                        '
 !--read in the sea-mask-------------------------------------------------
-      infile ='../output/seamask'
+      infile = param1
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) seamask
       close(1)
 !--read in the landuse data---------------------------------------------
-      infile ='../output/landuse'
+      infile = param2
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) landuse
       close(1)
 !--read in top soil data------------------------------------------------
-      infile ='../output/topsoiltype'
+      infile = param3
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) insoil
       close(1)
 !--read in the topography data------------------------------------------
-      infile ='../output/height'
+      infile = param4
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) height
       close(1)
 !--read in the topography standard deviation data-----------------------
-      infile ='../output/stdh'
+      infile = param5
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) stdh
       close(1)
 !--read in the vegetation fraction--------------------------------------
-      infile='../output/vegfrac'
+      infile = param6
       open(unit=1,file=infile,status='unknown' &
           ,form='unformatted')
       read (1) vegfrac
@@ -109,7 +121,7 @@ data z0vegtbl / &
         write(*,1100) (z0base(i,j),i=1,imi,40)
       enddo
 !-----------------------------------------------------------------------
-      outfile='../output/z0base'
+      outfile = param7
       open(unit=1,file=outfile,status='unknown' &
           ,form='unformatted')
       write(1) z0base
@@ -122,7 +134,7 @@ data z0vegtbl / &
         write(*,1100) (z0(i,j),i=1,imi,40)
       enddo
 !-----------------------------------------------------------------------
-      outfile='../output/z0'
+      outfile = param8
       open(unit=1,file=outfile,status='unknown' &
           ,form='unformatted')
       write(1) z0
@@ -135,7 +147,7 @@ data z0vegtbl / &
         write(*,1200) (ustar(i,j),i=1,imi,40)
       enddo
 !-----------------------------------------------------------------------
-      outfile='../output/ustar'
+      outfile = param9
       open(unit=1,file=outfile,status='unknown' &
           ,form='unformatted')
       write(1) ustar

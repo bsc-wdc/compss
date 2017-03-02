@@ -5,8 +5,8 @@
 !
 !-----------------------------------------------------------------------
 !
-      include 'lmimjm.inc'
-      include 'llgrid.inc'
+      include 'include/lmimjm.inc'
+      include 'include/llgrid.inc'
 !
 !-----------------------------------------------------------------------
 !
@@ -256,6 +256,26 @@
      &       '/
      &,fname /'
      &       '/
+
+      character*256 param1, param2, param3, param4, param5, param6
+      character*256 param7, param8, param9, param10, param11, param12
+      character*256 param13, param14
+
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+      call getarg(4,param4)
+      call getarg(5,param5)
+      call getarg(6,param6)
+      call getarg(7,param7)
+      call getarg(8,param8)
+      call getarg(9,param9)
+      call getarg(10,param10)
+      call getarg(11,param11)
+      call getarg(12,param12)
+      call getarg(13,param13)
+      call getarg(14,param14)
+
 !
 !-----------------------------------------------------------------------
 !!! reading of data
@@ -267,7 +287,7 @@
         print*,' '
 !!! KARSTEN
 !
-        infile='../output/llspl.000'
+        infile = param1
         open(unit=1,file=infile,status='old',form='unformatted')
         read(1) run,idat,ihrst
         close(1)
@@ -275,74 +295,71 @@
         global=im.gt.imi
 !
         nfcst=18
-        write(fname,'(a)')'../output/soildust'
-        open(unit=nfcst,file=fname
+        open(unit=nfcst,file=param2
      &      ,status='unknown',form='unformatted')
         run=.true.
         write (nfcst) run,idat,ihrst
      
         print*, run,idat,ihrst
       
-          open(unit=2,file='../output/snow'
+          open(unit=2,file=param3
      &        ,status='old',form='unformatted')
           read (2) snow
           close(2)
 !
-          open(unit=2,file='../output/topsoiltypecorr'
+          open(unit=2,file=param4
      &        ,status='old',form='unformatted')
           read (2) topsoiltypecorr
           close(2)
 !
-          open(unit=2,file='../output/landusecorr'
+          open(unit=2,file=param5
      &        ,status='old',form='unformatted')
           read (2) landusecorr
           close(2)
 
-          open(unit=2,file='../output/landusenewcorr'
+          open(unit=2,file=param6
      &        ,status='old',form='unformatted')
           read (2) landusenewcorr                               !dominant landusenew type
 !          print*, landusenewcorr(100,100)
           close(2)
 
-          open(unit=2,file='../output/kount_landuse'
+          open(unit=2,file=param7
      &        ,status='old',form='unformatted')
           read (2) kount_landuse                                !kount of each landusenew type
           close(2)
 
-          open(unit=2,file='../output/kount_landusenew'
+          open(unit=2,file=param8
      &        ,status='old',form='unformatted')
           read (2) kount_landusenew                             !kount of each landusenew type
           close(2)
 
-          open(unit=2,file='../output/vegfrac'
+          open(unit=2,file=param9
      &        ,status='old',form='unformatted')
           read (2) vegfrac
           close(2)
 
-          open(unit=2,file='../output/height'
+          open(unit=2,file=param10
      &        ,status='old',form='unformatted')
           read (2) height
           close(2)
 
-          open(unit=2,file='../output/seamask'
+          open(unit=2,file=param11
      &        ,status='old',form='unformatted')
           read (2) seamask
           close(2)
 !
-          open(unit=2,file='../output/source'
+          open(unit=2,file=param12
      &        ,status='old',form='unformatted')
           read (2) source
           close(2)
 
-
-
 !!! KARSTEN
-          open(unit=2,file='../output/z0corr'
+          open(unit=2,file=param13
      &        ,status='old',form='unformatted')
           read (2) z0corr
           close(2)
 !
-          open(unit=2,file='../output/roughness'
+          open(unit=2,file=param14
      &        ,status='old',form='unformatted')
           read (2) roughness
           close(2)
@@ -874,7 +891,7 @@
       subroutine padhn(h2,ph2,km)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(km,imi,jmi),ph2(km,im,jm)
@@ -927,7 +944,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       subroutine padhn2(h2,ph2,km)
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
       dimension h2(imi,jmi,km),ph2(im,jm,km)
 !-------------averaging at polar points---------------------------------
@@ -974,7 +991,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       subroutine padih2(ih2,iih2)
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
       dimension ih2(imi,jmi),iih2(im,jm)
 !-------------averaging at polar points---------------------------------
@@ -1017,7 +1034,7 @@
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       subroutine padh2(h2,ph2)
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
       dimension h2(imi,jmi),ph2(im,jm)
 !-------------averaging at polar points---------------------------------

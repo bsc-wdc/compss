@@ -304,7 +304,8 @@ public class Nmmb {
 
         LOGGER_VARIABLE.info("Degrib 0.5 deg sst");
         String llgsst05 = NMMBEnvironment.OUTPUT + "llgsst05";
-        variableBinariesEvs[i++] = BINARY.degribsst(llgsst05);
+        String sstfileinPath = NMMBEnvironment.OUTPUT + "sst2dvar_grb_0.5";
+        variableBinariesEvs[i++] = BINARY.degribsst(llgsst05, sstfileinPath);
 
         LOGGER_VARIABLE.info("Prepare climatological albedo");
         String seamask = NMMBEnvironment.OUTPUT + "seamask";
@@ -320,7 +321,8 @@ public class Nmmb {
 
         LOGGER_VARIABLE.info("Prepare climatological vegetation fraction");
         String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
-        variableBinariesEvs[i++] = BINARY.vegfrac(llspl000, seamask, vegfrac);
+        String vegfracmnth = NMMBEnvironment.GEODATA_DIR + "vegfrac" + File.separator + "vegfracmnth";
+        variableBinariesEvs[i++] = BINARY.vegfrac(llspl000, seamask, vegfrac, vegfracmnth);
 
         LOGGER_VARIABLE.info("Prepare z0 and initial ustar");
         String landuse = NMMBEnvironment.OUTPUT + "landuse";

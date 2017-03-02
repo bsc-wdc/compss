@@ -122,7 +122,7 @@ public class BINARY {
         return null;
     }
 
-    public static Integer degribsst(String llgsst05) {
+    public static Integer degribsst(String llgsst05, String sstfileinPath) {
         return null;
     }
 
@@ -135,7 +135,7 @@ public class BINARY {
         return null;
     }
 
-    public static Integer vegfrac(String llspl000, String seamask, String vegfrac) {
+    public static Integer vegfrac(String llspl000, String seamask, String vegfrac, String vegfracmnth) {
         return null;
     }
 

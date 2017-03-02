@@ -18,11 +18,11 @@
 program read_paul_source
   use netcdf 
   implicit none
-  include 'modelgrid.inc'
-  include 'ginouxgrid.inc'  
+  include 'include/modelgrid.inc'
+  include 'include/ginouxgrid.inc'  
 
   ! This is the name of the data file we will read. 
-  character (len = *), parameter :: FILE_NAME = "dust_source_0.25x0.25.nc"
+  character (len = *), parameter :: FILE_NAME = "include/dust_source_0.25x0.25.nc"
 
   ! We are reading 2D data, a 6 x 12 grid. 
   integer, parameter :: NX = 1440, NY = 720
@@ -53,6 +53,12 @@ program read_paul_source
   character (len = *), parameter :: UNITS = "units"
   character (len = *), parameter :: LAT_UNITS = "degrees_north"
   character (len = *), parameter :: LON_UNITS = "degrees_east"
+
+  character*256 param1, param2, param3
+
+  call getarg(1,param1)
+  call getarg(2,param2)
+  call getarg(3,param3)
 
 !-----------------------------------------------------------------------
 !
@@ -118,7 +124,7 @@ program read_paul_source
 !
       call bilinb(coh,inh,jnh,imll,jmll,imi,jmi,source,source_interp)
 
-      open(unit=3,file='../output/seamask',status='unknown',form='unformatted')
+      open(unit=3,file=param1,status='unknown',form='unformatted')
       read(3) sm
       close(3)      
 
@@ -131,7 +137,7 @@ program read_paul_source
       enddo      
 
 
-      open(unit=1,file='../output/source',status='unknown',form='unformatted')
+      open(unit=1,file=param2,status='unknown',form='unformatted')
       write(1)source_interp
       close(1)
 
@@ -186,7 +192,7 @@ program read_paul_source
       
   ! Create the netCDF file. The nf90_clobber parameter tells netCDF to
   ! overwrite this file, if it already exists.
-  call check( nf90_create("source_out.nc", NF90_CLOBBER, ncid) )
+  call check( nf90_create(param3, NF90_CLOBBER, ncid) )
 
 
   ! Define the dimensions. NetCDF will hand back an ID for each. 
@@ -257,7 +263,7 @@ contains
   subroutine preina (global,wb,sb,tlm0d,ctph0,stph0,dlm,dph,imi,jmi,coh,inh,jnh)
 !
 !-----------------------------------------------------------------------
-      include 'ginouxgrid.inc'
+      include 'include/ginouxgrid.inc'
 !-----------------------------------------------------------------------
 !
       real(kind=4),parameter ::  dtr=3.1415926535897932384626433832795/180.,rtd=1./dtr

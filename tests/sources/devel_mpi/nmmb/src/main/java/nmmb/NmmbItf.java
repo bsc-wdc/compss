@@ -228,7 +228,8 @@ public interface NmmbItf {
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
     void degribsst(
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String llgsst05
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String llgsst05,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sstfileinPath
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO + FortranWrapper.SUFFIX_EXE)
@@ -252,7 +253,8 @@ public interface NmmbItf {
     void vegfrac(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String vegfrac
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String vegfrac,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String vegfracmnth
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.Z0_VEGUSTAR + FortranWrapper.SUFFIX_EXE)

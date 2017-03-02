@@ -39,10 +39,13 @@
   #----------------------------------------------------------------------------------
   # Compute Graph status
   final_graph_got=${target_log_folder}/monitor/complete_graph.dot
-  graph_status=$(diff -U 0 ${final_graph_expected} ${final_graph_got} | grep -v ^@ | grep -v "#" | tail -n+3)
-
-  if [ ! -z "${graph_status}" ]; then
+  expectedDeps=$(cat ${final_graph_expected} | grep "\->" | wc -l)
+  gotDeps=$(cat ${final_graph_got} | grep "\->" | wc -l)
+  
+  if [ $expectedDeps -ne $gotDeps ]; then
     echo "[ERROR] Obtained graph file is not as expected" | tee -a ${output_file}
+    echo "EXPECTED DEPS: ${expectedDeps}"
+    echo "GOT DEPS:      ${gotDeps}"
     exit 1
   fi
   

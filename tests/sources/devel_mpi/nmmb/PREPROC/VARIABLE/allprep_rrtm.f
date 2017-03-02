@@ -4,7 +4,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
       logical global
 !
 !-----------------------------------------------------------------------
@@ -34,14 +34,14 @@
 !     k. haustein, aug. 2009
 !-----------------------------------------------------------------------
 !
-      include 'lmimjm.inc'
-      include 'llgrid05.inc'                !<-- for 0.5 deg sst data
+      include 'include/lmimjm.inc'
+      include 'include/llgrid05.inc'                !<-- for 0.5 deg sst data
 !
 !-----------------------------------------------------------------------
       parameter(dtr=3.1415926535897932384626433832795/180.)
 !-----------------------------------------------------------------------
 !
-      character*128 infile,fname
+      character*256 infile,fname
 !
       dimension idat(3)
       dimension coh(3,imi,jmi),inh(4,imi,jmi),jnh(4,imi,jmi)
@@ -58,7 +58,13 @@
      &       '/
 !-----------------------------------------------------------------------
 !
-      infile='../output/llspl.000'
+
+      character*256 param1,param2,param3
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+
+      infile=param1
       open(unit=1,file=infile,status='old',form='unformatted')
       read(1) run,idat,ihrst
       print*,'*** sst read cycle data from ',infile
@@ -68,7 +74,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      fname='../output/llgsst05'
+      fname = param2
       open(unit=2,file=fname,status='unknown',form='unformatted'
      &    ,iostat=ios)
       read (2) gsst
@@ -81,7 +87,7 @@
       call bilinb(coh,inh,jnh,imll,jmll,imi,jmi,gsst,sst)
 !-----------------------------------------------------------------------
 !
-      open(unit=1,file='../output/sst05'
+      open(unit=1,file = param3
      &    ,status='unknown'
      &    ,form='unformatted')
       write(1) sst
@@ -108,8 +114,8 @@
       subroutine gtllhsst(coh,inh,jnh)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
-      include 'llgrid05.inc'                 !<-- for 0.5 deg sst data
+      include 'include/lmimjm.inc'
+      include 'include/llgrid05.inc'                 !<-- for 0.5 deg sst data
 !-----------------------------------------------------------------------
 !
       parameter(dtr=3.1415926535897932384626433832795/180.)
@@ -225,8 +231,8 @@
       subroutine gblprep(global)
 !
 !-----------------------------------------------------------------------
-      include 'llgrid.inc'
-      include 'lmimjm.inc'
+      include 'include/llgrid.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       logical run,global
@@ -286,11 +292,19 @@
       data fname/'                                '/
 !-----------------------------------------------------------------------
 !
-      open(unit=2,file='../output/height'
+
+      character*256 param4,param5,param6,param46
+      call getarg(4,param4)
+      call getarg(5,param5)
+      call getarg(6,param6)
+      call getarg(46,param46)
+
+
+      open(unit=2,file=param4
      &    ,status='unknown',form='unformatted')
-      open(unit=3,file='../output/seamask'
+      open(unit=3,file=param5
      &    ,status='unknown',form='unformatted')
-      open(unit=4,file='../output/stdh'
+      open(unit=4,file=param6
      &    ,status='unknown',form='unformatted')
       read(2) hgt
       read(3) sm
@@ -600,9 +614,8 @@
 !-----------------------------------------------------------------------
 !
       nbc=18
-!OJORBA3      write(fname,'(a,i3.3)')'../output/boco.'
-      write(fname,'(a,i4.4)')'../output/boco.'
-     &,ihr-ihboco
+!OJORBA3      write(fname,'(a,i3.3)')param46
+      write(fname,'(a,i4.4)')param46,ihr-ihboco
       open(unit=nbc,file=fname
      &    ,status='unknown',form='unformatted')
       run=.true.
@@ -624,9 +637,8 @@
 !-----------------------------------------------------------------------
 !
       nbc=18
-!OJORBA3      write(fname,'(a,i3.3)')'../output/boco.'
-      write(fname,'(a,i4.4)')'../output/boco.'
-     &,ihrend
+!OJORBA3      write(fname,'(a,i3.3)')param46
+      write(fname,'(a,i4.4)')param46,ihrend
       open(unit=nbc,file=fname
      &    ,status='unknown',form='unformatted')
       run=.true.
@@ -662,8 +674,8 @@
       use module_flt,only:prefft,fftfhn,fftfwn
 !
 !-----------------------------------------------------------------------
-      include 'llgrid.inc'
-      include 'lmimjm.inc'
+      include 'include/llgrid.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       parameter(dtr=3.1415926535897932384626433832795/180.)
@@ -758,8 +770,56 @@
 !
 !-----------------------------------------------------------------------
 !
-      write(fname,'(a,i3.3)')
-     & '../output/llspl.',ihr
+
+      character*256 param1, param7, param8, param3, param9, param10
+      character*256 param11, param12, param13, param14, param15, param16
+      character*256 param17, param18, param19, param20, param21, param22
+      character*256 param23, param24, param25, param26, param27, param28
+      character*256 param29, param30, param31, param32, param33, param34
+      character*256 param35, param36, param37, param38, param39, param40
+      character*256 param47
+      
+      call getarg(1,param1)
+      call getarg(7,param7)
+      call getarg(8,param8)
+      call getarg(3,param3)
+      call getarg(9,param9)
+      call getarg(10,param10)
+      call getarg(11,param11)
+      call getarg(12,param12)
+      call getarg(13,param13)
+      call getarg(14,param14)
+      call getarg(15,param15)
+      call getarg(16,param16)
+      call getarg(17,param17)
+      call getarg(18,param18)
+      call getarg(19,param19)
+      call getarg(20,param20)
+      call getarg(21,param21)
+      call getarg(22,param22)
+      call getarg(23,param23)
+      call getarg(24,param24)
+      call getarg(25,param25)
+      call getarg(26,param26)
+      call getarg(27,param27)
+      call getarg(28,param28)
+      call getarg(29,param29)
+      call getarg(30,param30)
+      call getarg(31,param31)
+      call getarg(32,param32)
+      call getarg(33,param33)
+      call getarg(34,param34)
+      call getarg(35,param35)
+      call getarg(36,param36)
+      call getarg(37,param37)
+      call getarg(38,param38)
+      call getarg(39,param39)
+      call getarg(40,param40)
+      call getarg(47,param47)
+
+
+      write(fname,'(a,i3.3)') param47,ihr
+      fname = param1
       print*,'fname=',fname
       open (unit=2,file=fname
      &     ,status='old',form='unformatted')
@@ -1044,64 +1104,64 @@
 !
       write(ced,'(i3.3)')ihr
 !-----------------------------------------------------------------------
-      fname='../output/deeptemperature'
+      fname = param7
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) dgt
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/snowalbedo'
+      fname = param8
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) snoalb
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/sst05'
+      fname = param3
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) sst
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/z0'
+      fname = param9
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) z0
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/z0base'
+      fname = param10
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) z0base
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/landuse'
+      fname = param11
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) landuse
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
 !!!CPEREZ1
-      fname='../output/landusenew'
+      fname = param12
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) landusenew
       close(2)
       write(*,*)'*** read ',fname
 !!!CPEREZ1
 !-----------------------------------------------------------------------
-      fname='../output/topsoiltype'
+      fname = param13
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) ltopsoil
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
-      fname='../output/vegfrac'
+      fname = param14
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) vegfrac
       close(2)
       write(*,*)'*** read ',fname
 !-----------------------------------------------------------------------
 !!!CPEREZ1
-      fname='../output/albedorrtm'
+      fname = param15
       open(unit=2,file=fname,status='old',form='unformatted')
       read(2) alvsf
       read(2) alnsf
@@ -1142,7 +1202,7 @@
 
 !!!CPEREZ1
 !-----------------------------------------------------------------------
-      fname='../output/llgsst'
+      fname = param16
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) gsst
       close(2)
@@ -1150,7 +1210,7 @@
 !
       call bilinb(coh,inh,jnh,imll,jmll,imi,jmi,gsst,sstg)
 !-----------------------------------------------------------------------
-      fname='../output/llgsno'
+      fname = param17
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) gsnow
       close(2)
@@ -1168,7 +1228,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      fname='../output/llgcic'
+      fname = param18
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) gcice
       close(2)
@@ -1248,13 +1308,13 @@
 !***  soil moisture and temperature
 !-----------------------------------------------------------------------
 !
-      fname='../output/llsmst'
+      fname = param19
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) gsmst
       close(2)
       write(*,*)'*** read ',fname
 !
-      fname='../output/llstmp'
+      fname = param20
       open(unit=2,file=fname,status='old',form='unformatted')
       read (2) gstmp
       close(2)
@@ -1599,7 +1659,7 @@
 !!!CPEREZ1
 !-----------------------------------------------------------------------
 !!!CPEREZ1
-      fname='../output/albedorrtmcorr'
+      fname = param21
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) alvsf
       write(2) alnsf
@@ -1611,130 +1671,130 @@
       write(*,*)'*** wrote ',fname
 !!!CPEREZ1
 !-----------------------------------------------------------------------
-      fname='../output/dzsoil'
+      fname = param22
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) dznoah
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/deeptemperature'
+      fname = param7
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) dgt
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/snowalbedo'
+      fname = param8
       open(unit=2,file=fname,status='old',form='unformatted')
       write(2) snoalb
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/tskin'
+      fname = param23
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) skint
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/sst'
+      fname = param24
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) sstg ! gfs sst
 !      write(2) sst  ! sst05
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/snow'
+      fname = param25
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) snow
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/snowheight'
+      fname = param26
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) snowh
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/cice'
+      fname = param27
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) cice
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/seamaskcorr'
+      fname = param28
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) sm
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/landusecorr'
+      fname = param29
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) landuse
       close(2)
       write(*,*)'*** wrote ',fname
 !
 !!!CPEREZ1
-      fname='../output/landusenewcorr'
+      fname = param30
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) landusenew
       close(2)
       write(*,*)'*** wrote ',fname
 !!!CPEREZ1
 !
-      fname='../output/topsoiltypecorr'
+      fname = param31
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) ltopsoil
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/vegfraccorr'
+      fname = param32
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) vegfrac
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/z0corr'
+      fname = param33
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) z0
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/z0basecorr'
+      fname = param34
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) z0base
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/emissivity'
+      fname = param35
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) epsr
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/canopywater'
+      fname = param36
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) cmc
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/frozenprecratio'
+      fname = param37
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) sr
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/smst'
+      fname = param38
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) smst
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/sh2o'
+      fname = param39
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) sh2o
       close(2)
       write(*,*)'*** wrote ',fname
 !
-      fname='../output/stmp'
+      fname = param40
       open(unit=2,file=fname,status='unknown',form='unformatted')
       write(2) stmp
       close(2)
@@ -1757,7 +1817,7 @@
      &,cov,inv,jnv)
 !
 !-----------------------------------------------------------------------
-      include 'llgrid.inc'
+      include 'include/llgrid.inc'
 !-----------------------------------------------------------------------
 !
       parameter(dtr=3.1415926535897932384626433832795/180.,rtd=1./dtr)
@@ -1998,8 +2058,8 @@
 !     *************************************************************
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
-      include 'llgrid.inc'
+      include 'include/lmimjm.inc'
+      include 'include/llgrid.inc'
 !-----------------------------------------------------------------------
 !
       parameter
@@ -2086,6 +2146,41 @@
 !-----------------------------------------------------------------------
       data ntsd/0/
 !
+
+      character*256 param41, param42, param43, param21, param35, param8
+      character*256 param23, param24, param25, param26, param27, param7
+      character*256 param36, param37, param44, param33, param34, param6
+      character*256 param32, param22, param40, param38, param39 
+      character*256 param31, param29, param30, param45
+
+      call getarg(41,param41)
+      call getarg(42,param42)
+      call getarg(43,param43)
+      call getarg(21,param21)
+      call getarg(35,param35)
+      call getarg(8,param8)
+      call getarg(23,param23)
+      call getarg(24,param24)
+      call getarg(25,param25)
+      call getarg(26,param26)
+      call getarg(27,param27)
+      call getarg(7,param7)
+      call getarg(36,param36)
+      call getarg(37,param37)
+      call getarg(44,param44)
+      call getarg(33,param33)
+      call getarg(34,param34)
+      call getarg(6,param6)
+      call getarg(32,param32)
+      call getarg(22,param22)
+      call getarg(40,param40)
+      call getarg(38,param38)
+      call getarg(39,param39)
+      call getarg(31,param31)
+      call getarg(29,param29)
+      call getarg(30,param30)
+      call getarg(45,param45)
+
 !-----------------------------------------------------------------------
 !***  global data set
 !-----------------------------------------------------------------------
@@ -2203,7 +2298,7 @@
 !***  vertical coordinate
 !------------------------------------------------------------------------
 !
-      open(unit=1,file='../output/dsg'
+      open(unit=1,file=param41
      &    ,status='unknown',form='unformatted')
       read (1) pdtop,lpt2,sgm,sg1,dsg1,sgml1,sg2,dsg2,sgml2
       close(1)
@@ -3039,8 +3134,8 @@
 !-----------------------------------------------------------------------
 !
         nfcst=18
-        write(fname,'(a)')'../output/fcst'
-        open(unit=nfcst,file=fname
+        write(fname,'(a)')param45
+        open(unit=nfcst,file=param42
      &      ,status='unknown',form='unformatted')
         run=.true.
         ntsd=0
@@ -3127,7 +3222,7 @@
           enddo
 !OJORBA3
 !--end of dynamical part, beginning of physics part---------------------
-          open(unit=2,file='../output/albedo'
+          open(unit=2,file=param43
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
@@ -3136,7 +3231,7 @@
 !
           write(nfcst) padded2  ! ALBASE TEMPORAL!!!
 !!!CPEREZ1
-          open(unit=2,file='../output/albedorrtmcorr'
+          open(unit=2,file=param21
      &        ,status='old',form='unformatted')
           do k=1,6
             read (2) field
@@ -3146,133 +3241,133 @@
           close(2)
 !!!CPEREZ1
 !
-          open(unit=2,file='../output/emissivity'
+          open(unit=2,file=param35
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/snowalbedo'
+          open(unit=2,file=param8
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/tskin'
+          open(unit=2,file=param23
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/sst'
+          open(unit=2,file=param24
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/snow'
+          open(unit=2,file=param25
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/snowheight'
+          open(unit=2,file=param26
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/cice'
+          open(unit=2,file=param27
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/deeptemperature'
+          open(unit=2,file=param7
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/canopywater'
+          open(unit=2,file=param36
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/frozenprecratio'
+          open(unit=2,file=param37
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/ustar'
+          open(unit=2,file=param44
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/z0corr'
+          open(unit=2,file=param33
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/z0basecorr'
+          open(unit=2,file=param34
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-!OJORBA3          open(unit=2,file='../output/stdh'
+!OJORBA3          open(unit=2,file=param6
 !OJORBA3     &        ,status='old',form='unformatted')
 !OJORBA3          read (2) field
 !OJORBA3          call padh2(field,padded2)
 !OJORBA3          write(nfcst) padded2
 !OJORBA3          close(2)
 !
-          open(unit=2,file='../output/stmp'
+          open(unit=2,file=param40
      &        ,status='old',form='unformatted')
           read (2) fieldn
           call padhn(fieldn,paddedn,nwets)
           write(nfcst) paddedn
           close(2)
 !
-          open(unit=2,file='../output/smst'
+          open(unit=2,file=param38
      &        ,status='old',form='unformatted')
           read (2) fieldn
           call padhn(fieldn,paddedn,nwets)
           write(nfcst) paddedn
           close(2)
 !
-          open(unit=2,file='../output/sh2o'
+          open(unit=2,file=param39
      &        ,status='old',form='unformatted')
           read (2) fieldn
           call padhn(fieldn,paddedn,nwets)
           write(nfcst) paddedn
           close(2)
 !
-          open(unit=2,file='../output/topsoiltypecorr'
+          open(unit=2,file=param31
      &        ,status='old',form='unformatted')
           read (2) ifield
           call padih2(ifield,ipadded2)
           write(nfcst) ipadded2
           close(2)
 !
-          open(unit=2,file='../output/landusecorr'
+          open(unit=2,file=param29
      &        ,status='old',form='unformatted')
           read (2) ifield
           call padih2(ifield,ipadded2)
@@ -3280,7 +3375,7 @@
           close(2)
 !
 !!!CPEREZ1
-          open(unit=2,file='../output/landusenewcorr'
+          open(unit=2,file=param30
      &        ,status='old',form='unformatted')
           read (2) ifield
           call padih2(ifield,ipadded2)
@@ -3288,20 +3383,20 @@
           close(2)
 !!!CPEREZ1
 !
-          open(unit=2,file='../output/vegfraccorr'
+          open(unit=2,file=param32
      &        ,status='old',form='unformatted')
           read (2) field
           call padh2(field,padded2)
           write(nfcst) padded2
           close(2)
 !
-          open(unit=2,file='../output/dzsoil'
+          open(unit=2,file=param22
      &        ,status='old',form='unformatted')
           read (2    ) dzsoil
           write(nfcst) dzsoil
           close(2)
 !
-          open(unit=2,file='../output/dzsoil'
+          open(unit=2,file=param22
      &        ,status='old',form='unformatted')
           read (2    ) dzsoil
           write(nfcst) dzsoil
@@ -3374,7 +3469,7 @@
 !--end of dynamical part, beginning of physics part---------------------
 !-----------------------------------------------------------------------
 !
-          open(unit=2,file='../output/albedo'
+          open(unit=2,file=param43
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field 
@@ -3384,7 +3479,7 @@
 !OJORBA3
 !
 !OJORBA3!!!CPEREZ1
-          open(unit=2,file='../output/albedorrtmcorr'
+          open(unit=2,file=param21
      &        ,status='old',form='unformatted')
           do k=1,6
           read (2) field
@@ -3393,141 +3488,141 @@
           close(2)
 !OJORBA3!!!CPEREZ1
 !
-          open(unit=2,file='../output/emissivity'
+          open(unit=2,file=param35
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/snowalbedo'
+          open(unit=2,file=param8
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/tskin'
+          open(unit=2,file=param23
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/sst'
+          open(unit=2,file=param24
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/snow'
+          open(unit=2,file=param25
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/snowheight'
+          open(unit=2,file=param26
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/cice'
+          open(unit=2,file=param27
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/deeptemperature'
+          open(unit=2,file=param7
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/canopywater'
+          open(unit=2,file=param36
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/frozenprecratio'
+          open(unit=2,file=param37
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/ustar'
+          open(unit=2,file=param44
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/z0corr'
+          open(unit=2,file=param33
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/z0basecorr'
+          open(unit=2,file=param34
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-!OJORBA3          open(unit=2,file='../output/stdh'
+!OJORBA3          open(unit=2,file=param6
 !OJORBA3     &        ,status='old',form='unformatted')
 !OJORBA3          read (2    ) field
 !OJORBA3          write(nfcst) field
 !OJORBA3          close(2)
 !
-          open(unit=2,file='../output/stmp'
+          open(unit=2,file=param40
      &        ,status='old',form='unformatted')
           read (2    ) fieldn
           write(nfcst) fieldn
           close(2)
 !
-          open(unit=2,file='../output/smst'
+          open(unit=2,file=param38
      &        ,status='old',form='unformatted')
           read (2    ) fieldn
           write(nfcst) fieldn
           close(2)
 !
-          open(unit=2,file='../output/sh2o'
+          open(unit=2,file=param39
      &        ,status='old',form='unformatted')
           read (2    ) fieldn
           write(nfcst) fieldn
           close(2)
 !
-          open(unit=2,file='../output/topsoiltypecorr'
+          open(unit=2,file=param31
      &        ,status='old',form='unformatted')
           read (2    ) ifield
           write(nfcst) ifield
           close(2)
 !
-          open(unit=2,file='../output/landusecorr'
+          open(unit=2,file=param29
      &        ,status='old',form='unformatted')
           read (2    ) ifield
           write(nfcst) ifield
           close(2)
 !
 !OJORBA3!!!CPEREZ1
-          open(unit=2,file='../output/landusenewcorr'
+          open(unit=2,file=param30
      &        ,status='old',form='unformatted')
           read (2    ) ifield
           write(nfcst) ifield
           close(2)
 !OJORBA3!!!CPEREZ1
 !
-          open(unit=2,file='../output/vegfraccorr'
+          open(unit=2,file=param32
      &        ,status='old',form='unformatted')
           read (2    ) field
           write(nfcst) field
           close(2)
 !
-          open(unit=2,file='../output/dzsoil'
+          open(unit=2,file=param22
      &        ,status='old',form='unformatted')
           read (2    ) dzsoil
           write(nfcst) dzsoil
           close(2)
 !
-          open(unit=2,file='../output/dzsoil'
+          open(unit=2,file=param22
      &        ,status='old',form='unformatted')
           read (2    ) dzsoil
           write(nfcst) dzsoil
@@ -3764,7 +3859,7 @@
       subroutine padh2(h2,ph2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(imi,jmi),ph2(im,jm)
@@ -3814,7 +3909,7 @@
       subroutine padih2(ih2,iih2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension ih2(imi,jmi),iih2(im,jm)
@@ -3864,7 +3959,7 @@
       subroutine padhn(h2,ph2,km)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(km,imi,jmi),ph2(km,im,jm)
@@ -3920,7 +4015,7 @@
       subroutine padw2(w2,pw2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension w2(imi,jmi),pw2(im,jm)
@@ -3955,7 +4050,7 @@
       subroutine fix(cic,smt)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension cic(im,jm),smt(im,jm)
@@ -4004,7 +4099,7 @@
       subroutine croph2(ph2,h2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(imi,jmi),ph2(im,jm)
@@ -4028,7 +4123,7 @@
       subroutine swaph2(h2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(im,jm)
@@ -4052,7 +4147,7 @@
       subroutine poleh2(h2)
 !
 !-----------------------------------------------------------------------
-      include 'lmimjm.inc'
+      include 'include/lmimjm.inc'
 !-----------------------------------------------------------------------
 !
       dimension h2(im,jm)

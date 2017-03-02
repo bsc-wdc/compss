@@ -310,11 +310,13 @@ public class Nmmb {
         String seamask = NMMBEnvironment.OUTPUT + "seamask";
         String albedo = NMMBEnvironment.OUTPUT + "albedo";
         String albedobase = NMMBEnvironment.OUTPUT + "albedobase";
-        variableBinariesEvs[i++] = BINARY.albedo(llspl000, seamask, albedo, albedobase);
+        String albedomnth = NMMBEnvironment.GEODATA_DIR + "albedo" + File.separator + "albedomnth";
+        variableBinariesEvs[i++] = BINARY.albedo(llspl000, seamask, albedo, albedobase, albedomnth);
 
         LOGGER_VARIABLE.info("Prepare rrtm climatological albedos");
         String albedorrtm = NMMBEnvironment.OUTPUT + "albedorrtm";
-        variableBinariesEvs[i++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm);
+        String albedorrtm1degDir = NMMBEnvironment.GEODATA_DIR + "albedo_rrtm1deg" + File.separator;
+        variableBinariesEvs[i++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm, albedorrtm1degDir);
 
         LOGGER_VARIABLE.info("Prepare climatological vegetation fraction");
         String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
@@ -362,10 +364,14 @@ public class Nmmb {
         String stmp = NMMBEnvironment.OUTPUT + "stmp";
         String dsg = NMMBEnvironment.OUTPUT + "dsg";
         String fcst = NMMBEnvironment.OUTPUT + "fcst";
+        String fcstDir = NMMBEnvironment.OUTPUT + "fcst";
+        String bocoPrefix = NMMBEnvironment.OUTPUT + "boco.";
+        String llsplPrefix = NMMBEnvironment.OUTPUT + "llspl.";
         variableBinariesEvs[i++] = BINARY.allprep(llspl000, llgsst05, sst05, height, seamask, stdh, deeptemperature, snowalbedo, z0, z0base,
                 landuse, landusenew, topsoiltype, vegfrac, albedorrtm, llgsst, llgsno, llgcic, llsmst, llstmp, albedorrtmcorr, dzsoil,
                 tskin, sst, snow, snowheight, cice, seamaskcorr, landusecorr, landusenewcorr, topsoiltypecorr, vegfraccorr, z0corr,
-                z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar);
+                z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar, fcstDir, bocoPrefix,
+                llsplPrefix);
 
         LOGGER_VARIABLE.info("Prepare the dust related variable (soildust)");
         String source = NMMBEnvironment.OUTPUT + "source";
@@ -389,7 +395,7 @@ public class Nmmb {
                 System.exit(1);
             }
         }
-        
+
         /* Clean Up binaries ************************************************************/
         LOGGER_VARIABLE.info("Clean up executables");
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {

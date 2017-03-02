@@ -126,12 +126,12 @@ public class BINARY {
         return null;
     }
 
-    public static Integer albedo(String llspl000, String seamask, String albedo, String albedobase) {
+    public static Integer albedo(String llspl000, String seamask, String albedo, String albedobase, String albedomnth) {
         return null;
 
     }
 
-    public static Integer albedorrtm(String llspl000, String seamask, String albedorrtm) {
+    public static Integer albedorrtm(String llspl000, String seamask, String albedorrtm, String albedorrtm1degDir) {
         return null;
     }
 
@@ -151,7 +151,7 @@ public class BINARY {
             String albedorrtmcorr, String dzsoil, String tskin, String sst, String snow, String snowheight, String cice, String seamaskcorr,
             String landusecorr, String landusenewcorr, String topsoiltypecorr, String vegfraccorr, String z0corr, String z0basecorr,
             String emissivity, String canopywater, String frozenprecratio, String smst, String sh2o, String stmp, String dsg, String fcst,
-            String albedo, String ustar) {
+            String albedo, String ustar, String fcstDir, String bocoPrefix, String llsplPrefix) {
 
         return null;
     }

@@ -19,7 +19,7 @@ rm -f *.gfs
 
 cd $START
 rm -f gfsconv.out
-gfortran -O gfs2model_rrtm.f -o gfs2model_rrtm.exe
+gfortran -O gfs2model_rrtm.f -o gfs2model_rrtm.x
 
 echo "Read hours from $tval to $endtime"
 
@@ -267,7 +267,7 @@ do
 	echo " Start degrib to formatted data conversion process for timestep " $tval
 	echo " "
  
-	$ROOT/gfs2model_rrtm.exe $tval >> gfsconv.out
+	$ROOT/gfs2model_rrtm.x $tval >> gfsconv.out
 
 	#this might be big, let's first list, than remove it
 	ls -l $OUTDIR/*$EXTEN
@@ -281,6 +281,6 @@ done
 
 rm gfsconv.out
 rm date.txt
-rm $ROOT/gfs2model_rrtm.exe
+rm $ROOT/gfs2model_rrtm.x
 
 exit

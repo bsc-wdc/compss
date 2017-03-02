@@ -19,17 +19,18 @@ public class NMMBEnvironment {
     public static final String GEODATA_DIR = FIX + ".." + File.separator + "geodata" + File.separator;
     public static final String GTOPO_DIR = FIX + ".." + File.separator + "GTOPO30" + File.separator;
     public static final String FIX_INCLUDE_DIR = FIX + "include" + File.separator;
-    
+
     public static final String VRB = System.getenv(NMMBConstants.ENV_NAME_VRB) + File.separator;
     public static final String VRB_INCLUDE_DIR = VRB + "include" + File.separator;
-    
+
+    public static final String UMO_LIBS = UMO_PATH + "MODEL/libs/";
+
     public static final String FNL = System.getenv(NMMBConstants.ENV_NAME_FNL) + File.separator;
     public static final String GFS = System.getenv(NMMBConstants.ENV_NAME_GFS) + File.separator;
-            
 
     // ITF constants
     public static final String FIX_FOR_ITF = "/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/";
     public static final String LOOKUP_TABLES_DIR_FOR_ITF = "/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/";
     public static final String VRB_FOR_ITF = "/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/";
-    
+
 }

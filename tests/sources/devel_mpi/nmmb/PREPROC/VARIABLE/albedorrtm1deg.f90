@@ -107,10 +107,11 @@ real(kind=4), parameter :: &
                   ,258.0,288.5,319.0,349.5,380.5/     
       data month/31,28,31,30,31,30,31,31,30,31,30,31/
 
-      character*256 param1,param2,param3
+      character*256 param1,param2,param3,albedo_rrtm_dir
       call getarg(1,param1)
       call getarg(2,param2)
       call getarg(3,param3)
+      call getarg(4,albedo_rrtm_dir)
 
 !-------------read in albedo data for mnth1 and mnth2----------------
  1002 format(100i2)

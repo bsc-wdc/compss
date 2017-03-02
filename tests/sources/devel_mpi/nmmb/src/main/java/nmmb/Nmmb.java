@@ -1,7 +1,6 @@
 package nmmb;
 
 import java.io.File;
-
 import java.util.Date;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -51,11 +50,12 @@ public class Nmmb {
 
         /* Prepare execution **************************************************************/
         nmmbParams.prepareFixedExecution();
+        MessagePrinter fixedMP = new MessagePrinter(LOGGER_FIXED);
 
         /* Build the fortran executables *************************************************/
         Integer[] compilationEvs = new Integer[FortranWrapper.FIXED_FORTRAN_F90_FILES.length + FortranWrapper.FIXED_FORTRAN_F_FILES.length];
         int i = 0;
-        MessagePrinter.printInfoMsg("Building fixed executables");
+        fixedMP.printInfoMsg("Building fixed executables");
         for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
@@ -83,88 +83,88 @@ public class Nmmb {
             }
         }
 
-        MessagePrinter.printInfoMsg("Finished building fixed executables");
+        fixedMP.printInfoMsg("Finished building fixed executables");
 
         /* Begin binary calls ***********************************************************/
-        MessagePrinter.printHeaderMsg("BEGIN");
+        fixedMP.printHeaderMsg("BEGIN");
 
         final int NUM_BINARIES = 16;
         Integer[] fixedBinariesEvs = new Integer[NUM_BINARIES];
         i = 0;
 
-        MessagePrinter.printInfoMsg("Generate DEM height and sea mask files");
+        fixedMP.printInfoMsg("Generate DEM height and sea mask files");
         String topoDir = NMMBEnvironment.GEODATA_DIR + "topo1kmDEM" + File.separator;
         String seamaskDEM = NMMBEnvironment.OUTPUT + "seamaskDEM";
         String heightDEM = NMMBEnvironment.OUTPUT + "heightDEM";
         fixedBinariesEvs[i++] = BINARY.smmount(topoDir, seamaskDEM, heightDEM);
 
-        MessagePrinter.printInfoMsg("Generate landuse file");
+        fixedMP.printInfoMsg("Generate landuse file");
         String landuseDataDir = NMMBEnvironment.GEODATA_DIR + "landuse_30s" + File.separator;
         ;
         String landuse = NMMBEnvironment.OUTPUT + "landuse";
         String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
         fixedBinariesEvs[i++] = BINARY.landuse(landuseDataDir, landuse, kount_landuse);
 
-        MessagePrinter.printInfoMsg("Generate landusenew file");
+        fixedMP.printInfoMsg("Generate landusenew file");
         String landusenew = NMMBEnvironment.OUTPUT + "landusenew";
         String kount_landusenew = NMMBEnvironment.OUTPUT + "kount_landusenew";
         fixedBinariesEvs[i++] = BINARY.landusenew(NMMBEnvironment.GTOPO_DIR, landusenew, kount_landusenew);
 
-        MessagePrinter.printInfoMsg("Generate mountains");
+        fixedMP.printInfoMsg("Generate mountains");
         String topo30sDir = NMMBEnvironment.GEODATA_DIR + "topo_30s" + File.separator;
         String heightmean = NMMBEnvironment.OUTPUT + "heightmean";
         fixedBinariesEvs[i++] = BINARY.topo(topo30sDir, heightmean);
 
-        MessagePrinter.printInfoMsg("Generate standard deviation of topography height");
+        fixedMP.printInfoMsg("Generate standard deviation of topography height");
         String stdh = NMMBEnvironment.OUTPUT + "stdh";
         fixedBinariesEvs[i++] = BINARY.stdh(heightmean, seamaskDEM, topo30sDir, stdh);
 
-        MessagePrinter.printInfoMsg("Generate envelope mountains");
+        fixedMP.printInfoMsg("Generate envelope mountains");
         String height = NMMBEnvironment.OUTPUT + "height";
         fixedBinariesEvs[i++] = BINARY.envelope(heightmean, stdh, height);
 
-        MessagePrinter.printInfoMsg("Generate top soil type file");
+        fixedMP.printInfoMsg("Generate top soil type file");
         String soiltypeDir = NMMBEnvironment.GEODATA_DIR + "soiltype_top_30s" + File.separator;
         String topsoiltype = NMMBEnvironment.OUTPUT + "topsoiltype";
         fixedBinariesEvs[i++] = BINARY.topsoiltype(seamaskDEM, soiltypeDir, topsoiltype);
 
-        MessagePrinter.printInfoMsg("Generate bottom soil type file");
+        fixedMP.printInfoMsg("Generate bottom soil type file");
         String soiltypePath = NMMBEnvironment.GEODATA_DIR + "soiltype_bot_30s" + File.separator;
         String botsoiltype = NMMBEnvironment.OUTPUT + "botsoiltype";
         fixedBinariesEvs[i++] = BINARY.botsoiltype(seamaskDEM, soiltypePath, botsoiltype);
 
-        MessagePrinter.printInfoMsg("Generate sea mask and reprocess mountains");
+        fixedMP.printInfoMsg("Generate sea mask and reprocess mountains");
         String seamask = NMMBEnvironment.OUTPUT + "seamask";
         fixedBinariesEvs[i++] = BINARY.toposeamask(seamaskDEM, seamask, height, landuse, topsoiltype, botsoiltype);
 
-        MessagePrinter.printInfoMsg("Reprocess standard deviation of topography height");
+        fixedMP.printInfoMsg("Reprocess standard deviation of topography height");
         fixedBinariesEvs[i++] = BINARY.stdhtopo(seamask, stdh);
 
-        MessagePrinter.printInfoMsg("Generate deep soil temperature");
+        fixedMP.printInfoMsg("Generate deep soil temperature");
         String soiltempPath = NMMBEnvironment.GEODATA_DIR + "soiltemp_1deg" + File.separator;
         String deeptemperature = NMMBEnvironment.OUTPUT + "deeptemperature";
         fixedBinariesEvs[i++] = BINARY.deeptemperature(seamask, soiltempPath, deeptemperature);
 
-        MessagePrinter.printInfoMsg("Generate maximum snow albedo");
+        fixedMP.printInfoMsg("Generate maximum snow albedo");
         String maxsnowalbDir = NMMBEnvironment.GEODATA_DIR + "maxsnowalb" + File.separator;
         String snowalbedo = NMMBEnvironment.OUTPUT + "snowalbedo";
         fixedBinariesEvs[i++] = BINARY.snowalbedo(maxsnowalbDir, snowalbedo);
 
-        MessagePrinter.printInfoMsg("Generate vertical coordinate");
+        fixedMP.printInfoMsg("Generate vertical coordinate");
         String dsg = NMMBEnvironment.OUTPUT + "dsg";
         fixedBinariesEvs[i++] = BINARY.vcgenerator(dsg);
 
-        MessagePrinter.printInfoMsg("Generate highres roughness length for africa and asia");
+        fixedMP.printInfoMsg("Generate highres roughness length for africa and asia");
         String roughnessDir = NMMBEnvironment.GEODATA_DIR + "roughness_025s" + File.separator;
         String roughness = NMMBEnvironment.OUTPUT + "roughness";
         fixedBinariesEvs[i++] = BINARY.roughness(roughnessDir, roughness);
 
-        MessagePrinter.printInfoMsg("Generate co2 files");
+        fixedMP.printInfoMsg("Generate co2 files");
         String co2_data_dir = NMMBEnvironment.GEODATA_DIR + "co2data" + File.separator;
         String co2_trans = NMMBEnvironment.OUTPUT + "co2_trans";
         fixedBinariesEvs[i++] = BINARY.gfdlco2(dsg, co2_data_dir, co2_trans);
 
-        MessagePrinter.printInfoMsg("Generate lookup tables for aerosol scavenging collection efficiencies");
+        fixedMP.printInfoMsg("Generate lookup tables for aerosol scavenging collection efficiencies");
         String lookup_aerosol2_rh00 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh00";
         String lookup_aerosol2_rh50 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh50";
         String lookup_aerosol2_rh70 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh70";
@@ -186,7 +186,7 @@ public class Nmmb {
         }
 
         /* Clean Up binaries ************************************************************/
-        MessagePrinter.printInfoMsg("Clean up executables");
+        fixedMP.printInfoMsg("Clean up executables");
         for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
@@ -202,8 +202,8 @@ public class Nmmb {
             }
         }
 
-        /* End binary calls *************************************************************/
-        MessagePrinter.printHeaderMsg("END");
+        /* End *************************************************************************/
+        fixedMP.printHeaderMsg("END");
 
         LOGGER_FIXED.info("Fixed process finished");
     }
@@ -217,17 +217,29 @@ public class Nmmb {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    private static void doVariable(NMMBParameters nmmbParams, Date currentDate, String folderOutputCase) {
+    private static void doVariable(NMMBParameters nmmbParams, Date currentDate) {
         LOGGER_VARIABLE.info("Enter variable process");
 
         /* Prepare execution **************************************************************/
         nmmbParams.prepareVariableExecution(currentDate);
+        MessagePrinter variableMP = new MessagePrinter(LOGGER_VARIABLE);
 
         /* Build the fortran executables *************************************************/
-        Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length
-                + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length];
+        Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES.length
+                + FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length
+                + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length];
+
+        variableMP.printInfoMsg("Building variable executables");
         int i = 0;
-        LOGGER_VARIABLE.info("Building fixed executables");
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES) {
+            String object = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_OBJECT;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
+
+            compilationEvs[i++] = BINARY.fortranCompileObject(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG,
+                    FortranWrapper.CONVERT_PREFIX, FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG,
+                    FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
+                    FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.CFLAG, src, FortranWrapper.OFLAG, object);
+        }
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
             String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
@@ -245,6 +257,26 @@ public class Nmmb {
                     FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
                     FortranWrapper.OFLAG, executable, src);
         }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F_SRC;
+            String w3LibFlag = "-L" + NMMBEnvironment.UMO_LIBS + FortranWrapper.W3_LIB_DIR;
+            String bacioLibFlag = "-L" + NMMBEnvironment.UMO_LIBS + FortranWrapper.BACIO_LIB_DIR;
+            compilationEvs[i++] = BINARY.fortranCompilerWithW3(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG,
+                    FortranWrapper.CONVERT_PREFIX, FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG,
+                    FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
+                    FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, w3LibFlag, bacioLibFlag, FortranWrapper.W3_FLAG,
+                    FortranWrapper.BACIO_FLAG, FortranWrapper.OFLAG, executable, src);
+        }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F_SRC;
+            String object = NMMBEnvironment.VRB + FortranWrapper.MODULE_FLT + FortranWrapper.SUFFIX_OBJECT;
+            compilationEvs[i++] = BINARY.fortranCompileWithObject(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG,
+                    FortranWrapper.CONVERT_PREFIX, FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG,
+                    FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
+                    FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src, object);
+        }
         // Sync master to wait for compilation
         for (i = 0; i < compilationEvs.length; ++i) {
             LOGGER_VARIABLE.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
@@ -255,14 +287,16 @@ public class Nmmb {
             }
         }
 
-        MessagePrinter.printInfoMsg("Finished building fixed executables");
+        variableMP.printInfoMsg("Finished building variable executables");
 
         /* Begin binary calls ***********************************************************/
+        variableMP.printHeaderMsg("BEGIN");
+
         final int NUM_BINARIES = 12;
         Integer[] variableBinariesEvs = new Integer[NUM_BINARIES];
         i = 0;
 
-        LOGGER_VARIABLE.info("degrib gfs global data");
+        variableMP.printInfoMsg("degrib gfs global data");
         String CW = NMMBEnvironment.OUTPUT + "00_CW.dump";
         String ICEC = NMMBEnvironment.OUTPUT + "00_ICEC.dump";
         String SH = NMMBEnvironment.OUTPUT + "00_SH.dump";
@@ -284,16 +318,16 @@ public class Nmmb {
         variableBinariesEvs[i++] = BINARY.degribgfs_generic_05(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1,
                 SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD);
 
-        LOGGER_VARIABLE.info("GFS 2 Model");
+        variableMP.printInfoMsg("GFS 2 Model");
         String GFS_file = NMMBEnvironment.OUTPUT + "131140000.gfs";
         variableBinariesEvs[i++] = BINARY.gfs2model_rrtm(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1, SOILT3,
                 SOILW1, SOILW3, SST_TS, UU, WEASD, GFS_file);
 
-        LOGGER_VARIABLE.info("INC RRTM");
+        variableMP.printInfoMsg("INC RRTM");
         String deco = NMMBEnvironment.VRB_INCLUDE_DIR + "deco.inc";
         variableBinariesEvs[i++] = BINARY.inc_rrtm(GFS_file, deco);
 
-        LOGGER_VARIABLE.info("CNV RRTM");
+        variableMP.printInfoMsg("CNV RRTM");
         String llspl000 = NMMBEnvironment.OUTPUT + "llspl.000";
         String outtmp = NMMBEnvironment.OUTPUT + "llstmp";
         String outmst = NMMBEnvironment.OUTPUT + "llsmst";
@@ -302,29 +336,29 @@ public class Nmmb {
         String outcic = NMMBEnvironment.OUTPUT + "llgcic";
         variableBinariesEvs[i++] = BINARY.cnv_rrtm(GFS_file, llspl000, outtmp, outmst, outsst, outsno, outcic, deco);
 
-        LOGGER_VARIABLE.info("Degrib 0.5 deg sst");
+        variableMP.printInfoMsg("Degrib 0.5 deg sst");
         String llgsst05 = NMMBEnvironment.OUTPUT + "llgsst05";
         String sstfileinPath = NMMBEnvironment.OUTPUT + "sst2dvar_grb_0.5";
         variableBinariesEvs[i++] = BINARY.degribsst(llgsst05, sstfileinPath);
 
-        LOGGER_VARIABLE.info("Prepare climatological albedo");
+        variableMP.printInfoMsg("Prepare climatological albedo");
         String seamask = NMMBEnvironment.OUTPUT + "seamask";
         String albedo = NMMBEnvironment.OUTPUT + "albedo";
         String albedobase = NMMBEnvironment.OUTPUT + "albedobase";
         String albedomnth = NMMBEnvironment.GEODATA_DIR + "albedo" + File.separator + "albedomnth";
         variableBinariesEvs[i++] = BINARY.albedo(llspl000, seamask, albedo, albedobase, albedomnth);
 
-        LOGGER_VARIABLE.info("Prepare rrtm climatological albedos");
+        variableMP.printInfoMsg("Prepare rrtm climatological albedos");
         String albedorrtm = NMMBEnvironment.OUTPUT + "albedorrtm";
         String albedorrtm1degDir = NMMBEnvironment.GEODATA_DIR + "albedo_rrtm1deg" + File.separator;
         variableBinariesEvs[i++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm, albedorrtm1degDir);
 
-        LOGGER_VARIABLE.info("Prepare climatological vegetation fraction");
+        variableMP.printInfoMsg("Prepare climatological vegetation fraction");
         String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
         String vegfracmnth = NMMBEnvironment.GEODATA_DIR + "vegfrac" + File.separator + "vegfracmnth";
         variableBinariesEvs[i++] = BINARY.vegfrac(llspl000, seamask, vegfrac, vegfracmnth);
 
-        LOGGER_VARIABLE.info("Prepare z0 and initial ustar");
+        variableMP.printInfoMsg("Prepare z0 and initial ustar");
         String landuse = NMMBEnvironment.OUTPUT + "landuse";
         String topsoiltype = NMMBEnvironment.OUTPUT + "topsoiltype";
         String height = NMMBEnvironment.OUTPUT + "height";
@@ -334,7 +368,7 @@ public class Nmmb {
         String ustar = NMMBEnvironment.OUTPUT + "ustar";
         variableBinariesEvs[i++] = BINARY.z0vegfrac(seamask, landuse, topsoiltype, height, stdh, vegfrac, z0base, z0, ustar);
 
-        LOGGER_VARIABLE.info("Interpolate to model grid and execute allprep (fcst)");
+        variableMP.printInfoMsg("Interpolate to model grid and execute allprep (fcst)");
         String sst05 = NMMBEnvironment.OUTPUT + "sst05";
         String deeptemperature = NMMBEnvironment.OUTPUT + "deeptemperature";
         String snowalbedo = NMMBEnvironment.OUTPUT + "snowalbedo";
@@ -375,12 +409,12 @@ public class Nmmb {
                 z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar, fcstDir, bocoPrefix,
                 llsplPrefix);
 
-        LOGGER_VARIABLE.info("Prepare the dust related variable (soildust)");
+        variableMP.printInfoMsg("Prepare the dust related variable (soildust)");
         String source = NMMBEnvironment.OUTPUT + "source";
         String sourceNETCDF = NMMBEnvironment.OUTPUT + "source.nc";
         variableBinariesEvs[i++] = BINARY.readpaulsource(seamask, source, sourceNETCDF);
 
-        LOGGER_VARIABLE.info("Dust Start");
+        variableMP.printInfoMsg("Dust Start");
         String soildust = NMMBEnvironment.OUTPUT + "soildust";
         String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
         String kount_landusenew = NMMBEnvironment.OUTPUT + "kount_landusenew";
@@ -398,8 +432,17 @@ public class Nmmb {
             }
         }
 
+        variableMP.printHeaderMsg("END");
+
         /* Clean Up binaries ************************************************************/
-        LOGGER_VARIABLE.info("Clean up executables");
+        variableMP.printInfoMsg("Clean up executables");
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
             String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
@@ -414,8 +457,23 @@ public class Nmmb {
                 f.delete();
             }
         }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
 
         /* Post execution **************************************************************/
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
         nmmbParams.postVariableExecution(folderOutputCase);
 
         LOGGER_VARIABLE.info("Variable process finished");
@@ -483,17 +541,19 @@ public class Nmmb {
         Date currentDate = nmmbParams.START_DATE;
         while (!currentDate.after(nmmbParams.END_DATE)) {
             String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-            String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) : String.valueOf(nmmbParams.HOUR);
+            // TODO String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) :
+            // String.valueOf(nmmbParams.HOUR);
 
             LOGGER_MAIN.info(currentDateSTR + " simulation started");
 
             // Define model output folder by case and date
-            String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
-            String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR + hourSTR;
+            // TODO String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
+            // TODO String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR +
+            // hourSTR;
 
             // Vrbl process
             if (nmmbParams.DO_VRBL) {
-                doVariable(nmmbParams, currentDate, folderOutputCase);
+                doVariable(nmmbParams, currentDate);
             }
 
             // UMO model run
@@ -512,4 +572,5 @@ public class Nmmb {
             currentDate = Date.from(currentDate.toInstant().plusSeconds(NMMBConstants.ONE_DAY_IN_SECONDS));
         }
     }
+
 }

@@ -279,8 +279,6 @@ public class NMMBParameters {
     }
 
     public void prepareVariableExecution(Date currentDate) {
-        LOGGER_VARIABLE.debug("   - OUTPUT PATH : " + NMMBEnvironment.OUTPUT);
-
         // Clean specific files
         final String[] outputFiles = new String[] { "sst2dvar_grb_0.5", "fcst", "llstmp", "llsmst", "llgsno", "llgcic", "llgsst",
                 "llspl.000", "llgsst05", "albedo", "albase", "vegfrac", "z0base", "z0", "ustar", "sst05", "dzsoil", "tskin", "sst", "snow",
@@ -312,7 +310,7 @@ public class NMMBParameters {
         if (!FileManagement.deleteFile(sstgrbFilePath)) {
             LOGGER_VARIABLE.debug("Cannot erase previous sstgrb because it doesn't exist.");
         }
-        
+
         String llgridFilePath = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid.inc";
         if (!FileManagement.deleteFile(llgridFilePath)) {
             LOGGER_VARIABLE.debug("Cannot erase previous llgrid.inc because it doesn't exist.");
@@ -321,8 +319,8 @@ public class NMMBParameters {
         // Prepare files
         String fullDate = NMMBConstants.STR_TO_DATE.format(currentDate);
         String compactDate = NMMBConstants.COMPACT_STR_TO_DATE.format(currentDate);
-        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
         String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
 
         String llgridSrcFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid_rrtm_" + TYPE_GFSINIT + ".tmp";
         String llgridFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid.inc";
@@ -344,12 +342,14 @@ public class NMMBParameters {
             System.exit(1);
         }
 
-        // Check domain
         if (DOMAIN) {
             if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
                 try {
                     String link = NMMBEnvironment.FNL + "fnl_" + fullDate + "_" + hourSTR + "_00";
                     String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
+                    if (!FileManagement.deleteFile(link)) {
+                        LOGGER_VARIABLE.debug("Cannot erase previous link " + link + " because it doesn't exist.");
+                    }
                     Files.createSymbolicLink(Paths.get(link), Paths.get(target));
                 } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
                     LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
@@ -390,6 +390,9 @@ public class NMMBParameters {
 
                         String link = NMMBEnvironment.FNL + "fnl_" + dayDateStr + "_" + hDayStr + "_00";
                         String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
+                        if (!FileManagement.deleteFile(link)) {
+                            LOGGER_VARIABLE.debug("Cannot erase previous link " + link + " because it doesn't exist.");
+                        }
                         Files.createSymbolicLink(Paths.get(link), Paths.get(target));
                     } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
                         LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
@@ -489,7 +492,6 @@ public class NMMBParameters {
             LOGGER_VARIABLE.error("Aborting...");
             System.exit(1);
         }
-
     }
 
     public void postVariableExecution(String targetFolder) {

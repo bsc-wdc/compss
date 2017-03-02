@@ -6,18 +6,49 @@ public class BINARY {
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
-     * ******************** FIXED STEP *******************************************************************
+     * ******************** COMPILE STEP *****************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-
     public static Integer fortranCompiler(String mcFlag, String sharedFlag, String covertPrefix, String convertValue, String tracebackFlag,
             String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue, String stackFlag,
             String oFlag, String executable, String source) {
 
         return null;
     }
+
+    public static Integer fortranCompileObject(String mcFlag, String sharedFlag, String covertPrefix, String convertValue,
+            String tracebackFlag, String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue,
+            String stackFlag, String cFlag, String source, String oFlag, String object) {
+
+        return null;
+    }
+
+    public static Integer fortranCompileWithObject(String mcFlag, String sharedFlag, String covertPrefix, String convertValue,
+            String tracebackFlag, String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue,
+            String stackFlag, String oFlag, String executable, String source, String object) {
+
+        return null;
+    }
+
+    public static Integer fortranCompilerWithW3(String mcFlag, String sharedFlag, String covertPrefix, String convertValue,
+            String tracebackFlag, String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue,
+            String stackFlag, String w3libDir, String bacioLibDir, String w3Lib, String bacioLib, String oFlag, String executable,
+            String source) {
+
+        return null;
+    }
+
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** FIXED STEP *******************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
 
     public static Integer smmount(String topoDir, String seamaskDEM, String heightDEM) {
         return null;

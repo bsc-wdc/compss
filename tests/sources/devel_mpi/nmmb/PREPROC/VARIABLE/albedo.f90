@@ -4,7 +4,7 @@ program albedoprog
 !-----------------------------------------------------------------------
 implicit none
 !-----------------------------------------------------------------------
-include 'modelgrid.inc'
+include 'include/modelgrid.inc'
 !-----------------------------------------------------------------------
 !    note:  this subroutine and interpolation algorithm assume
 !    a 0.144-deg global field in the following format:
@@ -64,6 +64,14 @@ integer(kind=2),dimension(1:idatamax,1:jdatamax):: &
 ,ialbp 
 !-----------------------------------------------------------------------
       data month/31,28,31,30,31,30,31,31,30,31,30,31/
+
+      character*256 param1,param2,param3,param4,param5
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+      call getarg(4,param4)
+      call getarg(5,param5)
+
 !-------------read in albedo data for mnth1 and mnth2----------------
  1002 format(100i2)
  1100 format(100f4.2)
@@ -93,12 +101,12 @@ integer(kind=2),dimension(1:idatamax,1:jdatamax):: &
         enddo
       enddo
 !----------------------------------------------------------------------
-      infile='../output/seamask'
+      infile = param2
       open(unit=1,file=infile,status='old',form='unformatted')
       read(1) seamask
       close(1)
 !----------------------------------------------------------------------
-      infile='../output/llspl.000'
+      infile = param1
       open(unit=1,file=infile,status='old',form='unformatted')
       read(1) run,idat,ihrst
       close(1)
@@ -139,18 +147,14 @@ integer(kind=2),dimension(1:idatamax,1:jdatamax):: &
       if(mnth2.gt.12) mnth2=1
 !-------------read in albedo data for mnth1 and mnth2-------------------
       write(sfx,'(i2.2)') mnth1
-      infile= &
-      '../geodata/albedo/albedomnth'//sfx// &
-      '.ascii'
+      infile = trim(param5) // sfx // '.ascii'
       open(unit=2,file=infile,status='unknown',form='formatted')
       read(2,1002) ialb
       close(2)
       print*,'albedo read data for month',mnth1
 !
       write(sfx,'(i2.2)') mnth2
-      infile= &
-      '../geodata/albedo/albedomnth'//sfx// &
-      '.ascii'
+      infile= trim(param5) // sfx // '.ascii'
       open(unit=2,file=infile,status='unknown',form='formatted')
       read(2,1002) ialbp
       close(2)
@@ -255,11 +259,11 @@ integer(kind=2),dimension(1:idatamax,1:jdatamax):: &
         write(*,1100) (albedo(i,j),i=1,imi,40)
       enddo
 !-----------------------------------------------------------------------
-      outfile='../output/albedo'
+      outfile = param3
       open(unit=2,file=outfile,status='unknown',form='unformatted')
       write(2) albedo
       close(2)
-      outfile='../output/albase'
+      outfile = param4
       open(unit=2,file=outfile,status='unknown',form='unformatted')
       write(2) albedo
       close(2)

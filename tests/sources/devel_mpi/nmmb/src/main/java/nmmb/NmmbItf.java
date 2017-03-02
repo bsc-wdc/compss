@@ -236,14 +236,16 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String albedo,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedobase
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedobase,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String albedomnth
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO_RRTM_1DEG + FortranWrapper.SUFFIX_EXE)
     void albedorrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedorrtm
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String albedorrtm,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String albedorrtm1degDir
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.VEG_FRAC + FortranWrapper.SUFFIX_EXE)
@@ -311,7 +313,10 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.IN) String dsg,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String fcst,
         @Parameter(type = Type.FILE, direction = Direction.IN) String albedo,
-        @Parameter(type = Type.FILE, direction = Direction.IN) String ustar
+        @Parameter(type = Type.FILE, direction = Direction.IN) String ustar,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String fcstDir, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bocoPrefix, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String llsplPrefix
     );
     
     

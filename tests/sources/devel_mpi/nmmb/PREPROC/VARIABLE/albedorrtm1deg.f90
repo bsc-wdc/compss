@@ -15,8 +15,8 @@ program albedo4season
 !-----------------------------------------------------------------------
 implicit none
 !-----------------------------------------------------------------------
-include 'modelgrid.inc'
-include 'llgrid_rrtm1deg.inc'
+include 'include/modelgrid.inc'
+include 'include/llgrid_rrtm1deg.inc'
 !-----------------------------------------------------------------------
 character(2):: &
  sfx
@@ -106,6 +106,12 @@ real(kind=4), parameter :: &
       data dayhf/ 15.5, 45.0, 74.5,105.0,135.5,166.0,196.5,227.5  &
                   ,258.0,288.5,319.0,349.5,380.5/     
       data month/31,28,31,30,31,30,31,31,30,31,30,31/
+
+      character*256 param1,param2,param3
+      call getarg(1,param1)
+      call getarg(2,param2)
+      call getarg(3,param3)
+
 !-------------read in albedo data for mnth1 and mnth2----------------
  1002 format(100i2)
  1100 format(100f5.1)
@@ -137,12 +143,12 @@ real(kind=4), parameter :: &
         enddo
       enddo
 !----------------------------------------------------------------------
-      infile='../output/seamask'
+      infile = param2
       open(unit=1,file=infile,status='old',form='unformatted')
       read(1) seamask
       close(1)
 !----------------------------------------------------------------------
-      infile='../output/llspl.000'
+      infile = param1
       open(unit=1,file=infile,status='old',form='unformatted')
       read(1) run,idat,ihrst
       close(1)
@@ -228,23 +234,23 @@ real(kind=4), parameter :: &
       write(sfx,'(i2.2)') sea1
 !
       print*,'sfx=',sfx
-      infile='../geodata/albedo_rrtm1deg/alvsf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alvsf' // sfx
       print*,'infile=',infile
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alvsf_sea1
       close(2)
 !
-      infile='../geodata/albedo_rrtm1deg/alnsf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alnsf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alnsf_sea1
       close(2)
 !
-      infile='../geodata/albedo_rrtm1deg/alvwf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alvwf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alvwf_sea1
       close(2)
 !
-      infile='../geodata/albedo_rrtm1deg/alnwf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alnwf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alnwf_sea1
       close(2)
@@ -252,7 +258,7 @@ real(kind=4), parameter :: &
 
       write(sfx,'(i2.2)') sea2
 !
-      infile='../geodata/albedo_rrtm1deg/alvsf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alvsf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alvsf_sea2
       close(2)
@@ -263,27 +269,27 @@ real(kind=4), parameter :: &
       enddo
 
 
-      infile='../geodata/albedo_rrtm1deg/alnsf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alnsf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alnsf_sea2
       close(2)
 !
-      infile='../geodata/albedo_rrtm1deg/alvwf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alvwf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alvwf_sea2
       close(2)
 !
-      infile='../geodata/albedo_rrtm1deg/alnwf'//sfx
+      infile = trim(albedo_rrtm_dir) // 'alnwf' // sfx
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) alnwf_sea2
       close(2)
 !--------------------------------------------------------------------------------------
-      infile='../geodata/albedo_rrtm1deg/facsf'
+      infile = trim(albedo_rrtm_dir) // 'facsf'
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) gfacsf
       close(2)
 !--------------------------------------------------------------------------------------
-      infile='../geodata/albedo_rrtm1deg/facwf'
+      infile = trim(albedo_rrtm_dir) // 'facwf'
       open(unit=2,file=infile,status='unknown',form='unformatted')
       read(2) gfacwf
       close(2)
@@ -357,7 +363,7 @@ real(kind=4), parameter :: &
       print*,'----------------------------------------------------------'
 
 !-----------------------------------------------------------------------
-      outfile='../output/albedorrtm'
+      outfile = param3
       open(unit=2,file=outfile,status='unknown',form='unformatted')
       write(2) alvsf*0.01
       write(2) alnsf*0.01
@@ -375,11 +381,11 @@ endprogram albedo4season
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       subroutine gtllhnewalb(coh,inh,jnh)
 !-----------------------------------------------------------------------
-      include 'modelgrid.inc'
+      include 'include/modelgrid.inc'
 !-----------------------------------------------------------------------
       parameter(dtr=3.1415926535897932384626433832795/180.)
 !------ llgrid05.inc for 0.5 deg sst data-------------------------------
-      include 'llgrid_rrtm1deg.inc'
+      include 'include/llgrid_rrtm1deg.inc'
 !-----------------------------------------------------------------------
       dimension coh(3,imi,jmi),inh(4,imi,jmi),jnh(4,imi,jmi)
 !

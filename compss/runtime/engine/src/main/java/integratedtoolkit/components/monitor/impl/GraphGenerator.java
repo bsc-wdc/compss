@@ -30,7 +30,7 @@ public class GraphGenerator {
     private static final boolean drawGraph = System.getProperty(ITConstants.IT_GRAPH) != null
             && "true".equals(System.getProperty(ITConstants.IT_GRAPH)) ? true : false;
     private static final boolean graphGeneratorEnabled = monitorEnabled || drawGraph;
-    
+
     // Graph filenames constants
     private static final String CURRENT_GRAPH_FILENAME = "current_graph.dot";
     private static final String COMPLETE_GRAPH_FILENAME = "complete_graph.dot";
@@ -120,8 +120,7 @@ public class GraphGenerator {
     }
 
     /*
-     * ****************************************************************** 
-     * PUBLIC STATIC METHODS
+     * ****************************************************************** PUBLIC STATIC METHODS
      ******************************************************************/
 
     /**
@@ -143,8 +142,7 @@ public class GraphGenerator {
     }
 
     /*
-     * ******************************************************************
-     * PUBLIC METHODS
+     * ****************************************************************** PUBLIC METHODS
      ******************************************************************/
     /**
      * Opens and initializes the current graph buffer file
@@ -185,10 +183,8 @@ public class GraphGenerator {
             full_graph.close();
             FileChannel sourceChannel = null;
             FileChannel destChannel = null;
-            try (
-                 FileInputStream sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
-                 FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE)
-                ) {
+            try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_GRAPH_TMP_FILE);
+                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE)) {
                 sourceChannel = sourceFIS.getChannel();
                 destChannel = destFOS.getChannel();
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
@@ -214,10 +210,8 @@ public class GraphGenerator {
             legend.close();
             sourceChannel = null;
             destChannel = null;
-            try (
-                 FileInputStream sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
-                 FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true)
-                ) {
+            try (FileInputStream sourceFIS = new FileInputStream(COMPLETE_LEGEND_TMP_FILE);
+                    FileOutputStream destFOS = new FileOutputStream(COMPLETE_GRAPH_FILE, true)) {
                 sourceChannel = sourceFIS.getChannel();
                 destChannel = destFOS.getChannel();
                 destChannel.position(destChannel.size());
@@ -254,6 +248,21 @@ public class GraphGenerator {
             full_graph.newLine();
             full_graph.write(
                     "Synchro" + synchId + "[label=\"sync\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
+        } catch (IOException e) {
+            logger.error(ERROR_ADDING_DATA, e);
+        }
+    }
+
+    /**
+     * Adds a barrier node to the graph
+     * 
+     * @param synchId
+     */
+    public void addBarrierToGraph(int synchId) {
+        try {
+            full_graph.newLine();
+            full_graph.write(
+                    "Synchro" + synchId + "[label=\"barrier\", shape=octagon, style=filled fillcolor=\"#ff0000\" fontcolor=\"#FFFFFF\"];");
         } catch (IOException e) {
             logger.error(ERROR_ADDING_DATA, e);
         }
@@ -308,8 +317,7 @@ public class GraphGenerator {
     }
 
     /*
-     * ****************************************************************** 
-     * PRIVATE STATIC METHODS
+     * ****************************************************************** PRIVATE STATIC METHODS
      ******************************************************************/
     private static void emptyFullGraph() throws IOException {
         openGraphFile(full_graph);

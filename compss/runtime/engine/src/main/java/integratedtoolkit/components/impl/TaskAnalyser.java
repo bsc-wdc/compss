@@ -77,6 +77,7 @@ public class TaskAnalyser {
     private static final boolean drawGraph = GraphGenerator.isEnabled();
 
     private static int synchronizationId;
+    private static boolean taskDetectedAfterSync;
 
 
     /**
@@ -123,9 +124,11 @@ public class TaskAnalyser {
         TaskDescription params = currentTask.getTaskDescription();
         LOGGER.info("New " + (params.getType() == TaskType.METHOD ? "method" : "service") + " task(" + params.getName() + "), ID = "
                 + currentTask.getId());
+
         if (drawGraph) {
             this.GM.addTaskToGraph(currentTask);
-            if (synchronizationId > 0) {
+            taskDetectedAfterSync = true;
+            if (synchronizationId > 1) {
                 this.GM.addEdgeToGraph("Synchro" + synchronizationId, String.valueOf(currentTask.getId()), "");
             }
         }
@@ -261,31 +264,36 @@ public class TaskAnalyser {
     private void checkDependencyForRead(Task currentTask, DependencyParameter dp) {
         int dataId = dp.getDataAccessId().getDataId();
         Task lastWriter = writers.get(dataId);
-        if (lastWriter != null && lastWriter != currentTask) { // avoid self-dependencies
-            if (DEBUG) {
-                LOGGER.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
-                LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
-            }
 
-            if (drawGraph) {
-                try {
-                    boolean b = true;
+        if (lastWriter != null) {
+            if (lastWriter != currentTask) {
+                if (DEBUG) {
+                    LOGGER.debug("Last writer for datum " + dp.getDataAccessId().getDataId() + " is task " + lastWriter.getId());
+                    LOGGER.debug("Adding dependency between task " + lastWriter.getId() + " and task " + currentTask.getId());
+                }
+
+                // Draw dependency to graph
+                if (drawGraph) {
+                    boolean dependency = true;
                     for (Task t : lastWriter.getSuccessors()) {
                         if (t.getId() == currentTask.getId()) {
-                            b = false;
+                            dependency = false;
                         }
                     }
-                    if (b) {
+                    if (dependency) {
                         this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), String.valueOf(currentTask.getId()),
                                 String.valueOf(dp.getDataAccessId().getDataId()));
                     }
-                } catch (Exception e) {
-                    LOGGER.error("Error drawing dependency in graph", e);
+                }
+
+                // Add dependency
+                currentTask.addDataDependency(lastWriter);
+            } else {
+                // Last writer is task. Add sync to graph if needed
+                if (drawGraph) {
+                    this.GM.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
                 }
             }
-            currentTask.addDataDependency(lastWriter);
-        } else if (drawGraph && lastWriter != null) {
-            this.GM.addEdgeToGraph("Synchro" + (synchronizationId), String.valueOf(currentTask.getId()), "");
         }
     }
 
@@ -317,6 +325,7 @@ public class TaskAnalyser {
             }
             idsWritten.add(dataId);
         }
+
         if (DEBUG) {
             LOGGER.debug("New writer for datum " + dp.getDataAccessId().getDataId() + " is task " + currentTaskId);
         }
@@ -346,9 +355,9 @@ public class TaskAnalyser {
 
         /*
          * Treat end of task
-         */ 
+         */
         LOGGER.debug("Ending task " + taskId);
-        
+
         // Free dependencies
         Long appId = task.getAppId();
         Integer taskCount = appIdToTaskCount.get(appId) - 1;
@@ -450,24 +459,31 @@ public class TaskAnalyser {
         Semaphore sem = request.getSemaphore();
         Task lastWriter = writers.get(dataId);
 
-        // Graph description information
-        if (drawGraph && lastWriter != null) {
+        if (lastWriter != null) {
+            // Add to writers if needed
             if (am == AccessMode.RW) {
                 writers.put(dataId, null);
             }
-            synchronizationId++;
-            try {
-                this.GM.addSynchroToGraph(synchronizationId);
-                this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
 
-                if (synchronizationId > 0) {
-                    this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, String.valueOf(dataId));
+            // Add graph description
+            if (drawGraph) {
+                if (taskDetectedAfterSync) {
+                    taskDetectedAfterSync = false;
+                    
+                    synchronizationId++;
+                    this.GM.addSynchroToGraph(synchronizationId);
+                    if (synchronizationId > 1) {
+                        this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, "");
+                    }
                 }
-            } catch (Exception e) {
-                LOGGER.error("Error adding task to graph file", e);
+                
+                if (lastWriter.getSuccessors().isEmpty()) {
+                    this.GM.addEdgeToGraph(String.valueOf(lastWriter.getId()), "Synchro" + synchronizationId, String.valueOf(dataId));
+                }
             }
         }
 
+        // Release task if possible. Otherwise add to waiting
         if (lastWriter == null || lastWriter.getStatus() == TaskState.FINISHED) {
             sem.release();
         } else {
@@ -489,8 +505,23 @@ public class TaskAnalyser {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
 
-        // We can draw the graph on a barrier while we wait for tasks
         if (drawGraph) {
+            // Add sync to graph and dependencies to all writing tasks
+            if (taskDetectedAfterSync) {
+                synchronizationId++;
+                taskDetectedAfterSync = false;
+            }
+
+            this.GM.addBarrierToGraph(synchronizationId);
+            for (Task writer : writers.values()) {
+                this.GM.addEdgeToGraph(String.valueOf(writer.getId()), "Synchro" + synchronizationId, "");
+            }
+
+            if (synchronizationId > 1) {
+                this.GM.addEdgeToGraph("Synchro" + (synchronizationId - 1), "Synchro" + synchronizationId, "");
+            }
+
+            // We can draw the graph on a barrier while we wait for tasks
             this.GM.commitGraph();
         }
 

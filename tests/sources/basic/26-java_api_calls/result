@@ -25,6 +25,45 @@
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
   fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter1=$(cat ${output_file} | grep "Initial counter1 value is" |  awk {' print $NF '})
+  final_counter_got1=$(cat ${output_file} | grep "Final counter1 value is" |  awk {' print $NF '})
+  final_counter_expected1=$((init_counter1+1))
+
+  # Report result status
+  if [ "$final_counter_got1" != "$final_counter_expected1" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
+     echo "EXPECTED FIRST INCREMENT: $final_counter_expected1" | tee -a ${output_file}
+     echo "GOT:      $final_counter_got1" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Compute result status
+  init_counter2=$(cat ${output_file} | grep "Initial counter2 value is" | awk {' print $NF '})
+  final_counter_got2=$(cat ${output_file} | grep "Final counter2 value is" | awk {' print $NF '})
+  final_counter_expected2=$((init_counter1+1))
+
+  # Report result status
+  if [ "$final_counter_got2" != "$final_counter_expected2" ]; then
+     echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
+     echo "EXPECTED FIRST INCREMENT: $final_counter_expected2" | tee -a ${output_file}
+     echo "GOT:      $final_counter_got2" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Check barrier
+  barrier=$(cat ${output_file} | egrep -o "Creating task|Barrier")
+  expectedBarrier=$'Creating task\nBarrier\nCreating task'
+  if [ "$barrier" != "$expectedBarrier" ]; then
+     echo "ERROR ON BARRIER" | tee -a ${output_file}
+     echo "EXPECTED: $expectedBarrier" | tee -a ${output_file}
+     echo "GOT:      $barrier" | tee -a ${output_file}
+     exit 1
+  fi
 
   #---------------------------------------------------------------------------------- 
   # Report result status

@@ -54,7 +54,9 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String cFlag, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String source, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
-        @Parameter(type = Type.STRING, direction = Direction.IN) String object
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String object,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String moduleFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String moduleDir
     );
     
     @Binary(binary = FortranWrapper.FC)
@@ -73,7 +75,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String executable,
         @Parameter(type = Type.STRING, direction = Direction.IN) String source, 
-        @Parameter(type = Type.STRING, direction = Direction.IN) String object
+        @Parameter(type = Type.FILE, direction = Direction.IN) String object
     );
     
     @Binary(binary = FortranWrapper.FC)
@@ -89,13 +91,13 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelPrefix, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String fpmodelValue,
         @Parameter(type = Type.STRING, direction = Direction.IN) String stackFlag,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source,
         @Parameter(type = Type.STRING, direction = Direction.IN) String w3libDir, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLibDir,
         @Parameter(type = Type.STRING, direction = Direction.IN) String w3Lib,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLib,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
-        @Parameter(type = Type.STRING, direction = Direction.IN) String executable, 
-        @Parameter(type = Type.FILE, direction = Direction.IN) String source
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLib
     );
     
     
@@ -252,7 +254,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String SST_TS,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String UU,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String WEASD
-    );
+    );    
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.GFS2MODEL + FortranWrapper.SUFFIX_EXE)
     Integer gfs2model_rrtm(

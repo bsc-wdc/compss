@@ -20,6 +20,7 @@ public class FortranWrapper {
     public static final String STACK_FLAG = "-fp-stack-check";
     public static final String CFLAG = "-c";
     public static final String OFLAG = "-o";
+    public static final String MODULE_FLAG = "-module";
 
     public static final String W3_LIB_DIR = "w3lib-2.0.2/";
     public static final String BACIO_LIB_DIR = "bacio/";
@@ -66,7 +67,7 @@ public class FortranWrapper {
     public static final String DUST_START = "dust_start";
     public static final String GFS2MODEL = "gfs2model_rrtm";
     public static final String INC_RRTM = "inc_rrtm";
-    public static final String MODULE_FLT = "module_flt"; // used by all prep
+    public static final String MODULE_FLT = "module_flt"; // used by all_prep
     public static final String VEG_FRAC = "vegfrac";
     public static final String Z0_VEGUSTAR = "z0vegustar";
 

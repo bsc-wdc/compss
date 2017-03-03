@@ -20,7 +20,7 @@ public class BINARY {
 
     public static Integer fortranCompileObject(String mcFlag, String sharedFlag, String covertPrefix, String convertValue,
             String tracebackFlag, String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue,
-            String stackFlag, String cFlag, String source, String oFlag, String object) {
+            String stackFlag, String cFlag, String source, String oFlag, String object, String moduleFlag, String moduleDir) {
 
         return null;
     }
@@ -34,8 +34,8 @@ public class BINARY {
 
     public static Integer fortranCompilerWithW3(String mcFlag, String sharedFlag, String covertPrefix, String convertValue,
             String tracebackFlag, String assumePrefix, String assumeValue, String optFlag, String fpmodelPrefix, String fpmodelValue,
-            String stackFlag, String w3libDir, String bacioLibDir, String w3Lib, String bacioLib, String oFlag, String executable,
-            String source) {
+            String stackFlag, String oFlag, String executable, String source, String w3libDir, String bacioLibDir, String w3Lib,
+            String bacioLib) {
 
         return null;
     }

@@ -7,9 +7,10 @@
       include 'include/llgrid.inc'
 !!! KARSTEN
 !-----------------------------------------------------------------------
-      character*64 fname,infile
+      character*64 fname,infile,decofile
       data fname/'                                                    '/
       data infile/'                                                   '/
+      data decofile/'                                                 '/
 !-----------------------------------------------------------------------
       character*2 gproj
       real*4 alat1,alat2,alon0
@@ -84,7 +85,8 @@
 !
 !----------------------------------------------------------------------
 !
-      open(unit=3,file=param2
+      decofile = trim(param2) // 'include/deco.inc'
+      open(unit=3,file=decofile
      &     ,status='unknown',form='formatted')
       write(3,2200) bowest,bosout
      &             ,boeast,bonort

@@ -22,7 +22,7 @@ program read_paul_source
   include 'include/ginouxgrid.inc'  
 
   ! This is the name of the data file we will read. 
-  character (len = *), parameter :: FILE_NAME = "include/dust_source_0.25x0.25.nc"
+  character (len = *), parameter :: FILE_NAME = "dust_source_0.25x0.25.nc"
 
   ! We are reading 2D data, a 6 x 12 grid. 
   integer, parameter :: NX = 1440, NY = 720
@@ -54,11 +54,12 @@ program read_paul_source
   character (len = *), parameter :: LAT_UNITS = "degrees_north"
   character (len = *), parameter :: LON_UNITS = "degrees_east"
 
-  character*256 param1, param2, param3
+  character*256 param1, param2, param3,param4,dustSrc
 
   call getarg(1,param1)
   call getarg(2,param2)
   call getarg(3,param3)
+  call getarg(4,param4)
 
 !-----------------------------------------------------------------------
 !
@@ -69,7 +70,8 @@ program read_paul_source
 
   ! Open the file. NF90_NOWRITE tells netCDF we want read-only access to
   ! the file.
-  call check( nf90_open(FILE_NAME, NF90_NOWRITE, ncid) )
+  dustSrc = trim(param4) // FILE_NAME
+  call check( nf90_open(dustSrc, NF90_NOWRITE, ncid) )
 
   ! Get the varids of the latitude and longitude coordinate variables.
   call check( nf90_inq_varid(ncid, "lat", lat_varid) )

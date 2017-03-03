@@ -26,73 +26,73 @@
     variable=$(echo ${line} | gawk -F":" '{print $4}')
     level=$(echo ${line} | gawk -F":" '{print $12}' | gawk -F" " '{print $1}')
           
-    if [ $variable = "TMP" -a $level = "sfc" ]; then
+    if [ "$variable" == "TMP" ] && [ "$level" == "sfc" ]; then
       echo $code $variable $level
       echo " Dumping SST/TS from gribfile "
       wgrib -d $code $GRIBFILE -o ${16}
     fi
           
-    if [ $variable = "TMP" -a $level = "0-10" ];then
+    if [ "$variable" == "TMP" ] && [ "$level" == "0-10" ]; then
       echo $code $variable $level
       echo " Dumping SOILT level 1 from gribfile "
       wgrib -d $code $GRIBFILE -o ${12}
     fi
           
-    if [ $variable = "TMP" -a $level = "10-40" ]; then
+    if [ "$variable" == "TMP" ] && [ "$level" == "10-40" ]; then
       echo $code $variable $level
       echo " Dumping SOILT level 2 from gribfile "
       wgrib -d $code $GRIBFILE -o $4
     fi
               
-    if [ $variable = "TMP" -a $level = "40-100" ]; then
+    if [ "$variable" == "TMP" ] && [ "$level" == "40-100" ]; then
       echo $code $variable $level
       echo " Dumping SOILT level 3 from gribfile "
       wgrib -d $code $GRIBFILE -o ${13}
     fi
               
-    if [ $variable = "TMP" -a $level = "100-200" ]; then
+    if [ "$variable" == "TMP" ] && [ "$level" == "100-200" ]; then
       echo $code $variable $level
       echo " Dumping SOILT level 4 from gribfile "
       wgrib -d $code $GRIBFILE -o $5
     fi
             
-    if [ $variable = "SOILW" -a $level = "0-10" ]; then
+    if [ "$variable" == "SOILW" ] && [ "$level" == "0-10" ]; then
       echo $code $variable $level
       echo " Dumping SOILW level 1 from gribfile "
       wgrib -d $code $GRIBFILE -o ${14}
     fi
               
-    if [ $variable = "SOILW" -a $level = "10-40" ]; then
+    if [ "$variable" == "SOILW" ] && [ "$level" == "10-40" ]; then
       echo $code $variable $level
       echo " Dumping SOILW level 2 from gribfile "
       wgrib -d $code $GRIBFILE -o $6
     fi
               
-    if [ $variable = "SOILW" -a $level = "40-100" ]; then
+    if [ "$variable" == "SOILW" ] && [ "$level" == "40-100" ]; then
       echo $code $variable $level
       echo " Dumping SOILW level 3 from gribfile "
       wgrib -d $code $GRIBFILE -o ${15}
     fi
               
-    if [ $variable = "SOILW" -a $level = "100-200" ]; then
+    if [ "$variable" == "SOILW" ] && [ "$level" == "100-200" ]; then
       echo $code $variable $level
       echo " Dumping SOILW level 4 from gribfile "
       wgrib -d $code $GRIBFILE -o $7
     fi
               
-    if [ $variable = "WEASD" -a $level = "sfc" ]; then
+    if [ "$variable" == "WEASD" ] && [ "$level" == "sfc" ]; then
       echo $code $variable $level
       echo " Dumping SNOW from gribfile "
       wgrib -d $code $GRIBFILE -o ${18}
     fi
       
-    if [ $variable = "ICEC" -a $level = "sfc" ]; then
+    if [ "$variable" == "ICEC" ] && [ "$level" == "sfc" ]; then
       echo $code $variable $level
       echo " Dumping SEAICE from gribfile "
       wgrib -d $code $GRIBFILE -o $2
     fi
       
-    if [ $variable = "PRMSL" -a $level = "MSL" ]; then
+    if [ "$variable" == "PRMSL" ] && [ "$level" == "MSL" ]; then
       echo $code $variable $level
       echo " Dumping PRMSL from gribfile "
       wgrib -d $code $GRIBFILE -o ${11}
@@ -106,7 +106,7 @@
     level=$(echo ${line} | gawk -F":" '{print $12}' | gawk -F" " '{print $1}')
     units=$(echo ${line} | gawk -F":" '{print $12}' | gawk -F" " '{print $2}')
   
-    if [ $variable = "UGRD" -a $units = "mb" ]; then
+    if [ "$variable" == "UGRD" ] && [ "$units" = "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100 70 50 30 20 10
       do
         if [ $level = $levs ]; then
@@ -117,7 +117,7 @@
       done
     fi
           
-    if [ $variable = "VGRD" -a $units = "mb" ]; then
+    if [ "$variable" == "VGRD" ] && [ "$units" = "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100 70 50 30 20 10
       do
         if [ $level = $levs ]; then
@@ -128,7 +128,7 @@
       done
     fi
           
-    if [ $variable = "TMP" -a $units = "mb" ]; then
+    if [ "$variable" == "TMP" ] && [ "$units" = "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100 70 50 30 20 10
       do
         if [ $level = $levs ]; then
@@ -139,7 +139,7 @@
       done
     fi   
   
-    if [ $variable = "HGT" -a $units = "mb" ]; then
+    if [ "$variable" == "HGT" ] && [ "$units" = "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100 70 50 30 20 10
       do
         if [ $level = $levs ]; then
@@ -150,7 +150,7 @@
       done
     fi  
   
-    if [ $variable = "RH" -a $units = "mb" ]; then
+    if [ "$variable" == "RH" ] && [ "$units" == "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100
       do
         if [ $level = $levs ]; then
@@ -161,7 +161,7 @@
       done
     fi  	
   
-    if [ $variable = "CLWMR" -a $units = "mb" ]; then
+    if [ "$variable" == "CLWMR" ] && [ "$units" == "mb" ]; then
       for levs in 1000 975 950 925 900 850 800 750 700 650 600 550 500 450 400 350 300 250 200 150 100
       do
         if [ $level = $levs ];then

@@ -148,7 +148,7 @@ public class BINARY {
     }
 
     public static Integer cnv_rrtm(String gFS_file, String llspl000, String outtmp, String outmst, String outsst, String outsno,
-            String outcic, String deco) {
+            String outcic) {
 
         return null;
     }
@@ -187,7 +187,7 @@ public class BINARY {
         return null;
     }
 
-    public static Integer readpaulsource(String seamask, String source, String sourceNETCDF) {
+    public static Integer readpaulsource(String seamask, String source, String sourceNETCDF, String sourceNCIncludeDir) {
         return null;
 
     }

@@ -293,8 +293,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String outmst,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String outsst,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String outsno,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String outcic,      
-        @Parameter(type = Type.FILE, direction = Direction.IN) String Deco
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String outcic
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
@@ -397,7 +396,8 @@ public interface NmmbItf {
     Integer readpaulsource(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String source,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String sourceNETCDF
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String sourceNETCDF,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sourceNCIncludeDir
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DUST_START + FortranWrapper.SUFFIX_EXE)

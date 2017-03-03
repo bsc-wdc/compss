@@ -217,15 +217,9 @@ public class Nmmb {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    private static void doVariable(NMMBParameters nmmbParams, Date currentDate) {
-        LOGGER_VARIABLE.info("Enter variable process");
 
-        /* Prepare execution **************************************************************/
-        nmmbParams.prepareVariableExecution(currentDate);
-        MessagePrinter variableMP = new MessagePrinter(LOGGER_VARIABLE);
-
+    private static void compileVariable() {
         /* Build the fortran objects *************************************************/
-        variableMP.printInfoMsg("Building variable dependent objects");
         Integer[] depCompilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES.length];
         int objectIndex = 0;
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES) {
@@ -250,7 +244,6 @@ public class Nmmb {
         }
 
         /* Build the fortran executables *************************************************/
-        variableMP.printInfoMsg("Building variable executables");
         Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length
                 + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length
                 + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length];
@@ -302,156 +295,9 @@ public class Nmmb {
                 System.exit(1);
             }
         }
+    }
 
-        variableMP.printInfoMsg("Finished building variable executables");
-
-        /* Begin binary calls ***********************************************************/
-        variableMP.printHeaderMsg("BEGIN");
-
-        final int NUM_BINARIES = 12;
-        Integer[] variableBinariesEvs = new Integer[NUM_BINARIES];
-        int binaryIndex = 0;
-
-        variableMP.printInfoMsg("degrib gfs global data");
-        String CW = NMMBEnvironment.OUTPUT + "00_CW.dump";
-        String ICEC = NMMBEnvironment.OUTPUT + "00_ICEC.dump";
-        String SH = NMMBEnvironment.OUTPUT + "00_SH.dump";
-        String SOILT2 = NMMBEnvironment.OUTPUT + "00_SOILT2.dump";
-        String SOILT4 = NMMBEnvironment.OUTPUT + "00_SOILT4.dump";
-        String SOILW2 = NMMBEnvironment.OUTPUT + "00_SOILW2.dump";
-        String SOILW4 = NMMBEnvironment.OUTPUT + "00_SOILW4.dump";
-        String TT = NMMBEnvironment.OUTPUT + "00_TT.dump";
-        String VV = NMMBEnvironment.OUTPUT + "00_VV.dump";
-        String HH = NMMBEnvironment.OUTPUT + "00_HH.dump";
-        String PRMSL = NMMBEnvironment.OUTPUT + "00_PRMSL.dump";
-        String SOILT1 = NMMBEnvironment.OUTPUT + "00_SOILT1.dump";
-        String SOILT3 = NMMBEnvironment.OUTPUT + "00_SOILT3.dump";
-        String SOILW1 = NMMBEnvironment.OUTPUT + "00_SOILW1.dump";
-        String SOILW3 = NMMBEnvironment.OUTPUT + "00_SOILW3.dump";
-        String SST_TS = NMMBEnvironment.OUTPUT + "00_SST_TS.dump";
-        String UU = NMMBEnvironment.OUTPUT + "00_UU.dump";
-        String WEASD = NMMBEnvironment.OUTPUT + "00_WEASD.dump";
-        variableBinariesEvs[binaryIndex++] = BINARY.degribgfs_generic_05(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL,
-                SOILT1, SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD);
-
-        variableMP.printInfoMsg("GFS 2 Model");
-        String GFS_file = NMMBEnvironment.OUTPUT + "131140000.gfs";
-        variableBinariesEvs[binaryIndex++] = BINARY.gfs2model_rrtm(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1,
-                SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD, GFS_file);
-
-        variableMP.printInfoMsg("INC RRTM");
-        String deco = NMMBEnvironment.VRB_INCLUDE_DIR + "deco.inc";
-        variableBinariesEvs[binaryIndex++] = BINARY.inc_rrtm(GFS_file, deco);
-
-        variableMP.printInfoMsg("CNV RRTM");
-        String llspl000 = NMMBEnvironment.OUTPUT + "llspl.000";
-        String outtmp = NMMBEnvironment.OUTPUT + "llstmp";
-        String outmst = NMMBEnvironment.OUTPUT + "llsmst";
-        String outsst = NMMBEnvironment.OUTPUT + "llgsst";
-        String outsno = NMMBEnvironment.OUTPUT + "llgsno";
-        String outcic = NMMBEnvironment.OUTPUT + "llgcic";
-        variableBinariesEvs[binaryIndex++] = BINARY.cnv_rrtm(GFS_file, llspl000, outtmp, outmst, outsst, outsno, outcic, deco);
-
-        variableMP.printInfoMsg("Degrib 0.5 deg sst");
-        String llgsst05 = NMMBEnvironment.OUTPUT + "llgsst05";
-        String sstfileinPath = NMMBEnvironment.OUTPUT + "sst2dvar_grb_0.5";
-        variableBinariesEvs[binaryIndex++] = BINARY.degribsst(llgsst05, sstfileinPath);
-
-        variableMP.printInfoMsg("Prepare climatological albedo");
-        String seamask = NMMBEnvironment.OUTPUT + "seamask";
-        String albedo = NMMBEnvironment.OUTPUT + "albedo";
-        String albedobase = NMMBEnvironment.OUTPUT + "albedobase";
-        String albedomnth = NMMBEnvironment.GEODATA_DIR + "albedo" + File.separator + "albedomnth";
-        variableBinariesEvs[binaryIndex++] = BINARY.albedo(llspl000, seamask, albedo, albedobase, albedomnth);
-
-        variableMP.printInfoMsg("Prepare rrtm climatological albedos");
-        String albedorrtm = NMMBEnvironment.OUTPUT + "albedorrtm";
-        String albedorrtm1degDir = NMMBEnvironment.GEODATA_DIR + "albedo_rrtm1deg" + File.separator;
-        variableBinariesEvs[binaryIndex++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm, albedorrtm1degDir);
-
-        variableMP.printInfoMsg("Prepare climatological vegetation fraction");
-        String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
-        String vegfracmnth = NMMBEnvironment.GEODATA_DIR + "vegfrac" + File.separator + "vegfracmnth";
-        variableBinariesEvs[binaryIndex++] = BINARY.vegfrac(llspl000, seamask, vegfrac, vegfracmnth);
-
-        variableMP.printInfoMsg("Prepare z0 and initial ustar");
-        String landuse = NMMBEnvironment.OUTPUT + "landuse";
-        String topsoiltype = NMMBEnvironment.OUTPUT + "topsoiltype";
-        String height = NMMBEnvironment.OUTPUT + "height";
-        String stdh = NMMBEnvironment.OUTPUT + "stdh";
-        String z0base = NMMBEnvironment.OUTPUT + "z0base";
-        String z0 = NMMBEnvironment.OUTPUT + "z0";
-        String ustar = NMMBEnvironment.OUTPUT + "ustar";
-        variableBinariesEvs[binaryIndex++] = BINARY.z0vegfrac(seamask, landuse, topsoiltype, height, stdh, vegfrac, z0base, z0, ustar);
-
-        /*variableMP.printInfoMsg("Interpolate to model grid and execute allprep (fcst)");
-        String sst05 = NMMBEnvironment.OUTPUT + "sst05";
-        String deeptemperature = NMMBEnvironment.OUTPUT + "deeptemperature";
-        String snowalbedo = NMMBEnvironment.OUTPUT + "snowalbedo";
-        String landusenew = NMMBEnvironment.OUTPUT + "landusenew";
-        String llgsst = NMMBEnvironment.OUTPUT + "llgsst";
-        String llgsno = NMMBEnvironment.OUTPUT + "llgsno";
-        String llgcic = NMMBEnvironment.OUTPUT + "llgcic";
-        String llsmst = NMMBEnvironment.OUTPUT + "llsmst";
-        String llstmp = NMMBEnvironment.OUTPUT + "llstmp";
-        String albedorrtmcorr = NMMBEnvironment.OUTPUT + "albedorrtmcorr";
-        String dzsoil = NMMBEnvironment.OUTPUT + "dzsoil";
-        String tskin = NMMBEnvironment.OUTPUT + "tskin";
-        String sst = NMMBEnvironment.OUTPUT + "sst";
-        String snow = NMMBEnvironment.OUTPUT + "snow";
-        String snowheight = NMMBEnvironment.OUTPUT + "snowheight";
-        String cice = NMMBEnvironment.OUTPUT + "cice";
-        String seamaskcorr = NMMBEnvironment.OUTPUT + "seamaskcorr";
-        String landusecorr = NMMBEnvironment.OUTPUT + "landusecorr";
-        String landusenewcorr = NMMBEnvironment.OUTPUT + "landusenewcorr";
-        String topsoiltypecorr = NMMBEnvironment.OUTPUT + "topsoiltypecorr";
-        String vegfraccorr = NMMBEnvironment.OUTPUT + "vegfraccorr";
-        String z0corr = NMMBEnvironment.OUTPUT + "z0corr";
-        String z0basecorr = NMMBEnvironment.OUTPUT + "z0basecorr";
-        String emissivity = NMMBEnvironment.OUTPUT + "emissivity";
-        String canopywater = NMMBEnvironment.OUTPUT + "canopywater";
-        String frozenprecratio = NMMBEnvironment.OUTPUT + "frozenprecratio";
-        String smst = NMMBEnvironment.OUTPUT + "smst";
-        String sh2o = NMMBEnvironment.OUTPUT + "sh2o";
-        String stmp = NMMBEnvironment.OUTPUT + "stmp";
-        String dsg = NMMBEnvironment.OUTPUT + "dsg";
-        String fcst = NMMBEnvironment.OUTPUT + "fcst";
-        String fcstDir = NMMBEnvironment.OUTPUT + "fcst";
-        String bocoPrefix = NMMBEnvironment.OUTPUT + "boco.";
-        String llsplPrefix = NMMBEnvironment.OUTPUT + "llspl.";
-        variableBinariesEvs[binaryIndex++] = BINARY.allprep(llspl000, llgsst05, sst05, height, seamask, stdh, deeptemperature, snowalbedo,
-                z0, z0base, landuse, landusenew, topsoiltype, vegfrac, albedorrtm, llgsst, llgsno, llgcic, llsmst, llstmp, albedorrtmcorr,
-                dzsoil, tskin, sst, snow, snowheight, cice, seamaskcorr, landusecorr, landusenewcorr, topsoiltypecorr, vegfraccorr, z0corr,
-                z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar, fcstDir, bocoPrefix,
-                llsplPrefix);
-
-        variableMP.printInfoMsg("Prepare the dust related variable (soildust)");
-        String source = NMMBEnvironment.OUTPUT + "source";
-        String sourceNETCDF = NMMBEnvironment.OUTPUT + "source.nc";
-        variableBinariesEvs[binaryIndex++] = BINARY.readpaulsource(seamask, source, sourceNETCDF);
-
-        variableMP.printInfoMsg("Dust Start");
-        String soildust = NMMBEnvironment.OUTPUT + "soildust";
-        String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
-        String kount_landusenew = NMMBEnvironment.OUTPUT + "kount_landusenew";
-        String roughness = NMMBEnvironment.OUTPUT + "roughness";
-        variableBinariesEvs[binaryIndex++] = BINARY.dust_start(llspl000, soildust, snow, topsoiltypecorr, landusecorr, landusenewcorr,
-                kount_landuse, kount_landusenew, vegfrac, height, seamask, source, z0corr, roughness);
-*/
-        /* Wait for binaries completion and check exit value *****************************/
-        for (int i = 0; i < variableBinariesEvs.length; ++i) {
-            LOGGER_VARIABLE.debug("Execution of " + i + " binary ended with status " + variableBinariesEvs[i]);
-            if (variableBinariesEvs[i] != 0) {
-                LOGGER_VARIABLE.error("[ERROR] Error executing binary " + i);
-                LOGGER_VARIABLE.error("Aborting...");
-                System.exit(1);
-            }
-        }
-
-        variableMP.printHeaderMsg("END");
-
-        /* Clean Up binaries ************************************************************/
-        variableMP.printInfoMsg("Clean up executables");
+    private static void cleanUpVariableExe() {
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES) {
             String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
@@ -487,12 +333,187 @@ public class Nmmb {
                 f.delete();
             }
         }
+    }
+
+    private static void doVariable(NMMBParameters nmmbParams, Date currentDate) {
+        LOGGER_VARIABLE.info("Enter variable process");
+
+        /* Prepare execution **************************************************************/
+        nmmbParams.prepareVariableExecution(currentDate);
+        MessagePrinter variableMP = new MessagePrinter(LOGGER_VARIABLE);
+
+        /* Compile ************************************************************************/
+        variableMP.printInfoMsg("Building variable executables");
+        compileVariable();
+        variableMP.printInfoMsg("Finished building variable executables");
+
+        /* Set variables for binary calls *************************************************/
+        variableMP.printHeaderMsg("BEGIN");
+
+        String CW = NMMBEnvironment.OUTPUT + "00_CW.dump";
+        String ICEC = NMMBEnvironment.OUTPUT + "00_ICEC.dump";
+        String SH = NMMBEnvironment.OUTPUT + "00_SH.dump";
+        String SOILT2 = NMMBEnvironment.OUTPUT + "00_SOILT2.dump";
+        String SOILT4 = NMMBEnvironment.OUTPUT + "00_SOILT4.dump";
+        String SOILW2 = NMMBEnvironment.OUTPUT + "00_SOILW2.dump";
+        String SOILW4 = NMMBEnvironment.OUTPUT + "00_SOILW4.dump";
+        String TT = NMMBEnvironment.OUTPUT + "00_TT.dump";
+        String VV = NMMBEnvironment.OUTPUT + "00_VV.dump";
+        String HH = NMMBEnvironment.OUTPUT + "00_HH.dump";
+        String PRMSL = NMMBEnvironment.OUTPUT + "00_PRMSL.dump";
+        String SOILT1 = NMMBEnvironment.OUTPUT + "00_SOILT1.dump";
+        String SOILT3 = NMMBEnvironment.OUTPUT + "00_SOILT3.dump";
+        String SOILW1 = NMMBEnvironment.OUTPUT + "00_SOILW1.dump";
+        String SOILW3 = NMMBEnvironment.OUTPUT + "00_SOILW3.dump";
+        String SST_TS = NMMBEnvironment.OUTPUT + "00_SST_TS.dump";
+        String UU = NMMBEnvironment.OUTPUT + "00_UU.dump";
+        String WEASD = NMMBEnvironment.OUTPUT + "00_WEASD.dump";
+
+        String GFS_file = NMMBEnvironment.OUTPUT + "131140000.gfs";
+
+        String deco = NMMBEnvironment.VRB;
+
+        String llspl000 = NMMBEnvironment.OUTPUT + "llspl.000";
+        String outtmp = NMMBEnvironment.OUTPUT + "llstmp";
+        String outmst = NMMBEnvironment.OUTPUT + "llsmst";
+        String outsst = NMMBEnvironment.OUTPUT + "llgsst";
+        String outsno = NMMBEnvironment.OUTPUT + "llgsno";
+        String outcic = NMMBEnvironment.OUTPUT + "llgcic";
+
+        String llgsst05 = NMMBEnvironment.OUTPUT + "llgsst05";
+        String sstfileinPath = NMMBEnvironment.OUTPUT + "sst2dvar_grb_0.5";
+
+        String seamask = NMMBEnvironment.OUTPUT + "seamask";
+        String albedo = NMMBEnvironment.OUTPUT + "albedo";
+        String albedobase = NMMBEnvironment.OUTPUT + "albedobase";
+        String albedomnth = NMMBEnvironment.GEODATA_DIR + "albedo" + File.separator + "albedomnth";
+
+        String albedorrtm = NMMBEnvironment.OUTPUT + "albedorrtm";
+        String albedorrtm1degDir = NMMBEnvironment.GEODATA_DIR + "albedo_rrtm1deg" + File.separator;
+
+        String vegfrac = NMMBEnvironment.OUTPUT + "vegfrac";
+        String vegfracmnth = NMMBEnvironment.GEODATA_DIR + "vegfrac" + File.separator + "vegfracmnth";
+
+        String landuse = NMMBEnvironment.OUTPUT + "landuse";
+        String topsoiltype = NMMBEnvironment.OUTPUT + "topsoiltype";
+        String height = NMMBEnvironment.OUTPUT + "height";
+        String stdh = NMMBEnvironment.OUTPUT + "stdh";
+        String z0base = NMMBEnvironment.OUTPUT + "z0base";
+        String z0 = NMMBEnvironment.OUTPUT + "z0";
+        String ustar = NMMBEnvironment.OUTPUT + "ustar";
+
+        String sst05 = NMMBEnvironment.OUTPUT + "sst05";
+        String deeptemperature = NMMBEnvironment.OUTPUT + "deeptemperature";
+        String snowalbedo = NMMBEnvironment.OUTPUT + "snowalbedo";
+        String landusenew = NMMBEnvironment.OUTPUT + "landusenew";
+        String llgsst = NMMBEnvironment.OUTPUT + "llgsst";
+        String llgsno = NMMBEnvironment.OUTPUT + "llgsno";
+        String llgcic = NMMBEnvironment.OUTPUT + "llgcic";
+        String llsmst = NMMBEnvironment.OUTPUT + "llsmst";
+        String llstmp = NMMBEnvironment.OUTPUT + "llstmp";
+        String albedorrtmcorr = NMMBEnvironment.OUTPUT + "albedorrtmcorr";
+        String dzsoil = NMMBEnvironment.OUTPUT + "dzsoil";
+        String tskin = NMMBEnvironment.OUTPUT + "tskin";
+        String sst = NMMBEnvironment.OUTPUT + "sst";
+        String snow = NMMBEnvironment.OUTPUT + "snow";
+        String snowheight = NMMBEnvironment.OUTPUT + "snowheight";
+        String cice = NMMBEnvironment.OUTPUT + "cice";
+        String seamaskcorr = NMMBEnvironment.OUTPUT + "seamaskcorr";
+        String landusecorr = NMMBEnvironment.OUTPUT + "landusecorr";
+        String landusenewcorr = NMMBEnvironment.OUTPUT + "landusenewcorr";
+        String topsoiltypecorr = NMMBEnvironment.OUTPUT + "topsoiltypecorr";
+        String vegfraccorr = NMMBEnvironment.OUTPUT + "vegfraccorr";
+        String z0corr = NMMBEnvironment.OUTPUT + "z0corr";
+        String z0basecorr = NMMBEnvironment.OUTPUT + "z0basecorr";
+        String emissivity = NMMBEnvironment.OUTPUT + "emissivity";
+        String canopywater = NMMBEnvironment.OUTPUT + "canopywater";
+        String frozenprecratio = NMMBEnvironment.OUTPUT + "frozenprecratio";
+        String smst = NMMBEnvironment.OUTPUT + "smst";
+        String sh2o = NMMBEnvironment.OUTPUT + "sh2o";
+        String stmp = NMMBEnvironment.OUTPUT + "stmp";
+        String dsg = NMMBEnvironment.OUTPUT + "dsg";
+        String fcst = NMMBEnvironment.OUTPUT + "fcst";
+        String fcstDir = NMMBEnvironment.OUTPUT + "fcst";
+        String bocoPrefix = NMMBEnvironment.OUTPUT + "boco.";
+        String llsplPrefix = NMMBEnvironment.OUTPUT + "llspl.";
+
+        String source = NMMBEnvironment.OUTPUT + "source";
+        String sourceNETCDF = NMMBEnvironment.OUTPUT + "source.nc";
+        String sourceNCIncludeDir = NMMBEnvironment.VRB_INCLUDE_DIR;
+
+        String soildust = NMMBEnvironment.OUTPUT + "soildust";
+        String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
+        String kount_landusenew = NMMBEnvironment.OUTPUT + "kount_landusenew";
+        String roughness = NMMBEnvironment.OUTPUT + "roughness";
+
+        /* Begin binary calls ***********************************************************/
+        final int NUM_BINARIES = 12;
+        Integer[] variableBinariesEvs = new Integer[NUM_BINARIES];
+        int binaryIndex = 0;
+
+        variableMP.printInfoMsg("degrib gfs global data");
+        variableBinariesEvs[binaryIndex++] = BINARY.degribgfs_generic_05(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL,
+                SOILT1, SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD);
+
+        variableMP.printInfoMsg("GFS 2 Model");
+        variableBinariesEvs[binaryIndex++] = BINARY.gfs2model_rrtm(CW, ICEC, SH, SOILT2, SOILT4, SOILW2, SOILW4, TT, VV, HH, PRMSL, SOILT1,
+                SOILT3, SOILW1, SOILW3, SST_TS, UU, WEASD, GFS_file);
+
+        variableMP.printInfoMsg("INC RRTM");
+        variableBinariesEvs[binaryIndex++] = BINARY.inc_rrtm(GFS_file, deco);
+
+        variableMP.printInfoMsg("CNV RRTM");
+        variableBinariesEvs[binaryIndex++] = BINARY.cnv_rrtm(GFS_file, llspl000, outtmp, outmst, outsst, outsno, outcic);
+
+        variableMP.printInfoMsg("Degrib 0.5 deg sst");
+        variableBinariesEvs[binaryIndex++] = BINARY.degribsst(llgsst05, sstfileinPath);
+
+        variableMP.printInfoMsg("Prepare climatological albedo");
+        variableBinariesEvs[binaryIndex++] = BINARY.albedo(llspl000, seamask, albedo, albedobase, albedomnth);
+
+        variableMP.printInfoMsg("Prepare rrtm climatological albedos");
+        variableBinariesEvs[binaryIndex++] = BINARY.albedorrtm(llspl000, seamask, albedorrtm, albedorrtm1degDir);
+
+        variableMP.printInfoMsg("Prepare climatological vegetation fraction");
+        variableBinariesEvs[binaryIndex++] = BINARY.vegfrac(llspl000, seamask, vegfrac, vegfracmnth);
+
+        variableMP.printInfoMsg("Prepare z0 and initial ustar");
+        variableBinariesEvs[binaryIndex++] = BINARY.z0vegfrac(seamask, landuse, topsoiltype, height, stdh, vegfrac, z0base, z0, ustar);
+
+        variableMP.printInfoMsg("Interpolate to model grid and execute allprep (fcst)");
+        variableBinariesEvs[binaryIndex++] = BINARY.allprep(llspl000, llgsst05, sst05, height, seamask, stdh, deeptemperature, snowalbedo,
+                z0, z0base, landuse, landusenew, topsoiltype, vegfrac, albedorrtm, llgsst, llgsno, llgcic, llsmst, llstmp, albedorrtmcorr,
+                dzsoil, tskin, sst, snow, snowheight, cice, seamaskcorr, landusecorr, landusenewcorr, topsoiltypecorr, vegfraccorr, z0corr,
+                z0basecorr, emissivity, canopywater, frozenprecratio, smst, sh2o, stmp, dsg, fcst, albedo, ustar, fcstDir, bocoPrefix,
+                llsplPrefix);
+
+        variableMP.printInfoMsg("Prepare the dust related variable (soildust)");
+        variableBinariesEvs[binaryIndex++] = BINARY.readpaulsource(seamask, source, sourceNETCDF, sourceNCIncludeDir);
+
+        variableMP.printInfoMsg("Dust Start");
+        variableBinariesEvs[binaryIndex++] = BINARY.dust_start(llspl000, soildust, snow, topsoiltypecorr, landusecorr, landusenewcorr,
+                kount_landuse, kount_landusenew, vegfrac, height, seamask, source, z0corr, roughness);
+
+        /* Wait for binaries completion and check exit value *****************************/
+        for (int i = 0; i < variableBinariesEvs.length; ++i) {
+            LOGGER_VARIABLE.debug("Execution of " + i + " binary ended with status " + variableBinariesEvs[i]);
+            if (variableBinariesEvs[i] != 0) {
+                LOGGER_VARIABLE.error("[ERROR] Error executing binary " + i);
+                LOGGER_VARIABLE.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        variableMP.printHeaderMsg("END");
+
+        /* Clean Up binaries ************************************************************/
+        variableMP.printInfoMsg("Clean up executables");
+        cleanUpVariableExe();
 
         /* Post execution **************************************************************/
-        /*
-         * String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
-         * nmmbParams.postVariableExecution(folderOutputCase);
-         */
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
+        nmmbParams.postVariableExecution(folderOutputCase);
+
         LOGGER_VARIABLE.info("Variable process finished");
     }
 

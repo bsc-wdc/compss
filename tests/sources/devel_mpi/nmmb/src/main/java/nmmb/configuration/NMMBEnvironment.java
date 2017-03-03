@@ -13,7 +13,7 @@ public class NMMBEnvironment {
 
     public static final String OUTNMMB = System.getenv(NMMBConstants.ENV_NAME_OUTNMMB) + File.separator;
     public static final String UMO_OUT = System.getenv(NMMBConstants.ENV_NAME_UMO_OUT) + File.separator;
-    public static final String OUTPUT = System.getenv(NMMBConstants.ENV_NAME_OUTPUT);
+    public static final String OUTPUT = System.getenv(NMMBConstants.ENV_NAME_OUTPUT) + File.separator;
 
     public static final String FIX = System.getenv(NMMBConstants.ENV_NAME_FIX) + File.separator;
     public static final String GEODATA_DIR = FIX + ".." + File.separator + "geodata" + File.separator;
@@ -23,7 +23,7 @@ public class NMMBEnvironment {
     public static final String VRB = System.getenv(NMMBConstants.ENV_NAME_VRB) + File.separator;
     public static final String VRB_INCLUDE_DIR = VRB + "include" + File.separator;
 
-    public static final String UMO_LIBS = UMO_PATH + "MODEL/libs/";
+    public static final String UMO_LIBS = UMO_PATH + "MODEL" + File.separator + "libs" + File.separator;
 
     public static final String FNL = System.getenv(NMMBConstants.ENV_NAME_FNL) + File.separator;
     public static final String GFS = System.getenv(NMMBConstants.ENV_NAME_GFS) + File.separator;

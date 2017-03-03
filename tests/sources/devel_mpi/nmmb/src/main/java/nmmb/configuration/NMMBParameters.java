@@ -345,12 +345,13 @@ public class NMMBParameters {
         if (DOMAIN) {
             if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
                 try {
-                    String link = NMMBEnvironment.FNL + "fnl_" + fullDate + "_" + hourSTR + "_00";
-                    String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
+                    String target = NMMBEnvironment.FNL + "fnl_" + fullDate + "_" + hourSTR + "_00";
+                    String link = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
                     if (!FileManagement.deleteFile(link)) {
                         LOGGER_VARIABLE.debug("Cannot erase previous link " + link + " because it doesn't exist.");
                     }
                     Files.createSymbolicLink(Paths.get(link), Paths.get(target));
+                    LOGGER_VARIABLE.debug("Softlink from : " + link + " to " + target);
                 } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
                     LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
                     LOGGER_VARIABLE.error("Aborting...");
@@ -388,12 +389,13 @@ public class NMMBParameters {
                         String dayDateStr = NMMBConstants.COMPACT_STR_TO_DATE
                                 .format(currentDate.toInstant().plusSeconds(dDay * NMMBConstants.ONE_DAY_IN_SECONDS));
 
-                        String link = NMMBEnvironment.FNL + "fnl_" + dayDateStr + "_" + hDayStr + "_00";
-                        String target = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
+                        String target = NMMBEnvironment.FNL + "fnl_" + dayDateStr + "_" + hDayStr + "_00";
+                        String link = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
                         if (!FileManagement.deleteFile(link)) {
                             LOGGER_VARIABLE.debug("Cannot erase previous link " + link + " because it doesn't exist.");
                         }
                         Files.createSymbolicLink(Paths.get(link), Paths.get(target));
+                        LOGGER_VARIABLE.debug("Softlink from : " + link + " to " + target);
                     } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
                         LOGGER_VARIABLE.error("[ERROR] Cannot create output symlink", exception);
                         LOGGER_VARIABLE.error("Aborting...");

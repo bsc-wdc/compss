@@ -58,7 +58,6 @@ public class NMMBConstants {
     public static final String NHOURS_NAME = "NHOURS";
     public static final String NHOURS_INIT_NAME = "NHOURS";
     public static final String HIST_NAME = "HIST";
-    public static final String HIST_M_NAME = "HIST_M";
     public static final String BOCO_NAME = "BOCO";
     public static final String TYPE_GFSINIT_NAME = "TYPE_GFSINIT";
     public static final String TYPE_GFSINIT_FNL = "FNL";
@@ -81,6 +80,7 @@ public class NMMBConstants {
 
     // -----------------------------------------------------------------------
     // Environment variable names
+    public static final String ENV_NAME_UMO_ROOT = "UMO_ROOT";
     public static final String ENV_NAME_UMO_PATH = "UMO_PATH";
     public static final String ENV_NAME_FIX = "FIX";
     public static final String ENV_NAME_VRB = "VRB";
@@ -89,11 +89,20 @@ public class NMMBConstants {
     public static final String ENV_NAME_OUTNMMB = "OUTNMMB";
     public static final String ENV_NAME_FNL = "FNL";
     public static final String ENV_NAME_GFS = "GFS";
+    public static final String ENV_NAME_SRCDIR = "SRCDIR";
+    public static final String ENV_NAME_CHEMIC = "CHEMIC";
+    public static final String ENV_NAME_DATMOD = "DATMOD";
+    public static final String ENV_NAME_POST_CARBONO = "POST_CARBONO";
 
     // -----------------------------------------------------------------------
     // Format conversion constants
     public static final SimpleDateFormat STR_TO_DATE = new SimpleDateFormat("yyyyMMdd");
     public static final SimpleDateFormat COMPACT_STR_TO_DATE = new SimpleDateFormat("yyMMdd");
+    public static final SimpleDateFormat MONTH_NAME_DATE_TO_STR = new SimpleDateFormat("ddMMMyyyy");
+    public static final SimpleDateFormat DATE_TO_YEAR = new SimpleDateFormat("yyyy");
+    public static final SimpleDateFormat DATE_TO_MONTH = new SimpleDateFormat("MM");
+    public static final SimpleDateFormat DATE_TO_DAY = new SimpleDateFormat("dd");
     public static final long ONE_DAY_IN_SECONDS = 1 * 24 * 60 * 60;
+    public static final int HOUR_TO_MINUTES = 60;
 
 }

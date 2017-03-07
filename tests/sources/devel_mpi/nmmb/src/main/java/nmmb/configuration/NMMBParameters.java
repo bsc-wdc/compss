@@ -23,6 +23,8 @@ public class NMMBParameters {
     private static final Logger LOGGER_MAIN = LogManager.getLogger(LoggerNames.NMMB_MAIN);
     private static final Logger LOGGER_FIXED = LogManager.getLogger(LoggerNames.NMMB_FIXED);
     private static final Logger LOGGER_VARIABLE = LogManager.getLogger(LoggerNames.NMMB_VARIABLE);
+    private static final Logger LOGGER_UMO_MODEL = LogManager.getLogger(LoggerNames.NMMB_UMO_MODEL);
+    private static final Logger LOGGER_POST = LogManager.getLogger(LoggerNames.NMMB_POST);
 
     // -----------------------------------------------------------------------
     // MN settings
@@ -68,19 +70,31 @@ public class NMMBParameters {
     public Date END_DATE;
     public int HOUR;
     public int NHOURS;
+    public int NHOURS_INIT;
+    public int HIST;
+    public int HIST_M;
     public int BOCO;
     public String TYPE_GFSINIT;
 
     // -----------------------------------------------------------------------
     // Select configuration of POSTPROC (DO_POST)
+    public int HOUR_P;
+    public int NHOURS_P;
+    public int HIST_P;
+    public int LSM;
+    public double TPH0DN;
+    public double WBDDEF;
+    public double SBDDEF;
 
     // -----------------------------------------------------------------------
     // Select IC of chemistry for run with COUPLE_DUST_INIT=0
     public int INIT_CHEM;
 
-
     // -----------------------------------------------------------------------
     // Couple dust
+    public boolean COUPLE_DUST;
+    public boolean COUPLE_DUST_INIT;
+
 
     /**
      * Constructor
@@ -148,15 +162,29 @@ public class NMMBParameters {
         }
         HOUR = nmmbConfiguration.getHour();
         NHOURS = nmmbConfiguration.getNHours();
+        NHOURS_INIT = nmmbConfiguration.getNHoursInit();
+        HIST = nmmbConfiguration.getHist();
+        HIST_M = HIST * NMMBConstants.HOUR_TO_MINUTES;
         BOCO = nmmbConfiguration.getBoco();
         TYPE_GFSINIT = nmmbConfiguration.getTypeGFSInit();
 
         // -----------------------------------------------------------------------
         // Select configuration of POSTPROC (DO_POST)
+        HOUR_P = nmmbConfiguration.getHourP();
+        ;
+        NHOURS_P = nmmbConfiguration.getNHoursP();
+        HIST_P = nmmbConfiguration.getHistP();
+        LSM = nmmbConfiguration.getLSM();
+
+        TPH0DN = nmmbConfiguration.getTPH0D2() + 90.0;
+        WBDDEF = nmmbConfiguration.getWBD2() + nmmbConfiguration.getTLM0D2();
+        SBDDEF = nmmbConfiguration.getSBD2() + nmmbConfiguration.getTPH0D2();
 
         // -----------------------------------------------------------------------
         // Select IC of chemistry for run with COUPLE_DUST_INIT=0
         INIT_CHEM = nmmbConfiguration.getInitChem();
+        COUPLE_DUST = nmmbConfiguration.getCoupleDust();
+        COUPLE_DUST_INIT = nmmbConfiguration.getCoupleDustInit();
 
         LOGGER_MAIN.info("Execution variables set");
     }
@@ -179,13 +207,13 @@ public class NMMBParameters {
 
         // Create empty files
         LOGGER_MAIN.debug("Create output folder : " + outputPath);
-        if (!new File(outputPath).mkdirs()) {
+        if (!FileManagement.createDir(outputPath)) {
             LOGGER_MAIN.error("[ERROR] Cannot create output folder");
             LOGGER_MAIN.error("Aborting...");
             System.exit(1);
         }
         LOGGER_MAIN.debug("Create output folder : " + outputCasePath);
-        if (!new File(outputCasePath).mkdirs()) {
+        if (!FileManagement.createDir(outputCasePath)) {
             LOGGER_MAIN.error("[ERROR] Cannot create output case folder");
             LOGGER_MAIN.error("Aborting...");
             System.exit(1);
@@ -205,6 +233,16 @@ public class NMMBParameters {
 
         LOGGER_MAIN.info("Execution environment prepared");
     }
+
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** FIXED STEP *******************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
 
     public void prepareFixedExecution() {
         LOGGER_FIXED.debug("   - INCLUDE PATH : " + NMMBEnvironment.FIX_INCLUDE_DIR);
@@ -277,6 +315,40 @@ public class NMMBParameters {
             System.exit(1);
         }
     }
+
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** OUTPUT FOLDERS ***************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+
+    public void createOutputFolders(Date currentDate) {
+        String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
+        String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+
+        if (!FileManagement.createDir(folderOutputCase)) {
+            LOGGER_MAIN.debug("Cannot create folder output case : " + folderOutputCase + " because it already exists. Skipping");
+        }
+
+        if (!FileManagement.createDir(folderOutput)) {
+            LOGGER_MAIN.debug("Cannot create folder output : " + folderOutput + " because it already exists. Skipping");
+        }
+    }
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** VARIABLE STEP ****************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
 
     public void prepareVariableExecution(Date currentDate) {
         // Clean specific files
@@ -503,6 +575,617 @@ public class NMMBParameters {
             LOGGER_VARIABLE.error("[ERROR] Error copying lmimjm.inc file to " + targetFolder);
             LOGGER_VARIABLE.error("Aborting...");
             System.exit(1);
+        }
+    }
+
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** UMO MODEL STEP ***************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+
+    public void prepareUMOMOdelExecution(Date currentDate) {
+        // Clean specific files
+        final String[] outputFiles = new String[] { "isop.dat", "meteo-data.dat", "chemic-reg", "main_input_filename",
+                "main_input_filename2", "GWD.bin", "configure_file", "co2_trans", "ETAMPNEW_AERO", "ETAMPNEW_DATA" };
+        for (String file : outputFiles) {
+            String filePath = NMMBEnvironment.UMO_OUT + file;
+            if (!FileManagement.deleteFile(filePath)) {
+                LOGGER_UMO_MODEL.debug("Cannot erase previous " + file + " because it doesn't exist.");
+            }
+        }
+
+        // Clean regular expr files
+        File folder = new File(NMMBEnvironment.UMO_OUT);
+        for (File file : folder.listFiles()) {
+            if ((file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
+                    || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))
+                    || (file.getName().startsWith("PET") && file.getName().endsWith("txt"))
+                    || (file.getName().startsWith("PET") && file.getName().endsWith("File")) || (file.getName().startsWith("boco."))
+                    || (file.getName().startsWith("boco_chem.")) || (file.getName().startsWith("nmm_b_history."))
+                    || (file.getName().startsWith("tr")) || (file.getName().startsWith("RRT")) || (file.getName().endsWith(".TBL"))
+                    || (file.getName().startsWith("fcstdone.")) || (file.getName().startsWith("restartdone."))
+                    || (file.getName().startsWith("nmmb_rst_")) || (file.getName().startsWith("nmmb_hst_"))) {
+
+                if (!FileManagement.deleteFile(file)) {
+                    LOGGER_UMO_MODEL.debug("Cannot erase previous " + file.getName() + " because it doesn't exist.");
+                }
+
+            }
+        }
+
+        // Copy data files
+        String dataFolderPath = NMMBEnvironment.CHEMIC + "MEGAN" + File.separator + "out" + File.separator + "aqmeii-reg" + File.separator;
+        File dataFolder = new File(dataFolderPath);
+        for (File file : dataFolder.listFiles()) {
+            if (file.getName().equals("isop.dat") || (file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
+                    || file.getName().equals("meteo-data.dat") || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))) {
+
+                // Copy file
+                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                    LOGGER_UMO_MODEL.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        }
+
+        // Dust coupling part 1
+        boolean coupleDustIteration = false;
+        if (currentDate.after(START_DATE)) {
+            coupleDustIteration = COUPLE_DUST;
+        }
+
+        if (COUPLE_DUST_INIT) {
+            coupleDustIteration = true;
+        }
+
+        String dustFlag = (coupleDustIteration) ? "EEEE/true" : "EEEE/false";
+
+        // Prepare config rrtm chem file
+        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
+        String yearSTR = NMMBConstants.DATE_TO_YEAR.format(currentDate);
+        String monthSTR = NMMBConstants.DATE_TO_MONTH.format(currentDate);
+        String daySTR = NMMBConstants.DATE_TO_DAY.format(currentDate);
+        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+
+        String configFileTMPPath = NMMBEnvironment.UMO_ROOT + "configfile_rrtm_chem.tmp";
+        String configFilePath = NMMBEnvironment.UMO_OUT + "configure_file";
+        BashCMDExecutor configFile = new BashCMDExecutor("sed");
+        configFile.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
+        configFile.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
+        configFile.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        configFile.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
+        configFile.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
+        configFile.addFlagAndValue("-e", "s/WBD/" + String.valueOf(WBD) + "/");
+        configFile.addFlagAndValue("-e", "s/SBD/" + String.valueOf(SBD) + "/");
+        configFile.addFlagAndValue("-e", "s/INPES/" + String.valueOf(INPES) + "/");
+        configFile.addFlagAndValue("-e", "s/JNPES/" + String.valueOf(JNPES) + "/");
+        configFile.addFlagAndValue("-e", "s/WRTSK/" + String.valueOf(WRTSK) + "/");
+        configFile.addFlagAndValue("-e", "s/DTINT/" + String.valueOf(DT_INT) + "/");
+        configFile.addFlagAndValue("-e", "s/YYYY/" + yearSTR + "/");
+        configFile.addFlagAndValue("-e", "s/MM/" + monthSTR + "/");
+        configFile.addFlagAndValue("-e", "s/DD/" + daySTR + "/");
+        configFile.addFlagAndValue("-e", "s/HH/" + hourSTR + "/");
+        configFile.addFlagAndValue("-e", "s/LLL/" + nHoursSTR + "/");
+        configFile.addFlagAndValue("-e", "s/STT/" + String.valueOf(HIST_M) + "/");
+        configFile.addFlagAndValue("-e", "s/DOM/true/");
+        configFile.addFlagAndValue("-e", "s/" + dustFlag + "/");
+        configFile.addFlagAndValue("-e", "s/BBBB/" + String.valueOf(DCAL) + "/");
+        configFile.addFlagAndValue("-e", "s/NRADS/" + String.valueOf(NRADS) + "/");
+        configFile.addFlagAndValue("-e", "s/NRADL/" + String.valueOf(NRADL) + "/");
+        configFile.addFlagAndValue("-e", "s/CCCC/" + String.valueOf(INIT_CHEM) + "/");
+
+        configFile.addArgument(configFileTMPPath);
+        configFile.redirectOutput(configFilePath);
+        try {
+            int ev = configFile.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_VARIABLE.error("[ERROR] Error performing sed command on configFile " + configFileTMPPath, ce);
+            LOGGER_VARIABLE.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Prepare UMO model files
+        String outputFolderPath = NMMBEnvironment.OUTPUT;
+        File outputFolder = new File(outputFolderPath);
+        for (File file : outputFolder.listFiles()) {
+            if (file.getName().startsWith("boco.") || file.getName().startsWith("boco_chem.")) {
+
+                // Copy file
+                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                    LOGGER_UMO_MODEL.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        }
+
+        String chemicRegSrc = NMMBEnvironment.OUTPUT + "chemic-reg";
+        String chemicRegTarget = NMMBEnvironment.UMO_OUT + "chemic-reg";
+        if (!FileManagement.copyFile(chemicRegSrc, chemicRegTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + chemicRegSrc + " file to " + chemicRegTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String gwdSrc = NMMBEnvironment.OUTPUT + "GWD.bin";
+        String gwdTarget = NMMBEnvironment.UMO_OUT + "GWD.bin";
+        if (!FileManagement.copyFile(gwdSrc, gwdTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + gwdSrc + " file to " + gwdTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String inputDomain1Src = NMMBEnvironment.OUTPUT + "input_domain_01";
+        String inputDomain1Target = NMMBEnvironment.UMO_OUT + "#main_input_filename";
+        if (!FileManagement.copyFile(inputDomain1Src, inputDomain1Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + inputDomain1Src + " file to " + inputDomain1Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String inputDomain2Src = NMMBEnvironment.OUTPUT + "soildust";
+        String inputDomain2Target = NMMBEnvironment.UMO_OUT + "main_input_filename2";
+        if (!FileManagement.copyFile(inputDomain2Src, inputDomain2Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + inputDomain2Src + " file to " + inputDomain2Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Copy datmod
+        String datModFolderPath = NMMBEnvironment.DATMOD;
+        File datModFolder = new File(datModFolderPath);
+        for (File file : datModFolder.listFiles()) {
+            // Copy all files
+            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                LOGGER_UMO_MODEL.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        String lookupDatSrc = NMMBEnvironment.DATMOD + "nam_micro_lookup.dat";
+        String lookupDatTarget = NMMBEnvironment.UMO_OUT + "ETAMPNEW_DATA";
+        if (!FileManagement.copyFile(lookupDatSrc, lookupDatTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupDatSrc + " file to " + lookupDatTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String wrftablesFolderPath = NMMBEnvironment.DATMOD + "wrftables" + File.separator;
+        File wrftablesFolder = new File(wrftablesFolderPath);
+        for (File file : wrftablesFolder.listFiles()) {
+            // Copy all files
+            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                LOGGER_UMO_MODEL.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        String co2dataFolderPath = NMMBEnvironment.DATMOD + "co2data" + File.separator;
+        File co2dataFolder = new File(co2dataFolderPath);
+        for (File file : co2dataFolder.listFiles()) {
+            // Copy all files
+            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                LOGGER_UMO_MODEL.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        // Copy aerosols scavenging coeff
+        String lookupAerosol2RH00Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh00";
+        String lookupAerosol2RH00Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH00";
+        if (!FileManagement.copyFile(lookupAerosol2RH00Src, lookupAerosol2RH00Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH00Src + " file to " + lookupAerosol2RH00Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH50Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh50";
+        String lookupAerosol2RH50Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH50";
+        if (!FileManagement.copyFile(lookupAerosol2RH50Src, lookupAerosol2RH50Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH50Src + " file to " + lookupAerosol2RH50Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH70Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh70";
+        String lookupAerosol2RH70Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH70";
+        if (!FileManagement.copyFile(lookupAerosol2RH70Src, lookupAerosol2RH70Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH70Src + " file to " + lookupAerosol2RH70Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH80Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh80";
+        String lookupAerosol2RH80Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH80";
+        if (!FileManagement.copyFile(lookupAerosol2RH80Src, lookupAerosol2RH80Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH80Src + " file to " + lookupAerosol2RH80Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH90Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh90";
+        String lookupAerosol2RH90Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH90";
+        if (!FileManagement.copyFile(lookupAerosol2RH90Src, lookupAerosol2RH90Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH90Src + " file to " + lookupAerosol2RH90Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH95Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh95";
+        String lookupAerosol2RH95Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH95";
+        if (!FileManagement.copyFile(lookupAerosol2RH95Src, lookupAerosol2RH95Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH95Src + " file to " + lookupAerosol2RH95Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String lookupAerosol2RH99Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh99";
+        String lookupAerosol2RH99Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH99";
+        if (!FileManagement.copyFile(lookupAerosol2RH99Src, lookupAerosol2RH99Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH99Src + " file to " + lookupAerosol2RH99Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Copy files for RRTM radiation
+        String climaGlobalSrc = NMMBEnvironment.DATMOD + "fix" + File.separator + "fix_rad" + File.separator
+                + "global_climaeropac_global.txt";
+        String climaGlobalTarget = NMMBEnvironment.UMO_OUT + "aerosol.dat";
+        if (!FileManagement.copyFile(climaGlobalSrc, climaGlobalTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + climaGlobalSrc + " file to " + climaGlobalTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String solarSrc = NMMBEnvironment.DATMOD + "fix" + File.separator + "fix_rad" + File.separator + "solarconstantdata.txt";
+        String solarTarget = NMMBEnvironment.UMO_OUT + "solarconstantdata.txt";
+        if (!FileManagement.copyFile(solarSrc, solarTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + solarSrc + " file to " + solarTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String fixRadFolderPath = NMMBEnvironment.DATMOD + "fix" + File.separator + "fix_rad" + File.separator;
+        File fixRadFolder = new File(fixRadFolderPath);
+        for (File file : fixRadFolder.listFiles()) {
+            if (file.getName().startsWith("co2historicaldata") || file.getName().startsWith("volcanic_aerosols_")) {
+
+                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                    LOGGER_UMO_MODEL.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        }
+
+        // Copy files for GoCart climatology conc. and opt. properties
+        String fixGocartFolderPath = NMMBEnvironment.DATMOD + "fix" + File.separator + "fix_gocart_clim" + File.separator;
+        File fixGocartFolder = new File(fixGocartFolderPath);
+        for (File file : fixGocartFolder.listFiles()) {
+            if (file.getName().startsWith("2000")) {
+                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                    LOGGER_UMO_MODEL.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        }
+
+        String ncepAerosolSrc = NMMBEnvironment.DATMOD + "fix" + File.separator + "fix_aeropt_luts" + File.separator + "NCEP_AEROSOL.bin";
+        String ncepAerosolTarget = NMMBEnvironment.UMO_OUT + "NCEP_AEROSOL.bin";
+        if (!FileManagement.copyFile(ncepAerosolSrc, ncepAerosolTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + ncepAerosolSrc + " file to " + ncepAerosolTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Copy files for chemistry tests
+        // TODO: Emissions copy file from /gpfs/bsc32/BLA/NNMB/RUN/FUKU-DATA/xe133_emissions.dat
+        // String emissionsSrc = "xe133_emissions.dat";
+        // String emissionsTarget = NMMBEnvironment.UMO_OUT + "xe133_emissions.dat";
+        // if (!FileManagement.copyFile(emissionsSrc, emissionsTarget)) {
+        // LOGGER_UMO_MODEL.error("[ERROR] Error copying " + emissionsSrc + " file to " + emissionsTarget);
+        // LOGGER_UMO_MODEL.error("Aborting...");
+        // System.exit(1);
+        // }
+
+        String configure01Src = NMMBEnvironment.UMO_OUT + "configure_file";
+        String configure01Target = NMMBEnvironment.UMO_OUT + "configure_file_01";
+        if (!FileManagement.copyFile(configure01Src, configure01Target)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + configure01Src + " file to " + configure01Target);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String modelConfigureSrc = NMMBEnvironment.UMO_OUT + "configure_file";
+        String modelConfigureTarget = NMMBEnvironment.UMO_OUT + "model_configure";
+        if (!FileManagement.copyFile(modelConfigureSrc, modelConfigureTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + modelConfigureSrc + " file to " + modelConfigureTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String solverSrc = NMMBEnvironment.SRCDIR + "NAMELISTS" + File.separator + "solver_state.txt";
+        String solverTarget = NMMBEnvironment.UMO_OUT + "solver_state.txt";
+        if (!FileManagement.copyFile(solverSrc, solverTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + solverSrc + " file to " + solverTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String oceanSrc = NMMBEnvironment.SRCDIR + "NAMELISTS" + File.separator + "ocean.configure";
+        String oceanTarget = NMMBEnvironment.UMO_OUT + "ocean.configure";
+        if (!FileManagement.copyFile(oceanSrc, oceanTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + oceanSrc + " file to " + oceanTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String atmosSrc = NMMBEnvironment.SRCDIR + "NAMELISTS" + File.separator + "atmos.configure";
+        String atmosTarget = NMMBEnvironment.UMO_OUT + "atmos.configure";
+        if (!FileManagement.copyFile(atmosSrc, atmosTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + atmosSrc + " file to " + atmosTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String globalPrdlosSrc = NMMBEnvironment.DATMOD + "global_o3prdlos.f77";
+        String globalPrdlosTarget = NMMBEnvironment.UMO_OUT + "fort.28";
+        try {
+            Files.createSymbolicLink(Paths.get(globalPrdlosTarget), Paths.get(globalPrdlosSrc));
+        } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
+            LOGGER_UMO_MODEL.error("[ERROR] Cannot create symlink " + globalPrdlosTarget + " from " + globalPrdlosSrc, exception);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String globalClimSrc = NMMBEnvironment.DATMOD + "global_o3clim.txt";
+        String globalClimTarget = NMMBEnvironment.UMO_OUT + "fort.48";
+        try {
+            Files.createSymbolicLink(Paths.get(globalClimTarget), Paths.get(globalClimSrc));
+        } catch (UnsupportedOperationException | IOException | SecurityException | InvalidPathException exception) {
+            LOGGER_UMO_MODEL.error("[ERROR] Cannot create symlink " + globalClimTarget + " from " + globalClimSrc, exception);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        // Copy coupling previous day
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
+        String historySrc = folderOutputCase + "history_INIT.hhh";
+        String historyTarget = NMMBEnvironment.UMO_OUT + "atmos.configure";
+        if (!FileManagement.copyFile(historySrc, historyTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + historySrc + " file to " + historyTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+    }
+
+    public void postUMOModelExecution(Date currentDate) {
+        // Define model output folder by case and date
+        String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
+        String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+
+        String historyFilePath = NMMBEnvironment.UMO_OUT + "history_INIT.hhh";
+        FileManagement.deleteFile(historyFilePath);
+
+        if (COUPLE_DUST) {
+            String historyTarget = folderOutputCase + "history_INIT.hhh";
+            String historySrc;
+            if (NHOURS_INIT < 100) {
+                if (NHOURS_INIT < 10) {
+                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_000" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+                } else {
+                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_00" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+                }
+            } else {
+                historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_0" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+            }
+
+            if (!FileManagement.copyFile(historySrc, historyTarget)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + historySrc + " file to " + historyTarget);
+                LOGGER_UMO_MODEL.error("Aborting...");
+                System.exit(1);
+            }
+        }
+
+        String nmmRrtmOutSrc = NMMBEnvironment.UMO_OUT + "nmm_rrtm.out";
+        String nmmRrtmOutTarget = folderOutput + "nmm_rrtm.out";
+        if (!FileManagement.moveFile(nmmRrtmOutSrc, nmmRrtmOutTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + nmmRrtmOutSrc + " file to " + nmmRrtmOutTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String configureFileSrc = NMMBEnvironment.UMO_OUT + "configure_file";
+        String configureFileTarget = folderOutput + "configure_file";
+        if (!FileManagement.moveFile(configureFileSrc, configureFileTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + configureFileSrc + " file to " + configureFileTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        String boundarySrc = NMMBEnvironment.OUTPUT + "boundary_ecmwf.nc";
+        String boundaryTarget = folderOutput + "boundary_ecmwf.nc";
+        if (!FileManagement.moveFile(boundarySrc, boundaryTarget)) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + boundarySrc + " file to " + boundaryTarget);
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+
+        File umoFolder = new File(NMMBEnvironment.UMO_OUT);
+        for (File file : umoFolder.listFiles()) {
+            if (file.getName().startsWith("nmmb_hst_01_bin_")) {
+                String target = folderOutput + file.getName();
+                if (!FileManagement.moveFile(file.getAbsolutePath(), target)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + target);
+                    LOGGER_UMO_MODEL.error("Aborting...");
+                    System.exit(1);
+                }
+            }
+        }
+    }
+
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** UMO MODEL STEP ***************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+
+    public void preparePostProcessExecution(Date currentDate) {
+        // Define model output folder by case and date
+        // Define model output folder by case and date
+        String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
+        String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+
+        String lmimjmSrc = folderOutputCase + "lmimjm.inc";
+        String lmimjmTarget = NMMBEnvironment.POST_CARBONO + "lmimjm.inc";
+        if (!FileManagement.copyFile(lmimjmSrc, lmimjmTarget)) {
+            LOGGER_POST.error("[ERROR] Error copying " + lmimjmSrc + " file to " + lmimjmTarget);
+            LOGGER_POST.error("Aborting...");
+            System.exit(1);
+        }
+
+        String postAllSrc = NMMBEnvironment.POST_CARBONO + "new_postall.f.tmp";
+        String postAllTarget = NMMBEnvironment.POST_CARBONO + "new_postall.f";
+        String hourPSTR = (HOUR_P < 10) ? "0" + String.valueOf(HOUR_P) : String.valueOf(HOUR_P);
+        String nHoursPSTR = (NHOURS_P < 10) ? "0" + String.valueOf(NHOURS_P) : String.valueOf(NHOURS_P);
+        BashCMDExecutor cmdPostall = new BashCMDExecutor("sed");
+        cmdPostall.addFlagAndValue("-e", "s/QQQ/" + nHoursPSTR + "/");
+        cmdPostall.addFlagAndValue("-e", "s/SSS/" + hourPSTR + "/");
+        cmdPostall.addFlagAndValue("-e", "s/TTT/" + String.valueOf(HIST_P) + "/");
+        cmdPostall.addArgument(postAllSrc);
+        cmdPostall.redirectOutput(postAllTarget);
+        try {
+            int ev = cmdPostall.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_POST.error("[ERROR] Error performing sed command on " + postAllSrc, ce);
+            LOGGER_POST.error("Aborting...");
+            System.exit(1);
+        }
+
+        String runPostProcSrc = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh.tmp";
+        String runPostProcTarget = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh";
+        BashCMDExecutor cmdPostAuth = new BashCMDExecutor("sed");
+        cmdPostAuth.addFlagAndValue("-e", "s/YYYYMMDD/" + NMMBConstants.STR_TO_DATE.format(currentDate) + "/");
+        cmdPostAuth.addArgument(runPostProcSrc);
+        cmdPostAuth.redirectOutput(runPostProcTarget);
+        try {
+            int ev = cmdPostAuth.execute();
+            if (ev != 0) {
+                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+            }
+        } catch (CommandException ce) {
+            LOGGER_POST.error("[ERROR] Error performing sed command on " + runPostProcSrc, ce);
+            LOGGER_POST.error("Aborting...");
+            System.exit(1);
+        }
+
+        String datePost = NMMBConstants.MONTH_NAME_DATE_TO_STR.format(currentDate);
+        int tdeft = (int) (NHOURS_P / (HIST + 1));
+        String tdef = (tdeft < 10) ? "0" + String.valueOf(tdeft) : String.valueOf(tdeft);
+
+        if (DOMAIN) {
+            String poutGlobalCtlSrc = NMMBEnvironment.POST_CARBONO + "pout_global_pressure.ctl.tmp";
+            String poutGlobalCtlTarget = folderOutput + "pout_global_pressure_" + currentDateSTR + hourSTR + ".ctl";
+            BashCMDExecutor cmdGlobalCtl = new BashCMDExecutor("sed");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/DATE/" + currentDateSTR + hourSTR + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LSM) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/HH/" + tdef + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/INITCTL/" + HOUR + "Z" + datePost + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(HIST_P) + "hr/");
+            cmdGlobalCtl.addArgument(poutGlobalCtlSrc);
+            cmdGlobalCtl.redirectOutput(poutGlobalCtlTarget);
+            try {
+                int ev = cmdGlobalCtl.execute();
+                if (ev != 0) {
+                    throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+                }
+            } catch (CommandException ce) {
+                LOGGER_POST.error("[ERROR] Error performing sed command on " + poutGlobalCtlSrc, ce);
+                LOGGER_POST.error("Aborting...");
+                System.exit(1);
+            }
+        } else {
+            int ireg = IMI - 2;
+            int jreg = JMI - 2;
+            String poutRegionalCtlSrc = NMMBEnvironment.POST_CARBONO + "pout_regional_pressure.ctl.tmp";
+            String poutRegionalCtlTarget = folderOutput + "pout_regional_pressure_" + currentDateSTR + hourSTR + ".ctl";
+            BashCMDExecutor cmdRegionalCtl = new BashCMDExecutor("sed");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/DATE/" + currentDateSTR + hourSTR + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/IRG/" + String.valueOf(ireg) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/JRG/" + String.valueOf(jreg) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/TLMN/" + String.valueOf(TLM0D) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/TPHN/" + String.valueOf(TPH0DN) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/WBXX/" + String.valueOf(WBDDEF) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/SBYY/" + String.valueOf(SBDDEF) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LSM) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/HH/" + tdef + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/INITCTL/" + HOUR + "Z" + datePost + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(HIST_P) + "hr/");
+            cmdRegionalCtl.addArgument(poutRegionalCtlSrc);
+            cmdRegionalCtl.redirectOutput(poutRegionalCtlTarget);
+            try {
+                int ev = cmdRegionalCtl.execute();
+                if (ev != 0) {
+                    throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
+                }
+            } catch (CommandException ce) {
+                LOGGER_POST.error("[ERROR] Error performing sed command on " + poutRegionalCtlSrc, ce);
+                LOGGER_POST.error("Aborting...");
+                System.exit(1);
+            }
+        }
+    }
+
+    public void postPostProcessExecution(Date currentDate) {
+        String lmimjmFilePath = NMMBEnvironment.POST_CARBONO + "lmimjm.inc";
+        if (!FileManagement.deleteFile(lmimjmFilePath)) {
+
+        }
+
+        String postAllFilePath = NMMBEnvironment.POST_CARBONO + "new_postall.f";
+        if (!FileManagement.deleteFile(postAllFilePath)) {
+
+        }
+
+        String postProcAuthFilePath = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh";
+        if (!FileManagement.deleteFile(postProcAuthFilePath)) {
+
         }
     }
 

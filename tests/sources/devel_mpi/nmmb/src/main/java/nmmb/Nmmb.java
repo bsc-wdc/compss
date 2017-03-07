@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import binary.BINARY;
+import mpi.MPI;
 import nmmb.configuration.NMMBConfigManager;
 import nmmb.configuration.NMMBConstants;
 import nmmb.configuration.NMMBEnvironment;
@@ -523,6 +524,30 @@ public class Nmmb {
      */
     private static void doUMOModel(NMMBParameters nmmbParams, Date currentDate) {
         LOGGER_UMO_MODEL.info("Enter UMO Model process");
+
+        /* Prepare execution **************************************************************/
+        nmmbParams.prepareUMOMOdelExecution(currentDate);
+        MessagePrinter umoModelMP = new MessagePrinter(LOGGER_UMO_MODEL);
+
+        /* Begin MPI call ***********************************************************/
+        umoModelMP.printHeaderMsg("BEGIN");
+        umoModelMP.printInfoMsg("Executing nmmb_esmf.x UMO-NMMb-DUST-RRTM model");
+
+        Integer nemsEV = MPI.nems();
+
+        LOGGER_UMO_MODEL.debug("Execution of mpirun NEMS ended with status " + nemsEV);
+        if (nemsEV != 0) {
+            LOGGER_UMO_MODEL.error("[ERROR] Error executing mpirun nems ");
+            LOGGER_UMO_MODEL.error("Aborting...");
+            System.exit(1);
+        }
+        umoModelMP.printInfoMsg("Finished Executing nmmb_esmf.x UMO-NMMb-DUST-RRTM model");
+
+        /* Post execution **************************************************************/
+        nmmbParams.postUMOModelExecution(currentDate);
+
+        umoModelMP.printHeaderMsg("END");
+
         LOGGER_UMO_MODEL.info("UMO Model process finished");
     }
 
@@ -531,7 +556,23 @@ public class Nmmb {
      * 
      */
     private static void doPost(NMMBParameters nmmbParams, Date currentDate) {
-        LOGGER_POST.info("Enter post process");
+        String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+        LOGGER_POST.info("Postproc_carbono process for DAY: " + currentDateSTR);
+        
+        /* Prepare execution **************************************************************/
+        nmmbParams.preparePostProcessExecution(currentDate);
+        MessagePrinter postProcMP = new MessagePrinter(LOGGER_POST);
+        
+        /* Begin MPI call ***********************************************************/
+        postProcMP.printHeaderMsg("BEGIN");
+
+        // TODO ./run-postproc_auth.sh $FOLDER_OUTPUT glob/reg ${DATE}${HOUR}
+        
+        /* Post execution **************************************************************/
+        nmmbParams.postPostProcessExecution(currentDate);
+
+        postProcMP.printHeaderMsg("END");
+        
         LOGGER_POST.info("Post process finished");
     }
 
@@ -579,15 +620,10 @@ public class Nmmb {
         Date currentDate = nmmbParams.START_DATE;
         while (!currentDate.after(nmmbParams.END_DATE)) {
             String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-            // TODO String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) :
-            // String.valueOf(nmmbParams.HOUR);
-
             LOGGER_MAIN.info(currentDateSTR + " simulation started");
 
-            // Define model output folder by case and date
-            // TODO String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
-            // TODO String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR +
-            // hourSTR;
+            // Create output folders if needed
+            nmmbParams.createOutputFolders(currentDate);
 
             // Vrbl process
             if (nmmbParams.DO_VRBL) {

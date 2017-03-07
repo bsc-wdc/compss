@@ -163,6 +163,14 @@ public class NMMBConfigManager {
         return config.getInt(NMMBConstants.INIT_CHEM_NAME);
     }
 
+    public boolean getCoupleDust() {
+        return config.getBoolean(NMMBConstants.COUPLE_DUST_NAME);
+    }
+
+    public boolean getCoupleDustInit() {
+        return config.getBoolean(NMMBConstants.COUPLE_DUST_INIT_NAME);
+    }
+
     public int getHour() {
         return config.getInt(NMMBConstants.HOUR_NAME);
     }
@@ -171,12 +179,36 @@ public class NMMBConfigManager {
         return config.getInt(NMMBConstants.NHOURS_NAME);
     }
 
+    public int getNHoursInit() {
+        return config.getInt(NMMBConstants.NHOURS_INIT_NAME);
+    }
+
+    public int getHist() {
+        return config.getInt(NMMBConstants.HIST_NAME);
+    }
+
     public int getBoco() {
         return config.getInt(NMMBConstants.BOCO_NAME);
     }
 
     public String getTypeGFSInit() {
         return config.getString(NMMBConstants.TYPE_GFSINIT_NAME);
+    }
+
+    public int getHourP() {
+        return config.getInt(NMMBConstants.HOUR_P_NAME);
+    }
+
+    public int getNHoursP() {
+        return config.getInt(NMMBConstants.NHOURS_P_NAME);
+    }
+
+    public int getHistP() {
+        return config.getInt(NMMBConstants.HIST_P_NAME);
+    }
+
+    public int getLSM() {
+        return config.getInt(NMMBConstants.LSM_NAME);
     }
 
 }

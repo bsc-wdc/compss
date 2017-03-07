@@ -86,4 +86,19 @@ public class FileManagement {
         return true;
     }
 
+    public static boolean moveFile(String srcPath, String targetPath) {
+        try {
+            Files.move(Paths.get(srcPath), Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
+        } catch (UnsupportedOperationException | IOException | SecurityException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean createDir(String folderPath) {
+        File folder = new File(folderPath);
+        return folder.mkdirs();
+    }
+
 }

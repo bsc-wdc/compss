@@ -1,9 +1,11 @@
 package nmmb;
 
+import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.MPI;
 import nmmb.configuration.NMMBEnvironment;
 import nmmb.utils.BinaryWrapper;
 import nmmb.utils.FortranWrapper;
@@ -418,4 +420,17 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.IN) String roughness
     );
     
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** UMO MODEL STEP ***************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+    @MPI(mpiRunner = "mpirun", binary = NMMBEnvironment.EXE_FOR_ITF + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, computingNodes = "2")
+    @Constraints(computingUnits = "16")
+    Integer nems(
+    );
 }

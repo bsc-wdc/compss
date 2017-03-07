@@ -80,5 +80,10 @@ public class FortranWrapper {
     public static final String[] VARIABLE_FORTRAN_F_FILES_WITH_DEPS = new String[] { ALLPREP_RRTM };
 
     public static final String[] VARIABLE_FORTRAN_F_FILES_WITH_W3 = new String[] { DEGRIB_SST };
+    
+    /*
+     * UMO MODEL FORTRAN FILES
+     */
+    public static final String NEMS = "nems";
 
 }

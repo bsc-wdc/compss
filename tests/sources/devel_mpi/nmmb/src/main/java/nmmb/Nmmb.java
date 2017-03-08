@@ -537,7 +537,7 @@ public class Nmmb {
 
         LOGGER_UMO_MODEL.debug("Execution of mpirun NEMS ended with status " + nemsEV);
         if (nemsEV != 0) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error executing mpirun nems ");
+            LOGGER_UMO_MODEL.error("[ERROR] Error executing mpirun nems");
             LOGGER_UMO_MODEL.error("Aborting...");
             System.exit(1);
         }
@@ -556,23 +556,34 @@ public class Nmmb {
      * 
      */
     private static void doPost(NMMBParameters nmmbParams, Date currentDate) {
+        // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
+        String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) : String.valueOf(nmmbParams.HOUR);
+        String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+
         LOGGER_POST.info("Postproc_carbono process for DAY: " + currentDateSTR);
-        
+
         /* Prepare execution **************************************************************/
         nmmbParams.preparePostProcessExecution(currentDate);
         MessagePrinter postProcMP = new MessagePrinter(LOGGER_POST);
-        
+
         /* Begin MPI call ***********************************************************/
         postProcMP.printHeaderMsg("BEGIN");
 
-        // TODO ./run-postproc_auth.sh $FOLDER_OUTPUT glob/reg ${DATE}${HOUR}
-        
+        String domainSTR = (nmmbParams.DOMAIN) ? "glob" : "reg";
+        String dateHour = currentDateSTR + hourSTR;
+        Integer ev = BINARY.runPostprocAuth(folderOutput, domainSTR, dateHour);
+
         /* Post execution **************************************************************/
-        nmmbParams.postPostProcessExecution(currentDate);
+        LOGGER_POST.debug("Execution of mpirun NEMS ended with status " + ev);
+        if (ev != 0) {
+            LOGGER_POST.error("[ERROR] Error executing post process");
+            LOGGER_POST.error("Aborting...");
+            System.exit(1);
+        }
 
         postProcMP.printHeaderMsg("END");
-        
+
         LOGGER_POST.info("Post process finished");
     }
 

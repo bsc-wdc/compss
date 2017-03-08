@@ -17,6 +17,10 @@ import nmmb.utils.BashCMDExecutor;
 import nmmb.utils.FileManagement;
 
 
+/**
+ * Representation of the parameters of a NMMB execution
+ * 
+ */
 public class NMMBParameters {
 
     // Loggers
@@ -189,6 +193,10 @@ public class NMMBParameters {
         LOGGER_MAIN.info("Execution variables set");
     }
 
+    /**
+     * Actions to perform to setup an NMMB execution
+     * 
+     */
     public void prepareExecution() {
         LOGGER_MAIN.info("Preparing execution...");
 
@@ -244,6 +252,10 @@ public class NMMBParameters {
      * ***************************************************************************************************
      */
 
+    /**
+     * Actions to setup the FIXED Step of an NMMB execution
+     * 
+     */
     public void prepareFixedExecution() {
         LOGGER_FIXED.debug("   - INCLUDE PATH : " + NMMBEnvironment.FIX_INCLUDE_DIR);
 
@@ -326,6 +338,11 @@ public class NMMBParameters {
      * ***************************************************************************************************
      */
 
+    /**
+     * Actions to create the output folder for a date iteration of an NMMB execution
+     * 
+     * @param currentDate
+     */
     public void createOutputFolders(Date currentDate) {
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
         String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
@@ -340,6 +357,7 @@ public class NMMBParameters {
             LOGGER_MAIN.debug("Cannot create folder output : " + folderOutput + " because it already exists. Skipping");
         }
     }
+
     /*
      * ***************************************************************************************************
      * ***************************************************************************************************
@@ -350,6 +368,11 @@ public class NMMBParameters {
      * ***************************************************************************************************
      */
 
+    /**
+     * Actions to prepare the VARIABLE Step of an NMMB Execution
+     * 
+     * @param currentDate
+     */
     public void prepareVariableExecution(Date currentDate) {
         // Clean specific files
         final String[] outputFiles = new String[] { "sst2dvar_grb_0.5", "fcst", "llstmp", "llsmst", "llgsno", "llgcic", "llgsst",
@@ -588,6 +611,11 @@ public class NMMBParameters {
      * ***************************************************************************************************
      */
 
+    /**
+     * Actions to prepare the UMO Model Execution Step of an NMMB Execution
+     * 
+     * @param currentDate
+     */
     public void prepareUMOMOdelExecution(Date currentDate) {
         // Clean specific files
         final String[] outputFiles = new String[] { "isop.dat", "meteo-data.dat", "chemic-reg", "main_input_filename",
@@ -972,6 +1000,11 @@ public class NMMBParameters {
         }
     }
 
+    /**
+     * Actions to perform after the UMO Model Execution
+     * 
+     * @param currentDate
+     */
     public void postUMOModelExecution(Date currentDate) {
         // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
@@ -1049,8 +1082,12 @@ public class NMMBParameters {
      * ***************************************************************************************************
      */
 
+    /**
+     * Actions to perform on the POST PROCESS Step of an NMMB Execution
+     * 
+     * @param currentDate
+     */
     public void preparePostProcessExecution(Date currentDate) {
-        // Define model output folder by case and date
         // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
         String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
@@ -1082,23 +1119,6 @@ public class NMMBParameters {
             }
         } catch (CommandException ce) {
             LOGGER_POST.error("[ERROR] Error performing sed command on " + postAllSrc, ce);
-            LOGGER_POST.error("Aborting...");
-            System.exit(1);
-        }
-
-        String runPostProcSrc = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh.tmp";
-        String runPostProcTarget = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh";
-        BashCMDExecutor cmdPostAuth = new BashCMDExecutor("sed");
-        cmdPostAuth.addFlagAndValue("-e", "s/YYYYMMDD/" + NMMBConstants.STR_TO_DATE.format(currentDate) + "/");
-        cmdPostAuth.addArgument(runPostProcSrc);
-        cmdPostAuth.redirectOutput(runPostProcTarget);
-        try {
-            int ev = cmdPostAuth.execute();
-            if (ev != 0) {
-                throw new CommandException("[ERROR] CMD returned non-zero exit value: " + ev);
-            }
-        } catch (CommandException ce) {
-            LOGGER_POST.error("[ERROR] Error performing sed command on " + runPostProcSrc, ce);
             LOGGER_POST.error("Aborting...");
             System.exit(1);
         }
@@ -1169,23 +1189,6 @@ public class NMMBParameters {
                 LOGGER_POST.error("Aborting...");
                 System.exit(1);
             }
-        }
-    }
-
-    public void postPostProcessExecution(Date currentDate) {
-        String lmimjmFilePath = NMMBEnvironment.POST_CARBONO + "lmimjm.inc";
-        if (!FileManagement.deleteFile(lmimjmFilePath)) {
-
-        }
-
-        String postAllFilePath = NMMBEnvironment.POST_CARBONO + "new_postall.f";
-        if (!FileManagement.deleteFile(postAllFilePath)) {
-
-        }
-
-        String postProcAuthFilePath = NMMBEnvironment.POST_CARBONO + "run-postproc_auth.sh";
-        if (!FileManagement.deleteFile(postProcAuthFilePath)) {
-
         }
     }
 

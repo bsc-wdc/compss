@@ -33,25 +33,52 @@ public class BashCMDExecutor {
     private String redirectOutput;
 
 
+    /**
+     * Creates a Bash Executor for the given command @command
+     * 
+     * @param command
+     */
     public BashCMDExecutor(String command) {
         this.command = command;
         this.arguments = new LinkedList<>();
         this.redirectOutput = null;
     }
 
+    /**
+     * Adds an argument @arg to the command
+     * 
+     * @param arg
+     */
     public void addArgument(String arg) {
         this.arguments.add(arg);
     }
 
+    /**
+     * Adds a flag and its value in two separated arguments to the command
+     * 
+     * @param flag
+     * @param value
+     */
     public void addFlagAndValue(String flag, String value) {
         this.arguments.add(flag);
         this.arguments.add(value);
     }
 
+    /**
+     * Redirects the output to the specified filePath
+     * 
+     * @param filePath
+     */
     public void redirectOutput(String filePath) {
         this.redirectOutput = filePath;
     }
 
+    /**
+     * Executes the command with all the specified parameters and output redirections
+     * 
+     * @return
+     * @throws CommandException
+     */
     public int execute() throws CommandException {
         LOGGER.info("[CMD EXECUTION WRAPPER] Executing command: " + this.toString());
 

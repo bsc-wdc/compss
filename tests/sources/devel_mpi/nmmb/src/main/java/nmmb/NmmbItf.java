@@ -429,8 +429,27 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    @MPI(mpiRunner = "mpirun", binary = NMMBEnvironment.EXE_FOR_ITF + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, computingNodes = "2")
+    @MPI(mpiRunner = "mpirun", 
+         binary = NMMBEnvironment.EXE_FOR_ITF + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
+         computingNodes = "2")
     @Constraints(computingUnits = "16")
     Integer nems(
     );
+    
+    /*
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ******************** POST PROC STEP ***************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     * ***************************************************************************************************
+     */
+    @Binary(binary = NMMBEnvironment.POST_FOR_ITF + BinaryWrapper.RUN_POSTPROC_AUTH)
+    Integer runPostprocAuth(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String folderOutput,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String domain,
+        @Parameter(type = Type.STRING, direction = Direction.IN) String dateHour
+    );
+    
 }

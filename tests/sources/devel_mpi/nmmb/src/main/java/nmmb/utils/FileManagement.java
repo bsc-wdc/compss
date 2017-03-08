@@ -76,6 +76,13 @@ public class FileManagement {
         }
     }
 
+    /**
+     * Copies a file from @srcPath to @targetPath
+     * 
+     * @param srcPath
+     * @param targetPath
+     * @return
+     */
     public static boolean copyFile(String srcPath, String targetPath) {
         try {
             Files.copy(Paths.get(srcPath), Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
@@ -86,6 +93,13 @@ public class FileManagement {
         return true;
     }
 
+    /**
+     * Moves a file from @srcPath to @targetPath
+     * 
+     * @param srcPath
+     * @param targetPath
+     * @return
+     */
     public static boolean moveFile(String srcPath, String targetPath) {
         try {
             Files.move(Paths.get(srcPath), Paths.get(targetPath), StandardCopyOption.REPLACE_EXISTING);
@@ -96,6 +110,12 @@ public class FileManagement {
         return true;
     }
 
+    /**
+     * Creates a directory and all its parents for @folderPath
+     * 
+     * @param folderPath
+     * @return
+     */
     public static boolean createDir(String folderPath) {
         File folder = new File(folderPath);
         return folder.mkdirs();

@@ -357,7 +357,7 @@ install() {
   rm -r ${tmpDir}/compss/runtime/adaptors/commons
   path_source=${tmpDir}/compss/runtime/adaptors
   path_target=${targetDir}/Runtime/adaptors
-  adaptors=$(ls ${path_source})
+  adaptors=$(ls ${path_source} | grep -v .*\.iml)
   for adaptor in $adaptors; do
     mkdir ${path_target}/$adaptor
     mkdir ${path_target}/$adaptor/master

@@ -615,7 +615,8 @@
 !
       nbc=18
 !OJORBA3      write(fname,'(a,i3.3)')param46
-      write(fname,'(a,i4.4)')param46,ihr-ihboco
+!      write(fname,'(a,i4.4)')param46,ihr-ihboco
+      fname = trim(param46) // 'ihr-ihboco'
       open(unit=nbc,file=fname
      &    ,status='unknown',form='unformatted')
       run=.true.
@@ -638,7 +639,8 @@
 !
       nbc=18
 !OJORBA3      write(fname,'(a,i3.3)')param46
-      write(fname,'(a,i4.4)')param46,ihrend
+!      write(fname,'(a,i4.4)')param46,ihrend
+      fname = trim(param46) // 'ihrend'
       open(unit=nbc,file=fname
      &    ,status='unknown',form='unformatted')
       run=.true.
@@ -765,7 +767,7 @@
       integer idat(3),ihrst,ihr
 !
       character*3  ced
-      character*128 fname
+      character*256 fname
       data fname/'                                '/
 !
 !-----------------------------------------------------------------------
@@ -818,7 +820,7 @@
       call getarg(47,param47)
 
 
-      write(fname,'(a,i3.3)') param47,ihr
+!      write(fname,'(a,i3.3)') param47,ihr
       fname = param1
       print*,'fname=',fname
       open (unit=2,file=fname
@@ -2141,7 +2143,7 @@
       dimension vbs(imi,lnsv,lm,2),vbn(imi,lnsv,lm,2)
      &         ,vbw(lnsv,jmi,lm,2),vbe(lnsv,jmi,lm,2)
 !-----------------------------------------------------------------------
-      character*128 fname
+      character*256 fname
       data fname/'                                '/
 !-----------------------------------------------------------------------
       data ntsd/0/
@@ -3134,7 +3136,8 @@
 !-----------------------------------------------------------------------
 !
         nfcst=18
-        write(fname,'(a)')param45
+!        write(fname,'(a)')param45
+        fname = param45
         open(unit=nfcst,file=param42
      &      ,status='unknown',form='unformatted')
         run=.true.

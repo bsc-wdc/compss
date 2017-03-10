@@ -728,17 +728,22 @@ public class NMMBParameters {
         }
 
         // Copy data files
-        String dataFolderPath = NMMBEnvironment.CHEMIC + "MEGAN" + File.separator + "out" + File.separator + "aqmeii-reg" + File.separator;
-        File dataFolder = new File(dataFolderPath);
-        for (File file : dataFolder.listFiles()) {
-            if (file.getName().equals("isop.dat") || (file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
-                    || file.getName().equals("meteo-data.dat") || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))) {
+        if (NMMBEnvironment.CHEMIC == null || NMMBEnvironment.CHEMIC.isEmpty()) {
+            LOGGER_UMO_MODEL.debug("[ERROR] Error copying from CHEMIC because source doesn't exist. Skipping...");
+        } else {
+            String dataFolderPath = NMMBEnvironment.CHEMIC + "MEGAN" + File.separator + "out" + File.separator + "aqmeii-reg"
+                    + File.separator;
+            File dataFolder = new File(dataFolderPath);
+            for (File file : dataFolder.listFiles()) {
+                if (file.getName().equals("isop.dat") || (file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
+                        || file.getName().equals("meteo-data.dat")
+                        || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))) {
 
-                // Copy file
-                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
-                    LOGGER_UMO_MODEL.error("Aborting...");
-                    System.exit(1);
+                    // Copy file
+                    if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
+                        LOGGER_UMO_MODEL.debug("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT
+                                + " because source doesn't exist. Skipping...");
+                    }
                 }
             }
         }

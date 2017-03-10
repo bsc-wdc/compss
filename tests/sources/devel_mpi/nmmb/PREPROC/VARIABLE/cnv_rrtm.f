@@ -4,7 +4,7 @@
 !
 !-----------------------------------------------------------------------
 !
-      character*64 fname,infile,outfil,outtmp,outmst
+      character*256 fname,infile,outfil,outtmp,outmst
      &            ,outsst,outsno,outcic
       dimension idat(3),month(12),intgrs(32)
       data fname/'                                                      
@@ -140,7 +140,7 @@
 !-----------------------------------------------------------------------
 !
       logical run
-      character*64 infile,outfil,outtmp,outmst,outsst,outsno,outcic
+      character*256 infile,outfil,outtmp,outmst,outsst,outsno,outcic
       dimension idat(3)
 !-----------------------------------------------------------------------
       dimension gsst(ime,jme)           !  sst

@@ -29,7 +29,7 @@ real(kind=4),parameter:: &
 character(2):: &
  sfx
 
-character(128):: &
+character(256):: &
  infile &
 ,outfile
 

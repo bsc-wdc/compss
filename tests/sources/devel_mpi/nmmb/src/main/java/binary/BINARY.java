@@ -44,6 +44,10 @@ public class BINARY {
         return null;
     }
 
+    public static Integer gfortranCompiler(String bigOFlag, String source, String oFlag, String executable) {
+        return null;
+    }
+
     /*
      * ***************************************************************************************************
      * ***************************************************************************************************
@@ -147,7 +151,7 @@ public class BINARY {
         return null;
     }
 
-    public static Integer inc_rrtm(String gFS_file, String Deco) {
+    public static Integer inc_rrtm(String gFS_file, String deco) {
         return null;
     }
 

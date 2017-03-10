@@ -7,7 +7,7 @@
       include 'include/llgrid.inc'
 !!! KARSTEN
 !-----------------------------------------------------------------------
-      character*64 fname,infile,decofile
+      character*256 fname,infile,decofile
       data fname/'                                                    '/
       data infile/'                                                   '/
       data decofile/'                                                 '/

@@ -102,6 +102,14 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String bacioLib
     );
     
+    @Binary(binary = FortranWrapper.GFC)
+    Integer gfortranCompiler(
+        @Parameter(type = Type.STRING, direction = Direction.IN) String bigOFlag, 
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String oFlag, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable
+    );
+    
     
     /*
      * ***************************************************************************************************
@@ -284,7 +292,7 @@ public interface NmmbItf {
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.INC_RRTM + FortranWrapper.SUFFIX_EXE)
     Integer inc_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
-        @Parameter(type = Type.FILE, direction = Direction.OUT) String Deco
+        @Parameter(type = Type.STRING, direction = Direction.IN) String deco
     );
     
     @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.CNV_RRTM + FortranWrapper.SUFFIX_EXE)

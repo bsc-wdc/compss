@@ -21,7 +21,7 @@ include 'include/llgrid_rrtm1deg.inc'
 character(2):: &
  sfx
 
-character(128):: &
+character(256):: &
  infile &
 ,outfile
 

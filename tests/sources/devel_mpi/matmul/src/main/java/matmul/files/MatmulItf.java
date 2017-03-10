@@ -9,7 +9,7 @@ import integratedtoolkit.types.annotations.task.MPI;
 
 public interface MatmulItf {
 	
-	@MPI(binary = "${MATMUL_BINARY}", mpiRunner = "mpirun", computingNodes = "2")
+	@MPI(binary = "${MATMUL_BINARY}", mpiRunner = "mpirun", computingNodes = "${NODES_PER_MPI_TASK}")
 	@Constraints(computingUnits="1")
 	Integer multiplyAccumulative(
 	    @Parameter() int bsize,

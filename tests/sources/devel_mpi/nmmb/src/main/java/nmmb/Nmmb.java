@@ -13,6 +13,8 @@ import nmmb.configuration.NMMBConfigManager;
 import nmmb.configuration.NMMBConstants;
 import nmmb.configuration.NMMBEnvironment;
 import nmmb.configuration.NMMBParameters;
+import nmmb.exceptions.MainExecutionException;
+import nmmb.exceptions.TaskExecutionException;
 import nmmb.loggers.LoggerNames;
 import nmmb.utils.FortranWrapper;
 import nmmb.utils.MessagePrinter;
@@ -46,7 +48,7 @@ public class Nmmb {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    private static void doFixed(NMMBParameters nmmbParams) {
+    private static void doFixed(NMMBParameters nmmbParams) throws TaskExecutionException {
         LOGGER_FIXED.info("Enter fixed process");
 
         /* Prepare execution **************************************************************/
@@ -78,9 +80,7 @@ public class Nmmb {
         for (i = 0; i < compilationEvs.length; ++i) {
             LOGGER_FIXED.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
             if (compilationEvs[i] != 0) {
-                LOGGER_FIXED.error("[ERROR] Error compiling binary " + i);
-                LOGGER_FIXED.error("Aborting...");
-                System.exit(1);
+                throw new TaskExecutionException("[ERROR] Error compiling binary " + i);
             }
         }
 
@@ -180,9 +180,7 @@ public class Nmmb {
         for (i = 0; i < fixedBinariesEvs.length; ++i) {
             LOGGER_FIXED.debug("Execution of " + i + " binary ended with status " + fixedBinariesEvs[i]);
             if (fixedBinariesEvs[i] != 0) {
-                LOGGER_FIXED.error("[ERROR] Error executing binary " + i);
-                LOGGER_FIXED.error("Aborting...");
-                System.exit(1);
+                throw new TaskExecutionException("[ERROR] Error executing binary " + i);
             }
         }
 
@@ -219,7 +217,7 @@ public class Nmmb {
      * ***************************************************************************************************
      */
 
-    private static void compileVariable() {
+    private static void compileVariable() throws TaskExecutionException {
         /* Build the fortran objects *************************************************/
         Integer[] depCompilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_DEP_FILES.length];
         int objectIndex = 0;
@@ -238,9 +236,7 @@ public class Nmmb {
         for (int i = 0; i < depCompilationEvs.length; ++i) {
             LOGGER_VARIABLE.debug("Compilation of " + i + " dependant binary ended with status " + depCompilationEvs[i]);
             if (depCompilationEvs[i] != 0) {
-                LOGGER_VARIABLE.error("[ERROR] Error compiling binary " + i);
-                LOGGER_VARIABLE.error("Aborting...");
-                System.exit(1);
+                throw new TaskExecutionException("[ERROR] Error compiling binary " + i);
             }
         }
 
@@ -291,9 +287,7 @@ public class Nmmb {
         for (int i = 0; i < compilationEvs.length; ++i) {
             LOGGER_VARIABLE.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
             if (compilationEvs[i] != 0) {
-                LOGGER_VARIABLE.error("[ERROR] Error compiling binary " + i);
-                LOGGER_VARIABLE.error("Aborting...");
-                System.exit(1);
+                throw new TaskExecutionException("[ERROR] Error compiling binary " + i);
             }
         }
     }
@@ -336,7 +330,7 @@ public class Nmmb {
         }
     }
 
-    private static void doVariable(NMMBParameters nmmbParams, Date currentDate) {
+    private static void doVariable(NMMBParameters nmmbParams, Date currentDate) throws TaskExecutionException {
         LOGGER_VARIABLE.info("Enter variable process");
 
         /* Prepare execution **************************************************************/
@@ -499,9 +493,7 @@ public class Nmmb {
         for (int i = 0; i < variableBinariesEvs.length; ++i) {
             LOGGER_VARIABLE.debug("Execution of " + i + " binary ended with status " + variableBinariesEvs[i]);
             if (variableBinariesEvs[i] != 0) {
-                LOGGER_VARIABLE.error("[ERROR] Error executing binary " + i);
-                LOGGER_VARIABLE.error("Aborting...");
-                System.exit(1);
+                throw new TaskExecutionException("[ERROR] Error executing binary " + i);
             }
         }
 
@@ -512,7 +504,7 @@ public class Nmmb {
         cleanUpVariableExe();
 
         /* Post execution **************************************************************/
-        String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator;
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.getCase() + File.separator;
         nmmbParams.postVariableExecution(folderOutputCase);
 
         LOGGER_VARIABLE.info("Variable process finished");
@@ -522,7 +514,7 @@ public class Nmmb {
      * Performs the UMO Model simulation step
      * 
      */
-    private static void doUMOModel(NMMBParameters nmmbParams, Date currentDate) {
+    private static void doUMOModel(NMMBParameters nmmbParams, Date currentDate) throws TaskExecutionException {
         LOGGER_UMO_MODEL.info("Enter UMO Model process");
 
         /* Prepare execution **************************************************************/
@@ -537,9 +529,7 @@ public class Nmmb {
 
         LOGGER_UMO_MODEL.debug("Execution of mpirun NEMS ended with status " + nemsEV);
         if (nemsEV != 0) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error executing mpirun nems");
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
+            throw new TaskExecutionException("[ERROR] Error executing mpirun nems");
         }
         umoModelMP.printInfoMsg("Finished Executing nmmb_esmf.x UMO-NMMb-DUST-RRTM model");
 
@@ -555,11 +545,11 @@ public class Nmmb {
      * Performs the POST step
      * 
      */
-    private static void doPost(NMMBParameters nmmbParams, Date currentDate) {
+    private static void doPost(NMMBParameters nmmbParams, Date currentDate) throws TaskExecutionException {
         // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-        String hourSTR = (nmmbParams.HOUR < 10) ? "0" + String.valueOf(nmmbParams.HOUR) : String.valueOf(nmmbParams.HOUR);
-        String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+        String hourSTR = (nmmbParams.getHour() < 10) ? "0" + String.valueOf(nmmbParams.getHour()) : String.valueOf(nmmbParams.getHour());
+        String folderOutput = NMMBEnvironment.OUTNMMB + nmmbParams.getCase() + File.separator + currentDateSTR + hourSTR + File.separator;
 
         LOGGER_POST.info("Postproc_carbono process for DAY: " + currentDateSTR);
 
@@ -570,16 +560,14 @@ public class Nmmb {
         /* Begin MPI call ***********************************************************/
         postProcMP.printHeaderMsg("BEGIN");
 
-        String domainSTR = (nmmbParams.DOMAIN) ? "glob" : "reg";
+        String domainSTR = (nmmbParams.getDomain()) ? "glob" : "reg";
         String dateHour = currentDateSTR + hourSTR;
         Integer ev = BINARY.runPostprocAuth(folderOutput, domainSTR, dateHour);
 
         /* Post execution **************************************************************/
         LOGGER_POST.debug("Execution of mpirun NEMS ended with status " + ev);
         if (ev != 0) {
-            LOGGER_POST.error("[ERROR] Error executing post process");
-            LOGGER_POST.error("Aborting...");
-            System.exit(1);
+            throw new TaskExecutionException("[ERROR] Error executing post process");
         }
 
         postProcMP.printHeaderMsg("END");
@@ -588,13 +576,14 @@ public class Nmmb {
     }
 
     /**
-     * MAIN NMMB WORKFLOW
+     * Main NMMB Workflow
      * 
      * @param args
      *            args[0] : Configuration file path
      * 
+     * @throws MainExecutionException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MainExecutionException {
         LOGGER_MAIN.info("Starting NMMB application");
 
         // Check and get arguments
@@ -611,9 +600,8 @@ public class Nmmb {
             nmmbConfigManager = new NMMBConfigManager(configurationFile);
             LOGGER_MAIN.info("Configuration file loaded");
         } catch (ConfigurationException ce) {
-            LOGGER_MAIN.error("[ERROR] Cannot load configuration file: " + configurationFile, ce);
-            LOGGER_MAIN.error("Aborting...");
-            System.exit(1);
+            LOGGER_MAIN.error("[ERROR] Cannot load configuration file: " + configurationFile + ". Aborting...", ce);
+            throw new MainExecutionException(ce);
         }
 
         // Compute the execution variables
@@ -623,13 +611,18 @@ public class Nmmb {
         nmmbParams.prepareExecution();
 
         // Fixed process (do before main time looping)
-        if (nmmbParams.DO_FIXED) {
-            doFixed(nmmbParams);
+        if (nmmbParams.doFixed()) {
+            try {
+                doFixed(nmmbParams);
+            } catch (TaskExecutionException tee) {
+                LOGGER_FIXED.error("[ERROR] Task exception on fixed phase. Aborting...", tee);
+                throw new MainExecutionException(tee);
+            }
         }
 
         // Start main time loop
-        Date currentDate = nmmbParams.START_DATE;
-        while (!currentDate.after(nmmbParams.END_DATE)) {
+        Date currentDate = nmmbParams.getStartDate();
+        while (!currentDate.after(nmmbParams.getEndDate())) {
             String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
             LOGGER_MAIN.info(currentDateSTR + " simulation started");
 
@@ -637,18 +630,34 @@ public class Nmmb {
             nmmbParams.createOutputFolders(currentDate);
 
             // Vrbl process
-            if (nmmbParams.DO_VRBL) {
-                doVariable(nmmbParams, currentDate);
+            if (nmmbParams.doVariable()) {
+                try {
+                    doVariable(nmmbParams, currentDate);
+                } catch (TaskExecutionException tee) {
+                    LOGGER_VARIABLE.error("[ERROR] Task exception on variable phase at date " + currentDateSTR + ". Aborting...", tee);
+                    throw new MainExecutionException(tee);
+                }
             }
 
             // UMO model run
-            if (nmmbParams.DO_UMO) {
-                doUMOModel(nmmbParams, currentDate);
+            if (nmmbParams.doUmoModel()) {
+                try {
+                    doUMOModel(nmmbParams, currentDate);
+                } catch (TaskExecutionException tee) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Task exception on UMO Model phase at date " + currentDateSTR + ". Aborting...", tee);
+                    throw new MainExecutionException(tee);
+                }
+
             }
 
             // Post process
-            if (nmmbParams.DO_POST) {
-                doPost(nmmbParams, currentDate);
+            if (nmmbParams.doPost()) {
+                try {
+                    doPost(nmmbParams, currentDate);
+                } catch (TaskExecutionException tee) {
+                    LOGGER_POST.error("[ERROR] Task exception on Post phase at date " + currentDateSTR + ". Aborting...", tee);
+                    throw new MainExecutionException(tee);
+                }
             }
 
             LOGGER_MAIN.info(currentDateSTR + " simulation finished");

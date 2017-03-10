@@ -30,9 +30,9 @@
  
   binary=${base_app_dir}/bin/matmul
   MSIZE=2
-  BSIZE=2
- 
+  BSIZE=2 
   export MATMUL_BINARY=$binary
+  export NODES_PER_MPI_TASK=2
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \

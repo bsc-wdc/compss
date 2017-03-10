@@ -32,72 +32,72 @@ public class NMMBParameters {
 
     // -----------------------------------------------------------------------
     // MN settings
-    public int INPES;
-    public int JNPES;
-    public int WRTSK;
-    public int PROC;
+    private int INPES;
+    private int JNPES;
+    private int WRTSK;
+    private int PROC;
 
     // -----------------------------------------------------------------------
     // Global-regional switch - Model domain setup global/regional
-    public boolean DOMAIN;
-    public int LM;
-    public String CASE;
+    private boolean DOMAIN;
+    private int LM;
+    private String CASE;
 
     // -----------------------------------------------------------------------
     // Model variables
-    public int DT_INT;
-    public double TLM0D;
-    public double TPH0D;
-    public double WBD;
-    public double SBD;
-    public double DLMD;
-    public double DPHD;
-    public double PTOP;
-    public double DCAL;
-    public int NRADS;
-    public int NRADL;
-    public int IMI;
-    public int JMI;
-    public int IM;
-    public int JM;
+    private int DT_INT;
+    private double TLM0D;
+    private double TPH0D;
+    private double WBD;
+    private double SBD;
+    private double DLMD;
+    private double DPHD;
+    private double PTOP;
+    private double DCAL;
+    private int NRADS;
+    private int NRADL;
+    private int IMI;
+    private int JMI;
+    private int IM;
+    private int JM;
 
     // -----------------------------------------------------------------------
     // Case selection
-    public boolean DO_FIXED;
-    public boolean DO_VRBL;
-    public boolean DO_UMO;
-    public boolean DO_POST;
+    private boolean DO_FIXED;
+    private boolean DO_VRBL;
+    private boolean DO_UMO;
+    private boolean DO_POST;
 
     // -----------------------------------------------------------------------
     // Select START and ENDING Times
-    public Date START_DATE;
-    public Date END_DATE;
-    public int HOUR;
-    public int NHOURS;
-    public int NHOURS_INIT;
-    public int HIST;
-    public int HIST_M;
-    public int BOCO;
-    public String TYPE_GFSINIT;
+    private Date START_DATE;
+    private Date END_DATE;
+    private int HOUR;
+    private int NHOURS;
+    private int NHOURS_INIT;
+    private int HIST;
+    private int HIST_M;
+    private int BOCO;
+    private String TYPE_GFSINIT;
 
     // -----------------------------------------------------------------------
     // Select configuration of POSTPROC (DO_POST)
-    public int HOUR_P;
-    public int NHOURS_P;
-    public int HIST_P;
-    public int LSM;
-    public double TPH0DN;
-    public double WBDDEF;
-    public double SBDDEF;
+    private int HOUR_P;
+    private int NHOURS_P;
+    private int HIST_P;
+    private int LSM;
+    private double TPH0DN;
+    private double WBDDEF;
+    private double SBDDEF;
 
     // -----------------------------------------------------------------------
     // Select IC of chemistry for run with COUPLE_DUST_INIT=0
-    public int INIT_CHEM;
+    private int INIT_CHEM;
 
     // -----------------------------------------------------------------------
     // Couple dust
-    public boolean COUPLE_DUST;
-    public boolean COUPLE_DUST_INIT;
+    private boolean COUPLE_DUST;
+    private boolean COUPLE_DUST_INIT;
 
 
     /**
@@ -191,6 +191,87 @@ public class NMMBParameters {
         COUPLE_DUST_INIT = nmmbConfiguration.getCoupleDustInit();
 
         LOGGER_MAIN.info("Execution variables set");
+    }
+
+    /**
+     * Returns the DOMAIN value
+     * 
+     * @return
+     */
+    public boolean getDomain() {
+        return this.DOMAIN;
+    }
+
+    /**
+     * Returns the CASE value
+     * 
+     * @return
+     */
+    public String getCase() {
+        return this.CASE;
+    }
+
+    /**
+     * Returns the DO_FIXED value
+     * 
+     * @return
+     */
+    public boolean doFixed() {
+        return this.DO_FIXED;
+    }
+
+    /**
+     * Returns the DO_VARIABLE value
+     * 
+     * @return
+     */
+    public boolean doVariable() {
+        return this.DO_VRBL;
+    }
+
+    /**
+     * Returns the DO_UMO value
+     * 
+     * @return
+     */
+    public boolean doUmoModel() {
+        return this.DO_UMO;
+    }
+
+    /**
+     * Returns the DO_POST value
+     * 
+     * @return
+     */
+    public boolean doPost() {
+        return this.DO_POST;
+    }
+
+    /**
+     * Returns the START_DATE
+     * 
+     * @return
+     */
+    public Date getStartDate() {
+        return this.START_DATE;
+    }
+
+    /**
+     * Returns the END_DATE
+     * 
+     * @return
+     */
+    public Date getEndDate() {
+        return this.END_DATE;
+    }
+
+    /**
+     * Returns the HOUR value
+     * 
+     * @return
+     */
+    public int getHour() {
+        return this.HOUR;
     }
 
     /**

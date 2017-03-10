@@ -40,5 +40,6 @@
     --log_level=debug \
     --tracing=false \
     --graph=true \
+    --summary \
     nmmb.Nmmb ${propertiesFile}
 

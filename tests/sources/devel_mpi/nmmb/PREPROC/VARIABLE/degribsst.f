@@ -7,8 +7,6 @@
 !    note:  this subroutine degribs sst and the algorithm assumes
 !    a 0.5 deg global sst field in the llgrid05.inc format
 !-----------------------------------------------------------------------
-      character*64 infile,outfil
-!
       dimension gllsst05(imll,jmll)
 !-----------------------------------------------------------------------
 

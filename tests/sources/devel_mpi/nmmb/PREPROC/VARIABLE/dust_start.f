@@ -11,7 +11,7 @@
 !-----------------------------------------------------------------------
 !
       logical run, global
-      character*128 infile,fname
+      character*256 infile,fname
       integer idat(3),ihrst
      &,sizebins             !!number of dust transport bins
      &,soiltypes            !!number of soil types

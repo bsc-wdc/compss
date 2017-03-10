@@ -242,8 +242,8 @@ public class Nmmb {
 
         /* Build the fortran executables *************************************************/
         Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length
-                + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length
-                + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length];
+                + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length + FortranWrapper.VARIABLE_GFORTRAN_F_FILES.length
+                + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length];
 
         int executableIndex = 0;
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
@@ -263,6 +263,13 @@ public class Nmmb {
                     FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
                     FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src);
         }
+
+        for (String fortranFile : FortranWrapper.VARIABLE_GFORTRAN_F_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F_SRC;
+            compilationEvs[executableIndex++] = BINARY.gfortranCompiler(FortranWrapper.BIG_O_FLAG, src, FortranWrapper.OFLAG, executable);
+        }
+
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3) {
             String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
             String src = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_F_SRC;
@@ -308,6 +315,13 @@ public class Nmmb {
             }
         }
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F_FILES) {
+            String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
+            File f = new File(executable);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        for (String fortranFile : FortranWrapper.VARIABLE_GFORTRAN_F_FILES) {
             String executable = NMMBEnvironment.VRB + fortranFile + FortranWrapper.SUFFIX_EXE;
             File f = new File(executable);
             if (f.exists()) {

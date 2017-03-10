@@ -7,6 +7,7 @@ package nmmb.utils;
 public class FortranWrapper {
 
     public static final String FC = "ifort";
+    public static final String GFC = "gfortran";
     public static final String MC_FLAG = "-mcmodel=large";
     public static final String SHARED_FLAG = "-shared-intel";
     public static final String CONVERT_PREFIX = "-convert";
@@ -14,6 +15,7 @@ public class FortranWrapper {
     public static final String TRACEBACK_FLAG = "-traceback";
     public static final String ASSUME_PREFIX = "-assume";
     public static final String ASSUME_VALUE = "byterecl";
+    public static final String BIG_O_FLAG = "-O";
     public static final String OPT_FLAG = "-O3";
     public static final String FPMODEL_PREFIX = "-fp-model";
     public static final String FPMODEL_VALUE = "precise";
@@ -75,12 +77,14 @@ public class FortranWrapper {
 
     public static final String[] VARIABLE_FORTRAN_F90_FILES = new String[] { ALBEDO, ALBEDO_RRTM_1DEG, VEG_FRAC, Z0_VEGUSTAR };
 
-    public static final String[] VARIABLE_FORTRAN_F_FILES = new String[] { CNV_RRTM, DUST_START, GFS2MODEL, INC_RRTM };
+    public static final String[] VARIABLE_FORTRAN_F_FILES = new String[] { CNV_RRTM, DUST_START, INC_RRTM };
+
+    public static final String[] VARIABLE_GFORTRAN_F_FILES = new String[] { GFS2MODEL };
 
     public static final String[] VARIABLE_FORTRAN_F_FILES_WITH_DEPS = new String[] { ALLPREP_RRTM };
 
     public static final String[] VARIABLE_FORTRAN_F_FILES_WITH_W3 = new String[] { DEGRIB_SST };
-    
+
     /*
      * UMO MODEL FORTRAN FILES
      */

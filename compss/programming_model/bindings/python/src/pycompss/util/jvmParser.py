@@ -40,11 +40,14 @@ def convertToDict(jvm_opt_file):
                     # These parameters have no value
                     key = line.split(":")[1].replace('\n','')
                     opts[key] = True
-                else:
+                elif (line.startswith("-D:")):
                     key = line.split("=")[0]
                     value = line.split("=")[1].replace('\n','')
                     value = value.strip()
                     if not value:
                         value = None
                     opts[key] = value
+                else:
+                    key = line.replace('\n','')
+                    opts[key] = True
     return opts

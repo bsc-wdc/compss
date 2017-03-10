@@ -36,10 +36,11 @@ public class NMMBEnvironment {
     public static final String POST_CARBONO = System.getenv(NMMBConstants.ENV_NAME_POST_CARBONO) + File.separator;
 
     // ITF constants
-    public static final String FIX_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/";
-    public static final String LOOKUP_TABLES_DIR_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/";
-    public static final String VRB_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/";
-    public static final String EXE_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe/";
-    public static final String POST_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/POSTPROC/";
+    public static final String BASE_FOR_ITF = "/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/";
+    public static final String FIX_FOR_ITF = BASE_FOR_ITF + "PREPROC/FIXED/";
+    public static final String LOOKUP_TABLES_DIR_FOR_ITF = BASE_FOR_ITF + "PREPROC/FIXED/lookup_tables/";
+    public static final String VRB_FOR_ITF = BASE_FOR_ITF + "PREPROC/VARIABLE/";
+    public static final String EXE_FOR_ITF = BASE_FOR_ITF + "MODEL/exe/";
+    public static final String POST_FOR_ITF = BASE_FOR_ITF + "POSTPROC/";
 
 }

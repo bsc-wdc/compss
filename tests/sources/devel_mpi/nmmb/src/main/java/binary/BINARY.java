@@ -1,5 +1,9 @@
 package binary;
 
+/**
+ * Fake BINARY tasks implementation
+ * 
+ */
 public class BINARY {
 
     /*

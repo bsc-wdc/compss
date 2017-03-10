@@ -36,11 +36,11 @@ def convertToDict(jvm_opt_file):
         for line in fp:
             line = line.strip()
             if line:
-                if(line.startswith("-XX:")):
+                if (line.startswith("-XX:")):
                     # These parameters have no value
                     key = line.split(":")[1].replace('\n','')
                     opts[key] = True
-                elif (line.startswith("-D:")):
+                elif (line.startswith("-D")):
                     key = line.split("=")[0]
                     value = line.split("=")[1].replace('\n','')
                     value = value.strip()
@@ -49,5 +49,5 @@ def convertToDict(jvm_opt_file):
                     opts[key] = value
                 else:
                     key = line.replace('\n','')
-                    opts[key] = True
+                    opts[key] = True      
     return opts

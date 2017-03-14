@@ -123,6 +123,11 @@ public class BinaryRunner {
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
+            
+            // Disable inputs to process
+            process.getOutputStream().close();
+            
+            // Wait and retrieve exit value
             exitValue = process.waitFor();
         } catch (Exception e) {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);

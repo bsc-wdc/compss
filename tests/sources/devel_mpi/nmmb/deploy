@@ -1,0 +1,9 @@
+#!/bin/bash -e
+  
+  #Obtain parameter
+  source_base_dir=$1
+  target_base_dir=$2
+  
+  # NOTHING TO DO SINCE THIS TEST CAN ONLY BE EXECUTED AT MN
+  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+

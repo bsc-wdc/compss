@@ -14,6 +14,7 @@ public class Matmul {
 
     private static final byte[] NEW_LINE = "\n".getBytes();
 
+    private static int TYPE;
     private static int MSIZE;
     private static int BSIZE;
 
@@ -23,19 +24,21 @@ public class Matmul {
 
 
     private static void usage() {
-        System.out.println("    Usage: matmul.files.Matmul <MSize> <BSize>");
+        System.out.println("    Usage: matmul.files.Matmul <type> <MSize> <BSize>");
     }
 
     public static void main(String[] args) throws Exception {
         // Check and get parameters
-        if (args.length != 2) {
+        if (args.length != 3) {
             usage();
             throw new Exception("[ERROR] Incorrect number of parameters");
         }
-        MSIZE = Integer.parseInt(args[0]);
-        BSIZE = Integer.parseInt(args[1]);
+        TYPE = Integer.parseInt(args[0]);
+        MSIZE = Integer.parseInt(args[1]);
+        BSIZE = Integer.parseInt(args[2]);
 
         // Initialize matrices
+        System.out.println("[LOG] TYPE parameter value = " + TYPE);
         System.out.println("[LOG] MSIZE parameter value = " + MSIZE);
         System.out.println("[LOG] BSIZE parameter value = " + BSIZE);
         initializeVariables();
@@ -72,12 +75,10 @@ public class Matmul {
         }
     }
 
-    private static void initializeMatrix(String[][] fileNames, boolean initRand) throws Exception {
+    private static void initializeMatrix(String[][] fileNames, boolean initRand) throws IOException {
         for (int i = 0; i < MSIZE; ++i) {
             for (int j = 0; j < MSIZE; ++j) {
-                FileOutputStream fos = null;
-                try {
-                    fos = new FileOutputStream(fileNames[i][j]);
+                try (FileOutputStream fos = new FileOutputStream(fileNames[i][j])) {
                     for (int iblock = 0; iblock < BSIZE; ++iblock) {
                         for (int jblock = 0; jblock < BSIZE; ++jblock) {
                             double value = (double) 0.0;
@@ -91,16 +92,9 @@ public class Matmul {
                     }
                     fos.write(NEW_LINE);
                 } catch (IOException e) {
-                    throw new Exception("[ERROR] Error initializing matrix", e);
-                } finally {
-                    if (fos != null) {
-                        try {
-                            fos.close();
-                        } catch (Exception e) {
-                            throw new Exception("[ERROR] Error closing matrix file", e);
-                        }
-                    }
+                    throw new IOException("[ERROR] Error initializing matrix", e);
                 }
+
             }
         }
     }
@@ -113,7 +107,19 @@ public class Matmul {
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
                 for (int k = 0; k < MSIZE; k++) {
-                    exitValues[i][j][k] = MPI.multiplyAccumulative(BSIZE, AfileNames[i][k], BfileNames[k][j], CfileNames[i][j]);
+                    switch (TYPE) {
+                        case 1:
+                            exitValues[i][j][k] = MatmulImpl.multiplyAccumulativeNative(BSIZE, AfileNames[i][k], BfileNames[k][j],
+                                    CfileNames[i][j]);
+                            break;
+                        case 2:
+                            exitValues[i][j][k] = MPI.multiplyAccumulativeMPI(BSIZE, AfileNames[i][k], BfileNames[k][j], CfileNames[i][j]);
+                            break;
+                        default:
+                            System.err.println("[ERROR] Invalid type");
+                            System.exit(1);
+                            break;
+                    }
                 }
             }
         }
@@ -130,9 +136,8 @@ public class Matmul {
         }
     }
 
-    public static void storeMatrix(String fileName) throws Exception {
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName);
+    public static void storeMatrix(String fileName) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
             for (int i = 0; i < MSIZE; ++i) {
                 for (int j = 0; j < MSIZE; ++j) {
                     FileReader filereader = new FileReader(CfileNames[i][j]);
@@ -153,11 +158,10 @@ public class Matmul {
                 }
                 fos.write(NEW_LINE);
             }
-            fos.close();
         } catch (FileNotFoundException fnfe) {
-            throw new Exception("[ERROR] Error storing result matrix", fnfe);
+            throw new IOException("[ERROR] Error storing result matrix", fnfe);
         } catch (IOException ioe) {
-            throw new Exception("[ERROR] Error storing result matrix", ioe);
+            throw new IOException("[ERROR] Error storing result matrix", ioe);
         }
     }
 

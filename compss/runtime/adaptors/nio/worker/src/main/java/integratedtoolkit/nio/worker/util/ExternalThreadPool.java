@@ -136,8 +136,8 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             }
             PrintStream out = ((ThreadPrintStream) System.out).getStream();
             PrintStream err = ((ThreadPrintStream) System.err).getStream();
-            outputGobbler = new StreamGobbler(piper.getInputStream(), out);
-            errorGobbler = new StreamGobbler(piper.getErrorStream(), err);
+            outputGobbler = new StreamGobbler(piper.getInputStream(), out, logger);
+            errorGobbler = new StreamGobbler(piper.getErrorStream(), err, logger);
             outputGobbler.start();
             errorGobbler.start();
         } catch (IOException e) {

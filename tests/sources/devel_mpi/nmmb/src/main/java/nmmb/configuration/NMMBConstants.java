@@ -80,7 +80,7 @@ public class NMMBConstants {
     // -----------------------------------------------------------------------
     // Couple dust
     public static final String COUPLE_DUST_NAME = "COUPLE_DUST";
-    public static final String COUPLE_DUST_INIT_NAME = "COUPLE_DUST";
+    public static final String COUPLE_DUST_INIT_NAME = "COUPLE_DUST_INIT";
 
     // -----------------------------------------------------------------------
     // Environment variable names

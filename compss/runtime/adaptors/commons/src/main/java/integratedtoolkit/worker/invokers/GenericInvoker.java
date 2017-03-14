@@ -3,6 +3,7 @@ package integratedtoolkit.worker.invokers;
 import java.io.File;
 import java.util.ArrayList;
 
+import integratedtoolkit.exceptions.InvokeExecutionException;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.Stream;
 
@@ -23,6 +24,7 @@ public class GenericInvoker {
 
         System.out.println("");
         System.out.println("[MPI INVOKER] Begin MPI call to " + mpiBinary);
+        System.out.println("[MPI INVOKER] On WorkingDir : " + taskSandboxWorkingDir.getAbsolutePath());
 
         // Command similar to
         // export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n 2 --bind-to core exec args
@@ -31,6 +33,7 @@ public class GenericInvoker {
         String workers = System.getProperty(Constants.COMPSS_HOSTNAMES);
         String numNodes = System.getProperty(Constants.COMPSS_NUM_NODES);
         String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
+        String numProcs = String.valueOf(Integer.valueOf(numNodes) * Integer.valueOf(computingUnits));
         System.out.println("[MPI INVOKER] COMPSS HOSTNAMES: " + workers);
         System.out.println("[MPI INVOKER] COMPSS_NUM_NODES: " + numNodes);
         System.out.println("[MPI INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
@@ -45,7 +48,7 @@ public class GenericInvoker {
         cmd[1] = "-H";
         cmd[2] = workers;
         cmd[3] = "-n";
-        cmd[4] = numNodes;
+        cmd[4] = numProcs;
         cmd[5] = "--bind-to";
         cmd[6] = "core";
         cmd[7] = mpiBinary;
@@ -75,6 +78,7 @@ public class GenericInvoker {
 
         System.out.println("");
         System.out.println("[OMPSS INVOKER] Begin ompss call to " + ompssBinary);
+        System.out.println("[OMPSS INVOKER] On WorkingDir : " + taskSandboxWorkingDir.getAbsolutePath());
 
         // Get COMPSS ENV VARS
         String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
@@ -116,6 +120,7 @@ public class GenericInvoker {
 
         System.out.println("");
         System.out.println("[BINARY INVOKER] Begin binary call to " + binary);
+        System.out.println("[BINARY INVOKER] On WorkingDir : " + taskSandboxWorkingDir.getAbsolutePath());
 
         // Command similar to
         // ./exec args

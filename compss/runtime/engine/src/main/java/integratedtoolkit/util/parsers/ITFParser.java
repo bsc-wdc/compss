@@ -514,6 +514,7 @@ public class ITFParser {
             logger.debug("   * Processing @MPI annotation");
             
             String binary = EnvironmentLoader.loadFromEnvironment(mpiAnnot.binary());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(mpiAnnot.workingDir());
             String mpiRunner = EnvironmentLoader.loadFromEnvironment(mpiAnnot.mpiRunner());
 
             if (mpiRunner == null || mpiRunner.isEmpty()) {
@@ -537,7 +538,8 @@ public class ITFParser {
             }
             
             // Register method implementation                    
-            Implementation<?> impl = new MPIImplementation( binary, 
+            Implementation<?> impl = new MPIImplementation( binary,
+                                                            workingDir,
                                                             mpiRunner, 
                                                             methodId, 
                                                             implId, 
@@ -553,6 +555,7 @@ public class ITFParser {
         for (OmpSs ompssAnnot : m.getAnnotationsByType(OmpSs.class)) {
             logger.debug("   * Processing @OmpSs annotation");
             String binary = EnvironmentLoader.loadFromEnvironment(ompssAnnot.binary());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(ompssAnnot.workingDir());
 
             if (binary == null || binary.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
@@ -569,7 +572,8 @@ public class ITFParser {
             }
             
             // Register method implementation                    
-            Implementation<?> impl = new OmpSsImplementation( binary, 
+            Implementation<?> impl = new OmpSsImplementation( binary,
+                                                              workingDir,
                                                               methodId, 
                                                               implId, 
                                                               implConstraints
@@ -584,6 +588,7 @@ public class ITFParser {
         for (OpenCL openclAnnot : m.getAnnotationsByType(OpenCL.class)) {
             logger.debug("   * Processing @OpenCL annotation");
             String kernel = EnvironmentLoader.loadFromEnvironment(openclAnnot.kernel());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(openclAnnot.workingDir());
 
             if (kernel == null || kernel.isEmpty()) {
                 ErrorManager.error("Empty kernel annotation for method " + m.getName());
@@ -600,7 +605,8 @@ public class ITFParser {
             }
             
             // Register method implementation                    
-            Implementation<?> impl = new OpenCLImplementation( kernel, 
+            Implementation<?> impl = new OpenCLImplementation( kernel,
+                                                               workingDir,
                                                                methodId, 
                                                                implId, 
                                                                implConstraints
@@ -615,6 +621,7 @@ public class ITFParser {
         for (Binary binaryAnnot : m.getAnnotationsByType(Binary.class)) {
             logger.debug("   * Processing @Binary annotation");
             String binary = EnvironmentLoader.loadFromEnvironment(binaryAnnot.binary());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(binaryAnnot.workingDir());
             
             if (binary == null || binary.isEmpty()) {
                 ErrorManager.error("Empty binary annotation for method " + m.getName());
@@ -631,7 +638,8 @@ public class ITFParser {
             }
             
             // Register method implementation                    
-            Implementation<?> impl = new BinaryImplementation( binary, 
+            Implementation<?> impl = new BinaryImplementation( binary,
+                                                               workingDir,
                                                                methodId, 
                                                                implId, 
                                                                implConstraints

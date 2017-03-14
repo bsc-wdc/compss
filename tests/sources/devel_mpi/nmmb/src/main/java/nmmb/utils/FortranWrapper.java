@@ -88,6 +88,6 @@ public class FortranWrapper {
     /*
      * UMO MODEL FORTRAN FILES
      */
-    public static final String NEMS = "nems";
+    public static final String NEMS = "NEMS";
 
 }

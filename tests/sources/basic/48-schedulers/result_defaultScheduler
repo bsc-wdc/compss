@@ -43,4 +43,71 @@
     fi
   done
   
+  #---------------------------------------------------------------------------------- 
+  # Compute scheduling status
+  pair1=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | head -n 2)
+  pair2=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +3 | head -n 2)
+  
+  pair31=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +5 | head -n 1)
+  pair32=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +6 | head -n 1)
+  pair41=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +7 | head -n 1)
+  pair42=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +8 | head -n 1)
+  
+  pair51=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +9 | head -n 1)
+  pair52=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +10 | head -n 1)
+  pair61=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +11 | head -n 1)
+  pair62=$(cat ${target_log_folder}/trace/*.prv | grep "8000002" | tr ":" "\t" | awk {' print $NF '} | grep -v "^0" | tail -n +12 | head -n 1)
+  
+  pair1Expected1=$'1\n2'
+  pair1Expected2=$'2\n1'
+  if [ "${pair1}" != "${pair1Expected1}" ] && [ "${pair1}" != "${pair1Expected2}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 1" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair1Expected1}" | tee -a ${output_file}
+    echo "EXPECTED2: ${pair1Expected2}" | tee -a ${output_file}
+    echo "GOT      : ${pair1}" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  pair2Expected1=$'7\n8'
+  pair2Expected2=$'8\n7'
+  if [ "${pair2}" != "${pair2Expected1}" ] && [ "${pair2}" != "${pair2Expected2}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 2" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair2Expected1}" | tee -a ${output_file}
+    echo "EXPECTED2: ${pair2Expected2}" | tee -a ${output_file}
+    echo "GOT      : ${pair2}" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  pair41Expected=$((pair31 + 6))
+  if [ "${pair41}" != "${pair41Expected}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 4" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair41Expected}" | tee -a ${output_file}
+    echo "GOT      : ${pair41}" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  pair42Expected=$((pair32 + 6))
+  if [ "${pair42}" != "${pair42Expected}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 4" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair42Expected}" | tee -a ${output_file}
+    echo "GOT      : ${pair42}" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  pair61Expected=$((pair51 + 6))
+  if [ "${pair61}" != "${pair61Expected}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 4" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair61Expected}" | tee -a ${output_file}
+    echo "GOT      : ${pair61}" | tee -a ${output_file}
+     exit 1
+  fi
+  
+  pair62Expected=$((pair52 + 6))
+  if [ "${pair62}" != "${pair62Expected}" ]; then
+    echo "ERROR ON TASKS SCHEDULE ORDER 4" | tee -a ${output_file}
+    echo "EXPECTED1: ${pair62Expected}" | tee -a ${output_file}
+    echo "GOT      : ${pair62}" | tee -a ${output_file}
+     exit 1
+  fi
+  
   exit 0

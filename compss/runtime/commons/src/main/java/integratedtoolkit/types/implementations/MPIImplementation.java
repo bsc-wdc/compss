@@ -12,40 +12,48 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
 
     private String mpiRunner;
     private String binary;
+    private String workingDir;
 
-    
+
     public MPIImplementation() {
         // For externalizable
         super();
     }
 
-    public MPIImplementation(String binary, String mpiRunner, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
+    public MPIImplementation(String binary, String workingDir, String mpiRunner, Integer coreId, Integer implementationId,
+            MethodResourceDescription annot) {
+
         super(coreId, implementationId, annot);
 
         this.mpiRunner = mpiRunner;
+        this.workingDir = workingDir;
         this.binary = binary;
     }
 
     public String getBinary() {
-        return binary;
+        return this.binary;
+    }
+
+    public String getWorkingDir() {
+        return this.workingDir;
     }
 
     public String getMpiRunner() {
-        return mpiRunner;
+        return this.mpiRunner;
     }
 
     @Override
     public MethodType getMethodType() {
         return MethodType.MPI;
     }
-    
+
     @Override
     public String getMethodDefinition() {
         StringBuilder sb = new StringBuilder();
         sb.append("[MPI RUNNER=").append(mpiRunner);
         sb.append(", BINARY=").append(binary);
         sb.append("]");
-        
+
         return sb.toString();
     }
 
@@ -59,6 +67,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         super.readExternal(in);
         mpiRunner = (String) in.readObject();
         binary = (String) in.readObject();
+        workingDir = (String) in.readObject();
     }
 
     @Override
@@ -66,6 +75,7 @@ public class MPIImplementation extends AbstractMethodImplementation implements E
         super.writeExternal(out);
         out.writeObject(mpiRunner);
         out.writeObject(binary);
+        out.writeObject(workingDir);
     }
 
 }

@@ -3,6 +3,7 @@ package integratedtoolkit.nio.worker;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedList;
@@ -437,7 +438,13 @@ public class NIOWorker extends NIOAgent {
                         WORKER_LOGGER.debug("   - Parameter " + index + "(" + (String) param.getValue() + ") erases sources. MOVING");
                         WORKER_LOGGER.debug("         Source: " + source);
                         WORKER_LOGGER.debug("         Target: " + target);
-                        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                        try {
+                            Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                        } catch (AtomicMoveNotSupportedException amnse) {
+                            WORKER_LOGGER.warn(
+                                    "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                            Files.move(source.toPath(), target.toPath());
+                        }
                     }
                     locationsInHost = true;
                 } catch (IOException ioe) {

@@ -282,18 +282,52 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         } else {
             lArgs.add("0");
         }
+        
+        // Check sandbox working dir
+        boolean isSpecific = false;
+        String sandboxDir = null;
+        AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
+        switch (absImpl.getMethodType()) {
+            case BINARY:
+                BinaryImplementation binaryImpl = (BinaryImplementation) absImpl;
+                sandboxDir = binaryImpl.getWorkingDir();
+                isSpecific = true;
+                break;
+            case MPI:
+                MPIImplementation mpiImpl = (MPIImplementation) absImpl;
+                sandboxDir = mpiImpl.getWorkingDir();
+                isSpecific = true;
+                break;
+            case OMPSS:
+                OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;
+                sandboxDir = ompssImpl.getWorkingDir();
+                isSpecific = true;
+                break;
+            case OPENCL:
+                OpenCLImplementation openclImpl = (OpenCLImplementation) absImpl;
+                sandboxDir = openclImpl.getWorkingDir();
+                isSpecific = true;
+                break;
+            case METHOD:
+                sandboxDir = null;
+                break;
+        }
+        if (sandboxDir == null || sandboxDir.isEmpty() || sandboxDir.equals(Constants.UNASSIGNED)) {
+            sandboxDir = getResourceNode().getWorkingDir() + File.separator + "sandBox" + File.separator + "job_" + this.jobId;
+            isSpecific = false;
+        }
 
         // Processing parameters to get symlinks pairs to create (symlinks) and how to pass parameters in the GAT
-        // Job(paramArgs
-        ArrayList<String> symlinks = new ArrayList<String>();
-        ArrayList<String> paramArgs = new ArrayList<String>();
-        String sandboxDir = getResourceNode().getWorkingDir() + File.separator + "sandBox" + File.separator + "job_" + this.jobId;
+        // Job(paramArgs)
+        ArrayList<String> symlinks = new ArrayList<>();
+        ArrayList<String> paramArgs = new ArrayList<>();
         processParameters(sandboxDir, symlinks, paramArgs);
 
         // Adding info to create symlinks between renamed files and original names
+        lArgs.add(Boolean.toString(isSpecific));
         lArgs.add(sandboxDir);
         if (symlinks.size() > 0) {
-            lArgs.add("" + symlinks.size());
+            lArgs.add(String.valueOf(symlinks.size()));
             lArgs.addAll(symlinks);
         } else {
             lArgs.add("0");
@@ -325,7 +359,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
         lArgs.add(String.valueOf(debug));
         lArgs.add(STORAGE_CONF);
 
-        AbstractMethodImplementation absImpl = (AbstractMethodImplementation) this.impl;
         lArgs.add(String.valueOf(absImpl.getMethodType()));
         switch (absImpl.getMethodType()) {
             case METHOD:
@@ -480,7 +513,6 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     }
 
     private void processParameters(String sandboxPath, ArrayList<String> symlinks, ArrayList<String> lArgs) {
-
         lArgs.add(Boolean.toString(taskParams.hasTargetObject()));
 
         // Add return type

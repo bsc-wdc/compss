@@ -482,8 +482,8 @@ public abstract class Tracer {
         }
 
         if (debug) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, logger);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, logger);
             outputGobbler.start();
             errorGobbler.start();
         }
@@ -556,8 +556,8 @@ public abstract class Tracer {
             return;
         }
 
-        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, logger);
+        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, logger);
         outputGobbler.start();
         errorGobbler.start();
 

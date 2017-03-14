@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import integratedtoolkit.exceptions.InvokeExecutionException;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.util.Tracer;
@@ -96,7 +97,7 @@ public class BinaryRunner {
      */
     public static Object executeCMD(String[] cmd, boolean hasReturn, StreamSTD streamValues, File taskSandboxWorkingDir)
             throws InvokeExecutionException {
-        
+
         // Prepare command execution with redirections
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.directory(taskSandboxWorkingDir);
@@ -122,9 +123,6 @@ public class BinaryRunner {
             System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
             System.out.println("[BINARY EXECUTION WRAPPER] Executing binary command");
             process = builder.start();
-
-            System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
-            System.out.println("[BINARY EXECUTION WRAPPER] Waiting for binary completion");
             exitValue = process.waitFor();
         } catch (Exception e) {
             throw new InvokeExecutionException(ERROR_PROC_EXEC, e);
@@ -158,6 +156,7 @@ public class BinaryRunner {
                 throw new InvokeExecutionException(ERROR_OUTPUTREADER, ioe);
             }
         }
+        System.out.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
 
         System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
         System.err.println("[BINARY EXECUTION WRAPPER] CMD ERROR:");
@@ -173,6 +172,7 @@ public class BinaryRunner {
                 throw new InvokeExecutionException(ERROR_ERRORREADER, ioe);
             }
         }
+        System.err.println("[BINARY EXECUTION WRAPPER] ------------------------------------");
     }
 
     private static ArrayList<String> serializeArrayParam(Object value) throws Exception {

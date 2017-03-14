@@ -42,8 +42,11 @@
   #-------------------------------------
   # Managing Symlinks for files
   #-------------------------------------
-  sandbox=$1
-  shift 1
+  isSpecific=$1
+  sandbox=$2
+  shift 2
+  echo "[WORKER.SH]    - Sandbox    = $sandbox"
+  echo "[WORKER.SH]    - isSpecific = $isSpecific"
   if [ ! -d $sandbox ]; then
     mkdir -p $sandbox
   fi
@@ -52,23 +55,28 @@
   shift 1
   renames=""
   if [ $symlinkfilesNum -ne 0 ]; then
-  	echo "[WORKER.SH] Creating $symlinkfilesNum symlink files"
-  	for ((i=0;i<$symlinkfilesNum;i=i+2)); do
-    	#Create symlink for in inout files
-    	if [ -f "$1" ]; then
-    		if [ -f "$2" ]; then
-    			echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
-    			ln -s $1 ${sandbox}/${2}
-    		fi
-    	fi
-    	# Add to treat after task management
-    	if [ $i -eq 0 ]; then
-    		renames="$1 ${sandbox}/$2"
-    	else
-    		renames="$renames $1 ${sandbox}/$2"
-    	fi
-    	shift 2 
-  	done
+    echo "[WORKER.SH] Creating $symlinkfilesNum symlink files"
+    for ((i=0;i<$symlinkfilesNum;i=i+2)); do
+      # Create symlink for in inout files
+      if [ -f "$1" ]; then
+        if [ ! -f "${sandbox}/$2" ]; then
+          echo "[WORKER.SH] Link $1 -> ${sandbox}/${2}"
+      	  ln -s $1 ${sandbox}/${2}
+        else
+          echo "[WORKER.SH] WARN: Cannot create link because ${sandbox}/$2 already exsists"
+        fi
+      else
+        echo "[WORKER.SH] WARN: Cannot create link because $1 doesn't exsist"
+      fi
+      
+      # Add to treat after task management
+      if [ $i -eq 0 ]; then
+        renames="$1 ${sandbox}/$2"
+      else
+        renames="$renames $1 ${sandbox}/$2"
+      fi
+      shift 2 
+    done
   fi
   
   #-------------------------------------
@@ -124,60 +132,60 @@
   # Trace end event if needed
   #-------------------------------------
   if [ $tracing == "true" ]; then
-	$scriptDir/../../trace.sh end $workingDir $eventType $slot
+    $scriptDir/../../trace.sh end $workingDir $eventType $slot
   fi
 
   #-------------------------------------
   # Undo symlinks and rename files
   #-------------------------------------
   if [ $symlinkfilesNum -ne 0 ]; then
-  	removeOrMove=0
-  	renamedFile=""
-  	echo "[WORKER.SH] Undo $symlinkfilesNum symlink files"
-  	for element in $renames; do
-    	#Check pair if firs
-    	if [ $removeOrMove -eq 0 ]; then
-    		if [ -f "$element" ]; then
-    			removeOrMove=1	
-    		else
-    			removeOrMove=2
-    			renamedFile=$element
-    		fi
+    removeOrMove=0
+    renamedFile=""
+    echo "[WORKER.SH] Undo $symlinkfilesNum symlink files"
+    for element in $renames; do
+      # Check pair if first
+      if [ $removeOrMove -eq 0 ]; then
+        if [ -f "$element" ]; then
+    	  removeOrMove=1	
     	else
-    		if [ $removeOrMove -eq 1 ]; then
-    			echo "[WORKER.SH] Removing link $element"
-    			if [ -f "$element" ]; then
-    				rm $element
-    			fi
-    		elif [ $removeOrMove -eq 2 ]; then
-    			echo "[WORKER.SH] Moving $element to $renamedFile"
-    			if [ -f "$element" ]; then
-    				mv $element $renamedFile
-    			fi
-    		else
-    			echo 1>&2 "Incorrect operation when managing rename symlinks "
-				exit 7
-			fi
-    		removeOrMove=0
-  			renamedFile=""
-  		fi
-   
-  	done
+    	  removeOrMove=2
+    	  renamedFile=$element
+    	fi
+      else
+        if [ $removeOrMove -eq 1 ]; then
+          echo "[WORKER.SH] Removing link $element"
+          if [ -f "$element" ]; then
+            rm $element
+          fi
+    	elif [ $removeOrMove -eq 2 ]; then
+          echo "[WORKER.SH] Moving $element to $renamedFile"
+          if [ -f "$element" ]; then
+            mv $element $renamedFile
+          fi
+    	else
+    	  echo 1>&2 "Incorrect operation when managing rename symlinks "
+          exit 7
+        fi
+        removeOrMove=0
+        renamedFile=""
+      fi
+    done
   fi
   
   #-------------------------------------
   # Clean sandbox
   #-------------------------------------
-  
-  rm -rf $sandbox
+  if [ "${isSpecific}" != "true" ]; then
+    rm -rf $sandbox
+  fi
 
   #-------------------------------------
   # Exit
   #-------------------------------------
   if [ $endCode -eq 0 ]; then
-	exit 0
+    exit 0
   else
-	echo 1>&2 "Task execution failed"
-	exit 7
+    echo 1>&2 "Task execution failed"
+    exit 7
   fi
 

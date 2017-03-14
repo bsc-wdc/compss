@@ -11,7 +11,7 @@ public class Main {
 
     private static final int SLEEP_TIME = 5_000;
 
-    private static final int N = 10;
+    private static final int N = 8;
     private static final int[] data = new int[N];
     private static int totalSum;
 

@@ -3,6 +3,7 @@ package nmmb;
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.MPI;
@@ -439,9 +440,12 @@ public interface NmmbItf {
      */
     @MPI(mpiRunner = "mpirun", 
          binary = NMMBEnvironment.EXE_FOR_ITF + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
-         computingNodes = "2")
-    @Constraints(computingUnits = "16")
+         workingDir = NMMBEnvironment.UMO_OUT_FOR_ITF,
+         computingNodes = "${NEMS_NODES}")
+    @Constraints(computingUnits = "${NEMS_CUS_PER_NODE}")
     Integer nems(
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDOUT) String stdOutFile, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT, stream = Stream.STDERR) String stdErrFile
     );
     
     /*

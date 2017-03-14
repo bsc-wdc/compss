@@ -2,7 +2,7 @@
 <ResourcesList>
 	<ComputeNode Name="COMPSsWorker01">
 		<Processor Name="MainProcessor">
-			<ComputingUnits>4</ComputingUnits>
+			<ComputingUnits>2</ComputingUnits>
 		</Processor>
 		<Adaptors>
 			<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
@@ -27,7 +27,7 @@
 	</ComputeNode>
 	<ComputeNode Name="COMPSsWorker02">
 		<Processor Name="MainProcessor">
-			<ComputingUnits>4</ComputingUnits>
+			<ComputingUnits>2</ComputingUnits>
 		</Processor>
 		<Adaptors>
 			<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">

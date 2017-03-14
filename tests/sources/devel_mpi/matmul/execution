@@ -29,22 +29,23 @@
   expectedTime=180s
  
   binary=${base_app_dir}/bin/matmul
+  TYPE=2 # 1 method, 2 mpi
   MSIZE=2
   BSIZE=2 
   export MATMUL_BINARY=$binary
   export NODES_PER_MPI_TASK=2
-  export CUS_PER_MPI_TASK=4
+  export CUS_PER_MPI_TASK=1
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \
-     -tg \
+     -g \
      --summary \
      --lang=java \
      --comm=$comm \
      --classpath=${base_app_dir}/matmul.jar \
-     matmul.files.Matmul $MSIZE $BSIZE > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     matmul.files.Matmul $TYPE $MSIZE $BSIZE > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -59,7 +60,7 @@
      cp -rf ${COMPSs_log_folder}/matmul.files.Matmul_0${retryNum}/* ${target_log_folder}
   
      # Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} 
+     ${base_app_dir}/result ${output_log} ${target_log_folder} ${error_log}
      exitValue=$?
   fi
   

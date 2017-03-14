@@ -71,21 +71,14 @@ public class ThreadBinderCPU implements ThreadBinder {
         auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
     }
 
-    /**
-     * Bind numCUs core units to the job
-     * 
-     * @param jobId
-     * @param numCUs
-     * @return
-     * @throws UnsufficientAvailableComputingUnitsException
-     */
+    @Override
     public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
         int assignedCoreUnits[] = new int[numCUs];
         ArrayList<Integer> usedSockets = null;
 
         // Assign free CUs to the job
         synchronized (this.bindedCPUs) {
-            
+
             usedSockets = recursiveBindingComputingUnits(jobId, numCUs, 0);
 
             // If the job doesn't have all the CUs it needs, it cannot run on occupied ones
@@ -124,11 +117,7 @@ public class ThreadBinderCPU implements ThreadBinder {
         return assignedCoreUnits;
     }
 
-    /**
-     * Release computing units occupied by the job
-     * 
-     * @param jobId
-     */
+    @Override
     public void releaseComputingUnits(int jobId) {
         synchronized (this.bindedCPUs) {
             for (int i = 0; i < this.bindedCPUs.size(); ++i) {
@@ -232,6 +221,7 @@ public class ThreadBinderCPU implements ThreadBinder {
 
         Comparator<Integer> customComparator = new Comparator<Integer>() {
 
+            @Override
             public int compare(Integer first, Integer second) {
                 return Integer.compare(availableSlots.get(second), availableSlots.get(first));
             }

@@ -159,7 +159,7 @@ public abstract class Executor implements Runnable {
             int[] assignedCoreUnits = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits(),
                     ExecutionManager.BINDER_TYPE.CPU);
             int[] assignedGPUs = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits(),
-                    ExecutionManager.BINDER_TYPE.GPU);	
+                    ExecutionManager.BINDER_TYPE.GPU);
 
             // Execute task
             logger.debug("Executing Task of Job " + nt.getJobId());

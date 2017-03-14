@@ -28,6 +28,7 @@ public class ThreadBinderUnaware implements ThreadBinder {
      * @throws UnsufficientAvailableComputingUnitsException
      */
     public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
+        if(numCUs == 0) return new int[0];
         int assignedCoreUnits[] = new int[numCUs];
         int numAssignedCores = 0;
 

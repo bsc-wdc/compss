@@ -1,0 +1,17 @@
+== Description of the JOB folders ==
+
+- 2915951
+	Graph	YES
+	Trace	NO
+	Level	DEBUG
+
+- XXXXX
+	Graph	NO
+	Trace 	NO
+	Level	OFF
+
+- XXXXX
+	Graph	YES
+	Trace	YES
+	Level	OFF
+

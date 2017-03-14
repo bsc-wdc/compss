@@ -1,0 +1,7 @@
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD ERROR:
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/.statelite/tmpfs/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/inc_rrtm.f(29): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+     &       '     &(bowest=',f3.1,',bosout=',f10.5,/,
+-------------------------------^
+[BINARY EXECUTION WRAPPER] ------------------------------------

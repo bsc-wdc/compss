@@ -1,0 +1,100 @@
+[JAVA EXECUTOR] executeTask - Begin task execution
+WORKER - Parameters of execution:
+  * Method type: BINARY
+  * Method definition: [BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/smmount.x]
+  * Parameter types: java.lang.String java.lang.String java.lang.String
+  * Parameter values: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_16/seamaskDEM /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_16/heightDEM
+  * Parameter streams: UNSPECIFIED UNSPECIFIED UNSPECIFIED
+  * Parameter prefixes: null null null
+
+[BINARY INVOKER] Begin binary call to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/smmount.x
+[BINARY INVOKER] On WorkingDir : /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_16
+[BINARY INVOKER] BINARY CMD: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/smmount.x /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_16/seamaskDEM /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_16/heightDEM 
+[BINARY INVOKER] Binary STDIN: null
+[BINARY INVOKER] Binary STDOUT: null
+[BINARY INVOKER] Binary STDERR: null
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] Executing binary command
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: 0
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD OUTPUT:
+ Processing tile  1 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W180N90.DEM                        
+ Processing tile  2 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W140N90.DEM                        
+ Processing tile  3 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W100N90.DEM                        
+ Processing tile  4 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W060N90.DEM                        
+ Processing tile  5 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W020N90.DEM                        
+ Processing tile  6 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E020N90.DEM                        
+ Processing tile  7 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E060N90.DEM                        
+ Processing tile  8 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E100N90.DEM                        
+ Processing tile  9 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E140N90.DEM                        
+ Processing tile 10 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W180N40.DEM                        
+ Processing tile 11 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W140N40.DEM                        
+ Processing tile 12 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W100N40.DEM                        
+ Processing tile 13 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W060N40.DEM                        
+ Processing tile 14 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W020N40.DEM                        
+ Processing tile 15 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E020N40.DEM                        
+ Processing tile 16 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E060N40.DEM                        
+ Processing tile 17 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E100N40.DEM                        
+ Processing tile 18 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E140N40.DEM                        
+ Processing tile 19 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W180S10.DEM                        
+ Processing tile 20 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W140S10.DEM                        
+ Processing tile 21 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W100S10.DEM                        
+ Processing tile 22 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W060S10.DEM                        
+ Processing tile 23 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W020S10.DEM                        
+ Processing tile 24 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E020S10.DEM                        
+ Processing tile 25 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E060S10.DEM                        
+ Processing tile 26 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E100S10.DEM                        
+ Processing tile 27 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E140S10.DEM                        
+ Processing tile 28 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W180S60.DEM                        
+ Processing tile 29 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W120S60.DEM                        
+ Processing tile 30 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W060S60.DEM                        
+ Processing tile 31 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/W000S60.DEM                        
+ Processing tile 32 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E060S60.DEM                        
+ Processing tile 33 /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo1kmDEM/E120S60.DEM                        
+ Sea mask from DEM
+   1.   1.   1.   1.   1.   1.   1.   1.
+   1.   1.   0.   0.   1.   1.   1.   1.
+   1.   1.   0.   0.   1.   1.   0.   1.
+   1.   0.   1.   1.   0.   0.   0.   0.
+   1.   1.   0.   1.   0.   0.   0.   1.
+   1.   1.   0.   1.   0.   0.   0.   1.
+   1.   1.   0.   1.   0.   0.   0.   1.
+   1.   1.   1.   1.   0.   1.   1.   1.
+   1.   1.   1.   1.   0.   1.   1.   1.
+   1.   1.   1.   1.   0.   1.   0.   1.
+   1.   1.   1.   1.   0.   1.   1.   1.
+   1.   1.   1.   1.   0.   1.   1.   1.
+   1.   1.   1.   1.   1.   1.   0.   1.
+   1.   1.   1.   1.   1.   1.   1.   1.
+   1.   1.   1.   1.   1.   1.   1.   1.
+   1.   1.   1.   1.   1.   1.   1.   1.
+   1.   1.   1.   1.   1.   0.   0.   1.
+   1.   0.   0.   1.   0.   0.   0.   1.
+   0.   0.   0.   0.   0.   0.   0.   0.
+ Height file written to ../output/seamaskDEM
+ Enjoy your sea mask!
+ Topography height from DEM
+   0.   0.   0.   0.   0.   0.   0.   0.
+   0.   0. 465.1293.   0.   0.   0.   0.
+   0.   0.  89.2504.   0.   0. 164.   0.
+   0.1158.   0.   0.  75.  60. 562.  97.
+   0.   0. 181.   0. 395. 273. 743.   0.
+   0.   0. 309.   0. 240. 560. 781.   0.
+   0.   0.  13.   0. 241.1363. 151.   0.
+   0.   0.   0.   0. 868.   0.   0.   0.
+   0.   0.   0.   0. 361.   0.   0.   0.
+   0.   0.   0.   0. 344.   0. 287.   0.
+   0.   0.   0.   0.1093.   0.   0.   0.
+   0.   0.   0.   0.1329.   0.   0.   0.
+   0.   0.   0.   0.   0.   0. 138.   0.
+   0.   0.   0.   0.   0.   0.   0.   0.
+   0.   0.   0.   0.   0.   0.   0.   0.
+   0.   0.   0.   0.   0.   0.   0.   0.
+   0.   0.   0.   0.   0.1233.2301.   0.
+   0.1025. 824.   0.2957.3781.3185.   0.
+2796.2770.2743.2737.2760.2789.2810.2801.
+ Height file written to ../output/heightDEM
+ Enjoy your mountains!
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[JAVA EXECUTOR] executeTask - End task execution

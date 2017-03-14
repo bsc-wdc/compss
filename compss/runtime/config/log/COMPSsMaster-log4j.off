@@ -41,8 +41,8 @@
       <AppenderRef ref="Console"/>
     </Logger>
     <!-- Integratedtoolkit.LoaderUtils: DEFAULT = OFF -->
-    <Logger name="integratedtoolkit.LoaderUtils" additivity="FALSE" level="off">
-      <AppenderRef ref="COMPSsRuntimeLog"/>
+    <Logger name="integratedtoolkit.LoaderUtils" additivity="FALSE" level="error">
+      <AppenderRef ref="Console"/>
     </Logger>
 
     <!-- RUNTIME API -->

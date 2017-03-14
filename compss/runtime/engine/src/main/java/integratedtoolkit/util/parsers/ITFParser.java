@@ -504,6 +504,7 @@ public class ITFParser {
                                                                 serviceAnnot.port(), 
                                                                 serviceAnnot.operation()
                                                               );
+            ++implId;
             implementations.add(impl);
         }
         

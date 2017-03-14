@@ -1,0 +1,50 @@
+[JAVA EXECUTOR] executeTask - Begin task execution
+WORKER - Parameters of execution:
+  * Method type: BINARY
+  * Method definition: [BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/snowalbedo.x]
+  * Parameter types: java.lang.String java.lang.String
+  * Parameter values: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/maxsnowalb/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_20/snowalbedo
+  * Parameter streams: UNSPECIFIED UNSPECIFIED
+  * Parameter prefixes: null null
+
+[BINARY INVOKER] Begin binary call to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/snowalbedo.x
+[BINARY INVOKER] On WorkingDir : /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_20
+[BINARY INVOKER] BINARY CMD: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/snowalbedo.x /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/maxsnowalb/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_20/snowalbedo 
+[BINARY INVOKER] Binary STDIN: null
+[BINARY INVOKER] Binary STDOUT: null
+[BINARY INVOKER] Binary STDERR: null
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] Executing binary command
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: 0
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD OUTPUT:
+ Read 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/maxsnowalb/00001-00180.00001-00180            
+ Read 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/maxsnowalb/00181-00360.00001-00180            
+ 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.75 0.00 0.00 0.00 0.00
+ 0.00 0.72 0.00 0.00 0.00 0.61 0.78
+ 0.00 0.33 0.00 0.00 0.29 0.27 0.00
+ 0.00 0.43 0.43 0.00 0.76 0.47 0.00
+ 0.00 0.44 0.00 0.00 0.69 0.78 0.00
+ 0.00 0.00 0.00 0.00 0.65 0.59 0.00
+ 0.00 0.00 0.00 0.69 0.69 0.32 0.00
+ 0.00 0.00 0.32 0.43 0.67 0.00 0.00
+ 0.00 0.00 0.32 0.00 0.00 0.36 0.00
+ 0.00 0.00 0.32 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.67 0.00 0.50 0.00 0.00
+ 0.00 0.00 0.69 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.69 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+ 0.00 0.00 0.75 0.00 0.75 0.75 0.75
+ 0.75 0.75 0.75 0.75 0.75 0.75 0.75
+ 0.75 0.75 0.75 0.75 0.75 0.75 0.75
+ snowalbedo file written to ../output/snowalbedo
+ Enjoy your maximum snow albedo!
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[JAVA EXECUTOR] executeTask - End task execution

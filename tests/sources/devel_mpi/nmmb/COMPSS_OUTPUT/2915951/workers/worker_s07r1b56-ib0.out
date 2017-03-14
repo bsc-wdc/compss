@@ -1,0 +1,690 @@
+[(1960)(2017-03-14 16:25:17,504)              Worker]    @main             -  Received parameters: 
+[(1962)(2017-03-14 16:25:17,506)              Worker]    @main             -  Param 0:  true
+[(1962)(2017-03-14 16:25:17,506)              Worker]    @main             -  Param 1:  16
+[(1962)(2017-03-14 16:25:17,506)              Worker]    @main             -  Param 2:  5
+[(1962)(2017-03-14 16:25:17,506)              Worker]    @main             -  Param 3:  5
+[(1962)(2017-03-14 16:25:17,506)              Worker]    @main             -  Param 4:  s07r1b56-ib0
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 5:  43001
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 6:  43638
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 7:  b663fb84-ce0f-4725-8974-1ed5db6a4d72
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 8:  java
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 9:  /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 10:  /gpfs/apps/MN3/COMPSs/Trunk/Runtime/scripts/user/../queues/commons/../../user/../../../
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 11:  /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/.
+[(1963)(2017-03-14 16:25:17,507)              Worker]    @main             -  Param 12:  /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/.
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 13:  /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/./../nmmb.jar
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 14:  /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/.
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 15:  0
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 16:  null
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 17:  3
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 18:  null
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 19:  compss
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 20:  0
+[(1964)(2017-03-14 16:25:17,508)              Worker]    @main             -  Param 21:  2
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  Param 22:  0-7/8-15
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  jobThreads: 16
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  maxSnd: 5
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  maxRcv: 5
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  WorkerName: s07r1b56-ib0
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  WorkerPort: 43001
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  MasterPort: 43638
+[(1965)(2017-03-14 16:25:17,509)              Worker]    @main             -  App uuid: b663fb84-ce0f-4725-8974-1ed5db6a4d72
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  WorkingDir:/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Install Dir: /gpfs/apps/MN3/COMPSs/Trunk/Runtime/scripts/user/../queues/commons/../../user/../../../
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Tracing: 0
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Extrae config File: null
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Host: 3
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  LibraryPath: /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/.
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Classpath: /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/./../nmmb.jar
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  Pythonpath: /home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/JOB/.
+[(1966)(2017-03-14 16:25:17,510)              Worker]    @main             -  StorageConf: null
+[(1967)(2017-03-14 16:25:17,511)              Worker]    @main             -  executionType: compss
+[(1967)(2017-03-14 16:25:17,511)              Worker]    @main             -  Gpus per node: 0
+[(1967)(2017-03-14 16:25:17,511)              Worker]    @main             -  Remove Sanbox WD: true
+[(1967)(2017-03-14 16:25:17,511)              Worker]    @main             -  No storage configuration file passed
+[(1967)(2017-03-14 16:25:17,511)              Worker]    @<init>           -  NIO Worker init
+[(1969)(2017-03-14 16:25:17,513)         ExecManager]    @<init>           -  Instantiate Execution Manager
+[(1970)(2017-03-14 16:25:17,514)          ThreadPool]    @<init>           -  Init JobsThreadPool
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Socket 0
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Registered slots: -1 -1 -1 -1 -1 -1 -1 -1 
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Registered ids: 0 1 2 3 4 5 6 7 
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Socket 1
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Registered slots: -1 -1 -1 -1 -1 -1 -1 -1 
+[(1972)(2017-03-14 16:25:17,516)        ThreadBinder]    @liarConstructor  -  [ThreadBinderCPUs] Registered ids: 8 9 10 11 12 13 14 15 
+[(1973)(2017-03-14 16:25:17,517)         ExecManager]    @init             -  Init Execution Manager
+[(1973)(2017-03-14 16:25:17,517)          ThreadPool]    @startThreads     -  Start threads of ThreadPool
+[(1977)(2017-03-14 16:25:17,521)            Executor]    @<init>           -  Executor init
+[(1977)(2017-03-14 16:25:17,521)            Executor]    @<init>           -  Executor init
+[(1977)(2017-03-14 16:25:17,521)            Executor]    @<init>           -  Executor init
+[(1978)(2017-03-14 16:25:17,522)            Executor]    @<init>           -  Executor init
+[(1978)(2017-03-14 16:25:17,522)            Executor]    @<init>           -  Executor init
+[(1978)(2017-03-14 16:25:17,522)            Executor]    @<init>           -  Executor init
+[(1978)(2017-03-14 16:25:17,522)            Executor]    @<init>           -  Executor init
+[(1978)(2017-03-14 16:25:17,522)            Executor]    @<init>           -  Executor init
+[(1979)(2017-03-14 16:25:17,523)            Executor]    @<init>           -  Executor init
+[(1979)(2017-03-14 16:25:17,523)            Executor]    @<init>           -  Executor init
+[(1979)(2017-03-14 16:25:17,523)            Executor]    @<init>           -  Executor init
+[(1979)(2017-03-14 16:25:17,523)            Executor]    @<init>           -  Executor init
+[(1979)(2017-03-14 16:25:17,523)            Executor]    @<init>           -  Executor init
+[(1980)(2017-03-14 16:25:17,524)            Executor]    @<init>           -  Executor init
+[(1980)(2017-03-14 16:25:17,524)            Executor]    @<init>           -  Executor init
+[(1980)(2017-03-14 16:25:17,524)            Executor]    @<init>           -  Executor init
+[(1981)(2017-03-14 16:25:17,525)              Worker]    @main             -    Initializing the TransferManager structures...
+[(1981)(2017-03-14 16:25:17,525)     TransferManager]    @init             -  TransferManager init
+[(1987)(2017-03-14 16:25:17,531)              Worker]    @main             -    Starting TransferManager Thread
+[(1988)(2017-03-14 16:25:17,532)     TransferManager]    @startServer      -  TransferManager Start Server
+[(1988)(2017-03-14 16:25:17,532)        EventManager]    @run              -  Event Manager started
+[(1988)(2017-03-14 16:25:17,532)        EventManager]    @run              -  Waiting for events
+[(1988)(2017-03-14 16:25:17,532)            Listener]    @run              -  NIO Listener started
+[(1988)(2017-03-14 16:25:17,532)        EventManager]    @waitForEvents    -  Event Manager wait
+[(7120)(2017-03-14 16:25:22,664)          Connection]    @registerChannel  -  Associating Socket: 12013531 with connection: 1395819283
+[(7121)(2017-03-14 16:25:22,665)        EventManager]    @run              -  Processing NIO event
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @processEvent     -  Processing Connection actually established for socket@1395819283
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @run              -  Waiting for events
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @run              -  Processing NIO event
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(7122)(2017-03-14 16:25:22,666)        EventManager]    @processEvent     -  Processing Package received through  connection@1395819283
+[(7183)(2017-03-14 16:25:22,727)       Communication]    @commandReceived  -  Received Command CommandCheckWorker for deployment ID b663fb84-ce0f-4725-8974-1ed5db6a4d72 on nodeName s07r1b56-ib0 through connection 1395819283
+[(7184)(2017-03-14 16:25:22,728)        EventManager]    @run              -  Waiting for events
+[(7185)(2017-03-14 16:25:22,729)        EventManager]    @run              -  Processing NIO event
+[(7185)(2017-03-14 16:25:22,729)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(7185)(2017-03-14 16:25:22,729)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@53328313 with transfer es.bsc.comm.stage.Submission@634fd968[SEND COMMAND OBJECT]
+[(7185)(2017-03-14 16:25:22,729)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@634fd968[SEND COMMAND OBJECT] on connection 1395819283
+[(7185)(2017-03-14 16:25:22,729)          Connection]    @dleNextTransfer  -  NIOConnection 1395819283 takes es.bsc.comm.stage.Submission@634fd968[SEND COMMAND OBJECT]
+[(7187)(2017-03-14 16:25:22,731)        EventManager]    @run              -  Processing NIO event
+[(7187)(2017-03-14 16:25:22,731)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(7188)(2017-03-14 16:25:22,732)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@53328313 with transfer es.bsc.comm.stage.Shutdown@1d7cce85
+[(7188)(2017-03-14 16:25:22,732)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@1d7cce85 on connection 1395819283
+[(7188)(2017-03-14 16:25:22,732)        EventManager]    @run              -  Waiting for events
+[(7188)(2017-03-14 16:25:22,732)        EventManager]    @waitForEvents    -  Event Manager wait
+[(7189)(2017-03-14 16:25:22,733)            Listener]    @write            -  201 bytes written to socket 12013531
+[(7189)(2017-03-14 16:25:22,733)        EventManager]    @run              -  Processing NIO event
+[(7189)(2017-03-14 16:25:22,733)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(7190)(2017-03-14 16:25:22,734)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@1395819283
+[(7190)(2017-03-14 16:25:22,734)       Communication]    @writeFinished    -  Finished sending CommandCheckWorkerACK for deployment ID b663fb84-ce0f-4725-8974-1ed5db6a4d72 through connection 1395819283
+[(7190)(2017-03-14 16:25:22,734)          Connection]    @dleNextTransfer  -  NIOConnection 1395819283 takes es.bsc.comm.stage.Shutdown@1d7cce85
+[(7190)(2017-03-14 16:25:22,734)          Connection]    @closeConnection  -  Requesting connection 1395819283 closure
+[(7190)(2017-03-14 16:25:22,734)        EventManager]    @run              -  Waiting for events
+[(7190)(2017-03-14 16:25:22,734)            Listener]    @closeChannel     -  Channel 12013531is open. Requesting closure
+[(7190)(2017-03-14 16:25:22,734)        EventManager]    @waitForEvents    -  Event Manager wait
+[(7191)(2017-03-14 16:25:22,735)        EventManager]    @run              -  Processing NIO event
+[(7191)(2017-03-14 16:25:22,735)            Listener]    @InterestChanges  -  Closing channel 12013531 no more data to write
+[(7191)(2017-03-14 16:25:22,735)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(7191)(2017-03-14 16:25:22,735)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 1395819283
+[(7191)(2017-03-14 16:25:22,735)          Connection]    @closedChannel    -  Channel on connection 1395819283 has been closed
+[(7191)(2017-03-14 16:25:22,735)       Communication]    @nectionFinished  -  Connection 1395819283 finished
+[(7191)(2017-03-14 16:25:22,735)        EventManager]    @run              -  Waiting for events
+[(7191)(2017-03-14 16:25:22,735)        EventManager]    @waitForEvents    -  Event Manager wait
+[(37192)(2017-03-14 16:25:52,736)        EventManager]    @waitForEvents    -  Event Manager wait
+[(67192)(2017-03-14 16:26:22,736)        EventManager]    @waitForEvents    -  Event Manager wait
+[(97192)(2017-03-14 16:26:52,736)        EventManager]    @waitForEvents    -  Event Manager wait
+[(103310)(2017-03-14 16:26:58,854)          Connection]    @registerChannel  -  Associating Socket: 1135559935 with connection: 48203357
+[(103312)(2017-03-14 16:26:58,856)            Listener]    @closeChannel     -  Channel 1135559935is open. Requesting closure
+[(103318)(2017-03-14 16:26:58,862)        EventManager]    @run              -  Processing NIO event
+[(103318)(2017-03-14 16:26:58,862)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(103318)(2017-03-14 16:26:58,862)        EventManager]    @processEvent     -  Processing Connection actually established for socket@48203357
+[(103318)(2017-03-14 16:26:58,862)        EventManager]    @run              -  Processing NIO event
+[(103318)(2017-03-14 16:26:58,862)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(103319)(2017-03-14 16:26:58,863)        EventManager]    @processEvent     -  Processing Package received through  connection@48203357
+[(103336)(2017-03-14 16:26:58,880)       Communication]    @commandReceived  -  Received Command new Task [TASK [LANG= java][TASK TYPE= 33][TASK ID= 55][JOB ID= 55][HISTORY= NEW][IMPLEMENTATION= [MPI RUNNER=mpirun, BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe/NEMS.x]] [PARAMS [PARAM[TYPE = FILE_T][STREAM = STDOUT][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = nems.out][VALUE = /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT][DATA null]][PARAM[TYPE = FILE_T][STREAM = STDERR][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = nems.err][VALUE = /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT][DATA null]][PARAM[TYPE = OBJECT_T][STREAM = UNSPECIFIED][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = NO_NAME][VALUE = d164v2_1489505121008.IT][DATA null]]][REQUIREMENTS= [DESCRIPTION [PROCESSOR [unassigned] TYPE=CPU COMPUTING_UNITS=16 SPEED=-1.0 INTERNAL_MEMORY=-1.0 ARCHITECTURE=[unassigned] PROP_NAME=[unassigned] PROP_VALUE=[unassigned]][GENERAL_COUNTS TOTAL_CPUs=1 TOTAL_CPU_CU=16 TOTAL_GPUs=0 TOTAL_GPU_CU=0 TOTAL_FPGAs=0 TOTAL_FPGA_CU=0 TOTAL_OTHERs=0 TOTAL_OTHER_CU=0] [MEMORY SIZE=-1.0 TYPE=[unassigned]] [STORAGE SIZE=-1.0 TYPE=[unassigned]] [OPERATING_SYSTEM TYPE=[unassigned] DISTRIBUTION=[unassigned] VERSION=[unassigned]] [SOFTWARE ] [HOST_QUEUES ] [PRICE TIME_UNIT=-1 PRICE_PER_TIME=-1.0] [WALLCLOCK=-1]]][SLAVE_WORKERS_NODE_NAMES= [SW_NAME=s06r2b76-ib0][SW_NAME=s06r1b51-ib0][SW_NAME=s10r1b81-ib0]]] through connection 48203357
+[(103337)(2017-03-14 16:26:58,881)              Worker]    @receivedNewTask  -  Received Job [TASK [LANG= java][TASK TYPE= 33][TASK ID= 55][JOB ID= 55][HISTORY= NEW][IMPLEMENTATION= [MPI RUNNER=mpirun, BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe/NEMS.x]] [PARAMS [PARAM[TYPE = FILE_T][STREAM = STDOUT][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = nems.out][VALUE = /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT][DATA null]][PARAM[TYPE = FILE_T][STREAM = STDERR][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = nems.err][VALUE = /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT][DATA null]][PARAM[TYPE = OBJECT_T][STREAM = UNSPECIFIED][PREFIX = null][PRESERVE SOURCE DATA = false][WRITE FINAL VALUE = true][ORIGINAL NAME = NO_NAME][VALUE = d164v2_1489505121008.IT][DATA null]]][REQUIREMENTS= [DESCRIPTION [PROCESSOR [unassigned] TYPE=CPU COMPUTING_UNITS=16 SPEED=-1.0 INTERNAL_MEMORY=-1.0 ARCHITECTURE=[unassigned] PROP_NAME=[unassigned] PROP_VALUE=[unassigned]][GENERAL_COUNTS TOTAL_CPUs=1 TOTAL_CPU_CU=16 TOTAL_GPUs=0 TOTAL_GPU_CU=0 TOTAL_FPGAs=0 TOTAL_FPGA_CU=0 TOTAL_OTHERs=0 TOTAL_OTHER_CU=0] [MEMORY SIZE=-1.0 TYPE=[unassigned]] [STORAGE SIZE=-1.0 TYPE=[unassigned]] [OPERATING_SYSTEM TYPE=[unassigned] DISTRIBUTION=[unassigned] VERSION=[unassigned]] [SOFTWARE ] [HOST_QUEUES ] [PRICE TIME_UNIT=-1 PRICE_PER_TIME=-1.0] [WALLCLOCK=-1]]][SLAVE_WORKERS_NODE_NAMES= [SW_NAME=s06r2b76-ib0][SW_NAME=s06r1b51-ib0][SW_NAME=s10r1b81-ib0]]]
+[(103337)(2017-03-14 16:26:58,881)              Worker]    @receivedNewTask  -  Checking parameters
+[(103337)(2017-03-14 16:26:58,881)              Worker]    @executeTask      -  Enqueueing job 55 for execution.
+[(103337)(2017-03-14 16:26:58,881)              Worker]    @executeTask      -  Notifying presence of all data for job 55.
+[(103338)(2017-03-14 16:26:58,882)            Executor]    @processRequests  -  Dequeuing job 55
+[(103338)(2017-03-14 16:26:58,882)          Connection]    @registerChannel  -  Associating Socket: 1000343999 with connection: 166033457
+[(103338)(2017-03-14 16:26:58,882)        EventManager]    @run              -  Processing NIO event
+[(103338)(2017-03-14 16:26:58,882)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(103339)(2017-03-14 16:26:58,883)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 48203357
+[(103339)(2017-03-14 16:26:58,883)          Connection]    @closedChannel    -  Channel on connection 48203357 has been closed
+HOSTNAMES: s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r2b76,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s06r1b51,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s10r1b81,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56,s07r1b56
+[(103339)(2017-03-14 16:26:58,883)        EventManager]    @run              -  Waiting for events
+NUM_NODES: 4
+CPU_COMPUTING_UNITS: 16
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @run              -  Processing NIO event
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@9e57831 with transfer es.bsc.comm.stage.Submission@5b4333b[SEND COMMAND OBJECT]
+[(103340)(2017-03-14 16:26:58,884)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@5b4333b[SEND COMMAND OBJECT] on connection 166033457
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @run              -  Processing NIO event
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@9e57831 with transfer es.bsc.comm.stage.Shutdown@36afbbca
+[(103340)(2017-03-14 16:26:58,884)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@36afbbca on connection 166033457
+[(103340)(2017-03-14 16:26:58,884)        EventManager]    @run              -  Processing NIO event
+[(103341)(2017-03-14 16:26:58,885)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(103341)(2017-03-14 16:26:58,885)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@2df865d with transfer es.bsc.comm.stage.Shutdown@df9a151
+[(103341)(2017-03-14 16:26:58,885)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@df9a151 on connection 48203357
+[(103341)(2017-03-14 16:26:58,885)          Connection]    @dleNextTransfer  -  NIOConnection 48203357 takes es.bsc.comm.stage.Shutdown@df9a151
+[(103341)(2017-03-14 16:26:58,885)          Connection]    @closeConnection  -  Requesting connection 48203357 closure
+[(103341)(2017-03-14 16:26:58,885)       Communication]    @nectionFinished  -  Connection 48203357 finished
+[(103341)(2017-03-14 16:26:58,885)        EventManager]    @run              -  Processing NIO event
+[(103341)(2017-03-14 16:26:58,885)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(103341)(2017-03-14 16:26:58,885)        EventManager]    @processEvent     -  Processing Connection actually established for socket@166033457
+[(103341)(2017-03-14 16:26:58,885)          Connection]    @dleNextTransfer  -  NIOConnection 166033457 takes es.bsc.comm.stage.Submission@5b4333b[SEND COMMAND OBJECT]
+[(103342)(2017-03-14 16:26:58,886)        EventManager]    @run              -  Waiting for events
+[(103342)(2017-03-14 16:26:58,886)        EventManager]    @waitForEvents    -  Event Manager wait
+[(103342)(2017-03-14 16:26:58,886)            Listener]    @write            -  151 bytes written to socket 1000343999
+[(103342)(2017-03-14 16:26:58,886)        EventManager]    @run              -  Processing NIO event
+[(103343)(2017-03-14 16:26:58,887)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(103343)(2017-03-14 16:26:58,887)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@166033457
+[(103343)(2017-03-14 16:26:58,887)       Communication]    @writeFinished    -  Finished sending Data for transfer group117has been received in the remote worker through connection 166033457
+[(103343)(2017-03-14 16:26:58,887)          Connection]    @dleNextTransfer  -  NIOConnection 166033457 takes es.bsc.comm.stage.Shutdown@36afbbca
+[(103343)(2017-03-14 16:26:58,887)          Connection]    @closeConnection  -  Requesting connection 166033457 closure
+[(103343)(2017-03-14 16:26:58,887)        EventManager]    @run              -  Waiting for events
+[(103343)(2017-03-14 16:26:58,887)            Listener]    @InterestChanges  -  Closing channel 1000343999 no more data to write
+[(103343)(2017-03-14 16:26:58,887)        EventManager]    @waitForEvents    -  Event Manager wait
+[(103343)(2017-03-14 16:26:58,887)            Listener]    @closeChannel     -  Channel 1000343999is open. Requesting closure
+[(103344)(2017-03-14 16:26:58,888)        EventManager]    @run              -  Processing NIO event
+[(103344)(2017-03-14 16:26:58,888)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(103344)(2017-03-14 16:26:58,888)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 166033457
+[(103344)(2017-03-14 16:26:58,888)          Connection]    @closedChannel    -  Channel on connection 166033457 has been closed
+[(103344)(2017-03-14 16:26:58,888)       Communication]    @nectionFinished  -  Connection 166033457 finished
+[(103344)(2017-03-14 16:26:58,888)        EventManager]    @run              -  Waiting for events
+[(103344)(2017-03-14 16:26:58,888)        EventManager]    @waitForEvents    -  Event Manager wait
+[(103352)(2017-03-14 16:26:58,896)            Executor]    @execute          -  Binding renamed files to sandboxed original names for Job 55
+[(103352)(2017-03-14 16:26:58,896)            Executor]    @enamesToRenames  -  Setting Original Name to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/OUTPUT/CURRENT_RUN/nems.out
+[(103353)(2017-03-14 16:26:58,897)            Executor]    @enamesToRenames  -  Setting Original Name to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/OUTPUT/CURRENT_RUN/nems.err
+[(103353)(2017-03-14 16:26:58,897)        ThreadBinder]    @dComputingUnits  -  [ThreadBinderCPUs] Task 55 binded to cores 8 9 10 11 12 13 14 15 0 1 2 3 4 5 6 7
+[(103353)(2017-03-14 16:26:58,897)            Executor]    @execute          -  Executing Task of Job 55
+[(103356)(2017-03-14 16:26:58,900)             Invoker]    @invokeMPIMethod  -  Invoked /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe/NEMS.x in s07r1b56-ib0
+[(133344)(2017-03-14 16:27:28,888)        EventManager]    @waitForEvents    -  Event Manager wait
+[(163345)(2017-03-14 16:27:58,889)        EventManager]    @waitForEvents    -  Event Manager wait
+[(193345)(2017-03-14 16:28:28,889)        EventManager]    @waitForEvents    -  Event Manager wait
+[(223345)(2017-03-14 16:28:58,889)        EventManager]    @waitForEvents    -  Event Manager wait
+[(253346)(2017-03-14 16:29:28,890)        EventManager]    @waitForEvents    -  Event Manager wait
+[(283346)(2017-03-14 16:29:58,890)        EventManager]    @waitForEvents    -  Event Manager wait
+[(313346)(2017-03-14 16:30:28,890)        EventManager]    @waitForEvents    -  Event Manager wait
+[(343347)(2017-03-14 16:30:58,891)        EventManager]    @waitForEvents    -  Event Manager wait
+[(373347)(2017-03-14 16:31:28,891)        EventManager]    @waitForEvents    -  Event Manager wait
+[(403348)(2017-03-14 16:31:58,892)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407563)(2017-03-14 16:32:03,107)             Invoker]    @datedParameters  -  Store return value 0 as d164v2_1489505121008.IT
+[(407563)(2017-03-14 16:32:03,107)            Executor]    @execute          -  Removing renamed files to sandboxed original names for Job 55
+[(407563)(2017-03-14 16:32:03,107)            Executor]    @iginalFilenames  -  Treating file /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT
+[(407564)(2017-03-14 16:32:03,108)            Executor]    @iginalFilenames  -  Moving /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/OUTPUT/CURRENT_RUN/nems.out to /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT
+[(407569)(2017-03-14 16:32:03,113)            Executor]    @iginalFilenames  -  WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic
+[(407572)(2017-03-14 16:32:03,116)            Executor]    @iginalFilenames  -  Treating file /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT
+[(407572)(2017-03-14 16:32:03,116)            Executor]    @iginalFilenames  -  Moving /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/OUTPUT/CURRENT_RUN/nems.err to /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT
+[(407572)(2017-03-14 16:32:03,116)            Executor]    @iginalFilenames  -  WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic
+[(407573)(2017-03-14 16:32:03,117)            Executor]    @execute          -  Checking generated files for Job 55
+[(407573)(2017-03-14 16:32:03,117)            Executor]    @processRequests  -  Job 55 finished (success: true)
+[(407574)(2017-03-14 16:32:03,118)          Connection]    @registerChannel  -  Associating Socket: 912104138 with connection: 2134402877
+[(407574)(2017-03-14 16:32:03,118)              Worker]    @sendTaskDone     -  TASK RESULT FOR TASK ID 55
+[(407575)(2017-03-14 16:32:03,119)        EventManager]    @run              -  Processing NIO event
+[(407575)(2017-03-14 16:32:03,119)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(407575)(2017-03-14 16:32:03,119)        EventManager]    @processEvent     -  Processing Connection actually established for socket@2134402877
+[(407575)(2017-03-14 16:32:03,119)        EventManager]    @run              -  Waiting for events
+[(407575)(2017-03-14 16:32:03,119)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407576)(2017-03-14 16:32:03,120)              Worker]    @sendTaskDone     -  [TASK_RESULT [TASK ID= 55][PARAM_TYPES FILE_T FILE_T OBJECT_T][PARAM_VALUES null null null]]
+[(407578)(2017-03-14 16:32:03,122)        EventManager]    @run              -  Processing NIO event
+[(407578)(2017-03-14 16:32:03,122)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407578)(2017-03-14 16:32:03,122)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@7f38673d with transfer es.bsc.comm.stage.Submission@7ffe3e[SEND COMMAND OBJECT]
+[(407578)(2017-03-14 16:32:03,122)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@7ffe3e[SEND COMMAND OBJECT] on connection 2134402877
+[(407578)(2017-03-14 16:32:03,122)          Connection]    @dleNextTransfer  -  NIOConnection 2134402877 takes es.bsc.comm.stage.Submission@7ffe3e[SEND COMMAND OBJECT]
+[(407579)(2017-03-14 16:32:03,123)        EventManager]    @run              -  Processing NIO event
+[(407579)(2017-03-14 16:32:03,123)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407580)(2017-03-14 16:32:03,124)            Listener]    @write            -  394 bytes written to socket 912104138
+[(407580)(2017-03-14 16:32:03,124)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@7f38673d with transfer es.bsc.comm.stage.Submission@6ff61264[SEND DATA FILE]
+[(407580)(2017-03-14 16:32:03,124)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@6ff61264[SEND DATA FILE] on connection 2134402877
+[(407580)(2017-03-14 16:32:03,124)        EventManager]    @run              -  Waiting for events
+[(407580)(2017-03-14 16:32:03,124)        EventManager]    @run              -  Processing NIO event
+[(407580)(2017-03-14 16:32:03,124)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407580)(2017-03-14 16:32:03,124)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@7f38673d with transfer es.bsc.comm.stage.Submission@339234d8[SEND DATA FILE]
+[(407581)(2017-03-14 16:32:03,125)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@339234d8[SEND DATA FILE] on connection 2134402877
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @run              -  Processing NIO event
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOConnection@7f38673d with transfer es.bsc.comm.stage.Shutdown@2fa4ce0e
+[(407581)(2017-03-14 16:32:03,125)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@2fa4ce0e on connection 2134402877
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @run              -  Processing NIO event
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(407581)(2017-03-14 16:32:03,125)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@2134402877
+[(407581)(2017-03-14 16:32:03,125)       Communication]    @writeFinished    -  Finished sending Job55 finishes properly through connection 2134402877
+[(407581)(2017-03-14 16:32:03,125)          Connection]    @dleNextTransfer  -  NIOConnection 2134402877 takes es.bsc.comm.stage.Submission@6ff61264[SEND DATA FILE]
+[(407582)(2017-03-14 16:32:03,126)        EventManager]    @run              -  Waiting for events
+[(407582)(2017-03-14 16:32:03,126)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407582)(2017-03-14 16:32:03,126)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407582)(2017-03-14 16:32:03,126)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407582)(2017-03-14 16:32:03,126)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407582)(2017-03-14 16:32:03,126)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407582)(2017-03-14 16:32:03,126)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407583)(2017-03-14 16:32:03,127)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407584)(2017-03-14 16:32:03,128)        EventManager]    @run              -  Processing NIO event
+[(407584)(2017-03-14 16:32:03,128)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407584)(2017-03-14 16:32:03,128)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407584)(2017-03-14 16:32:03,128)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407585)(2017-03-14 16:32:03,129)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407585)(2017-03-14 16:32:03,129)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407585)(2017-03-14 16:32:03,129)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407585)(2017-03-14 16:32:03,129)        EventManager]    @run              -  Waiting for events
+[(407585)(2017-03-14 16:32:03,129)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407585)(2017-03-14 16:32:03,129)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407585)(2017-03-14 16:32:03,129)        EventManager]    @run              -  Processing NIO event
+[(407585)(2017-03-14 16:32:03,129)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407586)(2017-03-14 16:32:03,130)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407586)(2017-03-14 16:32:03,130)            Listener]    @write            -  7455 bytes written to socket 912104138
+[(407586)(2017-03-14 16:32:03,130)        EventManager]    @run              -  Processing NIO event
+[(407586)(2017-03-14 16:32:03,130)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407586)(2017-03-14 16:32:03,130)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407586)(2017-03-14 16:32:03,130)       Communication]    @writeFinished    -  Finished sending /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0//jobs/job55_NEW.out through connection 2134402877
+[(407586)(2017-03-14 16:32:03,130)          Connection]    @dleNextTransfer  -  NIOConnection 2134402877 takes es.bsc.comm.stage.Submission@339234d8[SEND DATA FILE]
+[(407586)(2017-03-14 16:32:03,130)        EventManager]    @run              -  Processing NIO event
+[(407586)(2017-03-14 16:32:03,130)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @run              -  Processing NIO event
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @run              -  Waiting for events
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @run              -  Processing NIO event
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407587)(2017-03-14 16:32:03,131)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407587)(2017-03-14 16:32:03,131)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @run              -  Processing NIO event
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @run              -  Processing NIO event
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@2134402877
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @run              -  Waiting for events
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407588)(2017-03-14 16:32:03,132)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407588)(2017-03-14 16:32:03,132)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @run              -  Processing NIO event
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @run              -  Waiting for events
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @run              -  Processing NIO event
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407589)(2017-03-14 16:32:03,133)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407589)(2017-03-14 16:32:03,133)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @run              -  Processing NIO event
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @run              -  Waiting for events
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407590)(2017-03-14 16:32:03,134)          Connection]    @registerChannel  -  Associating Socket: 1300384360 with connection: 1302446898
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @run              -  Processing NIO event
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @processEvent     -  Processing Connection actually established for socket@1302446898
+[(407590)(2017-03-14 16:32:03,134)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407590)(2017-03-14 16:32:03,134)        EventManager]    @run              -  Waiting for events
+[(407591)(2017-03-14 16:32:03,135)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)        EventManager]    @run              -  Processing NIO event
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407591)(2017-03-14 16:32:03,135)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407591)(2017-03-14 16:32:03,135)        EventManager]    @run              -  Waiting for events
+[(407591)(2017-03-14 16:32:03,135)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @run              -  Processing NIO event
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @run              -  Processing NIO event
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @run              -  Processing NIO event
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407592)(2017-03-14 16:32:03,136)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407592)(2017-03-14 16:32:03,136)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)        EventManager]    @run              -  Waiting for events
+[(407593)(2017-03-14 16:32:03,137)        EventManager]    @waitForEvents    -  Event Manager wait
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)        EventManager]    @run              -  Processing NIO event
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)        EventManager]    @processEvent     -  Processing Package received through  connection@1302446898
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407593)(2017-03-14 16:32:03,137)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407594)(2017-03-14 16:32:03,138)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407594)(2017-03-14 16:32:03,138)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407594)(2017-03-14 16:32:03,138)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407598)(2017-03-14 16:32:03,142)       Communication]    @commandReceived  -  Received Command Request for sending data d164v2_1489505121008.IT@[any://s07r1b56-ib0:43001/d164v2_1489505121008.IT] through connection 1302446898
+[(407598)(2017-03-14 16:32:03,142)       Communication]    @sendData         -  Connection 1302446898 will transfer an object as data d164v2_1489505121008.IT
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @run              -  Waiting for events
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @run              -  Processing NIO event
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @run              -  Processing NIO event
+[(407599)(2017-03-14 16:32:03,143)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407599)(2017-03-14 16:32:03,143)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @run              -  Processing NIO event
+[(407599)(2017-03-14 16:32:03,143)            Listener]    @write            -  8192 bytes written to socket 912104138
+[(407599)(2017-03-14 16:32:03,143)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407600)(2017-03-14 16:32:03,144)            Listener]    @write            -  2052 bytes written to socket 912104138
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @run              -  Processing NIO event
+[(407600)(2017-03-14 16:32:03,144)            Listener]    @write            -  2418 bytes written to socket 912104138
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407600)(2017-03-14 16:32:03,144)       Communication]    @writeFinished    -  Finished sending /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0//jobs/job55_NEW.err through connection 2134402877
+[(407600)(2017-03-14 16:32:03,144)          Connection]    @dleNextTransfer  -  NIOConnection 2134402877 takes es.bsc.comm.stage.Shutdown@2fa4ce0e
+[(407600)(2017-03-14 16:32:03,144)          Connection]    @closeConnection  -  Requesting connection 2134402877 closure
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @run              -  Processing NIO event
+[(407600)(2017-03-14 16:32:03,144)            Listener]    @InterestChanges  -  Closing channel 912104138 no more data to write
+[(407600)(2017-03-14 16:32:03,144)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(407601)(2017-03-14 16:32:03,145)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@2134402877
+[(407601)(2017-03-14 16:32:03,145)            Listener]    @closeChannel     -  Channel 912104138is open. Requesting closure
+[(407601)(2017-03-14 16:32:03,145)        EventManager]    @run              -  Processing NIO event
+[(407601)(2017-03-14 16:32:03,145)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407601)(2017-03-14 16:32:03,145)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@4da1c332 with transfer es.bsc.comm.stage.Submission@a93638e[SEND DATA OBJECT]
+[(407601)(2017-03-14 16:32:03,145)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@a93638e[SEND DATA OBJECT] on connection 1302446898
+[(407601)(2017-03-14 16:32:03,145)          Connection]    @dleNextTransfer  -  NIOConnection 1302446898 takes es.bsc.comm.stage.Submission@a93638e[SEND DATA OBJECT]
+[(407601)(2017-03-14 16:32:03,145)        EventManager]    @run              -  Processing NIO event
+[(407602)(2017-03-14 16:32:03,146)            Listener]    @write            -  101 bytes written to socket 1300384360
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@4da1c332 with transfer es.bsc.comm.stage.Shutdown@2f57f98
+[(407602)(2017-03-14 16:32:03,146)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@2f57f98 on connection 1302446898
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @run              -  Waiting for events
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @run              -  Processing NIO event
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @run              -  Processing NIO event
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407602)(2017-03-14 16:32:03,146)        EventManager]    @run              -  Processing NIO event
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @run              -  Processing NIO event
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @processEvent     -  Processing More To Write Event for connection@2134402877
+[(407603)(2017-03-14 16:32:03,147)            Listener]    @closeChannel     -  Channel 1300384360is open. Requesting closure
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @run              -  Processing NIO event
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@2134402877
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @run              -  Processing NIO event
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(407603)(2017-03-14 16:32:03,147)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 2134402877
+[(407604)(2017-03-14 16:32:03,148)          Connection]    @closedChannel    -  Channel on connection 2134402877 has been closed
+[(407604)(2017-03-14 16:32:03,148)       Communication]    @nectionFinished  -  Connection 2134402877 finished
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @run              -  Processing NIO event
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@1302446898
+[(407604)(2017-03-14 16:32:03,148)       Communication]    @writeFinished    -  Finished sending 0 through connection 1302446898
+[(407604)(2017-03-14 16:32:03,148)          Connection]    @dleNextTransfer  -  NIOConnection 1302446898 takes es.bsc.comm.stage.Shutdown@2f57f98
+[(407604)(2017-03-14 16:32:03,148)          Connection]    @closeConnection  -  Requesting connection 1302446898 closure
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @run              -  Waiting for events
+[(407604)(2017-03-14 16:32:03,148)            Listener]    @InterestChanges  -  Closing channel 1300384360 no more data to write
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @run              -  Processing NIO event
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(407604)(2017-03-14 16:32:03,148)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 1302446898
+[(407605)(2017-03-14 16:32:03,149)          Connection]    @closedChannel    -  Channel on connection 1302446898 has been closed
+[(407605)(2017-03-14 16:32:03,149)       Communication]    @nectionFinished  -  Connection 1302446898 finished
+[(407605)(2017-03-14 16:32:03,149)        EventManager]    @run              -  Waiting for events
+[(407605)(2017-03-14 16:32:03,149)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425039)(2017-03-14 16:32:20,583)          Connection]    @registerChannel  -  Associating Socket: 1893267656 with connection: 794181041
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @run              -  Processing NIO event
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @processEvent     -  Processing Connection actually established for socket@794181041
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @run              -  Waiting for events
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425040)(2017-03-14 16:32:20,584)          Connection]    @registerChannel  -  Associating Socket: 1814491328 with connection: 1527728948
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @run              -  Processing NIO event
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @processEvent     -  Processing Connection actually established for socket@1527728948
+[(425040)(2017-03-14 16:32:20,584)        EventManager]    @run              -  Waiting for events
+[(425041)(2017-03-14 16:32:20,585)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425398)(2017-03-14 16:32:20,942)        EventManager]    @run              -  Processing NIO event
+[(425398)(2017-03-14 16:32:20,942)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(425398)(2017-03-14 16:32:20,942)        EventManager]    @processEvent     -  Processing Package received through  connection@794181041
+[(425398)(2017-03-14 16:32:20,942)       Communication]    @commandReceived  -  Received Command Request for sending data d162v2_1489505121008.IT@[any://s07r1b56-ib0:43001//.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT] through connection 794181041
+[(425399)(2017-03-14 16:32:20,943)       Communication]    @sendData         -  Connection 794181041 will transfer file /.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT as data d162v2_1489505121008.IT
+[(425399)(2017-03-14 16:32:20,943)        EventManager]    @run              -  Waiting for events
+[(425399)(2017-03-14 16:32:20,943)        EventManager]    @run              -  Processing NIO event
+[(425399)(2017-03-14 16:32:20,943)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(425399)(2017-03-14 16:32:20,943)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@2f563db1 with transfer es.bsc.comm.stage.Submission@540ccff6[SEND DATA FILE]
+[(425399)(2017-03-14 16:32:20,943)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@540ccff6[SEND DATA FILE] on connection 794181041
+[(425399)(2017-03-14 16:32:20,943)          Connection]    @dleNextTransfer  -  NIOConnection 794181041 takes es.bsc.comm.stage.Submission@540ccff6[SEND DATA FILE]
+[(425399)(2017-03-14 16:32:20,943)        EventManager]    @run              -  Processing NIO event
+[(425400)(2017-03-14 16:32:20,944)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(425400)(2017-03-14 16:32:20,944)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425400)(2017-03-14 16:32:20,944)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@2f563db1 with transfer es.bsc.comm.stage.Shutdown@882f651
+[(425400)(2017-03-14 16:32:20,944)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@882f651 on connection 794181041
+[(425400)(2017-03-14 16:32:20,944)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425400)(2017-03-14 16:32:20,944)        EventManager]    @run              -  Waiting for events
+[(425400)(2017-03-14 16:32:20,944)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425400)(2017-03-14 16:32:20,944)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425400)(2017-03-14 16:32:20,944)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)        EventManager]    @run              -  Processing NIO event
+[(425401)(2017-03-14 16:32:20,945)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)        EventManager]    @processEvent     -  Processing Package received through  connection@1527728948
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425401)(2017-03-14 16:32:20,945)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425402)(2017-03-14 16:32:20,946)       Communication]    @commandReceived  -  Received Command Request for sending data d163v2_1489505121008.IT@[any://s07r1b56-ib0:43001//.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT] through connection 1527728948
+[(425402)(2017-03-14 16:32:20,946)       Communication]    @sendData         -  Connection 1527728948 will transfer file /.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT as data d163v2_1489505121008.IT
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @run              -  Waiting for events
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @run              -  Processing NIO event
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @run              -  Processing NIO event
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425402)(2017-03-14 16:32:20,946)            Listener]    @write            -  8192 bytes written to socket 1893267656
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @run              -  Processing NIO event
+[(425402)(2017-03-14 16:32:20,946)            Listener]    @write            -  2052 bytes written to socket 1893267656
+[(425402)(2017-03-14 16:32:20,946)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425403)(2017-03-14 16:32:20,947)            Listener]    @write            -  4616 bytes written to socket 1893267656
+[(425403)(2017-03-14 16:32:20,947)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425403)(2017-03-14 16:32:20,947)       Communication]    @writeFinished    -  Finished sending /.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d162v2_1489505121008.IT through connection 794181041
+[(425403)(2017-03-14 16:32:20,947)          Connection]    @dleNextTransfer  -  NIOConnection 794181041 takes es.bsc.comm.stage.Shutdown@882f651
+[(425403)(2017-03-14 16:32:20,947)          Connection]    @closeConnection  -  Requesting connection 794181041 closure
+[(425403)(2017-03-14 16:32:20,947)        EventManager]    @run              -  Processing NIO event
+[(425403)(2017-03-14 16:32:20,947)            Listener]    @InterestChanges  -  Closing channel 1893267656 no more data to write
+[(425403)(2017-03-14 16:32:20,947)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425403)(2017-03-14 16:32:20,947)            Listener]    @closeChannel     -  Channel 1893267656is open. Requesting closure
+[(425403)(2017-03-14 16:32:20,947)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425403)(2017-03-14 16:32:20,947)        EventManager]    @run              -  Processing NIO event
+[(425405)(2017-03-14 16:32:20,949)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(425405)(2017-03-14 16:32:20,949)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@794181041
+[(425405)(2017-03-14 16:32:20,949)        EventManager]    @run              -  Processing NIO event
+[(425405)(2017-03-14 16:32:20,949)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(425405)(2017-03-14 16:32:20,949)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@5b0f4b34 with transfer es.bsc.comm.stage.Submission@44ae2688[SEND DATA FILE]
+[(425405)(2017-03-14 16:32:20,949)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Submission@44ae2688[SEND DATA FILE] on connection 1527728948
+[(425405)(2017-03-14 16:32:20,949)          Connection]    @dleNextTransfer  -  NIOConnection 1527728948 takes es.bsc.comm.stage.Submission@44ae2688[SEND DATA FILE]
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @run              -  Processing NIO event
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @ProcessingEvent  -  Processing NEW_TRANSFER NIOEvent
+[(425406)(2017-03-14 16:32:20,950)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @processEvent     -  Processing New Transfer Event for connection es.bsc.comm.nio.NIOServerConnection@5b0f4b34 with transfer es.bsc.comm.stage.Shutdown@6d0e883a
+[(425406)(2017-03-14 16:32:20,950)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425406)(2017-03-14 16:32:20,950)          Connection]    @requestStage     -  Requesting transfer es.bsc.comm.stage.Shutdown@6d0e883a on connection 1527728948
+[(425406)(2017-03-14 16:32:20,950)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @run              -  Waiting for events
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @run              -  Processing NIO event
+[(425406)(2017-03-14 16:32:20,950)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425406)(2017-03-14 16:32:20,950)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425406)(2017-03-14 16:32:20,950)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @run              -  Processing NIO event
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425407)(2017-03-14 16:32:20,951)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @processEvent     -  Processing More To Write Event for connection@794181041
+[(425407)(2017-03-14 16:32:20,951)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @run              -  Processing NIO event
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(425407)(2017-03-14 16:32:20,951)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@794181041
+[(425407)(2017-03-14 16:32:20,951)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @run              -  Processing NIO event
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(425407)(2017-03-14 16:32:20,951)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 794181041
+[(425407)(2017-03-14 16:32:20,951)          Connection]    @closedChannel    -  Channel on connection 794181041 has been closed
+[(425407)(2017-03-14 16:32:20,951)       Communication]    @nectionFinished  -  Connection 794181041 finished
+[(425407)(2017-03-14 16:32:20,951)        EventManager]    @run              -  Waiting for events
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @run              -  Processing NIO event
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @run              -  Processing NIO event
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425408)(2017-03-14 16:32:20,952)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425408)(2017-03-14 16:32:20,952)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @run              -  Processing NIO event
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425408)(2017-03-14 16:32:20,952)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425408)(2017-03-14 16:32:20,952)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425408)(2017-03-14 16:32:20,952)        EventManager]    @run              -  Processing NIO event
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @run              -  Processing NIO event
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@1527728948
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @run              -  Waiting for events
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425409)(2017-03-14 16:32:20,953)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @run              -  Processing NIO event
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @run              -  Waiting for events
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @run              -  Processing NIO event
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @run              -  Processing NIO event
+[(425410)(2017-03-14 16:32:20,954)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425410)(2017-03-14 16:32:20,954)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425411)(2017-03-14 16:32:20,955)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)        EventManager]    @run              -  Waiting for events
+[(425411)(2017-03-14 16:32:20,955)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425411)(2017-03-14 16:32:20,955)        EventManager]    @run              -  Processing NIO event
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @run              -  Waiting for events
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @run              -  Processing NIO event
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @run              -  Processing NIO event
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @run              -  Waiting for events
+[(425412)(2017-03-14 16:32:20,956)        EventManager]    @waitForEvents    -  Event Manager wait
+[(425412)(2017-03-14 16:32:20,956)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)        EventManager]    @run              -  Processing NIO event
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425413)(2017-03-14 16:32:20,957)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425413)(2017-03-14 16:32:20,957)        EventManager]    @run              -  Waiting for events
+[(425413)(2017-03-14 16:32:20,957)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @run              -  Processing NIO event
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @run              -  Processing NIO event
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @run              -  Waiting for events
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @run              -  Processing NIO event
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  8192 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425414)(2017-03-14 16:32:20,958)            Listener]    @write            -  2052 bytes written to socket 1814491328
+[(425414)(2017-03-14 16:32:20,958)        EventManager]    @run              -  Processing NIO event
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425415)(2017-03-14 16:32:20,959)            Listener]    @write            -  2252 bytes written to socket 1814491328
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425415)(2017-03-14 16:32:20,959)       Communication]    @writeFinished    -  Finished sending /.statelite/tmpfs/scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s07r1b56-ib0/d163v2_1489505121008.IT through connection 1527728948
+[(425415)(2017-03-14 16:32:20,959)          Connection]    @dleNextTransfer  -  NIOConnection 1527728948 takes es.bsc.comm.stage.Shutdown@6d0e883a
+[(425415)(2017-03-14 16:32:20,959)          Connection]    @closeConnection  -  Requesting connection 1527728948 closure
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @run              -  Waiting for events
+[(425415)(2017-03-14 16:32:20,959)            Listener]    @InterestChanges  -  Closing channel 1814491328 no more data to write
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @run              -  Processing NIO event
+[(425415)(2017-03-14 16:32:20,959)            Listener]    @closeChannel     -  Channel 1814491328is open. Requesting closure
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @run              -  Processing NIO event
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @ProcessingEvent  -  Processing LOW_BUFFER NIOEvent
+[(425415)(2017-03-14 16:32:20,959)        EventManager]    @processEvent     -  Processing More To Write Event for connection@1527728948
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @run              -  Processing NIO event
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @ProcessingEvent  -  Processing EMPTY_BUFFER NIOEvent
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @processEvent     -  Processing Write Empty Event for socket@1527728948
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @run              -  Waiting for events
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @run              -  Processing NIO event
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @ProcessingEvent  -  Processing CLOSED_CHANNEL NIOEvent
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @processEvent     -  Processing New closedChannel event for connection 1527728948
+[(425416)(2017-03-14 16:32:20,960)          Connection]    @closedChannel    -  Channel on connection 1527728948 has been closed
+[(425416)(2017-03-14 16:32:20,960)       Communication]    @nectionFinished  -  Connection 1527728948 finished
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @run              -  Waiting for events
+[(425416)(2017-03-14 16:32:20,960)        EventManager]    @waitForEvents    -  Event Manager wait
+[(432276)(2017-03-14 16:32:27,820)          Connection]    @registerChannel  -  Associating Socket: 1201463757 with connection: 484948238
+[(432276)(2017-03-14 16:32:27,820)        EventManager]    @run              -  Processing NIO event
+[(432276)(2017-03-14 16:32:27,820)        EventManager]    @ProcessingEvent  -  Processing CONNECTION_ESTABLISHED NIOEvent
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @processEvent     -  Processing Connection actually established for socket@484948238
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @run              -  Waiting for events
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @waitForEvents    -  Event Manager wait
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @run              -  Processing NIO event
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @ProcessingEvent  -  Processing PACKET_ENTRY NIOEvent
+[(432277)(2017-03-14 16:32:27,821)        EventManager]    @processEvent     -  Processing Package received through  connection@484948238
+[(432278)(2017-03-14 16:32:27,822)       Communication]    @commandReceived  -  Received Command GenerateWorkerDebugFiles through connection 484948238

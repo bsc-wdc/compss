@@ -1,0 +1,105 @@
+[JAVA EXECUTOR] executeTask - Begin task execution
+WORKER - Parameters of execution:
+  * Method type: BINARY
+  * Method definition: [BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/stdh.x]
+  * Parameter types: java.lang.String java.lang.String java.lang.String java.lang.String
+  * Parameter values: /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/heightmean /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/seamaskDEM /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo_30s/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/stdh
+  * Parameter streams: UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED
+  * Parameter prefixes: null null null null
+
+[BINARY INVOKER] Begin binary call to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/stdh.x
+[BINARY INVOKER] On WorkingDir : /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25
+[BINARY INVOKER] BINARY CMD: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/stdh.x /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/heightmean /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/seamaskDEM /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/topo_30s/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/stdh 
+[BINARY INVOKER] Binary STDIN: null
+[BINARY INVOKER] Binary STDOUT: null
+[BINARY INVOKER] Binary STDERR: null
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] Executing binary command
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: 0
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD OUTPUT:
+ Read in 
+ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/h
+ eightmean                                        
+ Read in 
+ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_25/s
+ eamaskDEM                                        
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.00001-01200              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.01201-02400              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.02401-03600              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.03601-04800              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.04801-06000              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.06001-07200              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.07201-08400              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.08401-09600              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.09601-10800              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.10801-12000              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.12001-13200              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.13201-14400              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.14401-15600              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.15601-16800              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.16801-18000              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.18001-19200              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.19201-20400              
+ Processing 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/topo_30s/00001-01200.20401-21600              
+ Topography stdh
+   0.   0.   0.   0.   0.   0.   0.
+   0.   0. 422.   0.   0.   0.   0.
+   0.   0.   0.   0.   0. 164.  15.
+   0. 316.   0.   0.  30.  50.   0.
+   0. 748. 220.   0.  67. 308.   0.
+   0. 488.   0.   0. 667. 227.   0.
+   0.   0.   0.   0. 122. 843.   0.
+   0.   0.   0.  67. 199. 294.   0.
+   0.   0. 343. 210. 504.   0.   0.
+   0.   0.  76.   0.   0. 317.   0.
+   0.   0.  36.   0.   0.   0.   0.
+   0.   0. 326.   0. 349.   0.   0.
+   0.   0. 722.   0.   0.   0.   0.
+   0.   0. 304.   0.   0.   0.   0.
+   0.   0.   0.   0.   0.   0.   0.
+   0.   0.   0.   0.   0.   0.   0.
+   0.   0. 711.   0. 257. 143. 635.
+   0. 161.   0. 239.  57. 111. 789.
+ 319. 315. 308. 310. 320. 326. 321.
+ stdh file written to ../output/stdh
+ Enjoy your standard deviation of mountains!
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[JAVA EXECUTOR] executeTask - End task execution

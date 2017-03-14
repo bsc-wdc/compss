@@ -1,0 +1,4 @@
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD ERROR:
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+[BINARY EXECUTION WRAPPER] ------------------------------------

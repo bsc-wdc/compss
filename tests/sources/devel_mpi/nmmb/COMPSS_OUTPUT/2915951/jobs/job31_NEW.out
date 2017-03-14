@@ -1,0 +1,51 @@
+[JAVA EXECUTOR] executeTask - Begin task execution
+WORKER - Parameters of execution:
+  * Method type: BINARY
+  * Method definition: [BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/deeptemperature.x]
+  * Parameter types: java.lang.String java.lang.String java.lang.String
+  * Parameter values: /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_31/seamask /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/soiltemp_1deg/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_31/deeptemperature
+  * Parameter streams: UNSPECIFIED UNSPECIFIED UNSPECIFIED
+  * Parameter prefixes: null null null
+
+[BINARY INVOKER] Begin binary call to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/deeptemperature.x
+[BINARY INVOKER] On WorkingDir : /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_31
+[BINARY INVOKER] BINARY CMD: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/deeptemperature.x /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_31/seamask /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geodata/soiltemp_1deg/ /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_31/deeptemperature 
+[BINARY INVOKER] Binary STDIN: null
+[BINARY INVOKER] Binary STDOUT: null
+[BINARY INVOKER] Binary STDERR: null
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] Executing binary command
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: 0
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD OUTPUT:
+ kdatamax       34596
+ Read 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/soiltemp_1deg/00001-00180.00001-00180         
+ Read 
+ /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/../geoda
+ ta/soiltemp_1deg/00181-00360.00001-00180         
+  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+  0.0  0.0258.5  0.0  0.0  0.0  0.0
+  0.0262.4  0.0  0.0  0.0261.7258.4
+  0.0276.6  0.0  0.0272.9268.7  0.0
+  0.0283.3275.0  0.0278.2279.3  0.0
+  0.0288.7  0.0  0.0289.0289.8  0.0
+  0.0  0.0  0.0  0.0299.5295.8  0.0
+  0.0  0.0  0.0301.4303.9300.5  0.0
+  0.0  0.0299.0300.9302.7  0.0  0.0
+  0.0  0.0298.6  0.0  0.0299.0  0.0
+  0.0  0.0298.0  0.0  0.0  0.0  0.0
+  0.0  0.0300.0  0.0298.8  0.0  0.0
+  0.0  0.0296.8  0.0  0.0  0.0  0.0
+  0.0  0.0288.8  0.0  0.0  0.0  0.0
+  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+  0.0  0.0264.5  0.0256.8251.9260.2
+  0.0256.2242.0246.1241.4243.2253.4
+245.3245.5246.1246.5246.3246.2245.5
+ Deep temperature written to ../output/deeptemperature
+ Enjoy your deep soil temperature!
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[JAVA EXECUTOR] executeTask - End task execution

@@ -1,0 +1,126 @@
+[JAVA EXECUTOR] executeTask - Begin task execution
+WORKER - Parameters of execution:
+  * Method type: BINARY
+  * Method definition: [BINARY=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/dust_start.x]
+  * Parameter types: java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String java.lang.String
+  * Parameter values: /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/llspl.000 /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/soildust /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/snow /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/topsoiltypecorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/landusecorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/landusenewcorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/kount_landuse /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/kount_landusenew /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/vegfrac /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/height /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/seamask /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/source /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/z0corr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/roughness
+  * Parameter streams: UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED UNSPECIFIED
+  * Parameter prefixes: null null null null null null null null null null null null null null
+
+[BINARY INVOKER] Begin binary call to /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/dust_start.x
+[BINARY INVOKER] On WorkingDir : /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54
+[BINARY INVOKER] BINARY CMD: /gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/VARIABLE/dust_start.x /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/llspl.000 /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/soildust /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/snow /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/topsoiltypecorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/landusecorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/landusenewcorr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/kount_landuse /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/kount_landusenew /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/vegfrac /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/height /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/seamask /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/source /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/z0corr /scratch/tmp/b663fb84-ce0f-4725-8974-1ed5db6a4d72/s10r1b81-ib0/sandBox/job_54/roughness 
+[BINARY INVOKER] Binary STDIN: null
+[BINARY INVOKER] Binary STDOUT: null
+[BINARY INVOKER] Binary STDERR: null
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] Executing binary command
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD EXIT VALUE: 0
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD OUTPUT:
+  
+ grid exclusions:           0           0  0.0000000E+00
+  
+ T          24           4        2013           0
+  0.3822583    
+  0.4323456    
+   2.481867    
+   21.86529    
+  
+ bare_soil_fr
+  0.00 0.00 0.00 0.00 0.00 0.00 0.00
+  0.00 5.40 0.26 0.00 0.01 0.21 0.00
+  0.00 0.00 0.86 0.0093.34 0.00 0.00
+  0.00 0.0096.42 0.00 0.00 0.00 0.00
+  0.00 0.00 0.00 0.00 0.00 0.00 0.00
+  
+ kount_dust
+      0     0     0     0     0     0     0
+      0  1209    59     0     2    48     0
+      0     0   174     0 18818     0     0
+      0     0 19438     0     0     0     0
+      0     0     0     0     0     0     0
+  
+ kount_total
+ ******************************************
+  22406 22406 22406 22406 22407 22406 22406
+  20160 20160 20160 20160 20160 20160 20160
+  20160 20160 20160 20160 20160 20160 20160
+  42111 42112 42112 42111 42112 42112 42112
+  
+ kount_dust/kount_total
+      0     0     0     0     0     0     0
+      0     0     0     0     0     0     0
+      0     0     0     0     0     0     0
+      0     0     0     0     0     0     0
+      0     0     0     0     0     0     0
+  
+ landusedust
+ 24242424242424
+ 16141516 2 716
+ 16161010 81616
+ 1616 816161616
+ 24242424242424
+  
+ landusefrac
+  0.00 0.00 0.00 0.00 0.00 0.00 0.00
+  0.00 0.00 0.00 0.00 0.00 0.00 0.00
+  0.00 0.00 0.00 0.0020.00 0.00 0.00
+  0.00 0.0020.00 0.00 0.00 0.00 0.00
+  0.00 0.00 0.00 0.00 0.00 0.00 0.00
+  
+ seamask
+  1.00 1.00 1.00 1.00 1.00 1.00 1.00
+  1.00 0.00 0.00 1.00 0.00 0.00 1.00
+  1.00 1.00 0.00 0.00 0.00 1.00 1.00
+  1.00 1.00 0.00 1.00 1.00 1.00 1.00
+  1.00 1.00 0.00 1.00 0.00 0.00 0.00
+  
+ height
+       0.00      0.00      0.00      0.00      0.00      0.00      0.00
+       0.00    869.05    276.87      0.00    103.44   1602.47      0.00
+       0.00      0.00    307.80    472.31    685.87      0.00      0.00
+       0.00      0.00   1097.34      0.00      0.00      0.00      0.00
+       0.00      0.00    881.82      0.00   2087.86   2585.11   1161.62
+  
+ pref
+       0.00      0.00      0.00      0.00      0.00      0.00      0.00
+       0.00      0.00      0.00      0.00      0.00      0.00      0.00
+       0.00      0.00      0.00      0.00      0.02      0.00      0.00
+       0.00      0.00      0.00      0.00      0.00      0.00      0.00
+       0.00      0.00      0.00      0.00      0.00      0.00      0.00
+ n=           1 m=  3.6999469E-03
+ n=           2 m=  7.7458769E-03
+ n=           3 m=  2.6873941E-02
+ n=           4 m=  7.4033685E-02
+ n=           5 m=  0.2325007    
+ n=           6 m=  0.2963393    
+ n=           7 m=  0.2775869    
+ n=           8 m=  6.4180784E-02
+ m=  0.9829612    
+  
+ z0corr
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.48  0.29  0.00  0.12  0.11  0.00
+   0.00  0.00  0.28  0.45  0.10  0.00  0.00
+   0.00  0.00  0.10  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+  
+ roughness
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+  
+ z0new
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+   0.00  0.48  0.29  0.00  0.12  0.11  0.00
+   0.00  0.00  0.28  0.45  0.10  0.00  0.00
+   0.00  0.00  0.10  0.00  0.00  0.00  0.00
+   0.00  0.00  0.00  0.00  0.00  0.00  0.00
+  
+ Global branch done
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[JAVA EXECUTOR] executeTask - End task execution

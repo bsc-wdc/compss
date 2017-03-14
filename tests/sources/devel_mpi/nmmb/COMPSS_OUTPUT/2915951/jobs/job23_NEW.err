@@ -1,0 +1,451 @@
+[BINARY EXECUTION WRAPPER] ------------------------------------
+[BINARY EXECUTION WRAPPER] CMD ERROR:
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh00.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       2160.000    
+   2160.000       2160.000       2160.000       2160.000       2160.000    
+   2160.000       2160.000    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  1.5000001E-07
+  2.5000000E-07  4.7000000E-07  8.1000002E-07  1.4000000E-06  2.3699999E-06
+  4.3000000E-06  9.2299997E-06
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  1.4000000E-07
+  2.3999999E-07  4.4999999E-07  7.9000000E-07  1.3600001E-06  2.3200000E-06
+  4.1300000E-06  8.6399996E-06
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       2160.000    
+   2160.000       2160.000       2160.000       2160.000       2160.000    
+   2160.000       2160.000    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  1.5000001E-07
+  2.5000000E-07  4.7000000E-07  8.1000002E-07  1.4000000E-06  2.3699999E-06
+  4.3000000E-06  9.2299997E-06
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  1.4000000E-07
+  2.3999999E-07  4.4999999E-07  7.9000000E-07  1.3600001E-06  2.3200000E-06
+  4.1300000E-06  8.6399996E-06
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh50.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1283.203    
+   1283.203       1283.203       1283.203       1283.203       1283.203    
+   1283.203       1283.203    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  2.4000002E-07
+  4.0000000E-07  7.5200001E-07  1.2960001E-06  2.2400000E-06  3.7919999E-06
+  6.8800000E-06  1.4767999E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.2400000E-07
+  3.8400000E-07  7.2000000E-07  1.2640000E-06  2.1760002E-06  3.7120001E-06
+  6.6080001E-06  1.3823999E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1283.203    
+   1283.203       1283.203       1283.203       1283.203       1283.203    
+   1283.203       1283.203    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  2.4000002E-07
+  4.0000000E-07  7.5200001E-07  1.2960001E-06  2.2400000E-06  3.7919999E-06
+  6.8800000E-06  1.4767999E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.2400000E-07
+  3.8400000E-07  7.2000000E-07  1.2640000E-06  2.1760002E-06  3.7120001E-06
+  6.6080001E-06  1.3823999E-05
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh70.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1198.903    
+   1198.903       1198.903       1198.903       1198.903       1198.903    
+   1198.903       1198.903    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  2.7000002E-07
+  4.4999999E-07  8.4599998E-07  1.4580000E-06  2.5200000E-06  4.2659999E-06
+  7.7400000E-06  1.6614000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.5199998E-07
+  4.3199998E-07  8.0999996E-07  1.4220000E-06  2.4480000E-06  4.1759999E-06
+  7.4339996E-06  1.5551999E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1198.903    
+   1198.903       1198.903       1198.903       1198.903       1198.903    
+   1198.903       1198.903    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  2.7000002E-07
+  4.4999999E-07  8.4599998E-07  1.4580000E-06  2.5200000E-06  4.2659999E-06
+  7.7400000E-06  1.6614000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.5199998E-07
+  4.3199998E-07  8.0999996E-07  1.4220000E-06  2.4480000E-06  4.1759999E-06
+  7.4339996E-06  1.5551999E-05
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh80.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1145.000    
+   1145.000       1145.000       1145.000       1145.000       1145.000    
+   1145.000       1145.000    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  3.0000001E-07
+  5.0000000E-07  9.4000001E-07  1.6200000E-06  2.7999999E-06  4.7399999E-06
+  8.6000000E-06  1.8459999E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.7999999E-07
+  4.7999998E-07  8.9999997E-07  1.5800000E-06  2.7200001E-06  4.6400000E-06
+  8.2600000E-06  1.7279999E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1145.000    
+   1145.000       1145.000       1145.000       1145.000       1145.000    
+   1145.000       1145.000    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  3.0000001E-07
+  5.0000000E-07  9.4000001E-07  1.6200000E-06  2.7999999E-06  4.7399999E-06
+  8.6000000E-06  1.8459999E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  2.7999999E-07
+  4.7999998E-07  8.9999997E-07  1.5800000E-06  2.7200001E-06  4.6400000E-06
+  8.2600000E-06  1.7279999E-05
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh90.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1083.912    
+   1083.912       1083.912       1083.912       1083.912       1083.912    
+   1083.912       1083.912    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  3.6000003E-07
+  6.0000002E-07  1.1280000E-06  1.9440001E-06  3.3600002E-06  5.6879999E-06
+  1.0320000E-05  2.2152000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  3.3600000E-07
+  5.7599999E-07  1.0800001E-06  1.8960001E-06  3.2640003E-06  5.5680002E-06
+  9.9120007E-06  2.0735999E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1083.912    
+   1083.912       1083.912       1083.912       1083.912       1083.912    
+   1083.912       1083.912    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  3.6000003E-07
+  6.0000002E-07  1.1280000E-06  1.9440001E-06  3.3600002E-06  5.6879999E-06
+  1.0320000E-05  2.2152000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  3.3600000E-07
+  5.7599999E-07  1.0800001E-06  1.8960001E-06  3.2640003E-06  5.5680002E-06
+  9.9120007E-06  2.0735999E-05
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh95.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1047.562    
+   1047.562       1047.562       1047.562       1047.562       1047.562    
+   1047.562       1047.562    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  4.3500003E-07
+  7.2500001E-07  1.3630000E-06  2.3490002E-06  4.0600003E-06  6.8730001E-06
+  1.2470000E-05  2.6767000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  4.0600000E-07
+  6.9599997E-07  1.3050000E-06  2.2910001E-06  3.9440001E-06  6.7280002E-06
+  1.1977000E-05  2.5055999E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1047.562    
+   1047.562       1047.562       1047.562       1047.562       1047.562    
+   1047.562       1047.562    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  4.3500003E-07
+  7.2500001E-07  1.3630000E-06  2.3490002E-06  4.0600003E-06  6.8730001E-06
+  1.2470000E-05  2.6767000E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  4.0600000E-07
+  6.9599997E-07  1.3050000E-06  2.2910001E-06  3.9440001E-06  6.7280002E-06
+  1.1977000E-05  2.5055999E-05
+ *************************************
+ifort: command line warning #10212: -fp-model precise evaluates in source precision with Fortran.
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(890): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+--------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(890): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+         write(6,"(f5.3,4e11.4,f6.3,f8.3,f6.3,8g11.5)") xmdiam,VENTI1(j)
+------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(898): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+          write(7,"(f5.3,23f5.2)") xmdiam,(ivel_rime(j,k), k=1,5),
+---------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(921): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if (print_diag) write(7,"(f3.1,2x,23f5.2)") 0.1*j,
+-----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(1266): warning #8043: The extra characters in the format specification will be ignored   ['(f5.3,5g12.5,f6.3,8g11.5))']
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+---------------------------------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(1266): remark #8290: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+3'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------^
+/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/PREPROC/FIXED/lookup_tables/LOOKUP_aerosol_ssa_rh99.f(1266): remark #8291: Recommended relationship between field width 'W' and the number of fractional digits 'D' in this edit descriptor is 'W>=D+7'.
+        if(print_diag) write(8,"(f5.3,5g12.5,f6.3,8g11.5))")1000.*mdiam,
+----------------------------------------------------^
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1010.489    
+   1010.489       1010.489       1010.489       1010.489       1010.489    
+   1010.489       1010.489    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  7.2000006E-07
+  1.2000000E-06  2.2560000E-06  3.8880003E-06  6.7200003E-06  1.1376000E-05
+  2.0640000E-05  4.4304001E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  6.7200000E-07
+  1.1520000E-06  2.1600001E-06  3.7920001E-06  6.5280005E-06  1.1136000E-05
+  1.9824001E-05  4.1471998E-05
+ *************************************
+ *************************************
+  NUM_AERO =          16
+  NUM_TRACERS_CHEM=           0
+  NUM_DUST =           8
+  NUM_SALT =           8
+  NUM_OM =           0
+  NUM_BC=           0
+  NUM_SO4  =           0
+  RHO_AERO =   2500.000       2500.000       2500.000       2500.000    
+   2650.000       2650.000       2650.000       2650.000       1010.489    
+   1010.489       1010.489       1010.489       1010.489       1010.489    
+   1010.489       1010.489    
+  R_AERO_V  =  1.5000001E-07  2.5000000E-07  4.7000000E-07  8.0000001E-07
+  1.3600001E-06  2.2900001E-06  3.9299998E-06  7.2399998E-06  7.2000006E-07
+  1.2000000E-06  2.2560000E-06  3.8880003E-06  6.7200003E-06  1.1376000E-05
+  2.0640000E-05  4.4304001E-05
+  R_AERO_E =  1.5000001E-07  2.5000000E-07  4.4999999E-07  7.7999999E-07
+  1.3200000E-06  2.2400000E-06  3.8000001E-06  7.1099998E-06  6.7200000E-07
+  1.1520000E-06  2.1600001E-06  3.7920001E-06  6.5280005E-06  1.1136000E-05
+  1.9824001E-05  4.1471998E-05
+ *************************************
+[BINARY EXECUTION WRAPPER] ------------------------------------

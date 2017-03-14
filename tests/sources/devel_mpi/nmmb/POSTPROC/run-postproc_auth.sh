@@ -55,7 +55,8 @@
 
   # Execute
   echo "[DEBUG] Execute the postall script"
-  ${folderOutput}/new_postall.x
+  cd ${folderOutput}
+  ./new_postall.x
   if [ $? -ne 0 ]; then
     echo "[ERROR] Cannot execute postall. Check errors above."
     exit 1

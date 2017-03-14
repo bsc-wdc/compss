@@ -10,6 +10,7 @@
 
   export MATMUL_BINARY=${binary}
   export NODES_PER_MPI_TASK=${NPMT}
+  export CUS_PER_MPI_TASK=16
 
   enqueue_compss \
     --exec_time=10 \

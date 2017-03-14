@@ -42,12 +42,15 @@ public class Matmul {
         initializeMatrix(AfileNames, true);
         initializeMatrix(BfileNames, true);
         initializeMatrix(CfileNames, false);
-        
+
         // Wait for runtime
         Thread.sleep(3_000);
 
         // Compute matrix multiplication C = A x B
+        long startTime = System.currentTimeMillis();
         computeMultiplication();
+        long estimatedTime = System.currentTimeMillis() - startTime;
+        System.out.println("[TIME] EXECUTION TIME = " + estimatedTime);
 
         // Uncomment the following line if you wish to store the result in a file
         // storeMatrix("c_result.txt");
@@ -105,7 +108,7 @@ public class Matmul {
     private static void computeMultiplication() {
         System.out.println("[LOG] Computing result");
         Integer[][][] exitValues = new Integer[MSIZE][MSIZE][MSIZE];
-        
+
         // Launch tasks
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
@@ -114,7 +117,7 @@ public class Matmul {
                 }
             }
         }
-        
+
         // Wait loop
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {

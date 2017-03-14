@@ -67,7 +67,7 @@
   #----------------------------------------------------------------------------------
   # Check that MPI command from multi-node task uses more than one host
   jobOut=${target_log_folder}/jobs/job2_NEW.out
-  numNodesExpected=2
+  numNodesExpected=4
   numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $9 '})
   if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
     echo "ERROR: Incorrect number of MPI Nodes for multi-node task." | tee -a ${output_file}
@@ -80,7 +80,7 @@
   # Check that MPI command from multi-node task uses two different hosts
   jobOut=${target_log_folder}/jobs/job2_NEW.out
   numNodesExpected=2
-  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $7 '} | tr "," "\n" | wc -l)
+  numNodesGOT=$(cat ${jobOut} | grep "\[MPI INVOKER\] MPI CMD" | tr " " "\t" | awk {' print $7 '} | tr "," "\n" | awk '!a[$0]++' | wc -l)
   if [ ${numNodesGOT} -ne ${numNodesExpected} ]; then
     echo "ERROR: Multi-node task not using different hosts" | tee -a ${output_file}
     echo "  GOT: ${numNodesGOT}" | tee -a ${output_file}

@@ -16,6 +16,7 @@ import nmmb.configuration.NMMBParameters;
 import nmmb.exceptions.MainExecutionException;
 import nmmb.exceptions.TaskExecutionException;
 import nmmb.loggers.LoggerNames;
+import nmmb.utils.FileManagement;
 import nmmb.utils.FortranWrapper;
 import nmmb.utils.MessagePrinter;
 
@@ -524,6 +525,135 @@ public class Nmmb {
         LOGGER_VARIABLE.info("Variable process finished");
     }
 
+    private static void copyFilesFromPreprocess(NMMBParameters nmmbParams) throws TaskExecutionException {
+        // Clean specific files
+        final String[] outputFiles = new String[] { "isop.dat", "meteo-data.dat", "chemic-reg", "main_input_filename",
+                "main_input_filename2", "GWD.bin", "configure_file", "co2_trans", "ETAMPNEW_AERO", "ETAMPNEW_DATA" };
+        for (String file : outputFiles) {
+            String filePath = NMMBEnvironment.UMO_OUT + file;
+            if (!FileManagement.deleteFile(filePath)) {
+                LOGGER_UMO_MODEL.debug("Cannot erase previous " + file + " because it doesn't exist.");
+            }
+        }
+
+        // Clean regular expr files
+        File folder = new File(NMMBEnvironment.UMO_OUT);
+        for (File file : folder.listFiles()) {
+            if ((file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
+                    || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))
+                    || (file.getName().startsWith("PET") && file.getName().endsWith("txt"))
+                    || (file.getName().startsWith("PET") && file.getName().endsWith("File")) || (file.getName().startsWith("boco."))
+                    || (file.getName().startsWith("boco_chem.")) || (file.getName().startsWith("nmm_b_history."))
+                    || (file.getName().startsWith("tr")) || (file.getName().startsWith("RRT")) || (file.getName().endsWith(".TBL"))
+                    || (file.getName().startsWith("fcstdone.")) || (file.getName().startsWith("restartdone."))
+                    || (file.getName().startsWith("nmmb_rst_")) || (file.getName().startsWith("nmmb_hst_"))) {
+
+                if (!FileManagement.deleteFile(file)) {
+                    LOGGER_UMO_MODEL.debug("Cannot erase previous " + file.getName() + " because it doesn't exist.");
+                }
+
+            }
+        }
+
+        // Prepare UMO model files
+        String outputFolderPath = NMMBEnvironment.OUTPUT;
+        File outputFolder = new File(outputFolderPath);
+        for (File file : outputFolder.listFiles()) {
+            if (file.getName().startsWith("boco.") || file.getName().startsWith("boco_chem.")) {
+                // Copy file
+                String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+                if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                    throw new TaskExecutionException("[ERROR] Error copying file from " + file.getName() + " to " + targetPath);
+                }
+            }
+        }
+
+        String chemicRegSrc = NMMBEnvironment.OUTPUT + "chemic-reg";
+        String chemicRegTarget = NMMBEnvironment.UMO_OUT + "chemic-reg";
+        if (!FileManagement.copyFile(chemicRegSrc, chemicRegTarget)) {
+            // TODO: Really no error when file does not exist?
+            LOGGER_UMO_MODEL.debug("Cannot copy file from " + chemicRegSrc + " to " + chemicRegTarget + ". Skipping...");
+        }
+
+        String gwdSrc = NMMBEnvironment.OUTPUT + "GWD.bin";
+        String gwdTarget = NMMBEnvironment.UMO_OUT + "GWD.bin";
+        if (!FileManagement.copyFile(gwdSrc, gwdTarget)) {
+            // TODO: Really no error when file does not exist?
+            LOGGER_UMO_MODEL.debug("Cannot copy file from " + gwdSrc + " to " + gwdTarget + ". Skipping...");
+        }
+
+        String inputDomain1Src = NMMBEnvironment.OUTPUT + "fcst";
+        String inputDomain1Target = NMMBEnvironment.UMO_OUT + "input_domain_01";
+        if (!FileManagement.copyFile(inputDomain1Src, inputDomain1Target)) {
+            throw new TaskExecutionException("[ERROR] Error copying file from " + inputDomain1Src + " to " + inputDomain1Target);
+        }
+
+        String inputDomain2Src = NMMBEnvironment.OUTPUT + "soildust";
+        String inputDomain2Target = NMMBEnvironment.UMO_OUT + "main_input_filename2";
+        if (!FileManagement.copyFile(inputDomain2Src, inputDomain2Target)) {
+            throw new TaskExecutionException("[ERROR] Error copying file from " + inputDomain2Src + " to " + inputDomain2Target);
+        }
+
+        // Copy aerosols scavenging coeff
+        String lookupAerosol2RH00Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh00";
+        String lookupAerosol2RH00Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH00";
+        if (!FileManagement.copyFile(lookupAerosol2RH00Src, lookupAerosol2RH00Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH00Src + " to " + lookupAerosol2RH00Target);
+        }
+
+        String lookupAerosol2RH50Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh50";
+        String lookupAerosol2RH50Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH50";
+        if (!FileManagement.copyFile(lookupAerosol2RH50Src, lookupAerosol2RH50Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH50Src + " to " + lookupAerosol2RH50Target);
+        }
+
+        String lookupAerosol2RH70Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh70";
+        String lookupAerosol2RH70Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH70";
+        if (!FileManagement.copyFile(lookupAerosol2RH70Src, lookupAerosol2RH70Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH70Src + " to " + lookupAerosol2RH70Target);
+        }
+
+        String lookupAerosol2RH80Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh80";
+        String lookupAerosol2RH80Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH80";
+        if (!FileManagement.copyFile(lookupAerosol2RH80Src, lookupAerosol2RH80Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH80Src + " to " + lookupAerosol2RH80Target);
+        }
+
+        String lookupAerosol2RH90Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh90";
+        String lookupAerosol2RH90Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH90";
+        if (!FileManagement.copyFile(lookupAerosol2RH90Src, lookupAerosol2RH90Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH90Src + " to " + lookupAerosol2RH90Target);
+        }
+
+        String lookupAerosol2RH95Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh95";
+        String lookupAerosol2RH95Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH95";
+        if (!FileManagement.copyFile(lookupAerosol2RH95Src, lookupAerosol2RH95Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH95Src + " to " + lookupAerosol2RH95Target);
+        }
+
+        String lookupAerosol2RH99Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh99";
+        String lookupAerosol2RH99Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH99";
+        if (!FileManagement.copyFile(lookupAerosol2RH99Src, lookupAerosol2RH99Target)) {
+            throw new TaskExecutionException(
+                    "[ERROR] Error copying file from " + lookupAerosol2RH99Src + " to " + lookupAerosol2RH99Target);
+        }
+
+        // Copy coupling previous day (if required)
+        if (nmmbParams.getCoupleDustInit()) {
+            String historySrc = NMMBEnvironment.OUTNMMB + nmmbParams.getCase() + File.separator + "history_INIT.hhh";
+            String historyTarget = NMMBEnvironment.UMO_OUT + "history_INIT.hhh";
+            if (!FileManagement.copyFile(historySrc, historyTarget)) {
+                throw new TaskExecutionException("[ERROR] Error copying file from " + historySrc + " to " + historyTarget);
+            }
+        }
+    }
+
     /**
      * Performs the UMO Model simulation step
      * 
@@ -532,6 +662,7 @@ public class Nmmb {
         LOGGER_UMO_MODEL.info("Enter UMO Model process");
 
         /* Prepare execution **************************************************************/
+        copyFilesFromPreprocess(nmmbParams);
         nmmbParams.prepareUMOMOdelExecution(currentDate);
         MessagePrinter umoModelMP = new MessagePrinter(LOGGER_UMO_MODEL);
 
@@ -539,7 +670,9 @@ public class Nmmb {
         umoModelMP.printHeaderMsg("BEGIN");
         umoModelMP.printInfoMsg("Executing nmmb_esmf.x UMO-NMMb-DUST-RRTM model");
 
-        Integer nemsEV = MPI.nems();
+        String stdOutFile = NMMBEnvironment.UMO_OUT + "nems.out";
+        String stdErrFile = NMMBEnvironment.UMO_OUT + "nems.err";
+        Integer nemsEV = MPI.nems(stdOutFile, stdErrFile);
 
         LOGGER_UMO_MODEL.debug("Execution of mpirun NEMS ended with status " + nemsEV);
         if (nemsEV != 0) {
@@ -579,7 +712,7 @@ public class Nmmb {
         Integer ev = BINARY.runPostprocAuth(folderOutput, domainSTR, dateHour);
 
         /* Post execution **************************************************************/
-        LOGGER_POST.debug("Execution of mpirun NEMS ended with status " + ev);
+        LOGGER_POST.debug("Execution of POSTProcess ended with status " + ev);
         if (ev != 0) {
             throw new TaskExecutionException("[ERROR] Error executing post process");
         }

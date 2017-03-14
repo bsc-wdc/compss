@@ -41,6 +41,7 @@ public class NMMBEnvironment {
     public static final String LOOKUP_TABLES_DIR_FOR_ITF = BASE_FOR_ITF + "PREPROC/FIXED/lookup_tables/";
     public static final String VRB_FOR_ITF = BASE_FOR_ITF + "PREPROC/VARIABLE/";
     public static final String EXE_FOR_ITF = BASE_FOR_ITF + "MODEL/exe/";
+    public static final String UMO_OUT_FOR_ITF = BASE_FOR_ITF + "OUTPUT/CURRENT_RUN/";
     public static final String POST_FOR_ITF = BASE_FOR_ITF + "POSTPROC/";
 
 }

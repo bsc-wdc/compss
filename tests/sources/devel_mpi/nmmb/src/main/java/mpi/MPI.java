@@ -6,7 +6,7 @@ package mpi;
  */
 public class MPI {
 
-    public static Integer nems() {
+    public static Integer nems(String stdOutFile, String stdErrFile) {
         return null;
     }
 

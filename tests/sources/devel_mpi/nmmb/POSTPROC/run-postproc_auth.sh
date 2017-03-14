@@ -20,6 +20,7 @@
   trap clean EXIT
 
   # Copy dependant files
+  echo "[DEBUG] Copy dependant files"
   cp -f ${scriptDir}/namelist.newpost ${folderOutput}
   cp -f ${scriptDir}/new_postall.f ${folderOutput}
   cp -f ${scriptDir}/lmimjm.inc ${folderOutput}
@@ -29,6 +30,7 @@
   rm -f ${folderOutput}/*.nc
 
   # Compile fortran source
+  echo "[DEBUG] Compile the fortran source"
   ifort \
     -mcmodel=large \
     -shared-intel \
@@ -45,17 +47,23 @@
     -lnetcdf \
     -lnetcdff \
     -o ${folderOutput}/new_postall.x
-  if [ $? -ne 0]; then
+  if [ $? -ne 0 ]; then
     echo "[ERROR] Cannot compile postall src"
     exit 1
   fi
   chmod 755 ${folderOutput}/new_postall.x 
 
   # Execute
+  echo "[DEBUG] Execute the postall script"
   ${folderOutput}/new_postall.x
-  ncrcat ${folderOutput}/new_pout_*.nc ${folderOutput}/NMMB-BSC-CTM_${dateHour}_${domain}.nc
   if [ $? -ne 0 ]; then
     echo "[ERROR] Cannot execute postall. Check errors above."
+    exit 1
+  fi
+
+  ncrcat ${folderOutput}/new_pout_*.nc ${folderOutput}/NMMB-BSC-CTM_${dateHour}_${domain}.nc
+  if [ $? -ne 0 ]; then
+    echo "[ERROR] Cannot execute ncrcat. Check errors above."
     exit 1
   fi
 

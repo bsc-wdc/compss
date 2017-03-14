@@ -11,21 +11,29 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 public class BinaryImplementation extends AbstractMethodImplementation implements Externalizable {
 
     private String binary;
-    
-    
+    private String workingDir;
+
+
     public BinaryImplementation() {
         // For externalizable
         super();
     }
 
-    public BinaryImplementation(String binary, Integer coreId, Integer implementationId, MethodResourceDescription annot) {
+    public BinaryImplementation(String binary, String workingDir, Integer coreId, Integer implementationId,
+            MethodResourceDescription annot) {
+
         super(coreId, implementationId, annot);
 
         this.binary = binary;
+        this.workingDir = workingDir;
     }
 
     public String getBinary() {
-        return binary;
+        return this.binary;
+    }
+
+    public String getWorkingDir() {
+        return this.workingDir;
     }
 
     @Override
@@ -51,12 +59,14 @@ public class BinaryImplementation extends AbstractMethodImplementation implement
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
         binary = (String) in.readObject();
+        workingDir = (String) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         super.writeExternal(out);
         out.writeObject(binary);
+        out.writeObject(workingDir);
     }
 
 }

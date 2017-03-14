@@ -144,7 +144,7 @@ log_args() {
   echo "Exec-Time:                 ${wc_limit}"
   echo "Storage Home:              ${storage_home}"
   echo "Storage Properties:        ${storage_props}"
-  local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t--/g')
+  local other=$(echo ${args_pass} | sed 's/\ --/\n\t\t\t--/g')
   echo "Other:                     $other"
   echo " "
 }

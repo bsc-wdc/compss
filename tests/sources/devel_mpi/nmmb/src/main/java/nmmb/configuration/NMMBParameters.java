@@ -275,6 +275,15 @@ public class NMMBParameters {
     }
 
     /**
+     * Returns the COUPLE_DUST_INIT value
+     * 
+     * @return
+     */
+    public boolean getCoupleDustInit() {
+        return this.COUPLE_DUST_INIT;
+    }
+
+    /**
      * Actions to perform to setup an NMMB execution
      * 
      */
@@ -698,53 +707,30 @@ public class NMMBParameters {
      * @param currentDate
      */
     public void prepareUMOMOdelExecution(Date currentDate) {
-        // Clean specific files
-        final String[] outputFiles = new String[] { "isop.dat", "meteo-data.dat", "chemic-reg", "main_input_filename",
-                "main_input_filename2", "GWD.bin", "configure_file", "co2_trans", "ETAMPNEW_AERO", "ETAMPNEW_DATA" };
-        for (String file : outputFiles) {
-            String filePath = NMMBEnvironment.UMO_OUT + file;
-            if (!FileManagement.deleteFile(filePath)) {
-                LOGGER_UMO_MODEL.debug("Cannot erase previous " + file + " because it doesn't exist.");
-            }
-        }
-
-        // Clean regular expr files
-        File folder = new File(NMMBEnvironment.UMO_OUT);
-        for (File file : folder.listFiles()) {
-            if ((file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
-                    || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))
-                    || (file.getName().startsWith("PET") && file.getName().endsWith("txt"))
-                    || (file.getName().startsWith("PET") && file.getName().endsWith("File")) || (file.getName().startsWith("boco."))
-                    || (file.getName().startsWith("boco_chem.")) || (file.getName().startsWith("nmm_b_history."))
-                    || (file.getName().startsWith("tr")) || (file.getName().startsWith("RRT")) || (file.getName().endsWith(".TBL"))
-                    || (file.getName().startsWith("fcstdone.")) || (file.getName().startsWith("restartdone."))
-                    || (file.getName().startsWith("nmmb_rst_")) || (file.getName().startsWith("nmmb_hst_"))) {
-
-                if (!FileManagement.deleteFile(file)) {
-                    LOGGER_UMO_MODEL.debug("Cannot erase previous " + file.getName() + " because it doesn't exist.");
-                }
-
-            }
-        }
-
         // Copy data files
         if (NMMBEnvironment.CHEMIC == null || NMMBEnvironment.CHEMIC.isEmpty()) {
-            LOGGER_UMO_MODEL.debug("[ERROR] Error copying from CHEMIC because source doesn't exist. Skipping...");
+            LOGGER_UMO_MODEL.debug("Cannot copy from CHEMIC because source doesn't exist. Skipping...");
         } else {
             String dataFolderPath = NMMBEnvironment.CHEMIC + "MEGAN" + File.separator + "out" + File.separator + "aqmeii-reg"
                     + File.separator;
             File dataFolder = new File(dataFolderPath);
-            for (File file : dataFolder.listFiles()) {
-                if (file.getName().equals("isop.dat") || (file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
-                        || file.getName().equals("meteo-data.dat")
-                        || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))) {
+            File[] contentFiles = dataFolder.listFiles();
+            if (contentFiles != null) {
+                for (File file : contentFiles) {
+                    if (file.getName().equals("isop.dat") || (file.getName().startsWith("lai") && file.getName().endsWith(".dat"))
+                            || file.getName().equals("meteo-data.dat")
+                            || (file.getName().startsWith("pftp_") && file.getName().endsWith(".dat"))) {
 
-                    // Copy file
-                    if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                        LOGGER_UMO_MODEL.debug("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT
-                                + " because source doesn't exist. Skipping...");
+                        // Copy file
+                        String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+                        if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                            LOGGER_UMO_MODEL.debug("Cannot copy " + file.getName() + " file to " + targetPath
+                                    + " because source doesn't exist. Skipping...");
+                        }
                     }
                 }
+            } else {
+                LOGGER_UMO_MODEL.debug("Cannot copy from CHEMIC because source doesn't exist. Skipping...");
             }
         }
 
@@ -807,60 +793,14 @@ public class NMMBParameters {
             System.exit(1);
         }
 
-        // Prepare UMO model files
-        String outputFolderPath = NMMBEnvironment.OUTPUT;
-        File outputFolder = new File(outputFolderPath);
-        for (File file : outputFolder.listFiles()) {
-            if (file.getName().startsWith("boco.") || file.getName().startsWith("boco_chem.")) {
-
-                // Copy file
-                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
-                    LOGGER_UMO_MODEL.error("Aborting...");
-                    System.exit(1);
-                }
-            }
-        }
-
-        String chemicRegSrc = NMMBEnvironment.OUTPUT + "chemic-reg";
-        String chemicRegTarget = NMMBEnvironment.UMO_OUT + "chemic-reg";
-        if (!FileManagement.copyFile(chemicRegSrc, chemicRegTarget)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + chemicRegSrc + " file to " + chemicRegTarget);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String gwdSrc = NMMBEnvironment.OUTPUT + "GWD.bin";
-        String gwdTarget = NMMBEnvironment.UMO_OUT + "GWD.bin";
-        if (!FileManagement.copyFile(gwdSrc, gwdTarget)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + gwdSrc + " file to " + gwdTarget);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String inputDomain1Src = NMMBEnvironment.OUTPUT + "input_domain_01";
-        String inputDomain1Target = NMMBEnvironment.UMO_OUT + "#main_input_filename";
-        if (!FileManagement.copyFile(inputDomain1Src, inputDomain1Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + inputDomain1Src + " file to " + inputDomain1Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String inputDomain2Src = NMMBEnvironment.OUTPUT + "soildust";
-        String inputDomain2Target = NMMBEnvironment.UMO_OUT + "main_input_filename2";
-        if (!FileManagement.copyFile(inputDomain2Src, inputDomain2Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + inputDomain2Src + " file to " + inputDomain2Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
         // Copy datmod
         String datModFolderPath = NMMBEnvironment.DATMOD;
         File datModFolder = new File(datModFolderPath);
         for (File file : datModFolder.listFiles()) {
             // Copy all files
-            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+            String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+            if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + targetPath);
                 LOGGER_UMO_MODEL.error("Aborting...");
                 System.exit(1);
             }
@@ -878,8 +818,9 @@ public class NMMBParameters {
         File wrftablesFolder = new File(wrftablesFolderPath);
         for (File file : wrftablesFolder.listFiles()) {
             // Copy all files
-            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+            String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+            if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + targetPath);
                 LOGGER_UMO_MODEL.error("Aborting...");
                 System.exit(1);
             }
@@ -889,68 +830,12 @@ public class NMMBParameters {
         File co2dataFolder = new File(co2dataFolderPath);
         for (File file : co2dataFolder.listFiles()) {
             // Copy all files
-            if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+            String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+            if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + targetPath);
                 LOGGER_UMO_MODEL.error("Aborting...");
                 System.exit(1);
             }
-        }
-
-        // Copy aerosols scavenging coeff
-        String lookupAerosol2RH00Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh00";
-        String lookupAerosol2RH00Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH00";
-        if (!FileManagement.copyFile(lookupAerosol2RH00Src, lookupAerosol2RH00Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH00Src + " file to " + lookupAerosol2RH00Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH50Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh50";
-        String lookupAerosol2RH50Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH50";
-        if (!FileManagement.copyFile(lookupAerosol2RH50Src, lookupAerosol2RH50Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH50Src + " file to " + lookupAerosol2RH50Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH70Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh70";
-        String lookupAerosol2RH70Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH70";
-        if (!FileManagement.copyFile(lookupAerosol2RH70Src, lookupAerosol2RH70Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH70Src + " file to " + lookupAerosol2RH70Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH80Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh80";
-        String lookupAerosol2RH80Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH80";
-        if (!FileManagement.copyFile(lookupAerosol2RH80Src, lookupAerosol2RH80Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH80Src + " file to " + lookupAerosol2RH80Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH90Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh90";
-        String lookupAerosol2RH90Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH90";
-        if (!FileManagement.copyFile(lookupAerosol2RH90Src, lookupAerosol2RH90Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH90Src + " file to " + lookupAerosol2RH90Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH95Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh95";
-        String lookupAerosol2RH95Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH95";
-        if (!FileManagement.copyFile(lookupAerosol2RH95Src, lookupAerosol2RH95Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH95Src + " file to " + lookupAerosol2RH95Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
-
-        String lookupAerosol2RH99Src = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh99";
-        String lookupAerosol2RH99Target = NMMBEnvironment.UMO_OUT + "ETAMPNEW_AERO_RH99";
-        if (!FileManagement.copyFile(lookupAerosol2RH99Src, lookupAerosol2RH99Target)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + lookupAerosol2RH99Src + " file to " + lookupAerosol2RH99Target);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
         }
 
         // Copy files for RRTM radiation
@@ -975,9 +860,9 @@ public class NMMBParameters {
         File fixRadFolder = new File(fixRadFolderPath);
         for (File file : fixRadFolder.listFiles()) {
             if (file.getName().startsWith("co2historicaldata") || file.getName().startsWith("volcanic_aerosols_")) {
-
-                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+                if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + targetPath);
                     LOGGER_UMO_MODEL.error("Aborting...");
                     System.exit(1);
                 }
@@ -989,8 +874,9 @@ public class NMMBParameters {
         File fixGocartFolder = new File(fixGocartFolderPath);
         for (File file : fixGocartFolder.listFiles()) {
             if (file.getName().startsWith("2000")) {
-                if (!FileManagement.copyFile(file.getAbsolutePath(), NMMBEnvironment.UMO_OUT)) {
-                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + NMMBEnvironment.UMO_OUT);
+                String targetPath = NMMBEnvironment.UMO_OUT + file.getName();
+                if (!FileManagement.copyFile(file.getAbsolutePath(), targetPath)) {
+                    LOGGER_UMO_MODEL.error("[ERROR] Error copying " + file.getName() + " file to " + targetPath);
                     LOGGER_UMO_MODEL.error("Aborting...");
                     System.exit(1);
                 }
@@ -1074,16 +960,6 @@ public class NMMBParameters {
             LOGGER_UMO_MODEL.error("Aborting...");
             System.exit(1);
         }
-
-        // Copy coupling previous day
-        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
-        String historySrc = folderOutputCase + "history_INIT.hhh";
-        String historyTarget = NMMBEnvironment.UMO_OUT + "atmos.configure";
-        if (!FileManagement.copyFile(historySrc, historyTarget)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + historySrc + " file to " + historyTarget);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
-        }
     }
 
     /**
@@ -1124,9 +1000,8 @@ public class NMMBParameters {
         String nmmRrtmOutSrc = NMMBEnvironment.UMO_OUT + "nmm_rrtm.out";
         String nmmRrtmOutTarget = folderOutput + "nmm_rrtm.out";
         if (!FileManagement.moveFile(nmmRrtmOutSrc, nmmRrtmOutTarget)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + nmmRrtmOutSrc + " file to " + nmmRrtmOutTarget);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
+            // TODO: We don't really need to abort when cannot copy this file?
+            LOGGER_UMO_MODEL.error("Cannot copy " + nmmRrtmOutSrc + " file to " + nmmRrtmOutTarget);
         }
 
         String configureFileSrc = NMMBEnvironment.UMO_OUT + "configure_file";
@@ -1140,9 +1015,8 @@ public class NMMBParameters {
         String boundarySrc = NMMBEnvironment.OUTPUT + "boundary_ecmwf.nc";
         String boundaryTarget = folderOutput + "boundary_ecmwf.nc";
         if (!FileManagement.moveFile(boundarySrc, boundaryTarget)) {
-            LOGGER_UMO_MODEL.error("[ERROR] Error copying " + boundarySrc + " file to " + boundaryTarget);
-            LOGGER_UMO_MODEL.error("Aborting...");
-            System.exit(1);
+            // TODO: We don't really need to abort when cannot copy this file?
+            LOGGER_UMO_MODEL.warn("Cannot copy " + boundarySrc + " file to " + boundaryTarget);
         }
 
         File umoFolder = new File(NMMBEnvironment.UMO_OUT);
@@ -1162,7 +1036,7 @@ public class NMMBParameters {
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
-     * ******************** UMO MODEL STEP ***************************************************************
+     * ******************** POST PROCESS STEP ************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************

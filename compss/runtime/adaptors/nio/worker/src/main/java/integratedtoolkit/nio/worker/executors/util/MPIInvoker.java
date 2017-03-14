@@ -2,6 +2,7 @@ package integratedtoolkit.nio.worker.executors.util;
 
 import java.io.File;
 
+import integratedtoolkit.exceptions.InvokeExecutionException;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
@@ -9,7 +10,6 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.types.implementations.MPIImplementation;
 
 import integratedtoolkit.worker.invokers.GenericInvoker;
-import integratedtoolkit.worker.invokers.InvokeExecutionException;
 
 
 public class MPIInvoker extends Invoker {

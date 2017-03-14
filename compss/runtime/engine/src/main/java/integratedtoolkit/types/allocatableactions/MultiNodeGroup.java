@@ -95,7 +95,7 @@ public class MultiNodeGroup<P extends Profile, T extends WorkerResourceDescripti
      * @return
      */
     public List<String> getSlavesNames() {
-        List<String> slavesNames = new ArrayList<String>();
+        List<String> slavesNames = new ArrayList<>();
         for (Entry<Integer, MultiNodeExecutionAction<P, T, I>> slave : registeredSlaves.entrySet()) {
             slavesNames.add(slave.getValue().getAssignedResource().getName());
         }

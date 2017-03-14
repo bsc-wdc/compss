@@ -1,4 +1,4 @@
-package integratedtoolkit.worker.invokers;
+package integratedtoolkit.exceptions;
 
 public class InvokeExecutionException extends Exception {
 

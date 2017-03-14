@@ -32,6 +32,13 @@ public @interface OpenCL {
      */
     String kernel() default Constants.UNASSIGNED;
 
+    /**
+     * Returns the working directory of the binary
+     * 
+     * @return the binary working directory
+     */
+    String workingDir() default Constants.UNASSIGNED;
+
     /*
      * COMMON PROPERTIES
      * 

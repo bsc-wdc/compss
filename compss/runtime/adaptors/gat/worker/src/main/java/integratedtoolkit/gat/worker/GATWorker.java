@@ -18,9 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import storage.StorageException;
 import storage.StorageItf;
@@ -47,7 +47,7 @@ public class GATWorker {
     private static String storageConf;
 
     private static int numNodes;
-    private static Set<String> hostnames;
+    private static List<String> hostnames;
     private static int cus;
 
     private static MethodType methodType;
@@ -147,8 +147,8 @@ public class GATWorker {
 
         // Execution information for multi-node tasks
         GATWorker.numNodes = Integer.parseInt(args[argPosition++]);
-        GATWorker.hostnames = new HashSet<String>();
-        for (int i = 0; i < numNodes; ++i) {
+        GATWorker.hostnames = new ArrayList<>();
+        for (int i = 0; i < GATWorker.numNodes; ++i) {
             GATWorker.hostnames.add(args[argPosition++]);
         }
         GATWorker.cus = Integer.parseInt(args[argPosition++]);
@@ -494,11 +494,22 @@ public class GATWorker {
         StringBuilder hostnamesSTR = new StringBuilder();
         for (Iterator<String> it = GATWorker.hostnames.iterator(); it.hasNext();) {
             String nodeName = it.next();
+            // Remove infiniband suffix
+            if (nodeName.endsWith("-ib0")) {
+                nodeName = nodeName.substring(0, hostname.lastIndexOf("-ib0"));
+            }
+
+            // Add one host name per process to launch
             if (firstElement) {
                 firstElement = false;
-                hostnamesSTR.append(nodeName);
+                hostnamesSTR.append(hostname);
+                for (int i = 1; i < GATWorker.cus; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
             } else {
-                hostnamesSTR.append(",").append(nodeName);
+                for (int i = 0; i < GATWorker.cus; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
             }
         }
 

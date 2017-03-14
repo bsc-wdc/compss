@@ -115,8 +115,8 @@ public class NIOTracer extends Tracer {
 
         // Only capture output/error if debug level (means 2 more threads)
         if (debug) {
-            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out);
-            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err);
+            StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream(), System.out, logger);
+            StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(), System.err, logger);
             outputGobbler.start();
             errorGobbler.start();
             logger.debug("Created globbers");

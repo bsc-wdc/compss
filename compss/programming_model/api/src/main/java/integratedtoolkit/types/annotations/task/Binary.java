@@ -32,6 +32,13 @@ public @interface Binary {
      */
     String binary() default Constants.UNASSIGNED;
 
+    /**
+     * Returns the working directory of the binary
+     * 
+     * @return the binary working directory
+     */
+    String workingDir() default Constants.UNASSIGNED;
+
     /*
      * COMMON PROPERTIES
      * 
@@ -43,7 +50,7 @@ public @interface Binary {
      * @return if the method has priority or not
      */
     String priority() default Constants.IS_NOT_PRIORITARY_TASK;
-    
+
     /**
      * Returns the method specific constraints
      * 

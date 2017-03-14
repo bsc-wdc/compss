@@ -2,12 +2,11 @@ package integratedtoolkit.nio.worker.executors;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +21,12 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.util.RequestQueue;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
+import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.MPIImplementation;
+import integratedtoolkit.types.implementations.OmpSsImplementation;
+import integratedtoolkit.types.implementations.OpenCLImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
@@ -107,40 +111,49 @@ public abstract class Executor implements Runnable {
         }
 
         // Sets the process environment variables (just in case its a MPI or OMPSs task)
-        List<String> slaveWorkersHostnames = nt.getSlaveWorkersNodeNames();
-
-        Set<String> hostnames = new HashSet<String>();
+        List<String> hostnames = nt.getSlaveWorkersNodeNames();
         hostnames.add(nw.getHostName());
-        hostnames.addAll(nt.getSlaveWorkersNodeNames());
+
+        int numNodes = hostnames.size();
+        int cus = nt.getResourceDescription().getTotalCPUComputingUnits();
+
         boolean firstElement = true;
         StringBuilder hostnamesSTR = new StringBuilder();
         for (Iterator<String> it = hostnames.iterator(); it.hasNext();) {
             String hostname = it.next();
+            // Remove infiniband suffix
+            if (hostname.endsWith("-ib0")) {
+                hostname = hostname.substring(0, hostname.lastIndexOf("-ib0"));
+            }
+
+            // Add one host name per process to launch
             if (firstElement) {
                 firstElement = false;
                 hostnamesSTR.append(hostname);
+                for (int i = 1; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
             } else {
-                hostnamesSTR.append(",").append(hostname);
+                for (int i = 0; i < cus; ++i) {
+                    hostnamesSTR.append(",").append(hostname);
+                }
             }
         }
-
-        int numNodes = slaveWorkersHostnames.size() + 1;
-        int cus = nt.getResourceDescription().getTotalCPUComputingUnits();
 
         setEnvironmentVariables(hostnamesSTR.toString(), numNodes, cus, nt.getResourceDescription());
 
         // Set outputs paths (Java will register them, ExternalExec will redirect processes outputs)
         String outputsBasename = nw.getWorkingDir() + "jobs" + File.separator + "job" + nt.getJobId() + "_" + nt.getHist();
 
-        File taskSandboxWorkingDir = null;
+        TaskWorkingDir twd = null;
 
         try {
             // Set the Task working directory
-            taskSandboxWorkingDir = createTaskSandbox(nt);
+            twd = createTaskSandbox(nt);
 
             // Bind files to task sandbox working dir
             logger.debug("Binding renamed files to sandboxed original names for Job " + nt.getJobId());
-            bindOriginalFilenamesToRenames(nt, taskSandboxWorkingDir);
+            bindOriginalFilenamesToRenames(nt, twd.getWorkingDir());
 
             // Bind Computing units
             int[] assignedCoreUnits = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits(),
@@ -150,7 +163,7 @@ public abstract class Executor implements Runnable {
 
             // Execute task
             logger.debug("Executing Task of Job " + nt.getJobId());
-            executeTask(nw, nt, outputsBasename, taskSandboxWorkingDir, assignedCoreUnits, assignedGPUs);
+            executeTask(nw, nt, outputsBasename, twd.getWorkingDir(), assignedCoreUnits, assignedGPUs);
 
             // Unbind files from task sandbox working dir
             logger.debug("Removing renamed files to sandboxed original names for Job " + nt.getJobId());
@@ -167,13 +180,7 @@ public abstract class Executor implements Runnable {
             return false;
         } finally {
             // Always clean the task sandbox working dir
-            if (taskSandboxWorkingDir != null && taskSandboxWorkingDir.exists()) {
-                try {
-                    Files.deleteIfExists(taskSandboxWorkingDir.toPath());
-                } catch (IOException e) {
-                    logger.warn("Error deleting sandbox " + e.getMessage());
-                }
-            }
+            cleanTaskSandbox(twd);
 
             // Always release the binded computing units
             nw.getExecutionManager().release(nt.getJobId(), ExecutionManager.BINDER_TYPE.CPU);
@@ -195,20 +202,68 @@ public abstract class Executor implements Runnable {
      * @throws IOException
      * @throws Exception
      */
-    private File createTaskSandbox(NIOTask nt) throws IOException {
-        String workingDir = this.nw.getWorkingDir();
-        String completePath = workingDir + "sandBox" + File.separator + "job_" + nt.getJobId();
-        File sandboxBasePath = new File(completePath);
-
-        // Clean-up previous versions if any
-        if (sandboxBasePath.exists()) {
-            sandboxBasePath.delete();
+    private TaskWorkingDir createTaskSandbox(NIOTask nt) throws IOException {
+        // Check if an specific working dir is provided
+        String specificWD = null;
+        switch (nt.getMethodType()) {
+            case BINARY:
+                BinaryImplementation binaryImpl = (BinaryImplementation) nt.getMethodImplementation();
+                specificWD = binaryImpl.getWorkingDir();
+                break;
+            case MPI:
+                MPIImplementation mpiImpl = (MPIImplementation) nt.getMethodImplementation();
+                specificWD = mpiImpl.getWorkingDir();
+                break;
+            case OMPSS:
+                OmpSsImplementation ompssImpl = (OmpSsImplementation) nt.getMethodImplementation();
+                specificWD = ompssImpl.getWorkingDir();
+                break;
+            case OPENCL:
+                OpenCLImplementation openclImpl = (OpenCLImplementation) nt.getMethodImplementation();
+                specificWD = openclImpl.getWorkingDir();
+                break;
+            case METHOD:
+                specificWD = null;
+                break;
         }
 
-        // Create structures
-        Files.createDirectories(sandboxBasePath.toPath());
+        TaskWorkingDir taskWD;
+        if (specificWD != null && !specificWD.isEmpty() && !specificWD.equals(Constants.UNASSIGNED)) {
+            // Binary has an specific working dir, set it
+            File workingDir = new File(specificWD);
+            taskWD = new TaskWorkingDir(workingDir, true);
 
-        return sandboxBasePath;
+            // Create structures
+            Files.createDirectories(workingDir.toPath());
+        } else {
+            // No specific working dir provided, set default sandbox
+            String completePath = this.nw.getWorkingDir() + "sandBox" + File.separator + "job_" + nt.getJobId();
+            File workingDir = new File(completePath);
+            taskWD = new TaskWorkingDir(workingDir, false);
+
+            // Clean-up previous versions if any
+            if (workingDir.exists()) {
+                workingDir.delete();
+            }
+
+            // Create structures
+            Files.createDirectories(workingDir.toPath());
+        }
+        return taskWD;
+    }
+
+    private void cleanTaskSandbox(TaskWorkingDir twd) {
+        if (twd != null && !twd.isSpecific()) {
+            // Only clean task sandbox if it is not specific
+            File workingDir = twd.getWorkingDir();
+            if (workingDir != null && workingDir.exists()) {
+                try {
+                    Files.deleteIfExists(workingDir.toPath());
+                } catch (IOException e) {
+                    logger.warn("Error deleting sandbox " + e.getMessage());
+                }
+            }
+        }
     }
 
     /**
@@ -237,10 +292,10 @@ public abstract class Executor implements Runnable {
                     File newOrigFile = new File(newOrigFilePath);
                     if (renamedFile.exists()) {
                         // IN or INOUT File creating a symbolic link
-                    	if (!newOrigFile.exists()){
-                    		logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
-                    		Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
-                    	}
+                        if (!newOrigFile.exists()) {
+                            logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
+                            Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
+                        }
                     }
                 }
             }
@@ -275,9 +330,15 @@ public abstract class Executor implements Runnable {
                     } else if (!renamedFile.exists() && newOrigFile.exists() && !Files.isSymbolicLink(newOrigFile.toPath())) {
                         // If an output file is created move to the renamed path (OUT Case)
                         logger.debug("Moving " + newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
-                        Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
-                    } else if (renamedFile.exists() && !newOrigFile.exists()){
-                    	logger.debug("Repeated data for " +renamedFilePath+". Nothing to do");
+                        try {
+                            Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+                        } catch (AtomicMoveNotSupportedException amnse) {
+                            logger.warn(
+                                    "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
+                            Files.move(newOrigFile.toPath(), renamedFile.toPath());
+                        }
+                    } else if (renamedFile.exists() && !newOrigFile.exists()) {
+                        logger.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
                     } else {
                         // Unexpected case
                         logger.error("Unexpected case: A Problem occurred with File " + renamedFilePath
@@ -324,5 +385,26 @@ public abstract class Executor implements Runnable {
             int[] assignedGPUs) throws Exception;
 
     public abstract void finish();
+
+
+    private class TaskWorkingDir {
+
+        private final File workingDir;
+        private final boolean isSpecific;
+
+
+        public TaskWorkingDir(File workingDir, boolean isSpecific) {
+            this.workingDir = workingDir;
+            this.isSpecific = isSpecific;
+        }
+
+        public File getWorkingDir() {
+            return this.workingDir;
+        }
+
+        public boolean isSpecific() {
+            return this.isSpecific;
+        }
+    }
 
 }

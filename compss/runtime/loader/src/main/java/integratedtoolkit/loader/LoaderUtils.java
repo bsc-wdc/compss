@@ -35,19 +35,19 @@ import storage.StubItf;
 
 
 public class LoaderUtils {
-    
+
     public static final String MPI_SIGNATURE = "mpi.MPI";
     public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
     public static final String OPENCL_SIGNATURE = "opencl.OPPENCL";
     public static final String BINARY_SIGNATURE = "binary.BINARY";
 
-    private static final Logger logger = LogManager.getLogger(Loggers.LOADER_UTILS);
-    
-    
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
+
+
     private LoaderUtils() {
         throw new NonInstantiableException("LoaderUtils");
     }
-    
+
     // Storage: Check object type
     public static DataType checkSCOType(Object o) {
         if (o instanceof StubItf && ((StubItf) o).getID() != null) {
@@ -61,41 +61,50 @@ public class LoaderUtils {
 
     // Return the called method if it is in the remote list
     public static java.lang.reflect.Method checkRemote(CtMethod method, java.lang.reflect.Method[] remoteMethods) throws NotFoundException {
+        LOGGER.info("Checking Method " + method.getName());
+
         for (java.lang.reflect.Method remoteMethod_javaLang : remoteMethods) {
+            LOGGER.info("   ** To remote Method " + remoteMethod_javaLang.getName());
             if (remoteMethod_javaLang.isAnnotationPresent(Method.class)) {
                 // METHOD
                 Method remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Method.class);
                 if (isSelectedMethod(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(Service.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Service.class)) {
                 // SERVICE
                 Service remoteMethodAnnotation = remoteMethod_javaLang.getAnnotation(Service.class);
                 if (isSelectedService(method, remoteMethod_javaLang, remoteMethodAnnotation)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(MPI.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(MPI.class)) {
                 // MPI
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(OmpSs.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(OmpSs.class)) {
                 // OMPSS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(OpenCL.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(OpenCL.class)) {
                 // OPENCL
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Binary.class)) {
                 // BINARY
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } // REPEATABLES
-            else if (remoteMethod_javaLang.isAnnotationPresent(Methods.class)) {
+            }
+            // REPEATABLES
+            if (remoteMethod_javaLang.isAnnotationPresent(Methods.class)) {
                 // METHODS
                 Methods methodsAnnotation = remoteMethod_javaLang.getAnnotation(Methods.class);
                 for (Method remoteMethodAnnotation : methodsAnnotation.value()) {
@@ -104,7 +113,8 @@ public class LoaderUtils {
                     }
                 }
 
-            } else if (remoteMethod_javaLang.isAnnotationPresent(Services.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Services.class)) {
                 // SERVICES
                 Services servicesAnnotation = remoteMethod_javaLang.getAnnotation(Services.class);
                 for (Service remoteServiceAnnotation : servicesAnnotation.value()) {
@@ -112,31 +122,30 @@ public class LoaderUtils {
                         return remoteMethod_javaLang;
                     }
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(MPIs.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(MPIs.class)) {
                 // MPIS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, MPI_SIGNATURE)) {
                     return remoteMethod_javaLang;
-                } 
-            } else if (remoteMethod_javaLang.isAnnotationPresent(MultiOmpSs.class)) {
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(MultiOmpSs.class)) {
                 // MULTI-OMPSS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OMPSS_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(OpenCLs.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(OpenCLs.class)) {
                 // OPENCLS
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, OPENCL_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
                 // BINARIES
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
-            } else {
-                logger.error("Task '" + remoteMethod_javaLang.getName() + "' does not have a valid annotation.\n"
-                        + "Check the COMPSs manual for more information.");
-                ErrorManager.error("Task '" + remoteMethod_javaLang.getName() + "' does not have a valid annotation.\n"
-                        + "Check the COMPSs manual for more information.");
             }
         }
 
@@ -151,11 +160,13 @@ public class LoaderUtils {
             nameRemote = remote.getName();
         }
 
+        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
         if (!nameRemote.equals(method.getName())) {
             return false;
         }
 
         // Check if methods belong to the same class
+        LOGGER.debug("  - Checking classes " + method.getDeclaringClass().getName() + " against " + methodAnnot.declaringClass());
         boolean matchesClass = methodAnnot.declaringClass().equals(method.getDeclaringClass().getName());
         if (!matchesClass) {
             return false;
@@ -178,22 +189,25 @@ public class LoaderUtils {
         // Methods match!
         return true;
     }
-    
-    private static boolean isSelectedNonNativeMethod(CtMethod method, java.lang.reflect.Method remote, String signature) 
+
+    private static boolean isSelectedNonNativeMethod(CtMethod method, java.lang.reflect.Method remote, String signature)
             throws NotFoundException {
-        
+
+        LOGGER.debug("  - Checking " + method.getName() + " against " + remote.getName());
+
         // Must have the same task name
         boolean matchesMethodname = method.getName().equals(remote.getName());
         if (!matchesMethodname) {
             return false;
         }
-        
+
         // Non-native methods must contain the valid signature signature
+        LOGGER.debug("  - Checking classes " + method.getDeclaringClass().getName() + " against " + signature);
         boolean matchesClass = method.getDeclaringClass().getName().equals(signature);
         if (!matchesClass) {
             return false;
         }
-     
+
         // Check that methods have the same number of parameters
         CtClass[] paramClassCurrent = method.getParameterTypes();
         Class<?>[] paramClassRemote = remote.getParameterTypes();
@@ -220,6 +234,8 @@ public class LoaderUtils {
         if (nameRemote.equals(Constants.UNASSIGNED)) {
             nameRemote = remote.getName();
         }
+
+        LOGGER.debug("  - Checking " + method.getName() + " against " + nameRemote);
 
         if (!nameRemote.equals(method.getName())) {
             return false;

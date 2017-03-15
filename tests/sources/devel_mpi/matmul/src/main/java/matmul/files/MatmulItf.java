@@ -9,6 +9,14 @@ import integratedtoolkit.types.annotations.task.Method;
 
 
 public interface MatmulItf {
+    
+    @Method(declaringClass = "matmul.files.MatmulImpl")
+    @Constraints(computingUnits = "1")
+    void initializeBlock(
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String filename, 
+        @Parameter() int BSIZE, 
+        @Parameter() boolean initRand
+    );
 
     @Method(declaringClass = "matmul.files.MatmulImpl")
     @Constraints(computingUnits = "1")

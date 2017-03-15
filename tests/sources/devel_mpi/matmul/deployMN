@@ -1,0 +1,35 @@
+#!/bin/bash -e
+ 
+  usage() {
+    echo "Usage: $0 <targetMachine> <targetUser> <targetDir>"
+    echo "Example: $0 mn1.bsc.es bsc19533 /home/bsc19/bsc19533/matmul/"
+    echo " "
+  }
+
+  # Get arguments
+  if [ $# -ne 3 ]; then
+    echo "Invalid arguments"
+    usage
+    exit 1
+  fi 
+  targetMachine=$1
+  targetUser=$2
+  targetDir=$3
+
+  # Clean and compile locally
+  mvn clean package
+
+  # Clean target machine
+  ssh ${targetUser}@${targetMachine} "rm -rf ${targetDir}/matmul.jar"
+  ssh ${targetUser}@${targetMachine} "rm -rf ${targetDir}/enqueue_matmul.sh"
+  ssh ${targetUser}@${targetMachine} "rm -rf ${targetDir}/matmul_experiments.sh"
+ 
+  # Deploy files
+  scp ./target/matmul.jar ${targetUser}@${targetMachine}:${targetDir}
+  scp enqueue_matmul.sh ${targetUser}@${targetMachine}:${targetDir}
+  scp matmul_experiments.sh ${targetUser}@${targetMachine}:${targetDir}
+
+  # END
+  echo "SUCCESS"
+  exit
+

@@ -513,7 +513,7 @@ EOT
   # Span argument if defined on queue system
   if [ -n "${QARG_SPAN}" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_SPAN}
+#${QUEUE_CMD} $(eval "echo ${QARG_SPAN}")
 EOT
   fi
 

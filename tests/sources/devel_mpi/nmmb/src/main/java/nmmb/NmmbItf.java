@@ -7,7 +7,7 @@ import integratedtoolkit.types.annotations.parameter.Stream;
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.task.Binary;
 import integratedtoolkit.types.annotations.task.MPI;
-import nmmb.configuration.NMMBEnvironment;
+import nmmb.configuration.NMMBConstants;
 import nmmb.utils.BinaryWrapper;
 import nmmb.utils.FortranWrapper;
 
@@ -121,34 +121,34 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.SMMOUNT + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.SMMOUNT + FortranWrapper.SUFFIX_EXE)
     Integer smmount(
         @Parameter(type = Type.STRING, direction = Direction.IN) String topoDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String seamaskDEM,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String heightDEM
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.LANDUSE + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.LANDUSE + FortranWrapper.SUFFIX_EXE)
     Integer landuse(
         @Parameter(type = Type.STRING, direction = Direction.IN) String landuseDir,  
         @Parameter(type = Type.FILE, direction = Direction.OUT) String landuse,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String kount_landuse
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.LANDUSENEW + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.LANDUSENEW + FortranWrapper.SUFFIX_EXE)
     Integer landusenew(
         @Parameter(type = Type.STRING, direction = Direction.IN) String gtopDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String landusenew,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String kount_landusenew
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.TOPO + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.TOPO + FortranWrapper.SUFFIX_EXE)
     Integer topo(
         @Parameter(type = Type.STRING, direction = Direction.IN) String topoDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String heightmean
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.STDH + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.STDH + FortranWrapper.SUFFIX_EXE)
     Integer stdh(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamaskDEM,
         @Parameter(type = Type.FILE, direction = Direction.IN) String heightmean,
@@ -156,28 +156,28 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String stdh
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.ENVELOPE + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.ENVELOPE + FortranWrapper.SUFFIX_EXE)
     Integer envelope(
         @Parameter(type = Type.FILE, direction = Direction.IN) String heightmean,
         @Parameter(type = Type.FILE, direction = Direction.IN) String stdh,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String height
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.TOPSOILTYPE + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.TOPSOILTYPE + FortranWrapper.SUFFIX_EXE)
     Integer topsoiltype(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamaskDEM,
         @Parameter(type = Type.STRING, direction = Direction.IN) String soiltypeDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String topsoiltype
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.BOTSOILTYPE + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.BOTSOILTYPE + FortranWrapper.SUFFIX_EXE)
     Integer botsoiltype(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamaskDEM,
         @Parameter(type = Type.STRING, direction = Direction.IN) String soiltypePath,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String botsoiltype
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.TOPOSEAMASK + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.TOPOSEAMASK + FortranWrapper.SUFFIX_EXE)
     Integer toposeamask(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamaskDEM,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String seamask,
@@ -187,44 +187,44 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.INOUT) String botsoiltype
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.STDHTOPO + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.STDHTOPO + FortranWrapper.SUFFIX_EXE)
     Integer stdhtopo(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.INOUT) String stdh
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.DEEPTEMPERATURE + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.DEEPTEMPERATURE + FortranWrapper.SUFFIX_EXE)
     Integer deeptemperature(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.STRING, direction = Direction.IN) String soiltempPath, 
         @Parameter(type = Type.FILE, direction = Direction.OUT) String deeptemperature
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.SNOWALBEDO + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.SNOWALBEDO + FortranWrapper.SUFFIX_EXE)
     Integer snowalbedo(
         @Parameter(type = Type.STRING, direction = Direction.IN) String maxsnowalbDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String snowalbedo
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.VCGENERATOR + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.VCGENERATOR + FortranWrapper.SUFFIX_EXE)
     Integer vcgenerator(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String dsg
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.ROUGHNESS + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.ROUGHNESS + FortranWrapper.SUFFIX_EXE)
     Integer roughness(
         @Parameter(type = Type.STRING, direction = Direction.IN) String roughnessDir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String roughness
     );
 
-    @Binary(binary = NMMBEnvironment.FIX_FOR_ITF + FortranWrapper.GFDLCO2 + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/" + FortranWrapper.GFDLCO2 + FortranWrapper.SUFFIX_EXE)
     Integer gfdlco2(
         @Parameter(type = Type.FILE, direction = Direction.IN) String dsg,
         @Parameter(type = Type.STRING, direction = Direction.IN) String co2_data_dir,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String co2_trans
     );
 
-    @Binary(binary = NMMBEnvironment.LOOKUP_TABLES_DIR_FOR_ITF + BinaryWrapper.RUN_AEROSOL)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/lookup_tables/" + BinaryWrapper.RUN_AEROSOL)
     Integer run_aerosol(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh00,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh50, 
@@ -245,7 +245,7 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.DEGRIB_GFS_GENERIC)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + BinaryWrapper.DEGRIB_GFS_GENERIC)
     Integer degribgfs_generic_05(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String CW,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String ICEC,
@@ -267,7 +267,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String WEASD
     );    
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.GFS2MODEL + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.GFS2MODEL + FortranWrapper.SUFFIX_EXE)
     Integer gfs2model_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String CW,
         @Parameter(type = Type.FILE, direction = Direction.IN) String ICEC,
@@ -290,13 +290,13 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String GFS_file
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.INC_RRTM + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.INC_RRTM + FortranWrapper.SUFFIX_EXE)
     Integer inc_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
         @Parameter(type = Type.STRING, direction = Direction.IN) String deco
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.CNV_RRTM + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.CNV_RRTM + FortranWrapper.SUFFIX_EXE)
     Integer cnv_rrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String GFS_file,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String llspl000,
@@ -307,13 +307,13 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String outcic
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.DEGRIB_SST + FortranWrapper.SUFFIX_EXE)
     Integer degribsst(
         @Parameter(type = Type.FILE, direction = Direction.OUT) String llgsst05,
         @Parameter(type = Type.STRING, direction = Direction.IN) String sstfileinPath
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.ALBEDO + FortranWrapper.SUFFIX_EXE)
     Integer albedo(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
@@ -322,7 +322,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String albedomnth
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALBEDO_RRTM_1DEG + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.ALBEDO_RRTM_1DEG + FortranWrapper.SUFFIX_EXE)
     Integer albedorrtm(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
@@ -330,7 +330,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String albedorrtm1degDir
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.VEG_FRAC + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.VEG_FRAC + FortranWrapper.SUFFIX_EXE)
     Integer vegfrac(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
@@ -338,7 +338,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String vegfracmnth
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.Z0_VEGUSTAR + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.Z0_VEGUSTAR + FortranWrapper.SUFFIX_EXE)
     Integer z0vegfrac(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.IN) String landuse,
@@ -351,7 +351,7 @@ public interface NmmbItf {
         @Parameter(type = Type.FILE, direction = Direction.OUT) String ustar
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.ALLPREP_RRTM + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.ALLPREP_RRTM + FortranWrapper.SUFFIX_EXE)
     Integer allprep(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.IN) String llgsst05,
@@ -403,7 +403,7 @@ public interface NmmbItf {
     );
     
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + BinaryWrapper.READ_PAUL_SOURCE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + BinaryWrapper.READ_PAUL_SOURCE)
     Integer readpaulsource(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String source,
@@ -411,7 +411,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String sourceNCIncludeDir
     );
     
-    @Binary(binary = NMMBEnvironment.VRB_FOR_ITF + FortranWrapper.DUST_START + FortranWrapper.SUFFIX_EXE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.DUST_START + FortranWrapper.SUFFIX_EXE)
     Integer dust_start(
         @Parameter(type = Type.FILE, direction = Direction.IN) String llspl000,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String soildust,
@@ -439,8 +439,8 @@ public interface NmmbItf {
      * ***************************************************************************************************
      */
     @MPI(mpiRunner = "mpirun", 
-         binary = NMMBEnvironment.EXE_FOR_ITF + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
-         workingDir = NMMBEnvironment.UMO_OUT_FOR_ITF,
+         binary = "${" + NMMBConstants.ENV_NAME_UMO_PATH + "}/MODEL/exe/" + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
+         workingDir = "${" + NMMBConstants.ENV_NAME_UMO_OUT + "}/",
          computingNodes = "${NEMS_NODES}")
     @Constraints(computingUnits = "${NEMS_CUS_PER_NODE}")
     Integer nems(
@@ -457,7 +457,7 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    @Binary(binary = NMMBEnvironment.POST_FOR_ITF + BinaryWrapper.RUN_POSTPROC_AUTH)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_POST_CARBONO + "}/" + BinaryWrapper.RUN_POSTPROC_AUTH)
     Integer runPostprocAuth(
         @Parameter(type = Type.STRING, direction = Direction.IN) String folderOutput,
         @Parameter(type = Type.STRING, direction = Direction.IN) String domain,

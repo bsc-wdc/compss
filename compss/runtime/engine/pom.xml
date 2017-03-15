@@ -54,7 +54,7 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- Engine dependencies -->
+		<!-- JUnit dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

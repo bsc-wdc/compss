@@ -1,9 +1,13 @@
 #!/bin/bash
 
-  MSIZE=$1
-  BSIZE=$2
-  NPMT=$3
-  JOBDEP=$4
+  TYPE=$1
+  MSIZE=$2
+  BSIZE=$3
+  NPMT=$4
+
+  EXEC_TIME=$5
+  NUM_NODES=$6
+  JOBDEP=$7
 
   scriptDir=$(pwd)/$(dirname $0)  
   binary=${scriptDir}/bin/matmul
@@ -13,9 +17,8 @@
   export CUS_PER_MPI_TASK=16
 
   enqueue_compss \
-    --exec_time=10 \
-    --num_nodes=2 \
-    --job_dependency=None \
+    --exec_time=$EXEC_TIME \
+    --num_nodes=$NUM_NODES \
     --tasks_per_node=16 \
     --master_working_dir=. \
     --worker_working_dir=scratch \
@@ -23,8 +26,8 @@
     --network=infiniband \
     --log_level=debug \
     --tracing=false \
-    --graph=true \
+    --graph=false \
     --summary \
     --job_dependency=$JOBDEP \
-    matmul.files.Matmul $MSIZE $BSIZE
+    matmul.files.Matmul $TYPE $MSIZE $BSIZE
  

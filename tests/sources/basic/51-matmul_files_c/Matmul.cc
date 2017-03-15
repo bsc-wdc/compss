@@ -169,9 +169,6 @@ int main(int argc, char **argv) {
 		fscanf(fp, "%lf ", &res);
 		fclose(fp);
 
-        cout << fixed;
-        cout << setprecision(2);
-
                 cout << "The result is " << res;
                 
 		cout << endl;

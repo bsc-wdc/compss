@@ -40,8 +40,6 @@
 
   # Report result status
   if [ "$result" != "$expected_result" ]; then
-     varOutput=$(cat ${output_file})
-     echo $varOutput
      echo "ERROR ON TASKS SCHEDULE" | tee -a ${output_file}
      echo "EXPECTED RESULT: $expected_result" | tee -a ${output_file}
      echo "GOT: $result" | tee -a ${output_file}

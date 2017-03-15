@@ -51,33 +51,38 @@
 
 === EXECUTION ===
 - The execution is prepared on the enqueue_nmmb.sh script
+	The NMMB structure must be correctly exported in this script
 
+  		export PATH=$PATH:/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe
+
+  		export UMO_PATH=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0
+  		export UMO_ROOT=$UMO_PATH/JOB
+
+  		export FIX=$UMO_PATH/PREPROC/FIXED
+  		export VRB=$UMO_PATH/PREPROC/VARIABLE
+  		export POST_CARBONO=$UMO_PATH/POSTPROC
+  		export SRCDIR=$UMO_PATH/MODEL
+
+  		export OUTPUT=$UMO_PATH/PREPROC/output
+  		export OUTNMMB=$UMO_PATH/OUTPUT
+  		export UMO_OUT=$UMO_PATH/OUTPUT/CURRENT_RUN
+
+  		export GRB=$UMO_PATH/DATA/INITIAL
+  		export DATMOD=$UMO_PATH/DATA/STATIC
+  		export CHEMIC=
+  		export STE=
+  		export OUTGCHEM=
+  		export PREMEGAN=
+  		export TMP=/tmp
+
+  		export FNL=$GRB
+  		export GFS=$GRB
+	The COMPSS configuration for the MPI simulation must be correctly exported in this script
+  # Define NMMB.jar environment constants
+
+		export NEMS_NODES=4
+  		export NEMS_CUS_PER_NODE=16
+ 
 - The execution parameters can be set on the following file:
 	JOB/nmmb_compss.properties
-
-- The machine needs the following ENV variables on the .BASHRC file
-
-  	export PATH=$PATH:/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe
-  	export UMO_PATH=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0
-  	export FIX=$UMO_PATH/PREPROC/FIXED
-  	export VRB=$UMO_PATH/PREPROC/VARIABLE
-  	export OUTPUT=$UMO_PATH/PREPROC/output
-  	export UMO_ROOT=$UMO_PATH/JOB
-  	export SRCDIR=$UMO_PATH/MODEL
-  	export UMO_OUT=$UMO_PATH/OUTPUT/CURRENT_RUN
-  	export POST_CARBONO=$UMO_PATH/POSTPROC
-  	export GRB=$UMO_PATH/DATA/INITIAL
-  	export DATMOD=$UMO_PATH/DATA/STATIC
-  	export CHEMIC=
-  	export STE=
-  	export OUTNMMB=$UMO_PATH/OUTPUT
-  	export OUTGCHEM=
-  	export PREMEGAN=
-  	export TMP=/tmp
-  	
-  	export FNL=$GRB
-  	export GFS=$GRB
-
-- The application has some hardcoded environment variables because they cannot be loaded
-	NNMBEnvironment.java --> *_ITF
 

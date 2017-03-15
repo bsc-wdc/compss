@@ -125,7 +125,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
             pb.directory(new File(nw.getWorkingDir()));
             pb.environment().putAll(env);
             pb.environment().remove(Tracer.LD_PRELOAD);
-
+            
             piper = pb.start();
 
             logger.debug("Starting stdout/stderr gobblers ...");

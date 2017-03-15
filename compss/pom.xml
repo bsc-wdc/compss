@@ -157,6 +157,12 @@
 				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>com.github.stefanbirkner</groupId>
+				<artifactId>system-rules</artifactId>
+				<version>${junit.rules.version}</version>
+				<scope>test</scope>
+			</dependency>
 
 			<!-- Javassist -->
 			<dependency>

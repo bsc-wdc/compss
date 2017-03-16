@@ -10,6 +10,7 @@ import java.io.File;
 public class EnvironmentLoader {
 
     private static final String PREFIX_ENV_VAR = "$";
+    private static final String BEGIN_ENV_VAR = "}";
     private static final String END_ENV_VAR = "}";
 
     private static final String PREFIX_ENV_VAR_SCAPED = "\\$";
@@ -30,18 +31,25 @@ public class EnvironmentLoader {
         while (expressionValue != null && expressionValue.contains(PREFIX_ENV_VAR)) {
             // Compute the start of the env variable name
             int beginIndex = expressionValue.indexOf(PREFIX_ENV_VAR);
-            // Check if the env variable name ends with END_ENV_VAR
-            int endIndex = expressionValue.indexOf(END_ENV_VAR, beginIndex);
-            if (endIndex == -1) {
-                // Otherwise check if the variable name ends with the File separator
-                endIndex = expressionValue.indexOf(File.separator, beginIndex);
-                if (endIndex == -1) {
-                    // Otherwise it ends at the end of the variable
-                    endIndex = expressionValue.length();
+            
+            // Compute the end of the ENV variable name
+            int endIndex;
+            // Check if the ENV variable uses {}
+            if (beginIndex + 1 < expressionValue.length()) {
+                if (expressionValue.substring(beginIndex, beginIndex + 1).equals(BEGIN_ENV_VAR)) {
+                    // Env variable uses {}
+                    endIndex = expressionValue.indexOf(END_ENV_VAR, beginIndex) + 1;
+                } else {
+                    // Env variable does not use {}
+                    endIndex = expressionValue.indexOf(File.separator, beginIndex);
+                    if (endIndex == -1) {
+                        // Env variable is not in a path, ends with expressionValue end
+                        endIndex = expressionValue.length();
+                    }
                 }
             } else {
-                // Add one to remove also the final END_ENV_VAR
-                endIndex = endIndex + 1;
+                // Found an expression of the form "---$"
+                endIndex = expressionValue.length();
             }
 
             // Retrieve the env var name

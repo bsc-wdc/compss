@@ -126,7 +126,15 @@ public class EnvironmentLoaderTest {
 
     @Test
     public void doubleEnv4() {
-        String expression = "$var1/$var2";
+        String expression = "$var1/${var2}";
+        String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
+
+        assertEquals(expressionValue, VALUE1 + "/" + VALUE2);
+    }
+    
+    @Test
+    public void doubleEnv5() {
+        String expression = "${var1}/$var2";
         String expressionValue = EnvironmentLoader.loadFromEnvironment(expression);
 
         assertEquals(expressionValue, VALUE1 + "/" + VALUE2);

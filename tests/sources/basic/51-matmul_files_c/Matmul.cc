@@ -155,19 +155,10 @@ int main(int argc, char **argv) {
 
 		gettimeofday(&t_comp_end, NULL);
 
-		stringstream ss;
-		double res;
-                ss << "C.0.0";
-                std::string tmp = ss.str();
-
-                char * f = new char[tmp.size() + 1];
-                std::copy(tmp.begin(), tmp.end(), f);
-                f[tmp.size()] = '\0';
-
-		FILE *fp;
-		fp = fopen(f, "r");
-		fscanf(fp, "%lf ", &res);
-		fclose(fp);
+		char res[8];
+		ifstream fp("C.0.0");
+		fp.read(res, sizeof(res) - 1);
+		
 
                 cout << "The result is " << res;
                 

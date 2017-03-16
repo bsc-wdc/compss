@@ -15,7 +15,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
 
-public class ResourceEmptyScore extends Score {
+public class LoadBalancingScore extends Score {
 
     /**
      * Creates a new ResourceEmptyScore with the given values
@@ -25,7 +25,7 @@ public class ResourceEmptyScore extends Score {
      * @param res
      * @param impl
      */
-    public ResourceEmptyScore(double actionScore, double waiting, double res, double impl) {
+    public LoadBalancingScore(double actionScore, double waiting, double res, double impl) {
         super(actionScore, waiting, res, impl);
     }
 
@@ -34,7 +34,7 @@ public class ResourceEmptyScore extends Score {
      * 
      * @param clone
      */
-    public ResourceEmptyScore(ResourceEmptyScore clone) {
+    public LoadBalancingScore(LoadBalancingScore clone) {
         super(clone);
     }
 

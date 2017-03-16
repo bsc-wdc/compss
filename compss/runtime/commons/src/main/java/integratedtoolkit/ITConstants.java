@@ -108,7 +108,8 @@ public class ITConstants {
     /*
      * DEFAULT VALUES: According to runcompss script !!!!
      */
-    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
+    //public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
+    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.scheduler.fifoDataScheduler";
 
     public static final String SERVICE_ADAPTOR = "integratedtoolkit.ws.master.WSAdaptor";
 

@@ -90,6 +90,7 @@ public class BashCMDExecutor {
             cmd[i++] = arg;
         }
         ProcessBuilder builder = new ProcessBuilder(cmd);
+        builder.environment().remove("LD_PRELOAD");
 
         // Add redirection if needed
         if (this.redirectOutput != null) {
@@ -101,6 +102,9 @@ public class BashCMDExecutor {
         int exitValue = -1;
         try {
             process = builder.start();
+
+            // Disable inputs to process
+            process.getOutputStream().close();
 
             LOGGER.debug("[CMD EXECUTION WRAPPER] Waiting for CMD completion");
             exitValue = process.waitFor();

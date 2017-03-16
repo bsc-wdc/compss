@@ -36,7 +36,7 @@
   #---------------------------------------------------------------------------------- 
   # Compute result status
   result=$(cat ${output_file} | grep "The result is" | cut -c 15-)
-  expected_result=4872.82
+  expected_result=4872.81
 
   # Report result status
   if [ "$result" != "$expected_result" ]; then

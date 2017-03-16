@@ -1,8 +1,8 @@
-package integratedtoolkit.scheduler.resourceEmptyScheduler;
+package integratedtoolkit.scheduler.loadBalancingScheduler;
 
 import integratedtoolkit.scheduler.readyScheduler.ReadyResourceScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.ResourceEmptyScore;
+import integratedtoolkit.scheduler.types.LoadBalancingScore;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.TaskDescription;
@@ -11,7 +11,7 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.implementations.Implementation;
 
 
-public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends ReadyResourceScheduler<P, T, I> {
 
     /**
@@ -19,7 +19,7 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
      * 
      * @param w
      */
-    public ResourceEmptyResourceScheduler(Worker<T, I> w) {
+    public LoadBalancingResourceScheduler(Worker<T, I> w) {
         super(w);
     }
 
@@ -39,7 +39,7 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
         double resourceScore = 0;
         double implementationScore = 0;
 
-        return new ResourceEmptyScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new LoadBalancingScore(actionPriority, waitingScore, resourceScore, implementationScore);
     }
 
     @Override
@@ -55,11 +55,11 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
             waitingScore = (double) (1.0 / (double) this.blocked.size());
         }
         // Computes the priority of the resource
-        double resourceScore = ResourceEmptyScore.calculateScore(params, this.myWorker);
+        double resourceScore = LoadBalancingScore.calculateScore(params, this.myWorker);
         // Computes the priority of the implementation (should not be computed)
         double implementationScore = 0;
 
-        ResourceEmptyScore score = new ResourceEmptyScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        LoadBalancingScore score = new LoadBalancingScore(actionPriority, waitingScore, resourceScore, implementationScore);
         //LOGGER.debug(score);
 
         return score;
@@ -75,7 +75,7 @@ public class ResourceEmptyResourceScheduler<P extends Profile, T extends WorkerR
             double resourcePriority = resourceScore.getResourceScore();
             double implScore = 1.0 / ((double) this.getProfile(impl).getAverageExecutionTime());
 
-            ResourceEmptyScore score = new ResourceEmptyScore(actionPriority, waitingScore, resourcePriority, implScore);
+            LoadBalancingScore score = new LoadBalancingScore(actionPriority, waitingScore, resourcePriority, implScore);
             //LOGGER.debug(score);
 
             return score;

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>compss-scheduler-resourceEmpty</artifactId>
+	<artifactId>compss-scheduler-loadBalancing</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
@@ -13,7 +13,7 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>COMPSs Scheduler Resource Empty</name>
+	<name>COMPSs Scheduler Load Balancing</name>
 	<description>COMPSs scheduler that always schedule a task to an empty worker. Data locality is taken into account.</description>
 	<url>http://www.bsc.es</url>
 	<inceptionYear>2015</inceptionYear>

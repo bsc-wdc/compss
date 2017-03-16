@@ -1,4 +1,4 @@
-package integratedtoolkit.scheduler.resourceEmptyScheduler;
+package integratedtoolkit.scheduler.loadBalancingScheduler;
 
 import java.util.LinkedList;
 
@@ -7,7 +7,7 @@ import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.ResourceEmptyScore;
+import integratedtoolkit.scheduler.types.LoadBalancingScore;
 import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
@@ -22,14 +22,14 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
  * @param <T>
  * @param <I>
  */
-public class ResourceEmptyScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
+public class LoadBalancingScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends ReadyScheduler<P, T, I> {
 
     /**
      * Constructs a new Ready Scheduler instance
      * 
      */
-    public ResourceEmptyScheduler() {
+    public LoadBalancingScheduler() {
         super();
     }
 
@@ -44,13 +44,13 @@ public class ResourceEmptyScheduler<P extends Profile, T extends WorkerResourceD
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
         // LOGGER.info("[ResourceEmptyScheduler] Generate scheduler for resource " + w.getName());
-        return new ResourceEmptyResourceScheduler<>(w);
+        return new LoadBalancingResourceScheduler<>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
         // LOGGER.info("[ResourceEmptyScheduler] Generate Action Score for " + action);
-        return new ResourceEmptyScore(action.getPriority(), 0, 0, 0);
+        return new LoadBalancingScore(action.getPriority(), 0, 0, 0);
     }
 
     /*

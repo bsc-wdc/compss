@@ -36,7 +36,7 @@
         	<module>fifoScheduler</module>
         	<module>lifoScheduler</module>
         	<module>fifoDataScheduler</module>
-        	<module>resourceEmptyScheduler</module>
+        	<module>loadBalancingScheduler</module>
         	<module>dataLocalityScheduler</module>
 	</modules>
 </project>

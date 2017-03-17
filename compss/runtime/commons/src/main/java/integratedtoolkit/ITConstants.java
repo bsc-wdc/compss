@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 
+
 /**
  * COMPSs Runtime Constants
  *
@@ -15,9 +16,7 @@ public class ITConstants {
      * Languages
      */
     public static enum Lang {
-        JAVA, 
-        C, 
-        PYTHON
+        JAVA, C, PYTHON
     }
 
 
@@ -108,8 +107,7 @@ public class ITConstants {
     /*
      * DEFAULT VALUES: According to runcompss script !!!!
      */
-    //public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
-    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.scheduler.fifoDataScheduler";
+    public static final String DEFAULT_SCHEDULER = "integratedtoolkit.components.impl.TaskScheduler";
 
     public static final String SERVICE_ADAPTOR = "integratedtoolkit.ws.master.WSAdaptor";
 
@@ -130,8 +128,7 @@ public class ITConstants {
     public static final String DEFAULT_PROJECT_SCHEMA = System.getenv(IT_HOME) + File.separator + "Runtime" + File.separator
             + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
 
-    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator
-            + "adaptors";
+    public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
 
 
     private ITConstants() {

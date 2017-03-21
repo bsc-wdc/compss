@@ -30,8 +30,8 @@ import signal
 import sys
 import traceback
 from exceptions import ValueError
-from multiprocessing import Process
-from multiprocessing import Queue
+from multiprocessing import Process, Queue, Pipe
+
 
 from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
@@ -85,7 +85,7 @@ QUIT_TAG = "quit"  # -- "quit"
 ######################
 #  Processes body
 ######################
-def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
+def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe, storage_conf):
     """
     Thread main body - Overrides Threading run method.
     Iterates over the input pipe in order to receive tasks (with their
@@ -133,7 +133,7 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
                             err = open(job_err, 'w')
                             sys.stdout = out
                             sys.stderr = err
-                            exitvalue = execute_task(process_name, storage_conf, line[9:])
+                            exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe)
                             sys.stdout = stdout
                             sys.stderr = stderr
                             out.close()
@@ -162,8 +162,8 @@ def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
 
 #####################################
 # Execute Task Method - Task handler
-#####################################  
-def execute_task(process_name, storage_conf, params):
+#####################################
+def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
     """
     ExecuteTask main method
     """
@@ -324,7 +324,9 @@ def execute_task(process_name, storage_conf, params):
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-            getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
+            getattr(module, method_name)(*values, compss_types=types,
+            compss_tracing=tracing, compss_cache_queue=cache_queue,
+            compss_cache_pipe=cache_pipe, compss_process_name=process_name)
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -367,7 +369,9 @@ def execute_task(process_name, storage_conf, params):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types,
+                compss_tracing=tracing, compss_cache_queue=cache_queue,
+                compss_cache_pipe=cache_pipe, compss_process_name=process_name)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -382,7 +386,9 @@ def execute_task(process_name, storage_conf, params):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types,
+                compss_tracing=tracing, compss_cache_queue=cache_queue,
+                compss_cache_pipe=cache_pipe, compss_process_name=process_name)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -411,9 +417,49 @@ def shutdown_handler(signal, frame):
             proc.terminate()
 
 
+USE_CACHE = False
+# tamanyo
+# politica/s de borrado
+
+def cache_proc(cache_queue, cache_pipes):
+    from pycompss.persistent_cache import Cache
+    from shm_manager import shm_manager as SHM
+    cache = Cache(size_limit = 1024**3)
+
+    while True:
+        msg = cache_queue.get()
+        if msg == '##END##':
+            return
+        # if msg is not the poisoned pill, then it is a pair (id, filename)
+        # that must be read as "the process with identifier id wants the file
+        # named filename"
+        process_id, file_name = msg
+        suf_file_name = os.path.split(file_name)[-1]
+        process_ord = int(process_id.split('-')[-1])
+
+        if cache.has_object(suf_file_name):
+            cache.hit(suf_file_name)
+            shm_manager = cache.get(suf_file_name)
+            cache_pipes[process_ord].send((shm_manager.key, shm_manager.bytes))
+            # let's wait until the requesting process has attached the SHM
+            # and notified it to the Cache process
+            # note that attaching does not mean immediate remapping or
+            # reading, so this wait does not prevent workers to read in
+            # parallel from SHMs
+            cache_pipes[process_ord].recv()
+        else:
+            # we dont have the object, so lets tell the caller to read the obj,
+            # and store it in the cache
+            cache_pipes[process_ord].send('NO')
+            dumped_obj = open(file_name, 'rb').read()
+            manager = SHM(1337, len(dumped_obj))
+            manager.write_object(dumped_obj)
+            cache.add(suf_file_name, manager, manager.bytes)
+
 ######################
 # Main method
 ######################
+
 
 def compss_persistent_worker():
 
@@ -454,6 +500,12 @@ def compss_persistent_worker():
 
     # Initialize storage
     initStorageAtWorker(config_file_path=storage_conf)
+    if USE_CACHE:
+        cache_queue = Queue()
+        cache_pipes = [Pipe() for _ in range(tasks_x_node)]
+        # Create cache process
+        cache_process = Process(target=cache_proc, args=(cache_queue, [p[0] for p in cache_pipes]))
+        cache_process.start()
 
     # Create new threads
     queues = []
@@ -461,10 +513,19 @@ def compss_persistent_worker():
         logger.debug("[PYTHON WORKER] Launching process " + str(i))
         process_name = 'Process-' + str(i)
         queues.append(Queue())
+        if USE_CACHE:
+            cache_queue_p = cache_queue
+            cache_pipe_p = cache_pipes[i][1]
+        else:
+            cache_queue_p = None
+            cache_pipe_p = None
+
         processes.append(Process(target=worker, args=(queues[i],
                                                       process_name,
                                                       in_pipes[i],
                                                       out_pipes[i],
+                                                      cache_queue_p,
+                                                      cache_pipe_p,
                                                       storage_conf)))
         processes[i].start()
 
@@ -475,10 +536,25 @@ def compss_persistent_worker():
     for i in xrange(0, tasks_x_node):
         processes[i].join()
 
+    if USE_CACHE:
+        cache_queue.put("##END##")
+
+        cache_queue.close()
+        cache_queue.join_thread()
+        for (x, y) in cache_pipes:
+            x.close()
+            y.close()
+        cache_process.join()
+
+
     # Check if there is any exception message from the threads
     for i in xrange(0, tasks_x_node):
         if not queues[i].empty:
             print(queues[i].get())
+
+    for q in queues:
+        q.close()
+        q.join_thread()
 
     # Finish storage
     finishStorageAtWorker()

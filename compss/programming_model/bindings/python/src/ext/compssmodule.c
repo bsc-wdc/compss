@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 
+
 struct list_int {
    void *val;
    struct list_el *next;
@@ -334,4 +335,3 @@ initcompss(void)
 {
     (void) Py_InitModule("compss", CompssMethods);
 }
-

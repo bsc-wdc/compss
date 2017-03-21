@@ -28,7 +28,7 @@ import inspect
 import os
 import logging
 from functools import wraps
-from pycompss.util.serializer import serialize_objects, deserialize_from_file
+from pycompss.util.serializer import serialize_objects, deserialize_from_file, deserialize_from_string
 
 SYNC_EVENTS = 8000666
 
@@ -195,7 +195,10 @@ class task(object):
             if (inspect.stack()[-2][3] == 'compss_worker' or inspect.stack()[-2][3] == 'compss_persistent_worker') \
                     and (not is_nested):
                 # Called from worker code, run the method
-                tracing = kwargs['compss_tracing']
+                tracing =  kwargs.get('compss_tracing')
+                cache_queue = kwargs.get('compss_cache_queue')
+                cache_pipe  = kwargs.get('compss_cache_pipe')
+                process_name = kwargs.get('compss_prcess_name')
                 if tracing:
                     import pyextrae
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -218,12 +221,14 @@ class task(object):
                     spec_args = spec_args[:-1] + toadd + [spec_args[-1]]
                 else:
                     spec_args = spec_args[:-1] + toadd
-
                 # Discover hidden objects passed as files
                 real_values, to_serialize = reveal_objects(args,
                                                            spec_args,
                                                            self.kwargs,
                                                            kwargs['compss_types'],
+                                                           cache_queue,
+                                                           cache_pipe,
+                                                           process_name,
                                                            returns)
                 kargs = {}
                 # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
@@ -427,8 +432,10 @@ def get_default_args(f):
     num_params = len(a.args) - len(a.defaults)
     return zip(a.args[num_params:], a.defaults)
 
-
-def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
+def reveal_objects(values,
+                   spec_args, deco_kwargs,
+                   compss_types, cache_queue,
+                   cache_pipe, process_name, returns):
     """
     Function that goes through all parameterss in order to
     find and open the files.
@@ -489,7 +496,30 @@ def reveal_objects(values, spec_args, deco_kwargs, compss_types, returns):
         if compss_type == Type.FILE and p.type != Type.FILE:
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
-            obj = deserialize_from_file(value)
+            if cache_queue is not None:
+                # ask the cache for the object
+                cache_queue.put((process_name, value))
+                answer = cache_pipe.recv()
+                # have we received an answer of the form (key, bytes) ?
+                # if yes, read from the indicated SHM
+                #obj = deserialize_from_file(value)
+
+                if isinstance(answer, tuple):
+                    from shm_manager import shm_manager as SHM
+                    print 'Voy a getear el SHM'
+                    manager = SHM(answer[0], answer[1], 0600)
+                    print 'Voy a notificar a la cache que me he attacheado el SHM'
+                    cache_pipe.send('DONE')
+                    print 'Voy a leer del SHM'
+                    obj = deserialize_from_string(manager.read_object())
+                    print 'He leido con exito'
+                    del manager
+                    print 'Voy a borrar el manager'
+                else:
+                    obj = deserialize_from_file(value)
+            else:
+                obj = deserialize_from_file(value)
+
             #if 'getID' in dir(obj) and obj.getID() is not None:   # dirty fix
             #    obj = getByID(obj.getID())
             real_values.append(obj)

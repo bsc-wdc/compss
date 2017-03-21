@@ -198,7 +198,7 @@ class task(object):
                 tracing =  kwargs.get('compss_tracing')
                 cache_queue = kwargs.get('compss_cache_queue')
                 cache_pipe  = kwargs.get('compss_cache_pipe')
-                process_name = kwargs.get('compss_prcess_name')
+                process_name = kwargs.get('compss_process_name')
                 if tracing:
                     import pyextrae
                     pyextrae.eventandcounters(TASK_EVENTS, 0)

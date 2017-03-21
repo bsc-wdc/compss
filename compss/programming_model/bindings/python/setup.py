@@ -17,6 +17,7 @@ from distutils.core import setup, Extension
 #from setuptools import setup, Extension
 from distutils.command.install_lib import install_lib
 from distutils import log
+import os
 
 compssmodule = Extension('compss',
         include_dirs = [
@@ -30,6 +31,19 @@ compssmodule = Extension('compss',
         extra_compile_args = ['-fPIC'],
         sources = ['src/ext/compssmodule.c'])
 
+shm_manager = Extension("shm_manager",
+	include_dirs = ['src/ext'],
+	sources = ['src/ext/shm_manager.cc'],
+    language='c++',
+	extra_compile_args=['-std=c++11']
+)
+
+object_cache = Extension("object_cache",
+	include_dirs = ['src/ext'],
+	sources = ['src/ext/object_cache.cc'],
+	extra_compile_args=['-std=c++11']
+)
+
 setup (name='pycompss',
 	version='2.0.rc1702',
 	description='Python Binding for COMP Superscalar Runtime',
@@ -39,7 +53,7 @@ setup (name='pycompss',
 	url='http://compss.bsc.es',
 	license='Apache 2.0.rc1702',
     package_dir={'pycompss':'src/pycompss'},
-	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
+	packages=['', 'pycompss', 'pycompss.api', 'pycompss.persistent_cache', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
 	package_data={'' : ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'bin/worker_python.sh']},
-	ext_modules=[compssmodule])
-
+	ext_modules=[compssmodule, shm_manager])
+    #ext_modules=[compssmodule])

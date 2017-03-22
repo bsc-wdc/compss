@@ -14,7 +14,6 @@
 #  limitations under the License.
 #
 """
-@author: etejedor
 @author: fconejer
 @author: cramonco
 @author: srodrig1
@@ -101,6 +100,9 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     """
 
     logger = logging.getLogger('pycompss.worker.worker')
+    handler = logger.handlers[0]
+    level = logger.getEffectiveLevel()
+    formatter = logging.Formatter(handler.formatter._fmt)
 
     # TRACING
     # if tracing:
@@ -126,6 +128,18 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
                         # line[6] = <boolean> = ?
                         # line[7] = null      = ?
                         # line[8] = <string>  = operation type (e.g. METHOD)
+
+                        # Swap logger from stream handler to file handler.
+                        logger.removeHandler(logger.handlers[0])
+                        out_file_handler = logging.FileHandler(job_out)
+                        out_file_handler.setLevel(level)
+                        out_file_handler.setFormatter(formatter)
+                        logger.addHandler(out_file_handler)
+                        err_file_handler = logging.FileHandler(job_err)
+                        err_file_handler.setLevel(logging.ERROR)
+                        err_file_handler.setFormatter(formatter)
+                        logger.addHandler(err_file_handler)
+
                         logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
                         logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(line)))
                         try:
@@ -149,6 +163,12 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
                         except Exception, e:
                             logger.exception("[PYTHON WORKER %s] Exception %s" %(str(process_name), str(e)))
                             queue.put("EXCEPTION")
+
+                        # Restore logger
+                        logger.removeHandler(out_file_handler)
+                        logger.removeHandler(err_file_handler)
+                        logger.addHandler(handler)
+
                     elif line[0] == QUIT_TAG:
                         # Received quit message -> Suicide
                         logger.debug("[PYTHON WORKER %s] Received quit." % str(process_name))

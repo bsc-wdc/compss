@@ -56,6 +56,7 @@
 #include <sys/shm.h>
 #include <unistd.h>
 #include <iostream>
+#include <sstream>
 #include <cassert>
 #include <cstdlib>
 #include <ctime>

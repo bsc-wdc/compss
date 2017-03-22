@@ -33,6 +33,13 @@ static void shm_manager_dealloc(shm_manager* self) {
   }
 }
 
+// std::to_string belongs to c++11 standard, so let's avoid to use it
+std::string _to_string(unsigned long long x) {
+  std::ostringstream s;
+  s << x;
+  return s.str();
+}
+
 static PyObject* shm_manager_new(PyTypeObject* type,
                                  PyObject* args,
                                  PyObject* kwds) {
@@ -81,7 +88,7 @@ static PyObject* shm_manager_new(PyTypeObject* type,
     }
     else {
       std::string _err_msg = "Could not get SHM with key "
-      + std::to_string(self->key) + " (are you sure that exists?)";
+      + _to_string(self->key) + " (are you sure that exists?)";
       PyErr_SetString(PyExc_RuntimeError, _err_msg.c_str());
     }
     return NULL;
@@ -168,7 +175,7 @@ static PyObject* shm_manager_readline(PyObject* self, PyObject* args) {
       done |= _self->base_address[_self->offset] == '\n';
       ++_self->offset;
   }
-  auto ret = PyString_FromStringAndSize(_self->base_address + old_offset,
+  PyObject* ret = PyString_FromStringAndSize(_self->base_address + old_offset,
   _self->offset - old_offset);
   return ret;
 }

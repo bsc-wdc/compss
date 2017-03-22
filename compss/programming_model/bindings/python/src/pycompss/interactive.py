@@ -73,7 +73,7 @@ def start(log_level="off",
           conn='integratedtoolkit.connectors.DefaultSSHConnector',
           masterName='',
           masterPort='43000',
-          scheduler='integratedtoolkit.scheduler.resourceEmptyScheduler.ResourceEmptyScheduler',
+          scheduler='integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
           verbose=False
           ):

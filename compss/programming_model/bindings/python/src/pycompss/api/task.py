@@ -507,15 +507,10 @@ def reveal_objects(values,
 
                 if isinstance(answer, tuple):
                     from shm_manager import shm_manager as SHM
-                    print 'Voy a getear el SHM'
                     manager = SHM(answer[0], answer[1], 0600)
-                    print 'Voy a notificar a la cache que me he attacheado el SHM'
                     cache_pipe.send('DONE')
-                    print 'Voy a leer del SHM'
                     obj = deserialize_from_string(manager.read_object())
-                    print 'He leido con exito'
                     del manager
-                    print 'Voy a borrar el manager'
                 else:
                     obj = deserialize_from_file(value)
             else:
@@ -545,4 +540,3 @@ def reveal_objects(values,
                 real_values.append(value)
         '''
     return real_values, to_serialize
-

@@ -190,6 +190,13 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
     logger = logging.getLogger('pycompss.worker.worker')
 
     logger.debug("[PYTHON WORKER %s] Begin task execution" % process_name)
+    # COMPSs keywords for tasks (ie: tracing, cache data structures...)
+    compss_kwargs = {
+        'compss_tracing' : tracing,
+        'compss_cache_queue': cache_queue,
+        'compss_cache_pipe': cache_pipe,
+        'compss_process_name': process_name
+    }
 
     # Retrieve the parameters from the params argument
     path = params[0]
@@ -344,9 +351,7 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-            getattr(module, method_name)(*values, compss_types=types,
-            compss_tracing=tracing, compss_cache_queue=cache_queue,
-            compss_cache_pipe=cache_pipe, compss_process_name=process_name)
+            getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -389,9 +394,7 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types,
-                compss_tracing=tracing, compss_cache_queue=cache_queue,
-                compss_cache_pipe=cache_pipe, compss_process_name=process_name)
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -406,9 +409,7 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                getattr(klass, method_name)(*values, compss_types=types,
-                compss_tracing=tracing, compss_cache_queue=cache_queue,
-                compss_cache_pipe=cache_pipe, compss_process_name=process_name)
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

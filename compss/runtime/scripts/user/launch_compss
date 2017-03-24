@@ -787,12 +787,12 @@ create_xml_files() {
 
   # Add worker slots on master if needed
   if [ ${worker_in_master_tasks} -ne 0 ]; then
-    add_compute_node "${master_node}${network}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
+    add_compute_node "${master_node}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
-    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory} ${gpus_per_node}
+    add_compute_node "$node" ${tasks_per_node} ${node_memory} ${gpus_per_node}
   done
 
   # Finish the resources file and the project file 
@@ -978,6 +978,8 @@ add_compute_node() {
   local gpus=$4
 
   ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
+
+  nodeName=${nodeName}${network}
 
   cat >> ${RESOURCES_FILE} << EOT
   <ComputeNode Name="${nodeName}">

@@ -15,6 +15,7 @@ import nmmb.exceptions.CommandException;
 import nmmb.loggers.LoggerNames;
 import nmmb.utils.BashCMDExecutor;
 import nmmb.utils.FileManagement;
+import nmmb.utils.FortranWrapper;
 
 
 /**
@@ -31,73 +32,78 @@ public class NMMBParameters {
     private static final Logger LOGGER_POST = LogManager.getLogger(LoggerNames.NMMB_POST);
 
     // -----------------------------------------------------------------------
+    // Load workflow modifications
+    private final boolean CLEAN_BINARIES;
+    private final boolean COMPILE_BINARIES;
+
+    // -----------------------------------------------------------------------
     // MN settings
-    private int INPES;
-    private int JNPES;
-    private int WRTSK;
-    private int PROC;
+    private final int INPES;
+    private final int JNPES;
+    private final int WRTSK;
+    private final int PROC;
 
     // -----------------------------------------------------------------------
     // Global-regional switch - Model domain setup global/regional
-    private boolean DOMAIN;
-    private int LM;
-    private String CASE;
+    private final boolean DOMAIN;
+    private final int LM;
+    private final String CASE;
 
     // -----------------------------------------------------------------------
     // Model variables
-    private int DT_INT;
-    private double TLM0D;
-    private double TPH0D;
-    private double WBD;
-    private double SBD;
-    private double DLMD;
-    private double DPHD;
-    private double PTOP;
-    private double DCAL;
-    private int NRADS;
-    private int NRADL;
-    private int IMI;
-    private int JMI;
-    private int IM;
-    private int JM;
+    private final int DT_INT;
+    private final double TLM0D;
+    private final double TPH0D;
+    private final double WBD;
+    private final double SBD;
+    private final double DLMD;
+    private final double DPHD;
+    private final double PTOP;
+    private final double DCAL;
+    private final int NRADS;
+    private final int NRADL;
+    private final int IMI;
+    private final int JMI;
+    private final int IM;
+    private final int JM;
 
     // -----------------------------------------------------------------------
     // Case selection
-    private boolean DO_FIXED;
-    private boolean DO_VRBL;
-    private boolean DO_UMO;
-    private boolean DO_POST;
+    private final boolean DO_FIXED;
+    private final boolean DO_VRBL;
+    private final boolean DO_UMO;
+    private final boolean DO_POST;
 
     // -----------------------------------------------------------------------
     // Select START and ENDING Times
-    private Date START_DATE;
-    private Date END_DATE;
-    private int HOUR;
-    private int NHOURS;
-    private int NHOURS_INIT;
-    private int HIST;
-    private int HIST_M;
-    private int BOCO;
-    private String TYPE_GFSINIT;
+    private final Date START_DATE;
+    private final Date END_DATE;
+    private final int HOUR;
+    private final int NHOURS;
+    private final int NHOURS_INIT;
+    private final int HIST;
+    private final int HIST_M;
+    private final int BOCO;
+    private final String TYPE_GFSINIT;
 
     // -----------------------------------------------------------------------
     // Select configuration of POSTPROC (DO_POST)
-    private int HOUR_P;
-    private int NHOURS_P;
-    private int HIST_P;
-    private int LSM;
-    private double TPH0DN;
-    private double WBDDEF;
-    private double SBDDEF;
+    private final int HOUR_P;
+    private final int NHOURS_P;
+    private final int HIST_P;
+    private final int LSM;
+    private final double TPH0DN;
+    private final double WBDDEF;
+    private final double SBDDEF;
 
     // -----------------------------------------------------------------------
     // Select IC of chemistry for run with COUPLE_DUST_INIT=0
-    private int INIT_CHEM;
+    private final int INIT_CHEM;
 
     // -----------------------------------------------------------------------
     // Couple dust
-    private boolean COUPLE_DUST;
-    private boolean COUPLE_DUST_INIT;
+    private final boolean COUPLE_DUST;
+    private final boolean COUPLE_DUST_INIT;
 
 
     /**
@@ -108,89 +114,116 @@ public class NMMBParameters {
     public NMMBParameters(NMMBConfigManager nmmbConfiguration) {
         LOGGER_MAIN.info("Setting execution variables...");
 
+        // Load workflow modifications
+        this.CLEAN_BINARIES = nmmbConfiguration.getCleanBinaries();
+        this.COMPILE_BINARIES = nmmbConfiguration.getCompileBinaries();
+
         // MN settings
-        INPES = nmmbConfiguration.getINPES();
-        JNPES = nmmbConfiguration.getJNPES();
-        WRTSK = nmmbConfiguration.getWRTSK();
-        PROC = INPES * JNPES + WRTSK;
+        this.INPES = nmmbConfiguration.getINPES();
+        this.JNPES = nmmbConfiguration.getJNPES();
+        this.WRTSK = nmmbConfiguration.getWRTSK();
+        this.PROC = this.INPES * this.JNPES + this.WRTSK;
 
         // Global-regional switch - Model domain setup global/regional
-        DOMAIN = nmmbConfiguration.getDomain();
-        LM = nmmbConfiguration.getLM();
-        CASE = nmmbConfiguration.getCase();
+        this.DOMAIN = nmmbConfiguration.getDomain();
+        this.LM = nmmbConfiguration.getLM();
+        this.CASE = nmmbConfiguration.getCase();
 
         // Model variables
-        DT_INT = (DOMAIN) ? nmmbConfiguration.getDT_INT1() : nmmbConfiguration.getDT_INT2();
-        TLM0D = (DOMAIN) ? nmmbConfiguration.getTLM0D1() : nmmbConfiguration.getTLM0D2();
-        TPH0D = (DOMAIN) ? nmmbConfiguration.getTPH0D1() : nmmbConfiguration.getTPH0D2();
-        WBD = (DOMAIN) ? nmmbConfiguration.getWBD1() : nmmbConfiguration.getWBD2();
-        SBD = (DOMAIN) ? nmmbConfiguration.getSBD1() : nmmbConfiguration.getSBD2();
-        DLMD = (DOMAIN) ? nmmbConfiguration.getDLMD1() : nmmbConfiguration.getDLMD2();
-        DPHD = (DOMAIN) ? nmmbConfiguration.getDPHD1() : nmmbConfiguration.getDPHD2();
-        PTOP = (DOMAIN) ? nmmbConfiguration.getPTOP1() : nmmbConfiguration.getPTOP2();
-        DCAL = (DOMAIN) ? nmmbConfiguration.getDCAL1() : nmmbConfiguration.getDCAL2();
-        NRADS = (DOMAIN) ? nmmbConfiguration.getNRADS1() : nmmbConfiguration.getNRADS2();
-        NRADL = (DOMAIN) ? nmmbConfiguration.getNRADL1() : nmmbConfiguration.getNRADL2();
-        IMI = (int) (-2.0 * WBD / DLMD + 1.5);
-        JMI = (int) (-2.0 * SBD / DPHD + 1.5);
-        IM = (DOMAIN) ? IMI + 2 : IMI;
-        JM = (DOMAIN) ? JMI + 2 : JMI;
+        this.DT_INT = (this.DOMAIN) ? nmmbConfiguration.getDT_INT1() : nmmbConfiguration.getDT_INT2();
+        this.TLM0D = (this.DOMAIN) ? nmmbConfiguration.getTLM0D1() : nmmbConfiguration.getTLM0D2();
+        this.TPH0D = (this.DOMAIN) ? nmmbConfiguration.getTPH0D1() : nmmbConfiguration.getTPH0D2();
+        this.WBD = (this.DOMAIN) ? nmmbConfiguration.getWBD1() : nmmbConfiguration.getWBD2();
+        this.SBD = (this.DOMAIN) ? nmmbConfiguration.getSBD1() : nmmbConfiguration.getSBD2();
+        this.DLMD = (this.DOMAIN) ? nmmbConfiguration.getDLMD1() : nmmbConfiguration.getDLMD2();
+        this.DPHD = (this.DOMAIN) ? nmmbConfiguration.getDPHD1() : nmmbConfiguration.getDPHD2();
+        this.PTOP = (this.DOMAIN) ? nmmbConfiguration.getPTOP1() : nmmbConfiguration.getPTOP2();
+        this.DCAL = (this.DOMAIN) ? nmmbConfiguration.getDCAL1() : nmmbConfiguration.getDCAL2();
+        this.NRADS = (this.DOMAIN) ? nmmbConfiguration.getNRADS1() : nmmbConfiguration.getNRADS2();
+        this.NRADL = (this.DOMAIN) ? nmmbConfiguration.getNRADL1() : nmmbConfiguration.getNRADL2();
+        this.IMI = (int) (-2.0 * this.WBD / this.DLMD + 1.5);
+        this.JMI = (int) (-2.0 * this.SBD / this.DPHD + 1.5);
+        this.IM = (this.DOMAIN) ? this.IMI + 2 : this.IMI;
+        this.JM = (this.DOMAIN) ? this.JMI + 2 : this.JMI;
 
         LOGGER_MAIN.info("");
-        LOGGER_MAIN.info("Number of processors " + PROC);
-        LOGGER_MAIN.info("Model grid size - IM / JM / LM: " + IMI + " / " + JMI + " / " + LM);
-        LOGGER_MAIN.info("Extended domain - IM / JM / LM: " + IM + " / " + JM + " / " + LM);
+        LOGGER_MAIN.info("Number of processors " + this.PROC);
+        LOGGER_MAIN.info("Model grid size - IM / JM / LM: " + this.IMI + " / " + this.JMI + " / " + this.LM);
+        LOGGER_MAIN.info("Extended domain - IM / JM / LM: " + this.IM + " / " + this.JM + " / " + this.LM);
         LOGGER_MAIN.info("");
 
         // Case selection
-        DO_FIXED = nmmbConfiguration.getFixed();
-        DO_VRBL = nmmbConfiguration.getVariable();
-        DO_UMO = nmmbConfiguration.getUmoModel();
-        DO_POST = nmmbConfiguration.getPost();
+        this.DO_FIXED = nmmbConfiguration.getFixed();
+        this.DO_VRBL = nmmbConfiguration.getVariable();
+        this.DO_UMO = nmmbConfiguration.getUmoModel();
+        this.DO_POST = nmmbConfiguration.getPost();
 
         // -----------------------------------------------------------------------
         // Select START and ENDING Times
+        Date sd = null;
         try {
-            START_DATE = NMMBConstants.STR_TO_DATE.parse(nmmbConfiguration.getStartDate());
+            sd = NMMBConstants.STR_TO_DATE.parse(nmmbConfiguration.getStartDate());
         } catch (ParseException pe) {
             LOGGER_MAIN.error("[ERROR] Cannot parse start date", pe);
             LOGGER_MAIN.error("Aborting...");
             System.exit(1);
+        } finally {
+            this.START_DATE = sd;
         }
+        Date ed = null;
         try {
-            END_DATE = NMMBConstants.STR_TO_DATE.parse(nmmbConfiguration.getEndDate());
+            ed = NMMBConstants.STR_TO_DATE.parse(nmmbConfiguration.getEndDate());
         } catch (ParseException pe) {
             LOGGER_MAIN.error("[ERROR] Cannot parse end date", pe);
             LOGGER_MAIN.error("Aborting...");
             System.exit(1);
+        } finally {
+            this.END_DATE = ed;
         }
-        HOUR = nmmbConfiguration.getHour();
-        NHOURS = nmmbConfiguration.getNHours();
-        NHOURS_INIT = nmmbConfiguration.getNHoursInit();
-        HIST = nmmbConfiguration.getHist();
-        HIST_M = HIST * NMMBConstants.HOUR_TO_MINUTES;
-        BOCO = nmmbConfiguration.getBoco();
-        TYPE_GFSINIT = nmmbConfiguration.getTypeGFSInit();
+        this.HOUR = nmmbConfiguration.getHour();
+        this.NHOURS = nmmbConfiguration.getNHours();
+        this.NHOURS_INIT = nmmbConfiguration.getNHoursInit();
+        this.HIST = nmmbConfiguration.getHist();
+        this.HIST_M = HIST * NMMBConstants.HOUR_TO_MINUTES;
+        this.BOCO = nmmbConfiguration.getBoco();
+        this.TYPE_GFSINIT = nmmbConfiguration.getTypeGFSInit();
 
         // -----------------------------------------------------------------------
         // Select configuration of POSTPROC (DO_POST)
-        HOUR_P = nmmbConfiguration.getHourP();
-        ;
-        NHOURS_P = nmmbConfiguration.getNHoursP();
-        HIST_P = nmmbConfiguration.getHistP();
-        LSM = nmmbConfiguration.getLSM();
+        this.HOUR_P = nmmbConfiguration.getHourP();
+        this.NHOURS_P = nmmbConfiguration.getNHoursP();
+        this.HIST_P = nmmbConfiguration.getHistP();
+        this.LSM = nmmbConfiguration.getLSM();
 
-        TPH0DN = nmmbConfiguration.getTPH0D2() + 90.0;
-        WBDDEF = nmmbConfiguration.getWBD2() + nmmbConfiguration.getTLM0D2();
-        SBDDEF = nmmbConfiguration.getSBD2() + nmmbConfiguration.getTPH0D2();
+        this.TPH0DN = nmmbConfiguration.getTPH0D2() + 90.0;
+        this.WBDDEF = nmmbConfiguration.getWBD2() + nmmbConfiguration.getTLM0D2();
+        this.SBDDEF = nmmbConfiguration.getSBD2() + nmmbConfiguration.getTPH0D2();
 
         // -----------------------------------------------------------------------
         // Select IC of chemistry for run with COUPLE_DUST_INIT=0
-        INIT_CHEM = nmmbConfiguration.getInitChem();
-        COUPLE_DUST = nmmbConfiguration.getCoupleDust();
-        COUPLE_DUST_INIT = nmmbConfiguration.getCoupleDustInit();
+        this.INIT_CHEM = nmmbConfiguration.getInitChem();
+        this.COUPLE_DUST = nmmbConfiguration.getCoupleDust();
+        this.COUPLE_DUST_INIT = nmmbConfiguration.getCoupleDustInit();
 
         LOGGER_MAIN.info("Execution variables set");
+    }
+
+    /**
+     * Returns if binaries must be erased or not
+     * 
+     * @return
+     */
+    public boolean isCleanBinaries() {
+        return this.CLEAN_BINARIES;
+    }
+
+    /**
+     * Returns if binaries must be compiled or not
+     * 
+     * @return
+     */
+    public boolean isCompileBinaries() {
+        return this.COMPILE_BINARIES;
     }
 
     /**
@@ -292,7 +325,7 @@ public class NMMBParameters {
 
         // Define folders
         String outputPath = NMMBEnvironment.UMO_OUT;
-        String outputCasePath = NMMBEnvironment.OUTNMMB + CASE + File.separator + "output" + File.separator;
+        String outputCasePath = NMMBEnvironment.OUTNMMB + this.CASE + File.separator + "output" + File.separator;
         String outputSymPath = NMMBEnvironment.UMO_PATH + "PREPROC" + File.separator + "output";
 
         // Clean folders
@@ -366,18 +399,18 @@ public class NMMBParameters {
 
         // Prepare files
         BashCMDExecutor cmdModelgrid = new BashCMDExecutor("sed");
-        cmdModelgrid.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(this.TLM0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(this.TPH0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(this.IM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(this.JM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(this.PTOP) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LM) + "/");
         cmdModelgrid.addArgument(modelgridTMPFilePath);
         cmdModelgrid.redirectOutput(modelgridFilePath);
         try {
@@ -392,18 +425,18 @@ public class NMMBParameters {
         }
 
         BashCMDExecutor cmdLmimjm = new BashCMDExecutor("sed");
-        cmdLmimjm.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(this.TLM0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(this.TPH0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(this.IM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(this.JM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(this.PTOP) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LM) + "/");
         cmdLmimjm.addArgument(lmimjmTMPFilePath);
         cmdLmimjm.redirectOutput(lmimjmFilePath);
         try {
@@ -435,7 +468,7 @@ public class NMMBParameters {
      */
     public void createOutputFolders(Date currentDate) {
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String hourSTR = (this.HOUR < 10) ? "0" + String.valueOf(this.HOUR) : String.valueOf(this.HOUR);
         String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
         String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
 
@@ -504,15 +537,15 @@ public class NMMBParameters {
         // Prepare files
         String fullDate = NMMBConstants.STR_TO_DATE.format(currentDate);
         String compactDate = NMMBConstants.COMPACT_STR_TO_DATE.format(currentDate);
-        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
-        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
+        String hourSTR = (this.HOUR < 10) ? "0" + String.valueOf(this.HOUR) : String.valueOf(this.HOUR);
+        String nHoursSTR = (this.NHOURS < 10) ? "0" + String.valueOf(this.NHOURS) : String.valueOf(this.NHOURS);
 
-        String llgridSrcFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid_rrtm_" + TYPE_GFSINIT + ".tmp";
+        String llgridSrcFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid_rrtm_" + this.TYPE_GFSINIT + ".tmp";
         String llgridFile = NMMBEnvironment.VRB_INCLUDE_DIR + "llgrid.inc";
         BashCMDExecutor cmdllgrid = new BashCMDExecutor("sed");
         cmdllgrid.addFlagAndValue("-e", "s/LLL/" + nHoursSTR + "/");
         cmdllgrid.addFlagAndValue("-e", "s/HH/" + hourSTR + "/");
-        cmdllgrid.addFlagAndValue("-e", "s/UPBD/" + String.valueOf(BOCO) + "/");
+        cmdllgrid.addFlagAndValue("-e", "s/UPBD/" + String.valueOf(this.BOCO) + "/");
         cmdllgrid.addFlagAndValue("-e", "s/YYYYMMDD/" + compactDate + "/");
         cmdllgrid.addArgument(llgridSrcFile);
         cmdllgrid.redirectOutput(llgridFile);
@@ -527,8 +560,8 @@ public class NMMBParameters {
             System.exit(1);
         }
 
-        if (DOMAIN) {
-            if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
+        if (this.DOMAIN) {
+            if (this.TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
                 try {
                     String target = NMMBEnvironment.FNL + "fnl_" + fullDate + "_" + hourSTR + "_00";
                     String link = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf00";
@@ -564,8 +597,8 @@ public class NMMBParameters {
             }
         } else {
             // Domain is 1
-            if (TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
-                for (int i = HOUR; i < BOCO; i += NHOURS) {
+            if (this.TYPE_GFSINIT.equals(NMMBConstants.TYPE_GFSINIT_FNL)) {
+                for (int i = this.HOUR; i < this.BOCO; i += this.NHOURS) {
                     try {
                         String iStr = (i < 10) ? "0" + String.valueOf(i) : String.valueOf(i);
                         int dDay = i / 24;
@@ -588,7 +621,7 @@ public class NMMBParameters {
                     }
                 }
             } else {
-                for (int i = 0; i < BOCO; i += NHOURS) {
+                for (int i = 0; i < this.BOCO; i += this.NHOURS) {
                     String iStr = (i < 10) ? "0" + String.valueOf(i) : String.valueOf(i);
                     String input = NMMBEnvironment.GFS + "wafs." + iStr + ".0P5DEG";
                     String output = NMMBEnvironment.OUTPUT + "gfs.t" + hourSTR + "z.pgrbf" + iStr;
@@ -629,18 +662,18 @@ public class NMMBParameters {
 
         // Prepare files
         BashCMDExecutor cmdModelgrid = new BashCMDExecutor("sed");
-        cmdModelgrid.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
-        cmdModelgrid.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(this.TLM0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(this.TPH0D) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(this.IM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(this.JM) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(this.PTOP) + "/");
+        cmdModelgrid.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LM) + "/");
         cmdModelgrid.addArgument(modelgridTMPFilePath);
         cmdModelgrid.redirectOutput(modelgridFilePath);
         try {
@@ -655,18 +688,18 @@ public class NMMBParameters {
         }
 
         BashCMDExecutor cmdLmimjm = new BashCMDExecutor("sed");
-        cmdLmimjm.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(IM) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(JM) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(PTOP) + "/");
-        cmdLmimjm.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(this.TLM0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(this.TPH0D) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/IBDY/" + String.valueOf(this.IM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/JBDY/" + String.valueOf(this.JM) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/PTOP/" + String.valueOf(this.PTOP) + "/");
+        cmdLmimjm.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LM) + "/");
         cmdLmimjm.addArgument(lmimjmTMPFilePath);
         cmdLmimjm.redirectOutput(lmimjmFilePath);
         try {
@@ -736,49 +769,49 @@ public class NMMBParameters {
 
         // Dust coupling part 1
         boolean coupleDustIteration = false;
-        if (currentDate.after(START_DATE)) {
-            coupleDustIteration = COUPLE_DUST;
+        if (currentDate.after(this.START_DATE)) {
+            coupleDustIteration = this.COUPLE_DUST;
         }
 
-        if (COUPLE_DUST_INIT) {
+        if (this.COUPLE_DUST_INIT) {
             coupleDustIteration = true;
         }
 
         String dustFlag = (coupleDustIteration) ? "EEEE/true" : "EEEE/false";
 
         // Prepare config rrtm chem file
-        String nHoursSTR = (NHOURS < 10) ? "0" + String.valueOf(NHOURS) : String.valueOf(NHOURS);
+        String nHoursSTR = (this.NHOURS < 10) ? "0" + String.valueOf(this.NHOURS) : String.valueOf(this.NHOURS);
         String yearSTR = NMMBConstants.DATE_TO_YEAR.format(currentDate);
         String monthSTR = NMMBConstants.DATE_TO_MONTH.format(currentDate);
         String daySTR = NMMBConstants.DATE_TO_DAY.format(currentDate);
-        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
+        String hourSTR = (this.HOUR < 10) ? "0" + String.valueOf(this.HOUR) : String.valueOf(this.HOUR);
 
         String configFileTMPPath = NMMBEnvironment.UMO_ROOT + "configfile_rrtm_chem.tmp";
         String configFilePath = NMMBEnvironment.UMO_OUT + "configure_file";
         BashCMDExecutor configFile = new BashCMDExecutor("sed");
-        configFile.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-        configFile.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-        configFile.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LM) + "/");
-        configFile.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(TPH0D) + "/");
-        configFile.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(TLM0D) + "/");
-        configFile.addFlagAndValue("-e", "s/WBD/" + String.valueOf(WBD) + "/");
-        configFile.addFlagAndValue("-e", "s/SBD/" + String.valueOf(SBD) + "/");
-        configFile.addFlagAndValue("-e", "s/INPES/" + String.valueOf(INPES) + "/");
-        configFile.addFlagAndValue("-e", "s/JNPES/" + String.valueOf(JNPES) + "/");
-        configFile.addFlagAndValue("-e", "s/WRTSK/" + String.valueOf(WRTSK) + "/");
-        configFile.addFlagAndValue("-e", "s/DTINT/" + String.valueOf(DT_INT) + "/");
+        configFile.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+        configFile.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+        configFile.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LM) + "/");
+        configFile.addFlagAndValue("-e", "s/TPHD/" + String.valueOf(this.TPH0D) + "/");
+        configFile.addFlagAndValue("-e", "s/TLMD/" + String.valueOf(this.TLM0D) + "/");
+        configFile.addFlagAndValue("-e", "s/WBD/" + String.valueOf(this.WBD) + "/");
+        configFile.addFlagAndValue("-e", "s/SBD/" + String.valueOf(this.SBD) + "/");
+        configFile.addFlagAndValue("-e", "s/INPES/" + String.valueOf(this.INPES) + "/");
+        configFile.addFlagAndValue("-e", "s/JNPES/" + String.valueOf(this.JNPES) + "/");
+        configFile.addFlagAndValue("-e", "s/WRTSK/" + String.valueOf(this.WRTSK) + "/");
+        configFile.addFlagAndValue("-e", "s/DTINT/" + String.valueOf(this.DT_INT) + "/");
         configFile.addFlagAndValue("-e", "s/YYYY/" + yearSTR + "/");
         configFile.addFlagAndValue("-e", "s/MM/" + monthSTR + "/");
         configFile.addFlagAndValue("-e", "s/DD/" + daySTR + "/");
         configFile.addFlagAndValue("-e", "s/HH/" + hourSTR + "/");
         configFile.addFlagAndValue("-e", "s/LLL/" + nHoursSTR + "/");
-        configFile.addFlagAndValue("-e", "s/STT/" + String.valueOf(HIST_M) + "/");
+        configFile.addFlagAndValue("-e", "s/STT/" + String.valueOf(this.HIST_M) + "/");
         configFile.addFlagAndValue("-e", "s/DOM/true/");
         configFile.addFlagAndValue("-e", "s/" + dustFlag + "/");
-        configFile.addFlagAndValue("-e", "s/BBBB/" + String.valueOf(DCAL) + "/");
-        configFile.addFlagAndValue("-e", "s/NRADS/" + String.valueOf(NRADS) + "/");
-        configFile.addFlagAndValue("-e", "s/NRADL/" + String.valueOf(NRADL) + "/");
-        configFile.addFlagAndValue("-e", "s/CCCC/" + String.valueOf(INIT_CHEM) + "/");
+        configFile.addFlagAndValue("-e", "s/BBBB/" + String.valueOf(this.DCAL) + "/");
+        configFile.addFlagAndValue("-e", "s/NRADS/" + String.valueOf(this.NRADS) + "/");
+        configFile.addFlagAndValue("-e", "s/NRADL/" + String.valueOf(this.NRADL) + "/");
+        configFile.addFlagAndValue("-e", "s/CCCC/" + String.valueOf(this.INIT_CHEM) + "/");
 
         configFile.addArgument(configFileTMPPath);
         configFile.redirectOutput(configFilePath);
@@ -970,24 +1003,24 @@ public class NMMBParameters {
     public void postUMOModelExecution(Date currentDate) {
         // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
-        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
-        String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+        String hourSTR = (this.HOUR < 10) ? "0" + String.valueOf(this.HOUR) : String.valueOf(this.HOUR);
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + this.CASE + File.separator;
+        String folderOutput = NMMBEnvironment.OUTNMMB + this.CASE + File.separator + currentDateSTR + hourSTR + File.separator;
 
         String historyFilePath = NMMBEnvironment.UMO_OUT + "history_INIT.hhh";
         FileManagement.deleteFile(historyFilePath);
 
-        if (COUPLE_DUST) {
+        if (this.COUPLE_DUST) {
             String historyTarget = folderOutputCase + "history_INIT.hhh";
             String historySrc;
-            if (NHOURS_INIT < 100) {
-                if (NHOURS_INIT < 10) {
-                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_000" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+            if (this.NHOURS_INIT < 100) {
+                if (this.NHOURS_INIT < 10) {
+                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_000" + String.valueOf(this.NHOURS_INIT) + "h_00m_00.00s";
                 } else {
-                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_00" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+                    historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_00" + String.valueOf(this.NHOURS_INIT) + "h_00m_00.00s";
                 }
             } else {
-                historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_0" + String.valueOf(NHOURS_INIT) + "h_00m_00.00s";
+                historySrc = NMMBEnvironment.UMO_OUT + "nmmb_hst_01_bin_0" + String.valueOf(this.NHOURS_INIT) + "h_00m_00.00s";
             }
 
             if (!FileManagement.copyFile(historySrc, historyTarget)) {
@@ -1050,9 +1083,9 @@ public class NMMBParameters {
     public void preparePostProcessExecution(Date currentDate) {
         // Define model output folder by case and date
         String currentDateSTR = NMMBConstants.STR_TO_DATE.format(currentDate);
-        String hourSTR = (HOUR < 10) ? "0" + String.valueOf(HOUR) : String.valueOf(HOUR);
-        String folderOutputCase = NMMBEnvironment.OUTNMMB + CASE + File.separator;
-        String folderOutput = NMMBEnvironment.OUTNMMB + CASE + File.separator + currentDateSTR + hourSTR + File.separator;
+        String hourSTR = (this.HOUR < 10) ? "0" + String.valueOf(this.HOUR) : String.valueOf(this.HOUR);
+        String folderOutputCase = NMMBEnvironment.OUTNMMB + this.CASE + File.separator;
+        String folderOutput = NMMBEnvironment.OUTNMMB + this.CASE + File.separator + currentDateSTR + hourSTR + File.separator;
 
         String lmimjmSrc = folderOutputCase + "lmimjm.inc";
         String lmimjmTarget = NMMBEnvironment.POST_CARBONO + "lmimjm.inc";
@@ -1064,12 +1097,12 @@ public class NMMBParameters {
 
         String postAllSrc = NMMBEnvironment.POST_CARBONO + "new_postall.f.tmp";
         String postAllTarget = NMMBEnvironment.POST_CARBONO + "new_postall.f";
-        String hourPSTR = (HOUR_P < 10) ? "0" + String.valueOf(HOUR_P) : String.valueOf(HOUR_P);
-        String nHoursPSTR = (NHOURS_P < 10) ? "0" + String.valueOf(NHOURS_P) : String.valueOf(NHOURS_P);
+        String hourPSTR = (this.HOUR_P < 10) ? "0" + String.valueOf(this.HOUR_P) : String.valueOf(this.HOUR_P);
+        String nHoursPSTR = (this.NHOURS_P < 10) ? "0" + String.valueOf(this.NHOURS_P) : String.valueOf(this.NHOURS_P);
         BashCMDExecutor cmdPostall = new BashCMDExecutor("sed");
         cmdPostall.addFlagAndValue("-e", "s/QQQ/" + nHoursPSTR + "/");
         cmdPostall.addFlagAndValue("-e", "s/SSS/" + hourPSTR + "/");
-        cmdPostall.addFlagAndValue("-e", "s/TTT/" + String.valueOf(HIST_P) + "/");
+        cmdPostall.addFlagAndValue("-e", "s/TTT/" + String.valueOf(this.HIST_P) + "/");
         cmdPostall.addArgument(postAllSrc);
         cmdPostall.redirectOutput(postAllTarget);
         try {
@@ -1084,24 +1117,24 @@ public class NMMBParameters {
         }
 
         String datePost = NMMBConstants.MONTH_NAME_DATE_TO_STR.format(currentDate);
-        int tdeft = (int) (NHOURS_P / (HIST + 1));
+        int tdeft = (int) (this.NHOURS_P / (this.HIST + 1));
         String tdef = (tdeft < 10) ? "0" + String.valueOf(tdeft) : String.valueOf(tdeft);
 
-        if (DOMAIN) {
+        if (this.DOMAIN) {
             String poutGlobalCtlSrc = NMMBEnvironment.POST_CARBONO + "pout_global_pressure.ctl.tmp";
             String poutGlobalCtlTarget = folderOutput + "pout_global_pressure_" + currentDateSTR + hourSTR + ".ctl";
             BashCMDExecutor cmdGlobalCtl = new BashCMDExecutor("sed");
             cmdGlobalCtl.addFlagAndValue("-e", "s/DATE/" + currentDateSTR + hourSTR + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LSM) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LSM) + "/");
             cmdGlobalCtl.addFlagAndValue("-e", "s/HH/" + tdef + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/INITCTL/" + HOUR + "Z" + datePost + "/");
-            cmdGlobalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(HIST_P) + "hr/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/INITCTL/" + this.HOUR + "Z" + datePost + "/");
+            cmdGlobalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(this.HIST_P) + "hr/");
             cmdGlobalCtl.addArgument(poutGlobalCtlSrc);
             cmdGlobalCtl.redirectOutput(poutGlobalCtlTarget);
             try {
@@ -1115,28 +1148,28 @@ public class NMMBParameters {
                 System.exit(1);
             }
         } else {
-            int ireg = IMI - 2;
-            int jreg = JMI - 2;
+            int ireg = this.IMI - 2;
+            int jreg = this.JMI - 2;
             String poutRegionalCtlSrc = NMMBEnvironment.POST_CARBONO + "pout_regional_pressure.ctl.tmp";
             String poutRegionalCtlTarget = folderOutput + "pout_regional_pressure_" + currentDateSTR + hourSTR + ".ctl";
             BashCMDExecutor cmdRegionalCtl = new BashCMDExecutor("sed");
             cmdRegionalCtl.addFlagAndValue("-e", "s/DATE/" + currentDateSTR + hourSTR + "/");
             cmdRegionalCtl.addFlagAndValue("-e", "s/IRG/" + String.valueOf(ireg) + "/");
             cmdRegionalCtl.addFlagAndValue("-e", "s/JRG/" + String.valueOf(jreg) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/TLMN/" + String.valueOf(TLM0D) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/TPHN/" + String.valueOf(TPH0DN) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(DLMD) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(DPHD) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(WBD) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(SBD) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(IMI) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(JMI) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/WBXX/" + String.valueOf(WBDDEF) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/SBYY/" + String.valueOf(SBDDEF) + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(LSM) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/TLMN/" + String.valueOf(this.TLM0D) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/TPHN/" + String.valueOf(this.TPH0DN) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/DLMN/" + String.valueOf(this.DLMD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/DPHN/" + String.valueOf(this.DPHD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/WBDN/" + String.valueOf(this.WBD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/SBDN/" + String.valueOf(this.SBD) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/III/" + String.valueOf(this.IMI) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/JJJ/" + String.valueOf(this.JMI) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/WBXX/" + String.valueOf(this.WBDDEF) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/SBYY/" + String.valueOf(this.SBDDEF) + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/KKK/" + String.valueOf(this.LSM) + "/");
             cmdRegionalCtl.addFlagAndValue("-e", "s/HH/" + tdef + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/INITCTL/" + HOUR + "Z" + datePost + "/");
-            cmdRegionalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(HIST_P) + "hr/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/INITCTL/" + this.HOUR + "Z" + datePost + "/");
+            cmdRegionalCtl.addFlagAndValue("-e", "s/XHR/" + String.valueOf(this.HIST_P) + "hr/");
             cmdRegionalCtl.addArgument(poutRegionalCtlSrc);
             cmdRegionalCtl.redirectOutput(poutRegionalCtlTarget);
             try {
@@ -1148,6 +1181,41 @@ public class NMMBParameters {
                 LOGGER_POST.error("[ERROR] Error performing sed command on " + poutRegionalCtlSrc, ce);
                 LOGGER_POST.error("Aborting...");
                 System.exit(1);
+            }
+        }
+    }
+
+    public void cleanPostProcessExecution(String folderOutput) {
+        // Clean files
+        String namelistPath = folderOutput + "namelist.newpost";
+        File namelist = new File(namelistPath);
+        if (namelist.exists()) {
+            namelist.delete();
+        }
+
+        String sourcePath = folderOutput + FortranWrapper.NEW_POSTALL + FortranWrapper.SUFFIX_F_SRC;
+        File source = new File(sourcePath);
+        if (source.exists()) {
+            source.delete();
+        }
+
+        String lmimjmPath = folderOutput + "lmimjm.inc";
+        File lmimjm = new File(lmimjmPath);
+        if (lmimjm.exists()) {
+            lmimjm.delete();
+        }
+
+        String executablePath = folderOutput + FortranWrapper.NEW_POSTALL + FortranWrapper.SUFFIX_EXE;
+        File executable = new File(executablePath);
+        if (executable.exists()) {
+            executable.delete();
+        }
+
+        if (this.CLEAN_BINARIES) {
+            String preExecutablePath = NMMBEnvironment.POST_CARBONO + FortranWrapper.NEW_POSTALL + FortranWrapper.SUFFIX_EXE;
+            File preExecutable = new File(preExecutablePath);
+            if (preExecutable.exists()) {
+                preExecutable.delete();
             }
         }
     }

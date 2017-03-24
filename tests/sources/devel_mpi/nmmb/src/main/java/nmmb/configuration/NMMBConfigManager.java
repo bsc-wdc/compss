@@ -24,6 +24,24 @@ public class NMMBConfigManager {
     }
 
     /**
+     * Returns the CLEAN_BINARIES value
+     * 
+     * @return
+     */
+    public boolean getCleanBinaries() {
+        return config.getBoolean(NMMBConstants.CLEAN_BINARIES_NAME);
+    }
+
+    /**
+     * Returns the COMPILE_BINARIES value
+     * 
+     * @return
+     */
+    public boolean getCompileBinaries() {
+        return config.getBoolean(NMMBConstants.COMPILE_BINARIES_NAME);
+    }
+
+    /**
      * Returns the INPES value
      * 
      * @return

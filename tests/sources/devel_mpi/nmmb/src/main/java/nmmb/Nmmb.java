@@ -57,42 +57,44 @@ public class Nmmb {
         MessagePrinter fixedMP = new MessagePrinter(LOGGER_FIXED);
 
         /* Build the fortran executables *************************************************/
-        Integer[] compilationEvs = new Integer[FortranWrapper.FIXED_FORTRAN_F90_FILES.length + FortranWrapper.FIXED_FORTRAN_F_FILES.length];
-        int i = 0;
-        fixedMP.printInfoMsg("Building fixed executables");
-        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
-            String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
-            String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
+        if (nmmbParams.isCompileBinaries()) {
+            Integer[] compilationEvs = new Integer[FortranWrapper.FIXED_FORTRAN_F90_FILES.length
+                    + FortranWrapper.FIXED_FORTRAN_F_FILES.length];
+            int i = 0;
+            fixedMP.printInfoMsg("Building fixed executables");
+            for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
+                String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
+                String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F90_SRC;
 
-            compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG, FortranWrapper.CONVERT_PREFIX,
-                    FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG, FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE,
-                    FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
-                    FortranWrapper.OFLAG, executable, src);
-        }
-        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
-            String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
-            String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F_SRC;
-            compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG, FortranWrapper.CONVERT_PREFIX,
-                    FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG, FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE,
-                    FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX, FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG,
-                    FortranWrapper.OFLAG, executable, src);
-        }
-        // Sync master to wait for compilation
-        for (i = 0; i < compilationEvs.length; ++i) {
-            LOGGER_FIXED.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
-            if (compilationEvs[i] != 0) {
-                throw new TaskExecutionException("[ERROR] Error compiling binary " + i);
+                compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG,
+                        FortranWrapper.CONVERT_PREFIX, FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG,
+                        FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
+                        FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src);
             }
+            for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
+                String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
+                String src = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_F_SRC;
+                compilationEvs[i++] = BINARY.fortranCompiler(FortranWrapper.MC_FLAG, FortranWrapper.SHARED_FLAG,
+                        FortranWrapper.CONVERT_PREFIX, FortranWrapper.CONVERT_VALUE, FortranWrapper.TRACEBACK_FLAG,
+                        FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
+                        FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src);
+            }
+            // Sync master to wait for compilation
+            for (i = 0; i < compilationEvs.length; ++i) {
+                LOGGER_FIXED.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
+                if (compilationEvs[i] != 0) {
+                    throw new TaskExecutionException("[ERROR] Error compiling binary " + i);
+                }
+            }
+            fixedMP.printInfoMsg("Finished building fixed executables");
         }
-
-        fixedMP.printInfoMsg("Finished building fixed executables");
 
         /* Begin binary calls ***********************************************************/
         fixedMP.printHeaderMsg("BEGIN");
 
         final int NUM_BINARIES = 16;
         Integer[] fixedBinariesEvs = new Integer[NUM_BINARIES];
-        i = 0;
+        int i = 0;
 
         fixedMP.printInfoMsg("Generate DEM height and sea mask files");
         String topoDir = NMMBEnvironment.GEODATA_DIR + "topo1kmDEM" + File.separator;
@@ -102,7 +104,6 @@ public class Nmmb {
 
         fixedMP.printInfoMsg("Generate landuse file");
         String landuseDataDir = NMMBEnvironment.GEODATA_DIR + "landuse_30s" + File.separator;
-        ;
         String landuse = NMMBEnvironment.OUTPUT + "landuse";
         String kount_landuse = NMMBEnvironment.OUTPUT + "kount_landuse";
         fixedBinariesEvs[i++] = BINARY.landuse(landuseDataDir, landuse, kount_landuse);
@@ -174,8 +175,9 @@ public class Nmmb {
         String lookup_aerosol2_rh90 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh90";
         String lookup_aerosol2_rh95 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh95";
         String lookup_aerosol2_rh99 = NMMBEnvironment.OUTPUT + "lookup_aerosol2.dat.rh99";
-        fixedBinariesEvs[i++] = BINARY.run_aerosol(lookup_aerosol2_rh00, lookup_aerosol2_rh50, lookup_aerosol2_rh70, lookup_aerosol2_rh80,
-                lookup_aerosol2_rh90, lookup_aerosol2_rh95, lookup_aerosol2_rh99);
+        fixedBinariesEvs[i++] = BINARY.run_aerosol(nmmbParams.isCompileBinaries(), nmmbParams.isCleanBinaries(), lookup_aerosol2_rh00,
+                lookup_aerosol2_rh50, lookup_aerosol2_rh70, lookup_aerosol2_rh80, lookup_aerosol2_rh90, lookup_aerosol2_rh95,
+                lookup_aerosol2_rh99);
 
         /* Wait for binaries completion and check exit value *****************************/
         for (i = 0; i < fixedBinariesEvs.length; ++i) {
@@ -186,19 +188,21 @@ public class Nmmb {
         }
 
         /* Clean Up binaries ************************************************************/
-        fixedMP.printInfoMsg("Clean up executables");
-        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
-            String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
-            File f = new File(executable);
-            if (f.exists()) {
-                f.delete();
+        if (nmmbParams.isCleanBinaries()) {
+            fixedMP.printInfoMsg("Clean up executables");
+            for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F90_FILES) {
+                String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
+                File f = new File(executable);
+                if (f.exists()) {
+                    f.delete();
+                }
             }
-        }
-        for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
-            String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
-            File f = new File(executable);
-            if (f.exists()) {
-                f.delete();
+            for (String fortranFile : FortranWrapper.FIXED_FORTRAN_F_FILES) {
+                String executable = NMMBEnvironment.FIX + fortranFile + FortranWrapper.SUFFIX_EXE;
+                File f = new File(executable);
+                if (f.exists()) {
+                    f.delete();
+                }
             }
         }
 
@@ -244,7 +248,7 @@ public class Nmmb {
         /* Build the fortran executables *************************************************/
         Integer[] compilationEvs = new Integer[FortranWrapper.VARIABLE_FORTRAN_F90_FILES.length
                 + FortranWrapper.VARIABLE_FORTRAN_F_FILES.length + FortranWrapper.VARIABLE_GFORTRAN_F_FILES.length
-                + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length];
+                + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_W3.length + FortranWrapper.VARIABLE_FORTRAN_F_FILES_WITH_DEPS.length + 1];
 
         int executableIndex = 0;
         for (String fortranFile : FortranWrapper.VARIABLE_FORTRAN_F90_FILES) {
@@ -291,6 +295,10 @@ public class Nmmb {
                     FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
                     FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src, object);
         }
+        String source = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_F_SRC;
+        String executable = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_EXE;
+        compilationEvs[executableIndex++] = BINARY.compileReadPaulSource(source, executable);
+
         // Sync master to wait for compilation
         for (int i = 0; i < compilationEvs.length; ++i) {
             LOGGER_VARIABLE.debug("Compilation of " + i + " binary ended with status " + compilationEvs[i]);
@@ -343,6 +351,11 @@ public class Nmmb {
                 f.delete();
             }
         }
+        String readPaulSource = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_EXE;
+        File f = new File(readPaulSource);
+        if (f.exists()) {
+            f.delete();
+        }
     }
 
     private static void doVariable(NMMBParameters nmmbParams, Date currentDate) throws TaskExecutionException {
@@ -353,9 +366,11 @@ public class Nmmb {
         MessagePrinter variableMP = new MessagePrinter(LOGGER_VARIABLE);
 
         /* Compile ************************************************************************/
-        variableMP.printInfoMsg("Building variable executables");
-        compileVariable();
-        variableMP.printInfoMsg("Finished building variable executables");
+        if (nmmbParams.isCompileBinaries()) {
+            variableMP.printInfoMsg("Building variable executables");
+            compileVariable();
+            variableMP.printInfoMsg("Finished building variable executables");
+        }
 
         /* Set variables for binary calls *************************************************/
         variableMP.printHeaderMsg("BEGIN");
@@ -515,8 +530,10 @@ public class Nmmb {
         variableMP.printHeaderMsg("END");
 
         /* Clean Up binaries ************************************************************/
-        variableMP.printInfoMsg("Clean up executables");
-        cleanUpVariableExe();
+        if (nmmbParams.isCleanBinaries()) {
+            variableMP.printInfoMsg("Clean up executables");
+            cleanUpVariableExe();
+        }
 
         /* Post execution **************************************************************/
         String folderOutputCase = NMMBEnvironment.OUTNMMB + nmmbParams.getCase() + File.separator;
@@ -704,18 +721,28 @@ public class Nmmb {
         nmmbParams.preparePostProcessExecution(currentDate);
         MessagePrinter postProcMP = new MessagePrinter(LOGGER_POST);
 
-        /* Begin MPI call ***********************************************************/
+        // Deploy files and compile binaries if needed
+        Integer evCompile = BINARY.preparePost(nmmbParams.isCompileBinaries(), folderOutput);
+        if (evCompile != 0) {
+            throw new TaskExecutionException("[ERROR] Error preparing post process");
+        }
+
+        /* Begin POST call ***********************************************************/
         postProcMP.printHeaderMsg("BEGIN");
 
         String domainSTR = (nmmbParams.getDomain()) ? "glob" : "reg";
         String dateHour = currentDateSTR + hourSTR;
-        Integer ev = BINARY.runPostprocAuth(folderOutput, domainSTR, dateHour);
+        String pout = folderOutput + "new_pout_*.nc";
+        String CTM = folderOutput + "NMMB-BSC-CTM_" + dateHour + "_" + domainSTR + ".nc";
 
-        /* Post execution **************************************************************/
-        LOGGER_POST.debug("Execution of POSTProcess ended with status " + ev);
+        Integer ev = BINARY.executePostprocAuth(folderOutput, pout, CTM);
+        LOGGER_POST.debug("Execution of NCRAT ended with status " + ev);
         if (ev != 0) {
             throw new TaskExecutionException("[ERROR] Error executing post process");
         }
+
+        /* Post execution **************************************************************/
+        nmmbParams.cleanPostProcessExecution(folderOutput);
 
         postProcMP.printHeaderMsg("END");
 

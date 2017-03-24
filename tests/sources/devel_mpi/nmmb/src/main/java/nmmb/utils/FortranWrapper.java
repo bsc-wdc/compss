@@ -72,6 +72,7 @@ public class FortranWrapper {
     public static final String MODULE_FLT = "module_flt"; // used by all_prep
     public static final String VEG_FRAC = "vegfrac";
     public static final String Z0_VEGUSTAR = "z0vegustar";
+    public static final String READ_PAUL_SOURCE = "read_paul_source"; // compiled in script
 
     public static final String[] VARIABLE_FORTRAN_F90_DEP_FILES = new String[] { MODULE_FLT };
 
@@ -89,5 +90,10 @@ public class FortranWrapper {
      * UMO MODEL FORTRAN FILES
      */
     public static final String NEMS = "NEMS";
+
+    /*
+     * POST PROCESS FORTRAN FILES
+     */
+    public static final String NEW_POSTALL = "new_postall";
 
 }

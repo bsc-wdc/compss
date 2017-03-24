@@ -111,6 +111,12 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String executable
     );
     
+    @Binary(binary = BinaryWrapper.COMPILE_READ_PAUL_SOURCE)
+    Integer compileReadPaulSource(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String source, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String executable
+    );
+    
     
     /*
      * ***************************************************************************************************
@@ -226,6 +232,8 @@ public interface NmmbItf {
 
     @Binary(binary = "${" + NMMBConstants.ENV_NAME_FIX + "}/lookup_tables/" + BinaryWrapper.RUN_AEROSOL)
     Integer run_aerosol(
+        @Parameter() boolean mustCompile, 
+        @Parameter() boolean mustClean, 
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh00,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh50, 
         @Parameter(type = Type.FILE, direction = Direction.OUT) String lookup_aerosol2_rh70, 
@@ -403,7 +411,7 @@ public interface NmmbItf {
     );
     
     
-    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + BinaryWrapper.READ_PAUL_SOURCE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_EXE)
     Integer readpaulsource(
         @Parameter(type = Type.FILE, direction = Direction.IN) String seamask,
         @Parameter(type = Type.FILE, direction = Direction.OUT) String source,
@@ -456,12 +464,18 @@ public interface NmmbItf {
      * ***************************************************************************************************
      * ***************************************************************************************************
      * ***************************************************************************************************
-     */
-    @Binary(binary = "${" + NMMBConstants.ENV_NAME_POST_CARBONO + "}/" + BinaryWrapper.RUN_POSTPROC_AUTH)
-    Integer runPostprocAuth(
+     */    
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_POST_CARBONO + "}/" + BinaryWrapper.PREPARE_POSTPROC_AUTH)
+    Integer preparePost(
+        @Parameter() boolean mustCompile, 
+        @Parameter(type = Type.STRING, direction = Direction.IN) String folderOutput
+    );
+    
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_POST_CARBONO + "}/" + BinaryWrapper.EXEC_POSTPROC_AUTH)
+    Integer executePostprocAuth(
         @Parameter(type = Type.STRING, direction = Direction.IN) String folderOutput,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String domain,
-        @Parameter(type = Type.STRING, direction = Direction.IN) String dateHour
+        @Parameter(type = Type.STRING, direction = Direction.IN) String sourcesPath, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String destFile
     );
     
 }

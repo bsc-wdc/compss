@@ -68,4 +68,15 @@ public class NmmbTest {
         LOGGER.info(" DAY    : " + DAY.format(date));
         LOGGER.info(" NAME   : " + NAME.format(date));
     }
+    
+    @Test
+    public void booleanToStrin() {
+        boolean a = true;
+        LOGGER.info("Boolean True = " + Boolean.toString(a));
+        LOGGER.info("Boolean True = " + String.valueOf(a));
+        
+        boolean b = false;
+        LOGGER.info("Boolean False = " + Boolean.toString(b));
+        LOGGER.info("Boolean False = " + String.valueOf(b));
+    }
 }

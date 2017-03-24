@@ -1,1 +1,0 @@
-run-postproc_auth_mt.sh

@@ -10,6 +10,11 @@ import java.text.SimpleDateFormat;
 public class NMMBConstants {
 
     // -----------------------------------------------------------------------
+    // Workflow modifications
+    public static final String CLEAN_BINARIES_NAME = "CLEAN_BINARIES";
+    public static final String COMPILE_BINARIES_NAME = "COMPILE_BINARIES";
+
+    // -----------------------------------------------------------------------
     // MN settings
     public static final String INPES_NAME = "INPES";
     public static final String JNPES_NAME = "JNPES";

@@ -48,6 +48,10 @@ public class BINARY {
         return null;
     }
 
+    public static Integer compileReadPaulSource(String source, String executable) {
+        return null;
+    }
+
     /*
      * ***************************************************************************************************
      * ***************************************************************************************************
@@ -120,8 +124,9 @@ public class BINARY {
         return null;
     }
 
-    public static Integer run_aerosol(String lookup_aerosol2_rh00, String lookup_aerosol2_rh50, String lookup_aerosol2_rh70,
-            String lookup_aerosol2_rh80, String lookup_aerosol2_rh90, String lookup_aerosol2_rh95, String lookup_aerosol2_rh99) {
+    public static Integer run_aerosol(boolean mustCompile, boolean mustClean, String lookup_aerosol2_rh00, String lookup_aerosol2_rh50,
+            String lookup_aerosol2_rh70, String lookup_aerosol2_rh80, String lookup_aerosol2_rh90, String lookup_aerosol2_rh95,
+            String lookup_aerosol2_rh99) {
 
         return null;
     }
@@ -216,7 +221,11 @@ public class BINARY {
      * ***************************************************************************************************
      * ***************************************************************************************************
      */
-    public static Integer runPostprocAuth(String folderOutput, String domain, String dateHour) {
+    public static Integer preparePost(boolean mustCompile, String folderOutput) {
+        return null;
+    }
+
+    public static Integer executePostprocAuth(String folderOutput, String sourcesPath, String destPath) {
         return null;
     }
 

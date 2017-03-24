@@ -28,7 +28,7 @@
 
   # Define script variables
   scriptDir=$(pwd)/$(dirname $0)
-  propertiesFile=${scriptDir}/nmmb_compss.properties
+  propertiesFile=${scriptDir}/nmmb_compss_MN.properties
 
   # Define NMMB.jar environment constants
   export NEMS_NODES=4

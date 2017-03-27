@@ -1,6 +1,5 @@
 package blast;
 
-import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Type;
@@ -9,6 +8,14 @@ import integratedtoolkit.types.annotations.task.Method;
 
 
 public interface BlastItf {
+    
+    @Method(declaringClass = "blast.BlastImpl")
+    void splitPartitions(
+        @Parameter(type = Type.FILE, direction = Direction.IN) String inputFileName, 
+        @Parameter(type = Type.FILE, direction = Direction.OUT) String partitionFile, 
+        @Parameter() int nFrags, 
+        @Parameter() int myFrag
+    );
     
     @Binary(binary = "${BLAST_BINARY}")
     Integer align(
@@ -36,7 +43,6 @@ public interface BlastItf {
     );
     
 	@Method(declaringClass = "blast.BlastImpl")
-	@Constraints(computingUnits = "2")
 	void assemblyPartitions(
 		@Parameter(type = Type.FILE, direction = Direction.INOUT) String partialFileA,
 		@Parameter(type = Type.FILE, direction = Direction.IN) String partialFileB

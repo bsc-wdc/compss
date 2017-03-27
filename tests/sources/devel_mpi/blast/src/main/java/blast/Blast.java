@@ -1,24 +1,20 @@
 package blast;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+
 import java.util.UUID;
-
-import binary.BINARY;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import binary.BINARY;
+
 import blast.BlastImpl;
 import blast.exceptions.BlastException;
+import blast.utils.FilesManagement;
 
 
 public class Blast {
@@ -47,7 +43,6 @@ public class Blast {
         // -------------------------------------------------------
         // Start execution
         Long startTotalTime = System.currentTimeMillis();
-
         try {
             // Split sequence input file
             splitSequenceFile();
@@ -59,7 +54,7 @@ public class Blast {
             String lastMerge = assembleSequences();
 
             // Move result to expected output file
-            moveResult(lastMerge);
+            FilesManagement.copyResult(lastMerge, Blast.outputFileName, Blast.debug);
         } catch (BlastException be) {
             throw be;
         } finally {
@@ -70,7 +65,7 @@ public class Blast {
         // -------------------------------------------------------
         // Log timers
         Long stopTotalTime = System.currentTimeMillis();
-        Long totalTime = (stopTotalTime - startTotalTime) / 1000;
+        Long totalTime = (stopTotalTime - startTotalTime) / 1_000;
         System.out.println("- " + Blast.inputFileName + " sequences aligned successfully in " + totalTime + " seconds");
         System.out.println("");
     }
@@ -105,6 +100,11 @@ public class Blast {
         System.out.println("");
     }
 
+    /**
+     * Splits the input sequence file into separated files
+     * 
+     * @throws BlastException
+     */
     private static void splitSequenceFile() throws BlastException {
         System.out.println("Split sequence file");
 
@@ -127,8 +127,8 @@ public class Blast {
 
         // Calculate seqs per fragment and needed files
         int seqsPerFragment = (int) Math.round(((double) nsequences / (double) Blast.numFragments));
-        Blast.partialInputs = new ArrayList<String>(Blast.numFragments);
-        Blast.partialOutputs = new ArrayList<String>(Blast.numFragments);
+        Blast.partialInputs = new ArrayList<>(Blast.numFragments);
+        Blast.partialOutputs = new ArrayList<>(Blast.numFragments);
 
         if (Blast.debug) {
             System.out.println("- The total number of sequences of a fragment is: " + seqsPerFragment);
@@ -136,47 +136,18 @@ public class Blast {
         }
 
         // Split into files
-        int frag = 0;
-        boolean append = true;
-        BufferedWriter bw = null;
-        try (BufferedReader bf = new BufferedReader(new FileReader(Blast.inputFileName))) {
-            String line = null;
-            while ((line = bf.readLine()) != null) {
-                if (line.contains(">")) {
-                    if (bw != null) {
-                        bw.close();
-                    }
-                    if (frag < Blast.numFragments) {
-                        // Creating fragment
-                        UUID index = UUID.randomUUID();
-                        String partitionFile = Blast.tmpDir + "seqFile" + index + ".sqf";
-                        String partitionOutput = Blast.tmpDir + "resFile" + index + ".result.txt";
+        for (int frag = 0; frag < Blast.numFragments; ++frag) {
+            // Creating fragment
+            UUID index = UUID.randomUUID();
+            String partitionFile = Blast.tmpDir + "seqFile" + index + ".sqf";
+            String partitionOutput = Blast.tmpDir + "resFile" + index + ".result.txt";
 
-                        // Store fileNames
-                        Blast.partialInputs.add(partitionFile);
-                        Blast.partialOutputs.add(partitionOutput);
-                    }
-                    // Preparing for writing to next fragment
-                    bw = new BufferedWriter(new FileWriter(Blast.partialInputs.get((frag % Blast.numFragments)), append));
-                    frag++;
-                }
-                bw.write(line);
-                bw.newLine();
-            }
-        } catch (IOException ioe) {
-            String msg = "ERROR: Cannot read input file " + Blast.inputFileName;
-            System.err.print(msg);
-            throw new BlastException(msg, ioe);
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException ioe) {
-                    String msg = "ERROR: Cannot close BW";
-                    System.err.print(msg);
-                    throw new BlastException(msg, ioe);
-                }
-            }
+            // Initialize partial fragment information
+            BlastImpl.splitPartitions(Blast.inputFileName, partitionFile, Blast.numFragments, frag);
+
+            // Store fileNames
+            Blast.partialInputs.add(partitionFile);
+            Blast.partialOutputs.add(partitionOutput);
         }
 
         if (Blast.debug) {
@@ -192,17 +163,18 @@ public class Blast {
     }
 
     /**
-     * Creates MAP Tasks
+     * Aligns each fragment
+     * 
      */
     private static void alignSequences() throws BlastException {
         System.out.println("");
         System.out.println("Aligning Sequences:");
 
-        String pFlag = "-p";
-        String pMode = "blastx";
-        String dFlag = "-d";
-        String iFlag = "-i";
-        String oFlag = "-o";
+        final String pFlag = "-p";
+        final String pMode = "blastx";
+        final String dFlag = "-d";
+        final String iFlag = "-i";
+        final String oFlag = "-o";
         int numAligns = Blast.partialInputs.size();
         Integer[] exitValues = new Integer[numAligns];
         for (int i = 0; i < numAligns; i++) {
@@ -235,7 +207,7 @@ public class Blast {
      */
     private static String assembleSequences() {
         // MERGE-REDUCE
-        LinkedList<Integer> q = new LinkedList<Integer>();
+        LinkedList<Integer> q = new LinkedList<>();
         for (int i = 0; i < Blast.partialOutputs.size(); i++) {
             q.add(i);
         }
@@ -257,33 +229,10 @@ public class Blast {
         return Blast.partialOutputs.get(0);
     }
 
-    private static void moveResult(String resultFile) throws BlastException {
-        if (Blast.debug) {
-            System.out.println("");
-            System.out.println("Moving last merged file: " + resultFile + " to " + Blast.outputFileName);
-            System.out.println("");
-        }
-
-        try (FileInputStream fis = new FileInputStream(resultFile)) {
-            copyFile(fis, new File(Blast.outputFileName));
-        } catch (IOException ioe) {
-            String msg = "ERROR: Cannot copy file " + resultFile + " to " + Blast.outputFileName;
-            System.err.print(msg);
-            throw new BlastException(msg, ioe);
-        }
-    }
-
-    private static void copyFile(FileInputStream sourceFile, File destFile) throws IOException {
-        try (FileChannel source = sourceFile.getChannel();
-                FileOutputStream outputDest = new FileOutputStream(destFile);
-                FileChannel destination = outputDest.getChannel()) {
-
-            destination.transferFrom(source, 0, source.size());
-        } catch (IOException ioe) {
-            throw ioe;
-        }
-    }
-
+    /**
+     * Cleans up the intermediate files
+     * 
+     */
     private static void cleanUp() {
         // Cleaning intermediate sequence input files
         for (int i = 0; i < Blast.partialInputs.size(); i++) {

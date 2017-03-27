@@ -13,4 +13,4 @@
   cp -f ${source_base_dir}/project.xml ${target_base_dir}/project.xml
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml
 
-  cp -f ${source_base_dir}/skip ${target_base_dir}/skip
+  #cp -f ${source_base_dir}/skip ${target_base_dir}/skip

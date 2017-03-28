@@ -44,6 +44,9 @@ public class Task implements Comparable<Task> {
     private final List<Task> predecessors;
     private final List<Task> successors;
 
+    // Syncrhonization point to which the task belongs
+    private int synchronizationId;
+
     // Scheduling info
     private Task enforcingTask;
     private final List<ExecutionAction<?, ?, ?>> executions;
@@ -148,6 +151,23 @@ public class Task implements Comparable<Task> {
      */
     public List<Task> getPredecessors() {
         return predecessors;
+    }
+
+    /**
+     * Sets the synchronization id of the task to @syncId
+     * 
+     */
+    public void setSynchronizationId(int syncId) {
+        this.synchronizationId = syncId;
+    }
+
+    /**
+     * Returns the syncrhonization Id of the task
+     * 
+     * @return
+     */
+    public int getSynchronizationId() {
+        return this.synchronizationId;
     }
 
     /**

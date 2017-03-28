@@ -5,26 +5,27 @@ digraph {
     ranksep=0.20;
     node[height=0.75];
 
-1[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
-Synchro0 -> 1[ label="d1" ];
-2[shape=doublecircle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
-1 -> 2[ label="d1" ];
-3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 3[ label="d2" ];
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 4[ label="d2" ];
+1 -> 4[ label="d1" ];
 5[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 2 -> 5[ label="d2" ];
 6[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 6[ label="d2" ];
+3 -> 6[ label="d3" ];
 7[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 7[ label="d2" ];
+4 -> 7[ label="d1" ];
 8[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 8[ label="d2" ];
+5 -> 8[ label="d2" ];
 9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 9[ label="d2" ];
+6 -> 9[ label="d3" ];
 10[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
-2 -> 10[ label="d2" ];  }
+7 -> 10[ label="d1" ];
+11[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+8 -> 11[ label="d2" ];
+12[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+9 -> 12[ label="d3" ];  }
   subgraph legend {
     rank=sink;
     node [shape=plaintext, height=0.75];
@@ -33,15 +34,11 @@ Synchro0 -> 1[ label="d1" ];
     key [label=<
       <table border="0" cellpadding="2" cellspacing="0" cellborder="0">
 <tr>
-<td align="right">initInitialP</td>
-<td bgcolor="#ff0000">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">globalTask</td>
+<td align="right">initialize</td>
 <td bgcolor="#0000ff">&nbsp;</td>
 </tr>
 <tr>
-<td align="right">normalTask</td>
+<td align="right">increment</td>
 <td bgcolor="#ffffff">&nbsp;</td>
 </tr>
       </table>

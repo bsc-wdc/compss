@@ -3,7 +3,8 @@
   # Obtain parameters
   output_file=$1 
   target_log_folder=$2
-  final_graph_expected=$3
+  baseAppDir=$3
+  app=$4
  
   # Log files
   runtime_log="${target_log_folder}/runtime.log"
@@ -26,28 +27,19 @@
     echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
     exit 1
   fi
+  
+  #----------------------------------------------------------------------------------  
+  # Check that the obtained graph is as expected
+  dotGot=${target_log_folder}/monitor/complete_graph.dot
+  dotExpected=${baseAppDir}/dots/${app}.dot
+  res=$(diff $dotGot $dotExpected)
+  if [ "$res" != "" ]; then
+    echo "[ERROR] Dots do not match. Check dot files" | tee -a ${output_file}
+    echo "GOT: ${dotGot}"
+    echo "EXPECTED: ${dotExpected}"
+    exit 1
+  fi 
 
   #----------------------------------------------------------------------------------
-  # Compute sparseLU result status
-  test_value=$(cat ${output_file} | grep "\[SUCCESS\]")
-
-  if [ -z "$test_value" ]; then
-    echo "[ERROR] Something went wrong. Check errors above." | tee -a ${output_file}
-    exit 1
-  fi
-
-  #----------------------------------------------------------------------------------
-  # Compute Graph status
-  final_graph_got=${target_log_folder}/monitor/complete_graph.dot
-  expectedDeps=$(cat ${final_graph_expected} | grep "\->" | wc -l)
-  gotDeps=$(cat ${final_graph_got} | grep "\->" | wc -l)
-  
-  if [ $expectedDeps -ne $gotDeps ]; then
-    echo "[ERROR] Obtained graph file is not as expected" | tee -a ${output_file}
-    echo "EXPECTED DEPS: ${expectedDeps}" | tee -a ${output_file}
-    echo "GOT DEPS:      ${gotDeps}" | tee -a ${output_file}
-    exit 1
-  fi
-  
+  # Success
   exit 0
-  

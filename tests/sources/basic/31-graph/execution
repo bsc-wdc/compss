@@ -20,43 +20,49 @@
   mkdir -p /tmp/COMPSsWorker01/
   
   #----------------------------------------------------------------------------------
-  # Run application 1 - Sparselu Objects
-  echo
-  echo "*** RUNNING JAVA APPLICATION GRAPH"
-  output_log="${target_log_folder}/graph_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/graph_0${retryNum}.errorlog"
-  expectedTime=1200s
-  path_ain="${base_app_dir}/java_sparseLU_A.in"
-  path_aout="${base_app_dir}/java_sparseLU_A.out"
-  final_graph_expected="${base_app_dir}/final_graph.dot"
-  
-  timeout --signal=2 $expectedTime ${COMPSs_exec} \
-     --lang=java \
-     --classpath=${base_app_dir}/graph.jar \
-     -g \
-     --debug \
-     --comm=$comm \
-     --project=${base_app_dir}/project.xml \
-     --resources=${base_app_dir}/resources.xml \
-     graph.objects.SparseLU $path_ain $path_aout > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-  
-  # Check timeout
-  if [[ "$?" = "124" ]]; then
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/graph.objects.SparseLU_0${retryNum}/* ${target_log_folder}
-     
-     #Report time out
-     echo "[WARNING] Java Application timed out" >> ${output_log}
-     exitValue=124
-  else
-     #Copy LOG files
-     cp -rf ${COMPSs_log_folder}/graph.objects.SparseLU_0${retryNum}/* ${target_log_folder}
+  totalExitValue=0
+  applications="simpleTests.Barrier simpleTests.Independent simpleTests.IndependentWithSync simpleTests.SingleChain simpleTests.SingleLongChain complexTests.TripleChainNoSync complexTests.TripleChainOneSync complexTests.TripleChainDoubleSync"
+  for app in $applications; do
+    echo
+    echo "*** RUNNING JAVA APPLICATION $app"
+    appLogFolder=${target_log_folder}/$app
+    mkdir -p ${appLogFolder}
+    output_log="${appLogFolder}/$app_0${retryNum}.outputlog"
+    error_log="${appLogFolder}/$app_0${retryNum}.errorlog"
     
-     #Check result
-     ${base_app_dir}/result ${output_log} ${target_log_folder} ${final_graph_expected}
-     exitValue=$?
-  fi
+    expectedTime=60s
+    timeout --signal=2 $expectedTime ${COMPSs_exec} \
+      --lang=java \
+      --classpath=${base_app_dir}/graph.jar \
+      -g \
+      --debug \
+      --comm=$comm \
+      --project=${base_app_dir}/project.xml \
+      --resources=${base_app_dir}/resources.xml \
+      $app > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+      
+    # Check timeout
+    if [[ "$?" = "124" ]]; then
+      # Copy LOG files
+      cp -rf ${COMPSs_log_folder}/${app}_0${retryNum}/* ${appLogFolder}
+     
+      # Report time out
+      echo "[WARNING] Java Application timed out" >> ${output_log}
+      exitValue=124
+    else
+      # Copy LOG files
+      cp -rf ${COMPSs_log_folder}/${app}_0${retryNum}/* ${appLogFolder}
+    
+      # Check result
+      ${base_app_dir}/result ${output_log} ${appLogFolder} ${base_app_dir} ${app}
+      exitValue=$?
+    fi
+    
+    if [ $exitValue -ne 0 ]; then
+      totalExitValue=$exitValue
+    fi
+  done
 
   #----------------------------------------------------------------------------------
   # Return execution status
-  exit $exitValue
+  exit ${totalExitValue}

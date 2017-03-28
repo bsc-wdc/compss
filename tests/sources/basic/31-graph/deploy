@@ -12,9 +12,5 @@
   
   cp -f ${source_base_dir}/execution ${target_base_dir}/execution
   cp -f ${source_base_dir}/result ${target_base_dir}/result
- 
-  # Auxiliar result files 
-  cp -f ${source_base_dir}/A.in ${target_base_dir}/java_sparseLU_A.in
-  cp -f ${source_base_dir}/A.out ${target_base_dir}/java_sparseLU_A.out
-  cp -f ${source_base_dir}/final_graph.dot ${target_base_dir}/final_graph.dot
-
+  
+  cp -rf ${source_base_dir}/dots ${target_base_dir}

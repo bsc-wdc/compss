@@ -1,0 +1,44 @@
+digraph {
+  rankdir=TB;
+  labeljust="l";
+  subgraph dependence_graph {
+    ranksep=0.20;
+    node[height=0.75];
+
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+3[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+Synchro1[label="barrier", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+1 -> Synchro1;
+2 -> Synchro1;
+3 -> Synchro1;
+4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro1 -> 4[ label="d1" ];
+5[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro1 -> 5[ label="d2" ];
+6[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+Synchro1 -> 6[ label="d3" ];
+Synchro2[label="sync", shape=octagon, style=filled fillcolor="#ff0000" fontcolor="#FFFFFF"];
+Synchro1 -> Synchro2;
+4 -> Synchro2[ label="d1" ];
+5 -> Synchro2[ label="d2" ];
+6 -> Synchro2[ label="d3" ];  }
+  subgraph legend {
+    rank=sink;
+    node [shape=plaintext, height=0.75];
+    ranksep=0.20;
+    label = "Legend";
+    key [label=<
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+<tr>
+<td align="right">initialize</td>
+<td bgcolor="#0000ff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">increment</td>
+<td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+      </table>
+    >]
+  }
+}

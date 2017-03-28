@@ -73,6 +73,13 @@ class testArgsKwargsFunctions(unittest.TestCase):
         result = compss_wait_on(pending)
         self.assertEqual(result, 0)
 
+    # args is not empty but args are an unpacked tuple
+    def testArgTask4(self):
+        my_tup = (1,2,3,4)
+        pending = argTask(*my_tup)
+        result = compss_wait_on(pending)
+        self.assertEqual(result, 10)
+
     '''
         FUNCTION WITH ARGS + *ARGS
     '''

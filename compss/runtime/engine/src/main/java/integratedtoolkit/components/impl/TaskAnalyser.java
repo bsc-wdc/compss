@@ -4,6 +4,7 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
@@ -537,7 +538,7 @@ public class TaskAnalyser {
             }
             // Add dependency
             currentTask.addDataDependency(lastWriter);
-            
+
             // Draw dependency to graph
             if (drawGraph) {
                 addEdgeFromTaskToTask(lastWriter, currentTask, dataId);
@@ -682,8 +683,12 @@ public class TaskAnalyser {
         }
 
         // Add edges from writers to barrier
-        for (Task writer : writers.values()) {
-            this.GM.addEdgeToGraph(String.valueOf(writer.getId()), "Synchro" + synchronizationId, "");
+        HashSet<Task> uniqueWriters = new HashSet<>(writers.values());
+        for (Task writer : uniqueWriters) {
+            if (writer.getSynchronizationId() == (synchronizationId - 1)) {
+                this.GM.addEdgeToGraph(String.valueOf(writer.getId()), "Synchro" + synchronizationId, "");
+            }
         }
     }
+    
 }

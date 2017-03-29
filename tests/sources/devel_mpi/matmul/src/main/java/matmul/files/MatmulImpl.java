@@ -4,11 +4,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 
+/**
+ * Implementation of Task methods
+ *
+ */
 public class MatmulImpl {
 
     private static final byte[] NEW_LINE = "\n".getBytes();
 
 
+    /**
+     * Initializes a block of size @BSIZE and stores it to @filename
+     * 
+     * @param filename
+     * @param BSIZE
+     * @param initRand
+     * @throws IOException
+     */
     public static void initializeBlock(String filename, int BSIZE, boolean initRand) throws IOException {
         try (FileOutputStream fos = new FileOutputStream(filename)) {
             for (int iblock = 0; iblock < BSIZE; ++iblock) {
@@ -28,6 +40,15 @@ public class MatmulImpl {
         }
     }
 
+    /**
+     * Multiplies blocks @aFile and @bFile, accumulates result on block @cFile and stores it to disk
+     * 
+     * @param BSIZE
+     * @param aFile
+     * @param bFile
+     * @param cFile
+     * @return
+     */
     public static Integer multiplyAccumulativeNative(int BSIZE, String aFile, String bFile, String cFile) {
         Block a = new Block(BSIZE, aFile);
         Block b = new Block(BSIZE, bFile);

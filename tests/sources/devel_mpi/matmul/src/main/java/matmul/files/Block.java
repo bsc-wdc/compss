@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 
+/**
+ * Block representation
+ *
+ */
 public class Block {
 
     private static final byte[] NEW_LINE = "\n".getBytes();
@@ -16,6 +20,12 @@ public class Block {
     private final double[][] data;
 
 
+    /**
+     * Initialization of a block of size @bSize from file @filename
+     * 
+     * @param bSize
+     * @param filename
+     */
     public Block(int bSize, String filename) {
         this.bSize = bSize;
         this.data = new double[this.bSize][this.bSize];
@@ -42,15 +52,11 @@ public class Block {
 
     }
 
-    protected void printBlock() {
-        for (int i = 0; i < this.bSize; i++) {
-            for (int j = 0; j < this.bSize; j++) {
-                System.out.print(this.data[i][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-
+    /**
+     * Dumps the content of the block to file @filename
+     * 
+     * @param filename
+     */
     public void blockToDisk(String filename) {
         try (FileOutputStream fos = new FileOutputStream(filename)) {
             for (int i = 0; i < this.bSize; i++) {
@@ -69,10 +75,16 @@ public class Block {
         }
     }
 
+    /**
+     * Multiplicates blocks @a and @b and accumulates result on the current block
+     * 
+     * @param a
+     * @param b
+     */
     public void multiplyAccum(Block a, Block b) {
-        for (int i = 0; i < this.bSize; i++) {
-            for (int j = 0; j < this.bSize; j++) {
-                for (int k = 0; k < this.bSize; k++) {
+        for (int i = 0; i < this.bSize; ++i) {
+            for (int k = 0; k < this.bSize; ++k) {
+                for (int j = 0; j < this.bSize; ++j) {
                     this.data[i][j] += a.data[i][k] * b.data[k][j];
                 }
             }

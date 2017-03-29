@@ -2,9 +2,14 @@ package matmul.files;
 
 import java.io.IOException;
 
+import integratedtoolkit.api.COMPSs;
 import mpi.MPI;
 
 
+/**
+ * MATMUL Implementation
+ *
+ */
 public class Matmul {
 
     private static int TYPE;
@@ -16,14 +21,16 @@ public class Matmul {
     private static String[][] CfileNames;
 
 
-    private static void usage() {
-        System.out.println("    Usage: matmul.files.Matmul <type> <MSize> <BSize>");
-    }
-
+    /**
+     * MAIN CODE
+     * 
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         // Check and get parameters
         if (args.length != 3) {
-            usage();
+            System.out.println("Usage: matmul.files.Matmul <type> <MSize> <BSize>");
             throw new Exception("[ERROR] Incorrect number of parameters");
         }
         TYPE = Integer.parseInt(args[0]);
@@ -39,8 +46,8 @@ public class Matmul {
         initializeMatrix(BfileNames, true);
         initializeMatrix(CfileNames, false);
 
-        // Wait for runtime
-        Thread.sleep(3_000);
+        // Wait for initialization
+        COMPSs.barrier();
 
         // Compute matrix multiplication C = A x B
         long startTime = System.currentTimeMillis();
@@ -52,6 +59,10 @@ public class Matmul {
         System.out.println("[LOG] Main program finished.");
     }
 
+    /**
+     * Initializes the filenames
+     * 
+     */
     private static void initializeVariables() {
         AfileNames = new String[MSIZE][MSIZE];
         BfileNames = new String[MSIZE][MSIZE];
@@ -65,6 +76,13 @@ public class Matmul {
         }
     }
 
+    /**
+     * Initializes each fileName with random values or 0s
+     * 
+     * @param fileNames
+     * @param initRand
+     * @throws IOException
+     */
     private static void initializeMatrix(String[][] fileNames, boolean initRand) throws IOException {
         for (int i = 0; i < MSIZE; ++i) {
             for (int j = 0; j < MSIZE; ++j) {
@@ -73,14 +91,18 @@ public class Matmul {
         }
     }
 
+    /**
+     * Main loop of matrix multiplication
+     * 
+     */
     private static void computeMultiplication() {
         System.out.println("[LOG] Computing result");
         Integer[][][] exitValues = new Integer[MSIZE][MSIZE][MSIZE];
 
         // Launch tasks
-        for (int i = 0; i < MSIZE; i++) {
-            for (int j = 0; j < MSIZE; j++) {
-                for (int k = 0; k < MSIZE; k++) {
+        for (int i = 0; i < MSIZE; ++i) {
+            for (int k = 0; k < MSIZE; ++k) {
+                for (int j = 0; j < MSIZE; ++j) {
                     switch (TYPE) {
                         case 1:
                             exitValues[i][j][k] = MatmulImpl.multiplyAccumulativeNative(BSIZE, AfileNames[i][k], BfileNames[k][j],
@@ -98,7 +120,7 @@ public class Matmul {
             }
         }
 
-        // Wait loop
+        // Sync: Wait loop
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
                 for (int k = 0; k < MSIZE; k++) {

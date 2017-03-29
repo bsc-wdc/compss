@@ -17,6 +17,10 @@ import blast.exceptions.BlastException;
 import blast.utils.FilesManagement;
 
 
+/**
+ * BLAST implementation
+ *
+ */
 public class Blast {
 
     private static final String ENV_BLAST_BINARY = "BLAST_BINARY";
@@ -33,6 +37,12 @@ public class Blast {
     private static List<String> partialInputs = null;
 
 
+    /**
+     * MAIN CODE
+     * 
+     * @param args
+     * @throws BlastException
+     */
     public static void main(String[] args) throws BlastException {
         // Parse application parameters
         parseArgs(args);
@@ -70,6 +80,11 @@ public class Blast {
         System.out.println("");
     }
 
+    /**
+     * Parses the input parameters and initializes the class atributes
+     * 
+     * @param args
+     */
     private static void parseArgs(String[] args) {
         Blast.debug = Boolean.parseBoolean(args[0]);
         Blast.databasePath = args[1];
@@ -84,6 +99,10 @@ public class Blast {
         }
     }
 
+    /**
+     * Prints the class attributes used for the execution
+     * 
+     */
     private static void logArgs() {
         System.out.println("BLAST Sequence Alignment Tool");
         System.out.println("");

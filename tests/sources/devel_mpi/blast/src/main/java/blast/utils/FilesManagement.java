@@ -9,6 +9,10 @@ import java.nio.channels.FileChannel;
 import blast.exceptions.BlastException;
 
 
+/**
+ * Provides functionalities to handle files
+ *
+ */
 public class FilesManagement {
 
     /**

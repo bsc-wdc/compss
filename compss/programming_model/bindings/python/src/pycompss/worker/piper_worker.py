@@ -112,6 +112,12 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     stdout = sys.stdout
     stderr = sys.stderr
 
+
+    local_cache = None
+    if USE_CACHE:
+        from pycompss.persistent_cache import Cache
+        local_cache = Cache(size_limit = 200 * 1024**2)
+
     logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
     while alive:
         with open(input_pipe, 'r', 0) as in_pipe:
@@ -147,7 +153,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
                             err = open(job_err, 'w')
                             sys.stdout = out
                             sys.stderr = err
-                            exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe)
+                            exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe, local_cache)
                             sys.stdout = stdout
                             sys.stderr = stderr
                             out.close()
@@ -183,7 +189,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
 #####################################
 # Execute Task Method - Task handler
 #####################################
-def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
+def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, local_cache):
     """
     ExecuteTask main method
     """
@@ -195,7 +201,8 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe):
         'compss_tracing' : tracing,
         'compss_cache_queue': cache_queue,
         'compss_cache_pipe': cache_pipe,
-        'compss_process_name': process_name
+        'compss_process_name': process_name,
+        'compss_local_cache': local_cache,
     }
 
     # Retrieve the parameters from the params argument
@@ -438,7 +445,7 @@ def shutdown_handler(signal, frame):
             proc.terminate()
 
 
-USE_CACHE = False
+USE_CACHE = True
 # tamanyo
 # politica/s de borrado
 

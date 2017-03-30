@@ -445,7 +445,7 @@ def shutdown_handler(signal, frame):
             proc.terminate()
 
 
-USE_CACHE = True
+USE_CACHE = False
 # tamanyo
 # politica/s de borrado
 

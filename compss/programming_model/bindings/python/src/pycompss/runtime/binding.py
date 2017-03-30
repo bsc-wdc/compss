@@ -27,23 +27,22 @@ from pycompss.api.parameter import *
 from pycompss.util.serializer import *
 from pycompss.util.sizer import total_sizeof
 
-#from tempfile import mkdtemp
-from shutil import rmtree
-
 import types
 import os
 import re
-import sys
 import inspect
 import logging
 import traceback
 from collections import *
+from shutil import rmtree
 
+# Import main C module extension for the communication with the runtime
 import compss
 
+# Types conversion dictionary from python to COMPSs
 python_to_compss = {types.IntType: Type.INT,          # int
                     types.LongType: Type.LONG,        # long
-                    types.FloatType: Type.DOUBLE,      # float
+                    types.FloatType: Type.DOUBLE,     # float
                     types.BooleanType: Type.BOOLEAN,  # bool
                     types.StringType: Type.STRING,    # str
                     # The type of instances of user-defined classes
@@ -62,25 +61,31 @@ python_to_compss = {types.IntType: Type.INT,          # int
                     types.DictType: Type.OBJECT
                     }
 
-# temp_dir = mkdtemp(prefix='pycompss', dir=os.getcwd())
-temp_dir = ''
+# Set temporary dir
+temp_dir = '.'
 temp_obj_prefix = "/compss-serialized-obj_"
 
+# Dictionary to contain the conversion from object id to the filename where it is stored (mapping).
+# The filename will be used for requesting an object to the runtime (its corresponding version).
 objid_to_filename = {}
 
+# Dictionary that contains the objects used within tasks.
 task_objects = {}
 
 # Objects that have been accessed by the main program
 objs_written_by_mp = {}  # obj_id -> compss_file_name
 
-# 1.3:
-# init_logging(os.getenv('IT_HOME') + '/../Bindings/python/log/logging.json')
-logger = logging.getLogger(__name__)
-
 # Enable or disable small objects conversion to strings
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
+# Setup logger
+logger = logging.getLogger(__name__)
+
+
+###############################################################################
+############################# CLASSES #########################################
+###############################################################################
 
 class Function_Type:
     FUNCTION = 1
@@ -90,16 +95,14 @@ class Function_Type:
 
 class Future(object):
     """
-    Future object class definition (iterable).
+    Future object class definition.
     """
     pass
-    '''
-    def __init__(self, num_fos):
-        self.list = [FO() for _ in xrange(num_fos)]
 
-    def __iter__(self):
-        return iter(self.list)
-    '''
+
+###############################################################################
+############# FUNCTIONS THAT COMMUNICATE WITH THE RUNTIME #####################
+###############################################################################
 
 def start_runtime():
     """
@@ -271,6 +274,7 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
         if ftype == Function_Type.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
+    # TODO: ESTO ENTERO TAMBIEN PUEDE IR EN UNA FUNCION (CREAR OBJETO DE RETORNO)
     ret_type = deco_kwargs['returns']
     fu = []
     if ret_type:
@@ -373,143 +377,22 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
-        # Evaluates the size before serializing it
         if object_conversion:
-            if (p.type == Type.OBJECT or p.type == Type.STRING) and \
-               not is_future.get(i) and p.direction == Direction.IN:
-                if not isinstance(p.value, basestring) and \
-                   isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
-                    # check object size
-                    # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
-                    bytes = total_sizeof(p.value)
-                    megabytes = bytes / 1000000  # truncate
-                    logger.debug("Object size %d bytes (%d Mb)." % (bytes, megabytes))
-
-                    if bytes < max_obj_arg_size:  # be careful... more than this value produces:
-                        # Cannot run program "/bin/bash"...: error=7, La lista de argumentos es demasiado larga
-                        logger.debug("The object size is less than 320 kb.")
-                        real_value = p.value
-                        try:
-                            v = serialize_to_string(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
-                            v = '\"' + v + '\"'
-                            p.value = v
-                            p.type = Type.STRING
-                            logger.debug("Inferred type modified (Object converted to String).")
-                            # more than one object converted to string may appear
-                            max_obj_arg_size -= bytes
-                        except SerializerException:
-                            p.value = real_value
-                            p.type = Type.OBJECT
-                            logger.debug("The object cannot be converted due to: not serializable.")
-                    else:
-                        p.type = Type.OBJECT
-                        logger.debug("Inferred type reestablished to Object.")
-                        # if the parameter converts to an object, release the size to be used for converted objects?
-                        # No more objects can be converted
-                        # max_obj_arg_size += bytes
-                        # if max_obj_arg_size > 320000:
-                        #     max_obj_arg_size = 320000
-            '''
-            ############################################################
-            # Check if the object is small in order not to serialize it.
-            # THIS ALTERNATIVE EVALUATES THE SIZE AFTER SERIALIZING THE PARAMETER
-            if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i)
-                                                                and p.direction == Direction.IN:
-                if not isinstance(p.value, basestring):
-                    real_value = p.value
-                    try:
-                        v = dumps(p.value) # can not use protocol=HIGHEST_PROTOCOL due to it is passed as a parameter
-                        v = '\"' + v + '\"'
-                        # check object size
-                        bytes = sys.getsizeof(v)
-                        megabytes = bytes / 1000000 # truncate
-                        logger.debug("Object size %d bytes (%d Mb)." % (bytes, megabytes))
-                        if bytes < max_obj_arg_size: # be careful... more than this value produces:
-                            # Cannot run program "/bin/bash"...: error=7, La lista de argumentos es demasiado larga
-                            logger.debug("The object size is less than 320 kb.")
-                            p.value = v
-                            p.type = Type.STRING
-                            logger.debug("Inferred type modified (Object converted to String).")
-                            # more than one object converted to string may appear
-                            max_obj_arg_size -= bytes
-                        else:
-                            p.value = real_value
-                            p.type = Type.OBJECT
-                            logger.debug("Inferred type reestablished to Object.")
-                            # if the parameter converts to an object, release the size to be used for converted objects?
-                            # No more objects can be converted
-                            #max_obj_arg_size += bytes
-                            #if max_obj_arg_size > 320000:
-                            #    max_obj_arg_size = 320000
-                    except PicklingError:
-                        p.value = real_value
-                        p.type = Type.OBJECT
-                        logger.debug("The object cannot be converted due to: not serializable.")
-            ############################################################
-            '''
+            p, bytes = convert_object_to_string(p, is_future, policy="objectSize")
+            max_obj_arg_size -= bytes
 
         # Serialize objects into files
-        if p.type == Type.OBJECT or is_future.get(i):
-            # 2nd condition: real type can be primitive,
-            # but now it's acting as a future (object)
-            try:
-                # Check if the Object is a list composed by future objects
-                # This could be delegated to the runtime.
-                # Will have to be discussed.
-                if(val_type == type(list())):
-                    # Is there a future object within the list?
-                    if any(isinstance(v, (Future)) for v in p.value):
-                        logger.debug("Found a list that contains future objects - synchronizing...")
-                        mode = get_compss_mode('in')
-                        p.value = map(synchronize, p.value, [mode] * len(p.value))
-                turn_into_file(p)
-            except SerializerException:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-                logger.exception("Pickling error exception: non-serializable object found as a parameter.")
-                logger.exception(''.join(line for line in lines))
-                print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")
-                print("[ ERROR ]: Task: %s --> Parameter: %s" % (f.__name__, spec_arg))
-                print("[ ERROR ]: Value: %s" % p.value)
-                raise       # raise the exception up tu launch.py in order to point where the error is in the user code.
-                # return fu  # the execution continues, but without processing this task
-        elif p.type == Type.EXTERNAL_PSCO:
-            manage_persistent(p)
-        elif p.type == Type.INT:
-            if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
-                # This must go through Java as a long to prevent overflow
-                # with Java int
-                p.type = Type.LONG
-        elif p.type == Type.LONG:
-            if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
-                # This must be serialized to prevent overflow with Java long
-                p.type = Type.OBJECT
-                turn_into_file(p)
+        p = serialize_object_into_file(p, is_future, i, val_type)
 
         logger.debug("Final type for parameter %s: %d" % (spec_arg, p.type))
 
     # Build values and COMPSs types and directions
-    values = []
-    compss_types = []
-    compss_directions = []
-    if ftype == Function_Type.INSTANCE_METHOD:
-        ra = range(1, num_pars)
-        ra.append(0)  # callee is the last
-    else:
-        ra = range(first_par, num_pars)
-    for i in ra:
-        spec_arg = spec_args[i]
-        p = deco_kwargs[spec_arg]
-        values.append(p.value)
-        if p.type == Type.OBJECT or is_future.get(i):
-            compss_types.append(Type.FILE)
-        else:
-            compss_types.append(p.type)
-        compss_directions.append(p.direction)
+    values, compss_types, compss_directions = build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future)
 
-    # Priority
+    # Get priority
     has_priority = deco_kwargs['priority']
 
+    # Log the task submission values for debugging purposes.
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
         types_str = ''
@@ -526,11 +409,23 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
         logger.debug("\t- Function name: " + f.__name__)
         logger.debug("\t- Priority: " + str(has_priority))
         logger.debug("\t- Has target: " + str(has_target))
-        logger.debug("\t- Num params: " + str(num_pars))
         logger.debug("\t- Values: " + values_str)
         logger.debug("\t- COMPSs types: " + types_str)
         logger.debug("\t- COMPSs directions: " + direct_str)
 
+    # Check that there is the same amount of values as their types, as well as their directions.
+    assert(len(values) == len(compss_types) and len(values) == len(compss_directions))
+
+    # Submit task to the runtime (call to the C extension):
+    # Parameters:
+    #    0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
+    #    1 - <String>    - path of the module where the task is
+    #    2 - <String>    - function name of the task (to be called from the worker)
+    #    3 - <String>    - priority flag (true|false)
+    #    4 - <String>    - has target (true|false). If the task is within an object or not.
+    #    5 - [<String>]  - task parameters (basic types or file paths for objects)
+    #    6 - [<Integer>] - parameters types (number corresponding to the type of each parameter)
+    #    7 - [<Integer>] - parameters directions (number corresponding to the direction of each parameter)
     compss.process_task(app_id,
                         path,
                         f.__name__,
@@ -538,25 +433,191 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
                         has_target,
                         values, compss_types, compss_directions)
 
+    # Return the future object/s corresponding to the task
+    # This object will substitute the user expected return from the task and will be used later for
+    # synchronization or as a task parameter (then the runtime will take care of the dependency.
     return fu
 
 
-'''
-def manage_persistent(p):
-    if p.direction == Direction.IN:
-        p.type = Type.EXTERNAL_PSCO
-        obj_id = p.value.getID()
-        task_objects[obj_id] = obj_id
-        p.value = obj_id
-    else:
-        p.type = Type.OBJECT
-        turn_into_file(p)
-'''
+###############################################################################
+######################## AUXILIARY FUNCTIONS ##################################
+###############################################################################
 
-def manage_persistent(p):
+
+def serialize_object_into_file(p, is_future, i, val_type):
+    """
+    Serialize an object into a file if necessary.
+    :param p: object wrapper
+    :param is_future: if is a future object <boolean>
+    :param i: parameter position
+    :param val_type: value type
+    :return: p (whose type can have been modified)
+    """
+    if p.type == Type.OBJECT or is_future.get(i):
+        # 2nd condition: real type can be primitive,
+        # but now it's acting as a future (object)
+        try:
+            # Check if the Object is a list composed by future objects
+            # This could be delegated to the runtime.
+            # Will have to be discussed.
+            if (val_type == type(list())):
+                # Is there a future object within the list?
+                if any(isinstance(v, (Future)) for v in p.value):
+                    logger.debug("Found a list that contains future objects - synchronizing...")
+                    mode = get_compss_mode('in')
+                    p.value = map(synchronize, p.value, [mode] * len(p.value))
+            turn_into_file(p)
+        except SerializerException:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+            logger.exception("Pickling error exception: non-serializable object found as a parameter.")
+            logger.exception(''.join(line for line in lines))
+            print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")
+            print("[ ERROR ]: Task: %s --> Parameter: %s" % (f.__name__, spec_arg))
+            print("[ ERROR ]: Value: %s" % p.value)
+            raise  # raise the exception up tu launch.py in order to point where the error is in the user code.
+            # return fu  # the execution continues, but without processing this task
+    elif p.type == Type.EXTERNAL_PSCO:
+        manage_persistent_object(p)
+    elif p.type == Type.INT:
+        if p.value > JAVA_MAX_INT or p.value < JAVA_MIN_INT:
+            # This must go through Java as a long to prevent overflow
+            # with Java int
+            p.type = Type.LONG
+    elif p.type == Type.LONG:
+        if p.value > JAVA_MAX_LONG or p.value < JAVA_MIN_LONG:
+            # This must be serialized to prevent overflow with Java long
+            p.type = Type.OBJECT
+            turn_into_file(p)
+    return p
+
+
+def convert_object_to_string(p, is_future, max_obj_arg_size, policy="objectSize"):
+    """
+    Convert small objects into string that can fit into the task parameters call
+    :param p: object wrapper
+    :param is_future: if is a future object <boolean>
+    :param max_obj_arg_size: max size of the object to be converted
+    :param policy: policy to use: "objectSize" for considering the size of the object or "serializedSize" for
+    considering the size of the object serialized.
+    :return: the object possibly converted to string
+    """
+    if policy == "objectSize":
+        # Check if the object is small in order to serialize it.
+        # THIS ALTERNATIVE EVALUATES THE SIZE OF THE OBJECT BEFORE SERIALIZING THE OBJECT
+        if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
+            if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
+                # check object size
+                # bytes = sys.getsizeof(p.value)  # does not work properly with recursive object
+                bytes = total_sizeof(p.value)
+                megabytes = bytes / 1000000  # truncate
+                logger.debug("Object size %d bytes (%d Mb)." % (bytes, megabytes))
+
+                if bytes < max_obj_arg_size:  # be careful... more than this value produces:
+                    # Cannot run program "/bin/bash"...: error=7, La lista de argumentos es demasiado larga
+                    logger.debug("The object size is less than 320 kb.")
+                    real_value = p.value
+                    try:
+                        v = serialize_to_string(p.value)  # can not use protocol=HIGHEST_PROTOCOL due to it is sent as a parameter
+                        v = '\"' + v + '\"'
+                        p.value = v
+                        p.type = Type.STRING
+                        logger.debug("Inferred type modified (Object converted to String).")
+                    except SerializerException:
+                        p.value = real_value
+                        p.type = Type.OBJECT
+                        logger.debug("The object cannot be converted due to: not serializable.")
+                else:
+                    p.type = Type.OBJECT
+                    logger.debug("Inferred type reestablished to Object.")
+                    # if the parameter converts to an object, release the size to be used for converted objects?
+                    # No more objects can be converted
+                    # max_obj_arg_size += bytes
+                    # if max_obj_arg_size > 320000:
+                    #     max_obj_arg_size = 320000
+    elif policy == "serializedSize":
+        # Check if the object is small in order to serialize it.
+        # THIS ALTERNATIVE EVALUATES THE SIZE AFTER SERIALIZING THE PARAMETER
+        if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
+            if not isinstance(p.value, basestring):
+                real_value = p.value
+                try:
+                    v = dumps(p.value) # can not use protocol=HIGHEST_PROTOCOL due to it is passed as a parameter
+                    v = '\"' + v + '\"'
+                    # check object size
+                    bytes = sys.getsizeof(v)
+                    megabytes = bytes / 1000000 # truncate
+                    logger.debug("Object size %d bytes (%d Mb)." % (bytes, megabytes))
+                    if bytes < max_obj_arg_size: # be careful... more than this value produces:
+                        # Cannot run program "/bin/bash"...: error=7, La lista de argumentos es demasiado larga
+                        logger.debug("The object size is less than 320 kb.")
+                        p.value = v
+                        p.type = Type.STRING
+                        logger.debug("Inferred type modified (Object converted to String).")
+                    else:
+                        p.value = real_value
+                        p.type = Type.OBJECT
+                        logger.debug("Inferred type reestablished to Object.")
+                        # if the parameter converts to an object, release the size to be used for converted objects?
+                        # No more objects can be converted
+                        #max_obj_arg_size += bytes
+                        #if max_obj_arg_size > 320000:
+                        #    max_obj_arg_size = 320000
+                except PicklingError:
+                    p.value = real_value
+                    p.type = Type.OBJECT
+                    logger.debug("The object cannot be converted due to: not serializable.")
+    else:
+        logger.debug("[ERROR] Wrong convert_objects_to_strings policy.")
+        raise  # Raise the exception and stop the execution
+    return p, bytes
+
+
+def build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future):
+    """
+    Build the values list, the values types list and the values directions list.
+    :param ftype: task function type. If it is an instance method, the first parameter will be put at the end.
+    :param first_par: first parameter <Integer>
+    :param num_pars:  number of parameters <Integer>
+    :param spec_args: function spec_args
+    :param deco_kwargs: function deco_kwargs
+    :param is_future: is future dictionary
+    :return: three lists: values, their types and their directions
+    """
+    values = []
+    compss_types = []
+    compss_directions = []
+    # Build the range of elements
+    if ftype == Function_Type.INSTANCE_METHOD:
+        ra = range(1, num_pars)
+        ra.append(0)  # callee is the last
+    else:
+        ra = range(first_par, num_pars)
+    # Fill the values, compss_types and compss_directions lists
+    for i in ra:
+        spec_arg = spec_args[i]
+        p = deco_kwargs[spec_arg]
+        values.append(p.value)
+        if p.type == Type.OBJECT or is_future.get(i):
+            compss_types.append(Type.FILE)
+        else:
+            compss_types.append(p.type)
+        compss_directions.append(p.direction)
+    return values, compss_types, compss_directions
+
+
+def manage_persistent_object(p):
+    """
+    Does the necessary actions over a persistent object used as task parameter.
+    Check if the object has already been used (indexed in the objid_to_filename dictionary)
+    In particular, saves the object id provided by the persistent storage (getID()) into the task_objects dictionary.
+    :param p: wrapper of the object to manage
+    """
+    # TODO: This code will have to be reviewed when the final implementation of Persistent workers is done.
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
     if p.direction == Direction.IN and file_name is None and obj_id not in objs_written_by_mp:
+        # This is the first time a task accesses this object
         p.type = Type.EXTERNAL_PSCO
         obj_id = p.value.getID()
         task_objects[obj_id] = obj_id
@@ -567,6 +628,13 @@ def manage_persistent(p):
 
 
 def turn_into_file(p):
+    """
+    Write a object into a file if the object has not been already written (p.value).
+    Consults the objid_to_filename to check if it has already been written (reuses it if exists).
+    If not, the object is serialized to file and registered in the objid_to_filename dictionary.
+    This functions stores the object into task_objects
+    :param p: wrapper of the object to turn into file
+    """
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:
@@ -585,6 +653,11 @@ def turn_into_file(p):
 
 
 def get_compss_mode(pymode):
+    """
+    Get the direction of pymode string.
+    :param pymode: String to parse and return the direction
+    :return: Direction object (IN/INOUT/OUT)
+    """
     if pymode.startswith('w'):
         return Direction.OUT
     elif pymode.startswith('r+') or pymode.startswith('a'):
@@ -594,12 +667,22 @@ def get_compss_mode(pymode):
 
 
 def clean_objects():
+    """
+    Clean the objects stored in the global dictionaries:
+        * task_objects dict
+        * objid_to_filename dict
+        * objs_written_by_mp dict
+    """
     task_objects.clear()
     objid_to_filename.clear()
     objs_written_by_mp.clear()
 
 
 def clean_temps():
+    """
+    Clean temporary files.
+    The temporary files end with the IT extension
+    """
     rmtree(temp_dir, True)
     cwd = os.getcwd()
     for f in os.listdir(cwd):

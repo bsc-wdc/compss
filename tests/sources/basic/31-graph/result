@@ -32,7 +32,12 @@
   # Check that the obtained graph is as expected
   dotGot=${target_log_folder}/monitor/complete_graph.dot
   dotExpected=${baseAppDir}/dots/${app}.dot
-  res=$(diff $dotGot $dotExpected)
+  dotFilteredGot=${target_log_folder}/monitor/filtered_got.dot
+  dotFilteredExpected=${target_log_folder}/monitor/filtered_expected.dot
+
+  cat $dotGot | grep "\->" | sort > ${dotFilteredGot}
+  cat $dotExpected | grep "\->" | sort > ${dotFilteredExpected}
+  res=$(diff ${dotFilteredGot} ${dotFilteredExpected})
   if [ "$res" != "" ]; then
     echo "[ERROR] Dots do not match. Check dot files" | tee -a ${output_file}
     echo "GOT: ${dotGot}"

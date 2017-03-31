@@ -35,8 +35,8 @@
   dotFilteredGot=${target_log_folder}/monitor/filtered_got.dot
   dotFilteredExpected=${target_log_folder}/monitor/filtered_expected.dot
 
-  cat $dotGot | grep "\->" | sort > ${dotFilteredGot}
-  cat $dotExpected | grep "\->" | sort > ${dotFilteredExpected}
+  cat $dotGot | grep "\->" | sed "s/  }//" | sort > ${dotFilteredGot}
+  cat $dotExpected | grep "\->" | sed "s/  }//" | sort > ${dotFilteredExpected}
   res=$(diff ${dotFilteredGot} ${dotFilteredExpected})
   if [ "$res" != "" ]; then
     echo "[ERROR] Dots do not match. Check dot files" | tee -a ${output_file}

@@ -527,6 +527,24 @@ public class RuntimeConfigManager {
     public void setServiceName(String serviceName) {
         config.setProperty(ITConstants.IT_SERVICE_NAME, serviceName);
     }
+    
+    /**
+     * Returns the service name
+     * 
+     * @return
+     */
+    public String getWorkerJVMOpts() {
+        return config.getString(ITConstants.IT_WORKER_JVM_OPTS);
+    }
+
+    /**
+     * Sets a new service name
+     * 
+     * @param serviceName
+     */
+    public void setWorkerJVMOpts(String jvmOpts) {
+        config.setProperty(ITConstants.IT_WORKER_JVM_OPTS, jvmOpts);
+    }
 
     /**
      * Saves the current configuration

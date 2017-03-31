@@ -118,4 +118,8 @@ public abstract class ReadyScheduler<P extends Profile, T extends WorkerResource
     public abstract void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
             LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates);
 
+    @Override
+    public LinkedList<AllocatableAction<P, T, I>> getUnassignedActions() {
+    	return unassignedReadyActions.getAllActions();
+    }
 }

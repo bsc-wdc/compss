@@ -22,7 +22,7 @@
 			<groupId>es.bsc.compss</groupId>
 			<artifactId>compss-adaptors-nio-commons</artifactId>
 			<version>${project.version}</version>
-		</dependency>        
+		</dependency> 
 	</dependencies>
 	
 	<!-- BUILD -->  

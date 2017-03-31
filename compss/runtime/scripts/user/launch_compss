@@ -507,7 +507,12 @@ check_args() {
   fi
   
   if [ -z "${worker_nodes}" ]; then
-    display_error "${ERROR_WORKER_NODES}"
+    if [ -z "${worker_in_master_tasks}" ]; then
+      display_error "${ERROR_WORKER_NODES}"
+    else
+      worker_nodes=""
+    fi
+
   fi
 
   if [ -z "${network}" ]; then
@@ -553,8 +558,8 @@ check_args() {
   elif [ "${worker_in_master_memory}" != "disabled" ] && ! [[ "${worker_in_master_memory}" =~ ^[0-9]+$ ]]; then
     display_error "${ERROR_WORKER_IN_MASTER_MEMORY}"
   fi
-  if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] && [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ] && [ ${worker_in_master_memory} -lt ${node_memory} ]; then
-    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH}"
+  if [ [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] || [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ] ] && [ ${worker_in_master_memory} -gt ${node_memory} ]; then
+    display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH} (${worker_in_master_memory} < ${node_memory} "
   fi
 
   if [ ${worker_in_master_tasks} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
@@ -787,12 +792,12 @@ create_xml_files() {
 
   # Add worker slots on master if needed
   if [ ${worker_in_master_tasks} -ne 0 ]; then
-    add_compute_node "${master_node}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
+    add_compute_node "${master_node}${network}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
-    add_compute_node "$node" ${tasks_per_node} ${node_memory} ${gpus_per_node}
+    add_compute_node "$node${network}" ${tasks_per_node} ${node_memory} ${gpus_per_node}
   done
 
   # Finish the resources file and the project file 
@@ -826,13 +831,15 @@ launch() {
 
     local jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
     local jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
-    for node in ${worker_nodes}; do
-      worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node} ${gpus_per_node}
-      WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
-      echo "CMD Worker $hostid launcher: $WCMD"
-      $WCMD&
-      hostid=$((hostid+1))
-    done
+    if [ ! -z "${worker_nodes}" ]; then
+      for node in ${worker_nodes}; do
+        worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node} ${gpus_per_node}
+        WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
+        echo "CMD Worker $hostid launcher: $WCMD"
+        $WCMD&
+        hostid=$((hostid+1))
+      done
+    fi
 
     # Sleep a little before launching master
     sleep 1s
@@ -978,8 +985,6 @@ add_compute_node() {
   local gpus=$4
 
   ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
-
-  nodeName=${nodeName}${network}
 
   cat >> ${RESOURCES_FILE} << EOT
   <ComputeNode Name="${nodeName}">

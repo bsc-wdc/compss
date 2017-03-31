@@ -74,19 +74,21 @@ public class DeletionThread extends Thread {
     @Override
     public void run() {
         if (reduction != null) {
-            Semaphore sem = ResourceManager.reduceCloudWorker(worker, reduction);
-            try {
-                if (sem != null) {
-                    if (debug) {
-                        runtimeLogger.debug("Waiting until all tasks finishes for resource " + worker.getName() + "...");
-                    }
-                    sem.acquire();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        	
+        		Semaphore sem = ResourceManager.reduceCloudWorker(worker, reduction);
+        		try {
+        			if (sem != null) {
+        				if (debug) {
+        					runtimeLogger.debug("[Deletion Thread] Waiting until all tasks finishes for resource " + worker.getName() + "...");
+        				}
+        				sem.acquire();
+        			}
+        		} catch (InterruptedException e) {
+        			Thread.currentThread().interrupt();
+        		}
+        	
             if (debug) {
-                runtimeLogger.debug("All tasks finished for resource " + worker.getName() + ". Pausing worker...");
+                runtimeLogger.debug("[Deletion Thread] All tasks finished for resource " + worker.getName() + ". Pausing worker...");
             }
             this.vm = this.operations.pause(worker);
         }
@@ -96,7 +98,7 @@ public class DeletionThread extends Thread {
                 cloudWorker.retrieveData(true);
                 Semaphore sem = new Semaphore(0);
                 ShutdownListener sl = new ShutdownListener(sem);
-                runtimeLogger.info("Stopping worker " + cloudWorker.getName() + "...");
+                runtimeLogger.info("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "...");
                 cloudWorker.stop(sl);
 
                 sl.enable();
@@ -106,20 +108,22 @@ public class DeletionThread extends Thread {
                     resourcesLogger.error("ERROR: Exception raised on worker shutdown");
                 }
                 if (debug) {
-                    runtimeLogger.debug("Stopping worker " + cloudWorker.getName() + "...");
+                    runtimeLogger.debug("[Deletion Thread] Stopping worker " + cloudWorker.getName() + "...");
                 }
             } else {
                 if (debug) {
-                    runtimeLogger.debug("Worker " + cloudWorker.getName() + " should not be stopped.");
+                    runtimeLogger.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " should not be stopped.");
                 }
             }
             if (debug) {
-                runtimeLogger.debug("Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
+                runtimeLogger.debug("[Deletion Thread] Worker " + cloudWorker.getName() + " stopped. Powering of the VM");
             }
             try {
                 this.operations.poweroff(vm);
+                ResourceManager.removeWorker(cloudWorker);
+                
             } catch (ConnectorException e) {
-                resourcesLogger.error("Error powering off the resource", e);
+                resourcesLogger.error("ERROR: Powering off the resource", e);
             }
 
         }
@@ -127,7 +131,7 @@ public class DeletionThread extends Thread {
         synchronized (countSynchronizer) {
             count--;
             if (debug) {
-                runtimeLogger.debug("Number of current VMs deletions decreased (" + count + ").");
+                runtimeLogger.debug("[Deletion Thread] Number of current VMs deletions decreased (" + count + ").");
             }
         }
     }

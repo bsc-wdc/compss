@@ -515,6 +515,7 @@ public class ResourceLoader {
             integratedtoolkit.types.resources.jaxb.ImageType im_resources, HashMap<String, String> properties) {
 
         String imageName = im_project.getName();
+        LOGGER.debug("Loading Image"+ imageName);
         CloudImageDescription cid = new CloudImageDescription(cp_name, imageName, properties);
 
         /* Add properties given by the resources file **************************************** */

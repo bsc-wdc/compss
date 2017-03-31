@@ -6,6 +6,7 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -56,9 +57,12 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         if (impls.length == 0) {
             this.noCore.add(aa);
         } else {
-            int core = impls[0].getCoreId();
-            this.coreIndexed[core].add(aa);
-            this.counts[core]++;
+            //Start and stop action do not have implementations?? Fix NPE in StartAction
+        	if(impls!=null && impls.length>0 && impls[0]!=null){
+            	int core = impls[0].getCoreId();
+            	this.coreIndexed[core].add(aa);
+            	this.counts[core]++;
+            }
         }
     }
 
@@ -131,5 +135,15 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
 
         return sb.toString();
     }
+
+	public LinkedList<AllocatableAction<P, T, I>> getAllActions() {
+		LinkedList<AllocatableAction<P, T, I>> runnable = new LinkedList<>();
+		runnable.addAll(this.noCore);
+
+        for (int core = 0; core < this.coreIndexed.length; ++core) {
+            runnable.addAll(coreIndexed[core]);
+        }
+        return runnable;
+	}
 
 }

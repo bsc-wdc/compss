@@ -99,6 +99,7 @@ int main (int argc, char *argv[]) {
         printf("Initialize matrixes.\n");
         fillMatrix(ain, matrixSize, a);
         fillMatrix(bin, matrixSize, b);
+        fillMatrix(cout, matrixSize, c);
                 
         // Send matrix data to the worker tasks
         printf("Send matrixes to workers.\n");
@@ -113,6 +114,7 @@ int main (int argc, char *argv[]) {
             MPI_Send(&rows, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD);
             MPI_Send(&a[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
             MPI_Send(&b, matrixSize*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+            MPI_Send(&c, rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
             offset = offset + rows;
         }
         
@@ -147,12 +149,12 @@ int main (int argc, char *argv[]) {
         MPI_Recv(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
         MPI_Recv(&a, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
         MPI_Recv(&b, matrixSize*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
+        MPI_Recv(&c[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
         
         // Perform multiply accumulative
         printf("Perform multiply accumulative on process %d.\n", taskid);
         for (k = 0; k < matrixSize; k++) {
             for (i = 0; i < rows; i++) {
-                c[i*matrixSize + k] = 0.0;
                 for (j = 0; j < matrixSize; j++) {
                     c[i*matrixSize + k] = c[i*matrixSize + k] + a[i*matrixSize + j]*b[j*matrixSize + k];
                 }

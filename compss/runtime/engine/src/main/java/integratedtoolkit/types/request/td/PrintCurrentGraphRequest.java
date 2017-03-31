@@ -119,7 +119,34 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             }
             graph.write(prefix + prefix + "}");
             graph.newLine();
+            
+            //Room for unassigned tasks 
+            graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
+            ++roomIndex;
+            graph.newLine();
+            graph.write(prefix + prefix + prefix + "ranksep=0.20;");
+            graph.newLine();
+            graph.write(prefix + prefix + prefix + "node[height=0.75];");
+            graph.newLine();
+            graph.write(prefix + prefix + prefix + "label = \"No Assigned\"");
+            graph.newLine();
+            graph.write(prefix + prefix + prefix + "color=orange");
+            graph.newLine();
+            LinkedList<AllocatableAction<P, T, I>> unassignedActions = ts.getUnassignedActions();
+            for (AllocatableAction<P, T, I> action : unassignedActions) {
+                if (action instanceof ExecutionAction) {
+                    ExecutionAction<P, T, I> se = (ExecutionAction<P, T, I>) action;
+                    Task t = se.getTask();
+                    graph.write(prefix + prefix + prefix + t.getDotDescription());
+                    graph.newLine();
 
+                    pending.addAll(t.getSuccessors());
+                    tasks.add(t);
+                }
+            }
+            graph.write(prefix + prefix + "}");
+            graph.newLine();
+            
             // Add another room for each worker
             for (Worker<?, ?> r : ResourceManager.getAllWorkers()) {
                 Worker<T, I> worker = (Worker<T, I>) r;

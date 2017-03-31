@@ -541,7 +541,11 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     public final LinkedList<AllocatableAction<P, T, I>> getHostedActions(Worker<T, I> worker) {
         LOGGER.info("[TaskScheduler] Get Hosted actions on worker " + worker.getName());
         ResourceScheduler<P, T, I> ui = workers.get(worker);
-        return ui.getHostedActions();
+        if (ui != null){
+        	return ui.getHostedActions();
+        }else{
+        	return new LinkedList<AllocatableAction<P, T, I>>();
+        }
     }
 
     /**
@@ -553,7 +557,11 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     public final PriorityQueue<AllocatableAction<P, T, I>> getBlockedActionsOnResource(Worker<T, I> worker) {
         LOGGER.info("[TaskScheduler] Get Blocked actions on worker " + worker.getName());
         ResourceScheduler<P, T, I> ui = workers.get(worker);
-        return ui.getBlockedActions();
+        if (ui != null){
+        	return ui.getBlockedActions();
+        }else{
+        	return new PriorityQueue<AllocatableAction<P, T, I>>();
+        }
     }
 
     /**
@@ -670,11 +678,16 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         StringBuilder runningActions = new StringBuilder();
 
         ResourceScheduler<P, T, I> ui = workers.get(worker);
-        LinkedList<AllocatableAction<P, T, I>> hostedActions = ui.getHostedActions();
-        for (AllocatableAction<P, T, I> action : hostedActions) {
-            runningActions.append(prefix);
-            runningActions.append("<Action>").append(action.toString()).append("</Action>");
-            runningActions.append("\n");
+        if (ui != null){
+        	LinkedList<AllocatableAction<P, T, I>> hostedActions = ui.getHostedActions();
+        	for (AllocatableAction<P, T, I> action : hostedActions) {
+        		runningActions.append(prefix);
+        		runningActions.append("<Action>").append(action.toString()).append("</Action>");
+        		runningActions.append("\n");
+        	}
+        }else{
+        	LOGGER.info("[TaskScheduler] Worker is not in the list");
+        	
         }
         return runningActions.toString();
     }
@@ -785,5 +798,10 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
                     coreProfile[coreId].getMaxExecutionTime());
         }
     }
+
+	public LinkedList<AllocatableAction<P, T, I>> getUnassignedActions() {
+		// Not unassigned actions by default must be overwritten by schedulers
+		return new LinkedList();
+	}
 
 }

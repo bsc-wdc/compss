@@ -165,6 +165,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (manager.getWorkerCP() != null && System.getProperty(ITConstants.IT_WORKER_CP) == null) {
                     System.setProperty(ITConstants.IT_WORKER_CP, manager.getWorkerCP());
                 }
+                
+                if (manager.getWorkerJVMOpts() != null && System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) == null) {
+                    System.setProperty(ITConstants.IT_WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
+                }
+                
                 if (manager.getServiceName() != null && System.getProperty(ITConstants.IT_SERVICE_NAME) == null) {
                     System.setProperty(ITConstants.IT_SERVICE_NAME, manager.getServiceName());
                 }

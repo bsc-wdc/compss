@@ -43,6 +43,7 @@ public class WorkerStarter {
     private static final String STARTER_SCRIPT_NAME = "persistent_worker.sh";
 
     // Connection related parameters
+    private static final long MAX_WAIT_FOR_SSH = 160_000;
     private static final long MAX_WAIT_FOR_INIT = 20_000;
     private static final long WAIT_TIME_UNIT = 500;
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
@@ -85,6 +86,7 @@ public class WorkerStarter {
         while (port <= maxPort && !toStop) {
             String[] command;
             if (pid != -1) {
+            	//Command was started but it is not possible to contact to the worker
                 command = getStopCommand(pid);
                 ProcessOut po = executeCommand(user, name, command);
                 if (po == null) {
@@ -97,6 +99,8 @@ public class WorkerStarter {
                     // Normal starting process
                     logger.error(ERROR_SHUTTING_DOWN_RETRY);
                 }
+                pid = -1; //Setting pid to -1 to enter to start command after killing the old process
+                
 
             }
 
@@ -105,18 +109,32 @@ public class WorkerStarter {
             addresstoWorkerStarter.put(nodeName, this);
 
             command = getStartCommand(nw, port);
-            ProcessOut po = executeCommand(user, name, command);
-            if (po == null) {
-                // Queue System managed worker starter
-                logger.debug("Worker process started by queue system.");
-                pid = 0;
-            } else if (po.getExitValue() == 0) {
-                String output = po.getOutput();
-                String[] lines = output.split("\n");
-                pid = Integer.parseInt(lines[lines.length - 1]);
-            } else {
-                throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user "
-                        + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
+            long timer = 0;
+            while(pid<0){
+            	
+            	timer = timer + (WAIT_TIME_UNIT*4);
+            	try{
+            		Thread.sleep(WAIT_TIME_UNIT*4);
+            	}catch(Exception e){
+            		//Nothing to do
+            	}
+            	ProcessOut po = executeCommand(user, name, command);
+            	if (po == null) {
+            		// Queue System managed worker starter
+            		logger.debug("Worker process started in resource " + name +" by queue system.");
+            		pid = 0;
+            	} else if (po.getExitValue() == 0) {
+            		String output = po.getOutput();
+            		String[] lines = output.split("\n");
+            		pid = Integer.parseInt(lines[lines.length - 1]);
+            	} else {
+            		if (timer>MAX_WAIT_FOR_SSH){
+            			throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user "
+            					+ user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
+            		}
+            		logger.debug(" Worker process failed to start in resource " + name +". Retrying...");
+            		
+            	}
             }
             long delay = WAIT_TIME_UNIT;
             long totalWait = 0;

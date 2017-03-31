@@ -407,7 +407,7 @@ create_tmp_submit() {
     cat >> $TMP_SUBMIT_SCRIPT << EOT
 #!/bin/bash -e
 #
-#${QUEUE_CMD} ${QARG_QUEUE_SELECTION} ${queue}
+#${QUEUE_CMD} ${QARG_QUEUE_SELECTION}${QUEUE_SEPARATOR} ${queue}
 EOT
   else 
     cat >> $TMP_SUBMIT_SCRIPT << EOT
@@ -417,17 +417,21 @@ EOT
   fi
 
   # Switches selection
-  if [ "${num_switches}" != "0" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+  if [ -n "${QARG_NUM_SWITCHES}" ]; then
+    if [ "${num_switches}" != "0" ]; then
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_NUM_SWITCHES}${QUEUE_SEPARATOR}"cu[maxcus=${num_switches}]"
 EOT
+    fi
   fi
 
   # GPU selection
-  if [ "${gpus_per_node}" != "0" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+  if [ -n "${QARG_GPUS_PER_NODE}" ]; then
+    if [ "${gpus_per_node}" != "0" ]; then
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_GPUS_PER_NODE}${QUEUE_SEPARATOR}${gpus_per_node}
 EOT
+    fi
   fi
 
   # Add Job name and job dependency
@@ -449,25 +453,32 @@ EOT
   fi
 
   # Reservation
-  if [ "${reservation}" != "disabled" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+  if [ -n "${QARG_RESERVATION}" ]; then
+    if [ "${reservation}" != "disabled" ]; then
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_RESERVATION}${QUEUE_SEPARATOR}${reservation}
 EOT
+    fi
   fi
 
   # Node memory
-  if [ "${node_memory}" != "disabled" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+  if [ -n "${QARG_MEMORY}" ]; then
+    if [ "${node_memory}" != "disabled" ]; then
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_MEMORY}${QUEUE_SEPARATOR}${node_memory}
 EOT
+    fi
   fi
 
   # Add argument when exclusive mode is available
-  if [ "${EXCLUSIVE_MODE}" != "disabled" ]; then
-    cat >> $TMP_SUBMIT_SCRIPT << EOT
+  if [ -n "${QARG_EXCLUSIVE_NODES}" ]; then 
+    if [ "${EXCLUSIVE_MODE}" != "disabled" ]; then
+      cat >> $TMP_SUBMIT_SCRIPT << EOT
 #${QUEUE_CMD} ${QARG_EXCLUSIVE_NODES}
 EOT
+    fi
   fi
+
   # Add argument when copy_env is defined
   if [ -n "${QARG_COPY_ENV}" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
@@ -483,12 +494,12 @@ EOT
   # Add JOBID customizable stderr and stdout redirection when defined in queue system
   if [ -n "${QARG_JOB_OUT}" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_OUT} compss-${QJOB_ID}.out
+#${QUEUE_CMD} ${QARG_JOB_OUT}${QUEUE_SEPARATOR} compss-${QJOB_ID}.out
 EOT
   fi
   if [ -n "${QARG_JOB_ERROR}" ]; then
     cat >> $TMP_SUBMIT_SCRIPT << EOT
-#${QUEUE_CMD} ${QARG_JOB_ERROR} compss-${QJOB_ID}.err
+#${QUEUE_CMD} ${QARG_JOB_ERROR}${QUEUE_SEPARATOR} compss-${QJOB_ID}.err
 EOT
   fi
   # Add num nodes when defined in queue system
@@ -561,7 +572,7 @@ cleanup() {
 ###############################################
 submit() {
   # Submit the job to the queue
-  ${SUBMISSION_CMD} < ${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
+  ${SUBMISSION_CMD} ${SUBMISSION_PIPE}${TMP_SUBMIT_SCRIPT} 1>${TMP_SUBMIT_SCRIPT}.out 2>${TMP_SUBMIT_SCRIPT}.err
   result=$?
 
   # Check if submission failed

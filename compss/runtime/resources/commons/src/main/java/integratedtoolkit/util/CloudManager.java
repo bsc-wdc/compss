@@ -291,7 +291,7 @@ public class CloudManager {
             }
         }
 
-        runtimeLogger.debug("Asking for resource creation");
+        runtimeLogger.debug("[Cloud Manager] Asking for resource creation " + bestConstraints.getName() + " with image" + bestConstraints.getImage().getImageName());
         ResourceCreationRequest rcr = new ResourceCreationRequest(bestConstraints, simultaneousCounts, bestProvider.getName());
 
         try {
@@ -382,6 +382,9 @@ public class CloudManager {
             if (cp == null) { // it's not a cloud machine
                 continue;
             }
+            if (res.hasPendingReductions()){
+            	continue;
+            }
             HashMap<String, Object[]> typeToPoints = cp.getPossibleReductions(res, destroyRecommendations);
 
             for (Entry<String, Object[]> destruction : typeToPoints.entrySet()) {
@@ -431,7 +434,7 @@ public class CloudManager {
     }
 
     public static void destroyResources(CloudMethodWorker res, CloudMethodResourceDescription reduction) {
-        runtimeLogger.debug("Destroying resources for reduction");
+        runtimeLogger.debug("[Cloud Manager] Destroying resource " + res.getName() + " for reduction");
         CloudProvider cp = VM2Provider.get(res.getName());
         cp.turnOff(res, reduction);
     }
@@ -442,7 +445,7 @@ public class CloudManager {
      * @throws ConnectorException
      */
     public static void terminateALL() throws ConnectorException {
-        runtimeLogger.debug("Terminate ALL resources");
+        runtimeLogger.debug("[Cloud Manager] Terminate ALL resources");
         if (providers != null) {
             for (Entry<String, CloudProvider> vm : providers.entrySet()) {
                 CloudProvider cp = vm.getValue();

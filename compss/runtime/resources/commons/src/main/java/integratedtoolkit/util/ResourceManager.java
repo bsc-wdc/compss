@@ -63,6 +63,7 @@ public class ResourceManager {
     private static int[] poolCoreMaxConcurrentTasks;
     private static ResourceUser resourceUser;
     private static ResourceOptimizer ro;
+    static int maxTasks = 0;
 
     // Loggers
     private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
@@ -267,6 +268,7 @@ public class ResourceManager {
         } else {
             taskCount = Math.max(limitOfTasks, computingUnits);
         }
+        
         mc.setLimitOfTasks(taskCount);
 
         limitOfTasks = mc.getLimitOfGPUTasks();
@@ -300,6 +302,7 @@ public class ResourceManager {
         mc.setLimitOfOTHERSTasks(taskCount);
 
         MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
+        maxTasks= maxTasks+newResource.getMaxTaskCount();
         addStaticResource(newResource);
     }
 
@@ -335,6 +338,7 @@ public class ResourceManager {
 
     public static void removeWorker(Worker<?, ?> r) {
         pool.delete(r);
+        maxTasks= maxTasks -r.getMaxTaskCount();
         int[] maxTaskCount = r.getSimultaneousTasks();
         for (int coreId = 0; coreId < maxTaskCount.length; ++coreId) {
             poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
@@ -366,6 +370,7 @@ public class ResourceManager {
         synchronized (pool) {
             CloudManager.confirmedRequest(origin, worker);
             worker.updatedFeatures();
+            maxTasks = maxTasks+worker.getMaxTaskCount();
             pool.addDynamicResource(worker);
             pool.defineCriticalSet();
 
@@ -399,7 +404,10 @@ public class ResourceManager {
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
+            maxTasks = maxTasks - worker.getMaxTaskCount();
             worker.increaseFeatures(extension);
+            maxTasks = maxTasks + worker.getMaxTaskCount();
+            
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
@@ -428,15 +436,18 @@ public class ResourceManager {
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
+            maxTasks = maxTasks - worker.getMaxTaskCount();
             sem = worker.reduceFeatures(reduction);
+            maxTasks = maxTasks + worker.getMaxTaskCount();
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
             pool.defineCriticalSet();
+        
+            //
+            resourceUser.updatedResource(worker);
         }
-        resourceUser.updatedResource(worker);
-
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
@@ -495,11 +506,14 @@ public class ResourceManager {
      * @return
      */
     public static int[] getTotalSlots() {
-        int[] counts = new int[CoreManager.getCoreCount()];
-        int[] cloudCount = CloudManager.getPendingCoreCounts();
-        for (int i = 0; i < counts.length; i++) {
-            counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
-        }
+    	int[] counts = new int[CoreManager.getCoreCount()];
+    	int[] cloudCount = CloudManager.getPendingCoreCounts();
+    	synchronized (pool) {
+    		
+    		for (int i = 0; i < counts.length; i++) {
+    			counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
+    		}
+    	}
         return counts;
     }
 
@@ -518,7 +532,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<Worker<?, ?>> getStaticResources() {
-        return pool.getStaticResources();
+    	synchronized (pool) {
+    		return pool.getStaticResources();
+    	}
     }
 
     /**
@@ -527,7 +543,9 @@ public class ResourceManager {
      * @return
      */
     public static LinkedList<CloudMethodWorker> getDynamicResources() {
-        return pool.getDynamicResources();
+    	synchronized (pool) {
+    		return pool.getDynamicResources();
+    	}
     }
 
     /**
@@ -536,7 +554,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<CloudMethodWorker> getCriticalDynamicResources() {
-        return pool.getCriticalResources();
+    	synchronized (pool) {
+    		return pool.getCriticalResources();
+    	}
     }
 
     /**
@@ -545,7 +565,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<CloudMethodWorker> getNonCriticalDynamicResources() {
-        return pool.getNonCriticalResources();
+    	synchronized (pool) {
+    		return pool.getNonCriticalResources();
+    	}
     }
 
     /**
@@ -555,7 +577,9 @@ public class ResourceManager {
      * @return
      */
     public static CloudMethodWorker getDynamicResource(String name) {
-        return pool.getDynamicResource(name);
+    	synchronized (pool) {
+    		return pool.getDynamicResource(name);
+    	}
     }
 
     /**
@@ -577,21 +601,21 @@ public class ResourceManager {
      */
     public static ResourcesState getResourcesState() {
         ResourcesState state = new ResourcesState();
-
-        // Set resources information
-        for (Worker<?, ?> resource : pool.findAllResources()) {
-            if (resource.getType().equals(Type.WORKER)) {
-                int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
-                float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
-                // Last boolean equals true because this resource is active
-                state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
-            } else {
-                // Services doesn't have cores/memory
-                // Last boolean equals true because this resource is active
-                state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
-            }
+        synchronized (pool) {
+        	// Set resources information
+        	for (Worker<?, ?> resource : pool.findAllResources()) {
+        		if (resource.getType().equals(Type.WORKER)) {
+        			int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
+        			float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
+        			// Last boolean equals true because this resource is active
+        			state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
+        		} else {
+        			// Services doesn't have cores/memory
+        			// Last boolean equals true because this resource is active
+        			state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
+        		}
+        	}
         }
-
         // Set cloud information
         state.setUseCloud(CloudManager.isUseCloud());
         if (state.getUseCloud()) {
@@ -630,19 +654,19 @@ public class ResourceManager {
         LinkedList<ResourceCreationRequest> rcr = CloudManager.getPendingRequests();
         for (ResourceCreationRequest r : rcr) {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
-            sb.append(prefix).append("<Resource id=\"" + r.getRequested().getName() + "\">").append("\n");
-            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            sb.append(prefix).append("<Resource id=\"requested new VM\">").append("\n");
+            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(0)
                     .append("</CPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(0)
                     .append("</GPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(0)
                     .append("</FPGAComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(r.getRequested().getTotalCPUComputingUnits())
+            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(0)
                     .append("</OTHERComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<Memory>").append(r.getRequested().getMemorySize()).append("</Memory>").append("\n");
-            sb.append(prefix + "\t").append("<Disk>").append(r.getRequested().getStorageSize()).append("</Disk>").append("\n");
+            sb.append(prefix + "\t").append("<Memory>").append(0).append("</Memory>").append("\n");
+            sb.append(prefix + "\t").append("<Disk>").append(0).append("</Disk>").append("\n");
             sb.append(prefix + "\t").append("<Provider>").append(r.getProvider()).append("</Provider>").append("\n");
-            sb.append(prefix + "\t").append("<Image>").append(r.getRequested().getImage()).append("</Image>").append("\n");
+            sb.append(prefix + "\t").append("<Image>").append(r.getRequested().getImage().getImageName()).append("</Image>").append("\n");
             sb.append(prefix + "\t").append("<Status>").append("Creating").append("</Status>").append("\n");
             sb.append(prefix + "\t").append("<Tasks>").append("</Tasks>").append("\n");
             sb.append(prefix).append("</Resource>").append("\n");
@@ -680,5 +704,9 @@ public class ResourceManager {
         sb.append(CloudManager.getCurrentState(prefix));
         return sb.toString();
     }
+
+	public static long getMaxTasks() {
+		return maxTasks;
+	}
 
 }

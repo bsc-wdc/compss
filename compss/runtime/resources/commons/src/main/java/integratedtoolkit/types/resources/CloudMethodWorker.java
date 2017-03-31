@@ -59,7 +59,7 @@ public class CloudMethodWorker extends MethodWorker {
             providerName = new String("");
         }
         sb.append(prefix).append("<Provider>").append(providerName).append("</Provider>").append("\n");
-        String imageName = ((CloudMethodResourceDescription) description).getName();
+        String imageName = ((CloudMethodResourceDescription) description).getImage().getImageName();
         if (imageName == null) {
             imageName = new String("");
         }
@@ -89,7 +89,7 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public synchronized void releaseResource(MethodResourceDescription consumption) {
-        logger.debug("Checking cloud resources to release...");
+        logger.debug("[CloudMethodWorker] Checking " + this.getName()+ " cloud resource to release...");
         // Freeing task constraints
         super.releaseResource(consumption);
 
@@ -108,7 +108,7 @@ public class CloudMethodWorker extends MethodWorker {
                             toRemove.reduce(pRed.reduction);
                         }
                         // Reduction is done, release sem
-                        logger.debug("Releasing cloud resource " + this.getName());
+                        logger.debug("[CloudMethodWorker] Releasing cloud resource " + this.getName());
                         pRed.sem.release();
                         pendingReductions.remove(pRed);
                     } else {
@@ -120,30 +120,34 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     public synchronized Semaphore reduceFeatures(CloudMethodResourceDescription reduction) {
-        synchronized (description) {
-            description.reduce(reduction);
-        }
-        Semaphore sem = null;
-        if (hasAvailable(reduction)) {
-            synchronized (available) {
-                available.reduce(reduction);
-            }
-        } else {
-            if (this.getUsedTaskCount() > 0) {
-                // This resource is still running tasks. Wait for them to finish...
-                // Mark to remove and enqueue pending reduction
-                synchronized (toRemove) {
-                    toRemove.reduce(reduction);
-                }
-                PendingReduction pRed = new PendingReduction(reduction);
-                synchronized (pendingReductions) {
+    	logger.debug("[CloudMethodWorker] Reducing features for " + this.getName());
+    	Semaphore sem = null;
+    	synchronized (pendingReductions) {
+    		synchronized (description) {
+    			description.reduce(reduction);
+    		}
+    		
+    		if (hasAvailable(reduction)) {
+    			synchronized (available) {
+    				available.reduce(reduction);
+    			}
+    		} else {
+    			if (this.getUsedTaskCount() > 0) {
+    				// This resource is still running tasks. Wait for them to finish...
+    				// Mark to remove and enqueue pending reduction
+    				synchronized (toRemove) {
+    					toRemove.reduce(reduction);
+    				}
+    				PendingReduction pRed = new PendingReduction(reduction);
+                
                     pendingReductions.add(pRed);
-                }
-                sem = pRed.sem;
-            } else {
-                // Resource is not executing tasks. We can erase it, nothing to do
-            }
-        }
+               
+                    sem = pRed.sem;
+    			} else {
+    				// Resource is not executing tasks. We can erase it, nothing to do
+    			}
+    		}
+    	}
         updatedFeatures();
 
         return sem;
@@ -153,10 +157,10 @@ public class CloudMethodWorker extends MethodWorker {
         synchronized (available) {
             boolean fits = available.containsDynamic(red);
 
-            if (logger.isDebugEnabled()) {
-                logger.debug("Cloud Method reduction received:");
-                logger.debug("With result: " + fits);
-            }
+            /*if (logger.isDebugEnabled()) {
+                logger.debug("[CloudMethodWorker] Cloud Method reduction received:");
+                logger.debug("[CloudMethodWorker] With result: " + fits);
+            }*/
 
             return fits;
         }
@@ -170,10 +174,10 @@ public class CloudMethodWorker extends MethodWorker {
                 boolean fits = available.containsDynamic(consumption);
                 consumption.reduce(toRemove);
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Cloud Method Worker received:");
-                    logger.debug("With result: " + fits);
-                }
+                /*if (logger.isDebugEnabled()) {
+                    logger.debug("[CloudMethodWorker]Cloud Method Worker received:");
+                    logger.debug("[CloudMethodWorker] With result: " + fits);
+                }*/
 
                 return fits;
             }
@@ -206,5 +210,11 @@ public class CloudMethodWorker extends MethodWorker {
         }
         
     }
+
+
+	public boolean hasPendingReductions() {
+		
+		return (pendingReductions!=null && !pendingReductions.isEmpty());
+	}
 
 }

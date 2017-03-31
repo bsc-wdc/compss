@@ -251,14 +251,14 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_kwargs, deco_kwargs):
+def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_kwargs, deco_kwargs):
     """
     Function that submits a task to the runtime.
     :param f: Function or method
+    :param module_name: Name of the module containing the function/method (including packages, if any)
+    :param class_name: Name of the class (if method)
     :param ftype: Function type
     :param spec_args: Names of the task arguments
-    :param class_name: Name of the class (if method)
-    :param module_name: Name of the module containing the function/method (including packages, if any)
     :param task_args: Unnamed arguments
     :param task_kwargs: Named arguments
     :param deco_kwargs: Decorator arguments
@@ -274,7 +274,6 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
         if ftype == Function_Type.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
-    # TODO: ESTO ENTERO TAMBIEN PUEDE IR EN UNA FUNCION (CREAR OBJETO DE RETORNO)
     ret_type = deco_kwargs['returns']
     fu = []
     if ret_type:
@@ -327,64 +326,16 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 
     app_id = 0
 
+    # Get path
     if class_name == '':
         path = module_name
     else:
         path = module_name + '.' + class_name
 
-    # Infer COMPSs types from real types, except for files
     num_pars = len(spec_args)
-    is_future = {}
-    max_obj_arg_size = 320000
-    for i in range(first_par, num_pars):
-        spec_arg = spec_args[i]
-        p = deco_kwargs.get(spec_arg)
-        if p is None:
-            logger.debug("Adding default decoration for param %s" % spec_arg)
-            p = Parameter()
-            deco_kwargs[spec_arg] = p
-        if spec_args[0] != 'self':
-            # It is a function
-            if i < len(task_args):
-                p.value = task_args[i]
-            else:
-                p.value = task_kwargs[spec_arg]
-        else:
-            # It is a class function
-            if spec_arg == 'self':
-                p.value = task_args[0]
-            elif spec_arg.startswith('compss_retvalue'):
-                p.value = task_kwargs[spec_arg]
-            else:
-                p.value = task_args[i]
 
-        val_type = type(p.value)
-        is_future[i] = (val_type == Future)
-        logger.debug("Parameter " + spec_arg)
-        logger.debug("\t- Value type: " + str(val_type))
-        logger.debug("\t- User-defined type: " + str(p.type))
-
-        # Infer type if necessary
-        if p.type is None:
-            logger.debug("Inferring type due to None pType.")
-            p.type = python_to_compss.get(val_type)
-            if p.type is None:
-                if 'getID' in dir(p.value) and p.value.getID() is not None:      # criteria for persistent object
-                    p.type = Type.EXTERNAL_PSCO
-                else:
-                    p.type = Type.OBJECT
-            logger.debug("\t- Inferred type: %d" % p.type)
-
-        # Convert small objects to string if object_conversion enabled
-        # Check if the object is small in order not to serialize it.
-        if object_conversion:
-            p, bytes = convert_object_to_string(p, is_future, policy="objectSize")
-            max_obj_arg_size -= bytes
-
-        # Serialize objects into files
-        p = serialize_object_into_file(p, is_future, i, val_type)
-
-        logger.debug("Final type for parameter %s: %d" % (spec_arg, p.type))
+    # Infer COMPSs types from real types, except for files
+    deco_kwargs, is_future = infer_types_and_serialize_objects(spec_args, first_par, num_pars, deco_kwargs, task_args, task_kwargs)
 
     # Build values and COMPSs types and directions
     values, compss_types, compss_directions = build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future)
@@ -442,6 +393,71 @@ def process_task(f, ftype, spec_args, class_name, module_name, task_args, task_k
 ###############################################################################
 ######################## AUXILIARY FUNCTIONS ##################################
 ###############################################################################
+
+
+def infer_types_and_serialize_objects(spec_args, first_par, num_pars, deco_kwargs, task_args, task_kwargs):
+    """
+    Infer COMPSs types for the task parameters and serialize them.
+    :param spec_args: <List of strings> - Names of the task arguments
+    :param first_par: <Integer> - First parameter
+    :param num_pars: <Integer> - Number of parameters
+    :param deco_kwargs: <Dictionary> - Decorator arguments
+    :param task_args: Unnamed arguments
+    :param task_kwargs: Named arguments
+    :return:
+    """
+    is_future = {}
+    max_obj_arg_size = 320000
+    for i in range(first_par, num_pars):
+        spec_arg = spec_args[i]
+        p = deco_kwargs.get(spec_arg)
+        if p is None:
+            logger.debug("Adding default decoration for param %s" % spec_arg)
+            p = Parameter()
+            deco_kwargs[spec_arg] = p
+        if spec_args[0] != 'self':
+            # It is a function
+            if i < len(task_args):
+                p.value = task_args[i]
+            else:
+                p.value = task_kwargs[spec_arg]
+        else:
+            # It is a class function
+            if spec_arg == 'self':
+                p.value = task_args[0]
+            elif spec_arg.startswith('compss_retvalue'):
+                p.value = task_kwargs[spec_arg]
+            else:
+                p.value = task_args[i]
+
+        val_type = type(p.value)
+        is_future[i] = (val_type == Future)
+        logger.debug("Parameter " + spec_arg)
+        logger.debug("\t- Value type: " + str(val_type))
+        logger.debug("\t- User-defined type: " + str(p.type))
+
+        # Infer type if necessary
+        if p.type is None:
+            logger.debug("Inferring type due to None pType.")
+            p.type = python_to_compss.get(val_type)
+            if p.type is None:
+                if 'getID' in dir(p.value) and p.value.getID() is not None:  # criteria for persistent object
+                    p.type = Type.EXTERNAL_PSCO
+                else:
+                    p.type = Type.OBJECT
+            logger.debug("\t- Inferred type: %d" % p.type)
+
+        # Convert small objects to string if object_conversion enabled
+        # Check if the object is small in order not to serialize it.
+        if object_conversion:
+            p, bytes = convert_object_to_string(p, is_future, policy="objectSize")
+            max_obj_arg_size -= bytes
+
+        # Serialize objects into files
+        p = serialize_object_into_file(p, is_future, i, val_type)
+
+        logger.debug("Final type for parameter %s: %d" % (spec_arg, p.type))
+    return deco_kwargs, is_future
 
 
 def serialize_object_into_file(p, is_future, i, val_type):

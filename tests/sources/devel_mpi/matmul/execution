@@ -29,9 +29,9 @@
   expectedTime=180s
  
   binary=${base_app_dir}/bin/matmul
-  TYPE=1 # 1 method, 2 mpi
+  TYPE=2 # 1 method, 2 mpi
   MSIZE=2
-  BSIZE=128 
+  BSIZE=2 
   export MATMUL_BINARY=$binary
   export NODES_PER_MPI_TASK=2
   export CUS_PER_MPI_TASK=1

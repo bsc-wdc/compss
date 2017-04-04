@@ -55,16 +55,16 @@ class Direction:
 class Type:
     BOOLEAN = 0
     CHAR = 1
-    BYTE = 2
-    SHORT = 3
+    # BYTE = 2      # Does not exist in python
+    # SHORT = 3     # Does not exist in python
     INT = 4
     LONG = 5
-    FLOAT = 6		# C double
-    DOUBLE = 7
+    # FLOAT = 6		# C double --> in python, use double for floats
+    DOUBLE = 7      # In python, floats are doubles
     STRING = 8
     FILE = 9
-    OBJECT = 10         # Unavailable
-    PSCO = 11           # Unavailable
+    OBJECT = 10         # Unavailable (can not pass an object directly to Java)
+    PSCO = 11           # Unavailable (TODO: use this type instead of EXTERNAL_PSCO)
     EXTERNAL_PSCO = 12	# PSCO
 
 # Numbers match both C and Java enums

@@ -217,7 +217,7 @@ def synchronize(obj, mode):
     Synchronization function.
     This method retrieves the value of a future object.
     Calls the runtime in order to wait for the value and when received, returns it.
-    :param obj: Object to syncrhorinze.
+    :param obj: Object to syncrhornize.
     :param mode: Direction of the object to synchronize.
     :return: The value of the object requested.
     """
@@ -251,7 +251,7 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_kwargs, deco_kwargs):
+def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs):
     """
     Function that submits a task to the runtime.
     :param f: Function or method
@@ -259,13 +259,14 @@ def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_k
     :param class_name: Name of the class (if method)
     :param ftype: Function type
     :param spec_args: Names of the task arguments
-    :param task_args: Unnamed arguments
-    :param task_kwargs: Named arguments
-    :param deco_kwargs: Decorator arguments
+    :param args: Unnamed arguments
+    :param kwargs: Named arguments
+    :param self_kwargs: Decorator arguments
     :return: The future object related to the task return
     """
     logger.debug("TASK: %s of type %s, in module %s, in class %s" % (f.__name__, ftype, module_name, class_name))
 
+    # Check if the function is an instance method or a class method.
     first_par = 0
     if ftype == Function_Type.INSTANCE_METHOD:
         has_target = True
@@ -274,55 +275,10 @@ def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_k
         if ftype == Function_Type.CLASS_METHOD:
             first_par = 1  # skip class parameter
 
-    ret_type = deco_kwargs['returns']
-    fu = []
-    if ret_type:
-        # Create future for return value
-        if isinstance(ret_type, list) or isinstance(ret_type, tuple): # MULTIRETURN
-            logger.debug("Multiple objects return found.")
-            pos = 0
-            if 'compss_retvalue' in spec_args:
-                spec_args.remove('compss_retvalue') # remove single return... it contains more than one
-                if 'compss_retvalue' in deco_kwargs:
-                    del deco_kwargs['compss_retvalue']
-                else:
-                    assert 'compss_retvalue0' in deco_kwargs, 'Inconsistent state: multireturn detected, but there is no compss_retvalue0'
-            for i in ret_type:
-                if i in python_to_compss:  # primitives, string, dic, list, tuple
-                    fue = Future()
-                else:
-                    fue = Future()  # modules, functions, methods
-                fu.append(fue)
-                logger.debug("Setting object %d of %s as a future" % (id(fue), type(fue)))
-                obj_id = id(fue)
-                ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
-                objid_to_filename[obj_id] = ret_filename
-                task_objects[obj_id] = fue
-                task_kwargs['compss_retvalue' + str(pos)] = ret_filename
-                deco_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
-                spec_args.append('compss_retvalue'+str(pos))
-                pos += 1
-        else: # SIMPLE RETURN
-            if ret_type in python_to_compss:  # primitives, string, dic, list, tuple
-                fu = Future()
-            elif inspect.isclass(ret_type):
-                # For objects:
-                # type of future has to be specified to allow o = func; o.func
-                try:
-                    fu = ret_type()
-                except TypeError:
-                    logger.warning("Type %s does not have an empty constructor, building generic future object" % ret_type)
-                    fu = Future()
-            else:
-                fu = Future()  # modules, functions, methods
-            logger.debug("Setting object %d of %s as a future" % (id(fu), type(fu)))
-            obj_id = id(fu)
-            ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
-            objid_to_filename[obj_id] = ret_filename
-            task_objects[obj_id] = fu
-            task_kwargs['compss_retvalue'] = ret_filename
-    else:
-        fu = None
+    fu = None
+    fileNames = {}
+    if has_return:
+        fu, fileNames, self_kwargs, spec_args = build_return_objects(self_kwargs, spec_args)
 
     app_id = 0
 
@@ -335,13 +291,13 @@ def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_k
     num_pars = len(spec_args)
 
     # Infer COMPSs types from real types, except for files
-    deco_kwargs, is_future = infer_types_and_serialize_objects(spec_args, first_par, num_pars, deco_kwargs, task_args, task_kwargs)
+    self_kwargs, is_future = infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args)
 
     # Build values and COMPSs types and directions
-    values, compss_types, compss_directions = build_values_types_directions(ftype, first_par, num_pars, spec_args, deco_kwargs, is_future)
+    values, compss_types, compss_directions = build_values_types_directions(ftype, first_par, num_pars, spec_args, self_kwargs, is_future)
 
     # Get priority
-    has_priority = deco_kwargs['priority']
+    has_priority = self_kwargs['priority']
 
     # Log the task submission values for debugging purposes.
     if logger.isEnabledFor(logging.DEBUG):
@@ -395,40 +351,106 @@ def process_task(f, module_name, class_name, ftype, spec_args, task_args, task_k
 ###############################################################################
 
 
-def infer_types_and_serialize_objects(spec_args, first_par, num_pars, deco_kwargs, task_args, task_kwargs):
+def build_return_objects(self_kwargs, spec_args):
+    """
+    Build the return object and updates the self_kwargs and spec_args structures.
+    as tuple in the multireturn case).
+    :param self_kwargs:
+    :param spec_args:
+    :return:
+    """
+    ret_type = self_kwargs['returns']
+    fileNames = {}  # return files locations
+    if ret_type:
+        fu = []
+        # Create future for return value
+        if isinstance(ret_type, list) or isinstance(ret_type, tuple):  # MULTIRETURN
+            logger.debug("Multiple objects return found.")
+            # This condition fixes the multiple calls to a function with multireturn bug.
+            if 'compss_retvalue' in spec_args:
+                spec_args.remove('compss_retvalue')  # remove single return... it contains more than one
+                if 'compss_retvalue' in self_kwargs:
+                    del self_kwargs['compss_retvalue']
+                else:
+                    assert 'compss_retvalue0' in self_kwargs, 'Inconsistent state: multireturn detected, but there is no compss_retvalue0'
+            pos = 0
+            for i in ret_type:
+                if i in python_to_compss:  # primitives, string, dic, list, tuple
+                    fue = Future()
+                else:
+                    fue = Future()         # modules, functions, methods
+                fu.append(fue)
+                logger.debug("Setting object %d of %s as a future" % (id(fue), type(fue)))
+                obj_id = id(fue)
+                ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+                objid_to_filename[obj_id] = ret_filename
+                task_objects[obj_id] = fue
+                fileNames['compss_retvalue' + str(pos)] = ret_filename
+                # Once determined the filename where the returns are going to be stored, create a new Parameter object
+                # for each return object
+                self_kwargs['compss_retvalue' + str(pos)] = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
+                spec_args.append('compss_retvalue' + str(pos))
+                pos += 1
+            self_kwargs['num_returns'] = pos    # Update the amount of objects to be returned
+        else:  # SIMPLE RETURN
+            if ret_type in python_to_compss:  # primitives, string, dic, list, tuple
+                fu = Future()
+            elif inspect.isclass(ret_type):
+                # For objects:
+                # type of future has to be specified to allow o = func; o.func
+                try:
+                    fu = ret_type()
+                except TypeError:
+                    logger.warning("Type %s does not have an empty constructor, building generic future object" % ret_type)
+                    fu = Future()
+            else:
+                fu = Future()  # modules, functions, methods
+            logger.debug("Setting object %d of %s as a future" % (id(fu), type(fu)))
+            obj_id = id(fu)
+            ret_filename = temp_dir + temp_obj_prefix + str(obj_id)
+            objid_to_filename[obj_id] = ret_filename
+            task_objects[obj_id] = fu
+            fileNames['compss_retvalue'] = ret_filename
+    else:
+        fu = None
+
+    return fu, fileNames, self_kwargs, spec_args
+
+
+def infer_types_and_serialize_objects(spec_args, first_par, num_pars, fileNames, self_kwargs, args):
     """
     Infer COMPSs types for the task parameters and serialize them.
     :param spec_args: <List of strings> - Names of the task arguments
     :param first_par: <Integer> - First parameter
     :param num_pars: <Integer> - Number of parameters
-    :param deco_kwargs: <Dictionary> - Decorator arguments
-    :param task_args: Unnamed arguments
-    :param task_kwargs: Named arguments
-    :return:
+    :param fileNames: <Dictionary> - Return objects filenames
+    :param self_kwargs: <Dictionary> - Decorator arguments
+    :param args: <List> - Unnamed arguments
+    :return: Tuple of self_kwargs updated and a dictionary containing if the objects are future elements.
     """
     is_future = {}
     max_obj_arg_size = 320000
     for i in range(first_par, num_pars):
         spec_arg = spec_args[i]
-        p = deco_kwargs.get(spec_arg)
+        p = self_kwargs.get(spec_arg)
         if p is None:
             logger.debug("Adding default decoration for param %s" % spec_arg)
             p = Parameter()
-            deco_kwargs[spec_arg] = p
+            self_kwargs[spec_arg] = p
         if spec_args[0] != 'self':
             # It is a function
-            if i < len(task_args):
-                p.value = task_args[i]
+            if i < len(args):
+                p.value = args[i]
             else:
-                p.value = task_kwargs[spec_arg]
+                p.value = fileNames[spec_arg]
         else:
             # It is a class function
             if spec_arg == 'self':
-                p.value = task_args[0]
+                p.value = args[0]
             elif spec_arg.startswith('compss_retvalue'):
-                p.value = task_kwargs[spec_arg]
+                p.value = fileNames[spec_arg]
             else:
-                p.value = task_args[i]
+                p.value = args[i]
 
         val_type = type(p.value)
         is_future[i] = (val_type == Future)
@@ -450,14 +472,15 @@ def infer_types_and_serialize_objects(spec_args, first_par, num_pars, deco_kwarg
         # Convert small objects to string if object_conversion enabled
         # Check if the object is small in order not to serialize it.
         if object_conversion:
-            p, bytes = convert_object_to_string(p, is_future, policy="objectSize")
+            p, bytes = convert_object_to_string(p, is_future, max_obj_arg_size, policy="objectSize")
             max_obj_arg_size -= bytes
 
         # Serialize objects into files
         p = serialize_object_into_file(p, is_future, i, val_type)
 
         logger.debug("Final type for parameter %s: %d" % (spec_arg, p.type))
-    return deco_kwargs, is_future
+
+    return self_kwargs, is_future
 
 
 def serialize_object_into_file(p, is_future, i, val_type):
@@ -520,7 +543,8 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy="objectSize"
     """
     if policy == "objectSize":
         # Check if the object is small in order to serialize it.
-        # THIS ALTERNATIVE EVALUATES THE SIZE OF THE OBJECT BEFORE SERIALIZING THE OBJECT
+        # This alternative evaluates the size of the object before serializing the object.
+        # Warning: calculate the size of a python object can be difficult in terms of time and precision
         if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
             if not isinstance(p.value, basestring) and isinstance(p.value, (list, dict, tuple, deque, set, frozenset)):
                 # check object size
@@ -553,7 +577,7 @@ def convert_object_to_string(p, is_future, max_obj_arg_size, policy="objectSize"
                     #     max_obj_arg_size = 320000
     elif policy == "serializedSize":
         # Check if the object is small in order to serialize it.
-        # THIS ALTERNATIVE EVALUATES THE SIZE AFTER SERIALIZING THE PARAMETER
+        # This alternative evaluates the size after serializing the parameter
         if (p.type == Type.OBJECT or p.type == Type.STRING) and not is_future.get(i) and p.direction == Direction.IN:
             if not isinstance(p.value, basestring):
                 real_value = p.value

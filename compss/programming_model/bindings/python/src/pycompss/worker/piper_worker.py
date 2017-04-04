@@ -55,8 +55,8 @@ tracing = False
 debug = True
 processes = []
 
-if sys.version_info >= (2, 7):
-    import importlib
+#if sys.version_info >= (2, 7):
+#    import importlib
 
 try:
     # Import storage libraries if possible
@@ -348,6 +348,7 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
         # Try to import the module (for functions)
         logger.debug("[PYTHON WORKER %s] Trying to import the user module." % process_name)
         if sys.version_info >= (2, 7):
+            import importlib
             module = importlib.import_module(path)  # Python 2.7
             logger.debug("[PYTHON WORKER %s] Module successfully loaded (Python version >= 2.7)" % process_name)
         else:
@@ -358,7 +359,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+            logger.debug("[PYTHON WORKER %s] Starting task execution")
             getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+            logger.debug("[PYTHON WORKER %s] Finished task execution")
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -401,7 +404,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                logger.debug("[PYTHON WORKER %s] Starting task execution")
                 getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                logger.debug("[PYTHON WORKER %s] Finished task execution")
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -416,7 +421,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
+                logger.debug("[PYTHON WORKER %s] Starting task execution")
                 getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                logger.debug("[PYTHON WORKER %s] Finished task execution")
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

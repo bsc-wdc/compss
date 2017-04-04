@@ -46,7 +46,8 @@ class constraint(object):
 
     def __call__(self, func):
 
-        if not inspect.stack()[-2][3] == 'compss_worker':
+        # TODO: Improve the way to detect when we are in the master and when in the worker.
+        if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]:
             # master code
             from pycompss.runtime.binding import set_constraints
 
@@ -95,6 +96,7 @@ class constraint(object):
         else:
             # worker code
             pass
+
 
         @wraps(func)
         def constrained_f(*args, **kwargs):

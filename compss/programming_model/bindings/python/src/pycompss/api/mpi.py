@@ -46,7 +46,8 @@ class MPI(object):
 
     def __call__(self, func):
 
-        if not inspect.stack()[-2][3] == 'compss_worker':
+        # TODO: Improve the way to detect when we are in the master and when in the worker.
+        if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]:
             # master code
             mod = inspect.getmodule(func)
             self.module = mod.__name__    # not func.__module__
@@ -94,6 +95,7 @@ class MPI(object):
         else:
             # worker code
             pass
+
 
         @wraps(func)
         def mpi_f(*args, **kwargs):

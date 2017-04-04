@@ -200,7 +200,7 @@ def set_constraints(func_name, func_module, constraints):
                            constraints_string,
                            parameterCount,  # not necessary for python apps
                            values)          # not necessary for python apps
-    logger.debug("Constraints successfully set.")
+    logger.debug("Constraints submitted to runtime.")
 
 
 def get_task_objects():

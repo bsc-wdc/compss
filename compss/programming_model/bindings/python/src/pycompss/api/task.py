@@ -192,8 +192,11 @@ class task(object):
             # Get the module
             self.module = getModuleName(path, file_name)
 
-        logger.debug("Registering function %s in module %s" % (f.__name__, self.module))
-        registerTask(f, self.module)
+        # TODO: Improve the way to detect when we are in the master and when in the worker -> centralize
+        if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]:
+            # The registration needs to be done only in the master node
+            logger.debug("Registering function %s in module %s" % (f.__name__, self.module))
+            registerTask(f, self.module)
 
         # Modified variables until now that will be used later:
         #   - self.spec_args    : Function argspect (Named tuple)

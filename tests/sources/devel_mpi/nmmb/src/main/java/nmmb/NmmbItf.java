@@ -111,7 +111,7 @@ public interface NmmbItf {
         @Parameter(type = Type.STRING, direction = Direction.IN) String executable
     );
     
-    @Binary(binary = BinaryWrapper.COMPILE_READ_PAUL_SOURCE)
+    @Binary(binary = "${" + NMMBConstants.ENV_NAME_VRB + "}/" + BinaryWrapper.COMPILE_READ_PAUL_SOURCE)
     Integer compileReadPaulSource(
         @Parameter(type = Type.FILE, direction = Direction.IN) String source, 
         @Parameter(type = Type.STRING, direction = Direction.IN) String executable
@@ -447,7 +447,7 @@ public interface NmmbItf {
      * ***************************************************************************************************
      */
     @MPI(mpiRunner = "mpirun", 
-         binary = "${" + NMMBConstants.ENV_NAME_UMO_PATH + "}/MODEL/exe/" + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
+         binary = "${" + NMMBConstants.ENV_NAME_SRCDIR + "}/exe/" + FortranWrapper.NEMS + FortranWrapper.SUFFIX_EXE, 
          workingDir = "${" + NMMBConstants.ENV_NAME_UMO_OUT + "}/",
          computingNodes = "${NEMS_NODES}")
     @Constraints(computingUnits = "${NEMS_CUS_PER_NODE}")

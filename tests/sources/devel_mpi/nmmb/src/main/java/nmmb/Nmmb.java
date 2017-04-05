@@ -295,7 +295,7 @@ public class Nmmb {
                     FortranWrapper.ASSUME_PREFIX, FortranWrapper.ASSUME_VALUE, FortranWrapper.OPT_FLAG, FortranWrapper.FPMODEL_PREFIX,
                     FortranWrapper.FPMODEL_VALUE, FortranWrapper.STACK_FLAG, FortranWrapper.OFLAG, executable, src, object);
         }
-        String source = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_F_SRC;
+        String source = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_F90_SRC;
         String executable = NMMBEnvironment.VRB + FortranWrapper.READ_PAUL_SOURCE + FortranWrapper.SUFFIX_EXE;
         compilationEvs[executableIndex++] = BINARY.compileReadPaulSource(source, executable);
 

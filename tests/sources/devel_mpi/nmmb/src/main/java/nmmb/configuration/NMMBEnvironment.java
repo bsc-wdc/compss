@@ -36,6 +36,6 @@ public class NMMBEnvironment {
     public static final String VRB_INCLUDE_DIR = VRB + "include" + File.separator;
 
     // Infer some UMO Model paths
-    public static final String UMO_LIBS = UMO_PATH + "MODEL" + File.separator + "libs" + File.separator;
+    public static final String UMO_LIBS = SRCDIR + "libs" + File.separator;
 
 }

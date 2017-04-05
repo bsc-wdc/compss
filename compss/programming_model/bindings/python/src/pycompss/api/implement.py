@@ -25,6 +25,7 @@ import inspect
 import logging
 import os
 from functools import wraps
+from pycompss.util.location import i_am_at_master
 
 
 logger = logging.getLogger(__name__)
@@ -46,8 +47,7 @@ class implement(object):
 
     def __call__(self, func):
 
-        # TODO: Improve the way to detect when we are in the master and when in the worker.
-        if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]:
+        if i_am_at_master():
             # master code
             mod = inspect.getmodule(func)
             self.module = mod.__name__    # not func.__module__

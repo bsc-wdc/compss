@@ -34,10 +34,4 @@ def i_am_at_master():
     #     inspect.stack()[-2][3] == 'compss_persistent_worker'): --> I am at worker
     :return: <Boolean> - True if we are in the master node. False if we are in a worker node.
     """
-    if (inspect.stack()[-2][3] == 'compss_worker' or
-        inspect.stack()[-2][3] == 'compss_persistent_worker'):
-        # Since our stack is leaded by compss_worker, we are in a worker node
-        return False
-    else:
-        # If not, we assume that we are in the master node
-        return True
+    return not inspect.stack()[-2][3] in ['compss_worker', 'compss_persistent_worker']

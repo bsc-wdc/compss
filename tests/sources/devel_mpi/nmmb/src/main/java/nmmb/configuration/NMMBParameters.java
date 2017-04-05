@@ -1094,9 +1094,16 @@ public class NMMBParameters {
             LOGGER_POST.error("Aborting...");
             System.exit(1);
         }
-
-        String postAllSrc = NMMBEnvironment.POST_CARBONO + "new_postall.f.tmp";
+        
+        // Clean new_postall.f if needed
         String postAllTarget = NMMBEnvironment.POST_CARBONO + "new_postall.f";
+        LOGGER_POST.debug("Delete previous: " + postAllTarget);
+        if (!FileManagement.deleteFile(postAllTarget)) {
+            LOGGER_POST.debug("Cannot erase previous new_postall.f because it doesn't exist.");
+        }
+
+        // Create new new_postall.f content
+        String postAllSrc = NMMBEnvironment.POST_CARBONO + "new_postall.f.tmp";
         String hourPSTR = (this.HOUR_P < 10) ? "0" + String.valueOf(this.HOUR_P) : String.valueOf(this.HOUR_P);
         String nHoursPSTR = (this.NHOURS_P < 10) ? "0" + String.valueOf(this.NHOURS_P) : String.valueOf(this.NHOURS_P);
         BashCMDExecutor cmdPostall = new BashCMDExecutor("sed");

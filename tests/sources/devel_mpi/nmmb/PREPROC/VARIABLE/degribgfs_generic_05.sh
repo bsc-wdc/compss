@@ -279,24 +279,23 @@
     fi  
   done
 
-OUTDIR=/home/bsc19/bsc19533/nmmb/nmmb-bsc-ctm-v2.0/PREPROC/output/
-cp -f ${1} ${OUTDIR}/00_CW.dump 
-cp -f ${2} ${OUTDIR}/00_ICEC.dump
-cp -f ${3} ${OUTDIR}/00_SH.dump
-cp -f ${4} ${OUTDIR}/00_SOILT2.dump
-cp -f ${5} ${OUTDIR}/00_SOILT4.dump
-cp -f ${6} ${OUTDIR}/00_SOILW2.dump
-cp -f ${7} ${OUTDIR}/00_SOILW4.dump
-cp -f ${8} ${OUTDIR}/00_TT.dump
-cp -f ${9} ${OUTDIR}/00_VV.dump
-cp -f ${10} ${OUTDIR}/00_HH.dump
-cp -f ${11} ${OUTDIR}/00_PRMSL.dump
-cp -f ${12} ${OUTDIR}/00_SOILT1.dump
-cp -f ${13} ${OUTDIR}/00_SOILT3.dump
-cp -f ${14} ${OUTDIR}/00_SOILW1.dump
-cp -f ${15} ${OUTDIR}/00_SOILW3.dump
-cp -f ${16} ${OUTDIR}/00_SST_TS.dump
-cp -f ${17} ${OUTDIR}/00_UU.dump
-cp -f ${18} ${OUTDIR}/00_WEASD.dump
-
+  # Move files to target shared location
+  cp -f ${CW} ${OUTPUT}/00_CW.dump
+  cp -f ${ICEC} ${OUTPUT}/00_ICEC.dump
+  cp -f ${SH} ${OUTPUT}/00_SH.dump
+  cp -f ${SOILT2} ${OUTPUT}/00_SOILT2.dump
+  cp -f ${SOILT4} ${OUTPUT}/00_SOILT4.dump
+  cp -f ${SOILW2} ${OUTPUT}/00_SOILW2.dump
+  cp -f ${SOILW4} ${OUTPUT}/00_SOILW4.dump
+  cp -f ${TT} ${OUTPUT}/00_TT.dump
+  cp -f ${VV} ${OUTPUT}/00_VV.dump
+  cp -f ${HH} ${OUTPUT}/00_HH.dump
+  cp -f ${PRMSL} ${OUTPUT}/00_PRMSL.dump
+  cp -f ${SOILT1} ${OUTPUT}/00_SOILT1.dump
+  cp -f ${SOILT3} ${OUTPUT}/00_SOILT3.dump
+  cp -f ${SOILW1} ${OUTPUT}/00_SOILW1.dump
+  cp -f ${SOILW3} ${OUTPUT}/00_SOILW3.dump
+  cp -f ${SST_TS} ${OUTPUT}/00_SST_TS.dump
+  cp -f ${UU} ${OUTPUT}/00_UU.dump
+  cp -f ${WEASD} ${OUTPUT}/00_WEASD.dump
 

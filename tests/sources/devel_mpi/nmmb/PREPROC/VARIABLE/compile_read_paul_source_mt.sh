@@ -15,8 +15,8 @@
     -mcmodel=large \
     -shared-intel \
     -convert big_endian \
-    -I/gpfs/apps/MN3/NETCDF/3.6.3/include \
-    -L/gpfs/apps/MN3/NETCDF/3.6.3/lib \
+    -I/apps/NETCDF/4.1.3/INTEL/include \
+    -L/apps/NETCDF/4.1.3/INTEL/lib \
     -lnetcdff \
     -lnetcdf \
     -L/gpfs/apps/NVIDIA/HDF5/1.8.8/lib/ \

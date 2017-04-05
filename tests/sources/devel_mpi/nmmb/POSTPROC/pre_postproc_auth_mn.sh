@@ -30,9 +30,9 @@
       -fp-model \
       fast=2 \
       -convert big_endian \
-      -I/gpfs/apps/MN3/NETCDF/3.6.3/include \
+      -I/gpfs/apps/MN3/NETCDF/4.1.3/include \
       ${folderOutput}/new_postall.f \
-      -L/gpfs/apps/MN3/NETCDF/3.6.3/lib \
+      -L/gpfs/apps/MN3/NETCDF/4.1.3/lib \
       -lnetcdf \
       -lnetcdff \
       -o ${folderOutput}/new_postall.x

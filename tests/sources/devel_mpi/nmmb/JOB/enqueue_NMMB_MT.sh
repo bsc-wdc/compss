@@ -1,15 +1,15 @@
 #!/bin/bash
 
   # Define NMMB Environment
-  export PATH=$PATH:/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0/MODEL/exe
+  export PATH=$PATH:/gpfs/projects/bsc19/bsc19533/nmmb/MODEL-MT/exe
 
-  export UMO_PATH=/gpfs/projects/bsc19/bsc19533/NMMB-BSC/nmmb-bsc-ctm-v2.0
+  export UMO_PATH=/gpfs/projects/bsc19/bsc19533/nmmb
   export UMO_ROOT=$UMO_PATH/JOB
 
   export FIX=$UMO_PATH/PREPROC/FIXED
   export VRB=$UMO_PATH/PREPROC/VARIABLE
   export POST_CARBONO=$UMO_PATH/POSTPROC
-  export SRCDIR=$UMO_PATH/MODEL
+  export SRCDIR=$UMO_PATH/MODEL-MT
 
   export OUTPUT=$UMO_PATH/PREPROC/output
   export OUTNMMB=$UMO_PATH/OUTPUT

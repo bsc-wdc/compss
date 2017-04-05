@@ -23,14 +23,13 @@ PyCOMPSs API - Task
     This file contains the class task, needed for the task definition and the
     reveal_objects function.
 """
-
 import inspect
 import os
 import logging
 from functools import wraps
 from pycompss.util.serializer import serialize_objects, deserialize_from_file, deserialize_from_string
 from pycompss.util.interactiveHelpers import updateTasksCodeFile
-
+from pycompss.util.location import i_am_at_master
 
 # Tracing Events and Codes -> Should be equal to Tracer.java definitions
 SYNC_EVENTS = 8000666
@@ -68,8 +67,7 @@ class task(object):
         from pycompss.api.parameter import Parameter, Type, Direction
         import copy
 
-        if (not inspect.stack()[-2][3] == 'compss_worker') and \
-           (not inspect.stack()[-2][3] == 'compss_persistent_worker'):
+        if i_am_at_master():
             for arg_name in self.kwargs.keys():
                 if arg_name not in ['isModifier', 'returns', 'priority']:
                     # Prevent p.value from being overwritten later by ensuring
@@ -192,9 +190,8 @@ class task(object):
             # Get the module
             self.module = getModuleName(path, file_name)
 
-        # TODO: Improve the way to detect when we are in the master and when in the worker -> centralize
-        if 'pycompss/runtime/launch.py' in inspect.stack()[-1][1]:
-            # The registration needs to be done only in the master node
+        # The registration needs to be done only in the master node
+        if i_am_at_master():
             logger.debug("Registering function %s in module %s" % (f.__name__, self.module))
             registerTask(f, self.module)
 
@@ -230,9 +227,7 @@ class task(object):
                 if i_s[3] == 'launch_pycompss_application':
                     is_nested = True
 
-            if (inspect.stack()[-2][3] == 'compss_worker' or
-                inspect.stack()[-2][3] == 'compss_persistent_worker') \
-                    and (not is_nested):
+            if not i_am_at_master() and (not is_nested):
                 # Task decorator worker body code.
                 workerCode(f,
                            self.is_instance,

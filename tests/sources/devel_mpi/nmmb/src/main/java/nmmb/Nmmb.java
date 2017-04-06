@@ -759,6 +759,7 @@ public class Nmmb {
      */
     public static void main(String[] args) throws MainExecutionException {
         LOGGER_MAIN.info("Starting NMMB application");
+        Long startTime = System.currentTimeMillis();
 
         // Check and get arguments
         if (args.length != 1) {
@@ -786,11 +787,17 @@ public class Nmmb {
 
         // Fixed process (do before main time looping)
         if (nmmbParams.doFixed()) {
+            Long startFixed = System.currentTimeMillis();
             try {
                 doFixed(nmmbParams);
             } catch (TaskExecutionException tee) {
                 LOGGER_FIXED.error("[ERROR] Task exception on fixed phase. Aborting...", tee);
                 throw new MainExecutionException(tee);
+            } finally {
+                Long endFixed = System.currentTimeMillis();
+                LOGGER_FIXED.info("[TIME] FIXED START   = " + startFixed);
+                LOGGER_FIXED.info("[TIME] FIXED END     = " + endFixed);
+                LOGGER_FIXED.info("[TIME] FIXED ELAPSED = " + (endFixed - startFixed));
             }
         }
 
@@ -805,32 +812,50 @@ public class Nmmb {
 
             // Vrbl process
             if (nmmbParams.doVariable()) {
+                Long startVariable = System.currentTimeMillis();
                 try {
                     doVariable(nmmbParams, currentDate);
                 } catch (TaskExecutionException tee) {
                     LOGGER_VARIABLE.error("[ERROR] Task exception on variable phase at date " + currentDateSTR + ". Aborting...", tee);
                     throw new MainExecutionException(tee);
+                } finally {
+                    Long endVariable = System.currentTimeMillis();
+                    LOGGER_VARIABLE.info("[TIME] VARIABLE START   = " + startVariable);
+                    LOGGER_VARIABLE.info("[TIME] VARIABLE END     = " + endVariable);
+                    LOGGER_VARIABLE.info("[TIME] VARIABLE ELAPSED = " + (endVariable - startVariable));
                 }
             }
 
             // UMO model run
             if (nmmbParams.doUmoModel()) {
+                Long startUMO = System.currentTimeMillis();
                 try {
                     doUMOModel(nmmbParams, currentDate);
                 } catch (TaskExecutionException tee) {
                     LOGGER_UMO_MODEL.error("[ERROR] Task exception on UMO Model phase at date " + currentDateSTR + ". Aborting...", tee);
                     throw new MainExecutionException(tee);
+                } finally {
+                    Long endUMO = System.currentTimeMillis();
+                    LOGGER_UMO_MODEL.info("[TIME] UMO START   = " + startUMO);
+                    LOGGER_UMO_MODEL.info("[TIME] UMO END     = " + endUMO);
+                    LOGGER_UMO_MODEL.info("[TIME] UMO ELAPSED = " + (endUMO - startUMO));
                 }
 
             }
 
             // Post process
             if (nmmbParams.doPost()) {
+                Long startPost = System.currentTimeMillis();
                 try {
                     doPost(nmmbParams, currentDate);
                 } catch (TaskExecutionException tee) {
                     LOGGER_POST.error("[ERROR] Task exception on Post phase at date " + currentDateSTR + ". Aborting...", tee);
                     throw new MainExecutionException(tee);
+                } finally {
+                    Long endPost = System.currentTimeMillis();
+                    LOGGER_POST.info("[TIME] POST START   = " + startPost);
+                    LOGGER_POST.info("[TIME] POST END     = " + endPost);
+                    LOGGER_POST.info("[TIME] POST ELAPSED = " + (endPost - startPost));
                 }
             }
 
@@ -839,6 +864,12 @@ public class Nmmb {
             // Getting next simulation day
             currentDate = Date.from(currentDate.toInstant().plusSeconds(NMMBConstants.ONE_DAY_IN_SECONDS));
         }
+        
+        // Print execution time
+        Long endTime = System.currentTimeMillis();
+        LOGGER_MAIN.info("[TIME] TOTAL START   = " + startTime);
+        LOGGER_MAIN.info("[TIME] TOTAL END     = " + endTime);
+        LOGGER_MAIN.info("[TIME] TOTAL ELAPSED = " + (endTime - startTime));
     }
 
 }

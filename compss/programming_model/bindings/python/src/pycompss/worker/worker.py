@@ -218,8 +218,7 @@ def compss_worker():
             logger.debug("Module successfully loaded (Python version < 2.7")
 
         with TaskContext(logger, values, config_file_path=storage_conf):
-            getattr(module, method_name)(*values, compss_types=types,
-            compss_tracing=tracing)
+            getattr(module, method_name)(*values, compss_types=types, compss_tracing=tracing)
             if tracing:
                 pyextrae.eventandcounters(TASK_EVENTS, 0)
                 pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -260,8 +259,7 @@ def compss_worker():
             types.insert(0, Type.OBJECT)
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                getattr(klass, method_name)(*values, compss_types=types,
-                compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -273,8 +271,7 @@ def compss_worker():
             types.insert(0, None)    # class must be first type
 
             with TaskContext(logger, values, config_file_path=storage_conf):
-                getattr(klass, method_name)(*values,
-                compss_types=types, compss_tracing=tracing)
+                getattr(klass, method_name)(*values, compss_types=types, compss_tracing=tracing)
                 if tracing:
                     pyextrae.eventandcounters(TASK_EVENTS, 0)
                     pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

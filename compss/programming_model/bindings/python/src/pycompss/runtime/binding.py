@@ -79,6 +79,11 @@ objs_written_by_mp = {}  # obj_id -> compss_file_name
 # cross-module variable (set/modified from launch.py)
 object_conversion = False
 
+# Enable or disable the management of *args parameters as a whole tuple built (and serialized)
+# on the master and sent to the workers. When disabled, the parameters passed to a task with
+# *args are serialized independently and the tuple is built on the worker.
+aargs_as_tuple = False
+
 # Setup logger
 logger = logging.getLogger(__name__)
 

@@ -26,10 +26,12 @@ PyCOMPSs API - Task
 import inspect
 import os
 import logging
-from functools import wraps
+import pycompss.runtime.binding as binding
 from pycompss.util.serializer import serialize_objects, deserialize_from_file, deserialize_from_string
 from pycompss.util.interactiveHelpers import updateTasksCodeFile
 from pycompss.util.location import i_am_at_master
+from functools import wraps
+
 
 # Tracing Events and Codes -> Should be equal to Tracer.java definitions
 SYNC_EVENTS = 8000666
@@ -99,7 +101,7 @@ class task(object):
                 # Multi return
                 i = 0
                 returns = []
-                for r in self.kwargs['returns']:
+                for r in self.kwargs['returns']:  # This adds only one?
                     retType = getCOMPSsType(r)
                     returns.append(Parameter(p_type=retType, p_direction=Direction.OUT))
                 self.kwargs['compss_retvalue'] = tuple(returns)
@@ -364,10 +366,19 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     toadd = []
     # Check if there is *arg parameter in the task
     if has_varargs:
-        toadd.append(self_spec_args.varargs)
+        if binding.aargs_as_tuple:
+            # If the *args are expected to be managed as a tuple:
+            toadd.append(self_spec_args.varargs)
+        else:
+            # If the *args are expected to be managed as individual elements:
+            num_aargs = len(args) - len(spec_args)
+            if has_keywords:
+                num_aargs -= 1
+            for i in range(num_aargs):
+                toadd.append('*' + self_spec_args.varargs + str(i))
     # Check if there is **kwarg parameters in the task
     if has_keywords:
-        toadd.append(self_spec_args.varargs)
+        toadd.append(self_spec_args.keywords)
 
     returns = self_kwargs['returns']
     if has_return:
@@ -386,13 +397,16 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                                                process_name,
                                                returns)
 
+    if binding.aargs_as_tuple:
+        # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
+        if has_varargs:
+            if has_keywords:
+                real_values = real_values[:-2] + list(real_values[-2]) + [real_values[-1]]
+            else:
+                real_values = real_values[:-1] + list(real_values[-1])
+    else:
+        pass
     kargs = {}
-    # Check if there is *arg parameter in the task, so the last element (*arg tuple) has to be flattened
-    if has_varargs:
-        if has_keywords:
-            real_values = real_values[:-2] + list(real_values[-2]) + [real_values[-1]]
-        else:
-            real_values = real_values[:-1] + list(real_values[-1])
     # Check if there is **kwarg parameter in the task, so the last element (kwarg dict) has to be flattened
     if has_keywords:
         kargs = real_values[-1]         # kwargs dict
@@ -502,11 +516,21 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     args_vals = []
     if has_varargs:   # *args
         aargs = '*' + self_spec_args.varargs
-        args_names.append(aargs)             # Name used for the *args
-        args_vals.append(args[num_params:])  # last values will compose the *args parameter
+        if binding.aargs_as_tuple:
+            # If the *args are expected to be managed as a tuple:
+            args_names.append(aargs)  # Name used for the *args
+            args_vals.append(args[num_params:])  # last values will compose the *args parameter
+        else:
+            # If the *args are expected to be managed as individual elements:
+            pos = 0
+            for i in range(len(args[num_params:])):
+                args_names.append(aargs + str(pos))  # Name used for the *args
+                pos += 1
+            args_vals = args_vals + list(args[num_params:])
     if has_keywords:  # **kwargs
         aakwargs = '**' + self_spec_args.keywords  # Name used for the **kwargs
         args_names.append(aakwargs)
+        # The **kwargs dictionary is considered as a single dictionary object.
         args_vals.append(kwargs)
 
     # Build the final list of parameter names

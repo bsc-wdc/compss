@@ -1,5 +1,6 @@
 package matmul.files;
 
+import java.io.File;
 import java.io.IOException;
 
 import integratedtoolkit.api.COMPSs;
@@ -11,6 +12,8 @@ import mpi.MPI;
  *
  */
 public class Matmul {
+
+    private static final String TMP_PREFIX = "";
 
     private static int TYPE;
     private static int MSIZE;
@@ -55,6 +58,11 @@ public class Matmul {
         long estimatedTime = System.currentTimeMillis() - startTime;
         System.out.println("[TIME] EXECUTION TIME = " + estimatedTime);
 
+        // Clean matrices
+        cleanMatrix(AfileNames);
+        cleanMatrix(BfileNames);
+        cleanMatrix(CfileNames);
+
         // End
         System.out.println("[LOG] Main program finished.");
     }
@@ -69,9 +77,9 @@ public class Matmul {
         CfileNames = new String[MSIZE][MSIZE];
         for (int i = 0; i < MSIZE; i++) {
             for (int j = 0; j < MSIZE; j++) {
-                AfileNames[i][j] = "A." + i + "." + j;
-                BfileNames[i][j] = "B." + i + "." + j;
-                CfileNames[i][j] = "C." + i + "." + j;
+                AfileNames[i][j] = TMP_PREFIX + "A." + i + "." + j;
+                BfileNames[i][j] = TMP_PREFIX + "B." + i + "." + j;
+                CfileNames[i][j] = TMP_PREFIX + "C." + i + "." + j;
             }
         }
     }
@@ -128,6 +136,15 @@ public class Matmul {
                         System.err.println("[ERROR] Some task failed with exitValue " + exitValues[i][j][k]);
                     }
                 }
+            }
+        }
+    }
+
+    private static void cleanMatrix(String[][] fileNames) throws IOException {
+        for (int i = 0; i < MSIZE; ++i) {
+            for (int j = 0; j < MSIZE; ++j) {
+                File f = new File(fileNames[i][j]);
+                f.delete();
             }
         }
     }

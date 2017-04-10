@@ -558,7 +558,7 @@ check_args() {
   elif [ "${worker_in_master_memory}" != "disabled" ] && ! [[ "${worker_in_master_memory}" =~ ^[0-9]+$ ]]; then
     display_error "${ERROR_WORKER_IN_MASTER_MEMORY}"
   fi
-  if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] || [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ]; then
+  if [ "${worker_in_master_memory}" != "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ] && [ "${node_memory}" != "${DEFAULT_NODE_MEMORY}" ]; then
     if [ ${worker_in_master_memory} -gt ${node_memory} ]; then
       display_error "${ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH} (${worker_in_master_memory} < ${node_memory} "
     fi 

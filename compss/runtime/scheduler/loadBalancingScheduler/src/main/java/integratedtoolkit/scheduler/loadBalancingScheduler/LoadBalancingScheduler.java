@@ -3,8 +3,6 @@ package integratedtoolkit.scheduler.loadBalancingScheduler;
 import java.util.LinkedList;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
-import integratedtoolkit.scheduler.exceptions.BlockedActionException;
-import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.LoadBalancingScore;
@@ -43,13 +41,13 @@ public class LoadBalancingScheduler<P extends Profile, T extends WorkerResourceD
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        // LOGGER.info("[ResourceEmptyScheduler] Generate scheduler for resource " + w.getName());
+        LOGGER.info("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new LoadBalancingResourceScheduler<>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        // LOGGER.info("[ResourceEmptyScheduler] Generate Action Score for " + action);
+        LOGGER.info("[LoadBalancingScheduler] Generate Action Score for " + action);
         return new LoadBalancingScore(action.getPriority(), 0, 0, 0);
     }
 
@@ -63,34 +61,12 @@ public class LoadBalancingScheduler<P extends Profile, T extends WorkerResourceD
 
     @Override
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
+            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
+        
+        LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
+        this.unassignedReadyActions.removeAllActions();
+        executionCandidates.addAll(unassignedReadyActions);
 
-        // Schedules all possible free actions (LIFO type)
-
-        // LOGGER.info("[TaskScheduler] Treating " + executionCandidates.size() + " dependency free actions");
-
-        LinkedList<AllocatableAction<P, T, I>> executableActions = new LinkedList<>();
-        for (AllocatableAction<P, T, I> action : executionCandidates) {
-            this.dependingActions.removeAction(action);
-
-            Score actionScore = generateActionScore(action);
-            try {
-                action.schedule(actionScore);
-                tryToLaunch(action);
-                // LOGGER.debug("[ResourceEmptyScheduler] Action " + action + " scheduled");
-                executableActions.add(action);
-            } catch (UnassignedActionException ex) {
-                // LOGGER.debug("[ResourceEmptyScheduler] Adding action " + action + " to unassigned list");
-                this.unassignedReadyActions.addAction(action);
-            } catch (BlockedActionException e) {
-                // LOGGER.debug("[ResourceEmptyScheduler] Adding action " + action + " to the blocked list");
-                blockedCandidates.add(action);
-            }
-        }
-
-        // We leave on executionCandidates the actions that have been scheduled (and can be launched)
-        executionCandidates.clear();
-        executionCandidates.addAll(executableActions);
     }
 
 }

@@ -8,16 +8,16 @@ import java.io.FileNotFoundException;
 
 public class MainImpl {
 
-    private static final int SLEEP_TASK = 5_000; // ms
+    private static final int SLEEP_TASK = 250; // ms
 
 
-    public static void increment(String counterFile) {
+    public static void increment(String fileInOut, String fileIn) {
         // Perform increment
         try {
-            FileInputStream fis = new FileInputStream(counterFile);
+            FileInputStream fis = new FileInputStream(fileInOut);
             int count = fis.read();
             fis.close();
-            FileOutputStream fos = new FileOutputStream(counterFile);
+            FileOutputStream fos = new FileOutputStream(fileInOut);
             fos.write(++count);
             fos.close();
         } catch (FileNotFoundException fnfe) {

@@ -477,7 +477,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     public final Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
-        return targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
+        Score computedScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
+        LOGGER.debug("Scheduling Score " + computedScore);
+        return computedScore;
     }
 
     @Override
@@ -581,7 +583,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
                 bestScore = implScore;
             }
         }
-
+        
         // CHECK SCHEDULING RESULT
         if (DEBUG) {
             LOGGER.debug(debugString.toString());

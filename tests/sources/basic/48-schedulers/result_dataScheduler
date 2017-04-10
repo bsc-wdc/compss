@@ -5,7 +5,8 @@
   target_log_folder=$2
   TASK_WIDTH=$3
   TASK_DEPTH=$4
-  INIT_VALUE=$5
+  TASK_CHILDS=$5
+  INIT_VALUE=$6
   
   # Log files
   runtime_log="${target_log_folder}/runtime.log"

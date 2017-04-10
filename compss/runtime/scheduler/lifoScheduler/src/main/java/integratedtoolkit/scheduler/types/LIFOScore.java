@@ -1,11 +1,10 @@
 package integratedtoolkit.scheduler.types;
 
-import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.TaskDescription;
-import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.resources.Worker;
 
 
-public class LIFOScore extends Score {
+public class LIFOScore extends ReadyScore {
 
     /**
      * New LIFOScore
@@ -15,8 +14,8 @@ public class LIFOScore extends Score {
      * @param res
      * @param impl
      */
-    public LIFOScore(double actionScore, double waiting, double res, double impl) {
-        super(actionScore, waiting, res, impl);
+    public LIFOScore(double actionScore, double res, double waiting, double impl) {
+        super(actionScore, res, waiting, impl);
     }
 
     /**
@@ -36,15 +35,8 @@ public class LIFOScore extends Score {
     }
     
     @Override
-    public boolean isBetter(Score other){
-        if (this.actionScore != other.actionScore) {
-            return this.actionScore > other.actionScore;
-        }
-        return this.implementationScore > other.implementationScore;
-    }
-    
-    public static double calculateScore(TaskDescription params, Resource w) {
-        return params.getId();
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
+        return (double) params.getId();
     }
 
 }

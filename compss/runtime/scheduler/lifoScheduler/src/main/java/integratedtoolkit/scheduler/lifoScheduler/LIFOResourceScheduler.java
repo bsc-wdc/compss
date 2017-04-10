@@ -32,11 +32,11 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
         //LOGGER.debug("[LIFOScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
-        double waitingScore = (double) action.getId();
-        double resourceScore = 0;
+        double resourceScore = (double) action.getId();
+        double waitingScore = 0;
         double implementationScore = 0;
 
-        return new LIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new LIFOScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
@@ -44,11 +44,11 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
         //LOGGER.debug("[LIFOScheduler] Generate resource score for action " + action);
 
         double actionPriority = actionScore.getActionScore();
+        double resourceScore = (double) action.getId();
         double waitingScore = 0;
-        double resourceScore = 0;
-        double implementationScore = (double) action.getId();
+        double implementationScore = 0;
 
-        return new LIFOScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new LIFOScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
@@ -57,11 +57,11 @@ public class LIFOResourceScheduler<P extends Profile, T extends WorkerResourceDe
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();
-            double waitingScore = resourceScore.getWaitingScore();
-            double resourcePriority = resourceScore.getResourceScore();
-            double implScore = (double) action.getId();
+            double resourcePriority = (double) action.getId();
+            double waitingScore = 0;
+            double implScore = 0;
 
-            return new LIFOScore(actionPriority, waitingScore, resourcePriority, implScore);
+            return new LIFOScore(actionPriority, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

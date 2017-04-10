@@ -16,8 +16,9 @@
   testNum=$(((retryNum - 1)*NUM_TESTS + 1))
   
   # Select number of tasks width and depth
-  TASK_WIDTH=6
+  TASK_WIDTH=4
   TASK_DEPTH=2
+  TASK_CHILDS=2
   INIT_VALUE=1
   
   #----------------------------------------------------------------------------------
@@ -47,7 +48,7 @@
      --comm=$comm \
      -tg \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -62,7 +63,7 @@
      cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
   
      # Check result
-     ${base_app_dir}/result_defaultScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ${base_app_dir}/result_defaultScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      ev1=$?
   fi
   
@@ -87,7 +88,7 @@
      --scheduler=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler \
      -tg \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -102,7 +103,7 @@
      cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
   
      # Check result
-     ${base_app_dir}/result_fifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ${base_app_dir}/result_fifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      ev2=$?
   fi
  
@@ -127,7 +128,7 @@
      --scheduler=integratedtoolkit.scheduler.lifoScheduler.LIFOScheduler \
      -tg \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -142,7 +143,7 @@
      cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
   
      # Check result
-     ${base_app_dir}/result_lifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ${base_app_dir}/result_lifoScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      ev3=$?
   fi
  
@@ -167,7 +168,7 @@
      --scheduler=integratedtoolkit.scheduler.fifoDataScheduler.FIFODataScheduler \
      -tg \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -182,7 +183,7 @@
      cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
   
      # Check result
-     ${base_app_dir}/result_fifoDataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ${base_app_dir}/result_fifoDataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      ev4=$?
   fi  
 
@@ -207,7 +208,7 @@
      --scheduler=integratedtoolkit.scheduler.dataScheduler.DataScheduler \
      -tg \
      --classpath=${base_app_dir}/schedulers.jar \
-     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+     schedulers.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
 
   # Check timeout
   if [[ "$?" = "124" ]]; then
@@ -222,7 +223,7 @@
      cp -rf ${COMPSs_log_folder}/schedulers.Main_0${testNum}/* ${log_folder}
 
      # Check result
-     ${base_app_dir}/result_dataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${INIT_VALUE}
+     ${base_app_dir}/result_dataScheduler ${output_log} ${log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
      ev5=$?
   fi
 

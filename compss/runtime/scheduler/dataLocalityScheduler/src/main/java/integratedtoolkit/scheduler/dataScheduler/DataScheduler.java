@@ -7,8 +7,6 @@ import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.scheduler.exceptions.BlockedActionException;
-import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.DataScore;
@@ -71,34 +69,15 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     @Override
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
+            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
 
         // Schedules all possible free actions (LIFO type)
 
         LOGGER.info("[DataScheduler] Treating dependency free actions");
 
-        LinkedList<AllocatableAction<P, T, I>> executableActions = new LinkedList<>();
-        for (AllocatableAction<P, T, I> action : executionCandidates) {
-            this.dependingActions.removeAction(action);
-
-            Score actionScore = generateActionScore(action);
-            try {
-                action.schedule(actionScore);
-                tryToLaunch(action);
-                LOGGER.debug("[DataScheduler] Action " + action + " scheduled");
-                executableActions.add(action);
-            } catch (UnassignedActionException ex) {
-                LOGGER.debug("[DataScheduler] Adding action " + action + " to unassigned list");
-                this.unassignedReadyActions.addAction(action);
-            } catch (BlockedActionException e) {
-                LOGGER.debug("[DataScheduler] Adding action " + action + " to the blocked list");
-                blockedCandidates.add(action);
-            }
-        }
-
-        // We leave on executionCandidates the actions that have been scheduled (and can be launched)
-        executionCandidates.clear();
-        executionCandidates.addAll(executableActions);
+        LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
+        this.unassignedReadyActions.removeAllActions();
+        executionCandidates.addAll(unassignedReadyActions);
     }
 
 }

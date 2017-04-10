@@ -402,9 +402,9 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
             waitingScore = (double) (1.0 / (double) this.blocked.size());
         }
         // Computes the priority of the resource
-        double resourceScore = Score.calculateScore(params, this.myWorker);
+        double resourceScore = actionScore.calculateResourceScore(params, this.myWorker);
 
-        return new Score(actionPriority, waitingScore, resourceScore, 0);
+        return new Score(actionPriority, resourceScore, waitingScore, 0);
     }
 
     /**
@@ -420,12 +420,12 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
 
         double actionPriority = resourceScore.getActionScore();
-        double waitingScore = resourceScore.getWaitingScore();
         double resourcePriority = resourceScore.getResourceScore();
+        double waitingScore = resourceScore.getWaitingScore();
 
         double implScore = 1.0 / ((double) this.getProfile(impl).getAverageExecutionTime());
 
-        return new Score(actionPriority, waitingScore, resourcePriority, implScore);
+        return new Score(actionPriority, resourcePriority, waitingScore, implScore);
     }
 
     /*

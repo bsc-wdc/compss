@@ -371,9 +371,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * @throws InvalidSchedulingException
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
+        // LOGGER.debug("Getting the action log");
         if (!isLocked()) {      
             // Gets the lock on the action
             lock.lock();
+            // LOGGER.debug("Checking conditions " + selectedResource + " " + state + " " + hasDataPredecessors() + " " + schedulingInfo.isExecutable());
             if ( // has an assigned resource where to run
                     selectedResource != null && // has not been started yet
                     state == State.RUNNABLE && // has no data dependencies with other methods
@@ -396,7 +398,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     }
 
     private final void execute() {
-        LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
+        // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
 
         // there are enough resources to host the actions and no waiting tasks in the queue
         if (!selectedResource.hasBlockedActions() && areEnoughResources()) {
@@ -405,7 +407,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
             // Run action
             run();
         } else {
-            LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
+            // LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.
             // execute won't be executed again since tryToLaunch is blocked

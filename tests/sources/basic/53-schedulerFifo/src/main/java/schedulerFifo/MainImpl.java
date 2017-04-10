@@ -1,4 +1,4 @@
-package schedulers;
+package schedulerFifo;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

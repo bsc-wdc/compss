@@ -60,7 +60,7 @@
     echo "EXPECTED1: ${pair1Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair1Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair1}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
   pair2Expected1=$'11\n12'
@@ -70,7 +70,7 @@
     echo "EXPECTED1: ${pair2Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair2Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair2}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
   pair3Expected1=$'8\n9'
@@ -110,7 +110,7 @@
     echo "EXPECTED1: ${pair6Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair6Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair6}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
   exit 0

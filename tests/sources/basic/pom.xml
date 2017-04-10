@@ -78,12 +78,15 @@
                 <!-- Module 45 is 45-pscos_python -->
                 <!-- Module 46 is 46-files_python -->
                 <module>47-ompss</module>
-		<module>48-schedulers</module>
+		<module>48-schedulerDefault</module>
                 <!-- Module 49 is 49-localtask_python -->
                 <!-- Module 50 is 50-matmul_objects_c -->
                 <!-- Module 51 is 51-matmul_files_c -->
                 <!-- Module 52 is 52-deleteFile_c -->
-
+                <module>53-schedulerFifo</module>
+                <module>54-schedulerLifo</module>
+                <module>55-schedulerFifoData</module>
+                <module>56-schedulerData</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

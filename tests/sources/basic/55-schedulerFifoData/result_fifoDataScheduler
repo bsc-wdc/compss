@@ -60,27 +60,27 @@
     echo "EXPECTED1: ${pair1Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair1Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair1}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
-  pair2Expected1=$'3\n6'
-  pair2Expected2=$'6\n3'
+  pair2Expected1=$'2\n5'
+  pair2Expected2=$'5\n2'
   if [ "${pair2}" != "${pair2Expected1}" ] && [ "${pair2}" != "${pair2Expected2}" ]; then
     echo "ERROR ON TASKS SCHEDULE ORDER 2" | tee -a ${output_file}
     echo "EXPECTED1: ${pair2Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair2Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair2}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
-  pair3Expected1=$'2\n5'
-  pair3Expected2=$'5\n2'
+  pair3Expected1=$'3\n6'
+  pair3Expected2=$'6\n3'
   if [ "${pair3}" != "${pair3Expected1}" ] && [ "${pair3}" != "${pair3Expected2}" ]; then
     echo "ERROR ON TASKS SCHEDULE ORDER 3" | tee -a ${output_file}
     echo "EXPECTED1: ${pair3Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair3Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair3}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
   pair4Expected1=$'7\n10'
@@ -90,27 +90,27 @@
     echo "EXPECTED1: ${pair4Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair4Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair4}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
-  pair5Expected1=$'9\n12'
-  pair5Expected2=$'12\n9'
+  pair5Expected1=$'11\n8'
+  pair5Expected2=$'8\n11'
   if [ "${pair5}" != "${pair5Expected1}" ] && [ "${pair5}" != "${pair5Expected2}" ]; then
     echo "ERROR ON TASKS SCHEDULE ORDER 5" | tee -a ${output_file}
     echo "EXPECTED1: ${pair5Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair5Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair5}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
-  pair6Expected1=$'8\n11'
-  pair6Expected2=$'11\n8'
+  pair6Expected1=$'9\n12'
+  pair6Expected2=$'12\n9'
   if [ "${pair6}" != "${pair6Expected1}" ] && [ "${pair6}" != "${pair6Expected2}" ]; then
     echo "ERROR ON TASKS SCHEDULE ORDER 6" | tee -a ${output_file}
     echo "EXPECTED1: ${pair6Expected1}" | tee -a ${output_file}
     echo "EXPECTED2: ${pair6Expected2}" | tee -a ${output_file}
     echo "GOT      : ${pair6}" | tee -a ${output_file}
-     exit 1
+    exit 1
   fi
   
   exit 0

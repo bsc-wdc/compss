@@ -41,6 +41,7 @@
      --debug \
      --comm=$comm \
      -tg \
+     --scheduler=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler \
      --classpath=${base_app_dir}/schedulerFifo.jar \
      schedulerFifo.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
   

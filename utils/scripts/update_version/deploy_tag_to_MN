@@ -27,7 +27,7 @@ usage() {
   base_dir=${script_dir}/../../../../tags/${version}/
   builders_dir=${base_dir}/builders/scs/nord/
 
-  mn_user=compss
+  mn_user=bsc19533
   mn_login=nord1.bsc.es
 
   #---------------------------------------------------------------------

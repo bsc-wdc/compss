@@ -25,10 +25,10 @@ usage() {
   # Define script variables
   script_dir=$(pwd)/$(dirname $0)
   base_dir=${script_dir}/../../../../tags/${version}/
-  builders_dir=${base_dir}/builders/scs/mn/
+  builders_dir=${base_dir}/builders/scs/nord/
 
   mn_user=compss
-  mn_login=mn1.bsc.es
+  mn_login=nord1.bsc.es
 
   #---------------------------------------------------------------------
   # Install tag to MN
@@ -36,7 +36,7 @@ usage() {
   cd ${base_dir}
   mvn -U clean install
   cd ${builders_dir}
-  ./buildMN ${mn_user} /home/bsc19/${mn_user}/tmpCOMPSs/ /gpfs/apps/MN3/COMPSs/$version
+  ./buildNord ${mn_user} /home/bsc19/${mn_user}/tmpCOMPSs/ /gpfs/apps/MN3/COMPSs/$version
   cd ${script_dir}
 
   #---------------------------------------------------------------------
@@ -67,3 +67,4 @@ EOT
 
   # END
   exit 0
+

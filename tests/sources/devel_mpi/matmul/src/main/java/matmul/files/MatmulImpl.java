@@ -3,6 +3,8 @@ package matmul.files;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import matmul.exceptions.MatmulException;
+
 
 /**
  * Implementation of Task methods
@@ -21,7 +23,7 @@ public class MatmulImpl {
      * @param initRand
      * @throws IOException
      */
-    public static void initializeBlock(String filename, int BSIZE, boolean initRand) throws IOException {
+    public static void initializeBlock(String filename, int BSIZE, boolean initRand) throws MatmulException {
         try (FileOutputStream fos = new FileOutputStream(filename)) {
             for (int iblock = 0; iblock < BSIZE; ++iblock) {
                 for (int jblock = 0; jblock < BSIZE; ++jblock) {
@@ -36,7 +38,7 @@ public class MatmulImpl {
             }
             fos.write(NEW_LINE);
         } catch (IOException e) {
-            throw new IOException("[ERROR] Error initializing matrix", e);
+            throw new MatmulException("[ERROR] Error initializing matrix", e);
         }
     }
 
@@ -49,7 +51,7 @@ public class MatmulImpl {
      * @param cFile
      * @return
      */
-    public static Integer multiplyAccumulativeNative(int BSIZE, String aFile, String bFile, String cFile) {
+    public static Integer multiplyAccumulativeNative(int BSIZE, String aFile, String bFile, String cFile) throws MatmulException {
         Block a = new Block(BSIZE, aFile);
         Block b = new Block(BSIZE, bFile);
         Block c = new Block(BSIZE, cFile);

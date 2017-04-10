@@ -90,7 +90,7 @@ public class LoadBalancingScore extends ReadyScore {
         }
         return resourceScore;
     }
-    
+
     @Override
     public boolean isBetter(Score other) {
         if (this.actionScore != other.actionScore) {

@@ -32,7 +32,8 @@ public class PythonExecutor extends ExternalExecutor {
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs) {
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
+            int[] assignedGPUs) {
         ArrayList<String> lArgs = new ArrayList<>();
 
         if (pythonPersistentWorker) {
@@ -42,17 +43,17 @@ public class PythonExecutor extends ExternalExecutor {
             StringBuilder taskset = new StringBuilder();
             taskset.append("taskset -c ");
             taskset.append(assignedCoreUnits[0]);
-            for (int i = 1; i < assignedCoreUnits.length; i++){
+            for (int i = 1; i < assignedCoreUnits.length; i++) {
                 taskset.append(",").append(assignedCoreUnits[i]);
-            }       
+            }
             taskset.append(" ");
             lArgs.add(taskset.toString());
-            
+
             lArgs.add("python");
             lArgs.add("-u");
             lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
         }
-           
+
         return lArgs;
     }
 

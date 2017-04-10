@@ -583,7 +583,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
                 bestScore = implScore;
             }
         }
-        
+
         // CHECK SCHEDULING RESULT
         if (DEBUG) {
             LOGGER.debug(debugString.toString());

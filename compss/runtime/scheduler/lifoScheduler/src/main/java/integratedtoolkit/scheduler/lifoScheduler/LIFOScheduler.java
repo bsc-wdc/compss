@@ -63,7 +63,7 @@ public class LIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
     @Override
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
             LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
-        
+
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
         this.unassignedReadyActions.removeAllActions();
         executionCandidates.addAll(unassignedReadyActions);

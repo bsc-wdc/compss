@@ -33,7 +33,7 @@ public class LIFOScore extends ReadyScore {
                 + implementationScore + "]" + "]";
 
     }
-    
+
     @Override
     public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
         return (double) params.getId();

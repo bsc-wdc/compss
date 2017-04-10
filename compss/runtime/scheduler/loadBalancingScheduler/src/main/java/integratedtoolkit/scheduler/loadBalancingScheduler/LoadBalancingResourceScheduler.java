@@ -44,7 +44,7 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
 
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[LoadBalancingScheduler] Generate resource score for action " + action);
+        // LOGGER.debug("[LoadBalancingScheduler] Generate resource score for action " + action);
 
         // Gets the action priority
         double actionPriority = actionScore.getActionScore();
@@ -54,17 +54,18 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
         // Computes the priority of the resource
         double resourceScore = actionScore.calculateResourceScore(params, this.myWorker);
         // Computes the priority of the implementation (should not be computed)
-        double implementationScore = - (double) 100;
+        double implementationScore = -(double) 100;
 
         LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
-        LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore + " " + waitingScore + " " + implementationScore);
+        // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore + " " + waitingScore
+        //        + " " + implementationScore);
 
         return score;
     }
 
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
+        // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();
@@ -73,12 +74,12 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
             double implScore = (double) -this.getProfile(impl).getAverageExecutionTime();
 
             LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
-            LOGGER.debug("[LoadBalancingScheduler] Implementation Score " + score);
+            // LOGGER.debug("[LoadBalancingScheduler] Implementation Score " + score);
 
             return score;
         } else {
             // Implementation cannot be run
-            LOGGER.debug("LoadBalancingScore evaluated to null");
+            // LOGGER.debug("LoadBalancingScore evaluated to null");
             return null;
         }
     }

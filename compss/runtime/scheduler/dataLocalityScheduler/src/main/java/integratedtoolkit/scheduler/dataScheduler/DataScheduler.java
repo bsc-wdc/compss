@@ -49,13 +49,13 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        LOGGER.info("[DataScheduler] Generate scheduler for resource " + w.getName());
+        // LOGGER.debug("[DataScheduler] Generate scheduler for resource " + w.getName());
         return new DataResourceScheduler<P, T, I>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[DataScheduler] Generate Action Score for " + action);
+        // LOGGER.debug("[DataScheduler] Generate Action Score for " + action);
         return new DataScore(action.getPriority(), 0, 0, 0);
     }
 
@@ -73,7 +73,7 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
         // Schedules all possible free actions (LIFO type)
 
-        LOGGER.info("[DataScheduler] Treating dependency free actions");
+        LOGGER.debug("[DataScheduler] Treating dependency free actions");
 
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
         this.unassignedReadyActions.removeAllActions();

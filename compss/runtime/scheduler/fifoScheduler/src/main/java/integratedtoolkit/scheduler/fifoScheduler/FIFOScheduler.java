@@ -41,13 +41,13 @@ public class FIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        LOGGER.info("[FIFOScheduler] Generate scheduler for resource " + w.getName());
+        // LOGGER.debug("[FIFOScheduler] Generate scheduler for resource " + w.getName());
         return new FIFOResourceScheduler<P, T, I>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[FIFOScheduler] Generate Action Score for " + action);
+        // LOGGER.debug("[FIFOScheduler] Generate Action Score for " + action);
         return new FIFOScore(action.getPriority(), -(double) action.getId(), 0, 0);
     }
 

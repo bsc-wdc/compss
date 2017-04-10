@@ -392,7 +392,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * @return
      */
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[ResourceScheduler] Generate resource score for action " + action);
+        // LOGGER.debug("[ResourceScheduler] Generate resource score for action " + action);
         // Gets the action priority
         double actionPriority = actionScore.getActionScore();
 
@@ -417,7 +417,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * @return
      */
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
+        // LOGGER.debug("[ResourceScheduler] Generate implementation score for action " + action);
 
         double actionPriority = resourceScore.getActionScore();
         double resourcePriority = resourceScore.getResourceScore();

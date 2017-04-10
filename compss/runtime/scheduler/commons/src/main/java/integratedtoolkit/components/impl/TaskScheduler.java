@@ -362,7 +362,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
             AllocatableAction<P, T, I> freeAction = obj.getObject();
 
-            LOGGER.debug("Trying to launch action " + freeAction);
+            // LOGGER.debug("Trying to launch action " + freeAction);
             try {
                 scheduleAction(freeAction, obj.getScore());
                 tryToLaunch(freeAction);
@@ -470,7 +470,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      *
      */
     protected void scheduleAction(AllocatableAction<P, T, I> action, Score actionScore) throws BlockedActionException {
-        LOGGER.info("[TaskScheduler] Schedule action " + action);
+        LOGGER.debug("[TaskScheduler] Schedule action " + action);
         try {
             action.schedule(actionScore);
         } catch (UnassignedActionException ure) {
@@ -492,7 +492,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      */
     protected void scheduleAction(AllocatableAction<P, T, I> action, ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        LOGGER.info("[TaskScheduler] Schedule action " + action);
+        LOGGER.debug("[TaskScheduler] Schedule action " + action);
         action.schedule(targetWorker, actionScore);
     }
 
@@ -510,7 +510,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
             LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
 
-        LOGGER.info("[TaskScheduler] Treating dependency free actions");
+        LOGGER.debug("[TaskScheduler] Treating dependency free actions");
 
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies

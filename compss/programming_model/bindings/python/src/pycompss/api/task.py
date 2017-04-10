@@ -96,16 +96,14 @@ class task(object):
                 # Simple return
                 retType = getCOMPSsType(self.kwargs['returns'])
                 self.kwargs['compss_retvalue'] = Parameter(p_type=retType, p_direction=Direction.OUT)
-                self.kwargs['num_returns'] = 1
             else:
                 # Multi return
                 i = 0
                 returns = []
-                for r in self.kwargs['returns']:  # This adds only one?
+                for r in self.kwargs['returns']:  # This adds only one? - yep
                     retType = getCOMPSsType(r)
                     returns.append(Parameter(p_type=retType, p_direction=Direction.OUT))
                 self.kwargs['compss_retvalue'] = tuple(returns)
-                self.kwargs['num_returns'] = i + 1
 
         logger.debug("Init @task decorator finished.")
 
@@ -128,7 +126,6 @@ class task(object):
         self.has_keywords = False
         self.has_defaults = False
         self.has_return = False
-        self.num_returns = 0
 
         # Question: Will the first condition evaluate to false? spec_args will always be a named tuple, so
         # it will always return true if evaluated as a bool
@@ -153,7 +150,6 @@ class task(object):
         # Check if the keyword returns has been specified by the user.
         if self.kwargs['returns']:
             self.has_return = True
-            self.num_returns = self.kwargs['num_returns']
             self.spec_args.args.append('compss_retvalue')
 
         # Get module (for invocation purposes in the worker)
@@ -205,7 +201,6 @@ class task(object):
         #   - self.has_keywords : Boolean - if the function has **kwargs
         #   - self.has_defaults : Boolean - if the function has default values
         #   - self.has_return   : Boolean - if the function has return
-        #   - self.num_returns  : Integer - The number of return values
         #   - self.module       : module as string (e.g. test.kmeans)
         # Other variables that will be used:
         #   - f                 : Decorated function
@@ -237,7 +232,6 @@ class task(object):
                            self.has_keywords,
                            self.has_defaults,
                            self.has_return,
-                           self.num_returns,
                            args,
                            kwargs,
                            self.kwargs,
@@ -253,7 +247,6 @@ class task(object):
                                 self.has_keywords,
                                 self.has_defaults,
                                 self.has_return,
-                                self.num_returns,
                                 args,
                                 self.args,
                                 kwargs,
@@ -328,7 +321,7 @@ def registerTask(f, module):
         logger.debug("[@TASK] %s" % str(f.__to_register__))
 
 
-def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_return, num_returns,
+def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                args, kwargs, self_kwargs, self_spec_args):
     """
     Task decorator body executed in the workers.
@@ -343,7 +336,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     :param has_keywords: <Boolean> - If the function has **kwargs
     :param has_defaults: <Boolean> - If the function has default parameter values
     :param has_return: <Boolean> - If the function has return
-    :param num_returns: <Boolean> - The number of returns.
     :param args: <Tuple> - Contains the objects that the function has been called with (positional).
     :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
     :param self_kwargs: <Dictionary> - Decorator keywords dictionary.
@@ -440,7 +432,7 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         serialize_objects(to_serialize)
 
 
-def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return, num_returns,
+def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                args, self_args, kwargs, self_kwargs, self_spec_args):
     """
     Task decorator body executed in the master
@@ -451,7 +443,6 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     :param has_keywords: <Boolean> - If the function has **kwargs
     :param has_defaults: <Boolean> - If the function has default values
     :param has_return: <Boolean> - If the function has return
-    :param num_returns: <Integer> - The amount of returned objects
     :param args: <Tuple> - Contains the objects that the function has been called with (positional).
     :param self_args: <Tuple> - Decorator args (usually empty)
     :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
@@ -541,7 +532,7 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     values = tuple(vals + args_vals)
 
     fo = process_task(f, self_module, class_name, ftype, has_return, spec_args, values, kwargs, self_kwargs)
-    # Starts the asyncrhonous creation of the task.
+    # Starts the asynchronous creation of the task.
     # First calling the PyCOMPSs library and then C library (bindings-commons).
     return fo
 

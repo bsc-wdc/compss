@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
  * Abstract representation of an Allocatable Action (task execution, task transfer, etc.)
  *
@@ -71,6 +72,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     // Lock to avoid many threads to modify the same action
     private final ReentrantLock lock = new ReentrantLock();
 
+
     /*
      * ***************************************************************************************************************
      * CONSTRUCTOR
@@ -94,7 +96,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         this.schedulingInfo = schedulingInformation;
         this.profile = null;
     }
-    
+
     /*
      * ***************************************************************************************************************
      * ORCHESTRATOR OPERATIONS
@@ -115,9 +117,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * Notify action failed to orchestrator
      */
     protected void notifyError() {
-        if (DEBUG) {
-            LOGGER.debug("Notify error of " + this + " to orchestrator " + orchestrator);
-        }
+        LOGGER.warn("Notify error of " + this + " to orchestrator " + orchestrator);
         orchestrator.actionError(this);
     }
 
@@ -172,11 +172,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     public final void addDataPredecessor(AllocatableAction<P, T, I> predecessor) {
         if (predecessor.isPending()) {
-            if (!dataPredecessors.contains(predecessor)){
+            if (!dataPredecessors.contains(predecessor)) {
                 dataPredecessors.add(predecessor);
             }
-            if (!predecessor.dataSuccessors.contains(this)){
-                predecessor.dataSuccessors.add(this);    
+            if (!predecessor.dataSuccessors.contains(this)) {
+                predecessor.dataSuccessors.add(this);
             }
         }
 
@@ -295,7 +295,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public final boolean isLocked() {
         return lock.isLocked();
     }
-    
+
     /**
      * Locks the action scheduling
      * 
@@ -372,16 +372,17 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
         // LOGGER.debug("Getting the action log");
-        if (!isLocked()) {      
+        if (!isLocked()) {
             // Gets the lock on the action
             lock.lock();
-            // LOGGER.debug("Checking conditions " + selectedResource + " " + state + " " + hasDataPredecessors() + " " + schedulingInfo.isExecutable());
+            // LOGGER.debug("Checking conditions " + selectedResource + " " + state + " " + hasDataPredecessors() + " "
+            // + schedulingInfo.isExecutable());
             if ( // has an assigned resource where to run
-                    selectedResource != null && // has not been started yet
+            selectedResource != null && // has not been started yet
                     state == State.RUNNABLE && // has no data dependencies with other methods
                     !hasDataPredecessors() && // scheduler does not block the execution
                     schedulingInfo.isExecutable()) {
-    
+
                 // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
                 if (isSchedulingConstrained() && unrequiredResource()) {
                     // Allow other threads to access the action
@@ -425,11 +426,11 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         state = State.RUNNING;
         // Allow other threads to execute the task (complete and error executor)
         lock.unlock();
-        
+
         reserveResources();
         profile = selectedResource.generateProfileForAllocatable();
         selectedResource.hostAction(this);
-        
+
         doAction();
     }
 
@@ -451,7 +452,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * 
      */
     protected abstract void releaseResources();
-    
+
     /**
      * Triggers the action
      */
@@ -504,7 +505,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public final void error() throws FailedActionException {
         // Mark as runnable since we can retry its execution
         state = State.RUNNABLE;
-        
+
         // Release resources and run tasks blocked on the resource
         releaseResources();
         selectedResource.unhostAction(this);
@@ -522,7 +523,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     public final LinkedList<AllocatableAction<P, T, I>> failed() {
         // Mark as failed
         this.state = State.FAILED;
-        
+
         // Release resources and cancel action
         releaseResources();
         selectedResource.cancelAction(this);
@@ -613,7 +614,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * @return
      */
     public abstract int getPriority();
-    
+
     /**
      * Returns the scheduling score of the action for a given worker @targetWorker
      * 

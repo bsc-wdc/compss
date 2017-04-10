@@ -100,4 +100,5 @@ public abstract class ReadyScheduler<P extends Profile, T extends WorkerResource
     public LinkedList<AllocatableAction<P, T, I>> getUnassignedActions() {
         return unassignedReadyActions.getAllActions();
     }
+
 }

@@ -28,15 +28,15 @@ public class LIFOScore extends ReadyScore {
     }
 
     @Override
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
+        return (double) params.getId();
+    }
+
+    @Override
     public String toString() {
         return "[LIFOScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore + ", implementation:"
                 + implementationScore + "]" + "]";
 
-    }
-
-    @Override
-    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
-        return (double) params.getId();
     }
 
 }

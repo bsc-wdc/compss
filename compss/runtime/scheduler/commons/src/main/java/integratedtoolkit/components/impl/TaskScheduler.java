@@ -231,7 +231,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @return
      */
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[TaskScheduler] Generate priority action score");
+        LOGGER.debug("[TaskScheduler] Generate priority action score");
         return new Score(action.getPriority(), 0, 0, 0);
     }
 
@@ -381,7 +381,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      *            action raising the error
      */
     public void errorOnAction(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[TaskScheduler] Error on action " + action);
+        LOGGER.warn("[TaskScheduler] Error on action " + action);
 
         LinkedList<AllocatableAction<P, T, I>> resourceFree = new LinkedList<>();
         ResourceScheduler<P, T, I> resource = action.getAssignedResource();
@@ -391,7 +391,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             action.error();
         } catch (FailedActionException fae) {
             // Action has completely failed
-            LOGGER.info("[TaskScheduler] Action completely failed " + action);
+            LOGGER.warn("[TaskScheduler] Action completely failed " + action);
             removeFromReady(action);
             addToBlocked(action);
             // Free all the dependent tasks
@@ -492,6 +492,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      */
     protected void scheduleAction(AllocatableAction<P, T, I> action, ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
+        
         LOGGER.debug("[TaskScheduler] Schedule action " + action);
         action.schedule(targetWorker, actionScore);
     }

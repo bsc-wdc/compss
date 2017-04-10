@@ -30,7 +30,7 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
      */
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[LoadBalancingScheduler] Generate blocked score for action " + action);
+        // LOGGER.debug("[LoadBalancingScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
         double resourceScore = 0;
         double waitingScore = 2.0;
@@ -57,8 +57,9 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
         double implementationScore = -(double) 100;
 
         LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
-        // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore + " " + waitingScore
-        //        + " " + implementationScore);
+        // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore
+        // + " " + waitingScore
+        // + " " + implementationScore);
 
         return score;
     }
@@ -73,13 +74,9 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
             double waitingScore = (double) -action.getId();
             double implScore = (double) -this.getProfile(impl).getAverageExecutionTime();
 
-            LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
-            // LOGGER.debug("[LoadBalancingScheduler] Implementation Score " + score);
-
-            return score;
+            return new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
-            // LOGGER.debug("LoadBalancingScore evaluated to null");
             return null;
         }
     }

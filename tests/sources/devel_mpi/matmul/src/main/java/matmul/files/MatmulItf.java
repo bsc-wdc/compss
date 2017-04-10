@@ -19,7 +19,7 @@ public interface MatmulItf {
     );
 
     @Method(declaringClass = "matmul.files.MatmulImpl")
-    @Constraints(computingUnits = "1")
+    @Constraints(computingUnits = "${CUS}")
     Integer multiplyAccumulativeNative(
         @Parameter() int bsize, 
         @Parameter(type = Type.FILE, direction = Direction.IN) String aIn,
@@ -29,8 +29,8 @@ public interface MatmulItf {
     
     @MPI(binary = "${MATMUL_BINARY}", 
          mpiRunner = "mpirun", 
-         computingNodes = "${NODES_PER_MPI_TASK}")
-    @Constraints(computingUnits = "${CUS_PER_MPI_TASK}")
+         computingNodes = "${MPI_PROCS}")
+    @Constraints(computingUnits = "${CUS}")
     Integer multiplyAccumulativeMPI(
        @Parameter() int bsize, 
        @Parameter(type = Type.FILE, direction = Direction.IN) String aIn,

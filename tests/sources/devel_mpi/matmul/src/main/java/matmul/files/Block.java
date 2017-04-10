@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import matmul.exceptions.MatmulException;
+
 
 /**
  * Block representation
@@ -26,7 +28,7 @@ public class Block {
      * @param bSize
      * @param filename
      */
-    public Block(int bSize, String filename) {
+    public Block(int bSize, String filename) throws MatmulException {
         this.bSize = bSize;
         this.data = new double[this.bSize][this.bSize];
 
@@ -43,13 +45,10 @@ public class Block {
                 }
             }
         } catch (FileNotFoundException fnfe) {
-            fnfe.printStackTrace();
-            System.exit(-1);
+            throw new MatmulException(fnfe);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
+            throw new MatmulException(ioe);
         }
-
     }
 
     /**
@@ -57,7 +56,7 @@ public class Block {
      * 
      * @param filename
      */
-    public void blockToDisk(String filename) {
+    public void blockToDisk(String filename) throws MatmulException {
         try (FileOutputStream fos = new FileOutputStream(filename)) {
             for (int i = 0; i < this.bSize; i++) {
                 for (int j = 0; j < this.bSize; j++) {
@@ -67,11 +66,9 @@ public class Block {
                 fos.write(NEW_LINE);
             }
         } catch (FileNotFoundException fnfe) {
-            fnfe.printStackTrace();
-            System.exit(-1);
+            throw new MatmulException(fnfe);
         } catch (IOException ioe) {
-            ioe.printStackTrace();
-            System.exit(-1);
+            throw new MatmulException(ioe);
         }
     }
 

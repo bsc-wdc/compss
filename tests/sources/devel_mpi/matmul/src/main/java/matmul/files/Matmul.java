@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import integratedtoolkit.api.COMPSs;
+import matmul.exceptions.MatmulException;
 import mpi.MPI;
 
 
@@ -30,11 +31,11 @@ public class Matmul {
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws MatmulException {
         // Check and get parameters
         if (args.length != 3) {
             System.out.println("Usage: matmul.files.Matmul <type> <MSize> <BSize>");
-            throw new Exception("[ERROR] Incorrect number of parameters");
+            throw new MatmulException("[ERROR] Incorrect number of parameters");
         }
         TYPE = Integer.parseInt(args[0]);
         MSIZE = Integer.parseInt(args[1]);
@@ -91,7 +92,7 @@ public class Matmul {
      * @param initRand
      * @throws IOException
      */
-    private static void initializeMatrix(String[][] fileNames, boolean initRand) throws IOException {
+    private static void initializeMatrix(String[][] fileNames, boolean initRand) throws MatmulException {
         for (int i = 0; i < MSIZE; ++i) {
             for (int j = 0; j < MSIZE; ++j) {
                 MatmulImpl.initializeBlock(fileNames[i][j], BSIZE, initRand);
@@ -103,7 +104,7 @@ public class Matmul {
      * Main loop of matrix multiplication
      * 
      */
-    private static void computeMultiplication() {
+    private static void computeMultiplication() throws MatmulException {
         System.out.println("[LOG] Computing result");
         Integer[][][] exitValues = new Integer[MSIZE][MSIZE][MSIZE];
 
@@ -140,7 +141,7 @@ public class Matmul {
         }
     }
 
-    private static void cleanMatrix(String[][] fileNames) throws IOException {
+    private static void cleanMatrix(String[][] fileNames) {
         for (int i = 0; i < MSIZE; ++i) {
             for (int j = 0; j < MSIZE; ++j) {
                 File f = new File(fileNames[i][j]);

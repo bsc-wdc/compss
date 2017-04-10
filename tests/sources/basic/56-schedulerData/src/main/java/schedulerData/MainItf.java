@@ -1,4 +1,4 @@
-package schedulers;
+package schedulerData;
 
 import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
@@ -10,7 +10,7 @@ import integratedtoolkit.types.annotations.task.Method;
 public interface MainItf {
     
     @Constraints(computingUnits = "1")
-    @Method(declaringClass = "schedulers.MainImpl")
+    @Method(declaringClass = "schedulerData.MainImpl")
     void increment(
         @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileInOut,
         @Parameter(type = Type.FILE, direction = Direction.IN) String fileIn

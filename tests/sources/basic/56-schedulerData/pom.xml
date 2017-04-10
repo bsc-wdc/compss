@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<!-- GENERAL INFORMATION -->
-	<artifactId>48-schedulers</artifactId>
+	<artifactId>56-schedulerData</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
@@ -13,9 +13,9 @@
 	</parent>
 
 	<!-- PROJECT INFORMATION -->
-	<name>Schedulers</name>
-	<description>Schedulers application</description>
-	<url>http://compss.bsc.es/projects/bar/wiki/schedulers</url>
+	<name>Scheduler DATA</name>
+	<description>Scheduler DATA Test application</description>
+	<url>http://compss.bsc.es/projects/bar/wiki/schedulerData</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>

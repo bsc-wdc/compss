@@ -1,4 +1,4 @@
-package schedulers;
+package schedulerDefault;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,7 +16,7 @@ public class Main {
         if (taskWidth == 0) {
             return;
         }
-        
+
         String file2 = fileInout + taskWidth + 0;
         try {
             FileOutputStream fos = new FileOutputStream(file2);
@@ -26,7 +26,7 @@ public class Main {
             ioe.printStackTrace();
             System.exit(-1);
         }
-        
+
         MainImpl.increment(fileInout, fileIn);
         for (int i = 1; i < taskChilds; ++i) {
             file2 = fileInout + taskWidth + i;
@@ -77,7 +77,7 @@ public class Main {
                 ioe.printStackTrace();
                 System.exit(-1);
             }
-            
+
             counterName = FILE_NAME + i + 1;
 
             System.out.println("[INFO] Creating task " + i + " on file " + counterName + " with value " + initialValue);

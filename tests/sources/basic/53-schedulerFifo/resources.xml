@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ResourcesList>
+	<ComputeNode Name="COMPSsWorker01">
+		<Processor Name="MainProcessor">
+			<ComputingUnits>1</ComputingUnits>
+		</Processor>
+		<Adaptors>
+			<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+				<SubmissionSystem>
+					<Interactive />
+				</SubmissionSystem>
+				<Ports>
+					<MinPort>43001</MinPort>
+					<MaxPort>43002</MaxPort>
+				</Ports>
+			</Adaptor>
+			<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+				<SubmissionSystem>
+					<Batch>
+						<Queue>sequential</Queue>
+					</Batch>
+					<Interactive />
+				</SubmissionSystem>
+				<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+			</Adaptor>
+		</Adaptors>
+	</ComputeNode>
+
+	<ComputeNode Name="COMPSsWorker02">
+		<Processor Name="MainProcessor">
+			<ComputingUnits>1</ComputingUnits>
+		</Processor>
+		<Adaptors>
+			<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+				<SubmissionSystem>
+					<Interactive />
+				</SubmissionSystem>
+				<Ports>
+					<MinPort>43002</MinPort>
+					<MaxPort>43003</MaxPort>
+				</Ports>
+			</Adaptor>
+			<Adaptor Name="integratedtoolkit.gat.master.GATAdaptor">
+				<SubmissionSystem>
+					<Batch>
+						<Queue>sequential</Queue>
+					</Batch>
+					<Interactive />
+				</SubmissionSystem>
+				<BrokerAdaptor>sshtrilead</BrokerAdaptor>
+			</Adaptor>
+		</Adaptors>
+	</ComputeNode>
+</ResourcesList>

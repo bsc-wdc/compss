@@ -1,0 +1,66 @@
+#!/bin/bash
+
+  # Obtain parameters
+  COMPSs_exec=$1
+  comm=$2
+  base_app_dir=$3
+  COMPSs_log_folder=$4
+  target_log_folder=$5
+  retryNum=$6
+  
+  # Global exit variable
+  exitValue=0
+  
+  # Select number of tasks width and depth
+  TASK_WIDTH=4
+  TASK_DEPTH=2
+  TASK_CHILDS=2
+  INIT_VALUE=1
+  
+  #----------------------------------------------------------------------------------
+  # Generate Project.xml according to system
+  sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
+  
+  #----------------------------------------------------------------------------------
+  # Create all working dir folders
+  mkdir -p /tmp/COMPSsWorker01/
+  mkdir -p /tmp/COMPSsWorker02/
+  
+  #----------------------------------------------------------------------------------
+  # Run application 1 - DATA Scheduler
+  echo " "
+  echo "*** RUNNING JAVA APPLICATION DATA SCHEDULER"
+
+  output_log="${target_log_folder}/schedulerData_${retryNum}.outputlog"
+  error_log="${target_log_folder}/schedulerData_0${retryNum}.errorlog"
+  expectedTime=240s
+  
+  timeout --signal=2 $expectedTime ${COMPSs_exec} \
+     --project=${base_app_dir}/project.xml \
+     --resources=${base_app_dir}/resources.xml \
+     --debug \
+     --comm=$comm \
+     -tg \
+     --classpath=${base_app_dir}/schedulerData.jar \
+     schedulerData.Main ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE} > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
+  
+  # Check timeout
+  if [[ "$?" = "124" ]]; then
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulerData.Main_0${retryNum}/* ${target_log_folder}
+     
+     # Report time out
+     echo "[WARNING] Java Application timed out" >> ${output_log}
+     exitValue=124
+  else
+     # Copy LOG files
+     cp -rf ${COMPSs_log_folder}/schedulerData.Main_0${retryNum}/* ${target_log_folder}
+  
+     # Check result
+     ${base_app_dir}/result_dataScheduler ${output_log} ${target_log_folder} ${TASK_WIDTH} ${TASK_DEPTH} ${TASK_CHILDS} ${INIT_VALUE}
+     exitValue=$?
+  fi
+  
+  #----------------------------------------------------------------------------------
+  # Return execution status
+  exit $exitValue

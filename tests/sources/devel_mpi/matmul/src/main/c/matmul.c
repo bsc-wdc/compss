@@ -13,13 +13,13 @@ void fillMatrix(const char* fileName, int matrixSize, double* mat) {
     FILE *file;
     file = fopen(fileName, "r");
 
-    printf("  - Open file %s with size %d.\n", fileName, matrixSize);
+    // printf("  - Open file %s with size %d.\n", fileName, matrixSize);
     for(i = 0; i < matrixSize; i++) {
         for(j = 0; j < matrixSize; j++) {
             if (!fscanf(file, "%lf", &mat[i*matrixSize + j])) {
                 break;
             }
-            //printf("%lf\n", mat[i*matrixSize + j]);
+            // printf("%lf\n", mat[i*matrixSize + j]);
         }
     }
     fclose(file);    
@@ -31,11 +31,11 @@ void storeMatrix(const char* fileName, int matrixSize, const double* mat) {
     FILE *file;
     file = fopen(fileName, "w");
 
-    printf("  - Store matrix in file %s with size %d.\n", fileName, matrixSize);
+    // printf("  - Store matrix in file %s with size %d.\n", fileName, matrixSize);
     for(i = 0; i < matrixSize; i++) {
         for(j = 0; j < matrixSize; j++) {
             fprintf(file, "%lf ", mat[i*matrixSize + j]);
-            //printf("%lf\n", mat[i*matrixSize + j]);
+            // printf("%lf\n", mat[i*matrixSize + j]);
         }
         fprintf(file, "\n");
     }
@@ -45,21 +45,21 @@ void storeMatrix(const char* fileName, int matrixSize, const double* mat) {
 void printMatrix(int matrixSize, const double* mat) {
     int i, j;
     
-    printf("******************************************************\n");
-    printf("Result Matrix:\n");
+    // printf("******************************************************\n");
+    // printf("Result Matrix:\n");
     for (i = 0; i < matrixSize; i++) {
-        printf("\n"); 
+        // printf("\n"); 
         for (j = 0; j < matrixSize; j++) {
-            printf("%6.2f   ", mat[i*matrixSize + j]);
+            // printf("%6.2f   ", mat[i*matrixSize + j]);
         }
     }
-    printf("\n******************************************************\n");
+    // printf("\n******************************************************\n");
 }
 
 int main (int argc, char *argv[]) {    
     /**************************** Initialize ************************************/
     if (argc != 5) {
-        printf("Incorrect usage: matmul <matrixSize> <Ain> <Bin> <Cout>. Quitting...\n");
+        // printf("Incorrect usage: matmul <matrixSize> <Ain> <Bin> <Cout>. Quitting...\n");
         exit(1);
     }
     int matrixSize = atoi(argv[1]);     // Number of rows/columns in matrix A B and C
@@ -72,9 +72,10 @@ int main (int argc, char *argv[]) {
     double c[matrixSize*matrixSize];   // Result matrix C    
     
     // Initialize MPI env
-    int mpiProcs;                    // Number of MPI Nodes
+    int mpiProcs;                       // Number of MPI Nodes
     int taskid;                         // Task identifier
     MPI_Status status;                  // Status variable for MPI communications
+    MPI_Request send_request;           // For async calls
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
@@ -88,7 +89,7 @@ int main (int argc, char *argv[]) {
         // printf("Matmul with %d MPI nodes.\n", mpiProcs);
         
         // Initialize arrays
-        //printf("Initialize matrixes.\n");
+        // printf("Initialize matrixes.\n");
         fillMatrix(ain, matrixSize, a);
         fillMatrix(bin, matrixSize, b);
         fillMatrix(cout, matrixSize, c);
@@ -102,11 +103,11 @@ int main (int argc, char *argv[]) {
         for (dest = 0; dest < mpiProcs; dest++) {
             rows = (dest < extra) ? averow+1 : averow;   	
             // printf("Sending %d rows to task %d offset=%d\n", rows, dest, offset);
-            MPI_Isend(&offset, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
-            MPI_Isend(&rows, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
-            MPI_Isend(&a[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
-            MPI_Isend(&b, matrixSize*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
-            MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&offset, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, &send_request);
+            MPI_Isend(&rows, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, &send_request);
+            MPI_Isend(&a[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, &send_request);
+            MPI_Isend(&b, matrixSize*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, &send_request);
+            MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, &send_request);
             offset = offset + rows;
         }
     }
@@ -135,9 +136,9 @@ int main (int argc, char *argv[]) {
     // Send back result to master
     // printf("Send result back to master on process %d.\n", taskid);
     mtype = FROM_WORKER;
-    MPI_Isend(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, NULL);
-    MPI_Isend(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, NULL);
-    MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, NULL);
+    MPI_Isend(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &send_request);
+    MPI_Isend(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &send_request);
+    MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &send_request);
     
     
     /**************************** master task ************************************/
@@ -156,7 +157,7 @@ int main (int argc, char *argv[]) {
         //printMatrix(matrixSize, c);
         
         // Store result to file
-        //printf("Store result matrix.\n");
+        // printf("Store result matrix.\n");
         storeMatrix(cout, matrixSize, c);
         
         printf ("Done.\n");

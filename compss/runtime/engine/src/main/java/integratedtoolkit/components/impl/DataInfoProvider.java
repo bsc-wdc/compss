@@ -459,7 +459,7 @@ public class DataInfoProvider {
         DataInstanceId lastVersion;
         FileInfo fileInfo = (FileInfo) idToData.get(dataId);
         if (fileInfo != null && !fileInfo.isCurrentVersionToDelete()) { // If current version is to delete do not
-                                                                        // tranfer
+                                                                        // transfer
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
@@ -502,10 +502,10 @@ public class DataInfoProvider {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
                         }
                     }
-		    logger.debug("Returned because persistent object");
+                    logger.debug("Returned because persistent object");
                     return rf;
                 }
-                
+
             }
 
             // If no PSCO location is found, perform normal getData

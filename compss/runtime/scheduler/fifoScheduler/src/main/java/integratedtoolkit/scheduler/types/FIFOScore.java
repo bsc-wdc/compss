@@ -28,14 +28,14 @@ public class FIFOScore extends ReadyScore {
     }
 
     @Override
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
+        return (double) -params.getId();
+    }
+
+    @Override
     public String toString() {
         return "[FIFOScore = [action:" + this.actionScore + ", resource:" + this.resourceScore + ", load:" + this.waitingScore
                 + ", implementation:" + this.implementationScore + "]";
-    }
-    
-    @Override
-    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
-        return (double) -params.getId();
     }
 
 }

@@ -31,6 +31,7 @@ public class DataResourceScheduler<P extends Profile, T extends WorkerResourceDe
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
         // LOGGER.debug("[DataResourceScheduler] Generate blocked score for action " + action);
+
         double actionPriority = action.getPriority();
         double waitingScore = 2.0;
         if (this.blocked.size() > 0) {

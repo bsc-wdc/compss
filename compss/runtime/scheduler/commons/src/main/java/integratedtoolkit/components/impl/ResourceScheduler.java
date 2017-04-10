@@ -61,6 +61,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
                 return score1.compareTo(score2);
             }
         });
+
         this.myWorker = w;
 
         int coreCount = CoreManager.getCoreCount();
@@ -315,6 +316,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      */
     public final void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
+        
         while (this.hasBlockedActions()) {
             AllocatableAction<P, T, I> firstBlocked = this.getFirstBlocked();
             if (firstBlocked.areEnoughResources()) {

@@ -2,11 +2,7 @@ package integratedtoolkit.scheduler.dataScheduler;
 
 import java.util.LinkedList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import integratedtoolkit.components.impl.ResourceScheduler;
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.DataScore;
@@ -26,10 +22,6 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
  */
 public class DataScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends ReadyScheduler<P, T, I> {
-
-    // Logger
-    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
-
 
     /**
      * Constructs a new Ready Scheduler instance
@@ -72,7 +64,6 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
             LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
 
         // Schedules all possible free actions (LIFO type)
-
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
 
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();

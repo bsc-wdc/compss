@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+
 /**
  * Representation of a Scheduler that considers the full task graph
  *
@@ -39,15 +40,15 @@ public class FullGraphResourceScheduler<P extends Profile, T extends WorkerResou
         extends ResourceScheduler<P, T, I> {
 
     public static final long DATA_TRANSFER_DELAY = 200;
-    
-    private final ActionOrchestrator<P,T,I> orchestrator;
+
+    private final ActionOrchestrator<P, T, I> orchestrator;
 
     private final LinkedList<Gap<P, T, I>> gaps;
     private OptimizationAction<P, T, I> opAction;
     private Set<AllocatableAction<P, T, I>> pendingUnschedulings = new HashSet<>();
 
 
-    public FullGraphResourceScheduler(Worker<T, I> w, ActionOrchestrator<P,T,I> orchestrator) {
+    public FullGraphResourceScheduler(Worker<T, I> w, ActionOrchestrator<P, T, I> orchestrator) {
         super(w);
         this.orchestrator = orchestrator;
         gaps = new LinkedList<>();
@@ -70,7 +71,7 @@ public class FullGraphResourceScheduler<P extends Profile, T extends WorkerResou
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
         LOGGER.debug("[FullGraphScheduler] Generate resource score for action " + action.getId());
-        
+
         double resScore = actionScore.calculateResourceScore(params, myWorker);
         for (AllocatableAction<P, T, I> pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
@@ -101,7 +102,7 @@ public class FullGraphResourceScheduler<P extends Profile, T extends WorkerResou
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
         LOGGER.debug("[FullGraphScheduler] Generate implementation score for action " + action.getId());
-        
+
         ResourceDescription rd = impl.getRequirements().copy();
         long resourceFreeTime = 0;
         try {

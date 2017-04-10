@@ -90,8 +90,8 @@ public class DataScore extends ReadyScore {
 
     @Override
     public String toString() {
-        return "[DataScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
-                + ", implementation:" + implementationScore + "]" + "]";
+        return "[DataScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore + ", implementation:"
+                + implementationScore + "]" + "]";
     }
 
 }

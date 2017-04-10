@@ -115,20 +115,20 @@ int main (int argc, char *argv[]) {
             workerColumn = (dest%numProcsPerDimension)*blockSize;
             
             // Send block parameters
-            MPI_Send(&workerRow, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD);
-            MPI_Send(&workerColumn, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD);
+            MPI_Isend(&workerRow, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&workerColumn, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
             
             // Send block rows of A
-            MPI_Send(&a[workerRow*matrixSize], matrixSize*blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+            MPI_Isend(&a[workerRow*matrixSize], matrixSize*blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
             
             // Send block columns of B
             for (row = 0; row < matrixSize; ++row) {
-                MPI_Send(&b[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+                MPI_Isend(&b[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
             }
             
             // Send block of C
             for (row = workerRow; row < workerRow + blockSize; ++row) {
-                MPI_Send(&c[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+                MPI_Isend(&c[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
             }
         }
     }
@@ -170,7 +170,7 @@ int main (int argc, char *argv[]) {
     //printf("Send result back to master on process %d.\n", taskId);
     mtype = FROM_WORKER;
     for (row = workerRow; row < workerRow + blockSize; ++row) {
-        MPI_Send(&c[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
+        MPI_Isend(&c[row*matrixSize + workerColumn], blockSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, NULL);
     }
     
     /**************************** master receive ************************************/

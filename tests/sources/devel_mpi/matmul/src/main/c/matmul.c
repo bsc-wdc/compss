@@ -72,28 +72,20 @@ int main (int argc, char *argv[]) {
     double c[matrixSize*matrixSize];   // Result matrix C    
     
     // Initialize MPI env
-    int numMPINodes;                    // Number of MPI Nodes
-    int numWorkers;                     // Number of MPI Workers
+    int mpiProcs;                    // Number of MPI Nodes
     int taskid;                         // Task identifier
     MPI_Status status;                  // Status variable for MPI communications
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
-    MPI_Comm_size(MPI_COMM_WORLD, &numMPINodes);
-    if (numMPINodes < 2 ) {
-        printf("Need at least two MPI tasks. Quitting...\n");
-        MPI_Abort(MPI_COMM_WORLD, 1);
-        exit(1);
-    }
-    numWorkers = numMPINodes - 1;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpiProcs);
     
     // Misc variables
     int i, j, k, dest, rows;
     
-    
     /**************************** master task ************************************/
     if (taskid == MASTER) {
-        //printf("Matmul with %d MPI nodes.\n", numMPINodes);
+        // printf("Matmul with %d MPI nodes.\n", mpiProcs);
         
         // Initialize arrays
         //printf("Initialize matrixes.\n");
@@ -102,30 +94,62 @@ int main (int argc, char *argv[]) {
         fillMatrix(cout, matrixSize, c);
                 
         // Send matrix data to the worker tasks
-        //printf("Send matrixes to workers.\n");
-        int averow = matrixSize/numWorkers;
-        int extra = matrixSize%numWorkers;
+        // printf("Send matrixes to workers.\n");
+        int averow = matrixSize/mpiProcs;
+        int extra = matrixSize%mpiProcs;
         int offset = 0;
         int mtype = FROM_MASTER;
-        for (dest = 1; dest <= numWorkers; dest++) {
-            rows = (dest <= extra) ? averow+1 : averow;   	
-            //printf("Sending %d rows to task %d offset=%d\n", rows, dest, offset);
-            MPI_Send(&offset, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD);
-            MPI_Send(&rows, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD);
-            MPI_Send(&a[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-            MPI_Send(&b, matrixSize*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
-            MPI_Send(&c, rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD);
+        for (dest = 0; dest < mpiProcs; dest++) {
+            rows = (dest < extra) ? averow+1 : averow;   	
+            // printf("Sending %d rows to task %d offset=%d\n", rows, dest, offset);
+            MPI_Isend(&offset, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&rows, 1, MPI_INT, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&a[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&b, matrixSize*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
+            MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, dest, mtype, MPI_COMM_WORLD, NULL);
             offset = offset + rows;
         }
-        
+    }
+    
+    /**************************** worker task ************************************/
+    // Receive matrix
+    // printf("Receive IN matrixes on process %d.\n", taskid);
+    int offset = 0;
+    int mtype = FROM_MASTER;
+    MPI_Recv(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
+    MPI_Recv(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
+    MPI_Recv(&a, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
+    MPI_Recv(&b, matrixSize*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
+    MPI_Recv(&c[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
+    
+    // Perform multiply accumulative
+    // printf("Perform multiply accumulative on process %d.\n", taskid);
+    for (k = 0; k < matrixSize; k++) {
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < matrixSize; j++) {
+                c[i*matrixSize + k] = c[i*matrixSize + k] + a[i*matrixSize + j]*b[j*matrixSize + k];
+            }
+        }
+    }
+    
+    // Send back result to master
+    // printf("Send result back to master on process %d.\n", taskid);
+    mtype = FROM_WORKER;
+    MPI_Isend(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, NULL);
+    MPI_Isend(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, NULL);
+    MPI_Isend(&c, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, NULL);
+    
+    
+    /**************************** master task ************************************/
+    if (taskid == MASTER) {
         // Receive results from worker tasks
-        //printf("Receive results.\n");
+        // printf("Receive results.\n");
         mtype = FROM_WORKER;
-        for (i = 1; i <= numWorkers; i++) {
+        for (i = 0; i < mpiProcs; i++) {
             MPI_Recv(&offset, 1, MPI_INT, i, mtype, MPI_COMM_WORLD, &status);
             MPI_Recv(&rows, 1, MPI_INT, i, mtype, MPI_COMM_WORLD, &status);
             MPI_Recv(&c[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, i, mtype, MPI_COMM_WORLD, &status);
-            //printf("  - Received results from task %d\n", i);
+            // printf("  - Received results from task %d\n", i);
         }
         
         // Print result
@@ -136,37 +160,6 @@ int main (int argc, char *argv[]) {
         storeMatrix(cout, matrixSize, c);
         
         printf ("Done.\n");
-    }
-    
-    
-    /**************************** worker task ************************************/
-    if (taskid > MASTER) {
-        // Receive matrix
-        //printf("Receive IN matrixes on process %d.\n", taskid);
-        int offset = 0;
-        int mtype = FROM_MASTER;
-        MPI_Recv(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
-        MPI_Recv(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
-        MPI_Recv(&a, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
-        MPI_Recv(&b, matrixSize*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
-        MPI_Recv(&c[offset*matrixSize], rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
-        
-        // Perform multiply accumulative
-        //printf("Perform multiply accumulative on process %d.\n", taskid);
-        for (k = 0; k < matrixSize; k++) {
-            for (i = 0; i < rows; i++) {
-                for (j = 0; j < matrixSize; j++) {
-                    c[i*matrixSize + k] = c[i*matrixSize + k] + a[i*matrixSize + j]*b[j*matrixSize + k];
-                }
-            }
-        }
-        
-        // Send back result to master
-        //printf("Send result back to master on process %d.\n", taskid);
-        mtype = FROM_WORKER;
-        MPI_Send(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
-        MPI_Send(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
-        MPI_Send(&c, rows*matrixSize, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
     }
     
     

@@ -62,6 +62,8 @@ public class TaskAnalyser {
     private HashMap<Long, Integer> appIdToTaskCount;
     // Map: app id -> semaphore to notify end of app
     private HashMap<Long, Semaphore> appIdToSemaphore;
+    // List of appIds stoped on a barrier synchornization point
+    private HashSet<Long> appIdBarrierFlags;
     // Map: app id -> set of written data ids (for result files)
     private HashMap<Long, TreeSet<Integer>> appIdToWrittenFiles;
     // Map: app id -> set of written data ids (for result SCOs)
@@ -91,6 +93,7 @@ public class TaskAnalyser {
         appIdToTaskCount = new HashMap<>();
         appIdToTotalTaskCount = new HashMap<>();
         appIdToSemaphore = new HashMap<>();
+        appIdBarrierFlags = new HashSet<>();
         appIdToWrittenFiles = new HashMap<>();
         appIdToSCOWrittenIds = new HashMap<>();
         waitedTasks = new Hashtable<>();
@@ -286,9 +289,13 @@ public class TaskAnalyser {
         Integer taskCount = appIdToTaskCount.get(appId) - 1;
         appIdToTaskCount.put(appId, taskCount);
         if (taskCount == 0) {
+            // Remove the appId from the barrier flags (if existant, otherwise do nothing)
+            appIdBarrierFlags.remove(appId);
+
             Semaphore sem = appIdToSemaphore.remove(appId);
             if (sem != null) {
-                // App has notified that no more tasks are coming
+                // App was synchornized on a barrier flag or a no more tasks
+                // Release the application semaphore
                 appIdToTaskCount.remove(appId);
                 sem.release();
             }
@@ -313,7 +320,8 @@ public class TaskAnalyser {
         }
 
         // Check if the finished task was the last writer of a file, but only if task generation has finished
-        if (appIdToSemaphore.get(appId) != null) {
+        // Task generation is finished if we are on noMoreTasks but we are not on a barrier
+        if (appIdToSemaphore.get(appId) != null && !appIdBarrierFlags.contains(appId)) {
             checkResultFileTransfer(task);
         }
 
@@ -415,7 +423,6 @@ public class TaskAnalyser {
     public void barrier(BarrierRequest request) {
         Long appId = request.getAppId();
         Integer count = appIdToTaskCount.get(appId);
-
         if (drawGraph) {
             addNewBarrier();
 
@@ -427,6 +434,7 @@ public class TaskAnalyser {
         if (count == null || count == 0) {
             request.getSemaphore().release();
         } else {
+            appIdBarrierFlags.add(appId);
             appIdToSemaphore.put(appId, request.getSemaphore());
         }
     }
@@ -690,5 +698,5 @@ public class TaskAnalyser {
             }
         }
     }
-    
+
 }

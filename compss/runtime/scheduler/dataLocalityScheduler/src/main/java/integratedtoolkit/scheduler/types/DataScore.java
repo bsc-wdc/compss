@@ -3,7 +3,6 @@ package integratedtoolkit.scheduler.types;
 import java.util.HashSet;
 
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.data.DataAccessId;
@@ -15,7 +14,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
 
-public class DataScore extends Score {
+public class DataScore extends ReadyScore {
 
     /**
      * Creates a new ResourceEmptyScore with the given values
@@ -25,8 +24,8 @@ public class DataScore extends Score {
      * @param res
      * @param impl
      */
-    public DataScore(double actionScore, double waiting, double res, double impl) {
-        super(actionScore, waiting, res, impl);
+    public DataScore(double actionScore, double res, double waiting, double impl) {
+        super(actionScore, res, waiting, impl);
     }
 
     /**
@@ -45,7 +44,8 @@ public class DataScore extends Score {
      * @param w
      * @return
      */
-    public static double calculateScore(TaskDescription params, Worker<?, ?> w) {
+    @Override
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();

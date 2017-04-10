@@ -30,7 +30,7 @@ public class DataResourceScheduler<P extends Profile, T extends WorkerResourceDe
      */
     @Override
     public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[DataResourceScheduler] Generate blocked score for action " + action);
+        // LOGGER.debug("[DataResourceScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
         double waitingScore = 2.0;
         if (this.blocked.size() > 0) {
@@ -39,12 +39,12 @@ public class DataResourceScheduler<P extends Profile, T extends WorkerResourceDe
         double resourceScore = 0;
         double implementationScore = 0;
 
-        return new DataScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new DataScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
-        LOGGER.debug("[DataResourceScheduler] Generate resource score for action " + action);
+        // LOGGER.debug("[DataResourceScheduler] Generate resource score for action " + action);
 
         double actionPriority = actionScore.getActionScore();
 
@@ -53,14 +53,14 @@ public class DataResourceScheduler<P extends Profile, T extends WorkerResourceDe
             waitingScore = (double) (1 / (double) this.blocked.size());
         }
 
-        double resourceScore = DataScore.calculateScore(params, this.myWorker);
+        double resourceScore = actionScore.calculateResourceScore(params, this.myWorker);
 
-        return new DataScore(actionPriority, waitingScore, resourceScore, 0);
+        return new DataScore(actionPriority, resourceScore, waitingScore, 0);
     }
 
     @Override
     public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
-        LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);
+        // LOGGER.debug("[DataResourceScheduler] Generate implementation score for action " + action);
 
         if (this.myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();
@@ -68,7 +68,7 @@ public class DataResourceScheduler<P extends Profile, T extends WorkerResourceDe
             double resourcePriority = resourceScore.getResourceScore();
             double implScore = 1.0 / ((double) this.getProfile(impl).getAverageExecutionTime());
 
-            return new DataScore(actionPriority, waitingScore, resourcePriority, implScore);
+            return new DataScore(actionPriority, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

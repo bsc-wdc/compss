@@ -1,13 +1,16 @@
 package integratedtoolkit.scheduler.fifoDataScheduler;
 
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
+import integratedtoolkit.scheduler.exceptions.BlockedActionException;
+import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.readyScheduler.ReadyScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.FIFODataScore;
+import integratedtoolkit.scheduler.types.ObjectValue;
 import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -46,9 +49,9 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
     }
 
     @Override
-    public Score generateActionScore(AllocatableAction<P, T, I> action) {
+    public FIFODataScore generateActionScore(AllocatableAction<P, T, I> action) {
         // LOGGER.info("[FIFODataScheduler] Generate Action Score for " + action);
-        return new FIFODataScore(action.getPriority(), -(double) action.getId(), 0, 0);
+        return new FIFODataScore(action.getPriority(), 0, 0, 0);
     }
 
     /*
@@ -61,17 +64,32 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
 
     @Override
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
+            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
 
-        // LOGGER.info("[FIFODataScheduler] Treating dependency free actions");
-
+        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
         for (AllocatableAction<P, T, I> action : executionCandidates) {
-            this.dependingActions.removeAction(action);
-            this.unassignedReadyActions.addAction(action);
+            FIFODataScore actionScore = this.generateActionScore(action);
+            FIFODataScore fullScore = (FIFODataScore) action.schedulingScore(resource, actionScore);
+            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, fullScore);
+            executableActions.add(obj);
         }
-
-        // We leave on executionCandidates empty since none of the actions is ready to be launched
         executionCandidates.clear();
+        while (!executableActions.isEmpty()) {
+            ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
+            AllocatableAction<P, T, I> freeAction = obj.getObject();
+            try {
+                scheduleAction(freeAction, resource, obj.getScore());
+                tryToLaunch(freeAction);
+            } catch (BlockedActionException e) {
+                removeFromReady(freeAction);
+                addToBlocked(freeAction);
+            } catch (UnassignedActionException e) {
+                executionCandidates.add(freeAction);
+            }
+        }
+        LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
+        this.unassignedReadyActions.removeAllActions();
+        executionCandidates.addAll(unassignedReadyActions);
     }
 
 }

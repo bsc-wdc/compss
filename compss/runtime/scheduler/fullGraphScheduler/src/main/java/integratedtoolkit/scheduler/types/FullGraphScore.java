@@ -21,13 +21,13 @@ public class FullGraphScore<P extends Profile, T extends WorkerResourceDescripti
 
 
     public FullGraphScore(double actionScore, double dataAvailability, double waiting, double res, double impl) {
-        super(actionScore, waiting, res, impl);
+        super(actionScore, res, waiting, impl);
         expectedDataAvailable = dataAvailability;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }
 
     public FullGraphScore(FullGraphScore<P, T, I> actionScore, double transferTime, double waiting, double resourceTime, double impl) {
-        super(actionScore.getActionScore(), waiting, resourceTime, impl);
+        super(actionScore.getActionScore(), resourceTime, waiting, impl);
         expectedDataAvailable = actionScore.expectedDataAvailable + transferTime;
         expectedStart = Math.max(resourceScore, expectedDataAvailable);
     }

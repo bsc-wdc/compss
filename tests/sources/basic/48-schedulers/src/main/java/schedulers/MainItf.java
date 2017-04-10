@@ -8,11 +8,12 @@ import integratedtoolkit.types.annotations.task.Method;
 
 
 public interface MainItf {
-
+    
     @Constraints(computingUnits = "1")
     @Method(declaringClass = "schedulers.MainImpl")
     void increment(
-        @Parameter(type = Type.FILE, direction = Direction.INOUT) String file
+        @Parameter(type = Type.FILE, direction = Direction.INOUT) String fileInOut,
+        @Parameter(type = Type.FILE, direction = Direction.IN) String fileIn
     );
 
 }

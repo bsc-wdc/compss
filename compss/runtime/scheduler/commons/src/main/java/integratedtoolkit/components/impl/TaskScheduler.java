@@ -330,21 +330,10 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         }
 
         // Schedule data free actions
-        LinkedList<AllocatableAction<P, T, I>> unassignedCandidates = new LinkedList<>();
         LinkedList<AllocatableAction<P, T, I>> blockedCandidates = new LinkedList<>();
         // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unnassigned must be added to the unassigned list
-        handleDependencyFreeActions(executionCandidates, unassignedCandidates, blockedCandidates);
-
-        // Check that the handleDependencyFreeActions has not returned any invalid action
-        if (!unassignedCandidates.isEmpty()) {
-            StringBuilder info = new StringBuilder("Scheduler has lost track of actions:");
-            for (AllocatableAction<P, T, I> aa : unassignedCandidates) {
-                info.append(" ").append(aa.toString());
-            }
-            ErrorManager.fatal(info.toString());
-        }
-
+        // and those that remain unassigned must be added to the unassigned list
+        handleDependencyFreeActions(executionCandidates, blockedCandidates, resource);
         for (AllocatableAction<P, T, I> aa : blockedCandidates) {
             removeFromReady(aa);
             addToBlocked(aa);
@@ -357,13 +346,13 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
         for (AllocatableAction<P, T, I> freeAction : executionCandidates) {
             Score actionScore = generateActionScore(freeAction);
-            Score fullScore = action.schedulingScore(freeAction.getAssignedResource(), actionScore);
+            Score fullScore = freeAction.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
             executableActions.add(obj);
         }
         for (AllocatableAction<P, T, I> freeAction : resourceFree) {
             Score actionScore = generateActionScore(freeAction);
-            Score fullScore = action.schedulingScore(freeAction.getAssignedResource(), actionScore);
+            Score fullScore = freeAction.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
             if (!executableActions.contains(obj)) {
                 executableActions.add(obj);
@@ -372,7 +361,15 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
             AllocatableAction<P, T, I> freeAction = obj.getObject();
-            tryToLaunch(freeAction);
+
+            LOGGER.debug("Trying to launch action " + freeAction);
+            try {
+                scheduleAction(freeAction, obj.getScore());
+                tryToLaunch(freeAction);
+            } catch (BlockedActionException e) {
+                removeFromReady(freeAction);
+                addToBlocked(freeAction);
+            }
         }
     }
 
@@ -434,10 +431,12 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     protected final void tryToLaunch(AllocatableAction<P, T, I> action) {
         try {
+            // LOGGER.debug("[TaskScheduler] Trying to launch" + action);
             action.tryToLaunch();
+            // LOGGER.debug("[TaskScheduler] Exited from tryToLaunch without exception");
         } catch (InvalidSchedulingException ise) {
+            // LOGGER.debug("[TaskScheduler] There was a bad scheduling" + action);
             action.getAssignedResource().unscheduleAction(action);
-
             Score actionScore = generateActionScore(action);
             boolean actionReassigned = false;
             for (int i = 0; i < action.getConstrainingPredecessors().size() && !actionReassigned; ++i) {
@@ -482,6 +481,22 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
 
     /**
+     * Plans the execution of a given action in one of the compatible resources. The solution should be computed
+     * hurriedly since it blocks the runtime thread and this initial allocation can be modified by the scheduler later
+     * on the execution.
+     *
+     * @param action
+     *            Action whose execution has to be allocated
+     * @throws integratedtoolkit.scheduler.types.Action.BlockedActionException
+     *
+     */
+    protected void scheduleAction(AllocatableAction<P, T, I> action, ResourceScheduler<P, T, I> targetWorker, Score actionScore)
+            throws BlockedActionException, UnassignedActionException {
+        LOGGER.info("[TaskScheduler] Schedule action " + action);
+        action.schedule(targetWorker, actionScore);
+    }
+
+    /**
      * Notifies to the scheduler that some actions have become free of data dependencies.
      * 
      * @param executionCandidates
@@ -493,7 +508,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @throws BlockedActionException
      */
     public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> unassignedCandidates, LinkedList<AllocatableAction<P, T, I>> blockedCandidates) {
+            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
 
         LOGGER.info("[TaskScheduler] Treating dependency free actions");
 
@@ -503,11 +518,13 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
             if (action.getAssignedResource() == null) {
                 Score actionScore = generateActionScore(action);
                 try {
-                    action.schedule(actionScore);
-                } catch (UnassignedActionException uae) {
-                    unassignedCandidates.add(action);
-                } catch (BlockedActionException bae) {
+                    action.schedule(resource, actionScore);
+                    tryToLaunch(action);
+                    executionCandidates.remove(action);
+                } catch (BlockedActionException e) {
                     blockedCandidates.add(action);
+                } catch (UnassignedActionException ex) {
+                    // Nothing to do, action stay in executionCandidates queue
                 }
             }
         }

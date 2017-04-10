@@ -71,7 +71,7 @@ public class FullGraphResourceScheduler<P extends Profile, T extends WorkerResou
     public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
         LOGGER.debug("[FullGraphScheduler] Generate resource score for action " + action.getId());
         
-        double resScore = Score.calculateScore(params, myWorker);
+        double resScore = actionScore.calculateResourceScore(params, myWorker);
         for (AllocatableAction<P, T, I> pred : action.getDataPredecessors()) {
             if (pred.isPending() && pred.getAssignedResource() == this) {
                 resScore++;

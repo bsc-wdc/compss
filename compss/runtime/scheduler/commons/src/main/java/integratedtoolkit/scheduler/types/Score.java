@@ -11,6 +11,7 @@ import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.parameter.DependencyParameter;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.Resource;
+import integratedtoolkit.types.resources.Worker;
 
 
 /**
@@ -20,8 +21,8 @@ import integratedtoolkit.types.resources.Resource;
 public class Score implements Comparable<Score> {
 
     protected double actionScore; // Action Priority
-    protected double waitingScore; // Resource Ready Priority
     protected double resourceScore; // Resource Priority
+    protected double waitingScore; // Resource Blocked Priority
     protected double implementationScore; // Implementation Priority
 
 
@@ -33,10 +34,10 @@ public class Score implements Comparable<Score> {
      * @param res
      * @param impl
      */
-    public Score(double actionScore, double waiting, double res, double impl) {
+    public Score(double actionScore, double res, double waiting, double impl) {
         this.actionScore = actionScore;
-        this.waitingScore = waiting;
         this.resourceScore = res;
+        this.waitingScore = waiting;
         this.implementationScore = impl;
     }
 
@@ -47,8 +48,8 @@ public class Score implements Comparable<Score> {
      */
     public Score(Score clone) {
         this.actionScore = clone.actionScore;
-        this.waitingScore = clone.waitingScore;
         this.resourceScore = clone.resourceScore;
+        this.waitingScore = clone.waitingScore;
         this.implementationScore = clone.implementationScore;
     }
 
@@ -150,8 +151,8 @@ public class Score implements Comparable<Score> {
             return -1;
         }
     }
-
-    public static double calculateScore(TaskDescription params, Resource w) {
+    
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();

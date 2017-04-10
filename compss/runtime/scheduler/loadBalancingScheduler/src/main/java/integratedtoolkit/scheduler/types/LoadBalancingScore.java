@@ -15,7 +15,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
 
-public class LoadBalancingScore extends Score {
+public class LoadBalancingScore extends ReadyScore {
 
     /**
      * Creates a new ResourceEmptyScore with the given values
@@ -25,8 +25,8 @@ public class LoadBalancingScore extends Score {
      * @param res
      * @param impl
      */
-    public LoadBalancingScore(double actionScore, double waiting, double res, double impl) {
-        super(actionScore, waiting, res, impl);
+    public LoadBalancingScore(double actionScore, double res, double waiting, double impl) {
+        super(actionScore, res, waiting, impl);
     }
 
     /**
@@ -45,11 +45,14 @@ public class LoadBalancingScore extends Score {
      * @param w
      * @return
      */
-    public static double calculateScore(TaskDescription params, Worker<?, ?> w) {
+    @Override
+    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();
-
+            if (parameters.length == 0) {
+                ++resourceScore;
+            }
             // Obtain the scores for the host: number of task parameters that
             // are located in the host
             for (Parameter p : parameters) {
@@ -87,10 +90,24 @@ public class LoadBalancingScore extends Score {
         }
         return resourceScore;
     }
+    
+    @Override
+    public boolean isBetter(Score other) {
+        if (this.actionScore != other.actionScore) {
+            return this.actionScore > other.actionScore;
+        }
+        if (this.resourceScore != other.resourceScore) {
+            return this.resourceScore > other.resourceScore;
+        }
+        if (this.implementationScore != other.implementationScore) {
+            return this.implementationScore > other.implementationScore;
+        }
+        return this.waitingScore > other.waitingScore;
+    }
 
     @Override
     public String toString() {
-        return "[ResourceEmptyScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
+        return "[LoadBalancingScore = [action:" + actionScore + ", resource:" + resourceScore + ", load:" + waitingScore
                 + ", implementation:" + implementationScore + "]" + "]";
     }
 

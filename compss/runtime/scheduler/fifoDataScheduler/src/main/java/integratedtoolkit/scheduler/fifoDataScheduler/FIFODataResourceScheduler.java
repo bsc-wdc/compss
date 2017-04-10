@@ -29,40 +29,40 @@ public class FIFODataResourceScheduler<P extends Profile, T extends WorkerResour
      * ***************************************************************************************************************
      */
     @Override
-    public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
+    public FIFODataScore generateBlockedScore(AllocatableAction<P, T, I> action) {
         //LOGGER.debug("[FIFODataResourceScheduler] Generate blocked score for action " + action);
         double actionPriority = action.getPriority();
-        double waitingScore = -(double) action.getId();
-        double resourceScore = 0;
+        double resourceScore = -(double) action.getId();
+        double waitingScore = 0;
         double implementationScore = 0;
 
-        return new FIFODataScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new FIFODataScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
-    public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
+    public FIFODataScore generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
         //LOGGER.debug("[FIFODataResourceScheduler] Generate resource score for action " + action);
 
         double actionPriority = actionScore.getActionScore();
-        double waitingScore = -(double) action.getId();
-        double resourceScore = FIFODataScore.calculateScore(params, this.myWorker);
+        double resourceScore = -(double) action.getId();
+        double waitingScore = 0;
         // double resourceScore = Math.min(1.5, 1.0 / (double) myWorker.getUsedTaskCount());
         double implementationScore = 0;
 
-        return new FIFODataScore(actionPriority, waitingScore, resourceScore, implementationScore);
+        return new FIFODataScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
-    public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
+    public FIFODataScore generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
         //LOGGER.debug("[FIFODataResourceScheduler] Generate implementation score for action " + action);
 
         if (myWorker.canRunNow(impl.getRequirements())) {
             double actionPriority = resourceScore.getActionScore();
-            double waitingScore = resourceScore.getWaitingScore();
-            double resourcePriority = resourceScore.getResourceScore();
-            double implScore = -(double) action.getId();
+            double resourcePriority = -(double) action.getId();
+            double waitingScore = 0;
+            double implScore = 0;
 
-            return new FIFODataScore(actionPriority, waitingScore, resourcePriority, implScore);
+            return new FIFODataScore(actionPriority, resourcePriority, waitingScore, implScore);
         } else {
             // Implementation cannot be run
             return null;

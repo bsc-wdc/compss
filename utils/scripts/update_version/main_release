@@ -12,8 +12,8 @@ usage() {
 
 
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  # baseVersion:	Refers to the main version: v		2.0.rc1702
-  # Version: 		Refers to the current version: v.rcYYMM 2.0.rc1702.rc1701
+  # baseVersion:	Refers to the main version: v		2.0.rc1704
+  # Version: 		Refers to the current version: v.rcYYMM 2.0.rc1704.rc1701
   #=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
   # Get base version from trunk

@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>es.bsc.compss.tests</groupId>
 		<artifactId>compss-tests-devel-mpi</artifactId>
-		<version>2.0.rc1702</version>
+<version>2.0.rc1704</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -91,7 +91,7 @@
 			</plugin>
 			<!-- Plugin to instrument the class during compilation -->
 			<!-- <plugin> <groupId>es.bsc.compss.maven</groupId> <artifactId>instrumentation</artifactId> 
-				<version>2.0.rc1702</version> <executions> <execution> <phase>process-classes</phase> 
+<version>2.0.rc1704</version>
 				<goals> <goal>instrument</goal> </goals> </execution> </executions> </plugin> -->
 
 			<!-- Copiar el nmmb.jar al basedir -->

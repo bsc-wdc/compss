@@ -41,13 +41,13 @@ public class LoadBalancingScheduler<P extends Profile, T extends WorkerResourceD
 
     @Override
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        LOGGER.info("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
+        // LOGGER.debug("[LoadBalancingScheduler] Generate scheduler for resource " + w.getName());
         return new LoadBalancingResourceScheduler<>(w);
     }
 
     @Override
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.info("[LoadBalancingScheduler] Generate Action Score for " + action);
+        // LOGGER.debug("[LoadBalancingScheduler] Generate Action Score for " + action);
         return new LoadBalancingScore(action.getPriority(), 0, 0, 0);
     }
 

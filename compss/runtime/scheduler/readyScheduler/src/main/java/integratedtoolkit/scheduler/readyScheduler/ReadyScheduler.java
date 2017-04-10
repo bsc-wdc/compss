@@ -56,35 +56,7 @@ public abstract class ReadyScheduler<P extends Profile, T extends WorkerResource
 
     @Override
     public void workerLoadUpdate(ResourceScheduler<P, T, I> resource) {
-        /*
-        LOGGER.info("[ReadyScheduler] WorkerLoad update on resource " + resource.getName());
-
-        // When a worker's load has been modified we can try to schedule unassigned ready actions
-        // Obtain and sort ready actions
-        LinkedList<AllocatableAction<P, T, I>> candidates = this.unassignedReadyActions.removeAllCompatibleActions(resource.getResource());
-        LOGGER.info("[ReadyScheduler] There are " + candidates.size() + " compatible actions");
-        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executionCandidates = new PriorityQueue<>();
-        for (AllocatableAction<P, T, I> action : candidates) {
-            Score actionScore = generateActionScore(action);
-            Score resourceScore = action.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, resourceScore);
-            executionCandidates.add(obj);
-        }
-        LOGGER.info("[ReadyScheduler] There are " + executionCandidates.size() + " executionCandidates");
-        // Try to schedule and launch ready actions
-        while (!executionCandidates.isEmpty()) {
-            ObjectValue<AllocatableAction<P, T, I>> obj = executionCandidates.poll();
-            AllocatableAction<P, T, I> action = obj.getObject();
-            Score actionScore = obj.getScore();
-            try {
-                scheduleAction(action, actionScore);
-                tryToLaunch(action);
-            } catch (BlockedActionException e) {
-                removeFromReady(action);
-                addToBlocked(action);
-            }
-        }
-        */
+        // LOGGER.debug("[ReadyScheduler] WorkerLoad update on resource " + resource.getName());
     }
 
     @Override

@@ -17,6 +17,7 @@ public class PythonExecutor extends ExternalExecutor {
 
     public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 
+
     public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
         super(nw, pool, queue, writePipe, resultReader);
     }
@@ -50,6 +51,8 @@ public class PythonExecutor extends ExternalExecutor {
         } else {
             ldLibraryPath = ldLibraryPath.concat(":" + nw.getLibPath());
         }
+        String bindingsHome = nw.getInstallDir() + BINDINGS_RELATIVE_PATH;
+        ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
         env.put("LD_LIBRARY_PATH", ldLibraryPath);
 
         return env;

@@ -32,6 +32,9 @@ import java.util.concurrent.Semaphore;
 
 public abstract class ExternalExecutor extends Executor {
 
+    protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" +
+            File.separator + "lib";
+
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
     private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
     private static final String ERROR_UNSUPPORTED_JOB_TYPE = "Bindings don't support non-native tasks";

@@ -10,9 +10,7 @@ EXTRA_DIST = \
   example \
   INSTALL-examples \
   substitute \
-  substitute-all \
-  SVN-branch \
-  SVN-revision
+  substitute-all
 
 VPATH=@srcdir@
 SRCDIR=@srcdir@
@@ -379,6 +377,7 @@ install-data-hook:
 	$(top_srcdir)/substitute $(SED) "@sub_LIBERTY_LIBS@" "${LIBERTY_LDFLAGS} ${LIBERTY_LIBS}" $(DESTDIR)$(datadir)/example/Makefile.inc
 	$(top_srcdir)/substitute $(SED) "@sub_ZLIB_HOME@" "${LIBZ_HOME}" $(DESTDIR)$(datadir)/example/Makefile.inc
 	$(top_srcdir)/substitute $(SED) "@sub_ZLIB_LIBS@" "${LIBZ_LIBS}" $(DESTDIR)$(datadir)/example/Makefile.inc
+	$(top_srcdir)/substitute $(SED) "@sub_DL_LIBS@" "${DL_LIBS}" $(DESTDIR)$(datadir)/example/Makefile.inc
 if WANT_CUPTI
 	$(top_srcdir)/substitute $(SED) "@sub_CUPTI_LIBS@" "-L${CUPTI_HOME}/lib -lcupti" $(DESTDIR)$(datadir)/example/Makefile.inc
 else
@@ -499,8 +498,56 @@ endif
 # Apply modifications to all directories installed
 #
 	$(top_srcdir)/substitute-all $(SED) "@sub_PREFIXDIR@" "${prefix}" $(DESTDIR)$(datadir)/example
-	$(top_srcdir)/substitute-all $(SED) "@sub_XMLID@" "`grep 'rcsid\[\]' $(top_srcdir)/src/tracer/xml-parse.c | $(AWK) -F'$$' '{ print $$2"$$" }'`" $(DESTDIR)$(datadir)/example
 	rm null # Remove null file created at the beginning
 # SVN installations may have some subversion control files
-	rm -fr `find $(DESTDIR)$(datadir)/example $(distdir) -name .svn`
+	find $(DESTDIR)$(datadir)/example -name .svn -delete
 	find $(DESTDIR)$(datadir)/example -name null -delete
+
+uninstall-local:
+	rm -r $(DESTDIR)$(datadir)/example/SEQ \
+	      $(DESTDIR)$(datadir)/example/FORK \
+	      $(DESTDIR)$(datadir)/example/PYTHON
+if HAVE_MPI
+	rm -r $(DESTDIR)$(datadir)/example/MPI
+if WANT_CUDAorCUPTI
+	rm -r $(DESTDIR)$(datadir)/example/MPI+CUDA
+endif
+if WANT_OPENCL
+	rm -r $(DESTDIR)$(datadir)/example/MPI+OPENCL
+endif
+if WANT_NANOS
+	rm -r $(DESTDIR)$(datadir)/example/MPI+OMPSS
+endif
+if WANT_OPENMP
+	rm -r $(DESTDIR)$(datadir)/example/MPI+OMP
+endif
+endif
+if WANT_OPENMP
+	rm -r $(DESTDIR)$(datadir)/example/OMP
+endif
+if HAVE_ONLINE
+	rm -r $(DESTDIR)$(datadir)/example/ONLINE
+endif
+if WANT_PTHREAD
+	rm -r $(DESTDIR)$(datadir)/example/PTHREAD
+endif
+if WANT_CUDAorCUPTI
+	rm -r $(DESTDIR)$(datadir)/example/CUDA
+endif
+if WANT_OPENCL
+	rm -r $(DESTDIR)$(datadir)/example/OPENCL
+endif
+if WANT_NANOS
+	rm -r $(DESTDIR)$(datadir)/example/OMPSS
+endif
+if WANT_JAVA
+	rm -r $(DESTDIR)$(datadir)/example/JAVA
+endif
+	rm -r $(DESTDIR)$(datadir)/example/UNICORE
+	rm    $(DESTDIR)$(datadir)/example/Makefile.inc
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(datadir)/example
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(bindir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(libdir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(libexecdir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(datadir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)

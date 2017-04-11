@@ -60,6 +60,8 @@ using namespace std;
 
 #include <BPatch_statement.h>
 #include <BPatch_point.h>
+#include <BPatch_object.h>
+
 
 static bool ListFunctions = false;
 static bool showErrors = true;
@@ -210,12 +212,15 @@ static void ShowFunctions (BPatch_image *appImage)
 
 		if (f->isSharedLib())
 		{
-			char sharedlibname[1024];
+			//Old Dyninst API < 9.x
+			//char sharedlibname[1024];
+			//mod->getFullName (sharedlibname, 1024);
+
 			BPatch_module *mod = f->getModule();
 
-			mod->getFullName (sharedlibname, 1024);
+			string sharedlibname;
+			sharedlibname = mod->getObject()->name();
 			cout << "    Full library name: " << sharedlibname << endl;
-			
 		}
 		cout << endl;
 
@@ -372,8 +377,7 @@ int main (int argc, char *argv[])
 	/* Don't check recursion in snippets */
 	bpatch->setTrampRecursive (true);
 
-	cout << "Welcome to " << PACKAGE_STRING  << " revision " << EXTRAE_SVN_REVISION
-	  << " based on " << EXTRAE_SVN_BRANCH << " launcher using DynInst "
+	cout << "Welcome to " << PACKAGE_STRING << " launcher using DynInst "
 	  << DYNINST_MAJOR << "." << DYNINST_MINOR << "." << DYNINST_SUBMINOR << endl;
 
 	int i = 1;

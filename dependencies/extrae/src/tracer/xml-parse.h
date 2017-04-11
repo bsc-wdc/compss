@@ -41,7 +41,6 @@
 #define TRACE_TAG                       ((xmlChar*) "trace")
 #define TRACE_HOME                      ((xmlChar*) "home")
 #define TRACE_TYPE                      ((xmlChar*) "type")
-#define TRACE_PARSER_ID                 ((xmlChar*) "xml-parser-id")
 #define TRACE_TYPE_PARAVER              ((xmlChar*) "paraver")
 #define TRACE_TYPE_DIMEMAS              ((xmlChar*) "dimemas")
 #define TRACE_INITIAL_MODE              ((xmlChar*) "initial-mode")
@@ -93,6 +92,7 @@
 #define TRACE_DYNAMIC_MEMORY_ALLOC_THRESHOLD   ((xmlChar*) "threshold")
 #define TRACE_DYNAMIC_MEMORY_FREE       ((xmlChar*) "free")
 #define TRACE_IO                        ((xmlChar*) "input-output")
+#define TRACE_SYSCALL                   ((xmlChar*) "syscall")
 #define TRACE_LIST                      ((xmlChar*) "list")
 #define TRACE_EXCLUDE_AUTOMATIC_FUNCTIONS ((xmlChar*) "exclude-automatic-functions")
 #define TRACE_USERFUNCTION              ((xmlChar*) "user-functions")
@@ -159,6 +159,10 @@
 #define TRACE_PEBS_SAMPLING_LOADS       ((xmlChar*) "loads")
 #define TRACE_PEBS_SAMPLING_STORES      ((xmlChar*) "stores")
 #define TRACE_PEBS_MIN_MEM_LATENCY      ((xmlChar*) "minimum-latency")
+
+#define TRACE_CPU_EVENTS		((xmlChar*) "cpu-events")
+#define TRACE_CPU_EVENTS_FREQUENCY	((xmlChar*) "frequency")
+#define TRACE_CPU_EVENTS_EMIT_ALWAYS    ((xmlChar*) "emit-always")
 
 void Parse_XML_File (int rank, int world_size, const char *filename);
 

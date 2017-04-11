@@ -53,6 +53,10 @@ unsigned IsMPICollective (unsigned EvType);
 
 #define NULL_EV -1
 
+/* Values */
+#define EVT_BEGIN                1
+#define EVT_END                  0
+
 /* Trace options, just do a bitwise or/and with these values */
 #define TRACEOPTION_NONE            (0)
 #define TRACEOPTION_HWC             (1<<0)
@@ -85,6 +89,13 @@ unsigned IsMPICollective (unsigned EvType);
 #define SAMPLING_ADDRESS_STATIC_OBJECT_EV    32000008
 #define SAMPLING_ADDRESS_ALLOCATED_OBJECT_CALLER_EV 32000100 /* internal purposes, not emitted into paraver tracefile */
 
+#define SYSCALL_EV               40000000
+
+enum {
+  SYSCALL_SCHED_YIELD_EV,
+	SYSCALL_EVENTS_COUNT
+};
+
 #define APPL_EV                  40000001
 #define TRACE_INIT_EV            40000002
 #define FLUSH_EV                 40000003
@@ -93,6 +104,16 @@ unsigned IsMPICollective (unsigned EvType);
 #define WRITE_EV                 40000005
 #define READ_VAL_EV                     1 /* Used in merger, with IO_EV */
 #define WRITE_VAL_EV                    2 /* Used in merger, with IO_EV */
+#define FREAD_VAL_EV                    3 /* Used in merger, with IO_EV */
+#define FWRITE_VAL_EV                   4 /* Used in merger, with IO_EV */
+#define PREAD_VAL_EV                    5 /* Used in merger, with IO_EV */
+#define PWRITE_VAL_EV                   6 /* Used in merger, with IO_EV */
+#define READV_VAL_EV                    7 /* Used in merger, with IO_EV */
+#define WRITEV_VAL_EV                   8 /* Used in merger, with IO_EV */
+#define PREADV_VAL_EV                   9 /* Used in merger, with IO_EV */
+#define PWRITEV_VAL_EV                 10 /* Used in merger, with IO_EV */
+#define OPEN_VAL_EV                    11 /* Used in merger, with IO_EV */
+#define FOPEN_VAL_EV                   12 /* Used in merger, with IO_EV */
 #define USER_EV                  40000006
 #define HWC_DEF_EV               40000007
 #define HWC_CHANGE_EV            40000008
@@ -121,6 +142,7 @@ unsigned IsMPICollective (unsigned EvType);
 #define EXEC_EV                  40000031
 #define EXEC_BIN_EV              40000032
 #define GETCPU_EV                40000033
+#define CPU_EVENT_INTERVAL_EV    40000133
 #define SYSTEM_EV                40000034
 #define SYSTEM_BIN_EV            40000035
 #define PID_EV                   40000036
@@ -131,11 +153,46 @@ unsigned IsMPICollective (unsigned EvType);
 #define FREE_EV                  40000041
 #define CALLOC_EV                40000042
 #define REALLOC_EV               40000043
+#define POSIX_MEMALIGN_EV	 40000044
+#define MEMKIND_MALLOC_EV         40000045
+#define MEMKIND_CALLOC_EV         40000046
+#define MEMKIND_REALLOC_EV        40000047
+#define MEMKIND_POSIX_MEMALIGN_EV 40000048
+#define MEMKIND_FREE_EV           40000049
+#define MEMKIND_PARTITION_EV      40001000
+
+enum
+{
+  MEMKIND_PARTITION_DEFAULT_VAL = 1,
+  MEMKIND_PARTITION_HBW_VAL,
+  MEMKIND_PARTITION_HBW_HUGETLB_VAL,
+  MEMKIND_PARTITION_HBW_PREFERRED_VAL,
+  MEMKIND_PARTITION_HBW_PREFERRED_HUGETLB_VAL,
+  MEMKIND_PARTITION_HUGETLB_VAL,
+  MEMKIND_PARTITION_HBW_GBTLB_VAL,
+  MEMKIND_PARTITION_HBW_PREFERRED_GBTLB_VAL,
+  MEMKIND_PARTITION_GBTLB_VAL,
+  MEMKIND_PARTITION_HBW_INTERLEAVE_VAL,
+  MEMKIND_PARTITION_INTERLEAVE_VAL,
+  MEMKIND_PARTITION_OTHER_VAL,
+};
+
 #define DYNAMIC_MEM_EV                     MALLOC_EV         /* Used in merger only */
 #define DYNAMIC_MEM_REQUESTED_SIZE_EV      DYNAMIC_MEM_EV+1  /* Used in merger only */
 #define DYNAMIC_MEM_POINTER_IN_EV          DYNAMIC_MEM_EV+2  /* Used in merger only, free input, realloc in */
 #define DYNAMIC_MEM_POINTER_OUT_EV         DYNAMIC_MEM_EV+3  /* Used in merger only, malloc output, calloc output, realloc out */
 #define CLOCK_FROM_SYSTEM_EV     40000050
+#define FREAD_EV                 40000051
+#define FWRITE_EV                40000052
+#define PREAD_EV                 40000053
+#define PWRITE_EV                40000054
+#define READV_EV                 40000055
+#define WRITEV_EV                40000056
+#define PREADV_EV                40000057
+#define PWRITEV_EV               40000058
+#define FILE_NAME_EV             40000059
+#define OPEN_EV                  40000060
+#define FOPEN_EV                 40000061
 
 #define ADDRESSES_FOR_BINARY_EV  41000000
 
@@ -315,6 +372,7 @@ enum {
 #define MPI_WIN_POST_EV              50000206
 #define MPI_WIN_COMPLETE_EV          50000207
 #define MPI_WIN_WAIT_EV              50000208
+#define MPI_RMA_SIZE                 50001000
 
 #define MPI_IREDUCE_EV               50000210
 #define MPI_IALLREDUCE_EV            50000211
@@ -595,10 +653,6 @@ enum {
 #define WAIT_END_VAL            4
 #endif
 
-/* Values */
-#define EVT_BEGIN                1
-#define EVT_END                  0
-
 #define STATE_ANY                -1
 #define STATE_IDLE               0
 #define STATE_RUNNING            1
@@ -636,6 +690,16 @@ enum {
 #define STATE_ATOMIC_MEM_OP      21
 #define STATE_MEM_ORDERING       22
 #define STATE_LOCKING            23
+/* Added for Dimemas */
+#define STATE_OVERHEAD           24
+#define STATE_1SIDED             25
+#define STATE_STARTUP_LATENCY    26
+#define STATE_WAIT_LINKS         27
+#define STATE_DATA_COPY          28
+#define STATE_RTT                29
+/* Added for malloc calls */
+#define STATE_ALLOCMEM           30
+#define STATE_FREEMEM            31
 
 
 

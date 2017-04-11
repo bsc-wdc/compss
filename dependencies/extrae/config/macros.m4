@@ -102,7 +102,7 @@ AC_DEFUN([AX_FIND_INSTALLATION],
 		dnl Search for libs directory
 		AC_MSG_CHECKING([for $1 libraries directory])
 		if test "${ForcedLibs}" = "" ; then
-			for libs_dir in [$$1_HOME/lib$BITS $$1_HOME/lib "not found"] ; do
+			for libs_dir in [$$1_HOME/lib$BITS $$1_HOME/lib $$1_HOME/lib/x86_64-linux-gnu "not found"] ; do
 				if test -d "$libs_dir" ; then
 					break
 				fi
@@ -755,7 +755,10 @@ AC_DEFUN([AX_PROG_BINUTILS],
       esac
    fi
 
-   AM_CONDITIONAL(HAVE_BINUTILS, test "${BFD_INSTALLED}" = "yes" -a "${LIBERTY_INSTALLED}" = "yes" )
+   if test "${BFD_INSTALLED}" = "yes" -a "${LIBERTY_INSTALLED}" = "yes" ; then
+	   have_binutils="yes"
+   fi
+   AM_CONDITIONAL(HAVE_BINUTILS, test "${have_binutils}" = "yes")
    AM_CONDITIONAL(BFD_NEEDS_LDL, test "${libbfd_needs_ldl}" = "yes")
    AM_CONDITIONAL(BFD_NEEDS_LINTL, test "${libbfd_needs_lintl}" = "yes")
 
@@ -1131,6 +1134,8 @@ AC_DEFUN([AX_IS_CRAY_XT],
       if test -d /opt/cray ; then
          if test `which cc | grep xt-asyncpe | wc -l` != "0" ; then
            IS_CXT_MACHINE="yes"
+         elif test `which cc | grep craype | wc -l` != "0" ; then
+           IS_CXT_MACHINE="yes"
          fi
       fi
    fi
@@ -1493,8 +1498,8 @@ AC_DEFUN([AX_PROG_LIBDWARF],
            else
               AC_MSG_ERROR([Cannot find DWARF header files in ${dwarf_paths}/include])
            fi
-        elif test -f ${DWARF_LIBSDIR_MULTIARCH}}/libdwarf.a -o \
-                -f ${DWARF_LIBSDIR_MULTIARCH}}/libdwarf.so ; then
+        elif test -f ${DWARF_LIBSDIR_MULTIARCH}/libdwarf.a -o \
+                -f ${DWARF_LIBSDIR_MULTIARCH}/libdwarf.so ; then
            if test -f ${DWARF_HOME}/include/libdwarf.h -a \
                    -f ${DWARF_HOME}/include/dwarf.h ; then
               libdwarf_found="yes"
@@ -1638,10 +1643,20 @@ AC_DEFUN([AX_PROG_DYNINST],
 
       AC_LANG_PUSH([C++])
 
+      dnl Dyninst >= 9.3.x requires c++11
+      DYNINST_CXXFLAGS="-std=c++11"
+      DYNINST_CPPFLAGS="-std=c++11"
+
+      CXXFLAGS="${CXXFLAGS} ${DYNINST_CXXFLAGS} -I${DYNINST_INCLUDES} -I${BOOST_HOME}/include"
+      CPPFLAGS="${CPPFLAGS} ${DYNINST_CPPFLAGS} -I${DYNINST_INCLUDES} -I${BOOST_HOME}/include"
+
       dnl Check for Dyninst header files.
       CXXFLAGS="${CXXFLAGS} -I${DYNINST_INCLUDES} -I${BOOST_HOME}/include"
       CPPFLAGS="${CPPFLAGS} -I${DYNINST_INCLUDES} -I${BOOST_HOME}/include"
       AC_CHECK_HEADERS([BPatch.h], [], [DYNINST_INSTALLED="no"])
+
+      AC_SUBST(DYNINST_CXXFLAGS)
+      AC_SUBST(DYNINST_CPPFLAGS)
 
       AC_LANG_RESTORE()
    fi
@@ -2084,7 +2099,7 @@ AC_DEFUN([AX_CHECK_PROC_CPUINFO],
 	AC_MSG_CHECKING(for /proc/cpuinfo)
 	if test -r /proc/cpuinfo ; then
 		AC_MSG_RESULT([found])
-		AC_DEFINE([HAVE_PROC_CPUINFO], 1, [Define to 1 the OS has /proc/cpuinfo])
+		AC_DEFINE([HAVE_PROC_CPUINFO], 1, [Define to 1 if the OS has /proc/cpuinfo])
 	else
 		AC_MSG_RESULT([not found])
 	fi
@@ -2095,7 +2110,7 @@ AC_DEFUN([AX_CHECK_PROC_MEMINFO],
 	AC_MSG_CHECKING(for /proc/meminfo)
 	if test -r /proc/meminfo ; then
 		AC_MSG_RESULT([found])
-		AC_DEFINE([HAVE_PROC_MEMINFO], 1, [Define to 1 the OS has /proc/meminfo])
+		AC_DEFINE([HAVE_PROC_MEMINFO], 1, [Define to 1 if the OS has /proc/meminfo])
 	else
 		AC_MSG_RESULT([not found])
 	fi
@@ -2104,5 +2119,33 @@ AC_DEFUN([AX_CHECK_PROC_MEMINFO],
 AC_DEFUN([AX_CHECK_GETCPU],
 [
 	AC_CHECK_HEADERS([sched.h])
-	AC_CHECK_FUNC(sched_getcpu, [AC_DEFINE([HAVE_SCHED_GETCPU],[1],[Define if have sched_getcpu])])
+	AC_CHECK_FUNC(sched_getcpu, [AC_DEFINE([HAVE_SCHED_GETCPU],[1],[Define to 1 if have sched_getcpu])])
+])
+
+AC_DEFUN([AX_PROG_MEMKIND],
+[
+  AC_ARG_WITH(memkind,
+    AC_HELP_STRING(
+      [--with-memkind@<:@=DIR@:>@],
+      [specify where to find memkind libraries and includes]
+    ),
+    [memkind_paths="$withval"],
+    [memkind_paths="not_set"] dnl List of possible default paths
+  )
+
+  dnl Search for Spectral Analysis installation
+  AX_FIND_INSTALLATION([MEMKIND], [$memkind_paths], [memkind])
+
+  if test "x${MEMKIND_INSTALLED}" = "xyes" ; then
+    AX_FLAGS_SAVE()
+    CFLAGS="${MEMKIND_CFLAGS}"
+    AC_CHECK_HEADERS([memkind.h], [MEMKIND_H_FOUND="yes"], [MEMKIND_H_FOUND="no"])
+    AX_FLAGS_RESTORE()
+
+    MEMKIND_LIBS="-lmemkind"
+    AC_SUBST(MEMKIND_LIBS)
+    AC_DEFINE([HAVE_MEMKIND], 1, [Define to 1 if MEMKIND is available])
+  fi
+
+  AM_CONDITIONAL(HAVE_MEMKIND, test "x${MEMKIND_H_FOUND}" = "xyes" )
 ])

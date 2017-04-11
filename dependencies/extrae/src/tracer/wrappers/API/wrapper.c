@@ -109,6 +109,9 @@
 #if defined(OMP_SUPPORT)
 # include "omp_probe.h"
 # include "omp_wrapper.h"
+# if defined(OMPT_INSTRUMENTATION)
+#  include "ompt-wrapper.h"
+# endif
 #endif
 #include "trace_buffers.h"
 #include "timesync.h"
@@ -147,6 +150,8 @@
 #include "malloc_wrapper.h"
 #include "io_probe.h"
 #include "io_wrapper.h"
+#include "syscall_probe.h"
+#include "syscall_wrapper.h"
 #include "taskid.h"
 
 int Extrae_Flush_Wrapper (Buffer_t *buffer);
@@ -180,6 +185,13 @@ static int requestedIOInstrumentation = FALSE;
 void setRequestedIOInstrumentation (int b)
 {
 	requestedIOInstrumentation = b;
+}
+
+static int requestedSysCallInstrumentation = FALSE;
+
+void setRequestedSysCallInstrumentation (int b)
+{
+	requestedSysCallInstrumentation = b;
 }
 
 static void Backend_Finalize_close_mpits (pid_t pid, int thread, int append);
@@ -258,6 +270,12 @@ unsigned long long initTracingTime = 0;
 unsigned long long MinimumTracingTime;
 int hasMinimumTracingTime = FALSE;
 
+/* CPU events emission frequency */
+unsigned long long MinimumCPUEventTime = 0;
+unsigned short AlwaysEmitCPUEvent = 0;
+iotimer_t *LastCPUEmissionTime = NULL;
+int *LastCPUEvent = NULL;
+
 unsigned long long WantedCheckControlPeriod = 0;
 
 /******* Variable amb l'estructura que a SGI es guarda al PRDA *******/
@@ -287,6 +305,26 @@ static unsigned maximum_NumOfThreads = 1;
 char appl_name[APPL_NAME_LENGTH];
 char final_dir[TMP_DIR];
 char tmp_dir[TMP_DIR];
+
+
+/* Checks if there is a CPU event waiting to be emitted */
+int PENDING_TRACE_CPU_EVENT(int thread_id, iotimer_t current_time)
+{
+	if (MinimumCPUEventTime > 0)
+	{
+		if (LastCPUEmissionTime[thread_id] == 0)
+		{
+			LastCPUEmissionTime[thread_id] = current_time;
+		}
+		else if ((current_time - LastCPUEmissionTime[thread_id]) >  MinimumCPUEventTime)
+		{
+			LastCPUEmissionTime[thread_id] = current_time;
+			return 1;
+		}
+	}
+
+	return 0;
+}
 
 /* HSG
 
@@ -449,7 +487,13 @@ static void Extrae_BG_gettopology (int enter, UINT64 timestamp)
 void Extrae_AnnotateCPU (UINT64 timestamp)
 {
 #if defined(HAVE_SCHED_GETCPU)
-    TRACE_EVENT (timestamp, GETCPU_EV, sched_getcpu());
+    int cpu = sched_getcpu();
+
+    if (cpu != LastCPUEvent[THREADID] || AlwaysEmitCPUEvent)
+    {
+        LastCPUEvent[THREADID] = cpu;
+        TRACE_EVENT (timestamp, GETCPU_EV, cpu);
+    }
 #else
     UNREFERENCED_PARAMETER(timestamp);
 #endif
@@ -1055,6 +1099,7 @@ void Parse_Callers (int me, char * mpi_callers, int type)
 		const char *s_sampling = "Sampling";
 		const char *s_malloc = "Dynamic-Memory";
 		const char *s_io = "Input/Output";
+		const char *s_syscall = "System Calls";
 		const char *s_unknown = "unknown?";
 
 		if (CALLER_MPI == type)
@@ -1065,6 +1110,8 @@ void Parse_Callers (int me, char * mpi_callers, int type)
 			s = s_malloc;
 		else if (CALLER_IO == type)
 			s = s_io;
+		else if (CALLER_SYSCALL == type)
+			s = s_syscall;
 		else
 			s = s_unknown;
 
@@ -1244,6 +1291,8 @@ static int Allocate_buffer_and_file (int thread_id, int forked)
 	if (forked)
 		Buffer_Free (TracingBuffer[thread_id]);
 
+	LastCPUEmissionTime[thread_id] = 0;
+	LastCPUEvent[thread_id] = 0;
 	TracingBuffer[thread_id] = new_Buffer (buffer_size, tmp_file, TRUE);
 	if (TracingBuffer[thread_id] == NULL)
 	{
@@ -1313,6 +1362,8 @@ static int Allocate_buffers_and_files (int world_size, int num_threads, int fork
 	if (!forked)
 	{
 		xmalloc(TracingBuffer, num_threads * sizeof(Buffer_t *));
+		xmalloc(LastCPUEmissionTime, num_threads * sizeof(iotimer_t));
+		xmalloc(LastCPUEvent, num_threads * sizeof(int));
 #if defined(SAMPLING_SUPPORT)
 		xmalloc(SamplingBuffer, num_threads * sizeof(Buffer_t *));
 #endif
@@ -1334,6 +1385,8 @@ static int Reallocate_buffers_and_files (int new_num_threads)
 	int i;
 
 	xrealloc(TracingBuffer, TracingBuffer, new_num_threads * sizeof(Buffer_t *));
+	xrealloc(LastCPUEmissionTime, LastCPUEmissionTime, new_num_threads * sizeof(iotimer_t));
+	xrealloc(LastCPUEvent, LastCPUEvent, new_num_threads * sizeof(int));
 #if defined(SAMPLING_SUPPORT)
 	xrealloc(SamplingBuffer, SamplingBuffer, new_num_threads * sizeof(Buffer_t *));
 #endif
@@ -1558,7 +1611,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 	else
 	{
 		if (me == 0 && !forked)
-			fprintf (stdout, "Welcome to "PACKAGE_STRING" (revision %d based on %s)\n", EXTRAE_SVN_REVISION, EXTRAE_SVN_BRANCH);
+			fprintf (stdout, "Welcome to %s\n", PACKAGE_STRING);
 	}
 
 	/* Allocate a bitmap to know which tasks are tracing */
@@ -1726,6 +1779,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 #if !defined(IS_BG_MACHINE)
 		Extrae_AnnotateTopology (TRUE, ApplBegin_Time);
 #endif
+		TRACE_EVENT (ApplBegin_Time, CPU_EVENT_INTERVAL_EV, MinimumCPUEventTime);
 
 	/* Initialize Tracing Mode related variables */
 	if (forked)
@@ -2024,6 +2078,10 @@ int Backend_postInitialize (int rank, int world_size, unsigned init_event,
 	if (requestedIOInstrumentation)
 		Extrae_set_trace_io (TRUE);
 
+	/* Enable system call instrumentation if requested */
+	if (requestedSysCallInstrumentation)
+	  Extrae_set_trace_syscall (TRUE);
+
 	/* Enable sampling capabilities */
 	Extrae_setSamplingEnabled (TRUE);
 
@@ -2234,6 +2292,10 @@ void Backend_Finalize (void)
 	Extrae_OpenCL_fini ();
 #endif
 
+#if defined(OMP_SUPPORT) && defined(OMPT_INSTRUMENTATION)
+        ompt_finalize ();
+#endif
+
 	if (!Extrae_getAppendingEventsToGivenPID(NULL))
 	{
 #if defined(HAVE_ONLINE)
@@ -2307,6 +2369,8 @@ void Backend_Finalize (void)
 				SAMPLING_BUFFER(thread) = NULL;
 #endif
 			}
+			xfree(LastCPUEmissionTime);
+			xfree(LastCPUEvent);
 			xfree(TracingBuffer);
 #if defined(SAMPLING_SUPPORT)
 			xfree(SamplingBuffer);
@@ -2380,15 +2444,21 @@ void Backend_Finalize (void)
 
 //static int Extrae_inInstrumentation = FALSE;
 static int *Extrae_inInstrumentation = NULL;
+static int *Extrae_inSampling = NULL;
 
 int Backend_inInstrumentation (unsigned thread)
 {
-	if (Extrae_inInstrumentation != NULL)
-		return Extrae_inInstrumentation[thread];
+	if ((Extrae_inInstrumentation != NULL) && (Extrae_inSampling != NULL))
+		return (Extrae_inInstrumentation[thread] || Extrae_inSampling[thread]);
 	else
 		return FALSE;
-	/* return Extrae_inInstrumentation; */
 }
+
+void Backend_setInSampling (unsigned thread, int insampling)      
+{                                                                               
+	  if (Extrae_inSampling != NULL)                                         
+			    Extrae_inSampling[thread] = insampling;                       
+}                                                                               
 
 void Backend_setInInstrumentation (unsigned thread, int ininstrumentation)
 {
@@ -2398,12 +2468,18 @@ void Backend_setInInstrumentation (unsigned thread, int ininstrumentation)
 
 void Backend_ChangeNumberOfThreads_InInstrumentation (unsigned nthreads)
 {
-	Extrae_inInstrumentation = (int*) realloc (Extrae_inInstrumentation,
-	  sizeof(int)*nthreads);
+	Extrae_inInstrumentation = (int*) realloc (Extrae_inInstrumentation, sizeof(int)*nthreads);
 	if (Extrae_inInstrumentation == NULL)
 	{
 		fprintf (stderr, PACKAGE_NAME
 		  ": Failed to allocate memory for inInstrumentation structure\n");
+		exit (-1);
+	}
+	Extrae_inSampling = (int*) realloc (Extrae_inSampling, sizeof(int)*nthreads);
+	if (Extrae_inSampling == NULL)
+	{
+		fprintf (stderr, PACKAGE_NAME
+		  ": Failed to allocate memory for inSampling structure\n");
 		exit (-1);
 	}
 }
@@ -2484,6 +2560,11 @@ void Backend_Leave_Instrumentation (void)
 
 	if (!mpitrace_on)
 		return;
+
+	if (PENDING_TRACE_CPU_EVENT(thread, LAST_READ_TIME))
+	{
+		Extrae_AnnotateCPU(LAST_READ_TIME);
+	}
 
 	/* Change trace mode? (issue from API) */
 	if (PENDING_TRACE_MODE_CHANGE(thread) && MPI_Deepness[thread] == 0)

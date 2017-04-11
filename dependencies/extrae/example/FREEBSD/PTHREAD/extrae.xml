@@ -4,7 +4,6 @@
  home="@sub_PREFIXDIR@"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="@sub_XMLID@"
 >
 
   <openmp enabled="no">
@@ -43,7 +42,7 @@
   </storage>
 
   <buffer enabled="yes">
-    <size enabled="yes">500000</size>
+    <size enabled="yes">5000000</size>
     <circular enabled="no" />
   </buffer>
 

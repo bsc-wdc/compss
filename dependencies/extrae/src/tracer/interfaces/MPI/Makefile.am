@@ -21,37 +21,62 @@ iface_MPI_INCLUDES =     \
    -I@MPI_INCLUDES@ @PAPI_CFLAGS@
 
 noinst_LTLIBRARIES    = libiface_mpif.la libiface_mpi.la
+if SINGLE_MPI_LIBRARY
+  noinst_LTLIBRARIES += libiface_mpicf.la
+endif
 if GENERATE_LOAD_BALANCING
   noinst_LTLIBRARIES += libiface_mpif_lb.la libiface_mpi_lb.la
+if SINGLE_MPI_LIBRARY
+  noinst_LTLIBRARIES += libiface_mpicf_lb.la
+endif
 endif
 if HAVE_DYNINST
-  noinst_LTLIBRARIES += lib_dyn_iface_mpic.la lib_dyn_iface_mpif.la
+  noinst_LTLIBRARIES += lib_dyn_iface_mpic.la lib_dyn_iface_mpif.la 
+if SINGLE_MPI_LIBRARY
+  noinst_LTLIBRARIES += lib_dyn_iface_mpicf.la
+endif
 endif
 
+C_SYMBOLS = -DC_SYMBOLS
+F_SYMBOLS = -DFORTRAN_SYMBOLS
 if SINGLE_MPI_LIBRARY
-MPITRACE_SYMBOLS= -DC_SYMBOLS -DFORTRAN_SYMBOLS
-else
-MPITRACE_SYMBOLS= -DC_SYMBOLS
+CF_SYMBOLS= $(C_SYMBOLS) $(F_SYMBOLS)
 endif
 
 libiface_mpi_la_SOURCES = $(iface_MPI_SRCS)
-libiface_mpi_la_CFLAGS  = $(iface_MPI_INCLUDES) $(MPITRACE_SYMBOLS) -DMPI_SUPPORT
+libiface_mpi_la_CFLAGS  = $(iface_MPI_INCLUDES) $(C_SYMBOLS) -DMPI_SUPPORT
 
 libiface_mpif_la_SOURCES = $(iface_MPI_SRCS)
-libiface_mpif_la_CFLAGS  = $(iface_MPI_INCLUDES) -DFORTRAN_SYMBOLS -DMPI_SUPPORT
+libiface_mpif_la_CFLAGS  = $(iface_MPI_INCLUDES) $(F_SYMBOLS) -DMPI_SUPPORT
+
+if SINGLE_MPI_LIBRARY
+libiface_mpicf_la_SOURCES = $(iface_MPI_SRCS)
+libiface_mpicf_la_CFLAGS  = $(iface_MPI_INCLUDES) $(CF_SYMBOLS) -DMPI_SUPPORT
+endif
 
 ## DynInst modules
 
-lib_dyn_iface_mpif_la_SOURCES = $(iface_MPI_SRCS)
-lib_dyn_iface_mpif_la_CFLAGS  = $(iface_MPI_INCLUDES) $(MPITRACE_SYMBOLS) -DMPI_SUPPORT -DDYNINST_MODULE -DFORTRAN_SYMBOLS
-
 lib_dyn_iface_mpic_la_SOURCES = $(iface_MPI_SRCS)
-lib_dyn_iface_mpic_la_CFLAGS  = $(iface_MPI_INCLUDES) $(MPITRACE_SYMBOLS) -DMPI_SUPPORT -DDYNINST_MODULE
+lib_dyn_iface_mpic_la_CFLAGS  = $(iface_MPI_INCLUDES) $(C_SYMBOLS) -DMPI_SUPPORT -DDYNINST_MODULE
+
+lib_dyn_iface_mpif_la_SOURCES = $(iface_MPI_SRCS)
+lib_dyn_iface_mpif_la_CFLAGS  = $(iface_MPI_INCLUDES) $(F_SYMBOLS) -DMPI_SUPPORT -DDYNINST_MODULE 
+
+if SINGLE_MPI_LIBRARY
+lib_dyn_iface_mpicf_la_SOURCES = $(iface_MPI_SRCS)
+lib_dyn_iface_mpicf_la_CFLAGS  = $(iface_MPI_INCLUDES)  $(CF_SYMBOLS) -DMPI_SUPPORT -DDYNINST_MODULE
+endif
 
 ## LoadBalancing Libraries
 
 libiface_mpi_lb_la_SOURCES = $(iface_MPI_SRCS)
-libiface_mpi_lb_la_CFLAGS  = $(iface_MPI_INCLUDES) $(MPITRACE_SYMBOLS) -I$(LOAD_BALANCING_HOME)/include -DENABLE_LOAD_BALANCING -DMPI_SUPPORT
+libiface_mpi_lb_la_CFLAGS  = $(iface_MPI_INCLUDES) $(C_SYMBOLS) -I$(LOAD_BALANCING_HOME)/include -DENABLE_LOAD_BALANCING -DMPI_SUPPORT
 
 libiface_mpif_lb_la_SOURCES = $(iface_MPI_SRCS)
-libiface_mpif_lb_la_CFLAGS  = $(iface_MPI_INCLUDES) -DFORTRAN_SYMBOLS -I$(LOAD_BALANCING_HOME)/include -DENABLE_LOAD_BALANCING -DMPI_SUPPORT
+libiface_mpif_lb_la_CFLAGS  = $(iface_MPI_INCLUDES) $(F_SYMBOLS) -I$(LOAD_BALANCING_HOME)/include -DENABLE_LOAD_BALANCING -DMPI_SUPPORT
+
+if SINGLE_MPI_LIBRARY
+libiface_mpicf_lb_la_SOURCES = $(iface_MPI_SRCS)
+libiface_mpicf_lb_la_CFLAGS  = $(iface_MPI_INCLUDES) $(CF_SYMBOLS) -I$(LOAD_BALANCING_HOME)/include -DENABLE_LOAD_BALANCING -DMPI_SUPPORT
+endif
+

@@ -38,6 +38,8 @@
 #include "ompt-helper.h"
 #include "ompt-target.h"
 
+#define DEBUG
+
 /* List storing information about all the OMPT devices */
 static extrae_device_info_t *List_of_Devices = NULL;
 
@@ -110,7 +112,7 @@ void Extrae_ompt_target_buffer_complete( int device_id,
                                          ompt_target_buffer_cursor_t end )
 {
   /* Declare function pointers to the OMPT target API functions to manipulate the buffer of ompt_record_ompt_t events */
-  ompt_record_ompt_t (*ompt_target_buffer_get_record_ompt_fn) (const ompt_target_buffer_t *, 
+  ompt_record_ompt_t* (*ompt_target_buffer_get_record_ompt_fn) (const ompt_target_buffer_t *, 
                                                                ompt_target_buffer_cursor_t) = NULL;
 
   int (*ompt_target_advance_buffer_cursor_fn) (const ompt_target_buffer_t *, 
@@ -129,8 +131,8 @@ void Extrae_ompt_target_buffer_complete( int device_id,
 
   /* Retrieve the pointers to the OMPT target functions to manipulate the buffer through the device lookup */
   ompt_target_buffer_get_record_ompt_fn = 
-    (ompt_record_ompt_t(*)( const ompt_target_buffer_t *, 
-                            ompt_target_buffer_cursor_t )) device_lookup("ompt_target_buffer_get_record_ompt");
+    (ompt_record_ompt_t*(*)( const ompt_target_buffer_t *, 
+                             ompt_target_buffer_cursor_t )) device_lookup("ompt_target_buffer_get_record_ompt");
 
   ompt_target_advance_buffer_cursor_fn = 
     (int(*)( const ompt_target_buffer_t *, 
@@ -156,18 +158,18 @@ void Extrae_ompt_target_buffer_complete( int device_id,
       unsigned long long time = 0;
 
       /* Fetch the record to process */
-      ompt_record_ompt_t current_record = ompt_target_buffer_get_record_ompt_fn(buffer, current);
+      ompt_record_ompt_t *current_record = ompt_target_buffer_get_record_ompt_fn(buffer, current);
 
       /* Check the event type of the record */
-      switch(current_record.type)
+      switch(current_record->type)
       {
 
         /* TASK BEGIN */
         case ompt_event_task_begin:
         {
           /* Get the id and @ from the entering task */
-          task_entering = current_record.record.new_task.new_task_id;
-          task_function_address = current_record.record.new_task.codeptr_ofn;
+          task_entering = current_record->record.new_task.new_task_id;
+          task_function_address = current_record->record.new_task.codeptr_ofn;
 
           /* Store the pair of task (id, @) in a table of tasks that are running */
           Extrae_OMPT_register_ompt_task_id_tf (task_entering, task_function_address, FALSE);
@@ -178,11 +180,15 @@ void Extrae_ompt_target_buffer_complete( int device_id,
         {
           /* Get the id both from the exiting and entering tasks (the @ is not available here, 
              we have to retrieve it from the table stored at the TASK BEGIN event) */
-          task_exiting  = current_record.record.task_switch.first_task_id;
-          task_entering = current_record.record.task_switch.second_task_id;
+          task_exiting  = current_record->record.task_switch.first_task_id;
+          task_entering = current_record->record.task_switch.second_task_id;
 
           /* Correct the time of this event */
-          time = (long long)ompt_target_translate_time_fn(device_ptr, current_record.time) + device_info->latency;
+          time = (long long)ompt_target_translate_time_fn(device_ptr, current_record->time) + device_info->latency;
+#if defined(DEBUG)
+          fprintf(stderr, "[DEBUG] Correcting time of event: device_id=%d raw_time=%lu translated_time=%lf latency=%lld corrected_time=%lld\n",
+            device_id, (uint64_t)current_record->time, ompt_target_translate_time_fn(device_ptr, current_record->time), device_info->latency,  time);
+#endif
 
           /* Mark in the trace the routine associated to the task that is exiting */
           if (task_exiting > 0)
@@ -215,7 +221,7 @@ void Extrae_ompt_target_buffer_complete( int device_id,
         case ompt_event_task_end:
         {
           /* Get the id from the exiting task */ 
-          task_exiting = current_record.record.task.task_id;
+          task_exiting = current_record->record.task.task_id;
 
           /* Check whether the exiting task is marked as running or not. This is necessary because some runtimes notify 
            * the end of the task also through a previous TASK SWITCH where this task is exiting. If we have emitted the 
@@ -251,8 +257,9 @@ void Extrae_ompt_target_buffer_complete( int device_id,
  * so the tracing of the OMPT devices is started right after activating the tracing for the host.
  *
  * \param lookup The lookup pointer used to retrieve the OMPT API functions.
+ * \return 1 if the initializations were successful; 0 otherwise.
  */
-void ompt_target_initialize(ompt_function_lookup_t lookup)
+int ompt_target_initialize(ompt_function_lookup_t lookup)
 {
   int device_id = 0;
 
@@ -308,9 +315,13 @@ void ompt_target_initialize(ompt_function_lookup_t lookup)
 
     /* Read the current device time, then the host time, and store the delta to compute later the time synchronization */
     current_device_time_raw = ompt_target_get_time_fn( device_ptr );
-    current_host_time       = TIME;
+    current_host_time       = Clock_getCurrentTime_nstore();
     current_device_time     = ompt_target_translate_time_fn (device_ptr, current_device_time_raw);
-    latency                 = (long long)current_device_time - (long long)current_host_time;
+    latency                 = (long long)current_host_time - (long long)current_device_time;
+#if defined(DEBUG)
+    fprintf(stderr, "[DEBUG] device_id=%d device_name=%s host_time=%llu device_time=%lf host_time_casted=%lld device_time_casted=%lld latency=%lld\n",
+      device_id, device_name, current_host_time, current_device_time, (long long)current_host_time, (long long)current_device_time, latency);
+#endif
 
     /* Increase by 1 the number of threads in Extrae */
     new_extrae_thread_id = Backend_getNumberOfThreads();
@@ -319,7 +330,7 @@ void ompt_target_initialize(ompt_function_lookup_t lookup)
 
     /* Save a mapping to translate from the OMPT device id to the logical thread id in Extrae, 
        and also store all the information about the device that we'll be needing later */
-    List_of_Devices = realloc( List_of_Devices, (device_id + 1) * sizeof(List_of_Devices) );
+    List_of_Devices = realloc( List_of_Devices, (device_id + 1) * sizeof(extrae_device_info_t) );
 
     List_of_Devices[device_id].ompt_device_id   = device_id; 
     List_of_Devices[device_id].lookup           = device_lookup;
@@ -358,4 +369,38 @@ void ompt_target_initialize(ompt_function_lookup_t lookup)
 
   } /* End of the loop that iterates through all the devices */
 
+  return 1;
 }
+
+
+/** 
+ * ompt_target_finalize
+ * 
+ * Calls to ompt_target_stop_trace for each target device, which makes an
+ * implicit request to flush their buffers if they have any events left.
+ */
+void ompt_target_finalize()
+{
+  int i = 0;
+
+  /* Declare a function pointers to the OMPT API function ompt_target_stop_trace */
+  int (*ompt_target_stop_trace_fn)(ompt_target_device_t *) = NULL;
+
+  /* Iterate through the devices */
+  for (i = 0; i < ompt_get_num_devices_fn(); i ++)
+  {
+    ompt_target_device_t  *device_ptr = NULL;
+    ompt_function_lookup_t device_lookup;
+  
+    /* Retrieve the device and its lookup */
+    device_ptr    = List_of_Devices[i].device_ptr;
+    device_lookup = List_of_Devices[i].lookup;
+      
+    /* Retrieve the ompt_target_stop_trace API function through the device lookup */
+    ompt_target_stop_trace_fn = (int(*)(ompt_target_device_t *)) device_lookup("ompt_target_stop_trace");
+
+    /* Make the implicit request to flush the device's buffers */
+    ompt_target_stop_trace_fn( device_ptr );
+  }
+}
+

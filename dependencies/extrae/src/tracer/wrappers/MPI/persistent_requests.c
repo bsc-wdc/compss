@@ -126,7 +126,7 @@ void PR_NewRequest (int tipus, int count, MPI_Datatype datatype, int task,
   nova_pr->comm = comm;
 
   /*
-   * S'afegeix la request a la col.lecciï¿½ 
+   * S'afegeix la request a la col.lecció 
    */
 	nou_element_cua = (PR_Queue_t *) malloc (sizeof (PR_Queue_t));
 	if (nou_element_cua == NULL)

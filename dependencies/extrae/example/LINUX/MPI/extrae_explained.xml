@@ -10,7 +10,6 @@
  home="@sub_PREFIXDIR@"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="@sub_XMLID@"
 >
 
   <!-- Configuration of some MPI dependant values -->
@@ -24,7 +23,13 @@
     <!-- At MPI calls, select depth level -->
     <mpi enabled="yes">1-3</mpi>
     <!-- At sampling points, select depth level -->
-    <sampling enabled="yes">1-5</sampling>
+		<sampling enabled="yes">1-5</sampling>
+		<!-- At dynamic memory system calls -->
+		<dynamic-memory enabled="no">1-3</dynamic-memory>
+		<!-- At I/O system calls -->
+		<input-output enabled="no">1-3</input-output>
+		<!-- At other system calls -->
+	  <syscall enabled="no">1-3</syscall>
   </callers>
 
   <!-- Configuration of some OpenMP dependant values -->
@@ -124,7 +129,7 @@
   <!-- Buffer configuration -->
   <buffer enabled="yes">
     <!-- How many events can we handle before any flush -->
-    <size enabled="yes">500000</size>
+    <size enabled="yes">5000000</size>
     <!-- Use the event buffer in a circular manner? You can use this option to
          trace the last set of events. Needs MPI global routines operating on
          MPI_COMM_WORLD communicator to be merged
@@ -181,8 +186,11 @@
   <!-- Enable dynamic memory instrumentation (experimental) -->
   <dynamic-memory enabled="no" />
 
-  <!-- Enable I/O (read, write) instrumentation (experimental -->
+  <!-- Enable I/O (read, write) instrumentation (experimental) -->
   <input-output enabled="no" />
+
+	<!-- Enable system calls instrumentation (experimental) -->
+  <syscall enabled="no" />
 
   <!-- Do merge the intermediate tracefiles into the final tracefile?
        Named according to the binary name

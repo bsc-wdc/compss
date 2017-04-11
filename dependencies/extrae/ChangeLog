@@ -1,6 +1,81 @@
 
 ChangeLog
  [ + added, - removed, * changed ]
+ * 14Feb2017 Fixed conflict between sampling and I/O tracing where we would capture I/O calls inside the sampling handler
+ * 13Feb2017 Fixed critical bug in __kmpc_fork_call due to the use of the non-reentrant par_func variable to store the user task pointer 
+ * 13Feb2017 Upgraded Dyninst compabitility to series 9.x 
+ * 31Jan2017 Fixes bug in libdwarf detection macro
+ * 12Jan2017 Fixes shared-libraries tests being compiled during 'make' instead
+ of during 'make check'
+ + 28Dec2016 Add instrumentation support for sched_yield syscall and others
+ + 27Dec2016 Added support for Python MPI and multiprocessing tracing
+ * 13Dec2016 Adds new build information into configured.sh script
+ * 13Dec2016 Adds tracing of MPI IO size in Fortran
+ * 01Dec2016 Increases default buffer size in the examples by x10
+ * 17Nov2016 Patched IO calls again to save/restore the value of errno twice, before and after calling the real I/O symbol
+ * 14Nov2016 Builds additional C/Fortran tracing library by default
+ * 14Nov2016 Fixes MPI_Ialltoallv label
+ - 08Nov2016 Removed flag -Wall from tests/overhead
+ * 08Nov2016 Patched IO calls to save/restore the value of errno at entry/exit of the wrappers
+ * 07Nov2016 Fixes PEBS memory translations
+ * 27Oct2016 Fixes Fortran interfaces for MPI3 non-blocking collective calls
+ * 21Oct2016 Changed checks in IO wrappers to ensure the compiler doesn't optimize the conditions and tests for an invalid THREADID
+ * 14Oct2016 Fixed interface and wrapper for MPI_Intercomm_create that had a recursion 
+ * 14Oct2016 Added event for memkind partition
+ * 11Oct2016 Fixes online and dyninst tests
+ * 10Oct2016 Fixes IO segfault when opening non-existing file and enables it by default
+ * 10Oct2016 Updated configure check for newer Cray XT systems 
+ * 23Sep2016 Upgraded to v3.4.1
+ * 23Sep2016 Fixed Java and MPI checks 
+ * 23Sep2016 Run JAVA checks with make check instead of with make installcheck
+ * 22Sep2016 Fixes for make check 
+ + 14Sep2016 Adds XML counter distribution (thread-cyclic) to allow each thread to read a different counter set
+ + 12Sep2016 Adds states for memory allocation calls
+ * 08Sep2016 Changed management of MPI_Cancel calls
+ + 07Sep2016 Adds event marking the periodicity of CPU events emission
+ * 06Sep2016 Changed environment scripts extrae.sh and configured.sh to locate the EXTRAE_HOME path automatically
+ * 06Sep2016 Fixes BFD configure check
+ * 02Sep2016 Removes strict XML version check
+ * 08Ago2016 Fixes make uninstall
+ * 04Aug2016 Fixed bug in configure macro to check for pebs sampling
+ * 29Jul2016 Upgraded to v3.4.0
+ * 28Jul2016 Adds XML option (cpu-events) to specify the emission frequency of CPU events
+ * 26Jul2016 Repeat file open if the assigned fd for the trace file is 0
+ * 26Jul2016 Repeat file open if the assigned fd for the trace file is 0
+ * 14Jul2016 Fixed bug in malloc wrappers of null THREADID in combination with OpenMP 
+ * 08Jul2016 Removes bootstrap warning due to shared-libraries test Makefile.am
+ debug rules.
+ * 06Jul2016 Fixes shared-libraries test
+ + 06Jul2016 Added posix_memalign to the list of memory wrappers 
+ + 05Jul2016 Always enable POSIX clock and control it via EXTRAE_USE_POSIX_CLOCK
+ environment variable.
+ * 04Jul2016 Enable peps sampling by default
+ + 28Jun2016 Adds .gitignore with build generated files
+ + 28Jun2016 Added instrumentation wrappers for memkind_malloc* routines
+ * 28Jun2016 Fixes tests that fail when Extrae is built from within a folder
+ * 15Jun2016 Consider callers when computing buffer size for IO calls
+ * 13Jun2016 Fix compilation error when enabling heterogeneous
+ * 09Jun2016 JAVA tracer tests now run after installation.
+             Fix ompss tests reference files.
+	     Fix MPI Iprobe_wait test.
+ + 03May2016 Add recording of MPI one-sided operations' size
+ * 23May2016 Rank 0 was exiting if XML file couldn't be opened, leaving the others stalled in a collective
+ + 17May2016 Add wrappers and merger support to instrument open, fopen and the string name of the opened files
+ * 13May2016 Add MPI_Finalize to dlsym PMPI hook
+ + 12May2016 Add configure option to use dlsym as PMPI hook
+ * 12May2016 Fixed table of states colors with missing states
+ + 12May2016 Added wrappers to instrument both 32 and 64-bit I/O calls preadv, pwritev, preadv64, pwritev64
+ * 11May2016 Remove SVN revision and branch check and creation of SVN-branch and
+             SVN-revision files
+ * 04May2016 Added the missing case MPI_WIN_CREATE_EV in the Get_State function 
+ * 29Apr2016 Added check for POE environments in the launcher of the online_root 
+ + 28Apr2016 Added tracing finalization mechanism for the OMPT target devices, started by Extrae at Backend_Finalization using calls to ompt_target_stop_trace.
+ + 27Apr2016 Add support for IBM Platform MPI
+ * 27Apr2016 Bug fixes in the instrumentation of OMPT target devices
+ + 25Apr2016 Added instrumentation for the following IO calls: fread, fwrite, pread, pwrite, readv, writev, preadv, pwritev
+ * 21Apr2016 Update m4 macro to look in lib/x86_64-linux-gnu (support Ubuntu)
+ * 08Apr2016 Changed the default PAPI counters in LINUX examples to avoid errors with the latest versions of PAPI and PAPI_BR_MSP
+ * 07Apr2016 Removed flag -shared from the lib_dyn_mpitracec_la_LDFLAGS and lib_dyn_mpitracef_la_LDFLAGS, which was set to tell libtool just to generate shared libs (no .a's), but this generated .so's with two dependencies to MRNet, one resolved and one unresolved.
  * 07Apr2016 Extrae version 3.3.0 final release
  * 07Apr2016 Added initial support for tracing of OMPT target devices (accelerators, FPGAs, etc)
  * 06Apr2016 Priorize the search for mpicc family of compilers under bin64 before bin

@@ -21,6 +21,7 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
+#define _GNU_SOURCE
 #include "common.h"
 
 //#define DEBUG_SPAWN
@@ -48,6 +49,9 @@
 #endif
 #ifdef HAVE_STRING_H
 # include <string.h>
+#endif
+#ifdef WITH_PMPI_HOOK
+# include <dlfcn.h>
 #endif
 
 #include "utils.h"
@@ -980,7 +984,17 @@ void PMPI_Init_Wrapper (MPI_Fint *ierror)
 	hash_init (&requests);
 	PR_queue_init (&PR_queue);
 
-	CtoF77 (pmpi_init) (ierror);
+#ifdef WITH_PMPI_HOOK
+        int (*real_mpi_init)(MPI_Fint *ierror) = NULL;
+        real_mpi_init = dlsym(RTLD_NEXT, STRINGIFY(CtoF77 (mpi_init)));
+
+        if (real_mpi_init != NULL) {
+                CtoF77 (real_mpi_init) (ierror);
+        } else
+#endif
+        {
+                CtoF77 (pmpi_init) (ierror);
+        }
 
 	Extrae_set_ApplicationIsMPI (TRUE);
 	Extrae_Allocate_Task_Bitmap (Extrae_MPI_NumTasks());
@@ -1088,7 +1102,17 @@ void PMPI_Init_thread_Wrapper (MPI_Fint *required, MPI_Fint *provided, MPI_Fint 
 	hash_init (&requests);
 	PR_queue_init (&PR_queue);
 
-	CtoF77 (pmpi_init_thread) (required, provided, ierror);
+#ifdef WITH_PMPI_HOOK
+        int (*real_mpi_init_thread)(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *ierror) = NULL;
+        real_mpi_init_thread = dlsym(RTLD_NEXT, STRINGIFY(CtoF77 (mpi_init_thread)));
+
+        if (real_mpi_init_thread != NULL) {
+                CtoF77 (real_mpi_init_thread) (required, provided, ierror);
+        } else
+#endif
+        {
+		CtoF77 (pmpi_init_thread) (required, provided, ierror);
+        }
 
 	Extrae_set_ApplicationIsMPI (TRUE);
 	Extrae_Allocate_Task_Bitmap (Extrae_MPI_NumTasks());
@@ -1227,7 +1251,16 @@ void PMPI_Finalize_Wrapper (MPI_Fint *ierror)
 	{
 		Backend_Finalize ();
 
-		CtoF77(pmpi_finalize) (ierror);
+#ifdef WITH_PMPI_HOOK
+		int (*real_mpi_finalize)(MPI_Fint *ierror) = NULL;
+		real_mpi_finalize = dlsym(RTLD_NEXT, STRINGIFY(CtoF77 (mpi_finalize)));
+		if (real_mpi_finalize != NULL) {
+			CtoF77 (real_mpi_finalize) (ierror);
+		} else
+#endif
+		{
+			CtoF77 (pmpi_finalize) (ierror);
+		}
 
 		mpitrace_on = FALSE;
 	}
@@ -1417,9 +1450,6 @@ void PMPI_Cancel_Wrapper (MPI_Fint *request, MPI_Fint *ierror)
    */
   TRACE_MPIEVENT (LAST_READ_TIME, MPI_CANCEL_EV, EVT_BEGIN, req, EMPTY, EMPTY, EMPTY,
                   EMPTY);
-
-	if (hash_search (&requests, req) != NULL)
-		hash_remove (&requests, req);
 
   CtoF77 (pmpi_cancel) (request, ierror);
 
@@ -1850,7 +1880,7 @@ void PMPI_Intercomm_create_F_Wrapper (MPI_Fint *local_comm, MPI_Fint *local_lead
 
 	comm_null = MPI_Comm_c2f(MPI_COMM_NULL);
 
-	CtoF77(mpi_intercomm_create) (local_comm, local_leader, peer_comm,
+	CtoF77(pmpi_intercomm_create) (local_comm, local_leader, peer_comm,
 	  remote_leader, tag, newintercomm, ierror);
 
 	if (*ierror == MPI_SUCCESS && *newintercomm != comm_null)
@@ -1943,7 +1973,16 @@ int MPI_Init_C_Wrapper (int *argc, char ***argv)
 	hash_init (&requests);
 	PR_queue_init (&PR_queue);
 
-	val = PMPI_Init (argc, argv);
+#ifdef WITH_PMPI_HOOK
+	int (*real_mpi_init)(int *argc, char ***argv) = NULL;
+	real_mpi_init = dlsym(RTLD_NEXT, "MPI_Init");
+	if (real_mpi_init != NULL) {
+		val = real_mpi_init (argc, argv);
+	} else
+#endif
+	{
+		val = PMPI_Init (argc, argv);
+	}
 
 	Extrae_set_ApplicationIsMPI (TRUE);
 	Extrae_Allocate_Task_Bitmap (Extrae_MPI_NumTasks());
@@ -2050,7 +2089,16 @@ int MPI_Init_thread_C_Wrapper (int *argc, char ***argv, int required, int *provi
 	hash_init (&requests);
 	PR_queue_init (&PR_queue);
 
-	val = PMPI_Init_thread (argc, argv, required, provided);
+#ifdef WITH_PMPI_HOOK
+	int (*real_mpi_init_thread)(int *argc, char ***argv, int required, int *provided) = NULL;
+	real_mpi_init_thread = dlsym(RTLD_NEXT, "MPI_Init_thread");
+	if (real_mpi_init_thread != NULL) {
+		val = real_mpi_init_thread (argc, argv, required, provided);
+	} else
+#endif
+	{
+		val = PMPI_Init_thread (argc, argv, required, provided);
+	}
 
 	Extrae_set_ApplicationIsMPI (TRUE);
 	Extrae_Allocate_Task_Bitmap (Extrae_MPI_NumTasks());
@@ -2188,7 +2236,16 @@ int MPI_Finalize_C_Wrapper (void)
 	{
 		Backend_Finalize ();
 
-		ierror = PMPI_Finalize();
+#ifdef WITH_PMPI_HOOK
+		int (*real_mpi_finalize)() = NULL;
+		real_mpi_finalize = dlsym(RTLD_NEXT, "MPI_Finalize");
+		if (real_mpi_finalize != NULL) {
+			ierror = real_mpi_finalize();
+		} else
+#endif
+		{
+			ierror = PMPI_Finalize();
+		}
 
 		mpitrace_on = FALSE;
 	}
@@ -2303,9 +2360,6 @@ int MPI_Cancel_C_Wrapper (MPI_Request *request)
    *   tag : ---
    */
   TRACE_MPIEVENT (LAST_READ_TIME, MPI_CANCEL_EV, EVT_BEGIN, *request, EMPTY, EMPTY, EMPTY, EMPTY);
-
-	if (hash_search (&requests, *request) != NULL)
-		hash_remove (&requests, *request);
 
   ierror = PMPI_Cancel (request);
 

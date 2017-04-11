@@ -47,10 +47,6 @@ void bgl_Initialize (void)
 	factor = (1000000000ULL * CYCLES_FACTOR / personality.clockHz) + 1;
 }
 
-void bgl_Initialize_thread (void)
-{
-}
-
 iotimer_t bgl_getTime (void)
 {
 	return (rts_get_timebase() * factor) >> BITS_FOR_CYCLES_FACTOR;

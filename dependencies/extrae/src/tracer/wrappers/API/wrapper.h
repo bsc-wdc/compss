@@ -169,6 +169,9 @@ extern int tracejant_memusage;
 extern unsigned long long MinimumTracingTime;
 extern int hasMinimumTracingTime;
 
+extern unsigned long long MinimumCPUEventTime;
+extern unsigned short AlwaysEmitCPUEvent;
+
 extern unsigned long long WantedCheckControlPeriod;
 
 extrae_init_type_t Extrae_is_initialized_Wrapper (void);
@@ -194,6 +197,7 @@ void Extrae_AddFunctionDefinitionEntryToLocalSYM (char code_type, void *address,
 
 void setRequestedDynamicMemoryInstrumentation (int b);
 void setRequestedIOInstrumentation (int b);
+void setRequestedSysCallInstrumentation (int b);
 
 int Backend_preInitialize (int rank, int world_size, const char *config_file, int forked);
 int Backend_postInitialize (int rank, int world_size, unsigned init_event, unsigned long long InitTime, unsigned long long EndTime, char **node_list);
@@ -219,6 +223,7 @@ void Backend_Enter_Instrumentation (int Nevents);
 void Backend_Leave_Instrumentation (void);
 int Backend_inInstrumentation (unsigned thread);
 void Backend_setInInstrumentation (unsigned thread, int ininstrumentation);
+void Backend_setInSampling (unsigned thread, int insampling);
 void Backend_ChangeNumberOfThreads_InInstrumentation (unsigned nthreads);
 void Backend_createExtraeDirectory (int taskid, int Temporal);
 int Extrae_Get_FinalDir_BlockSize(void);

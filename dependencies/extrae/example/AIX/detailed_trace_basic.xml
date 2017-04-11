@@ -4,7 +4,6 @@
  home="@sub_PREFIXDIR@"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="@sub_XMLID@"
 >
 
   <mpi enabled="yes">
@@ -54,6 +53,5 @@
   >
     mpi_ping.prv
   </merge>
-
 
 </trace>

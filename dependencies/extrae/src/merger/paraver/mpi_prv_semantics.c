@@ -100,6 +100,7 @@ static int Get_State (unsigned int EvType)
 		case MPI_INTERCOMM_MERGE_EV:
 		case MPI_WIN_POST_EV:
 		case MPI_WIN_COMPLETE_EV:
+		case MPI_WIN_CREATE_EV:
 			state = STATE_MIXED;
 		break;
 		case MPI_PROBE_EV:
@@ -1110,6 +1111,7 @@ int MPI_RMA_Event (event_t * current_event, unsigned long long current_time,
 	unsigned int cpu, unsigned int ptask, unsigned int task, unsigned int thread,
 	FileSet_t *fset)
 {
+	unsigned int EvSize;
 	UNREFERENCED_PARAMETER(fset);
 
 	Switch_State (Get_State(Get_EvEvent(current_event)),
@@ -1118,6 +1120,13 @@ int MPI_RMA_Event (event_t * current_event, unsigned long long current_time,
 	trace_paraver_state (cpu, ptask, task, thread, current_time);
 	trace_paraver_event (cpu, ptask, task, thread, current_time,
 		Get_EvEvent(current_event), Get_EvValue (current_event));
+
+	EvSize = Get_EvSize (current_event);
+	if (EvSize != 0)
+	{
+		trace_paraver_event (cpu, ptask, task, thread, current_time,
+			MPI_RMA_SIZE, EvSize);
+	}
 
 	return 0;
 }

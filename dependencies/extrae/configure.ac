@@ -5,9 +5,16 @@
 #    Initializations    #
 #########################
 
+m4_define([extrae_major_version], [3])
+m4_define([extrae_minor_version], [4])
+m4_define([extrae_micro_version], [3])
+
+m4_define([extrae_version],
+					      [extrae_major_version.extrae_minor_version.extrae_micro_version])
+
 # Initialize autoconf & define package name, version and bug-report address 
 #  -- keep version in sync with src/common/extrae_version.h
-AC_INIT(Extrae, 3.3.0, tools@bsc.es)
+AC_INIT(Extrae, [extrae_version], tools@bsc.es)
 
 # Safety check to ensure that the directory told with `--srcdir` contains the source code
 #AC_CONFIG_SRCDIR(src/mpitrace.c)
@@ -16,35 +23,7 @@ AC_INIT(Extrae, 3.3.0, tools@bsc.es)
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
 
-SVN=`which svn 2> /dev/null`
-
-# If SVN command exists and .svn directory also exists, check for the versioning
-if test $? -eq 0 -a -d .svn ; then
-	${SVN} info . >& /dev/null
-	if test $? -eq 0 ; then
-		SVN_branch=`${SVN} info . | grep URL | cut -d/ -f 6-`
-		SVN_branch_res=$?
-		SVN_revision=`${SVN} info . | grep "Last Changed Rev:"  | cut -d: -f 2`
-		SVN_revision_res=$?
-		if test ${SVN_branch_res} -eq 0 -a ${SVN_revision_res} -eq 0 ; then
-			echo ${SVN_branch} > SVN-branch
-			echo ${SVN_revision} > SVN-revision
-		fi
-	fi
-fi
-
-TOPDIR=`dirname ${0}`
-if test -f ${TOPDIR}/SVN-branch -a -f ${TOPDIR}/SVN-revision ; then
-	SVN_branch=`cat ${TOPDIR}/SVN-branch`
-	SVN_revision=`cat ${TOPDIR}/SVN-revision`
-else
-	SVN_branch=unknown
-	SVN_revision=0
-fi
-echo Configuring package ${PACKAGE_STRING} based on ${SVN_branch} revision ${SVN_revision}
-
-AC_DEFINE_UNQUOTED([EXTRAE_SVN_REVISION], [${SVN_revision}], [Define SVN version for this Extrae])
-AC_DEFINE_UNQUOTED([EXTRAE_SVN_BRANCH], ["${SVN_branch}"], [Define SVN branch for this Extrae])
+echo Configuring package ${PACKAGE_STRING}
 
 # Loads some shell variables like host_cpu and host_os, to get the host information 
 AC_CANONICAL_SYSTEM
@@ -198,6 +177,9 @@ AX_PROG_MPI
 ## Check if we have OpenSHMEM
 AX_PROG_OPENSHMEM
 
+## Check how we hook PMPI
+AX_PMPI_HOOK
+
 # Search for libtool support
 AC_LIBTOOL_DLOPEN
 #if test "${MPI_SHARED_LIB_FOUND}" != "yes" ; then
@@ -209,6 +191,9 @@ AC_PROG_LIBTOOL
 
 AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
 AM_CONDITIONAL(HAVE_LIBDL, test "${have_dl}" = "yes" )
+if test "${have_dl}" = "yes"; then
+	AC_SUBST([DL_LIBS], ["-ldl"])
+fi
 
 # Search for headers
 AC_CHECK_HEADERS(
@@ -313,6 +298,8 @@ AX_PROG_SIONLIB
 
 AX_CHECK_LOAD_BALANCING
 
+AX_PROG_BINUTILS
+
 #######################################
 # Enable/Disable some tracing options #
 #######################################
@@ -394,27 +381,45 @@ AM_CONDITIONAL(GENERATE_DOCUMENTATION, test "${enable_doc}" = "yes" )
 
 AC_ARG_ENABLE(instrument-io,
 	AC_HELP_STRING(
-		[--enable-instrument-io],
-		[Enables instrumentation for basic I/O (read, write) calls  (experimental, disabled by default)]
+		[--disable-instrument-io],
+		[Disables instrumentation for basic I/O (read, write) calls (experimental, enabled by default)]
 	),
 	[enable_instrument_io="${enableval}"],
-	[enable_instrument_io="no"]
+	[enable_instrument_io="yes"]
 )
 if test "${enable_instrument_io}" = "yes" ; then
-	AC_DEFINE([INSTRUMENT_IO], [1], [Determine whether read/write are meant to be instrumented])
+	AC_DEFINE([INSTRUMENT_IO], [1], [Determine whether I/O calls are instrumented])
 fi
+AM_CONDITIONAL(INSTRUMENT_IO, test "${enable_instrument_io}" = "yes" )
 
 AC_ARG_ENABLE(instrument-dynamic-memory,
 	AC_HELP_STRING(
-		[--enable-instrument-dynamic-memory],
-		[Enables instrumentation for dynamic memory (malloc, free, realloc) calls (experimental, disabled by default)]
+		[--disable-instrument-dynamic-memory],
+		[Disables instrumentation for dynamic memory (malloc, free, realloc) calls (experimental, enabled by defaultl)]
 	),
 	[enable_instrument_dynamic_memory="${enableval}"],
-	[enable_instrument_dynamic_memory="no"]
+	[enable_instrument_dynamic_memory="yes"]
 )
+
 if test "${enable_instrument_dynamic_memory}" = "yes" ; then
-	AC_DEFINE([INSTRUMENT_DYNAMIC_MEMORY], [1], [Determine whether dynamic memory calls are meant to be instrumented])
+	AC_DEFINE([INSTRUMENT_DYNAMIC_MEMORY], [1], [Determine whether dynamic memory calls are instrumented])
 fi
+AM_CONDITIONAL(INSTRUMENT_DYNAMIC_MEMORY, test "${enable_instrument_dynamic_memory}" = "yes" )
+
+AX_PROG_MEMKIND
+
+AC_ARG_ENABLE(instrument-syscall,
+  AC_HELP_STRING(
+    [--disable-instrument-syscall],
+    [Disables instrumentation for system calls (other than I/O and mallocs) (experimental, enabled by default)]
+  ),
+  [enable_instrument_syscall="${enableval}"],
+  [enable_instrument_syscall="yes"]
+)
+if test "${enable_instrument_syscall}" = "yes" ; then
+  AC_DEFINE([INSTRUMENT_SYSCALL], [1], [Determine whether system calls (other than I/O and mallocs) are instrumented])
+fi
+AM_CONDITIONAL(INSTRUMENT_SYSCALL, test "${enable_instrument_syscall}" = "yes" )
 
 AC_ARG_ENABLE(bfd-generate-addresses,
 	AC_HELP_STRING(
@@ -422,7 +427,11 @@ AC_ARG_ENABLE(bfd-generate-addresses,
 		[Generates information for data objects found in binaries (experimental, enabled if --enable-instrument-dynamic-memory is enabled)]
 	),
 	[enable_bfd_generate_addresses="${enableval}"],
-	[enable_bfd_generate_addresses="${enable_instrument_dynamic_memory}"]
+	[
+		if test "${enable_instrument_dynamic_memory}" = "yes" -a "${have_binutils}" = "yes" ; then
+      enable_bfd_generate_addresses="yes"
+    fi
+	]
 )
 if test "${enable_bfd_generate_addresses}" = "yes" ; then
 	AC_DEFINE([BFD_MANAGER_GENERATE_ADDRESSES], [1], [Determine if BFD must generate information for data objects in binary])
@@ -445,12 +454,6 @@ fi
 #################################
 
 AX_PROG_ONLINE
-
-#################################
-#    External library checks    #
-#################################
-
-AX_PROG_BINUTILS
 
 ######################################################################
 #    Checks for typedefs, structures and compiler characteristics    #
@@ -604,12 +607,14 @@ AC_CONFIG_FILES([
   src/tracer/wrappers/Makefile 
   src/tracer/wrappers/MPI/Makefile \
   src/tracer/wrappers/OMP/Makefile \
+  src/tracer/wrappers/OMP/intel-kmpc-11-intermediate/Makefile \
   src/tracer/wrappers/CUDA/Makefile \
   src/tracer/wrappers/OPENCL/Makefile \
   src/tracer/wrappers/pthread/Makefile \
   src/tracer/wrappers/openshmem/Makefile \
   src/tracer/wrappers/MALLOC/Makefile \
   src/tracer/wrappers/IO/Makefile \
+  src/tracer/wrappers/SYSCALL/Makefile \
   src/tracer/wrappers/fork/Makefile \
   src/tracer/wrappers/JAVA/Makefile \
   src/tracer/stats/Makefile \
@@ -653,6 +658,103 @@ AC_CONFIG_FILES([\
 AC_CONFIG_FILES([src/tracer/online/Makefile src/tracer/online/extractors/Makefile])
 ### TEMPORARILY_DISABLED
 ### AC_CONFIG_FILES([src/tracer/hwc/myrinet_hwc/Makefile src/tracer/hwc/myrinet_hwc/GM/Makefile src/tracer/hwc/myrinet_hwc/MX/Makefile])
+
+AC_CONFIG_LINKS([tests/functional/helper_functions.bash:tests/functional/helper_functions.bash] \
+		[tests/functional/launcher/extrae.xml:tests/functional/launcher/extrae.xml] \
+		[tests/functional/launcher/extrae-nothing-to-instrument.xml:tests/functional/launcher/extrae-nothing-to-instrument.xml] \
+		[tests/functional/tracer/MPI/trace-static.sh:tests/functional/tracer/MPI/trace-static.sh] \
+		[tests/functional/tracer/MPI/trace-ldpreload.sh:tests/functional/tracer/MPI/trace-ldpreload.sh] \
+		[tests/functional/tracer/MPI/trace-ldpreloadf.sh:tests/functional/tracer/MPI/trace-ldpreloadf.sh] \
+		[tests/functional/tracer/MPI/extrae.xml:tests/functional/tracer/MPI/extrae.xml] \
+		[tests/functional/tracer/PTHREAD/trace-ldpreload.sh:tests/functional/tracer/PTHREAD/trace-ldpreload.sh] \
+		[tests/functional/tracer/PTHREAD/extrae.xml:tests/functional/tracer/PTHREAD/extrae.xml] \
+		[tests/functional/tracer/JAVA/JavaSimple.java:tests/functional/tracer/JAVA/JavaSimple.java] \
+		[tests/functional/tracer/JAVA/extrae_JavaSimple.sh:tests/functional/tracer/JAVA/extrae_JavaSimple.sh] \
+		[tests/functional/tracer/JAVA/JavaGC.java:tests/functional/tracer/JAVA/JavaGC.java] \
+		[tests/functional/tracer/JAVA/extrae_JavaGC.sh:tests/functional/tracer/JAVA/extrae_JavaGC.sh] \
+		[tests/functional/tracer/JAVA/JavaException.java:tests/functional/tracer/JAVA/JavaException.java] \
+		[tests/functional/tracer/JAVA/extrae_JavaException.sh:tests/functional/tracer/JAVA/extrae_JavaException.sh] \
+		[tests/functional/tracer/JAVA/JavaThreads.java:tests/functional/tracer/JAVA/JavaThreads.java] \
+		[tests/functional/tracer/JAVA/extrae_JavaThreads.sh:tests/functional/tracer/JAVA/extrae_JavaThreads.sh] \
+		[tests/functional/tracer/JAVA/extrae.xml:tests/functional/tracer/JAVA/extrae.xml] \
+		[tests/functional/merger/dump-events/dump-events.reference:tests/functional/merger/dump-events/dump-events.reference] \
+		[tests/functional/hw-counters/extrae-PAPI_TOT_CYC.xml:tests/functional/hw-counters/extrae-PAPI_TOT_CYC.xml] \
+		[tests/functional/hw-counters/extrae-PAPI_TOT_INS.xml:tests/functional/hw-counters/extrae-PAPI_TOT_INS.xml] \
+		[tests/functional/hw-counters/extrae-PAPI_TOT_INS_CYC.xml:tests/functional/hw-counters/extrae-PAPI_TOT_INS_CYC.xml] \
+		[tests/functional/xml/extrae_envvar_merge.xml:tests/functional/xml/extrae_envvar_merge.xml] \
+		[tests/functional/xml/extrae_envvar_counters.xml:tests/functional/xml/extrae_envvar_counters.xml] \
+		[tests/functional/merger/shared-libraries/main.c:tests/functional/merger/shared-libraries/main.c] \
+		[tests/functional/merger/shared-libraries/fA.c:tests/functional/merger/shared-libraries/fA.c] \
+		[tests/functional/merger/shared-libraries/fB.c:tests/functional/merger/shared-libraries/fB.c] \
+		[etc/extrae.sh:etc/extrae.sh] \
+		[example/LINUX/MPI/detailed_trace_basic.xml:example/LINUX/MPI/detailed_trace_basic.xml] \
+		[example/LINUX/MPI/extrae.xml:example/LINUX/MPI/extrae.xml] \
+		[example/LINUX/MPI/extrae_bursts_1ms.xml:example/LINUX/MPI/extrae_bursts_1ms.xml] \
+		[example/LINUX/MPI/extrae_explained.xml:example/LINUX/MPI/extrae_explained.xml] \
+		[example/LINUX/MPI/summarized_trace_basic.xml:example/LINUX/MPI/summarized_trace_basic.xml] \
+		[doc/copy_tex_files_from_to.sh:doc/copy_tex_files_from_to.sh] \
+		[doc/API-section.tex:doc/API-section.tex] \
+		[doc/FAQ-section.tex:doc/FAQ-section.tex] \
+		[doc/XML-section.tex:doc/XML-section.tex] \
+		[doc/common-macros.tex:doc/common-macros.tex] \
+		[doc/configure-installation.tex:doc/configure-installation.tex] \
+		[doc/environmentvariables-section.tex:doc/environmentvariables-section.tex] \
+		[doc/examples-section.tex:doc/examples-section.tex] \
+		[doc/instrumented-routines-section.tex:doc/instrumented-routines-section.tex] \
+		[doc/merge-section.tex:doc/merge-section.tex] \
+		[doc/online.tex:doc/online.tex] \
+		[doc/overhead.tex:doc/overhead.tex] \
+		[doc/pnmpi-section.tex:doc/pnmpi-section.tex] \
+		[doc/quick-guide-section.tex:doc/quick-guide-section.tex] \
+		[doc/regression-tests.tex:doc/regression-tests.tex] \
+		[doc/submit-bug.tex:doc/submit-bug.tex] \
+		[doc/user-guide.tex:doc/user-guide.tex] \
+		[doc/wholeXML-section.tex:doc/wholeXML-section.tex] \
+		[doc/XML/buffer.xml.tex:doc/XML/buffer.xml.tex] \
+		[doc/XML/bursts.xml.tex:doc/XML/bursts.xml.tex] \
+		[doc/XML/callers.xml.tex:doc/XML/callers.xml.tex] \
+		[doc/XML/config.xml.tex:doc/XML/config.xml.tex] \
+		[doc/XML/counters.xml.tex:doc/XML/counters.xml.tex] \
+		[doc/XML/cuda.xml.tex:doc/XML/cuda.xml.tex] \
+		[doc/XML/dynamic-memory.xml.tex:doc/XML/dynamic-memory.xml.tex] \
+		[doc/XML/extrae.xml.tex:doc/XML/extrae.xml.tex] \
+		[doc/XML/input-output.xml.tex:doc/XML/input-output.xml.tex] \
+		[doc/XML/intel-pebs.xml.tex:doc/XML/intel-pebs.xml.tex] \
+		[doc/XML/merge-reduced.xml.tex:doc/XML/merge-reduced.xml.tex] \
+		[doc/XML/merge.xml.tex:doc/XML/merge.xml.tex] \
+		[doc/XML/mpi.xml.tex:doc/XML/mpi.xml.tex] \
+		[doc/XML/opencl.xml.tex:doc/XML/opencl.xml.tex] \
+		[doc/XML/openmp.xml.tex:doc/XML/openmp.xml.tex] \
+		[doc/XML/others.xml.tex:doc/XML/others.xml.tex] \
+		[doc/XML/pthread.xml.tex:doc/XML/pthread.xml.tex] \
+		[doc/XML/sampling.xml.tex:doc/XML/sampling.xml.tex] \
+		[doc/XML/storage.xml.tex:doc/XML/storage.xml.tex] \
+		[doc/XML/trace-control.xml.tex:doc/XML/trace-control.xml.tex] \
+		[doc/XML/userfunctions.xml.tex:doc/XML/userfunctions.xml.tex] \
+		[doc/images/extrae-post-installation.eps:doc/images/extrae-post-installation.eps] \
+		[doc/images/extrae-post-installation.png:doc/images/extrae-post-installation.png] \
+		[doc/overheads/ARMv7l-MB:doc/overheads/ARMv7l-MB] \
+		[doc/overheads/IBM_POWER8:doc/overheads/IBM_POWER8] \
+		[doc/overheads/INTEL_HSW_JURECA:doc/overheads/INTEL_HSW_JURECA] \
+		[doc/overheads/INTEL_NHM_MT:doc/overheads/INTEL_NHM_MT] \
+		[doc/overheads/INTEL_SNB_MN3:doc/overheads/INTEL_SNB_MN3] \
+		[doc/overheads/overheads.2parts.gnuplot:doc/overheads/overheads.2parts.gnuplot] \
+		[doc/overheads/overheads.dat:doc/overheads/overheads.dat] \
+		[doc/overheads/overheads.eps:doc/overheads/overheads.eps] \
+		[doc/overheads/overheads.gnuplot:doc/overheads/overheads.gnuplot] \
+		[doc/user-guide/WARNINGS:doc/user-guide/WARNINGS] \
+		[doc/user-guide/images.pl:doc/user-guide/images.pl] \
+		[doc/user-guide/images.tex:doc/user-guide/images.tex] \
+		[doc/user-guide/img1.png:doc/user-guide/img1.png] \
+		[doc/user-guide/img2.png:doc/user-guide/img2.png] \
+		[doc/user-guide/img3.png:doc/user-guide/img3.png] \
+		[doc/user-guide/index.html:doc/user-guide/index.html] \
+		[doc/user-guide/internals.pl:doc/user-guide/internals.pl] \
+		[doc/user-guide/labels.pl:doc/user-guide/labels.pl] \
+		[doc/user-guide/user-guide.css:doc/user-guide/user-guide.css] \
+		[doc/user-guide/user-guide.html:doc/user-guide/user-guide.html] \
+		[src/others/pyextrae/common/extrae.py.in:src/others/pyextrae/common/extrae.py.in]
+	)
 
 #########################################
 #   Defines source and build path vars  #

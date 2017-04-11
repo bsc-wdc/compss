@@ -857,7 +857,7 @@ AC_DEFUN([AX_ENABLE_SINGLE_MPI_LIBRARY],
          [Produces a single instrumentation library for MPI that contains both Fortran and C wrappers]
       ),
       [enable_single_mpi_lib="${enableval}"],
-      [enable_single_mpi_lib="no"]
+      [enable_single_mpi_lib="yes"]
    )
 
    AM_CONDITIONAL(SINGLE_MPI_LIBRARY, test "${enable_single_mpi_lib}" = "yes")
@@ -944,4 +944,18 @@ AC_DEFUN([AX_MPI_SHOW_CONFIGURATION],
 			echo -e \\\tLoad-Balancing hooks? no
 		fi
 	fi
+])
+
+# AX_PMPI_HOOK
+# ------------
+AC_DEFUN([AX_PMPI_HOOK],
+[
+   AX_FLAGS_SAVE()
+
+   AC_ARG_WITH([pmpi-hook],
+   	AS_HELP_STRING([--with-pmpi-hook], [Choose method to call PMPI (dlsym or pmpi)]))
+   AS_IF([test "x$with_pmpi_hook" == "xdlsym"],
+   	[AC_DEFINE([WITH_PMPI_HOOK], [1], [Use dlsym instead of PMPI])])
+
+   AX_FLAGS_RESTORE()
 ])

@@ -4,6 +4,9 @@
 # DO NOT EDIT!
 #
 
+EXTRAE_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
+export EXTRAE_HOME=${EXTRAE_HOME}
+
 if test "${EXTRAE_HOME}" != "" ; then
 	if test -d ${EXTRAE_HOME} ; then
 		echo "EXTRAE_HOME points to ${EXTRAE_HOME} and the directory exists .. OK"
@@ -34,8 +37,6 @@ if test "${EXTRAE_HOME}" != "" ; then
 		echo "Loaded specs for ${PACKAGE_NAME:-Extrae} from ${EXTRAE_HOME}/etc/extrae-vars.sh"
 	fi
 
-	echo
-	echo Extrae SVN branch ${EXTRAE_SVN_BRANCH} at revision ${EXTRAE_SVN_REVISION}
 	echo
 
 	echo ${PACKAGE_NAME} was configured with:
@@ -116,6 +117,19 @@ if test "${EXTRAE_HOME}" != "" ; then
 		fi
 	else
 		echo "Translating addresses into source code references seems to be disabled (or not needed)"
+	fi
+
+	echo
+
+	if test "${EXTRAE_INSTRUMENT_IO}" == 1; then
+		echo "IO instrumentation is: ENABLED"
+	else
+		echo "IO instrumentation is: DISABLED"
+	fi
+	if test "${EXTRAE_INSTRUMENT_DYNAMIC_MEMORY}" == 1; then
+		echo "Dynamic memory instrumentation is: ENABLED"
+	else
+		echo "Dynamic memory instrumentation is: DISABLED"
 	fi
 fi
 

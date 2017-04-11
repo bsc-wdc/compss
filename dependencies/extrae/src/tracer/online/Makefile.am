@@ -141,6 +141,7 @@ $(SCRIPT_ONLINE_ENV): $(SCRIPT_ONLINE_ENV).in
 	$(top_srcdir)/substitute $(SED) "@sub_SYNAPSE_HOME@" @SYNAPSE_HOME@ $@
 	$(top_srcdir)/substitute $(SED) "@sub_SYNAPSE_LIBSDIR@" @SYNAPSE_LIBSDIR@ $@
 	$(top_srcdir)/substitute $(SED) "@sub_CLUSTERING_HOME@" @CLUSTERING_HOME@ $@
+	cp $@ $(top_builddir)/etc
 
 $(SCRIPT_ONLINE_ROOT): $(SCRIPT_ONLINE_ROOT).in
 	cp $^ $@
@@ -158,3 +159,6 @@ install-data-hook:
 clean-local:
 	rm -f $(SCRIPT_ONLINE_ENV) $(SCRIPT_ONLINE_ROOT)
 
+uninstall-local:
+	rm $(prefix)/etc/$(SCRIPT_ONLINE_ROOT)
+	rm $(prefix)/bin/$(SCRIPT_ONLINE_ENV)

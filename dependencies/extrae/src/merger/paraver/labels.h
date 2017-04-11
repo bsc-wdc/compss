@@ -246,10 +246,42 @@ extern struct value_t MISC_values[MISC_VALUES];
 #define STATE23_LBL          "Distributed locking"
 #define STATE23_COLOR        {   0,  41,   0 }
 
+#define STATE_24             24 
+#define STATE_24_LBL         "Overhead"
+#define STATE_24_COLOR       { 139, 121, 177 }
+
+#define STATE_25             25 
+#define STATE_25_LBL         "One-sided op"
+#define STATE_25_COLOR       { 116, 116, 116 }
+
+#define STATE_26             26 
+#define STATE_26_LBL         "Startup latency"
+#define STATE_26_COLOR       { 200,  50,  89 }
+
+#define STATE_27             27 
+#define STATE_27_LBL         "Waiting links"
+#define STATE_27_COLOR       { 255, 171,  98 }
+
+#define STATE_28             28 
+#define STATE_28_LBL         "Data copy"
+#define STATE_28_COLOR       {   0,  68, 189 }
+
+#define STATE_29             29 
+#define STATE_29_LBL         "RTT"
+#define STATE_29_COLOR       {  52,  43,   0 }
+
+#define STATE_30             30
+#define STATE_30_LBL         "Allocating memory"
+#define STATE_30_COLOR       { 255, 46, 0 }
+
+#define STATE_31             31
+#define STATE_31_LBL         "Freeing memory"
+#define STATE_31_COLOR       { 100, 216, 32 }
+
 #define STATES_LBL           "STATES"
 #define STATES_COLOR_LBL     "STATES_COLOR"
 
-#define STATES_NUMBER        24
+#define STATES_NUMBER        32
 extern struct color_t states_inf[STATES_NUMBER];
 
 /******************************************************************************
@@ -381,6 +413,14 @@ typedef struct mpi_stats_evt_t
 #define MPI_STATS_TIME_IN_GLOBAL_LBL               "Elapsed time in GLOBAL MPI calls"
 #define MPI_STATS_OTHER_COUNT_LBL                  "Number of OTHER MPI calls"
 
+typedef struct syscall_evt_t
+{
+	int evt_type;
+	char * label;
+} syscall_evt_t;
+
+#define SYSCALL_SCHED_YIELD_LBL "sched_yield()"
+
 extern struct mpi_stats_evt_t mpistats_evt_labels[MPI_STATS_EVENTS_COUNT];
 
 /* Clustering events labels */
@@ -424,6 +464,8 @@ void Labels_loadSYMfile (int taskid, int allobjects, unsigned ptask,
 void Labels_loadLocalSymbols (int taskid, unsigned long nfiles,
 	struct input_t * IFiles);
 int Labels_LookForHWCCounter (int eventcode, unsigned *position, char **description);
+void Share_File_Names(int taskid);
+int Unify_File_Id(unsigned ptask, unsigned task, int file_id);
 
 #endif
 

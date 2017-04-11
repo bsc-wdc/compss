@@ -21,7 +21,7 @@ AC_DEFUN([AX_SHOW_CONFIGURATION],
 	fi
 
 	echo
-	echo Package configuration for ${PACKAGE_NAME} ${PACKAGE_VERSION} based on ${SVN_branch} rev. ${SVN_revision}:
+	echo Package configuration for ${PACKAGE_NAME} ${PACKAGE_VERSION}
 	echo -----------------------
 	echo Installation prefix: ${prefix}
 	echo Cross compilation:   ${CROSSC}
@@ -50,6 +50,13 @@ AC_DEFUN([AX_SHOW_CONFIGURATION],
 		fi
 	else
 		echo Performance counters: no
+	fi
+
+        echo
+	if test "${enable_pebs_sampling}" = "yes" ; then
+		echo PEBS sampling: yes
+	else
+		echo PEBS sampling: no
 	fi
 
 	echo

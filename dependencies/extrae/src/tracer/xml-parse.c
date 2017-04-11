@@ -23,7 +23,7 @@
 
 #include "common.h"
 
-static char UNUSED rcsid[] = "$Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $";
+static char UNUSED rcsid[] = "$Id$";
 
 #if defined(HAVE_XML2)
 
@@ -365,6 +365,22 @@ static void Parse_XML_Callers (int rank, xmlDocPtr xmldoc, xmlNodePtr current_ta
 			mfprintf (stdout, PACKAGE_NAME": <%s> tag at <Callers> level will be ignored. This library does not support I/O instrumentation.\n", TRACE_IO);
 #endif
 		}
+		else if (!xmlStrcasecmp (tag->name, TRACE_SYSCALL))
+		{
+#if defined(INSTRUMENT_SYSCALL)
+			xmlChar *enabled = xmlGetProp_env (rank, tag, TRACE_ENABLED);
+			if (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES))
+			{
+				char *callers = (char*) xmlNodeListGetString_env (rank, xmldoc, tag->xmlChildrenNode, 1);
+				if (callers != NULL)
+					Parse_Callers (rank, callers, CALLER_SYSCALL);
+				XML_FREE(callers);
+			}
+			XML_FREE(enabled);
+#else
+			mfprintf (stdout, PACKAGE_NAME": <%s> tag at <Callers> level will be ignored. This library does not support system calls instrumentation.\n", TRACE_SYSCALL);
+#endif
+	  }
 		/* Must the tracing facility obtain information about callers at sample points? */
 		else if (!xmlStrcasecmp (tag->name, TRACE_SAMPLING))
 		{
@@ -1350,6 +1366,59 @@ static void Parse_XML_Merge (int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag,
 }
 #endif
 
+static void Parse_XML_CPU_Events (int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag)
+{
+	xmlNodePtr tag;
+	UNREFERENCED_PARAMETER(xmldoc);
+
+	/* Parse all TAGs, and annotate them to use them later */
+	tag = current_tag;
+	while (tag != NULL)
+	{
+		/* Skip coments */
+		if (!xmlStrcasecmp (tag->name, xmlTEXT) || !xmlStrcasecmp (tag->name, xmlCOMMENT))
+		{
+		}
+		/* When do we have to emit a CPU event */
+		else if (!xmlStrcasecmp (tag->name, TRACE_CPU_EVENTS))
+		{
+			xmlChar *enabled = xmlGetProp_env (rank, tag, TRACE_ENABLED);
+			if (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES))
+			{
+
+				xmlChar *frequency = xmlGetProp_env (rank, tag, TRACE_CPU_EVENTS_FREQUENCY);
+				if (frequency != NULL)
+				{
+					if (atoi((char*)frequency) > 0)
+					{
+						MinimumCPUEventTime = getTimeFromStr ((const char*)frequency, (const char*) TRACE_CPU_EVENTS_FREQUENCY, rank);
+						mfprintf(stdout, PACKAGE_NAME": CPU events will be emitted every %s.\n", frequency);
+					} else
+					{
+						mfprintf (stderr, "Extrae: Warning! Value '%s' in <cpu-events [..] frequency=\"..\" /> is not recognized. Using '1's.\n", frequency);
+					}
+				}
+				XML_FREE(frequency);
+
+				xmlChar *changeOnly = xmlGetProp_env (rank, tag, TRACE_CPU_EVENTS_EMIT_ALWAYS);
+				if (changeOnly != NULL && !xmlStrcasecmp (changeOnly, xmlYES))
+				{
+					AlwaysEmitCPUEvent = 1;
+					mfprintf(stdout, PACKAGE_NAME": CPU events will always be emitted.\n");
+
+				} else
+				{
+					AlwaysEmitCPUEvent = 0;
+					mfprintf(stdout, PACKAGE_NAME": CPU events will only be emitted if CPU has changed.\n");
+				}
+				XML_FREE(changeOnly);
+			}
+			XML_FREE(enabled);
+		}
+		tag = tag->next;
+	}
+}
+
 /* Configure <others> related parameters */
 static void Parse_XML_Others (int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag)
 {
@@ -1467,6 +1536,7 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 	char cwd[TMP_DIR];
 	int DynamicMemoryInstrumentation = FALSE;
 	int IOInstrumentation = FALSE;
+  int SysCallInstrumentation = FALSE;
 
 	/*
 	* This initialize the library and check potential ABI mismatches
@@ -1496,7 +1566,6 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 
 				/* Full tracing control */
 				char *tracehome = (char*) xmlGetProp_env (rank, root_tag, TRACE_HOME);
-				xmlChar *xmlparserid = xmlGetProp_env (rank,root_tag, TRACE_PARSER_ID);
 				xmlChar *traceenabled = xmlGetProp_env (rank, root_tag, TRACE_ENABLED);
 				xmlChar *traceinitialmode = xmlGetProp_env (rank, root_tag, TRACE_INITIAL_MODE);
 				xmlChar *tracetype = xmlGetProp_env (rank, root_tag, TRACE_TYPE);
@@ -1508,15 +1577,6 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 				}
 				else
 				{
-					/* Where is the tracing located? If defined, copy to the correct buffer! */
-					if (xmlStrcasecmp ((xmlChar*) &rcsid[1], xmlparserid)) /* Skip first $ char */
-					{
-						mfprintf (stderr, PACKAGE_NAME": WARNING!\n");
-						mfprintf (stderr, PACKAGE_NAME": WARNING! XML parser version and property '%s' do not match. Check the XML file. Trying to proceed...\n", TRACE_PARSER_ID);
-						mfprintf (stderr, PACKAGE_NAME": WARNING!\n");
-						mfprintf (stderr, PACKAGE_NAME": %s found '%s' when expecting '%s'.\n", TRACE_PARSER_ID, xmlparserid, &rcsid[1]);
-					}
-
 					if (tracehome != NULL)
 					{
 						strncpy (trace_home, tracehome, TMP_DIR);
@@ -1574,7 +1634,6 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 						Clock_setType (REAL_CLOCK);
 					}
 				}
-				XML_FREE(xmlparserid);
 				XML_FREE(tracetype);
 				XML_FREE(traceinitialmode);
 				XML_FREE(traceenabled);
@@ -1736,6 +1795,14 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 							Parse_XML_Buffer (rank, xmldoc, current_tag);
 						XML_FREE(enabled);
 					}
+					/* Check for CPU event emission control */
+					else if (!xmlStrcasecmp (current_tag->name, TRACE_CPU_EVENTS))
+					{
+						xmlChar *enabled = xmlGetProp_env (rank, current_tag, TRACE_ENABLED);
+						if (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES))
+							Parse_XML_CPU_Events (rank, xmldoc, current_tag);
+						XML_FREE(enabled);
+					}
 					/* Check if some other configuration info must be gathered */
 					else if (!xmlStrcasecmp (current_tag->name, TRACE_OTHERS))
 					{
@@ -1806,6 +1873,18 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 						mfprintf (stdout, PACKAGE_NAME": Warning! <%s> tag will be ignored. This library does support instrumenting I/O calls.\n", TRACE_IO);
 #endif
 					}
+          /* Check for syscall instrumentation */                             
+          else if (!xmlStrcasecmp (current_tag->name, TRACE_SYSCALL))                
+          {                                                                     
+#if defined(INSTRUMENT_SYSCALL)                                                      
+            xmlChar *enabled = xmlGetProp_env (rank, current_tag, TRACE_ENABLED);
+            if (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES))            
+              SysCallInstrumentation = TRUE;                                         
+            XML_FREE(enabled);                                                  
+#else                                                                           
+            mfprintf (stdout, PACKAGE_NAME": Warning! <%s> tag will be ignored. This library does support instrumenting system calls.\n", TRACE_SYSCALL);
+#endif                                                                          
+          }                                                                     
 					/* Check for intel pebs sampling */
 					else if (!xmlStrcasecmp (current_tag->name, TRACE_PEBS_SAMPLING))
 					{
@@ -1847,12 +1926,19 @@ void Parse_XML_File (int rank, int world_size, const char *filename)
 	mfprintf (stdout, PACKAGE_NAME": Basic I/O memory instrumentation is %s.\n",
 	  IOInstrumentation?"enabled":"disabled");
 	setRequestedIOInstrumentation (IOInstrumentation);
+
+  mfprintf (stdout, PACKAGE_NAME": System calls instrumentation is %s.\n",  
+    SysCallInstrumentation?"enabled":"disabled");                                    
+  setRequestedSysCallInstrumentation (SysCallInstrumentation);                            
 #else
 	if (DynamicMemoryInstrumentation)
 		mfprintf (stdout, PACKAGE_NAME": Dynamic memory instrumentation cannot be enabled using static version of the instrumentation library.\n");
 
 	if (IOInstrumentation)
 		mfprintf (stdout, PACKAGE_NAME": I/O instrumentation cannot be enabled using static version of the instrumentation library.\n");
+
+  if (SysCallInstrumentation)                                                        
+    mfprintf (stdout, PACKAGE_NAME": System calls instrumentation cannot be enabled using static version of the instrumentation library.\n");
 #endif
 
 	mfprintf (stdout, PACKAGE_NAME": Parsing the configuration file (%s) has ended\n", filename);   

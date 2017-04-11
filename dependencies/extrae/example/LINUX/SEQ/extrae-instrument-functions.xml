@@ -4,7 +4,6 @@
  home="/home/harald/pkg/tmp"
  initial-mode="detail"
  type="paraver"
- xml-parser-id="Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $"
 >
 
   <user-functions enabled="yes" list="list-instrumented-functions" exclude-automatic-functions="no">
@@ -37,7 +36,7 @@
   </storage>
 
   <buffer enabled="yes">
-    <size enabled="yes">500000</size>
+    <size enabled="yes">5000000</size>
     <circular enabled="no" />
   </buffer>
 
@@ -61,6 +60,8 @@
   <dynamic-memory enabled="no" />
 
   <input-output enabled="no" />
+
+  <syscall enabled="no" />
 
   <merge enabled="yes" 
     synchronization="default"

@@ -302,7 +302,7 @@ if __name__ == "__main__":
     # params = sys.argv[i+4..]
 
     if tracing:
-        import pyextrae
+        import pyextrae.multiprocessing as pyextrae
         pyextrae.eventandcounters(SYNC_EVENTS, taskId)
         # pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, WORKER_INITIALIZATION)

@@ -15,4 +15,5 @@ src/cmd-line/extrae-cmd.h		Avoid collision between workers within the same machi
 					
 src/java-connector/jni/Makefile.am 	Add JNI classpath for headers (solves problems on MN-III installation)
 					$(JAVAH) -d $(JNI_INCLUDE_DIR) -classpath . -jni es.bsc.cepbatools.extrae.Wrapper
-
+src/others/pyextrae/common/extrae.py.in Avoid tracing subcalls to C routines (from execute_task for example) so just 2 events (entry and exit) are traced per user function
+                    if Extrae and (os.getpid() in Extrae) and function and Traced_Functions and function in Traced_Functions and event not in ["c_call", "c_return"]: 

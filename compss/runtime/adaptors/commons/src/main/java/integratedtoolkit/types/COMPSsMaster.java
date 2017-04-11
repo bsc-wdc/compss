@@ -16,6 +16,7 @@ import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
@@ -403,6 +404,11 @@ public class COMPSsMaster extends COMPSsNode {
     public boolean generateWorkersDebugInfo() {
         // Should not be executed on a COMPSsMaster
         return false;
+    }
+
+    @Override
+    public void shutdownExecutionManager(ExecutorShutdownListener sl) {
+        // Should not be executed on a COMPSsMaster
     }
 
 }

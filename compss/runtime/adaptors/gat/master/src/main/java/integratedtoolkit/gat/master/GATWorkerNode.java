@@ -18,6 +18,7 @@ import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.types.annotations.parameter.DataType;
@@ -382,4 +383,9 @@ public class GATWorkerNode extends COMPSsWorker {
         return false;
     }
 
+
+    @Override
+    public void shutdownExecutionManager(ExecutorShutdownListener sl) {
+        // GAT has no execution managers
+    }
 }

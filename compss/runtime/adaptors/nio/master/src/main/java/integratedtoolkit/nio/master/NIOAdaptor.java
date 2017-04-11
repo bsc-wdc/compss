@@ -13,6 +13,7 @@ import integratedtoolkit.exceptions.ConstructConfigurationException;
 
 import integratedtoolkit.log.Loggers;
 
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.util.ErrorManager;
 
 import integratedtoolkit.nio.NIOAgent;
@@ -95,6 +96,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final HashMap<Integer, LinkedList<Copy>> groupToCopy = new HashMap<>();
 
     private static final HashMap<Connection, ClosingWorker> stoppingNodes = new HashMap<>();
+
+    private static final HashMap<Connection, ClosingExecutor> stoppingExecutors = new HashMap<>();
 
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
@@ -531,6 +534,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         stoppingNodes.put(c, new ClosingWorker(worker, listener));
     }
 
+    public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
+        stoppingExecutors.put(c, new ClosingExecutor(worker, listener));
+    }
+
     @Override
     public void shutdownNotification(Connection c) {
         ClosingWorker closing = stoppingNodes.remove(c);
@@ -544,6 +551,21 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void shutdown(Connection closingConnection) {
         // Master side, nothing to do
     }
+
+    @Override
+    public void shutdownExecutionManager(Connection closingConnection) {
+        // Master side, nothing to do
+
+    }
+
+    @Override
+    public void shutdownExecutionManagerNotification(Connection c) {
+        ClosingExecutor closing = stoppingExecutors.remove(c);
+        NIOWorkerNode worker = closing.worker;
+        ExecutorShutdownListener listener = closing.listener;
+        listener.notifyEnd();
+    }
+
 
     @Override
     public void waitUntilTracingPackageGenerated() {
@@ -589,6 +611,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
 
         public ClosingWorker(NIOWorkerNode w, ShutdownListener l) {
+            worker = w;
+            listener = l;
+        }
+    }
+
+    private class ClosingExecutor {
+
+        private final NIOWorkerNode worker;
+        private final ExecutorShutdownListener listener;
+
+
+        public ClosingExecutor(NIOWorkerNode w, ExecutorShutdownListener l) {
             worker = w;
             listener = l;
         }

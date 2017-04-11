@@ -39,10 +39,10 @@ from pycompss.util.logs import init_logging_worker
 SYNC_EVENTS = 8000666
 
 # Should be equal to Tracer.java definitions
-TASK_EVENTS = 8000010
+TASK_EVENTS = 60000100
 
 PROCESS_CREATION = 100
-WORKER_INITIALIZATION = 102
+WORKER_RUNNING = 102
 PARAMETER_PROCESSING = 103
 LOGGING = 104
 TASK_EXECUTION = 105
@@ -506,6 +506,11 @@ def compss_persistent_worker():
     out_pipes = sys.argv[4 + tasks_x_node:]
     storage_conf = None # TODO: NEEDS TO BE PASSED BY THE RUNTIME
 
+    if tracing:
+        import pyextrae.multiprocessing as pyextrae
+        pyextrae.eventandcounters(SYNC_EVENTS, 1)
+        pyextrae.eventandcounters(TASK_EVENTS, WORKER_RUNNING)
+
     if debug:
         assert tasks_x_node == len(in_pipes)
         assert tasks_x_node == len(out_pipes)
@@ -595,6 +600,9 @@ def compss_persistent_worker():
     finishStorageAtWorker()
 
     logger.debug("[PYTHON WORKER] Finished")
+    if tracing:
+        pyextrae.eventandcounters(TASK_EVENTS, 0)
+        pyextrae.eventandcounters(SYNC_EVENTS, 0)
 
 
 ############################

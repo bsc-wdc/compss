@@ -11,7 +11,7 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.StreamGobbler;
-import integratedtoolkit.util.Tracer;
+import integratedtoolkit.nio.NIOTracer;
 
 
 /**
@@ -121,11 +121,18 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         try {
             // Set NW environment
             Map<String, String> env = getEnvironment(nw);
+
             addEnvironment(env, nw);
-            pb.directory(new File(nw.getWorkingDir()));
+
+            pb.directory(new File(getPBWorkingDir()));
             pb.environment().putAll(env);
-            pb.environment().remove(Tracer.LD_PRELOAD);
-            
+            pb.environment().remove(NIOTracer.LD_PRELOAD);
+            pb.environment().remove(NIOTracer.EXTRAE_CONFIG_FILE);
+
+            if (NIOTracer.isActivated()){
+                NIOTracer.emitEvent(Long.parseLong(NIOTracer.getHostID()), NIOTracer.getSyncType());
+            }
+
             piper = pb.start();
 
             logger.debug("Starting stdout/stderr gobblers ...");
@@ -153,6 +160,10 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         }
     }
 
+    protected String getPBWorkingDir(){
+        return nw.getWorkingDir();
+    }
+
     private void addEnvironment(Map<String, String> env, NIOWorker nw) {
         env.put(ITConstants.IT_WORKING_DIR, nw.getWorkingDir());
         env.put(ITConstants.IT_APP_DIR, nw.getAppDir());
@@ -167,6 +178,9 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         // Check out end status and close gobblers
         try {
             int exitCode = piper.waitFor();
+            if (NIOTracer.isActivated()){
+                NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getSyncType());
+            }
             outputGobbler.join();
             errorGobbler.join();
             if (exitCode != 0) {

@@ -1,13 +1,12 @@
 <?xml version='1.0'?>
 
 <trace enabled="yes"
- home="/opt/COMPSs/Dependencies/extrae/"
  initial-mode="detail"
  type="paraver"
  xml-parser-id="Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $"
 >
 
-  <user-functions enabled="no" list="" exclude-automatic-functions="no">
+  <user-functions enabled="yes" list="{{PATH}}/function-list" exclude-automatic-functions="no">
     </user-functions>
 
   <counters enabled="yes">
@@ -38,17 +37,6 @@
 
   <input-output enabled="no" />
 
-  <merge enabled="yes"
-    synchronization="default"
-    tree-fan-out="16"
-    max-memory="512"
-    joint-states="yes"
-    keep-mpits="yes"
-    sort-addresses="yes"
-    remove-files="no"
-    overwrite="no"
-  >
-    ./{{NAME}}.prv
-  </merge>
+  <merge enabled="no" />
 
 </trace>

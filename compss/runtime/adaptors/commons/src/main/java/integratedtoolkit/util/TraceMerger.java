@@ -4,6 +4,7 @@ import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.sound.sampled.Line;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,40 +14,45 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+
 public class TraceMerger {
 
     protected static final Logger logger = LogManager.getLogger(Loggers.TRACING);
     protected static final boolean debug = logger.isDebugEnabled();
 
+    // Info used for matching sync events
     private static final Integer SYNC_TYPE = 8000666;
+    private String syncRegex = "(^\\d+:\\d+:\\d+):(\\d+):(\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
+    private Pattern syncPattern = Pattern.compile(syncRegex);
+    // Selectors for replace Pattern
     private static final Integer R_ID_INDEX = 1;
-    private static final Integer TIMESTAMP_INDEX = 2;
-    private static final Integer TASK_ID_INDEX = 3;
+    private static final Integer TIMESTAMP_INDEX = 4;
+    private static final Integer WORKER_ID_INDEX = 2; // could be wrong this regex (designed for matching tasks not workers)
+
+    private String workerThreadInfo = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
+    private Pattern workerThreadInfoPattern = Pattern.compile(workerThreadInfo);
+    private static final Integer WORKER_THREAD_ID = 2;
+    private static final Integer WORKER_TIMESTAMP = 6;
+    private static final Integer WORKER_LINE_INFO = 7;
+
 
     private static final String masterTraceSuffix = "_compss_trace_";
-    private static final String taskTracePrefix = "task";
     private static final String traceExtension = ".prv";
+    private static final String workerTraceSuffix = "_python_trace" + traceExtension;
     private static final String traceSubDir = "trace";
-    private static final String taskSubDir = "tasks";
+    private static final String workerSubDir = "python";
     private static String workingDir;
 
     private FileWriter fw;
     private BufferedWriter bw;
     private PrintWriter masterWriter;
 
-    private String replaceRegex = "(^\\d+:\\d+:\\d+:\\d+:\\d+):(\\d+)";
-    private Pattern replacePattern = Pattern.compile(replaceRegex);
-    private String syncRegex = "(^\\d+:\\d+:\\d+:\\d+:\\d+):(\\d+).*:" + SYNC_TYPE + ":(\\d+)";
-    private Pattern syncPattern = Pattern.compile(syncRegex);
-
     private File masterTrace;
-    private File[] taskTraces;
+    private File[] workersTraces;
 
     private String masterTracePath;
-    private String[] tasksTracePath;
+    private String[] workersTracePath;
 
-    private HashMap<Integer, LineInfo> taskIdToStartSyncInfo = new HashMap<>();
-    private HashMap<Integer, LineInfo> taskIdToEndSyncInfo = new HashMap<>();
 
 
     private class LineInfo {
@@ -72,7 +78,7 @@ public class TraceMerger {
 
     public TraceMerger(String workingDir, String appName) throws IOException {
         initMasterTraceInfo(workingDir, appName);
-        initTaskTracesInfo(workingDir);
+        initWorkersTracesInfo(workingDir);
 
         fw = new FileWriter(masterTracePath, true);
         bw = new BufferedWriter(fw);
@@ -86,12 +92,7 @@ public class TraceMerger {
         final String traceNamePrefix = appName + masterTraceSuffix;
 
         File f = new File(workingDir + File.separator + traceSubDir);
-        File[] matchingFiles = f.listFiles(new FilenameFilter() {
-
-            public boolean accept(File dir, String name) {
-                return name.startsWith(traceNamePrefix) && name.endsWith(traceExtension);
-            }
-        });
+        File[] matchingFiles = f.listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
 
         if (!(matchingFiles.length < 1)) {
             masterTrace = matchingFiles[0];
@@ -105,45 +106,53 @@ public class TraceMerger {
 
     }
 
-    private void initTaskTracesInfo(String workingDir) throws FileNotFoundException {
+    private void initWorkersTracesInfo(String workingDir) throws FileNotFoundException {
         TraceMerger.workingDir = workingDir;
-        File f = new File(workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
-        File[] matchingFiles = f.listFiles(new FilenameFilter() {
-
-            public boolean accept(File dir, String name) {
-                return name.startsWith(taskTracePrefix) && name.endsWith(traceExtension);
-            }
-        });
+        File f = new File(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+        File[] matchingFiles = f.listFiles((File dir, String name) -> name.endsWith(workerTraceSuffix));
 
         if (matchingFiles == null) {
-            throw new FileNotFoundException("No task traces to merge found.");
+            throw new FileNotFoundException("No workers traces to merge found.");
         } else {
-            taskTraces = matchingFiles;
+            workersTraces = matchingFiles;
         }
 
-        tasksTracePath = new String[taskTraces.length];
-        for (int i = 0; i < tasksTracePath.length; ++i) {
-            tasksTracePath[i] = taskTraces[i].getAbsolutePath();
+        workersTracePath = new String[workersTraces.length];
+        for (int i = 0; i < workersTracePath.length; ++i) {
+            workersTracePath[i] = workersTraces[i].getAbsolutePath();
         }
     }
 
     public void merge() throws IOException {
         logger.debug("Parsing master sync events");
-        parseMasterSyncEvents();
+        HashMap<Integer, List<LineInfo> > masterSyncEvents = getSyncEvents(masterTracePath, -1);
+
         logger.debug("Proceeding to merge task traces into master");
-        for (File taskFile : taskTraces) {
-            List<String> cleanLines = getTaskEvents(taskFile);
-            updateTasksInfo(cleanLines);
+        for (File workerFile : workersTraces) {
+            String workerFileName = workerFile.getName();
+            String wID = "";
+
+            for (int i = 0; workerFileName.charAt(i) != '_'; ++i){
+                wID += workerFileName.charAt(i);
+            }
+
+            Integer workerID = Integer.parseInt(wID);
+            workerID++; // first worker is resource number 2
+
+            List<String> cleanLines = getWorkerEvents(workerFile);
+            HashMap<Integer, List<LineInfo> > workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
+
+            writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
             if (!debug) {
-                if (!taskFile.delete()) {
-                    logger.error("Error deleting trace file " + taskFile);
+                if (!workerFile.delete()) {
+                    logger.error("Error deleting trace file " + workerFile);
                 }
             }
         }
         masterWriter.close();
-        logger.debug("Merging finished,");
+        logger.debug("Merging finished.");
         if (!debug){
-            File f = new File(TraceMerger.workingDir + File.separator + traceSubDir + File.separator + taskSubDir);
+            File f = new File(TraceMerger.workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
             if (f.delete()){
                 logger.debug("Temporal task folder removed.");
             } else {
@@ -152,17 +161,32 @@ public class TraceMerger {
         }
     }
 
-    private void parseMasterSyncEvents() throws IOException {
+    private void add(HashMap<Integer, List<LineInfo> > map, Integer key, LineInfo newValue) {
+        List currentValue = map.get(key);
+
+        if (currentValue == null) {
+            currentValue = new ArrayList();
+            map.put(key, currentValue);
+        }
+        currentValue.add(newValue);
+    }
+
+    private HashMap<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
         FileInputStream inputStream = null;
         Scanner sc = null;
+        HashMap<Integer, List<LineInfo> > idToSyncInfo = new HashMap<>();
         try {
-            inputStream = new FileInputStream(masterTracePath);
+            inputStream = new FileInputStream(tracePath);
             sc = new Scanner(inputStream, "UTF-8");
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 Matcher m = syncPattern.matcher(line);
                 if (m.find()) {
-                    updateTaskIdSyncInfo(line);
+                    Integer wID = (workerID == -1) ? Integer.parseInt(m.group(WORKER_ID_INDEX)) : workerID;
+                    String resourceID = m.group(R_ID_INDEX);
+                    Long timestamp = Long.parseLong(m.group(TIMESTAMP_INDEX));
+
+                    add(idToSyncInfo, wID, new LineInfo(resourceID, timestamp));
                 }
             }
             // note that Scanner suppresses exceptions
@@ -177,93 +201,59 @@ public class TraceMerger {
                 sc.close();
             }
         }
-
+        return idToSyncInfo;
     }
 
-    private void updateTaskIdSyncInfo(String line) {
-        Matcher matcher = syncPattern.matcher(line);
-        if (matcher.find()) {
-            String resourceID = matcher.group(R_ID_INDEX);
-
-            Long timestamp = Long.parseLong(matcher.group(TIMESTAMP_INDEX));
-            Integer taskID = Integer.parseInt(matcher.group(TASK_ID_INDEX));
-
-            LineInfo lineInfo = new LineInfo(resourceID, timestamp);
-
-            LineInfo startLine = taskIdToStartSyncInfo.get(taskID);
-            if (startLine != null) {
-                taskIdToEndSyncInfo.put(taskID, lineInfo);
-            } else {
-                taskIdToStartSyncInfo.put(taskID, lineInfo);
-            }
-        }
-    }
-
-    private List<String> getTaskEvents(File task) throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get(task.getAbsolutePath()), StandardCharsets.UTF_8);
-        int startIndex = 0;
+    private List<String> getWorkerEvents(File worker) throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get(worker.getAbsolutePath()), StandardCharsets.UTF_8);
+        int startIndex = 1; // Remove header
         int endIndex = lines.size() - 1;
-        for (int i = 0; i < lines.size(); i++) {
-            Matcher m = syncPattern.matcher(lines.get(i));
-            if (m.find()) {
-                startIndex = i;
-                break;
-            }
-        }
-        for (int i = lines.size() - 1; i > 0; i--) {
-            Matcher m = syncPattern.matcher(lines.get(i));
-            if (m.find()) {
-                endIndex = i + 1;
-                break;
-            }
-        }
 
         return lines.subList(startIndex, endIndex);
     }
 
-    private void updateTasksInfo(List<String> eventsLine) {
-        Matcher matcher = syncPattern.matcher(eventsLine.get(0));
-        if (eventsLine.size() > 0 && matcher.find()) {
+    private void writeWorkerEvents(HashMap<Integer, List<LineInfo> > masterSyncEvents,
+                                    HashMap<Integer, List<LineInfo> > workerSyncEvents,
+                                    List<String> eventsLine, Integer workerID) {
 
-            Integer taskID = Integer.parseInt(matcher.group(TASK_ID_INDEX));
-            Long offset = null;
-            try {
-                offset = getTaskOffset(taskID, eventsLine.get(0), eventsLine.get(eventsLine.size() - 1));
-                String resourceID = taskIdToStartSyncInfo.get(taskID).getResourceId();
-                for (String line : eventsLine) {
-                    Matcher taskMatcher = replacePattern.matcher(line);
-                    if (taskMatcher.find()) {
-                        String newHeader = resourceID + ":" + (offset + Long.parseLong(taskMatcher.group(TIMESTAMP_INDEX)));
-                        String newEvent = taskMatcher.replaceFirst(newHeader);
+        LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
 
-                        masterWriter.println(newEvent);
-                    }
-
-                }
-
-            } catch (Exception e) {
-                logger.error("Exception on uptade tasks info",  e);
-            }
-
+        for (String line : eventsLine) {
+            String newEvent = updateEvent(workerHeader, line, workerID);
+            masterWriter.println(newEvent);
         }
     }
 
-    private Long getTaskOffset(Integer taskID, String firstLine, String lastLine) throws Exception {
-        Long outer_start = taskIdToStartSyncInfo.get(taskID).getTimestamp();
-        Long outer_duration = (taskIdToEndSyncInfo.get(taskID).getTimestamp()) - (taskIdToStartSyncInfo.get(taskID).getTimestamp());
+    private String updateEvent(LineInfo workerHeader, String line, Integer workerID) {
+        Matcher taskMatcher = workerThreadInfoPattern.matcher(line);
+        String newLine = "";
+        if (taskMatcher.find()) {
+            String baseWorkerHeader = workerHeader.getResourceId();
 
-        Long inner_duration;
-
-        Matcher endMatcher = syncPattern.matcher(lastLine);
-
-        if (endMatcher.find()) {
-            inner_duration = Long.parseLong(endMatcher.group(TIMESTAMP_INDEX));
-            Long offset = outer_start + ((outer_duration - inner_duration) / 2);
-            return offset;
-        } else {
-            logger.error("Could not calculate offset for task " + taskID);
-            throw new Exception("Could not calculate offset for task " + taskID);
+            Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
+            String eventHeader = baseWorkerHeader + ":" + workerID + ":" + threadID; // WRONG
+            Long timestamp =   workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));
+            String lineInfo = taskMatcher.group(WORKER_LINE_INFO);
+            newLine = eventHeader + ":" + timestamp + ":" + lineInfo;
         }
+        return newLine;
+    }
+
+    private LineInfo getWorkerInfo(List<LineInfo> masterSyncEvents, List<LineInfo> workerSyncEvents) {
+
+        LineInfo javaStart = masterSyncEvents.get(0);
+        LineInfo javaEnd = masterSyncEvents.get(1);
+
+        LineInfo workerStart = workerSyncEvents.get(0);
+        LineInfo workerEnd = workerSyncEvents.get(1);
+
+        Long javaTime = Math.abs(javaStart.getTimestamp() - javaEnd.getTimestamp());
+        Long workerTime = Math.abs(workerStart.getTimestamp() - workerEnd.getTimestamp());
+
+        Long overhead = (javaTime - workerTime) / 2;
+
+        return new LineInfo(javaStart.resourceId, javaStart.getTimestamp() + overhead);
+
     }
 
 }

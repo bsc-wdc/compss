@@ -23,6 +23,8 @@ public abstract class Command implements Externalizable {
         GEN_TRACE_PACKAGE_DONE, // Notification of the end of trace package
         GEN_WORKERS_INFO, // Generate worker debug log files
         GEN_WORKERS_INFO_DONE, // Notification of the end of worker debug log files generation
+        STOP_EXECUTOR, // Tell the worker to stop the execution manager
+        STOP_EXECUTOR_ACK, // Notify that the execution manager is stopped
     }
 
 

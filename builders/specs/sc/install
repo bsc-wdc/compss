@@ -14,12 +14,13 @@
   ####################
   usage() {
     echo " "
-    echo " Usage:  install <targetFolder>"
+    echo " Usage:  install <targetFolder> [<queues_cfg>]"
     echo " "
     echo " Parameters:"
     echo "   - targetFolder : Base target folder of the COMPSs installation."
     echo "                    A COMPSs folder will be created inside the targetFolder containing"
     echo "                    all the COMPSs files"
+    echo "   - queues_cfg :   Queue configuration file to be copied as default into targetFolder/Runtime/scripts/queues/cfgs/"
     echo " "
     echo "ATTENTION: The COMPSs folder inside the target folder will be completely removed to avoid"
     echo "           conflicts between installations. Please save any configuration files."
@@ -33,7 +34,7 @@
   # MAIN
   ####################
   # Get parameters
-  if [ $# -eq 1 ]; then
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then
     if [ "$1" == "usage" ]; then
       usage
       exit 0
@@ -44,6 +45,7 @@
     exit 1
   fi
   targetDir=$1/COMPSs/
+  queues_cfg=$2
 
   # WARN MESSAGE and log parameters
   echo " "
@@ -109,6 +111,11 @@
   echo "- Set COMPSs permissions"
   chmod -R 755 ${targetDir}
   chmod -R 777 ${targetDir}/Runtime/configuration/
+
+  # Copy the queue.cfg as default.cfg if it is defined
+  if [ -n "${queues_cfg}" ]; then
+    cp ${targetDir}/Runtime/scripts/queues/cfgs/${queues_cfg} ${targetDir}/Runtime/scripts/queues/cfgs/default.cfg
+  fi
 
   # End
   echo " "

@@ -48,7 +48,7 @@
 
             echo $(sed s/{{PATH}}/${escapedConfigPath}/g <<< $(cat ${baseConfigFile})) > ${workerConfigFile}
 
-            export PYTHONPATH="${scriptDir}/../../../../../../Dependencies/extrae/libexec/":${PYTHONPATH}
+            export PYTHONPATH=${scriptDir}/../../../../../../Dependencies/extrae/libexec/:${scriptDir}/../../../../../../Dependencies/extrae/lib/:${PYTHONPATH}
             export EXTRAE_CONFIG_FILE=${workerConfigFile}
         fi
     fi

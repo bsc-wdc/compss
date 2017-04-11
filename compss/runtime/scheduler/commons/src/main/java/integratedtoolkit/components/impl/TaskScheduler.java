@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 
+import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -226,7 +227,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
 
     /**
      * Generates a action score
-     * 
+     *
      * @param action
      * @return
      */
@@ -245,6 +246,9 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();
             if (coreId != null) {
+                if (Tracer.isActivated()){
+                    Tracer.emitEvent(Tracer.Event.READY_COUNT.getId(), Tracer.Event.READY_COUNT.getType());
+                }
                 this.readyCounts[coreId]++;
             }
         }
@@ -260,6 +264,9 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         if (action.getImplementations().length > 0) {
             Integer coreId = action.getImplementations()[0].getCoreId();
             if (coreId != null) {
+                if (Tracer.isActivated()) {
+                    Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.READY_COUNT.getType());
+                }
                 this.readyCounts[coreId]--;
             }
         }

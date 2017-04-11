@@ -42,7 +42,7 @@ def pyEx_trace_hook(frame, event, arg):
         pyEx_fini()
 
     ### Detect the call to a traced function
-    if Extrae and (os.getpid() in Extrae) and function and Traced_Functions and function in Traced_Functions and event not in ["c_call", "c_return"]:   
+    if Extrae and (os.getpid() in Extrae) and function and Traced_Functions and function in Traced_Functions and event not in ["c_call", "c_return"]:
 #      caller = frame.f_back
 #      if caller:
 #        caller_line_no  = caller.f_lineno

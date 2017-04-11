@@ -229,7 +229,7 @@ public class NIOWorker extends NIOAgent {
         WORKER_LOGGER.info("Received Job " + task);
 
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.Event.RECEIVED_NEW_TASK.getId(), NIOTracer.Event.RECEIVED_NEW_TASK.getType());
+            NIOTracer.emitEvent(NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getId(), NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
 
         // Remove obsolete
@@ -282,7 +282,7 @@ public class NIOWorker extends NIOAgent {
             executeTask(tt.getTask());
         }
         if (NIOTracer.isActivated()) {
-            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.RECEIVED_NEW_TASK.getType());
+            NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.WORKER_RECEIVED_NEW_TASK.getType());
         }
     }
 

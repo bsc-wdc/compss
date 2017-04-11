@@ -47,6 +47,7 @@ public abstract class Tracer {
     private static final int TASK_TRANSFERS     = 8_000_003;
     private static final int DATA_TRANSFERS     = 8_000_004;
     private static final int STORAGE_TYPE       = 8_000_005;
+    private static final int READY_COUNTS       = 8_000_006;
     private static final int SYNC_TYPE          = 8_000_666;
     private static final int INSIDE_TASKS_TYPE  = 60_000_100;
 
@@ -77,28 +78,29 @@ public abstract class Tracer {
         GET_OBJECT(9, RUNTIME_EVENTS, "Waiting for get object"), 
         TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
         DELETE(12, RUNTIME_EVENTS, "Delete File"),
-        
+        WORKER_RECEIVED_NEW_TASK(13, RUNTIME_EVENTS, "Received new task"),
+
+
         // Access Processor Events
-        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"), 
-        ANALYSE_TASK(18, RUNTIME_EVENTS,
-                "Access Processor: Analyse task"), 
-        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"), 
-        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"), 
-        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"), 
-        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"), 
+        DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
+        ANALYSE_TASK(18, RUNTIME_EVENTS, "Access Processor: Analyse task"),
+        UPDATE_GRAPH(19, RUNTIME_EVENTS, "Access Processor: Update graph"),
+        WAIT_FOR_TASK(20, RUNTIME_EVENTS, "Access Processor: Wait for task"),
+        END_OF_APP(21, RUNTIME_EVENTS, "Access Processor: End of app"),
+        ALREADY_ACCESSED(22, RUNTIME_EVENTS, "Access Processor: Already accessed"),
         REGISTER_DATA_ACCESS(23, RUNTIME_EVENTS, "Access Processor: Register data access"),
-        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"), 
-        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"), 
+        TRANSFER_OPEN_FILE(24, RUNTIME_EVENTS, "Access Processor: Transfer open file"),
+        TRANSFER_RAW_FILE(25, RUNTIME_EVENTS, "Access Processor: Transfer raw file"),
         TRANSFER_OBJECT(26, RUNTIME_EVENTS, "Access Processor: Transfer object"),
-        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS,"Access Processor: New version same value"), 
-        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"), 
-        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"), 
-        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"), 
+        NEW_VERSION_SAME_VALUE(27, RUNTIME_EVENTS,"Access Processor: New version same value"),
+        IS_OBJECT_HERE(28, RUNTIME_EVENTS, "Access Processor: Is object here"),
+        SET_OBJECT_VERSION_VALUE(29, RUNTIME_EVENTS, "Access Processor: Set object version value"),
+        GET_LAST_RENAMING(30, RUNTIME_EVENTS, "Access Processor: Get last renaming"),
         BLOCK_AND_GET_RESULT_FILES(31, RUNTIME_EVENTS,"Access Processor: Block and get result files"),
-        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS,"Access Processor: Unblock result files"), 
+        UNBLOCK_RESULT_FILES(32, RUNTIME_EVENTS,"Access Processor: Unblock result files"),
         SHUTDOWN(33, RUNTIME_EVENTS, "Access Processor: Shutdown"),
-        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"), 
-        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"), 
+        GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
+        TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
         DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
         // Storage Events
         STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"), 
@@ -108,7 +110,6 @@ public abstract class Tracer {
         STORAGE_EXECUTETASK(41, STORAGE_TYPE,"executeTask"), 
         STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"), 
         STORAGE_CONSOLIDATE(43, STORAGE_TYPE, "consolidateVersion"), 
-        RECEIVED_NEW_TASK(44, RUNTIME_EVENTS, "Received new task"),
         // Task Dispatcher Events
         ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), 
         CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), 
@@ -130,7 +131,9 @@ public abstract class Tracer {
         PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction"),
 
         TASK_EXECUTION(120, INSIDE_TASKS_TYPE, "User Method Execution"), 
-        SERIALIZATION(121, INSIDE_TASKS_TYPE, "Python Serialization");
+        SERIALIZATION(121, INSIDE_TASKS_TYPE, "Python Serialization"),
+
+        READY_COUNT(1, READY_COUNTS, "Ready queue count");
 
         private final int id;
         private final int type;

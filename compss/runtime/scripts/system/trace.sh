@@ -50,11 +50,10 @@
     node=$1
     #echo "trace::packaging ${node}_compss_trace.tar.gz"
     files="TRACE.mpits set-*"
-    if [ "$node" != "master" ]; then
-        tasksTraces=$(find . -name "task[1-9]*.prv")
-        if [ ! -z "$tasksTraces" ]; then
-            files+=" $tasksTraces"
-        fi
+    if [ "$node" != "master" ] && [ -d "./python" ] ; then
+        hostID=$2
+        ${extraeDir}/bin/mpi2prv -f ./python/TRACE.mpits -no-syn -o ./${hostID}_python_trace.prv
+        files+=" ${hostID}_python_trace.*"
     fi
     if [ -f TRACE.sym ]; then
         files+=" TRACE.sym"
@@ -76,19 +75,17 @@
 
     traceFiles=$(find trace/*_compss_trace.tar.gz)
     #echo "trace::gentrace"
-    taskTracesAvailable=false
     for file in ${traceFiles[*]}; do
         tmpDir=$(mktemp -d)
         tar -C $tmpDir -xzf $file
         #echo "trace:: $tmpDir -xvzf $file"
         cat $tmpDir/TRACE.mpits >> TRACE.mpits
         cp -r $tmpDir/set-* .
-        files=$(find $tmpDir -name "*.prv")
+        files=$(find $tmpDir -name "*_python_trace.*")
         if [ ! -z "$files" ]; then
-            taskTracesAvailable=true
-            nodeDir="$(pwd)/trace/tasks/"
+            nodeDir="$(pwd)/trace/python/"
             mkdir -p $nodeDir
-            find $tmpDir -name "*.prv" -exec cp {} $nodeDir \;
+            cp ${files} $nodeDir
         fi
         if [ -f $tmpDir/TRACE.sym ]; then
             cp $tmpDir/TRACE.sym .

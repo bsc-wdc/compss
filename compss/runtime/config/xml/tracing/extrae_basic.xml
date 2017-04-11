@@ -1,7 +1,6 @@
 <?xml version='1.0'?>
 
 <trace enabled="yes"
- home="/opt/COMPSs/Dependencies/extrae/"
  initial-mode="detail"
  type="paraver"
  xml-parser-id="Id: xml-parse.c 3918 2016-03-11 14:59:01Z harald $"

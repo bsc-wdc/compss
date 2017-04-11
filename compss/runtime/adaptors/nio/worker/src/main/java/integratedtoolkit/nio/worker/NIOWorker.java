@@ -13,8 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import storage.StorageException;
 import storage.StorageItf;
-import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.Connection;
+import es.bsc.comm.exceptions.CommException;
 import es.bsc.comm.nio.NIONode;
 import es.bsc.comm.stage.Transfer;
 import es.bsc.comm.stage.Transfer.Destination;
@@ -24,12 +24,13 @@ import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTaskResult;
 import integratedtoolkit.nio.NIOURI;
-import integratedtoolkit.nio.commands.CommandDataReceived;
-import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.nio.NIOMessageHandler;
+import integratedtoolkit.nio.commands.CommandDataReceived;
+import integratedtoolkit.nio.commands.CommandExecutorShutdownACK;
 import integratedtoolkit.nio.commands.CommandShutdownACK;
 import integratedtoolkit.nio.commands.CommandTaskDone;
+import integratedtoolkit.nio.commands.Data;
 import integratedtoolkit.nio.commands.workerFiles.CommandWorkerDebugFilesDone;
 import integratedtoolkit.nio.dataRequest.DataRequest;
 import integratedtoolkit.nio.dataRequest.WorkerDataRequest;
@@ -671,12 +672,25 @@ public class NIOWorker extends NIOAgent {
 
     }
 
+    public void shutdownExecutionManager(Connection closingConnection) {
+        // Stop the Execution Manager
+        executionManager.stop();
+
+        if (closingConnection != null) {
+            closingConnection.sendCommand(new CommandExecutorShutdownACK());
+            closingConnection.finishConnection();
+        }
+    }
+
+    @Override
+    public void shutdownExecutionManagerNotification(Connection c) {
+        ErrorManager.warn("Shutdown execution ACK notification should never be received by a worker");
+    }
+
     // Shutdown the worker, at this point there are no active transfers
     public void shutdown(Connection closingConnection) {
         WORKER_LOGGER.debug("Entering shutdown method on worker");
         try {
-            // Stop the Execution Manager
-            executionManager.stop();
 
             // Stop the Data Manager
             dataManager.stop();
@@ -686,6 +700,7 @@ public class NIOWorker extends NIOAgent {
                 closingConnection.sendCommand(new CommandShutdownACK());
                 closingConnection.finishConnection();
             }
+
             tm.shutdown(closingConnection);
 
             // End storage

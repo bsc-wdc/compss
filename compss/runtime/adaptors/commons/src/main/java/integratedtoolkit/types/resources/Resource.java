@@ -309,7 +309,10 @@ public abstract class Resource implements Comparable<Resource> {
             logger.debug("Unique files saved for " + this.getName());
         }
 
+
         if (this.getType() != Type.SERVICE) {
+
+            shutdownExecutionManager();
 
             if (Tracer.isActivated()) {
                 if (node.generatePackage()) {
@@ -333,6 +336,25 @@ public abstract class Resource implements Comparable<Resource> {
         sl.addOperation();
         node.stop(sl);
     }
+
+    private void shutdownExecutionManager(){
+        Semaphore sem = new Semaphore(0);
+        ExecutorShutdownListener executorShutdownListener = new ExecutorShutdownListener(sem);
+
+        executorShutdownListener.addOperation();
+        node.shutdownExecutionManager(executorShutdownListener);
+
+        executorShutdownListener.enable();
+        try {
+            sem.acquire();
+        } catch (InterruptedException ex) {
+            logger.error("Error waiting for execution manager in resource " + getName() + " to stop");
+        }
+        if (debug) {
+            logger.debug("Execution manager of " + this.getName() + " stopped");
+        }
+    }
+
 
     private void getTracingPackageToMaster() {
         COMPSsNode masterNode = Comm.getAppHost().getNode();

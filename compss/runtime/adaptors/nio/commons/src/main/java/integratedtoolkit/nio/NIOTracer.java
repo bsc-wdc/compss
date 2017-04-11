@@ -17,6 +17,7 @@ public class NIOTracer extends Tracer {
     private static String scriptDir = "";
     private static String workingDir = "";
     private static String nodeName = "master"; // while no worker sets the Tracer info we assume we are on master
+    private static String hostID = "0"; // while no worker sets the Tracer info we assume we are on master
     private static final int ID = 121; // Random value
 
     public static final String TRANSFER_END = "0";
@@ -47,6 +48,7 @@ public class NIOTracer extends Tracer {
         NIOTracer.scriptDir = scriptDir;
         NIOTracer.workingDir = workingDir;
         NIOTracer.nodeName = nodeName;
+        NIOTracer.hostID = String.valueOf(hostID);
 
         synchronized (Tracer.class) {
             Wrapper.SetTaskID(hostID);
@@ -57,6 +59,10 @@ public class NIOTracer extends Tracer {
             logger.debug("Tracer worker for host " + hostID + " and: " + NIOTracer.scriptDir + ", " 
                             + NIOTracer.workingDir + ", " + NIOTracer.nodeName);
         }
+    }
+
+    public static String getHostID(){
+        return hostID;
     }
 
     public static void emitDataTransferEvent(String data) {
@@ -103,7 +109,7 @@ public class NIOTracer extends Tracer {
             Wrapper.Fini();
         }
         // Generate package
-        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName);
+        ProcessBuilder pb = new ProcessBuilder(scriptDir + TRACE_SCRIPT_PATH, "package", workingDir, nodeName, hostID);
         pb.environment().remove(LD_PRELOAD);
         Process p = null;
         try {

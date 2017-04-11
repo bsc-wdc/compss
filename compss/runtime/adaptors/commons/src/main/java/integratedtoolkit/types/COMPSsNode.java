@@ -13,6 +13,7 @@ import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 
@@ -107,7 +108,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     /**
      * Stops the node process
-     * 
+     *
      * @param sl
      */
     public abstract void stop(ShutdownListener sl);
@@ -133,6 +134,14 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @return
      */
     public abstract boolean generatePackage();
+
+    /**
+     * Shuts down the execution manager of the node
+     *
+     * @return
+     */
+    public abstract void shutdownExecutionManager(ExecutorShutdownListener sl);
+
 
     /**
      * Generates the debug information in the node

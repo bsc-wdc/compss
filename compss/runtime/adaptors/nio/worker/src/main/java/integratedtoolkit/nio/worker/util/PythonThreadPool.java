@@ -8,14 +8,15 @@ import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.executors.ExternalExecutor;
 import integratedtoolkit.nio.worker.executors.PythonExecutor;
+import integratedtoolkit.util.ErrorManager;
+import integratedtoolkit.nio.NIOTracer;
+
 
 
 public class PythonThreadPool extends ExternalThreadPool {
 
     private static final String WORKER_PY_RELATIVE_PATH = File.separator + "pycompss" + File.separator + "worker" + File.separator
             + "piper_worker.py";
-    private static final String PYTHON_PIPER = "python_piper.sh";
-
 
     public PythonThreadPool(NIOWorker nw, int size) {
         super(nw, size);
@@ -47,15 +48,12 @@ public class PythonThreadPool extends ExternalThreadPool {
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(ITConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOTracer.isActivated()).append(ExternalExecutor.TOKEN_SEP);
 
-        if (PythonExecutor.pythonPersistentWorker) {
-            cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
-            cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH).append(WORKER_PY_RELATIVE_PATH)
-                    .append(ExternalExecutor.TOKEN_SEP);
-        } else {
-            cmd.append(installDir).append(ExternalThreadPool.PIPER_SCRIPT_RELATIVE_PATH).append(PYTHON_PIPER)
-                    .append(ExternalExecutor.TOKEN_SEP);
-        }
+        cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH).append(WORKER_PY_RELATIVE_PATH)
+                .append(ExternalExecutor.TOKEN_SEP);
+
 
         cmd.append(NIOWorker.isWorkerDebugEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
@@ -77,4 +75,15 @@ public class PythonThreadPool extends ExternalThreadPool {
         return PythonExecutor.getEnvironment(nw);
     }
 
+    @Override
+    protected String getPBWorkingDir(){
+        String workingDir = nw.getWorkingDir();
+        if (NIOTracer.isActivated()){
+            workingDir += "python";
+            if(! new File(workingDir).mkdirs()){
+                ErrorManager.error("Could not create working dir for python tracefiles, path: " + workingDir);
+            }
+        }
+        return workingDir;
+    }
 }

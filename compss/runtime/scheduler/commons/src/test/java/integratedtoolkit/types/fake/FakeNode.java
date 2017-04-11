@@ -11,6 +11,7 @@ import integratedtoolkit.types.data.location.DataLocation;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.Job;
 import integratedtoolkit.types.job.JobListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -67,6 +68,10 @@ public class FakeNode extends COMPSsNode {
     public boolean generatePackage() {
         return false;
 
+    }
+
+    @Override
+    public void shutdownExecutionManager(ExecutorShutdownListener sl) {
     }
 
     @Override

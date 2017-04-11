@@ -36,6 +36,24 @@
     binding=$1
     shift 1
 
+    # Get tracing if python
+    if [ "$binding" == "PYTHON" ]; then
+        tracing=$1
+        shift 1
+        if [ "$tracing" == "true" ]; then
+            configPath="${scriptDir}/../../../../../configuration/xml/tracing"
+            escapedConfigPath=$(echo $configPath | sed 's_/_\\/_g')
+            baseConfigFile="${configPath}/extrae_python_worker.xml"
+            workerConfigFile="$(pwd)/extrae_python_worker.xml"
+
+            echo $(sed s/{{PATH}}/${escapedConfigPath}/g <<< $(cat ${baseConfigFile})) > ${workerConfigFile}
+
+            export PYTHONPATH="${scriptDir}/../../../../../../Dependencies/extrae/libexec/":${PYTHONPATH}
+            export EXTRAE_CONFIG_FILE=${workerConfigFile}
+        fi
+    fi
+
+
     # Get binding additional executable and arguments
     bindingExecutable=$1
     shift 1
@@ -65,6 +83,9 @@
   ########################################
   # MAIN
   ########################################
+
+  # Actual script dir
+  scriptDir=$(dirname $0)
 
   # Arguments
   get_args $@

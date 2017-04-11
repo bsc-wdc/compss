@@ -317,7 +317,7 @@ public abstract class ExternalExecutor extends Executor {
                         output.close();
                     } catch (Exception e) {
                         if (NIOTracer.isActivated()) {
-                            emitEndTask(taskId);
+                            emitEndTask();
                         }
                         throw new JobExecutionException("Job " + jobId + " has failed. Cannot close pipe");
                     }
@@ -327,7 +327,7 @@ public abstract class ExternalExecutor extends Executor {
         }
         if (!done) {
             if (NIOTracer.isActivated()) {
-                emitEndTask(taskId);
+                emitEndTask();
             }
             throw new JobExecutionException("Job " + jobId + " has failed. Cannot write in pipe");
         }
@@ -344,7 +344,7 @@ public abstract class ExternalExecutor extends Executor {
 
         // Emit end task trace
         if (NIOTracer.isActivated()) {
-            emitEndTask(taskId);
+            emitEndTask();
         }
 
         logger.debug("Task finished");
@@ -358,13 +358,9 @@ public abstract class ExternalExecutor extends Executor {
     private void emitStartTask(int taskId, int taskType) {
         NIOTracer.emitEventAndCounters(taskType, NIOTracer.getTaskEventsType());
         NIOTracer.emitEvent(taskId, NIOTracer.getTaskSchedulingType());
-        NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-        // NIOTracer.emitEvent(NIOTracer.Event.PROCESS_CREATION.getId(), NIOTracer.Event.PROCESS_CREATION.getType());
     }
 
-    private void emitEndTask(int taskId) {
-        NIOTracer.emitEvent(taskId, NIOTracer.getSyncType());
-        // NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.Event.PROCESS_DESTRUCTION.getType());
+    private void emitEndTask() {
         NIOTracer.emitEvent(NIOTracer.EVENT_END, NIOTracer.getTaskSchedulingType());
         NIOTracer.emitEventAndCounters(NIOTracer.EVENT_END, NIOTracer.getTaskEventsType());
     }

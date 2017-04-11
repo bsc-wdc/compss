@@ -10,6 +10,7 @@ import integratedtoolkit.nio.NIOAgent;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.NIOURI;
+import integratedtoolkit.nio.commands.CommandExecutorShutdown;
 import integratedtoolkit.nio.commands.CommandNewTask;
 import integratedtoolkit.nio.commands.CommandShutdown;
 import integratedtoolkit.nio.commands.Data;
@@ -35,6 +36,7 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.job.JobListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.types.annotations.parameter.DataType;
@@ -179,6 +181,28 @@ public class NIOWorkerNode extends COMPSsWorker {
             LOGGER.debug("Worker " + this.getName() + " has not started. Setting this to be stopped");
             workerStarter.setToStop();
             sl.notifyEnd();
+        }
+    }
+
+    @Override
+    public void shutdownExecutionManager(ExecutorShutdownListener esl) {
+        if (started) {
+            LOGGER.debug("Shutting down execution manager " + this.getName());
+            if (node == null) {
+                esl.notifyFailure(new UnstartedNodeException());
+                LOGGER.error("Shutdown execution manager has failed");
+            }
+            Connection c = NIOAgent.tm.startConnection(node);
+            commManager.shuttingDownEM(this, c, esl);
+
+            CommandExecutorShutdown cmd = new CommandExecutorShutdown(null);
+            c.sendCommand(cmd);
+
+            c.receive();
+            c.finishConnection();
+        } else {
+            LOGGER.debug("Worker " + this.getName() + " has not started. Considering execution manager stopped");
+            esl.notifyEnd();
         }
     }
 

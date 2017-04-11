@@ -16,6 +16,7 @@ import integratedtoolkit.types.TaskDescription;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.data.Transferable;
 import integratedtoolkit.types.job.JobListener;
+import integratedtoolkit.types.resources.ExecutorShutdownListener;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.uri.MultiURI;
@@ -166,6 +167,11 @@ public class ServiceInstance extends COMPSsWorker {
     @Override
     public boolean generatePackage() {
     	return false;
+    }
+
+    @Override
+    public void shutdownExecutionManager(ExecutorShutdownListener sl) {
+        // No executor for services
     }
 
     @Override

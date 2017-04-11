@@ -17,44 +17,14 @@ public class PythonExecutor extends ExternalExecutor {
 
     public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 
-    private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator + "pycompss" + File.separator
-            + "worker" + File.separator + "worker.py";
-
-    public static final boolean pythonPersistentWorker = true;
-
-    private static final String EXTRAE_RELATIVE_PATH = File.separator + "Dependencies" + File.separator + "extrae";
-    private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";
-    private static final String LIB_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "lib";
-
-
     public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
         super(nw, pool, queue, writePipe, resultReader);
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
-            int[] assignedGPUs) {
-        ArrayList<String> lArgs = new ArrayList<>();
-
-        if (pythonPersistentWorker) {
-            // The execution command in python is empty (the handler adds the pre-command and the application args)
-        } else {
-            // Taskset string to bind the job
-            StringBuilder taskset = new StringBuilder();
-            taskset.append("taskset -c ");
-            taskset.append(assignedCoreUnits[0]);
-            for (int i = 1; i < assignedCoreUnits.length; i++) {
-                taskset.append(",").append(assignedCoreUnits[i]);
-            }
-            taskset.append(" ");
-            lArgs.add(taskset.toString());
-
-            lArgs.add("python");
-            lArgs.add("-u");
-            lArgs.add(nw.getInstallDir() + WORKER_PYTHON_RELATIVE_PATH);
-        }
-
-        return lArgs;
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs) {
+        // The execution command in python is empty (the handler adds the pre-command and the application args)
+        return new ArrayList<>();
     }
 
     public static Map<String, String> getEnvironment(NIOWorker nw) {
@@ -69,13 +39,6 @@ public class PythonExecutor extends ExternalExecutor {
             pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir();
         } else {
             pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir() + pythonPath;
-        }
-
-        // Add pyextrae to PYTHONPATH if tracing
-        if (NIOTracer.isActivated()) {
-            String libexec_extrae_path = nw.getInstallDir() + LIBEXEC_EXTRAE_RELATIVE_PATH;
-            String lib_extrae_path = nw.getInstallDir() + LIB_EXTRAE_RELATIVE_PATH;
-            pythonPath += ":" + libexec_extrae_path + ":" + lib_extrae_path;
         }
 
         env.put("PYTHONPATH", pythonPath);

@@ -47,14 +47,15 @@ public abstract class Tracer {
     private static final int TASK_TRANSFERS     = 8_000_003;
     private static final int DATA_TRANSFERS     = 8_000_004;
     private static final int STORAGE_TYPE       = 8_000_005;
-    private static final int INSIDE_TASKS_TYPE  = 8_000_010;
     private static final int SYNC_TYPE          = 8_000_666;
+    private static final int INSIDE_TASKS_TYPE  = 60_000_100;
 
     public static final int EVENT_END = 0;
 
     public static final int BASIC_MODE = 1;
 
     public static final String LD_PRELOAD = "LD_PRELOAD";
+    public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
 
     protected static int tracing_level = 0;
     
@@ -119,9 +120,10 @@ public abstract class Tracer {
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
         // Task Events
-        PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"), 
-        WORKER_INITIALIZATION(102, INSIDE_TASKS_TYPE, "Worker initialization"), 
-        PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"), 
+        EXECUTE_PYTHON_TASK(1, INSIDE_TASKS_TYPE, "Execute task"),
+        WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
+        PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),
+        PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"),
         LOGGING(104, INSIDE_TASKS_TYPE, "Logging"), 
         MODULES_IMPORT(105, INSIDE_TASKS_TYPE, "Python Modules import"),
         WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"), 

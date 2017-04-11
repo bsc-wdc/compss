@@ -484,9 +484,13 @@ public abstract class NIOAgent {
 
     public abstract void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful);
 
+    public abstract void shutdown(Connection closingConnection);
+
     public abstract void shutdownNotification(Connection c);
 
-    public abstract void shutdown(Connection closingConnection);
+    public abstract void shutdownExecutionManager(Connection closingConnection);
+
+    public abstract void shutdownExecutionManagerNotification(Connection c);
 
     public abstract void waitUntilTracingPackageGenerated();
 

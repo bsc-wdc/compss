@@ -211,10 +211,7 @@ static PyObject* Cache_get(PyObject* self, PyObject* args) {
   }
   std::map< std::string, cached_object >& map_ref = *_self->H;
   PyObject* ret = map_ref[id].obj;
-  // Returning a PyObject means to "transfer" the object's responsibility
-  // to the "demanding person". This transfer is implemented a decreffing
-  // the object when returned
-  // Py_INCREF(ret);
+  Py_INCREF(ret);
   return ret;
 }
 
@@ -240,7 +237,6 @@ static PyObject* Cache_delete(PyObject* self, PyObject* args) {
 static PyObject* Cache_get_last(PyObject* self, PyObject* args) {
   Cache* _self = (Cache*)self;
   cached_object ret = *_self->S->begin();
-  Py_INCREF((PyObject*)&ret);
   return ret.obj;
 }
 

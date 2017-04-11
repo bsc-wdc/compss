@@ -20,7 +20,7 @@ public class PythonExecutor extends ExternalExecutor {
     private static final String WORKER_PYTHON_RELATIVE_PATH = PYCOMPSS_RELATIVE_PATH + File.separator + "pycompss" + File.separator
             + "worker" + File.separator + "worker.py";
 
-    public static final boolean pythonPersistentWorker = false;
+    public static final boolean pythonPersistentWorker = true;
 
     private static final String EXTRAE_RELATIVE_PATH = File.separator + "Dependencies" + File.separator + "extrae";
     private static final String LIBEXEC_EXTRAE_RELATIVE_PATH = EXTRAE_RELATIVE_PATH + File.separator + "libexec";

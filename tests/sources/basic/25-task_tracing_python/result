@@ -13,15 +13,10 @@
 
   # Should be equal to Tracer.java definitions
   SYNC_EVENTS=8000666
-  TASK_EVENTS=8000010
+  TASK_EVENTS=60000100
 
-  PROCESS_CREATION=100
-  WORKER_INITIALIZATION=102
-  PARAMETER_PROCESSING=103
-  LOGGING=104
-  MODULES_IMPORT=105
-  WORKER_END=106
-  PROCESS_DESTRUCTION=107
+  WORKER_TASK=1
+  WORKER_RUNNING=102
 
   TASK_EXECUTION=120
   SERIALIZATION=121
@@ -33,26 +28,33 @@
   if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
 
 
-      evts_tasks=$(grep -c ":${TASK_EVENTS}:${SERIALIZATION}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_tasks=$(grep -c ":${TASK_EVENTS}:${WORKER_TASK}$" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_tasks_end=$(grep -c "2:1:1:2:[2-5]:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}$" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0$" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
       sync_evts_init=$(grep -c ":${SYNC_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
-      end_evts=$(grep -c ":${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
-      if [ "${evts_tasks}" != "$((${number_of_tasks} * 2))" ]; then
-         echo "[ERROR] Incorrect number of python task worker end events. [${evts_tasks}/$((${number_of_tasks} * 2))]"
+      if [ "${evts_tasks}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/$((${number_of_tasks} * 2))]"
          errors=true
-      fi 
+      fi
+
+      if [ "${evts_tasks_end}" != "${number_of_tasks}" ]; then
+         echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/$((${number_of_tasks} * 2))]"
+         errors=true
+      fi
 
       # start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}+${evts_type8}+${evts_type9}))
       start_evts=${evts_tasks}
-      if [ "$start_evts" != "$end_evts" ] ; then
-        echo "[ERROR] Number of start and end emits are not equal"
+      if [ "${evts_worker_running}" != "${evts_worker_running_end}" ] ; then
+        echo "[ERROR] Number of start and end worker emits are not equal [${evts_worker_running}, ${evts_worker_running_end}]"
         errors=true
       fi
 
-      if [ "${sync_evts_init}" != "$((4*${number_of_workers}))" ]; then
+      if [ "${sync_evts_init}" != "$((2*${number_of_workers}))" ]; then
         echo "[ERROR] Number of start and end synchronization events are not 4 times the number of workers. Workers: ${number_of_workers}, Events: [${sync_evts_init}/${sync_evts_end}]"
         errors=true
       fi

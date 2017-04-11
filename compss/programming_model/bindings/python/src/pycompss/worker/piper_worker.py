@@ -115,7 +115,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
 
     local_cache = None
     if USE_CACHE:
-        from pycompss.persistent_cache import Cache
+        from persistent_cache import Cache
         local_cache = Cache(size_limit = 200 * 1024**2)
 
     logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
@@ -457,7 +457,7 @@ USE_CACHE = False
 # politica/s de borrado
 
 def cache_proc(cache_queue, cache_pipes):
-    from pycompss.persistent_cache import Cache
+    from persistent_cache import Cache
     from shm_manager import shm_manager as SHM
     cache = Cache(size_limit = 1024**3)
 

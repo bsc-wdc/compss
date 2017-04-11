@@ -37,9 +37,9 @@ shm_manager = Extension("shm_manager",
     language='c++'
 )
 
-object_cache = Extension("object_cache",
+persistent_cache = Extension("persistent_cache",
 	include_dirs = ['src/ext'],
-	sources = ['src/ext/object_cache.cc']
+	sources = ['src/ext/persistent_cache.cc']
 )
 
 setup (name='pycompss',
@@ -51,8 +51,7 @@ setup (name='pycompss',
 	url='http://compss.bsc.es',
 	license='Apache 2.0.rc1704',
     package_dir={'pycompss':'src/pycompss'},
-	packages=['', 'pycompss', 'pycompss.api', 'pycompss.persistent_cache', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
+	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
 	package_data={'' : ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'bin/worker_python.sh']},
-	ext_modules=[compssmodule, shm_manager])
-    #ext_modules=[compssmodule])
-    #ext_modules=[shm_manager])
+	ext_modules=[compssmodule, shm_manager, persistent_cache])
+    

@@ -237,6 +237,7 @@ static PyObject* Cache_delete(PyObject* self, PyObject* args) {
 static PyObject* Cache_get_last(PyObject* self, PyObject* args) {
   Cache* _self = (Cache*)self;
   cached_object ret = *_self->S->begin();
+  Py_INCREF(ret.obj);
   return ret.obj;
 }
 

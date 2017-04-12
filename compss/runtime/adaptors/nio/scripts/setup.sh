@@ -123,10 +123,20 @@
     export IT_WORKING_DIR=$workingDir
     mkdir -p $workingDir/log
     mkdir -p $workingDir/jobs
-  
+
+    # Look for the JVM Library
+    libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.so | head -n 1)
+    if [ -z "$libjava" ]; then
+        libjava=$(find ${JAVA_HOME}/jre/lib/ -name libjvm.dylib | head -n 1)
+    fi
+    if [ -n "$libjava" ]; then
+        libjavafolder=$(dirname $libjava)
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libjavafolder
+    fi
+
     # Set lib path
     if [ "$libPath" != "null" ]; then
-  	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
+  	    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libPath
     fi
   
     # Set appDir

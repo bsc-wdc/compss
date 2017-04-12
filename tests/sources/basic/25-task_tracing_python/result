@@ -27,7 +27,7 @@
   # GAT does not support task tracing
   if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
 
-      evts_tasks=$(grep  ":${TASK_EVENTS}:${WORKER_TASK}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv | grep -v ":${TASK_EVENTS}:${WORKER_RUNNING}$")
+      evts_tasks=$(grep  ":${TASK_EVENTS}:${WORKER_TASK}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv | grep -vc ":${TASK_EVENTS}:${WORKER_RUNNING}")
       evts_tasks_end=$(grep -c "2:1:1:2:[2-5]:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
@@ -37,24 +37,24 @@
 
 
       if [ "${evts_tasks}" != "${number_of_tasks}" ]; then
-         echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/$((${number_of_tasks} * 2))]"
+         echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/${number_of_tasks}]"
          errors=true
       fi
 
       if [ "${evts_tasks_end}" != "${number_of_tasks}" ]; then
-         echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/$((${number_of_tasks} * 2))]"
+         echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/${number_of_tasks}]"
          errors=true
       fi
 
-      # start_evts=$((${evts_type1}+${evts_type2}+${evts_type3}+${evts_type4}+${evts_type5}+${evts_type6}+${evts_type7}+${evts_type8}+${evts_type9}))
       start_evts=${evts_tasks}
       if [ "${evts_worker_running}" != "${evts_worker_running_end}" ] ; then
         echo "[ERROR] Number of start and end worker emits are not equal [${evts_worker_running}, ${evts_worker_running_end}]"
         errors=true
       fi
 
-      if [ "${sync_evts_init}" != "$((2*${number_of_workers}))" ]; then
-        echo "[ERROR] Number of start and end synchronization events are not 4 times the number of workers. Workers: ${number_of_workers}, Events: [${sync_evts_init}/${sync_evts_end}]"
+      if [ "${sync_evts_init}" != "$((2*${number_of_workers}))" ] || [ "${sync_evts_end}" != "$((2*${number_of_workers}))" ]; then
+        echo "[ERROR] Number of start and end synchronization events are not 4 times the number of workers.
+        Expected events: $((4*${number_of_workers})) != Found Events: [${sync_evts_init} + ${sync_evts_end}]"
         errors=true
       fi
 

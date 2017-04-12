@@ -27,8 +27,8 @@
   # GAT does not support task tracing
   if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
 
-      evts_tasks=$(grep  ":${TASK_EVENTS}:${WORKER_TASK}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv | grep -vc ":${TASK_EVENTS}:${WORKER_RUNNING}")
-      evts_tasks_end=$(grep -c "2:1:1:2:[2-5]:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_tasks=$(grep -c ":${TASK_EVENTS}:${WORKER_TASK}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_tasks_end=$(grep -c "${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
@@ -36,12 +36,12 @@
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
 
-      if [ "${evts_tasks}" != "${number_of_tasks}" ]; then
+      if [ "${evts_tasks}" != "$((${number_of_tasks}+${number_of_workers}))" ]; then
          echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/${number_of_tasks}]"
          errors=true
       fi
 
-      if [ "${evts_tasks_end}" != "${number_of_tasks}" ]; then
+      if [ "${evts_tasks_end}" != "$((${number_of_tasks}+${number_of_workers}))" ]; then
          echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/${number_of_tasks}]"
          errors=true
       fi

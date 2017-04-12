@@ -680,7 +680,7 @@ def reveal_objects(values,
                     local_cache.hit(suffix_name)
                     logger.debug('Time to hit and assign on local cache: %.08fs'%elapsed(t_cache_interaction_start))
                 else:
-                    cache_queue.put((process_name, value))
+                    cache_queue.put((process_name.split('-')[-1], value))
                     answer = cache_pipe.recv()
                     # have we received an answer of the form (key, bytes) ?
                     # if yes, read from the indicated SHM
@@ -688,7 +688,7 @@ def reveal_objects(values,
                     if isinstance(answer, tuple):
                         from shm_manager import shm_manager as SHM
                         manager = SHM(answer[0], answer[1], 0600)
-                        cache_pipe.send('DONE')
+                        cache_pipe.send('D') # DONE!
                         obj = deserialize_from_string(manager.read_object())
                         del manager
                         logger.debug('Time to miss on local and hit and assign in global cache: %.08fs'%elapsed(t_cache_interaction_start))

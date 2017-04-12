@@ -452,7 +452,7 @@ def shutdown_handler(signal, frame):
             proc.terminate()
 
 
-USE_CACHE = False
+USE_CACHE = True
 # tamanyo
 # politica/s de borrado
 
@@ -470,7 +470,7 @@ def cache_proc(cache_queue, cache_pipes):
         # named filename"
         process_id, file_name = msg
         suf_file_name = os.path.split(file_name)[-1]
-        process_ord = int(process_id.split('-')[-1])
+        process_ord = int(process_id)
 
         if cache.has_object(suf_file_name):
             cache.hit(suf_file_name)
@@ -485,7 +485,7 @@ def cache_proc(cache_queue, cache_pipes):
         else:
             # we dont have the object, so lets tell the caller to read the obj,
             # and store it in the cache
-            cache_pipes[process_ord].send('NO')
+            cache_pipes[process_ord].send('N') # NO!
             dumped_obj = open(file_name, 'rb').read()
             manager = SHM(1337, len(dumped_obj))
             manager.write_object(dumped_obj)

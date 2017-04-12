@@ -702,8 +702,6 @@ def reveal_objects(values,
             else:
                 obj = deserialize_from_file(value)
 
-            #if 'getID' in dir(obj) and obj.getID() is not None:   # dirty fix
-            #    obj = getByID(obj.getID())
             real_values.append(obj)
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))

@@ -8,7 +8,7 @@ extrae_cmd_SOURCES = \
  extrae-cmd-emit.c extrae-cmd-emit.h \
  extrae-cmd-fini.c extrae-cmd-fini.h
 
-extrae_cmd_CFLAGS = -lrt -I$(INCLUDE_DIR) -I$(COMMON_INC) -I$(TRACER_INC) \
+extrae_cmd_CFLAGS = -I$(INCLUDE_DIR) -I$(COMMON_INC) -I$(TRACER_INC) \
  -I$(TRACER_INC)/wrappers/API -I$(TRACER_INC)/clocks -I$(TRACER_INC)/hwc -O -g
 
 extrae_cmd_LDADD = $(TRACER_LIB)/libseqtrace.la $(MERGER_LIB)/libmpi2prv.la -lm

@@ -49,6 +49,7 @@ cat > ${auxScriptFile} << EOT
 
   cp /apps/modules/modulefiles/tools/COMPSs/trunk /apps/modules/modulefiles/tools/COMPSs/$version
   sed -i '/set PROG_VERSION /cset PROG_VERSION	'$version'' /apps/modules/modulefiles/tools/COMPSs/$version
+  chmod 775 /apps/modules/modulefiles/tools/COMPSs/$version
 EOT
   scp -o StrictHostKeyChecking=no ${auxScriptFile} ${mn_user}@${mn_login}:.
   ssh -t -t -o StrictHostKeyChecking=no -o BatchMode=yes -o ChallengeResponseAuthentication=no ${mn_user}@${mn_login} "chmod 775 ${auxScriptName}"

@@ -23,82 +23,82 @@ from test.modules.test_tasks import multireturn, power, merge
 from test.modules.test_tasks import function_moduleObject, Foo
 
 def main_program():
-    
+
     test_function_primitives()
     test_function_files()
     test_function_objects()
-      
+
     test_mp_file_access()
     test_mp_object_access()
-      
+
     test_instance_method()
     test_class_method()
-      
+
     test_function_return_primitive()
     test_function_return_object()
-    
+
     test_function_as_parameter()
     test_default_parameters()
     test_order_parameters()
-    
+
     test_fu_parameter_in_task()
     test_fu_list_in_task()
-    
+
     test_iterable_object_wait()
     test_wait_on_string()
-     
+
     test_time_decorator()
 
     # test_argfunc()   # can not be done if the function is defined within the same file as __main__
                        # pickle limitation
     test_lambda()
     test_generator()
-    
+
     test_lambda_return()
     test_generator_return()
-  
+
     test_all_class_tasks()
-    
+
     test_multireturn()
-    
+
     test_multireturn_multicall()
 
     test_moduleObject()
-        
-    
+
+
 def test_function_primitives():
     print "test_function_primitives"
     function_primitives(1, 1L, 1.0, True, 'a string')
-    
-    
+
+
 def test_function_files():
     print "test_function_files"
     fin = 'infile'
     finout = 'inoutfile'
     fout = 'outfile'
-    
+
     fin_d = open(fin, 'w')
     finout_d = open(finout, 'w')
     fin_d.write('IN FILE CONTENT')
     finout_d.write('INOUT FILE INITIAL CONTENT')
     fin_d.close()
     finout_d.close()
-    
+
     function_files(fin, finout, fout)
-    
-    
+
+
 def test_function_objects():
     print "test_function_objects"
     val = 2
     o = MyClass(val)
     l = [1]
     dic = {'key1':'value1', 'key2':'value2'}
-    tup = ('a', 'b', 'c')
+    tup = ('a', 'b', 4)
     cplx = complex('1+2j')
-    
+
     function_objects(o, l, dic, tup, cplx, par_func)
     function_objects(o, l, dic, tup, cplx, par_func)
-    
+
     errors = False
 
     o = compss_wait_on(o)
@@ -113,39 +113,42 @@ def test_function_objects():
 
     dic = compss_wait_on(dic)
     if dic != {'key1':'value1', 'key2':'value2', 'key3':'value3', 'key4':'value4'}:
-        print "- INOUT (dictionary): ERROR"    
-        errors = True    
-
-    tup = compss_wait_on(tup)
-    if tup != ('a', 'b', 'c', 'd', 'd'):
-        print "- INOUT (tuple): ERROR"    
+        print "- INOUT (dictionary): ERROR"
         errors = True
 
-    cplx = compss_wait_on(cplx)
-    if cplx != complex('4+8j'):
-        print "- INOUT (complex): ERROR"
-        errors = True
+    # Tuples are inmutable... why INOUT?
+    #tup = compss_wait_on(tup)
+    #if tup != ('a', 'b', 'c', 'd', 'd'):
+    #    print "- INOUT (tuple): ERROR"
+    #    errors = True
+
+    # Operations with tuples always generate a new object.
+    # They behave like simple types... why INOUT?
+    #cplx = compss_wait_on(cplx)
+    #if cplx != complex('4+8j'):
+    #    print "- INOUT (complex): ERROR"
+    #    errors = True
 
     if not errors:
         print "- INOUT: OK"
-    
+
 def test_mp_file_access():
     print "test_file_mp_access"
-    
+
     print "test_function_files"
     fin = 'infile'
     finout = 'inoutfile'
     fout = 'outfile'
-    
+
     fin_d = open(fin, 'w')
     finout_d = open(finout, 'w')
     fin_d.write('IN FILE CONTENT')
     finout_d.write('INOUT FILE INITIAL CONTENT')
     fin_d.close()
     finout_d.close()
-    
+
     function_files(fin, finout, fout)
-    
+
     fout_d = compss_open(fout, 'r+')
     if fout_d.read() == 'OUT FILE CONTENT':
         print "- File access from MP: OK"
@@ -153,7 +156,7 @@ def test_mp_file_access():
         print "- File access from MP: ERROR"
     fout_d.write("\n===> OUT FILE ADDED CONTENT")
     fout_d.close()
-    
+
     function_files(fout, finout, fin)
 
 
@@ -165,14 +168,14 @@ def test_mp_object_access():
     dic = {'key1':'value1', 'key2':'value2'}
     tup = ('a', 'b', 'c')
     cplx = complex('1+2j')
-    
+
     function_objects(o, l, dic, tup, cplx, par_func)
     o = compss_wait_on(o)
     if (o.field == val * 2):
         print "- Object access from MP: OK"
     else:
         print "- Object access from MP: ERROR"
-    
+
     o.field = val * 4
     function_objects(o, l, dic, tup, cplx, par_func)
 
@@ -181,21 +184,21 @@ def test_instance_method():
     print "test_instance_method"
     val = 1
     o = MyClass(val)
-    
+
     o.instance_method()
     o.instance_method_nonmodifier()
     o.instance_method()
-    
+
     o = compss_wait_on(o)
     if (o.field == val * 4):
         print "- Object access from MP: OK"
     else:
         print "- Object access from MP: ERROR"
-    
-    
+
+
 def test_class_method():
     print "test_class_method"
-    MyClass.class_method() 
+    MyClass.class_method()
 
 
 def test_function_return_primitive():
@@ -203,27 +206,27 @@ def test_function_return_primitive():
     val = 1
     i = function_return_primitive(val)
     function_return_primitive(i)
-    
+
     i = compss_wait_on(i)
     if i == val * 2:
         print "- Primitive access from MP: OK"
     else:
         print "- Primitive access from MP: ERROR"
-    
-    
+
+
 def test_function_return_object():
     print "test_function_return_object"
     val = 1
     o = function_return_object(val)
     o.instance_method()
-     
+
     o = compss_wait_on(o)
     if o.field == val * 2:
         print "- Object access from MP: OK"
     else:
         print "- Object access from MP: ERROR"
-        
-        
+
+
 def test_function_as_parameter():
     print "test_function_as_parameter"
     f = formula2
@@ -243,7 +246,7 @@ def test_default_parameters():
         print("- Default parameter value: OK")
     else:
         print("- Default parameter value: ERROR")
-    
+
 def test_order_parameters():
     print "test_order_parameters"
     o1 = function_order_parameters(1, 2)
@@ -267,7 +270,7 @@ def test_order_parameters():
     o6 = compss_wait_on(o6)
     o7 = compss_wait_on(o7)
     o8 = compss_wait_on(o8)
-    
+
     print("- Test parameter position (sorted): OK" if o1 == 100003 else "- Test parameter position (sorted): ERROR")
     print("- Test parameter position + 1 default (sorted): OK" if o2 == 3004 else "- Test parameter position + 1 default (sorted): ERROR")
     print("- Test parameter position + 2 default (sorted): OK" if o3 == 17 else "- Test parameter position + 2 default (sorted): ERROR")
@@ -276,12 +279,12 @@ def test_order_parameters():
     print("- Test parameter position + 2 explicit value (unsorted): OK" if o6 == 808 else "- Test parameter position  + 2 explicit value (unsorted): ERROR")
     print("- Test parameter position completely unsorted: OK" if o7 == 809 else "- Test parameter position completely unsorted: ERROR")
     print("- Test parameter position completely unsorted (variables): OK" if o8 == 810 else "- Test parameter position completely unsorted (variables): ERROR")
-    
+
     if (o1 == 100003 and o2 == 3004 and o3 == 17 and o4 == 20006 and o5 == 4007 and o6 == 808 and o7 == 809 and o8 == 810):
         print ("- All test_order_parameteres successful!!!: OK")
     else:
         print ("- At least one test_order_parameters has FAILED: ERROR")
-    
+
 
 def test_fu_parameter_in_task():
     print "test_fu_parameter_in_task"
@@ -314,36 +317,36 @@ def test_fu_list_in_task():
 
 def test_iterable_object_wait():
     print "test_iterable_object_wait"
-    iobj = [] 
+    iobj = []
     for i in range(0, 10):
         iobj.append(i)
-    
+
     # full modification
     for i in xrange(len(iobj)):
         iobj[i] = function_iterable_object_wait(iobj[i])
-        
+
     iobj = compss_wait_on(iobj)
-    
+
     result = True
     for i in xrange(len(iobj)):
         if(iobj[i] != i*i):
             result = False
-    
+
     if (result == True):
         print("- Wait on an iterable object (completely modified): OK")
     else:
         print("- Wait on an iterable object (completely modified): ERROR")
-        
-    iobj = [] 
+
+    iobj = []
     for i in range(0, 10):
         iobj.append(i)
-            
+
     # partial modification
     for i in xrange(len(iobj)-5):
         iobj[i] = function_iterable_object_wait(iobj[i])
-    
+
     iobj = compss_wait_on(iobj)
-    
+
     result = True
     for i in xrange(len(iobj)-5):
         if(iobj[i] != i*i):
@@ -351,7 +354,7 @@ def test_iterable_object_wait():
     for i in range(5,len(iobj)):
         if(iobj[i] != i):
             result = False
-    
+
     if (result == True):
         print("- Wait on an iterable object (partially modified): OK")
     else:
@@ -366,7 +369,7 @@ def test_wait_on_string():
         print("- Wait on a basestring object: OK")
     else:
         print("- Wait on a basestring object: ERROR")
-        
+
 def test_time_decorator():
     print "test_time_decorator"
     x = 2
@@ -377,7 +380,7 @@ def test_time_decorator():
         print("\t * %s" %o[1])
     else:
         print("- Test timeit decorator (master time): ERROR")
-    
+
     o = function_time_decorated_worker(x)
     o = compss_wait_on(o)
     if (o[0] == x*x*x):
@@ -385,7 +388,7 @@ def test_time_decorator():
         print("\t * %s" %o[1])
     else:
         print("- Test timeit decorator (worker time): ERROR")
-        
+
     x = 2
     o = []
     for i in xrange(5):
@@ -404,7 +407,7 @@ def test_time_decorator():
             print("\t * %s" %times[i])
     else:
         print("- Test timeit decorator with list (master time): ERROR")
-    
+
     x = 2
     o = []
     for i in xrange(5):
@@ -424,10 +427,10 @@ def test_time_decorator():
     else:
         print("- Test timeit decorator with list (worker time): ERROR")
 
-# My function        
-def fun(x):   
+# My function
+def fun(x):
     return x*x
-        
+
 def test_argfunc():
     print "test_argfunc"
     f = fun
@@ -437,7 +440,7 @@ def test_argfunc():
         print("- Test function as argument: OK")
     else:
         print("- Test funcition as argument: ERROR")
-    
+
 def test_lambda():
     print "test_lambda"
     f = lambda x: x**2 + 2*x - 5
@@ -506,40 +509,40 @@ def test_all_class_tasks():
         print "- Object access from MP: OK"
     else:
         print "- Object access from MP: ERROR"
-                    
+
     print "test_class_method"
     MyClass.class_method()               # 4
-    
+
     print "test_instance_method_with_parameter_and_return"
 
     o = MyClass('HolaMundo')
     b = o.return_value_square(99)        # 5
     b1 = compss_wait_on(b)
     o1 = compss_wait_on(o)
-    #print 'result1: ', b1   
+    #print 'result1: ', b1
     #print 'accum  : ', o1.v
     if b1 == 9801 and o1.v == 99:
         print "- Object access from MP (Round 1): OK"
     else:
         print "- Object access from MP (Round 1): ERROR"
-                    
-    
+
+
     b = o.return_value_square(199)        # 5
     b2 = compss_wait_on(b)
-    #print 'result2: ', b2  
+    #print 'result2: ', b2
     if b2 == 39601:
         print "- Object access from MP (Round 2): OK"
-    else:      
+    else:
         print "- Object access from MP (Round 2): ERROR"
 
     b = o.return_value_square(299)        # 5
     b3 = compss_wait_on(b)
     o3 = compss_wait_on(o)
     #print 'result3: ', b3
-    #print 'accum  : ', o3.v 
+    #print 'accum  : ', o3.v
     if b3 == 89401 and o3.v == 597:
         print "- Object access from MP (Round 3): OK"
-    else:           
+    else:
         print "- Object access from MP (Round 3): ERROR"
 
 
@@ -554,7 +557,7 @@ def test_multireturn():
     b = compss_wait_on(y)
     if res == 500 and a == 100 and b == 400:
         print "- Test multiple objects return: OK"
-    else:           
+    else:
         print "- Test multiple objects return: ERROR"
 
 
@@ -586,10 +589,8 @@ def test_moduleObject():
         print "- Test module object parameter: OK"
     else:
         print "- Test module object parameter: ERROR"
-                                            
-    
+
+
 
 if __name__ == "__main__":
     main_program()
-    
-    

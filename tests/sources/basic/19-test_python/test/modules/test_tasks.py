@@ -39,11 +39,11 @@ def formula2(n):
 class MyClass(object):
 
     static_field = 'value of static field'
-    
+
     #def __new__(self,v):  # Bug to be checked --- multiple parameters --- really needed? # raises when using bigfloat
     #    v=v+1
     #    return super(MyClass, self).__new__(self)
-    
+
     def __init__(self, field = None):   #def __init__(self, *args, **kwargs):
         self.field = field
         self.v = 0
@@ -72,7 +72,7 @@ class MyClass(object):
     def return_value_square(self, v):
         print "TEST"
         print "self.field: ", self.field
-        print "- Return value square"   
+        print "- Return value square"
         print "- Input value:", v
         self.v += v
         print "- Self.v value: ", self.v
@@ -80,7 +80,7 @@ class MyClass(object):
         print "- Output value:", o
         return o
 
-    
+
 ##### FUNCTIONS #####
 
 @task()
@@ -88,7 +88,7 @@ def function_primitives(i, l, f, b, s):
     print "TEST"
     print "- Static Function"
     print "- Primitive params: %d, %ld, %f, %d, %s" % (i, l, f, b, s)
-    
+
 #@task(fin    = Parameter(p_type = Type.FILE),
 #      finout = Parameter(p_type = Type.FILE, p_direction = Direction.INOUT),
 #      fout   = Parameter(p_type = Type.FILE, p_direction = Direction.OUT))
@@ -96,16 +96,16 @@ def function_primitives(i, l, f, b, s):
 def function_files(fin, finout, fout):
     print "TEST"
     print "- Static Function"
-    
+
     fin_d = open(fin, 'r')
     finout_d = open(finout, 'r+')
     fout_d = open(fout, 'w')
-    
+
     print "- In file content:\n", fin_d.read()
     print "- Inout file content:\n", finout_d.read()
     finout_d.write("\n===> INOUT FILE ADDED CONTENT")
     fout_d.write("OUT FILE CONTENT")
-    
+
     fin_d.close()
     finout_d.close()
     fout_d.close()
@@ -123,16 +123,27 @@ def function_objects(o, l, dic, tup, cplx, f):
     print "- Dictionary", dic
     print "- Tuple", tup
     print "- Complex", cplx
-   
+
     valuesDic=[("key3","value3"),("key4","value4")]
- 
+
     o.field = o.field * 2
     l.append(2)
     dic[valuesDic[len(dic)-2][0]] = valuesDic[len(dic)-2][1]
-    tup = list(tup)
-    tup.append('d')
-    tup = tuple(tup)    
-    cplx += cplx
+
+    # This can not be done since it creates a new object with a new reference
+    # and we keep the existing before the task execution
+    # Moreover, tuples are inmutable
+    # tup = list(tup)
+    # tup.append('d')
+    # tup = tuple(tup)
+
+    # The same happens with the following assignment.
+    # The resulting cplx has different id than the used as parameter
+    # The operations over cplx return a different object instead of modifying
+    # the existing.
+    # cplx += cplx
+
+
 
 @task(returns = int)
 def function_return_primitive(i):
@@ -151,7 +162,7 @@ def function_return_object(i):
 
 
 
-@task(returns = int)    
+@task(returns = int)
 def function_function_parameter(f, v):
     out = f(v)
     print("TEST")
@@ -235,7 +246,7 @@ def function_argfunc(f,v):
 
 @task(returns = int)
 def function_lambda(f, v):
-    print "TEST" 
+    print "TEST"
     print "- Function lambda passed as parameter"
     print "Lambda: ", f
     value = f(v)
@@ -261,19 +272,19 @@ def function_generator_return(g):
     print "Generator value: ", g.next()
     return g
 
-  
+
 @task(returns = (float, float))
 def multireturn(value):
     print "Value: ", value
     print "Type:  ", type(value)
-    return value, value*2 
+    return value, value*2
 
 @task(returns = float)
 def power(value):
     print "Pow value: ", value
     print "Result: ", value*value
     return value*value
-    
+
 @task(returns = float)
 def merge(v1, v2):
     print "Merge"
@@ -293,7 +304,7 @@ class Foo(object):
     def get(self):
         return self.value
 
-                                            
+
 @task(returns = object)
 def function_moduleObject(value):
     print "Test Module Object"
@@ -302,4 +313,3 @@ def function_moduleObject(value):
     print "Value set to: ", v*v
     value.set(v*v)
     return value
-                                                                    

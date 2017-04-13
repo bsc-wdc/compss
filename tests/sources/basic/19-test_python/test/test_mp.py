@@ -89,9 +89,9 @@ def test_function_files():
     
 def test_function_objects():
     print "test_function_objects"
-    val = 1
+    val = 2
     o = MyClass(val)
-    l = [1, 2, 3, 4]
+    l = [1]
     dic = {'key1':'value1', 'key2':'value2'}
     tup = ('a', 'b', 'c')
     cplx = complex('1+2j')
@@ -99,6 +99,35 @@ def test_function_objects():
     function_objects(o, l, dic, tup, cplx, par_func)
     function_objects(o, l, dic, tup, cplx, par_func)
     
+    errors = False
+
+    o = compss_wait_on(o)
+    if o.field != 8:
+        print "- INOUT (objects): ERROR"
+        errors = True
+
+    l = compss_wait_on(l)
+    if l != [1,2,2]:
+        print "- INOUT (list): ERROR"
+        errors = True
+
+    dic = compss_wait_on(dic)
+    if dic != {'key1':'value1', 'key2':'value2', 'key3':'value3', 'key4':'value4'}:
+        print "- INOUT (dictionary): ERROR"    
+        errors = True    
+
+    tup = compss_wait_on(tup)
+    if tup != ('a', 'b', 'c', 'd', 'd'):
+        print "- INOUT (tuple): ERROR"    
+        errors = True
+
+    cplx = compss_wait_on(cplx)
+    if cplx != complex('4+8j'):
+        print "- INOUT (complex): ERROR"
+        errors = True
+
+    if not errors:
+        print "- INOUT: OK"
     
 def test_mp_file_access():
     print "test_file_mp_access"

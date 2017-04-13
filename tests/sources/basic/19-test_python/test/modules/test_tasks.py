@@ -114,7 +114,7 @@ def par_func():
     print "- Function"
 
 #@task(o = Parameter(p_direction = Direction.INOUT))
-@task(o = INOUT)
+@task(o = INOUT, l = INOUT, dic = INOUT, tup = INOUT, cplx = INOUT)
 def function_objects(o, l, dic, tup, cplx, f):
     print "TEST"
     print "- Static Function"
@@ -123,9 +123,16 @@ def function_objects(o, l, dic, tup, cplx, f):
     print "- Dictionary", dic
     print "- Tuple", tup
     print "- Complex", cplx
-    f()
-    
+   
+    valuesDic=[("key3","value3"),("key4","value4")]
+ 
     o.field = o.field * 2
+    l.append(2)
+    dic[valuesDic[len(dic)-2][0]] = valuesDic[len(dic)-2][1]
+    tup = list(tup)
+    tup.append('d')
+    tup = tuple(tup)    
+    cplx += cplx
 
 @task(returns = int)
 def function_return_primitive(i):

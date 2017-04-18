@@ -294,6 +294,12 @@ static PyObject* Cache_get_last(PyObject* self, PyObject* args);
 */
 static PyObject* Cache_is_empty(PyObject* self, PyObject* args);
 
+/*
+  Modifies the wrapped object of a cached object to a new one.
+  This new object will have the same hitcount and last_hit_time as
+  the previous one
+*/
+static PyObject* Cache_set_object(PyObject* self, PyObject* args);
 
 static PyMethodDef Cache_methods[] = {
   {"add", Cache_add, METH_VARARGS,
@@ -310,6 +316,9 @@ static PyMethodDef Cache_methods[] = {
    "Returns the object with least priority"},
   {"is_empty", Cache_is_empty, METH_VARARGS,
    "Checks if cache is empty"},
+  {"set_object", Cache_set_object, METH_VARARGS,
+   "Given an id and some object obj, make obj the new wrapped object\
+   by the cached_object with identifier id"},
     {NULL} /* Sentinel */
 };
 

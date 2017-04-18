@@ -459,6 +459,7 @@ USE_CACHE = False
 def cache_proc(cache_queue, cache_pipes):
     from persistent_cache import Cache
     from shm_manager import shm_manager as SHM
+    from pycompss.api.parameter import *
     cache = Cache(size_limit = 1024**3)
 
     while True:

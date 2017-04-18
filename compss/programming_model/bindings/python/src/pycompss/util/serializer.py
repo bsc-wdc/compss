@@ -131,7 +131,7 @@ def deserialize_from_handler(handler):
     # get the most common order of the serializers
     serializers = get_serializers()
     original_position = handler.tell()
-    # let's try to deserialize 
+    # let's try to deserialize
     for serializer in serializers:
         # reset the handler in case the previous serializer has used it
         handler.seek(original_position)
@@ -178,7 +178,7 @@ def serialize_objects(to_serialize):
     The structure of the parameter is
     [(object1, file_name1), ... , (objectN, file_nameN)].
     @param to_serialize: List of lists to be serialized.
-                         Each sublist is composed of pairs
+                         Each sublist is a pair of the form
                          ['object','file name'].
     """
     for obj_and_file in to_serialize:

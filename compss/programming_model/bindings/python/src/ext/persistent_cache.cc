@@ -247,7 +247,7 @@ static PyObject* Cache_is_empty(PyObject* self, PyObject* args) {
 }
 
 static PyObject* Cache_set_object(PyObject* self, PyObject* args) {
-  Cache* _self = (Cache*) self;
+  Cache* _self = (Cache*)self;
   const char* to_query;
   PyObject* new_obj;
   if(!PyArg_ParseTuple(args, "sO", &to_query, &new_obj)) {

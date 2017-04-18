@@ -133,7 +133,7 @@ static PyObject* Cache_add(PyObject* self, PyObject* args) {
     object_size = sizeof(*obj_to_add);
   }
   // Delete the object with least priority until cache is empty or
-  // the total used space is less or equal than the limit
+  // the total used space is less than the limit
   // Note that this operation can delete the most recent object
   // depending on the comparison function
   while(!_self->S->empty() && _self->current_size >= _self->size_limit) {
@@ -244,6 +244,24 @@ static PyObject* Cache_get_last(PyObject* self, PyObject* args) {
 static PyObject* Cache_is_empty(PyObject* self, PyObject* args) {
   Cache* _self = (Cache*)self;
   return PyBool_FromLong(_self->S->empty());
+}
+
+static PyObject* Cache_set_object(PyObject* self, PyObject* args) {
+  Cache* _self = (Cache*) self;
+  const char* to_query;
+  PyObject* new_obj;
+  if(!PyArg_ParseTuple(args, "sO", &to_query, &new_obj)) {
+    return NULL;
+  }
+  std::string id(to_query);
+  std::map< std::string, cached_object >& map_ref = *_self->H;
+  cached_object& cached_friend = map_ref[id];
+  _self->S->erase(cached_friend);
+  Py_DECREF(cached_friend.obj);
+  cached_friend.obj = new_obj;
+  Py_INCREF(cached_friend.obj);
+  _self->S->insert(cached_friend);
+  Py_RETURN_NONE;
 }
 
 PyMODINIT_FUNC initpersistent_cache(void) {

@@ -40,13 +40,13 @@ typedef struct {
   // Identifier (in PyCOMPSs it is a file name)
   std::string id;
   // Object size (in bytes).
-  unsigned long long object_size;
+  long long object_size;
   // The object itself
   PyObject* obj;
   // Hit count
-  unsigned long long hit_count;
+  long long hit_count;
   // Last hit time
-  unsigned long long last_hit_time;
+  long long last_hit_time;
   // Pointer to the comparison function of the "mother" cache
   // object
   PyObject* comparison_function;
@@ -224,11 +224,11 @@ typedef struct {
   // will ever be significant enough to consider switching to C++11
   std::map< std::string, cached_object >* H;
   // Internal cache time
-  unsigned long long current_time;
+  long long current_time;
   // Maximum byte size
-  unsigned long long size_limit;
+  long long size_limit;
   // Current sum of cached objects size
-  unsigned long long current_size;
+  long long current_size;
   // Comparison function (see cached_object_comparator)
   PyObject* comparator;
 } Cache;

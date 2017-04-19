@@ -250,17 +250,34 @@ static PyObject* Cache_set_object(PyObject* self, PyObject* args) {
   Cache* _self = (Cache*)self;
   const char* to_query;
   PyObject* new_obj;
-  if(!PyArg_ParseTuple(args, "sO", &to_query, &new_obj)) {
+  long long new_object_size = -1;
+  if(!PyArg_ParseTuple(args, "sO|l", &to_query, &new_obj, &new_object_size)) {
     return NULL;
+  }
+  if(new_object_size == -1) {
+    new_object_size = sizeof(*new_obj);
   }
   std::string id(to_query);
   std::map< std::string, cached_object >& map_ref = *_self->H;
+  // let's get the cached_object that contains our target object
+  // and remove it from the priority set
   cached_object& cached_friend = map_ref[id];
+  long long old_object_size = cached_friend.object_size;
   _self->S->erase(cached_friend);
   Py_DECREF(cached_friend.obj);
+  // update the data structure with the new object
   cached_friend.obj = new_obj;
   Py_INCREF(cached_friend.obj);
+  cached_friend.object_size = new_object_size;
+  _self->current_size -= old_object_size;
+  _self->current_size += new_object_size;
   _self->S->insert(cached_friend);
+  // a new object may have its size modified (for example, it we append stuff
+  // to some list). Let's be sure that this modification do not violate the
+  // cache invariant
+  while(!_self->S->empty() && _self->current_size >= _self->size_limit) {
+    _delete_first_element(_self);
+  }
   Py_RETURN_NONE;
 }
 

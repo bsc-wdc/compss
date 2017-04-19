@@ -466,14 +466,28 @@ def cache_proc(cache_queue, cache_pipes):
         msg = cache_queue.get()
         if msg == '##END##':
             return
-        # if msg is not the poisoned pill, then it is a pair (id, filename)
+        # if msg is not the poisoned pill
+        # then it is a triplet (id, filename, comments)
         # that must be read as "the process with identifier id wants the file
-        # named filename"
-        process_id, file_name = msg
+        # named filename and the additional given comments must be followed"
+        process_id, file_name, comments = msg
         suf_file_name = os.path.split(file_name)[-1]
         process_ord = int(process_id)
-
-        if cache.has_object(suf_file_name):
+        # some worker has created an SHM segment and wants it to be added to
+        # the persistent worker's cache
+        if comments[0] == 'ATTACH_SEGMENT':
+            segment_key, segment_bytes = map(long, comments[1:])
+            manager = SHM(segment_key, segment_bytes, 0666)
+            # we have this object, lets update it
+            if cache.has_object(suf_file_name):
+                cache.hit(suf_file_name)
+                cache.set_object(suf_file_name, manager, segment_bytes)
+            # add the object
+            else:
+                cache.add(suf_file_name, manager, segment_bytes)
+            # notify the worker that we are done
+            cache_pipes[process_ord].send('DONE')
+        elif cache.has_object(suf_file_name):
             cache.hit(suf_file_name)
             shm_manager = cache.get(suf_file_name)
             cache_pipes[process_ord].send((shm_manager.key, shm_manager.bytes))
@@ -487,10 +501,15 @@ def cache_proc(cache_queue, cache_pipes):
             # we dont have the object, so lets tell the caller to read the obj,
             # and store it in the cache
             cache_pipes[process_ord].send('N') # NO!
-            dumped_obj = open(file_name, 'rb').read()
-            manager = SHM(1337, len(dumped_obj))
-            manager.write_object(dumped_obj)
-            cache.add(suf_file_name, manager, manager.bytes)
+            # we must avoid to put outdated versions of INOUT objects so,
+            # if we do not have some INOUT object queried as an IN, we must
+            # simply tell the worker to read it from disk since it makes no
+            # sense to store an outdated object for future uses
+            if comments[0] != 'INOUT_IN':
+                dumped_obj = open(file_name, 'rb').read()
+                manager = SHM(1337, len(dumped_obj))
+                manager.write_object(dumped_obj)
+                cache.add(suf_file_name, manager, manager.bytes)
 
 ######################
 # Main method

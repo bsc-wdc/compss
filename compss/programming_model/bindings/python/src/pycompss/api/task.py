@@ -428,9 +428,34 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         else:  # simple return
             ret_filename = args[-1]
             to_serialize.append((ret, ret_filename))
+
     if len(to_serialize) > 0:
         serialize_objects(to_serialize)
 
+    # deal with INOUT_OUT vs CACHE separately
+    if local_cache is not None:
+        for (obj, file_name) in to_serialize:
+            suf_file_name = os.path.split(file_name)[-1]
+            file_size = os.path.getsize(file_name)
+            # deal with local cache
+            if local_cache.has_object(suf_file_name):
+                local_cache.hit(suf_file_name)
+                local_cache.set_object(suf_file_name, obj, file_size)
+            else:
+                local_cache.add(suf_file_name, obj, file_size)
+            # deal with persistent cache
+            # lets create and write the segment on the worker and
+            # send an special message to the cache process to add it
+            from shm_manager import shm_manager as SHM
+            serialized_content = open(file_name, 'rb').read()
+            manager = SHM(1337, len(serialized_content))
+            manager.write_object(serialized_content)
+            cache_queue.put((process_name.split('-')[-1], file_name, ('ATTACH_SEGMENT', manager.key, manager.bytes)))
+            # we must wait to the cache process to notify us that the segment
+            # has been attached, otherwise we could reach natcch = 0 for this
+            # segment and delete it prematurely
+            answer = cache_pipe.recv()
+            del manager
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                args, self_args, kwargs, self_kwargs, self_spec_args):
@@ -671,7 +696,8 @@ def reveal_objects(values,
         if compss_type == Type.FILE and p.type != Type.FILE:
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
-            if p.direction != Direction.INOUT and cache_queue is not None:
+            if cache_queue is not None:
+                comments = 'NORMAL' if p.direction != Direction.IN else 'INOUT_IN'
                 # ask the cache for the object
                 t_cache_interaction_start = time.time()
                 suffix_name = os.path.split(value)[-1]
@@ -680,7 +706,7 @@ def reveal_objects(values,
                     local_cache.hit(suffix_name)
                     logger.debug('Time to hit and assign on local cache: %.08fs'%elapsed(t_cache_interaction_start))
                 else:
-                    cache_queue.put((process_name.split('-')[-1], value))
+                    cache_queue.put((process_name.split('-')[-1], value, (comments)))
                     answer = cache_pipe.recv()
                     # have we received an answer of the form (key, bytes) ?
                     # if yes, read from the indicated SHM
@@ -697,7 +723,8 @@ def reveal_objects(values,
                         logger.debug('Time to miss on both local and global and read from disk %.08fs'%elapsed(t_cache_interaction_start))
                     t_local_cache_addition = time.time()
                     file_size = os.path.getsize(value)
-                    local_cache.add(suffix_name, obj, file_size)
+                    if comments != 'INOUT_IN':
+                        local_cache.add(suffix_name, obj, file_size)
                     logger.debug('Time to add an object on the local cache: %.08fs'%elapsed(t_local_cache_addition))
             else:
                 obj = deserialize_from_file(value)

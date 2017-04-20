@@ -22,6 +22,7 @@ public class BinaryRunner {
     private static final String ERROR_OUTPUTREADER = "ERROR: Cannot retrieve command output";
     private static final String ERROR_ERRORREADER = "ERROR: Cannot retrieve command error";
     private static final String ERROR_PROC_EXEC = "ERROR: Exception executing Binary command";
+    private static final String ERROR_PROC_EXIT_VALUE = "ERROR: Binary command exited with non-zero exit value ";
 
 
     /**
@@ -137,6 +138,9 @@ public class BinaryRunner {
         }
 
         // Return exit value if requested, null if none
+        if (exitValue != 0) {
+            throw new InvokeExecutionException(ERROR_PROC_EXIT_VALUE + String.valueOf(exitValue));
+        }
         return hasReturn ? exitValue : null;
     }
 

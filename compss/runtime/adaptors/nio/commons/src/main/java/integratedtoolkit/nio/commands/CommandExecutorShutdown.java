@@ -7,7 +7,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.LinkedList;
 
 
 public class CommandExecutorShutdown extends Command implements Externalizable {
@@ -29,7 +28,6 @@ public class CommandExecutorShutdown extends Command implements Externalizable {
         agent.shutdownExecutionManager(c);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     }

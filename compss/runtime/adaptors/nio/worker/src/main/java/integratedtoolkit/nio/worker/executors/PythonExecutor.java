@@ -1,7 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.nio.NIOTask;
-import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
@@ -17,13 +16,18 @@ public class PythonExecutor extends ExternalExecutor {
 
     public static final String PYCOMPSS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "python";
 
+    private static final String ENV_LD_LIBRARY_PATH = "LD_LIBRARY_PATH";
+    private static final String ENV_PYTHONPATH = "PYTHONPATH";
+
 
     public PythonExecutor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue, String writePipe, TaskResultReader resultReader) {
         super(nw, pool, queue, writePipe, resultReader);
     }
 
     @Override
-    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits, int[] assignedGPUs) {
+    public ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
+            int[] assignedGPUs) {
+
         // The execution command in python is empty (the handler adds the pre-command and the application args)
         return new ArrayList<>();
     }
@@ -35,17 +39,17 @@ public class PythonExecutor extends ExternalExecutor {
         env.put("PYCOMPSS_HOME", pycompssHome);
 
         // PYTHONPATH
-        String pythonPath = System.getenv("PYTHONPATH");
+        String pythonPath = System.getenv(ENV_PYTHONPATH);
         if (pythonPath == null) {
             pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir();
         } else {
             pythonPath = pycompssHome + ":" + nw.getPythonpath() + ":" + nw.getAppDir() + pythonPath;
         }
 
-        env.put("PYTHONPATH", pythonPath);
+        env.put(ENV_PYTHONPATH, pythonPath);
 
         // LD_LIBRARY_PATH
-        String ldLibraryPath = System.getenv("LD_LIBRARY_PATH");
+        String ldLibraryPath = System.getenv(ENV_LD_LIBRARY_PATH);
         if (ldLibraryPath == null) {
             ldLibraryPath = nw.getLibPath();
         } else {
@@ -53,7 +57,7 @@ public class PythonExecutor extends ExternalExecutor {
         }
         String bindingsHome = nw.getInstallDir() + BINDINGS_RELATIVE_PATH;
         ldLibraryPath = ldLibraryPath.concat(":" + bindingsHome);
-        env.put("LD_LIBRARY_PATH", ldLibraryPath);
+        env.put(ENV_LD_LIBRARY_PATH, ldLibraryPath);
 
         return env;
     }

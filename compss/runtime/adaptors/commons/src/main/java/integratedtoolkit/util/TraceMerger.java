@@ -4,15 +4,22 @@ import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.sound.sampled.Line;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 
 public class TraceMerger {
@@ -27,14 +34,14 @@ public class TraceMerger {
     // Selectors for replace Pattern
     private static final Integer R_ID_INDEX = 1;
     private static final Integer TIMESTAMP_INDEX = 4;
-    private static final Integer WORKER_ID_INDEX = 2; // could be wrong this regex (designed for matching tasks not workers)
+    private static final Integer WORKER_ID_INDEX = 2; // could be wrong this regex (designed for matching tasks not
+                                                      // workers)
 
     private String workerThreadInfo = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
     private Pattern workerThreadInfoPattern = Pattern.compile(workerThreadInfo);
     private static final Integer WORKER_THREAD_ID = 2;
     private static final Integer WORKER_TIMESTAMP = 6;
     private static final Integer WORKER_LINE_INFO = 7;
-
 
     private static final String masterTraceSuffix = "_compss_trace_";
     private static final String traceExtension = ".prv";
@@ -52,7 +59,6 @@ public class TraceMerger {
 
     private String masterTracePath;
     private String[] workersTracePath;
-
 
 
     private class LineInfo {
@@ -125,14 +131,14 @@ public class TraceMerger {
 
     public void merge() throws IOException {
         logger.debug("Parsing master sync events");
-        HashMap<Integer, List<LineInfo> > masterSyncEvents = getSyncEvents(masterTracePath, -1);
+        HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);
 
         logger.debug("Proceeding to merge task traces into master");
         for (File workerFile : workersTraces) {
             String workerFileName = workerFile.getName();
             String wID = "";
 
-            for (int i = 0; workerFileName.charAt(i) != '_'; ++i){
+            for (int i = 0; workerFileName.charAt(i) != '_'; ++i) {
                 wID += workerFileName.charAt(i);
             }
 
@@ -140,7 +146,7 @@ public class TraceMerger {
             workerID++; // first worker is resource number 2
 
             List<String> cleanLines = getWorkerEvents(workerFile);
-            HashMap<Integer, List<LineInfo> > workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
+            HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
             if (!debug) {
@@ -151,11 +157,11 @@ public class TraceMerger {
         logger.debug("Merging finished.");
     }
 
-    private void add(HashMap<Integer, List<LineInfo> > map, Integer key, LineInfo newValue) {
-        List currentValue = map.get(key);
+    private void add(HashMap<Integer, List<LineInfo>> map, Integer key, LineInfo newValue) {
+        List<LineInfo> currentValue = map.get(key);
 
         if (currentValue == null) {
-            currentValue = new ArrayList();
+            currentValue = new ArrayList<>();
             map.put(key, currentValue);
         }
         currentValue.add(newValue);
@@ -164,7 +170,7 @@ public class TraceMerger {
     private HashMap<Integer, List<LineInfo>> getSyncEvents(String tracePath, Integer workerID) throws IOException {
         FileInputStream inputStream = null;
         Scanner sc = null;
-        HashMap<Integer, List<LineInfo> > idToSyncInfo = new HashMap<>();
+        HashMap<Integer, List<LineInfo>> idToSyncInfo = new HashMap<>();
         try {
             inputStream = new FileInputStream(tracePath);
             sc = new Scanner(inputStream, "UTF-8");
@@ -202,9 +208,8 @@ public class TraceMerger {
         return lines.subList(startIndex, endIndex);
     }
 
-    private void writeWorkerEvents(HashMap<Integer, List<LineInfo> > masterSyncEvents,
-                                    HashMap<Integer, List<LineInfo> > workerSyncEvents,
-                                    List<String> eventsLine, Integer workerID) {
+    private void writeWorkerEvents(HashMap<Integer, List<LineInfo>> masterSyncEvents, HashMap<Integer, List<LineInfo>> workerSyncEvents,
+            List<String> eventsLine, Integer workerID) {
 
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
 
@@ -222,7 +227,7 @@ public class TraceMerger {
 
             Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
             String eventHeader = baseWorkerHeader + ":" + workerID + ":" + threadID; // WRONG
-            Long timestamp =   workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));
+            Long timestamp = workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));
             String lineInfo = taskMatcher.group(WORKER_LINE_INFO);
             newLine = eventHeader + ":" + timestamp + ":" + lineInfo;
         }

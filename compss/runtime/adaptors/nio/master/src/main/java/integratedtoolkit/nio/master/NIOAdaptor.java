@@ -69,11 +69,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     private static final Logger logger = LogManager.getLogger(Loggers.COMM);
 
     /*
-     * The master port can be: 
-     * 1. Given by the IT_MASTER_PORT property 
-     * 2. A BASE_MASTER_PORT plus a random number
+     * The master port can be: 1. Given by the IT_MASTER_PORT property 2. A BASE_MASTER_PORT plus a random number
      */
-    
+
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
     private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);
@@ -149,15 +147,13 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     @Override
-    public Configuration constructConfiguration(Object project_properties, Object resources_properties) 
+    public Configuration constructConfiguration(Object project_properties, Object resources_properties)
             throws ConstructConfigurationException {
-        
+
         NIOConfiguration config = new NIOConfiguration(this.getClass().getName());
 
-        integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = 
-                (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
-        integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = 
-                (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
+        integratedtoolkit.types.project.jaxb.NIOAdaptorProperties props_project = (integratedtoolkit.types.project.jaxb.NIOAdaptorProperties) project_properties;
+        integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties props_resources = (integratedtoolkit.types.resources.jaxb.NIOAdaptorProperties) resources_properties;
 
         // Get ports
         int min_project = (props_project != null) ? props_project.getMinPort() : -1;
@@ -211,7 +207,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             remoteExecutionCommand = NIOConfiguration.DEFAULT_REMOTE_EXECUTION_COMMAND;
         }
 
-        if (!NIOConfiguration.AVAILABLE_REMOTE_EXECUTION_COMMANDS.contains(remoteExecutionCommand)){
+        if (!NIOConfiguration.AVAILABLE_REMOTE_EXECUTION_COMMANDS.contains(remoteExecutionCommand)) {
             throw new ConstructConfigurationException("Invalid remote execution command on resources file");
         }
         config.setRemoteExecutionCommand(remoteExecutionCommand);
@@ -296,8 +292,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void setWorkerIsReady(String nodeName) {
         logger.info("Notifying that worker is ready " + nodeName);
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
-        if (ws!= null){
-        	ws.setWorkerIsReady();
+        if (ws != null) {
+            ws.setWorkerIsReady();
         }
     }
 
@@ -470,8 +466,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         // Check if the object has been serialized meanwhile
         if (o == null) {
             for (MultiURI loc : ld.getURIs()) {
-                if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
-                        && loc.getHost().equals(Comm.getAppHost())) {
+                if (!loc.getProtocol().equals(Protocol.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
                     // The object is null because it has been serialized by the master, raise exception
                     throw new SerializedObjectException(name);
                 }
@@ -490,8 +485,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Get a Master location
         for (MultiURI loc : ld.getURIs()) {
-            if (!loc.getProtocol().equals(Protocol.OBJECT_URI)
-                    && loc.getHost().equals(Comm.getAppHost())) {
+            if (!loc.getProtocol().equals(Protocol.OBJECT_URI) && loc.getHost().equals(Comm.getAppHost())) {
                 return loc.getPath();
             }
         }
@@ -535,7 +529,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
-        stoppingExecutors.put(c, new ClosingExecutor(worker, listener));
+        stoppingExecutors.put(c, new ClosingExecutor(listener));
     }
 
     @Override
@@ -561,11 +555,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     @Override
     public void shutdownExecutionManagerNotification(Connection c) {
         ClosingExecutor closing = stoppingExecutors.remove(c);
-        NIOWorkerNode worker = closing.worker;
         ExecutorShutdownListener listener = closing.listener;
         listener.notifyEnd();
     }
-
 
     @Override
     public void waitUntilTracingPackageGenerated() {
@@ -618,12 +610,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     private class ClosingExecutor {
 
-        private final NIOWorkerNode worker;
         private final ExecutorShutdownListener listener;
 
 
-        public ClosingExecutor(NIOWorkerNode w, ExecutorShutdownListener l) {
-            worker = w;
+        public ClosingExecutor(ExecutorShutdownListener l) {
             listener = l;
         }
     }

@@ -51,7 +51,7 @@ public class LoadBalancingScore extends ReadyScore {
         if (params != null) {
             Parameter[] parameters = params.getParameters();
             if (parameters.length == 0) {
-                ++resourceScore;
+                return 0.5;
             }
             // Obtain the scores for the host: number of task parameters that
             // are located in the host

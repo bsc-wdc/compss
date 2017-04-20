@@ -697,7 +697,7 @@ def reveal_objects(values,
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             if cache_queue is not None:
-                comments = 'NORMAL' if p.direction != Direction.IN else 'INOUT_IN'
+                comments = 'NORMAL' if p.direction == Direction.IN else 'INOUT_IN'
                 # ask the cache for the object
                 t_cache_interaction_start = time.time()
                 suffix_name = os.path.split(value)[-1]

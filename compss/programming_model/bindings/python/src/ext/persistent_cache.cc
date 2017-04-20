@@ -254,6 +254,9 @@ static PyObject* Cache_set_object(PyObject* self, PyObject* args) {
   if(!PyArg_ParseTuple(args, "sO|l", &to_query, &new_obj, &new_object_size)) {
     return NULL;
   }
+  // same as add method, this is intended to be a rough approximation
+  // to the object's size and its only used if the object size is not
+  // provided as a parameter
   if(new_object_size == -1) {
     new_object_size = sizeof(*new_obj);
   }

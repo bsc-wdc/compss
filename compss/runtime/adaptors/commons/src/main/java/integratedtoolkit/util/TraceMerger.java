@@ -144,21 +144,11 @@ public class TraceMerger {
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
             if (!debug) {
-                if (!workerFile.delete()) {
-                    logger.error("Error deleting trace file " + workerFile);
-                }
+                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
             }
         }
         masterWriter.close();
         logger.debug("Merging finished.");
-        if (!debug){
-            File f = new File(TraceMerger.workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
-            if (f.delete()){
-                logger.debug("Temporal task folder removed.");
-            } else {
-                logger.warn("Could not remove temporal task folder: " + f);
-            }
-        }
     }
 
     private void add(HashMap<Integer, List<LineInfo> > map, Integer key, LineInfo newValue) {
@@ -254,6 +244,22 @@ public class TraceMerger {
 
         return new LineInfo(javaStart.resourceId, javaStart.getTimestamp() + overhead);
 
+    }
+
+    private void removeFolder(String folderPath) throws IOException {
+        File folder = new File(folderPath);
+        remove(folder);
+    }
+
+    private void remove(File f) throws IOException {
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                for (File child : f.listFiles()) {
+                    remove(child);
+                }
+            }
+            Files.delete(f.toPath());
+        }
     }
 
 }

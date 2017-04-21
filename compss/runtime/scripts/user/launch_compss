@@ -120,6 +120,10 @@ show_opts() {
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
                                             Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKER_IN_MASTER}
+    --container_image=<path>                Runs the application by means of a singularity container image
+                                            Default: Empty
+    --container_compss_path=<path>          Path where compss is installed in the Singularity container image
+                                            Default: /opt/COMPSs
 
   Runcompss configuration:
 
@@ -206,9 +210,12 @@ worker_cmd() {
   local maxSend=5
   local maxReceive=5
   local worker_port=43001
-
-  WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh \
-            ${library_path} \
+  if [ -z "${container_image}" ]; then
+     WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+  else 
+     WCMD="singularity exec $container_image ${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
+  fi
+  WCMD="$WCMD ${library_path} \
             ${appdir} \
             ${cp} \
             ${jvm_opts_size} \
@@ -243,8 +250,12 @@ master_cmd() {
   local master_name=$1
 
   # WARNING: SETS GLOBAL SCRIPT VARIABLE MCMD
-  MCMD="${IT_HOME}/Runtime/scripts/user/runcompss \
-            --project=${PROJECT_FILE} \
+  if [ -z "${container_image}" ]; then
+    MCMD="${IT_HOME}/Runtime/scripts/user/runcompss"
+  else
+    MCMD="singularity exec $container_image ${IT_HOME}/Runtime/scripts/user/runcompss"
+  fi
+  MCMD="$MCMD --project=${PROJECT_FILE} \
             --resources=${RESOURCES_FILE} \
             --uuid=${uuid} \
             --specific_log_dir=${specific_log_dir} \
@@ -667,10 +678,22 @@ check_args() {
 ###############################################
 set_variables() { 
   # Set script variables
-  export IT_HOME=${IT_HOME}
-  export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
-  worker_install_dir=${IT_HOME}
-  
+  if [ -z "${container_image}" ]; then
+      export IT_HOME=${IT_HOME}
+      export GAT_LOCATION=${IT_HOME}/Dependencies/JAVA_GAT
+      worker_install_dir=${IT_HOME}
+  else
+      if [ -z "${container_compss_path}" ]; then
+              export IT_HOME=/opt/COMPSs/
+              export GAT_LOCATION=/opt/COMPSs/Dependencies/JAVA_GAT
+              worker_install_dir=/opt/COMPSs
+      else
+              export IT_HOME=${container_compss_path}/
+              export GAT_LOCATION=${container_compss_path}/Dependencies/JAVA_GAT
+              worker_install_dir=${container_compss_path}/
+      fi
+  fi
+
   # Create .COMPSs log dir for application execution
   if [ -z "${base_log_dir}" ]; then
         base_log_dir=$HOME

@@ -595,7 +595,13 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     public final void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
-            LOGGER.debug("Not available resources to run " + this);
+            /*if (targetWorker == null && impl == null) {
+                LOGGER.debug("Not available resources to run " + this + " because both the target worker and the best implementation are null");
+            } else if (targetWorker == null) {
+                LOGGER.debug("Not available resources to run " + this + " because the target worker is null");
+            } else if (impl == null) {
+                LOGGER.debug("Not available resources to run " + this + " because the best implementation is null");
+            }*/
             throw new UnassignedActionException();
         }
 

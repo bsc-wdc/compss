@@ -119,6 +119,7 @@
 
   # IMPI
   if [ "${extrae_with_impi}" == "true" ]; then  
+    module load intel
     module load impi${impi_version}
     ./install ${targetDir}/Dependencies/extrae-impi true
     if [ $? -ne 0 ]; then

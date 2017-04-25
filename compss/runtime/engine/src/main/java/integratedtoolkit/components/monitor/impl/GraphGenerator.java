@@ -371,7 +371,7 @@ public class GraphGenerator {
         graph.newLine();
         graph.write("    key [label=<");
         graph.newLine();
-        graph.write("      <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\" cellborder=\"0\">");
+        graph.write("      <table border=\"0\" cellpadding=\"2\" cellspacing=\"0\" cellborder=\"1\">");
         graph.newLine();
         graph.flush();
     }

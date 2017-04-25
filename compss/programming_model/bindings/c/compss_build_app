@@ -1,0 +1,97 @@
+#!/bin/bash
+
+echo "*---------------------------------------------------------------------*"
+echo "*                                                                     *"
+echo "*               BSC - Barcelona Supercomputing Center                 *"     
+echo "*                          COMP Superscalar                           *"      
+echo "*                                                                     *" 
+echo "*                  C/C++ Applications - BUILD SCRIPT                  *"      
+echo "*                                                                     *"
+echo "*  More information at COMP Superscalar Website: http://compss.bsc.es *"
+echo "*                                                                     *"
+echo "*  Support: support-compss@bsc.es                                     *"
+echo "*                                                                     *"        
+echo "*  Dependencies: bash, csh                                            *"
+echo "*                                                                     *"
+echo "*---------------------------------------------------------------------*"
+echo ""
+
+# Machine Arch Calculation
+machine_arch=$(uname -p | /usr/bin/cut -c 1);
+if [[ $machine_arch == i ]]; then
+  arch="i386"
+  subfolder="client"
+fi
+	
+if [[ $machine_arch == x ]]; then
+  arch="amd64"
+  subfolder="server"
+fi
+echo "ARCHITECTURE: $arch"
+echo "SUBFOLDER: $subfolder"
+export ARCH=$arch
+export SUBFLDR=$subfolder
+
+# GS HOME
+if [ -z $CS_HOME ]; then
+  if [ -z $IT_HOME ]; then
+    export CS_HOME=/opt/COMPSs/Bindings/c
+  else
+    export CS_HOME=$IT_HOME/Bindings/c
+  fi
+fi
+export COMPSSGEN=$CS_HOME/bin/compss_generator
+
+# Application src compilation
+if [ -d "./src" ]; then
+  cd ./src
+  make
+  if [ $? -ne 0 ]; then 
+    echo " "
+    echo "Building user application failed, please check errors above!"
+    exit 1
+  fi
+  cd -
+fi
+# Building Master and Worker
+export CC="gcc"
+export CXX="g++"
+$CS_HOME/bin/compss_build build master $@
+if [ $? -ne 0 ]; then
+  echo " "
+  echo "Building binding failed, please check errors above!"
+  exit 1
+fi
+if [ "${WITH_OMPSS}" != "" ]; then
+  # Flag is defined, check value
+  if [ $WITH_OMPSS == 1 ]; then
+    export CC="mcc"
+    export CFLAGS="--ompss"
+    export CXX="mcxx"
+    export CXXFLAGS="--ompss"
+  fi
+fi
+if [ "${WITH_CUDA}" != "" ]; then
+  # Flag is defined, check value
+  if [ $WITH_CUDA == 1 ]; then
+    export LIBS="-lcudart"
+  fi
+fi
+
+$CS_HOME/bin/compss_build build worker $@
+if [ $? -ne 0 ]; then
+    echo " "
+    echo "Building binding failed, please check errors above!"
+    exit 1
+fi
+
+# End
+echo ""
+echo "*---------------------------------------------------------------------*"
+echo "*                                                                     *"
+echo "*  Application successfully built!!!                                  *"
+echo "*                                                                     *"
+echo "*  More information at COMP Superscalar website: http://compss.bsc.es *"
+echo "*                                                                     *"        
+echo "*---------------------------------------------------------------------*"
+

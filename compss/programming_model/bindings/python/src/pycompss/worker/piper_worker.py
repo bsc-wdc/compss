@@ -96,6 +96,8 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
+    :param cache_queue: Queue where to put interprocess cache requests
+    :param cache_pipe: Pipe to read interprocess cache results
     :return: Nothing
     """
 

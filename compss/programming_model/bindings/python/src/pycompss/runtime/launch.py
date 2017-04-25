@@ -51,8 +51,8 @@ app_path = None
 def module_warnings():
     if not is_module_available('guppy'):
         print "[ WARNING ]: Guppy module is not installed."
-        print "             Guppy is a module needed for the localtask decorator."
-        print "             The localtask decorator allows you to define non-task functions which are able to"
+        print "             Guppy is a module needed for the local decorator."
+        print "             The local decorator allows you to define non-task functions which are able to"
         print "             handle synchronizations implictly."
         print "             PyCOMPSs can work without guppy, but it is recommended to have it installed."
         print "             You can install it via pip typing pip install guppy, or (probably) with your package manager."

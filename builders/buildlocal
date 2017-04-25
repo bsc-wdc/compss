@@ -440,7 +440,7 @@ install() {
     mkdir -p ${targetDir}/Runtime/scripts/system/c/
     cp ${targetDir}/Bindings/c/bin/* ${targetDir}/Runtime/scripts/system/c
     cp ./buildapp ${targetDir}/Runtime/scripts/user/
-
+    cp ./compss_build_app ${targetDir}/Runtime/scripts/user/
     echo "- Deploying python-binding files"
     cd ${tmpDir}/compss/programming_model/bindings/python
     ./install ${targetDir}/Bindings/python

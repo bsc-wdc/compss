@@ -14,6 +14,10 @@
     ./clean.sh
     cd ${working_dir}/gsstubgen
     ./clean.sh
+    cd ${working_dir}/compssbuilder
+    ./clean.sh
+    cd ${working_dir}/compssgen
+    ./clean.sh
   }
 
   install() {
@@ -130,6 +134,26 @@
   echo " "
   cd ${working_dir}/gsstubgen
   install ${build_root} "GS Stub Gen"
+  cd ${working_dir}
+  
+  ######################################################
+  # COMPSsBuilder
+  ######################################################
+  echo " "
+  echo "Installing new COMPSs Builder Library..."
+  echo " "
+  cd ${working_dir}/compssbuilder
+  install ${build_root} "COMPSs Builder"
+  cd ${working_dir}
+
+  ######################################################
+  # GSStubGen
+  ######################################################
+  echo " "
+  echo "Installing COMPSs Stub Genenerator ..."
+  echo " "
+  cd ${working_dir}/compssgen
+  install ${build_root} "COMPSs Stub Generator"
   cd ${working_dir}
   
   ######################################################

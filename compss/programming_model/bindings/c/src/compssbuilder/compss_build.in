@@ -1,0 +1,374 @@
+#!@BASH@
+
+set -e
+
+export PATH=$PATH:@ac_rtpath@
+
+working_dir=`pwd`
+
+function exittrap {
+        rc=$?      
+        if test x"$rc" != x"0" ; then
+                echo "ERROR: Command exited with status" $rc"." 1>&2
+                exit $rc                                            
+        fi                                                          
+}                                                                   
+
+trap exittrap 0
+
+
+# message functions
+usage() {
+
+        echo " "
+        echo  Usage\: `basename $0` build \<component\> \<appname\>
+        echo  Usage\: `basename $0` copy   \<component\> \<appname\>
+        echo  Usage\: `basename $0` clean \<component\> \<appname\>
+        echo ""
+        echo "  Available actions:"
+        echo "    copy         Setup a compilation environment for the component for customization."
+        echo "    build        Build the selected component ."
+        echo "    clean        Remove generated binaries."
+        echo ""
+        echo "  Available components:"
+        echo "    master       Build or copy the master part."
+        echo "    worker       Build or copy the worker part."
+        echo "    all          Build or copy the master and workers parts."
+        echo ""
+        echo "  <appname> Corresponds to the name of the application used for source files and IDL files."
+        echo " "
+        exit
+}
+
+
+error() {
+        echo "An error occurred, please check the output."
+        exit 1;                                           
+}                                                   
+
+# Generating autogen.sh script
+
+generate_autogen_sh() {
+
+@CAT@ > autogen.sh << EOF
+
+#!@BASH@
+set -e
+
+@ACLOCAL@
+@AUTOMAKE@ -a -c
+@AUTOCONF@
+./configure --with-cs-prefix=$CS_HOME
+
+EOF
+@CHMOD@ +x autogen.sh
+}
+
+# master functions
+
+prepare_master_copy() {
+        gsprefix=$1    
+        appname=$2     
+
+        if test -d master ; then      
+                cd master             
+           if test -e $2.cc ; then    
+                                      
+             if test -e $2.idl ; then 
+                echo "All files needed found."
+                                              
+             else                             
+                echo "File $2.idl not found." 
+                exit                          
+             fi                               
+
+           else
+             echo "File $2.cc not found."
+             exit                        
+           fi                            
+
+        else
+                echo "The master directory must exist when using copy action."
+                exit                                                          
+        fi                                                                    
+}                                                                             
+
+prepare_master_build() {
+        gsprefix=$1     
+        appname=$2      
+
+        if test -d master ; then
+                echo "The master directory already exists from a previous build. Removing."
+                @RM@ -rf master                                                         
+        fi                                                                                 
+
+        @MKDIR@ master
+        @CP@ *.* master
+        cd master 
+		@RM@ $2-functions.cc                                                                                                
+
+        @MKDIR@ gsbuild
+        cd gsbuild        
+
+        @LN_S@ -f ../*.c .
+        @LN_S@ -f ../*.cc .
+        @LN_S@ -f ../*.cpp .
+        @LN_S@ -f ../*.cxx .
+        @LN_S@ -f ../*.idl .
+        @LN_S@ -f ../*.h .  
+}                                                  
+
+copy_master_build_env() {
+        gsprefix=$1      
+        appname=$2       
+
+        @CP@ @prefix@/share/compsuperscalar/c_build/master/Makefile.am Makefile.am.source
+        @CAT@ @prefix@/share/compsuperscalar/c_build/master/configure.in | @SED@ -e s/PACKAGE/"$appname"/g > configure.in                                                                                             
+        @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am
+                                                                            
+        generate_autogen_sh                                                                                                                                
+        @TOUCH@ NEWS README AUTHORS ChangeLog                                                                                                                
+        echo "" > empty.cc                                                                                                                                   
+}                                                                                                                     
+
+build_master() {
+        gsprefix=$1
+        appname=$2
+        ./autogen.sh      
+        @MAKE@                
+}                   
+
+finish_master_build() {
+	gsprefix=$1    
+        appname=$2     
+        @CP@ -f $appname ..
+        cd ..            
+        cd ..          
+}                                  
+
+clean_master() {         
+        if test -d master ; then
+           cd master            
+           @RM@ -f $appname
+           cd ..                                                   
+        else                                                       
+           echo "The master directory must exist when using clean action."
+           exit                                                           
+        fi                           
+}                                                                    
+
+
+# worker functions
+prepare_worker_copy() {
+        gsprefix=$1    
+        appname=$2     
+
+        if test -d worker ; then
+                cd worker       
+           if test -e $2-functions.cc ; then
+                                           
+             if test -e $2.idl ; then      
+                echo "All files needed found."
+
+             else
+                echo "File $2.idl not found."
+                exit                         
+             fi                              
+
+           else
+             echo "File $2-functions.cc not found."
+             exit                                 
+           fi                                     
+
+        else
+                echo "The worker directory must exist when using copy action."
+                exit                                                          
+        fi                                                                    
+}                                                   
+
+prepare_worker_build() {
+	gsprefix=$1     
+        appname=$2      
+
+
+        if test -d worker ; then
+                echo "The worker directory already exists from a previous build. Removing."
+                @RM@ -rf worker                                                         
+        fi                                                                                 
+
+        @MKDIR@ worker
+        @CP@ *.* worker
+        cd worker
+		@RM@ $2.cc
+                                                                              
+        @MKDIR@ gsbuild
+        cd gsbuild        
+
+        @LN_S@ -f ../*.c .
+        @LN_S@ -f ../*.cc .
+        @LN_S@ -f ../*.cpp .
+        @LN_S@ -f ../*.cxx .
+        @LN_S@ -f ../*.idl .
+        @LN_S@ -f ../*.h .    
+}                                           
+
+copy_worker_build_env() {
+        gsprefix=$1      
+        appname=$2       
+
+        @CP@ @prefix@/share/compsuperscalar/c_build/worker/Makefile.am Makefile.am.source
+        @CAT@ @prefix@/share/compsuperscalar/c_build/worker/configure.in | @SED@ -e s/PACKAGE/"$appname"/g  > configure.in                                                                                                                                               
+        @CAT@ Makefile.am.source | @SED@ 's/PACKAGE/'$appname'/g' > Makefile.am                             
+        @CP@ @prefix@/share/compsuperscalar/c_build/worker/files/* .
+        generate_autogen_sh                                                                                                                                
+        @TOUCH@ NEWS README AUTHORS ChangeLog                                                                                                                
+
+}                                           
+
+build_worker() {
+        gsprefix=$1
+        appname=$2 
+        echo "Running Autogen... "
+        ./autogen.sh              
+        @MAKE@                
+}                   
+
+finish_worker_build() {
+        gsprefix=$1    
+        appname=$2     
+        @CP@ -f worker_c ..
+        @CP@ -f persistent_worker_c ..
+        cd ..
+
+        cd ..
+}                                           
+
+clean_worker() {
+ 
+        if test -d worker ; then
+           cd worker            
+           @RM@ -f worker_c persistent_worker_c clean.sh 
+           cd ..                                                      
+        else                                                          
+           echo "The worker directory must exist when using clean action."
+           exit                                                           
+        fi                                   
+}    
+                                                          
+# main code
+if test $# != 3 ; then
+   if test $# != 5; then
+        usage           
+   fi                   
+fi                        
+
+action=$1
+component=$2
+appname=$3
+
+if test x"$CS_HOME" != x ; then
+        echo "Using environment variable CS_HOME."
+        gsprefix=$CS_HOME                         
+else                                                  
+        gsprefix=@prefix@                             
+fi                                                    
+
+
+case $action in
+        copy)  
+                case $component in
+                        master)   
+                                echo "Preparing master build environment..."
+                                prepare_master_copy $gsprefix $appname      
+                                copy_master_build_env $gsprefix $appname    
+                                ;;                                          
+                        worker)                                             
+                                echo "Preparing worker build environment..."
+                                prepare_worker_copy $gsprefix $appname      
+                                copy_worker_build_env $gsprefix $appname    
+                                ;;                                          
+                        all)                                                
+                                echo "Preparing master and worker build environment:"
+                                echo " "                                             
+
+                                echo "Preparing master build environment..."
+                                prepare_master_copy $gsprefix $appname      
+                                copy_master_build_env $gsprefix $appname    
+                                cd ..                                       
+
+                                echo " "
+                                echo "Preparing worker build environment..."
+                                prepare_worker_copy $gsprefix $appname      
+                                copy_worker_build_env $gsprefix $appname    
+                                ;;                                    
+                        *)                                            
+                                usage                                 
+                                ;;                                    
+                esac                                                  
+                ;;                                                   
+        build)                                                        
+                case $component in                                    
+                        master)                                       
+                                echo "Building master"                
+                                prepare_master_build $gsprefix $appname
+                                copy_master_build_env $gsprefix $appname
+                                build_master $gsprefix $appname
+                                finish_master_build $gsprefix $appname                                 
+                                ;;                                                                     
+                        worker)                                                                        
+                                echo "Building worker"                                                 
+                                prepare_worker_build $gsprefix $appname                                
+                                copy_worker_build_env $gsprefix $appname                               
+                                build_worker $gsprefix $appname
+                                finish_worker_build $gsprefix $appname
+                                ;;
+                        all)
+                                echo "Building all:"
+                                echo " "
+                                echo "Building Master..."
+
+                                prepare_master_build $gsprefix $appname
+                                copy_master_build_env $gsprefix $appname
+                                build_master $gsprefix $appname
+                                finish_master_build $gsprefix $appname
+
+                                echo " "
+                                echo "Building Worker..."
+
+                                prepare_worker_build $gsprefix $appname
+                                copy_worker_build_env $gsprefix $appname
+                                build_worker $gsprefix $appname
+                                finish_worker_build $gsprefix $appname
+                                ;;
+                        *)
+                                usage
+                                ;;
+                esac
+                ;;
+        clean)
+                case $component in
+                        master)
+                                echo "Cleaning master"
+                                clean_master
+                                ;;
+                        worker)
+                                echo "Cleaning worker"
+                                clean_worker
+                                ;;
+                        all)
+                                echo "Cleaning master and worker"
+                                clean_master
+                                clean_worker
+                                ;;
+                        *)
+                                usage
+                                ;;
+                esac
+                ;;
+        *)
+                usage
+                ;;
+esac
+
+echo "Command succesful."
+

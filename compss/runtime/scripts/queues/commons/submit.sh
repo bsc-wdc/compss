@@ -238,10 +238,10 @@ get_args() {
             gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	  tasks_per_node=*)
-	    tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
-	    args_pass="$args_pass --$OPTARG"
-	    ;;
+	      tasks_per_node=*)
+	        tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
+	        args_pass="$args_pass --$OPTARG"
+	        ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')
             ;;
@@ -335,7 +335,15 @@ check_args() {
   fi
 
   if [ -z "${tasks_per_node}" ]; then
-      tasks_per_node=${DEFAULT_TASKS_PER_NODE}
+    tasks_per_node=${DEFAULT_TASKS_PER_NODE}
+  fi
+
+  if [ -z "${MAX_TASKS_PER_NODE}" ]; then
+    MAX_TASKS_PER_NODE=${DEFAULT_TASKS_PER_NODE}
+  fi
+
+  if [ ${MAX_TASKS_PER_NODE} -lt ${tasks_per_node} ]; then
+    tasks_per_node=${MAX_TASKS_PER_NODE}
   fi
 
   maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
@@ -594,10 +602,12 @@ submit() {
   
   # Load specific queue system variables
   source ${scriptDir}/../cfgs/${sc_cfg}
-  source ${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
 
   # Check parameters
   check_args
+
+  # Load specific queue system flags
+  source ${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
 
   # Log received arguments
   log_args

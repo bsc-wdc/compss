@@ -288,6 +288,21 @@ get_args() {
 }
 
 ###############################################
+# Function to set the wall clock time
+###############################################
+set_time() {
+  if [ -z "${exec_time}" ]; then
+    exec_time=${DEFAULT_EXEC_TIME}
+  fi
+
+  if [ -z "${WC_CONVERSION_FACTOR}" ]; then
+    convert_to_wc $exec_time
+  else
+    wc_limit=$(($exec_time * ${WC_CONVERSION_FACTOR}))
+  fi  
+}
+
+###############################################
 # Function to check the arguments
 ###############################################
 check_args() {
@@ -298,16 +313,6 @@ check_args() {
     queue=${DEFAULT_QUEUE}
   fi
 
-  if [ -z "${exec_time}" ]; then
-    exec_time=${DEFAULT_EXEC_TIME}
-  fi
-
-  if [ -z "${WC_CONVERSION_FACTOR}" ]; then
-    convert_to_wc $exec_time
-  else
-    wc_limit=$(($exec_time * ${WC_CONVERSION_FACTOR}))   
-  fi
-  
   if [ -z "${reservation}" ]; then
     reservation=${DEFAULT_RESERVATION}
   fi
@@ -608,6 +613,9 @@ submit() {
 
   # Load specific queue system flags
   source ${scriptDir}/../${QUEUE_SYSTEM}/${QUEUE_SYSTEM}.cfg
+
+  # Set wall clock time
+  set_time
 
   # Log received arguments
   log_args

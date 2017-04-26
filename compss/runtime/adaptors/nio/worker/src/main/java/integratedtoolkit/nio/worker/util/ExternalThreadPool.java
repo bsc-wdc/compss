@@ -23,6 +23,7 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
 
     // Logger messages
     private static final String ERROR_PB = "Error starting ProcessBuilder";
+    private static final String ERROR_GC = "Error generating worker external launch command";
 
     // Piper paths
     protected static final String PIPER_SCRIPT_RELATIVE_PATH = "Runtime" + File.separator + "scripts" + File.separator + "system"
@@ -117,6 +118,10 @@ public abstract class ExternalThreadPool extends JobsThreadPool {
         logger.info("Init piper ProcessBuilder");
         String generalArgs = constructGeneralArgs();
         String specificArgs = getLaunchCommand();
+        if (specificArgs== null){
+        	ErrorManager.error(ERROR_GC);
+        	return;
+        }
         ProcessBuilder pb = new ProcessBuilder(piperScript, generalArgs, specificArgs);
         try {
             // Set NW environment

@@ -478,15 +478,15 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     public final Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
         Score computedScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
-        LOGGER.debug("Scheduling Score " + computedScore);
+        // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
     }
 
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        if (DEBUG) {
-            LOGGER.debug("Scheduling " + this + ". Computing best worker and best implementation");
-        }
+        //if (DEBUG) {
+        //    LOGGER.debug("Scheduling " + this + ". Computing best worker and best implementation");
+        //}
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
 
         // COMPUTE RESOURCE CANDIDATES
@@ -549,9 +549,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     public final void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
 
-        if (DEBUG) {
-            LOGGER.debug("Scheduling " + this + " on worker " + targetWorker.getName() + ". Computing best implementation");
-        }
+        //if (DEBUG) {
+        //    LOGGER.debug("Scheduling " + this + " on worker " + targetWorker.getName() + ". Computing best implementation");
+        //}
 
         if (targetWorker == null
                 // Resource is not compatible with the Core
@@ -605,10 +605,10 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             throw new UnassignedActionException();
         }
 
-        if (DEBUG) {
-            LOGGER.debug(
-                    "Scheduling " + this + " on worker " + targetWorker.getName() + " with implementation " + impl.getImplementationId());
-        }
+        //if (DEBUG) {
+        //    LOGGER.debug(
+        //            "Scheduling " + this + " on worker " + targetWorker.getName() + " with implementation " + impl.getImplementationId());
+        //}
 
         if (// Resource is not compatible with the implementation
         !targetWorker.getResource().canRun(impl)

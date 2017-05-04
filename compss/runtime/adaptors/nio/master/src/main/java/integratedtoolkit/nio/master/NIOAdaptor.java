@@ -294,6 +294,8 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
         if (ws != null) {
             ws.setWorkerIsReady();
+        }else{
+        	logger.warn("WARN: worker starter for worker " + nodeName + " is null.");
         }
     }
 

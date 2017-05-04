@@ -67,6 +67,7 @@ public class WorkerStarter {
     }
 
     public void setWorkerIsReady() {
+    	logger.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
         workerIsReady = true;
     }
 
@@ -107,7 +108,7 @@ public class WorkerStarter {
             n = new NIONode(name, port);
             String nodeName = nw.getName();
             addresstoWorkerStarter.put(nodeName, this);
-
+            logger.debug("[WorkerStarter] Worker starter registers in the hashmap");
             command = getStartCommand(nw, port);
             long timer = 0;
             while(pid<0){
@@ -139,11 +140,12 @@ public class WorkerStarter {
             long delay = WAIT_TIME_UNIT;
             long totalWait = 0;
 
-            logger.debug("Worker process started. Checking connectivity...");
+            logger.debug("[WorkerStarter] Worker process started. Checking connectivity...");
 
             CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
             while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
                 try {
+                	logger.debug("[WorkerStarter] Waiting to send next check worker command with delay " + delay);
                     Thread.sleep(delay);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
@@ -151,7 +153,7 @@ public class WorkerStarter {
 
                 if (!workerIsReady) {
                     if (debug) {
-                        logger.debug("Sending check command to worker " + nodeName);
+                        logger.debug("[WorkerStarter] Sending check command to worker " + nodeName);
                     }
                     Connection c = NIOAdaptor.tm.startConnection(n);
                     c.sendCommand(cmd);
@@ -162,7 +164,7 @@ public class WorkerStarter {
                     delay = (delay < 3900) ? delay * 2 : 4000;
                 }
             }
-
+            logger.debug("[WorkerStarter] Retries for " + nodeName + " have finished.");
             if (!workerIsReady) {
                 ++port;
             } else {
@@ -171,7 +173,6 @@ public class WorkerStarter {
                 } catch (IllegalStateException e) {
                     logger.warn("Tried to shutdown vm while it was already being shutdown", e);
                 }
-
                 return n;
             }
         }

@@ -290,7 +290,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void setWorkerIsReady(String nodeName) {
-        logger.info("Notifying that worker is ready " + nodeName);
+        logger.info("Notifying that worker is ready '" + nodeName + "'");
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
         if (ws != null) {
             ws.setWorkerIsReady();

@@ -81,7 +81,11 @@ public class WorkerStarter {
         int minPort = nw.getConfiguration().getMinPort();
         int maxPort = nw.getConfiguration().getMaxPort();
         int port = minPort;
-
+        //Solves exit error 143
+        synchronized(addresstoWorkerStarter){
+        	addresstoWorkerStarter.put(name, this);
+        	logger.debug("[WorkerStarter] Worker starter for " + name+ " registers in the hashmap");
+        }
         NIONode n = null;
         int pid = -1;
         while (port <= maxPort && !toStop) {
@@ -106,9 +110,7 @@ public class WorkerStarter {
             }
 
             n = new NIONode(name, port);
-            String nodeName = nw.getName();
-            addresstoWorkerStarter.put(nodeName, this);
-            logger.debug("[WorkerStarter] Worker starter registers in the hashmap");
+                    
             command = getStartCommand(nw, port);
             long timer = 0;
             while(pid<0){
@@ -142,7 +144,7 @@ public class WorkerStarter {
 
             logger.debug("[WorkerStarter] Worker process started. Checking connectivity...");
 
-            CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, nodeName);
+            CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, name);
             while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
                 try {
                 	logger.debug("[WorkerStarter] Waiting to send next check worker command with delay " + delay);
@@ -153,7 +155,7 @@ public class WorkerStarter {
 
                 if (!workerIsReady) {
                     if (debug) {
-                        logger.debug("[WorkerStarter] Sending check command to worker " + nodeName);
+                        logger.debug("[WorkerStarter] Sending check command to worker " + name);
                     }
                     Connection c = NIOAdaptor.tm.startConnection(n);
                     c.sendCommand(cmd);
@@ -164,7 +166,7 @@ public class WorkerStarter {
                     delay = (delay < 3900) ? delay * 2 : 4000;
                 }
             }
-            logger.debug("[WorkerStarter] Retries for " + nodeName + " have finished.");
+            logger.debug("[WorkerStarter] Retries for " + name + " have finished.");
             if (!workerIsReady) {
                 ++port;
             } else {

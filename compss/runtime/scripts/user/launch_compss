@@ -867,7 +867,7 @@ launch() {
     fi
 
     # Sleep a little before launching master
-    sleep 1s
+    sleep 10s
   fi
 
   # Launch master

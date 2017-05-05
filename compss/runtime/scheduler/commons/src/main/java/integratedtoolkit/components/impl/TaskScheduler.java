@@ -211,7 +211,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @return
      */
     public ResourceScheduler<P, T, I> generateSchedulerForResource(Worker<T, I> w) {
-        LOGGER.info("[TaskScheduler] Generate scheduler for resource " + w.getName());
+        //LOGGER.info("[TaskScheduler] Generate scheduler for resource " + w.getName());
         return new ResourceScheduler<P, T, I>(w);
     }
 
@@ -221,7 +221,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @return
      */
     public SchedulingInformation<P, T, I> generateSchedulingInformation() {
-        LOGGER.info("[TaskScheduler] Generate empty scheduling information");
+        //LOGGER.info("[TaskScheduler] Generate empty scheduling information");
         return new SchedulingInformation<P, T, I>();
     }
 
@@ -232,7 +232,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @return
      */
     public Score generateActionScore(AllocatableAction<P, T, I> action) {
-        LOGGER.debug("[TaskScheduler] Generate priority action score");
+        //LOGGER.debug("[TaskScheduler] Generate priority action score");
         return new Score(action.getPriority(), 0, 0, 0);
     }
 

@@ -533,9 +533,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         }
 
         // CHECK SCHEDULING RESULT
-        if (DEBUG) {
-            LOGGER.debug(debugString.toString());
-        }
+        //if (DEBUG) {
+        //    LOGGER.debug(debugString.toString());
+        //}
 
         if (bestWorker == null && usefulResources == 0) {
             LOGGER.warn("No worker can run " + this);

@@ -123,8 +123,11 @@ def main():
         initStorage(config_file_path=storage_conf)
         module_warnings()
         execfile(app_path, globals())    # MAIN EXECUTION
-        finishStorage()
-        logger.debug("--- END ---")
+    except SystemExit as e:
+        if e.code == 0:
+            pass
+        else:
+            print "[ ERROR ]: User program ended with exitcode %s"%e.code
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -132,6 +135,8 @@ def main():
         for line in lines:
             if app_path in line:
                 print "[ ERROR ]: In: " + line,
+    finishStorage()
+    logger.debug("--- END ---")
 
     compss_stop()
 

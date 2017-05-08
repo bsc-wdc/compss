@@ -710,7 +710,7 @@ def reveal_objects(values,
                     answer = cache_pipe.recv()
                     # have we received an answer of the form (key, bytes) ?
                     # if yes, read from the indicated SHM
-                    #obj = deserialize_from_file(value)
+                    # obj = deserialize_from_file(value)
                     if isinstance(answer, tuple):
                         from shm_manager import shm_manager as SHM
                         manager = SHM(answer[0], answer[1], 0600)

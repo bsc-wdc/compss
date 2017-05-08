@@ -42,6 +42,11 @@ persistent_cache = Extension("persistent_cache",
 	sources = ['src/ext/persistent_cache.cc']
 )
 
+thread_affinity = Extension("thread_affinity",
+    include_dirs = ['src/ext'],
+    sources = ['src/ext/thread_affinity.cc']
+)
+
 setup (name='pycompss',
 	version='2.0.rc1704',
 	description='Python Binding for COMP Superscalar Runtime',
@@ -53,5 +58,4 @@ setup (name='pycompss',
     package_dir={'pycompss':'src/pycompss'},
 	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
 	package_data={'' : ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'bin/worker_python.sh']},
-	ext_modules=[compssmodule, shm_manager, persistent_cache])
-    
+	ext_modules=[compssmodule, shm_manager, persistent_cache, thread_affinity])

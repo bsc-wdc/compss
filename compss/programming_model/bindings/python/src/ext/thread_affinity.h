@@ -24,13 +24,14 @@
 #include <structmember.h>
 #include <unistd.h>
 #include <sched.h>
-
+#include <vector>
 
 /*
   Wrapper for sched_setaffinity.
   Arguments:
+  - mask: a list of integers that denote the CPU identifiers (0-based) that we
+          want to allow
   - pid: if zero, this will be transformed to the current pid
-  - mask: the affinity mask to be used
   Returns None
 */
 static PyObject* pysched_setaffinity(PyObject* self, PyObject* args);
@@ -40,17 +41,17 @@ static PyObject* pysched_setaffinity(PyObject* self, PyObject* args);
   Wrapper for sched_getaffinity.
   Arguments:
   - pid (OPTIONAL): if zero or ommited, this will be transformed to the current pid
-  Returns the mask that this thread currently has
+  Returns the list of allowed CPUs
 */
 static PyObject* pysched_getaffinity(PyObject* self, PyObject* args);
 
 PyMethodDef module_methods[] = {
     {"setaffinity", pysched_setaffinity, METH_VARARGS,
-    "Args: (pid, mask) -> set the affinity for the thread with given pid\
+    "Args: (mask, pid[OPTIONAL]) -> set the affinity for the thread with given pid\
     to given mask. If pid equals zero, then the current thread's affinity\
     will be changed."},
     {"getaffinity", pysched_getaffinity, METH_VARARGS,
-    "Args: (pid (optional)) -> returns the affinity for the thread with given\
+    "Args: (pid[OPTIONAL]) -> returns the affinity for the thread with given\
     pid. If now specified, returns the affinity for the current thread."},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };

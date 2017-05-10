@@ -139,7 +139,8 @@ def main():
     logger.debug("--- END ---")
 
     compss_stop()
-
+    sys.stdout.flush()
+    sys.stderr.flush()
     # --- Execution finished ---
 
 

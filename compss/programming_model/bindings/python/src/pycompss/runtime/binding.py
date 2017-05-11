@@ -429,7 +429,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     # Check that there is the same amount of values as their types, as well as their directions.
     assert(len(values) == len(compss_types) and len(values) == len(compss_directions))
 
-    '''
+    ''' # OLD - DEPRECATED
     # Submit task to the runtime (call to the C extension):
     # Parameters:
     #    0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
@@ -448,7 +448,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
                         values, compss_types, compss_directions)
     '''
 
-    signature = path + f.__name__
+    signature = path + '.' + f.__name__
     num_nodes = 0 # default due to not MPI decorator yet
     replicated = False
     distributed = False

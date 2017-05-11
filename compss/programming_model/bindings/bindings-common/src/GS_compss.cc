@@ -796,7 +796,7 @@ void GS_ExecuteTask(long _appId, char *class_name, char *method_name, int priori
   }
 }
 
-void GS_ExecuteTaskNew(long appId, char *signature, int priority, int num_nodes, int replicated, int distributed, int has_target, int num_params, void **params)
+void GS_ExecuteTaskNew(long _appId, char *signature, int priority, int num_nodes, int replicated, int distributed, int has_target, int num_params, void **params)
 {
   jobjectArray jobjOBJArr; /* array of Objects to be passed to executeTask */
 
@@ -935,4 +935,3 @@ void GS_EmitEvent(int type, long id)
     }
   }
 }
-

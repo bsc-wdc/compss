@@ -16,35 +16,29 @@ public class FileParameter extends DependencyParameter {
     private static final long serialVersionUID = 1L;
 
     // File parameter fields
-    private DataLocation location;
-    private String originalName;
+    private final DataLocation location;
+    private final String originalName;
 
 
     public FileParameter(Direction direction, Stream stream, String prefix, DataLocation location, String originalName) {
         super(DataType.FILE_T, direction, stream, prefix);
         this.location = location;
         this.originalName = originalName;
-        
+
     }
 
     public DataLocation getLocation() {
         return location;
     }
-    
+
     @Override
-    public String getOriginalName(){
-    	return originalName;
+    public String getOriginalName() {
+        return originalName;
     }
-    
-    @Override
-    public void setOriginalName(String originalName){
-    	this.originalName = originalName;
-    }
-    
 
     @Override
     public String toString() {
-        return location + " " + getType() + " " + getDirection();
+        return "FileParameter with location " + location + ", type " + getType() + ", direction " + getDirection();
     }
 
 }

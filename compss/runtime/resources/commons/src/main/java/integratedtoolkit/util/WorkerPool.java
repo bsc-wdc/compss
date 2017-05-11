@@ -14,14 +14,14 @@ public class WorkerPool {
 
     // Resource Sets:
     // Static Resources (read from xml)
-    private HashMap<String, Worker<?, ?>> staticSet;
+    private final HashMap<String, Worker<?, ?>> staticSet;
     // Critical Resources (can't be destroyed by periodical resource policy)
-    private HashMap<String, CloudMethodWorker> criticalSet;
+    private final HashMap<String, CloudMethodWorker> criticalSet;
     // Non Critical Resources (can be destroyed by periodical resource policy)
-    private HashMap<String, CloudMethodWorker> nonCriticalSet;
+    private final HashMap<String, CloudMethodWorker> nonCriticalSet;
 
     // TreeSet : Priority on criticalSet based on cost
-    private TreeSet<CloudMethodWorker> criticalOrder;
+    private final TreeSet<CloudMethodWorker> criticalOrder;
 
 
     public WorkerPool() {
@@ -42,7 +42,7 @@ public class WorkerPool {
         criticalOrder.add(newResource);
     }
 
-    public void coreElementUpdates(LinkedList<Integer> newCores) {
+    public void coreElementUpdates(List<Integer> newCores) {
         for (Worker<?, ?> r : staticSet.values()) {
             r.updatedCoreElements(newCores);
         }
@@ -199,7 +199,7 @@ public class WorkerPool {
         // Compute cores from impl
         int[] slotReductionCores = new int[coreCount];
         for (int coreId = 0; coreId < coreCount; ++coreId) {
-            for (int implId = 0; implId < CoreManager.getCoreImplementations(coreId).length; ++implId) {
+            for (int implId = 0; implId < CoreManager.getNumberCoreImplementations(coreId); ++implId) {
                 if (slotReductionImpls[coreId][implId] > slotReductionCores[coreId]) {
                     slotReductionCores[coreId] = slotReductionImpls[coreId][implId];
                 }

@@ -5,25 +5,25 @@ digraph {
     ranksep=0.20;
     node[height=0.75];
 
-1[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
+1[shape=circle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
 Synchro0 -> 1[ label="d1" ];
-2[shape=doublecircle, style=filled fillcolor="#0000ff" fontcolor="#ffffff"];
+2[shape=doublecircle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
 1 -> 2[ label="d1" ];
-3[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+3[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 3[ label="d2" ];
-4[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+4[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 4[ label="d2" ];
-5[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+5[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 5[ label="d2" ];
-6[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+6[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 6[ label="d2" ];
-7[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+7[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 7[ label="d2" ];
-8[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+8[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 8[ label="d2" ];
-9[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+9[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 9[ label="d2" ];
-10[shape=circle, style=filled fillcolor="#ffffff" fontcolor="#000000"];
+10[shape=circle, style=filled fillcolor="#ff0000" fontcolor="#000000"];
 2 -> 10[ label="d2" ];  }
   subgraph legend {
     rank=sink;
@@ -31,18 +31,18 @@ Synchro0 -> 1[ label="d1" ];
     ranksep=0.20;
     label = "Legend";
     key [label=<
-      <table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+      <table border="0" cellpadding="2" cellspacing="0" cellborder="1">
 <tr>
 <td align="right">initInitialP</td>
-<td bgcolor="#ff0000">&nbsp;</td>
-</tr>
-<tr>
-<td align="right">globalTask</td>
 <td bgcolor="#0000ff">&nbsp;</td>
 </tr>
 <tr>
-<td align="right">normalTask</td>
+<td align="right">globalTask</td>
 <td bgcolor="#ffffff">&nbsp;</td>
+</tr>
+<tr>
+<td align="right">normalTask</td>
+<td bgcolor="#ff0000">&nbsp;</td>
 </tr>
       </table>
     >]

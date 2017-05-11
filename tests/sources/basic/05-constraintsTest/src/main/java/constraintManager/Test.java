@@ -2,6 +2,7 @@ package constraintManager;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import commons.ConstantValues;
@@ -51,8 +52,7 @@ public class Test {
     }
 
     /*
-     * *************************************** 
-     * CONSTRAINT MANAGER TEST IMPLEMENTATION
+     * *************************************** CONSTRAINT MANAGER TEST IMPLEMENTATION
      * ***************************************
      */
     @SuppressWarnings("unchecked")
@@ -99,12 +99,12 @@ public class Test {
                 System.out.println("[ERROR] Method " + coreToName[i] + "not found.");
                 System.exit(-1);
             }
-            
+
             // Add general constraints
             if (m.isAnnotationPresent(Constraints.class)) {
                 generalConstraintsItf[i] = m.getAnnotation(Constraints.class);
             }
-            
+
             // Get declaring class of each method annotation
             Method[] annotations = m.getAnnotationsByType(Method.class);
             declaringClassesItf[i] = new String[annotations.length];
@@ -112,13 +112,13 @@ public class Test {
                 Method methodAnnotation = annotations[j];
                 declaringClassesItf[i][j] = methodAnnotation.declaringClass();
             }
-            
+
             // Get specific constraints of each method annotation
             constraintsItf[i] = new Constraints[annotations.length];
             for (int j = 0; j < annotations.length; ++j) {
                 Method methodAnnotation = annotations[j];
                 constraintsItf[i][j] = methodAnnotation.constraints();
-            }            
+            }
         }
 
         // Check all cores
@@ -141,26 +141,26 @@ public class Test {
             System.exit(-1);
         }
 
-        Implementation<?>[] implementations = CoreManager.getCoreImplementations(coreId);
-        System.out.println("[LOG] \t Has " + implementations.length + " implementations registered");
-        if (declaringClassesItf[coreId].length != implementations.length) {
-            System.out.println(coreToName[coreId] + " has " + implementations.length + " registered implementations and there are "
+        List<Implementation<?>> implementations = CoreManager.getCoreImplementations(coreId);
+        System.out.println("[LOG] \t Has " + implementations.size() + " implementations registered");
+        if (declaringClassesItf[coreId].length != implementations.size()) {
+            System.out.println(coreToName[coreId] + " has " + implementations.size() + " registered implementations and there are "
                     + declaringClassesItf[coreId].length + " declaringClasses in the CEI");
             System.exit(-1);
         }
 
         // Check all constraints
-        for (int impl = 0; impl < declaringClassesItf[coreId].length; impl++) {
-            MethodImplementation m = ((MethodImplementation) implementations[impl]);
-            System.out.println("[LOG] \t" + declaringClassesItf[coreId][impl]);
-            if (declaringClassesItf[coreId][impl].compareTo(m.getDeclaringClass()) != 0) {
-                System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl]
+        for (int implId = 0; implId < declaringClassesItf[coreId].length; implId++) {
+            MethodImplementation m = ((MethodImplementation) implementations.get(implId));
+            System.out.println("[LOG] \t" + declaringClassesItf[coreId][implId]);
+            if (declaringClassesItf[coreId][implId].compareTo(m.getDeclaringClass()) != 0) {
+                System.out.println(coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][implId]
                         + " is not included registered in the system");
                 System.exit(-1);
             }
-            String constraint = checkConstraints(generalConstraintsItf[coreId], constraintsItf[coreId][impl], m.getRequirements());
+            String constraint = checkConstraints(generalConstraintsItf[coreId], constraintsItf[coreId][implId], m.getRequirements());
             if (constraint != null) {
-                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][impl]
+                System.out.println("Constraints for " + coreToName[coreId] + "'s declaringClass " + declaringClassesItf[coreId][implId]
                         + " does not meet the annotations (" + constraint + ")");
                 System.exit(-1);
             }
@@ -171,8 +171,7 @@ public class Test {
         boolean ret = true;
 
         /*
-         * ***************************************** 
-         * ComputingUnits
+         * ***************************************** ComputingUnits
          *****************************************/
         if (general == null || general.computingUnits().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.computingUnits().equals(Constants.UNASSIGNED)) {
@@ -203,8 +202,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Processor
+         * ***************************************** Processor
          *****************************************/
         // !!! When checking constraints the limits are always on Processor 0
         if (general == null || general.processorName().equals(Constants.UNASSIGNED)) {
@@ -313,8 +311,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Memory
+         * ***************************************** Memory
          *****************************************/
         if (general == null || general.memorySize().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.memorySize().equals(Constants.UNASSIGNED)) {
@@ -359,8 +356,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Storage
+         * ***************************************** Storage
          *****************************************/
         if (general == null || general.storageSize().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.storageSize().equals(Constants.UNASSIGNED)) {
@@ -405,8 +401,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Operating System
+         * ***************************************** Operating System
          *****************************************/
         if (general == null || general.operatingSystemType().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.operatingSystemType().equals(Constants.UNASSIGNED)) {
@@ -472,8 +467,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Application Software
+         * ***************************************** Application Software
          *****************************************/
         if (general == null || general.appSoftware().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.appSoftware().equals(Constants.UNASSIGNED)) {
@@ -520,8 +514,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * Host Queues
+         * ***************************************** Host Queues
          *****************************************/
         if (general == null || general.hostQueues().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.hostQueues().equals(Constants.UNASSIGNED)) {
@@ -568,8 +561,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * WallClockLimit
+         * ***************************************** WallClockLimit
          *****************************************/
         if (general == null || general.wallClockLimit().equals(Constants.UNASSIGNED)) {
             if (specific == null || specific.wallClockLimit().equals(Constants.UNASSIGNED)) {
@@ -593,8 +585,7 @@ public class Test {
         }
 
         /*
-         * ***************************************** 
-         * ALL CONSTRAINT VALUES OK
+         * ***************************************** ALL CONSTRAINT VALUES OK
          *****************************************/
         return null;
     }

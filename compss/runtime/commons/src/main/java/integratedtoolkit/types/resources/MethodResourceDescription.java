@@ -356,12 +356,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         Processor proc = new Processor();
         proc.setComputingUnits(ONE_INT);
 
-        String[] constraints = description.split(";");
-        for (String c : constraints) {
-            String key = c.split(":")[0].trim();
-            String val = c.split(":")[1].trim();
-            addConstraints(key, val, proc);
+        if (description != null && !description.isEmpty()) {
+            String[] constraints = description.split(";");
+            for (String c : constraints) {
+                String key = c.split(":")[0].trim();
+                String val = c.split(":")[1].trim();
+                addConstraints(key, val, proc);
+            }
         }
+        
         // Add the information retrieved from the processor constraints
         this.addProcessor(proc); // Increases the totalCUs
     }

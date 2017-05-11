@@ -13,7 +13,7 @@ public class ObjectParameter extends DependencyParameter {
      */
     private static final long serialVersionUID = 1L;
 
-    private int hashCode;
+    private final int hashCode;
     private Object value;
 
 
@@ -24,7 +24,7 @@ public class ObjectParameter extends DependencyParameter {
     }
 
     public Object getValue() {
-        return value;
+        return this.value;
     }
 
     public void setValue(Object value) {
@@ -32,18 +32,12 @@ public class ObjectParameter extends DependencyParameter {
     }
 
     public int getCode() {
-        return hashCode;
+        return this.hashCode;
     }
 
     @Override
     public String toString() {
-        return "OBJECT: hash code " + hashCode;
+        return "ObjectParameter with hash code " + this.hashCode;
     }
-
-	@Override
-	public String getOriginalName() {
-		//Object do not have original name;
-		return DependencyParameter.NO_NAME;
-	}
 
 }

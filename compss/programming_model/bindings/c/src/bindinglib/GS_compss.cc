@@ -50,11 +50,9 @@ void compss_ofstream(char * filename, ofstream& ofs) {
 
 
 FILE* compss_fopen(char * filename, char * mode) {
-
   char *runtime_filename;
   FILE* file;
   enum direction dir;
- 
 
   debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", filename);
   
@@ -86,11 +84,10 @@ FILE* compss_fopen(char * filename, char * mode) {
    
 
   return file;
-
 }
 
 
-void compss_delete_file(char * filename)
+void compss_delete_file(char *filename)
 {
     int *result;
     
@@ -102,11 +99,9 @@ void compss_delete_file(char * filename)
 
 void compss_barrier()
 {
-
     //long l_app_id = (long)app_id;
     long int l_app_id = 0;
     GS_Barrier(l_app_id);
-
 }
 
 

@@ -7,13 +7,21 @@
   ERROR_ENV="ERROR: Empty environment parameter"
   ERROR_BAD_ENV="ERROR: BAD ENVIRONMENT PARAMETER."
   ERROR_SKIP_VALUE="ERROR: Invalid skip value. Only true / false allowed"
+  ERROR_ONLY_LANG="ERROR: Invalid only lang value. Only NONE / JAVA / PYTHON / C allowed"
   ERROR_RETRY_VALUE="ERROR: Invalid retry value. Only integers bigger or equal to 1"
   ERROR_CONFIG="ERROR: Empty configuration parameter"
   ERROR_INVALID_ENV="ERROR: Unrecognised environment"
   ERROR_LOAD_CONFIG="ERROR : JAVA_HOME NEEDS TO BE SET ON THE CONFIGURATION FILE.CFG"
 
+  JAVA_LANG="JAVA"
+  PYTHON_LANG="PYTHON"
+  C_LANG="C"
+  NONE_LANG="NONE"
+
   DEFAULT_SKIP=true
   DEFAULT_RETRY=3
+  DEFAULT_ONLY_LANG=${NONE_LANG}
+
 
   #----------------------------------------------------------------------------------------------- 
   # Display functions
@@ -38,6 +46,11 @@ Usage: $0 [options] environment configurationFile
     --no-skip            Disables test skipping
     --retry=<int>        Sets test retries to given value. Must be greater or equal to 1
     --retry              Sets test retries to ${DEFAULT_RETRY}
+    --only-lang=<string> Executes only the tests in the specified language
+                         Default: ${DEFAULT_ONLY_LANG}
+    --only-java          Executes only the JAVA tests
+    --only-python        Executes only the PYTHON tests
+    --only-c             Executes only the C/C++ tests
 
 * Environment:
     - local / local_X
@@ -140,6 +153,18 @@ EOT
             retry)
               retry=${DEFAULT_RETRY}
               ;;
+            only-lang=*)
+              onlyLang=$(echo $OPTARG | sed -e 's/only-lang=//g')
+              ;;
+            only-java)
+              onlyLang=${JAVA_LANG}
+              ;;
+            only-python)
+              onlyLang=${PYTHON_LANG}
+              ;;
+            only-c)
+              onlyLang=${C_LANG}
+              ;;
             *)
               # Flag didn't match any patern. Raise exception
               display_error "Bad argument: $OPTARG"
@@ -172,6 +197,15 @@ EOT
 
     if [ "${skip}" != "true" ] && [ "${skip}" != "false" ]; then
       display_error "${ERROR_SKIP_VALUE}"
+    fi
+
+    if [ -z "${onlyLang}" ]; then
+      onlyLang=${DEFAULT_ONLY_LANG}
+    fi
+    onlyLang=$(echo "${onlyLang}" | tr '[:lower:]' '[:upper:]')
+ 
+    if [ "${onlyLang}" != "${NONE_LANG}" ] && [ "${onlyLang}" != "${JAVA_LANG}" ] && [ "${onlyLang}" != "${PYTHON_LANG}" ] && [ "${onlyLang}" != "${C_LANG}" ]; then
+      display_error "${ERROR_ONLY_LANG}"
     fi
 
     if [ -z "${retry}" ]; then
@@ -294,7 +328,7 @@ EOT
     fi
  
     # Deploy tests
-    $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir}
+    $(dirname $0)/deploy_sources_local ${source_base_dir} ${target_base_dir} ${onlyLang}
     if [ $? -ne 0 ]; then
       exit 1
     fi
@@ -436,6 +470,7 @@ EOT
   logArguments() {
     echo "  - Skip :       ${skip}"
     echo "  - Retries:     ${retry}"
+    echo "  - Only Lang:   ${onlyLang}"
     echo "  - Environment: ${environment}"
     echo "  - CFG File:    ${configuration}"
   }

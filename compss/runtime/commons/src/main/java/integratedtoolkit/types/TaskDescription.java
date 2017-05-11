@@ -2,11 +2,10 @@ package integratedtoolkit.types;
 
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.implementations.ServiceImplementation;
 import integratedtoolkit.types.parameter.Parameter;
-
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
-
 import integratedtoolkit.util.CoreManager;
 
 import java.io.Serializable;
@@ -20,7 +19,7 @@ public class TaskDescription implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final TaskType type;
-    private final String methodName;
+    private final String signature;
     private final Integer coreId;
 
     private final boolean priority;
@@ -33,11 +32,12 @@ public class TaskDescription implements Serializable {
     private final boolean hasReturn;
 
 
-    public TaskDescription(String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
+    public TaskDescription(String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
 
         this.type = TaskType.METHOD;
-        this.methodName = methodName;
+        this.signature = signature;
+        this.coreId = CoreManager.getCoreId(signature);
 
         this.priority = isPrioritary;
         this.numNodes = numNodes;
@@ -46,23 +46,13 @@ public class TaskDescription implements Serializable {
 
         this.hasTarget = hasTarget;
         this.parameters = parameters;
-        if (parameters.length == 0) {
-            this.hasReturn = false;
-        } else {
-            Parameter lastParam = parameters[parameters.length - 1];
-            DataType type = lastParam.getType();
-            this.hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
-        }
-
-        this.coreId = CoreManager.getCoreId(methodClass, methodName, hasTarget, hasReturn, parameters);
+        this.hasReturn = hasReturn;
     }
 
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,
             Parameter[] parameters) {
 
         this.type = TaskType.SERVICE;
-        this.methodName = operation;
 
         this.priority = isPrioritary;
         this.numNodes = Constants.SINGLE_NODE;
@@ -80,47 +70,55 @@ public class TaskDescription implements Serializable {
                     && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
         }
 
-        this.coreId = CoreManager.getCoreId(namespace, service, port, operation, hasTarget, hasReturn, parameters);
+        this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, hasReturn, parameters);
+        this.coreId = CoreManager.getCoreId(signature);
     }
 
     public Integer getId() {
-        return coreId;
+        return this.coreId;
     }
 
     public String getName() {
+        String methodName = this.signature;
+
+        int endIndex = methodName.indexOf('(');
+        if (endIndex >= 0) {
+            methodName = methodName.substring(0, endIndex);
+        }
+
         return methodName;
     }
 
     public boolean hasPriority() {
-        return priority;
+        return this.priority;
     }
 
     public int getNumNodes() {
-        return numNodes;
+        return this.numNodes;
     }
 
     public boolean isSingleNode() {
-        return numNodes == Constants.SINGLE_NODE;
+        return this.numNodes == Constants.SINGLE_NODE;
     }
 
     public boolean isReplicated() {
-        return mustReplicate;
+        return this.mustReplicate;
     }
 
     public boolean isDistributed() {
-        return mustDistribute;
+        return this.mustDistribute;
     }
 
     public Parameter[] getParameters() {
-        return parameters;
+        return this.parameters;
     }
 
     public boolean hasTargetObject() {
-        return hasTarget;
+        return this.hasTarget;
     }
 
     public boolean hasReturnValue() {
-        return hasReturn;
+        return this.hasReturn;
     }
 
     public TaskType getType() {

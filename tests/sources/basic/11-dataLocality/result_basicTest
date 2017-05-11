@@ -31,7 +31,7 @@
   # Compute result status
   target_expected1=$'COMPSsWorker01\nCOMPSsWorker01\nCOMPSsWorker01\nCOMPSsWorker01\nCOMPSsWorker01'
   target_expected2=$'COMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02\nCOMPSsWorker02'
-  target_got=$(cat $runtime_log | grep "* Target host:" | rev | cut -d " " -f 1 | rev)
+  target_got=$(cat $runtime_log | grep "* Target host:" | awk {' print $NF '})
   
   score_expected_useless=$'0.0\n0.0\n0.0\n0.0' 
   score_expected_useful=$'1.0\n1.0\n1.0\n1.0'

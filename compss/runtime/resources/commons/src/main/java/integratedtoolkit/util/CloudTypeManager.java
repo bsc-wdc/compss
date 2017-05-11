@@ -7,6 +7,7 @@ import integratedtoolkit.types.resources.description.CloudMethodResourceDescript
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -54,7 +55,7 @@ public class CloudTypeManager {
         LinkedList<CloudMethodResourceDescription> compatiblesList = new LinkedList<CloudMethodResourceDescription>();
 
         for (Type type : types.values()) {
-            CloudMethodResourceDescription mixedDescription = new CloudMethodResourceDescription(type.rd);
+            CloudMethodResourceDescription mixedDescription = new CloudMethodResourceDescription(type.getResourceDescription());
             if (mixedDescription.contains(requested)) {
                 // Satisfies the constraints, add compatible
                 compatiblesList.add(mixedDescription);
@@ -104,7 +105,7 @@ public class CloudTypeManager {
     public CloudMethodResourceDescription getDescription(String type) {
         Type t = types.get(type);
         if (t != null) {
-            return t.rd;
+            return t.getResourceDescription();
         }
         return null;
     }
@@ -112,7 +113,7 @@ public class CloudTypeManager {
     public int[][] getSimultaneousImpls(String type) {
         Type t = types.get(type);
         if (t != null) {
-            return t.slotsImpl;
+            return t.getSlotsImpl();
         }
         return null;
     }
@@ -128,8 +129,8 @@ public class CloudTypeManager {
             if (amount != null && amount[0] > 0) {
                 Type t = types.get(type);
                 if (t != null) {
-                    value[0] = t.slotsCore;
-                    value[1] = t.rd;
+                    value[0] = t.getSlotsCore();
+                    value[1] = t.getResourceDescription();
                     h.put(type, value);
                 }
             }
@@ -158,39 +159,42 @@ public class CloudTypeManager {
             int[] counts = entry.getValue();
             Type type = types.get(typeName);
             if (type != null && counts[0] > 0) {
-                composition.put(type.rd, counts[0]);
+                composition.put(type.getResourceDescription(), counts[0]);
             }
         }
         return composition;
     }
 
-    public void newCoreElementsDetected(LinkedList<Integer> newCores) {
+    public void newCoreElementsDetected(List<Integer> newCores) {
         int coreCount = CoreManager.getCoreCount();
         for (Type type : types.values()) {
             int[] slotsC = new int[coreCount];
             int[][] slotsI = new int[coreCount][];
             // Copy actual values
-            System.arraycopy(type.slotsCore, 0, slotsC, 0, type.slotsCore.length);
-            for (int i = 0; i < type.slotsImpl.length; ++i) {
-                slotsI[i] = new int[type.slotsImpl[i].length];
-                System.arraycopy(type.slotsImpl[i], 0, slotsI[i], 0, type.slotsImpl[i].length);
+            int[] slotsCore = type.getSlotsCore();
+            System.arraycopy(slotsCore, 0, slotsC, 0, slotsCore.length);
+            for (int i = 0; i < type.getSlotsImplLength(); ++i) {
+                int[] slotsImpl = type.getSpecificSlotsImpl(i);
+                slotsI[i] = new int[slotsImpl.length];
+                System.arraycopy(slotsImpl, 0, slotsI[i], 0, slotsImpl.length);
             }
             // Get new values
             for (int coreId : newCores) {
-                Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
-                slotsI[coreId] = new int[impls.length];
-                for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getTaskType() == TaskType.METHOD) {
-                        MethodResourceDescription rd = (MethodResourceDescription) impls[implId].getRequirements();
-                        Integer into = type.rd.canHostSimultaneously(rd);
+                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                int implsSize = impls.size();
+                slotsI[coreId] = new int[implsSize];
+                for (int implId = 0; implId < implsSize; ++implId) {
+                    Implementation<?> impl = impls.get(implId);
+                    if (impl.getTaskType() == TaskType.METHOD) {
+                        MethodResourceDescription rd = (MethodResourceDescription) impl.getRequirements();
+                        Integer into = type.getResourceDescription().canHostSimultaneously(rd);
                         slotsC[coreId] = Math.max(slotsC[coreId], into);
                         slotsI[coreId][implId] = into;
                     }
-
                 }
             }
-            type.slotsCore = slotsC;
-            type.slotsImpl = slotsI;
+            type.setSlotsCore(slotsC);
+            type.setSlotsImpl(slotsI);
         }
     }
 
@@ -207,19 +211,19 @@ public class CloudTypeManager {
                 sb.append(prefix).append("\t").append("\t").append("\t").append("CORE = [").append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
-                        .append(type.getValue().slotsCore[i]).append("\n");
+                        .append(type.getValue().getSpecificSlotsCore(i)).append("\n");
                 sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
             }
             sb.append(prefix).append("\t").append("\t").append("]").append("\n");
 
             sb.append(prefix).append("\t").append("\t").append("IMPLEMENTATIONS = [").append("\n");
             for (int i = 0; i < coreCount; ++i) {
-                for (int j = 0; j < CoreManager.getCoreImplementations(i).length; ++j) {
+                for (int j = 0; j < CoreManager.getNumberCoreImplementations(i); ++j) {
                     sb.append(prefix).append("\t").append("\t").append("\t").append("IMPLEMENTATION = [").append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("COREID = ").append(i).append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("IMPLID = ").append(j).append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("\t").append("SLOTS = ")
-                            .append(type.getValue().slotsImpl[i][j]).append("\n");
+                            .append(type.getValue().getSpecificSlotsImpl(i, j)).append("\n");
                     sb.append(prefix).append("\t").append("\t").append("\t").append("]").append("\n");
                 }
             }
@@ -255,30 +259,69 @@ public class CloudTypeManager {
 
     private class Type {
 
-        private CloudMethodResourceDescription rd;
+        private final CloudMethodResourceDescription rd;
         private int[] slotsCore;
         private int[][] slotsImpl;
 
 
         public Type(CloudMethodResourceDescription rd) {
             this.rd = rd;
+
             int coreCount = CoreManager.getCoreCount();
-            slotsCore = new int[coreCount];
-            slotsImpl = new int[coreCount][];
+            this.slotsCore = new int[coreCount];
+            this.slotsImpl = new int[coreCount][];
+
             // Get new values
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
-                slotsImpl[coreId] = new int[impls.length];
-                for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getTaskType() == TaskType.METHOD) {
-                        MethodResourceDescription reqs = (MethodResourceDescription) impls[implId].getRequirements();
+                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                int implsSize = impls.size();
+                this.slotsImpl[coreId] = new int[implsSize];
+                for (int implId = 0; implId < implsSize; ++implId) {
+                    Implementation<?> impl = impls.get(implId);
+                    if (impl.getTaskType() == TaskType.METHOD) {
+                        MethodResourceDescription reqs = (MethodResourceDescription) impl.getRequirements();
                         Integer into = rd.canHostSimultaneously(reqs);
-                        slotsCore[coreId] = Math.max(slotsCore[coreId], into);
-                        slotsImpl[coreId][implId] = into;
+                        this.slotsCore[coreId] = Math.max(this.slotsCore[coreId], into);
+                        this.slotsImpl[coreId][implId] = into;
                     }
-
                 }
             }
+        }
+
+        public CloudMethodResourceDescription getResourceDescription() {
+            return this.rd;
+        }
+
+        public int[] getSlotsCore() {
+            return this.slotsCore;
+        }
+
+        public int getSpecificSlotsCore(int index) {
+            return this.slotsCore[index];
+        }
+
+        public void setSlotsCore(int[] slotsCore) {
+            this.slotsCore = slotsCore;
+        }
+
+        public int[][] getSlotsImpl() {
+            return this.slotsImpl;
+        }
+
+        public int getSlotsImplLength() {
+            return this.slotsImpl.length;
+        }
+
+        public int[] getSpecificSlotsImpl(int i) {
+            return this.slotsImpl[i];
+        }
+
+        public int getSpecificSlotsImpl(int i, int j) {
+            return this.slotsImpl[i][j];
+        }
+
+        public void setSlotsImpl(int[][] slotsImpl) {
+            this.slotsImpl = slotsImpl;
         }
     }
 

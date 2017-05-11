@@ -1,6 +1,7 @@
 package integratedtoolkit.util;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
@@ -71,8 +72,7 @@ public class ResourceManager {
 
 
     /*
-     * ******************************************************************** 
-     * INITIALIZER METHOD
+     * ******************************************************************** INITIALIZER METHOD
      ********************************************************************/
     /**
      * Constructs a new ResourceManager using the Resources xml file content. First of all, an empty resource pool is
@@ -129,8 +129,7 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** 
-     * SHUTDOWN METHOD
+     * ******************************************************************** SHUTDOWN METHOD
      ********************************************************************/
     /**
      * Stops all the nodes within the pool
@@ -201,8 +200,7 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** 
-     * STATIC POOL METHODS
+     * ******************************************************************** STATIC POOL METHODS
      ********************************************************************/
     /**
      * Returns a worker instance with the given name @name
@@ -210,7 +208,7 @@ public class ResourceManager {
      * @param name
      * @return
      */
-    public static Worker<?,?> getWorker(String name) {
+    public static Worker<?, ?> getWorker(String name) {
         return pool.getResource(name);
     }
 
@@ -219,7 +217,7 @@ public class ResourceManager {
      *
      * @return list of all the resources
      */
-    public static LinkedList<Worker<?,?>> getAllWorkers() {
+    public static LinkedList<Worker<?, ?>> getAllWorkers() {
         return pool.findAllResources();
     }
 
@@ -268,7 +266,7 @@ public class ResourceManager {
         } else {
             taskCount = Math.max(limitOfTasks, computingUnits);
         }
-        
+
         mc.setLimitOfTasks(taskCount);
 
         limitOfTasks = mc.getLimitOfGPUTasks();
@@ -302,7 +300,7 @@ public class ResourceManager {
         mc.setLimitOfOTHERSTasks(taskCount);
 
         MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
-        maxTasks= maxTasks+newResource.getMaxTaskCount();
+        maxTasks = maxTasks + newResource.getMaxTaskCount();
         addStaticResource(newResource);
     }
 
@@ -338,7 +336,7 @@ public class ResourceManager {
 
     public static void removeWorker(Worker<?, ?> r) {
         pool.delete(r);
-        maxTasks= maxTasks -r.getMaxTaskCount();
+        maxTasks = maxTasks - r.getMaxTaskCount();
         int[] maxTaskCount = r.getSimultaneousTasks();
         for (int coreId = 0; coreId < maxTaskCount.length; ++coreId) {
             poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
@@ -350,7 +348,7 @@ public class ResourceManager {
      *
      * @param updatedCores
      */
-    public static void coreElementUpdates(LinkedList<Integer> updatedCores) {
+    public static void coreElementUpdates(List<Integer> updatedCores) {
         synchronized (pool) {
             pool.coreElementUpdates(updatedCores);
             CloudManager.newCoreElementsDetected(updatedCores);
@@ -358,8 +356,9 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** CLOUD METHODS
-     ********************************************************************/
+     * ************************************************************************************************************
+     * CLOUD METHODS
+     **************************************************************************************************************/
     /**
      * Adds a cloud worker
      *
@@ -370,7 +369,7 @@ public class ResourceManager {
         synchronized (pool) {
             CloudManager.confirmedRequest(origin, worker);
             worker.updatedFeatures();
-            maxTasks = maxTasks+worker.getMaxTaskCount();
+            maxTasks = maxTasks + worker.getMaxTaskCount();
             pool.addDynamicResource(worker);
             pool.defineCriticalSet();
 
@@ -407,7 +406,7 @@ public class ResourceManager {
             maxTasks = maxTasks - worker.getMaxTaskCount();
             worker.increaseFeatures(extension);
             maxTasks = maxTasks + worker.getMaxTaskCount();
-            
+
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
@@ -444,7 +443,7 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
             pool.defineCriticalSet();
-        
+
             //
             resourceUser.updatedResource(worker);
         }
@@ -506,14 +505,14 @@ public class ResourceManager {
      * @return
      */
     public static int[] getTotalSlots() {
-    	int[] counts = new int[CoreManager.getCoreCount()];
-    	int[] cloudCount = CloudManager.getPendingCoreCounts();
-    	synchronized (pool) {
-    		
-    		for (int i = 0; i < counts.length; i++) {
-    			counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
-    		}
-    	}
+        int[] counts = new int[CoreManager.getCoreCount()];
+        int[] cloudCount = CloudManager.getPendingCoreCounts();
+        synchronized (pool) {
+
+            for (int i = 0; i < counts.length; i++) {
+                counts[i] = poolCoreMaxConcurrentTasks[i] + cloudCount[i];
+            }
+        }
         return counts;
     }
 
@@ -532,9 +531,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<Worker<?, ?>> getStaticResources() {
-    	synchronized (pool) {
-    		return pool.getStaticResources();
-    	}
+        synchronized (pool) {
+            return pool.getStaticResources();
+        }
     }
 
     /**
@@ -543,9 +542,9 @@ public class ResourceManager {
      * @return
      */
     public static LinkedList<CloudMethodWorker> getDynamicResources() {
-    	synchronized (pool) {
-    		return pool.getDynamicResources();
-    	}
+        synchronized (pool) {
+            return pool.getDynamicResources();
+        }
     }
 
     /**
@@ -554,9 +553,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<CloudMethodWorker> getCriticalDynamicResources() {
-    	synchronized (pool) {
-    		return pool.getCriticalResources();
-    	}
+        synchronized (pool) {
+            return pool.getCriticalResources();
+        }
     }
 
     /**
@@ -565,9 +564,9 @@ public class ResourceManager {
      * @return
      */
     public static Collection<CloudMethodWorker> getNonCriticalDynamicResources() {
-    	synchronized (pool) {
-    		return pool.getNonCriticalResources();
-    	}
+        synchronized (pool) {
+            return pool.getNonCriticalResources();
+        }
     }
 
     /**
@@ -577,9 +576,9 @@ public class ResourceManager {
      * @return
      */
     public static CloudMethodWorker getDynamicResource(String name) {
-    	synchronized (pool) {
-    		return pool.getDynamicResource(name);
-    	}
+        synchronized (pool) {
+            return pool.getDynamicResource(name);
+        }
     }
 
     /**
@@ -602,19 +601,19 @@ public class ResourceManager {
     public static ResourcesState getResourcesState() {
         ResourcesState state = new ResourcesState();
         synchronized (pool) {
-        	// Set resources information
-        	for (Worker<?, ?> resource : pool.findAllResources()) {
-        		if (resource.getType().equals(Type.WORKER)) {
-        			int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
-        			float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
-        			// Last boolean equals true because this resource is active
-        			state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
-        		} else {
-        			// Services doesn't have cores/memory
-        			// Last boolean equals true because this resource is active
-        			state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
-        		}
-        	}
+            // Set resources information
+            for (Worker<?, ?> resource : pool.findAllResources()) {
+                if (resource.getType().equals(Type.WORKER)) {
+                    int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
+                    float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
+                    // Last boolean equals true because this resource is active
+                    state.addHost(resource.getName(), resource.getType().toString(), cores, memory, resource.getSimultaneousTasks(), true);
+                } else {
+                    // Services doesn't have cores/memory
+                    // Last boolean equals true because this resource is active
+                    state.addHost(resource.getName(), resource.getType().toString(), 0, (float) 0.0, resource.getSimultaneousTasks(), true);
+                }
+            }
         }
         // Set cloud information
         state.setUseCloud(CloudManager.isUseCloud());
@@ -655,14 +654,10 @@ public class ResourceManager {
         for (ResourceCreationRequest r : rcr) {
             // TODO: Add more information (i.e. information per processor, memory type, etc.)
             sb.append(prefix).append("<Resource id=\"requested new VM\">").append("\n");
-            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(0)
-                    .append("</CPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(0)
-                    .append("</GPUComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(0)
-                    .append("</FPGAComputingUnits>").append("\n");
-            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(0)
-                    .append("</OTHERComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<CPUComputingUnits>").append(0).append("</CPUComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<GPUComputingUnits>").append(0).append("</GPUComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<FPGAComputingUnits>").append(0).append("</FPGAComputingUnits>").append("\n");
+            sb.append(prefix + "\t").append("<OTHERComputingUnits>").append(0).append("</OTHERComputingUnits>").append("\n");
             sb.append(prefix + "\t").append("<Memory>").append(0).append("</Memory>").append("\n");
             sb.append(prefix + "\t").append("<Disk>").append(0).append("</Disk>").append("\n");
             sb.append(prefix + "\t").append("<Provider>").append(r.getProvider()).append("</Provider>").append("\n");
@@ -705,8 +700,8 @@ public class ResourceManager {
         return sb.toString();
     }
 
-	public static long getMaxTasks() {
-		return maxTasks;
-	}
+    public static long getMaxTasks() {
+        return maxTasks;
+    }
 
 }

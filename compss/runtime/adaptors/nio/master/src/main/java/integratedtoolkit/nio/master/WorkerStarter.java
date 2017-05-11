@@ -49,8 +49,8 @@ public class WorkerStarter {
     private static final String ERROR_SHUTTING_DOWN_RETRY = "ERROR: Cannot shutdown failed worker PID process";
 
     // Logger
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    protected static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static TreeMap<String, WorkerStarter> addresstoWorkerStarter = new TreeMap<>();
     private boolean workerIsReady = false;
@@ -67,7 +67,7 @@ public class WorkerStarter {
     }
 
     public void setWorkerIsReady() {
-    	logger.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
+        LOGGER.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
         workerIsReady = true;
     }
 
@@ -81,81 +81,80 @@ public class WorkerStarter {
         int minPort = nw.getConfiguration().getMinPort();
         int maxPort = nw.getConfiguration().getMaxPort();
         int port = minPort;
-        //Solves exit error 143
-        synchronized(addresstoWorkerStarter){
-        	addresstoWorkerStarter.put(name, this);
-        	logger.debug("[WorkerStarter] Worker starter for " + name+ " registers in the hashmap");
+        // Solves exit error 143
+        synchronized (addresstoWorkerStarter) {
+            addresstoWorkerStarter.put(name, this);
+            LOGGER.debug("[WorkerStarter] Worker starter for " + name + " registers in the hashmap");
         }
         NIONode n = null;
         int pid = -1;
         while (port <= maxPort && !toStop) {
             String[] command;
             if (pid != -1) {
-            	//Command was started but it is not possible to contact to the worker
+                // Command was started but it is not possible to contact to the worker
                 command = getStopCommand(pid);
                 ProcessOut po = executeCommand(user, name, command);
                 if (po == null) {
                     // Queue System managed worker starter
-                    logger.error("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name
+                    LOGGER.error("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource " + name
                             + ". Retries not available in this option.");
                     throw new InitNodeException("[START_CMD_ERROR]: An Error has occurred when queue system started NIO worker in resource "
                             + name + ". Retries not available in this option.");
                 } else if (po.getExitValue() != 0) {
                     // Normal starting process
-                    logger.error(ERROR_SHUTTING_DOWN_RETRY);
+                    LOGGER.error(ERROR_SHUTTING_DOWN_RETRY);
                 }
-                pid = -1; //Setting pid to -1 to enter to start command after killing the old process
-                
+                pid = -1; // Setting pid to -1 to enter to start command after killing the old process
 
             }
 
             n = new NIONode(name, port);
-                    
+
             command = getStartCommand(nw, port);
             long timer = 0;
-            while(pid<0){
-            	
-            	timer = timer + (WAIT_TIME_UNIT*4);
-            	try{
-            		Thread.sleep(WAIT_TIME_UNIT*4);
-            	}catch(Exception e){
-            		//Nothing to do
-            	}
-            	ProcessOut po = executeCommand(user, name, command);
-            	if (po == null) {
-            		// Queue System managed worker starter
-            		logger.debug("Worker process started in resource " + name +" by queue system.");
-            		pid = 0;
-            	} else if (po.getExitValue() == 0) {
-            		String output = po.getOutput();
-            		String[] lines = output.split("\n");
-            		pid = Integer.parseInt(lines[lines.length - 1]);
-            	} else {
-            		if (timer>MAX_WAIT_FOR_SSH){
-            			throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name + " through user "
-            					+ user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
-            		}
-            		logger.debug(" Worker process failed to start in resource " + name +". Retrying...");
-            		
-            	}
+            while (pid < 0) {
+
+                timer = timer + (WAIT_TIME_UNIT * 4);
+                try {
+                    Thread.sleep(WAIT_TIME_UNIT * 4);
+                } catch (Exception e) {
+                    // Nothing to do
+                }
+                ProcessOut po = executeCommand(user, name, command);
+                if (po == null) {
+                    // Queue System managed worker starter
+                    LOGGER.debug("Worker process started in resource " + name + " by queue system.");
+                    pid = 0;
+                } else if (po.getExitValue() == 0) {
+                    String output = po.getOutput();
+                    String[] lines = output.split("\n");
+                    pid = Integer.parseInt(lines[lines.length - 1]);
+                } else {
+                    if (timer > MAX_WAIT_FOR_SSH) {
+                        throw new InitNodeException("[START_CMD_ERROR]: Could not start the NIO worker in resource " + name
+                                + " through user " + user + ".\n" + "OUTPUT:" + po.getOutput() + "\n" + "ERROR:" + po.getError() + "\n");
+                    }
+                    LOGGER.debug(" Worker process failed to start in resource " + name + ". Retrying...");
+
+                }
             }
             long delay = WAIT_TIME_UNIT;
             long totalWait = 0;
 
-            logger.debug("[WorkerStarter] Worker process started. Checking connectivity...");
+            LOGGER.debug("[WorkerStarter] Worker process started. Checking connectivity...");
 
             CommandCheckWorker cmd = new CommandCheckWorker(DEPLOYMENT_ID, name);
             while ((!workerIsReady) && (totalWait < MAX_WAIT_FOR_INIT) && !toStop) {
                 try {
-                	logger.debug("[WorkerStarter] Waiting to send next check worker command with delay " + delay);
+                    LOGGER.debug("[WorkerStarter] Waiting to send next check worker command with delay " + delay);
                     Thread.sleep(delay);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                 }
 
                 if (!workerIsReady) {
-                    if (debug) {
-                        logger.debug("[WorkerStarter] Sending check command to worker " + name);
+                    if (DEBUG) {
+                        LOGGER.debug("[WorkerStarter] Sending check command to worker " + name);
                     }
                     Connection c = NIOAdaptor.tm.startConnection(n);
                     c.sendCommand(cmd);
@@ -166,14 +165,14 @@ public class WorkerStarter {
                     delay = (delay < 3900) ? delay * 2 : 4000;
                 }
             }
-            logger.debug("[WorkerStarter] Retries for " + name + " have finished.");
+            LOGGER.debug("[WorkerStarter] Retries for " + name + " have finished.");
             if (!workerIsReady) {
                 ++port;
             } else {
                 try {
                     Runtime.getRuntime().addShutdownHook(new Ender(this, nw, pid));
                 } catch (IllegalStateException e) {
-                    logger.warn("Tried to shutdown vm while it was already being shutdown", e);
+                    LOGGER.warn("Tried to shutdown vm while it was already being shutdown", e);
                 }
                 return n;
             }
@@ -181,15 +180,15 @@ public class WorkerStarter {
 
         if (toStop) {
             String msg = "[STOP]: Worker " + name + " stopped during creation because application is stopped";
-            logger.warn(msg);
+            LOGGER.warn(msg);
             throw new InitNodeException(msg);
         } else if (!workerIsReady) {
             String msg = "[TIMEOUT]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
-            logger.warn(msg);
+            LOGGER.warn(msg);
             throw new InitNodeException(msg);
         } else {
             String msg = "[UNKNOWN]: Could not start the NIO worker on resource " + name + " through user " + user + ".";
-            logger.warn(msg);
+            LOGGER.warn(msg);
             throw new InitNodeException(msg);
         }
     }
@@ -209,7 +208,6 @@ public class WorkerStarter {
 
     // Arguments needed for persistent_worker.sh
     private static String[] getStartCommand(NIOWorkerNode node, int workerPort) {
-
         String workingDir = node.getWorkingDir();
         String installDir = node.getInstallDir();
         String appDir = node.getAppDir();
@@ -267,12 +265,12 @@ public class WorkerStarter {
         String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
         if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
             storageConf = "null";
-            logger.warn("No storage configuration file passed");
+            LOGGER.warn("No storage configuration file passed");
         }
         String executionType = System.getProperty(ITConstants.IT_TASK_EXECUTION);
         if (executionType == null || executionType.equals("") || executionType.equals("null")) {
             executionType = ITConstants.EXECUTION_INTERNAL;
-            logger.warn("No executionType passed");
+            LOGGER.warn("No executionType passed");
         }
 
         /*
@@ -367,7 +365,7 @@ public class WorkerStarter {
 
         String[] cmd = this.nw.getConfiguration().getRemoteExecutionCommand(user, resource, command);
         if (cmd == null) {
-            logger.warn("Worker configured to be sarted by queue system.");
+            LOGGER.warn("Worker configured to be sarted by queue system.");
             return null;
         }
         // Log command
@@ -375,7 +373,7 @@ public class WorkerStarter {
         for (String param : cmd) {
             sb.append(param).append(" ");
         }
-        logger.debug("COMM CMD: " + sb.toString());
+        LOGGER.debug("COMM CMD: " + sb.toString());
 
         // Execute command
         try {
@@ -396,15 +394,15 @@ public class WorkerStarter {
             String line;
             while ((line = reader.readLine()) != null) {
                 processOut.appendOutput(line);
-                logger.debug("COMM CMD OUT: " + line);
+                LOGGER.debug("COMM CMD OUT: " + line);
             }
             reader = new BufferedReader(new InputStreamReader(stderr));
             while ((line = reader.readLine()) != null) {
                 processOut.appendError(line);
-                logger.debug("COMM CMD ERR: " + line);
+                LOGGER.debug("COMM CMD ERR: " + line);
             }
         } catch (Exception e) {
-            logger.error("Exception initializing worker ", e);
+            LOGGER.error("Exception initializing worker ", e);
         }
         return processOut;
     }

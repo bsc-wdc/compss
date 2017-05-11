@@ -16,7 +16,9 @@ public class ITConstants {
      * Languages
      */
     public static enum Lang {
-        JAVA, C, PYTHON
+        JAVA, // For Java applications
+        C, // For C or C++ applications
+        PYTHON // For Python applications
     }
 
 

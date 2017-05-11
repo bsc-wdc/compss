@@ -156,8 +156,6 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
                             sys.stdout = out
                             sys.stderr = err
                             exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe, local_cache)
-                            sys.stdout.flush()
-                            sys.stderr.flush()
                             sys.stdout = stdout
                             sys.stderr = stderr
                             out.close()
@@ -187,8 +185,6 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     # TRACING
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
-    sys.stdout.flush()
-    sys.stderr.flush()
     print("[PYTHON WORKER] Exiting process ", process_name)
 
 

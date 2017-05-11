@@ -14,6 +14,7 @@ import integratedtoolkit.util.CoreManager;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,7 +81,7 @@ public class CloudProvider {
         typeManager.add(rd);
     }
 
-    public void newCoreElementsDetected(LinkedList<Integer> newCores) {
+    public void newCoreElementsDetected(List<Integer> newCores) {
         typeManager.newCoreElementsDetected(newCores);
     }
 

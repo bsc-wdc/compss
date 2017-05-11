@@ -2,25 +2,11 @@
 
   runtimelog=$1
 
-  submitList=$(cat $runtimelog | grep "New Job" | rev | cut -c 2-4 | rev)
+  submitList=$(cat $runtimelog | grep "New Job" | tr ":" "\t" | awk {' print $NF '} | tr ")" "\t" | awk {' print $1 '})
   hostList=$(cat $runtimelog  | grep "JobManager" | grep "Target host" | tr ":" "\t" | awk {' print $11 '})
-
+  
   position=1
-  while  read -r line; do
-    separator=$(echo $line | cut -c 1)
-    if [ "$separator" != ":" ]; then 
-       if [ "$separator2" != " " ]; then
-          #Task with 3 numbers
-          task=$line
-       else
-          #Task with 2 numbers
-          task=$(echo $line | cut -c 2-)
-       fi 
-    else
-       #Task with 1 number 
-       task=$(echo $line | cut -c 3-)
-    fi
-
+  while  read -r task; do
     resource=$(echo $hostList | cut -d " " -f $position)
     echo "$task $resource"
     position=$((position+1))

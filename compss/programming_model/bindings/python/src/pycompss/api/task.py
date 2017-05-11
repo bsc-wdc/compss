@@ -27,6 +27,7 @@ import inspect
 import os
 import logging
 import pycompss.runtime.binding as binding
+from pycompss.runtime.core_element import CE
 from pycompss.util.serializer import serialize_objects, deserialize_from_file, deserialize_from_string
 from pycompss.util.interactiveHelpers import updateTasksCodeFile
 from pycompss.util.location import i_am_at_master
@@ -314,11 +315,22 @@ def registerTask(f, module):
     logger.debug("[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, module, str(topDecorator)))
     f.__who_registers__ = topDecorator
     # Include the registering info related to @task
-    f.__to_register__ = {__name__: "@taskStuff"}
+    ce_signature = module + "." + f.__name__
+    implSignature = ce_signature
+    implConstraints = {}
+    implType = "METHOD"
+    implTypeArgs = [module, f.__name__]
+    coreElement = CE(ce_signature,
+                     implSignature,
+                     implConstraints,
+                     implType,
+                     implTypeArgs)
+    f.__to_register__ = coreElement
     # Do the task register if I am the top decorator
     if f.__who_registers__ == __name__:
         logger.debug("[@TASK] I have to do the register of function %s in module %s" % (f.__name__, module))
         logger.debug("[@TASK] %s" % str(f.__to_register__))
+        binding.register_ce(coreElement)
 
 
 def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_return,
@@ -710,7 +722,7 @@ def reveal_objects(values,
                     answer = cache_pipe.recv()
                     # have we received an answer of the form (key, bytes) ?
                     # if yes, read from the indicated SHM
-                    # obj = deserialize_from_file(value)
+                    #obj = deserialize_from_file(value)
                     if isinstance(answer, tuple):
                         from shm_manager import shm_manager as SHM
                         manager = SHM(answer[0], answer[1], 0600)

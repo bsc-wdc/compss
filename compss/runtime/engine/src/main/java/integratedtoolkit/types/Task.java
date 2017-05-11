@@ -68,13 +68,13 @@ public class Task implements Comparable<Task> {
      * @param hasTarget
      * @param parameters
      */
-    public Task(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
-            boolean isDistributed, boolean hasTarget, Parameter[] parameters) {
+    public Task(Long appId, String signature, boolean isPrioritary, int numNodes, boolean isReplicated, boolean isDistributed,
+            boolean hasTarget, boolean hasReturn, Parameter[] parameters) {
 
         this.appId = appId;
         this.taskId = nextTaskId.getAndIncrement();
         this.status = TaskState.TO_ANALYSE;
-        this.taskDescription = new TaskDescription(methodClass, methodName, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget,
+        this.taskDescription = new TaskDescription(signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn,
                 parameters);
         this.predecessors = new LinkedList<>();
         this.successors = new LinkedList<>();

@@ -1,0 +1,196 @@
+#!/bin/bash
+
+  # Obtain parameters
+  output_file=$1 
+  target_log_folder=$2
+  
+  # Log files
+  runtime_log="${target_log_folder}/runtime.log"
+
+  #----------------------------------------------------------------------------------
+  # Check output standard out status
+  if [ -f ${output_file} ]; then
+     result_expected="------------------------------------------------------------"
+     test_result=$(tail -1 ${output_file})
+     if [ "${result_expected}" != "${test_result}" ]; then
+        echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+        exit 1
+     fi
+  else
+     echo "SOME ERROR WAS FOUND. CHECK ERRORS ABOVE." | tee -a ${output_file}
+     exit 1
+  fi
+  # Check that ErrorManager has not generated any ERROR or FATAL message.
+  if $(cat "${output_file}" "${runtime_log}" | tr '\n' ' ' | grep -E -q "[ERRMGR].*(ERROR|FATAL):.*.*Shutting"); then
+    echo "ERROR: ERRMGR RAISED A FATAL ERROR. TEST FAILED." | tee -a ${output_file}
+    exit 1
+  fi
+  
+  #---------------------------------------------------------------------------------- 
+  # Check that all the tasks produce the correct value
+  valueExpected=3
+  resultsGot=$(cat $runtime_log | grep "Final counter value on file" | awk {' print $NF '})
+  for val in $resultsGot; do
+    if [ $val -ne $valueExpected ]; then
+      echo "ERROR: Task produced incorrect value" | tee -a ${output_file}
+      echo "GOT: $val" | tee -a ${output_file}
+      echo "EXPECTED: $valueExpected" | tee -a ${output_file}
+      exit 1
+    fi
+  done
+  
+  #---------------------------------------------------------------------------------- 
+  # Check that each job runs its correct implementation
+  job=${target_log_folder}/jobs/job1_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation1"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 1" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job2_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation2"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 2" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job3_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation2"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 3" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job4_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation1"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 4" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job5_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="BINARY"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 5" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job6_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="BINARY"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 6" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job7_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation1"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 7" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job8_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="BINARY"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 8" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job9_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="BINARY"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 9" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job10_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation1"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 10" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job11_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="MPI"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 11" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job12_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="MPI"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 12" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job13_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "," "\t" | tr "=" "\t" | awk {' print $6 '})
+  implExpected="multiImplementations.Implementation1"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 13" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job14_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="MPI"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 14" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+  
+  job=${target_log_folder}/jobs/job15_NEW.out
+  implGot=$(cat ${job} | grep "Method definition" | tr "[" "\t" | tr "=" "\t" | awk {' print $4 '})
+  implExpected="MPI"
+  if [ "$implGot" != "$implExpected" ]; then
+    echo "ERROR: Incorrect implementation on job 15" | tee -a ${output_file}
+    echo "GOT: ${implGot}" | tee -a ${output_file}
+    echo "EXPECTED: ${implExpected}" | tee -a ${output_file}
+    exit 1
+  fi
+
+  #---------------------------------------------------------------------------------- 
+  # All ok
+  exit 0

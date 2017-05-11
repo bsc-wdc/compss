@@ -19,6 +19,7 @@ import integratedtoolkit.util.CoreManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import commons.Action;
@@ -54,8 +55,9 @@ public class TestCompatible {
     }
 
     /*
-     * ************************************** RESOURCE MANAGER TEST IMPLEMENTATION
-     * **************************************
+     * **********************************************************************************************************
+     * RESOURCE MANAGER TEST IMPLEMENTATION
+     * **********************************************************************************************************
      */
     @SuppressWarnings("unchecked")
     private static void resourceManagerTest() {
@@ -75,7 +77,7 @@ public class TestCompatible {
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
                 System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
-                Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
                 for (Implementation<?> impl : impls) {
                     System.out.println("-- Impl: " + impl.getRequirements().toString());
                 }
@@ -136,8 +138,9 @@ public class TestCompatible {
             // System.out.println("-- Worker Details: " + wDescription);
 
             /*
-             * *********************************************** COMPUTING UNITS
-             ***********************************************/
+             * *********************************************************************************************************
+             * COMPUTING UNITS
+             **********************************************************************************************************/
             if ((iDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
                     && (wDescription.getTotalCPUComputingUnits() >= MethodResourceDescription.ONE_INT)
                     && (wDescription.getTotalCPUComputingUnits() < iDescription.getTotalCPUComputingUnits())) {
@@ -145,8 +148,9 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** PROCESSOR
-             ***********************************************/
+             * *********************************************************************************************************
+             * PROCESSOR
+             ***********************************************************************************************************/
             for (Processor ip : iDescription.getProcessors()) {
                 // Check if processor can be executed in worker
                 boolean canBeHosted = false;
@@ -195,8 +199,9 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** MEMORY
-             ***********************************************/
+             * *********************************************************************************************************
+             * MEMORY
+             ***********************************************************************************************************/
             if ((iDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getMemorySize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getMemorySize() < iDescription.getMemorySize())) {
@@ -210,8 +215,9 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** STORAGE
-             ***********************************************/
+             * *********************************************************************************************************
+             * STORAGE
+             ***********************************************************************************************************/
             if ((iDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getStorageSize() != MethodResourceDescription.UNASSIGNED_FLOAT)
                     && (wDescription.getStorageSize() < iDescription.getStorageSize())) {
@@ -225,8 +231,9 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** OPERATING SYSTEM
-             ***********************************************/
+             * *********************************************************************************************************
+             * OPERATING SYSTEM
+             ***********************************************************************************************************/
             if ((!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
                     && (!iDescription.getOperatingSystemType().equals(MethodResourceDescription.UNASSIGNED_STR))
                     && (!wDescription.getOperatingSystemType().equals(iDescription.getOperatingSystemType()))) {
@@ -246,15 +253,17 @@ public class TestCompatible {
             }
 
             /*
-             * *********************************************** APPLICATION SOFTWARE
-             ***********************************************/
+             * *********************************************************************************************************
+             * APPLICATION SOFTWARE
+             ***********************************************************************************************************/
             if (!(iDescription.getAppSoftware().isEmpty()) && !(wDescription.getAppSoftware().containsAll(iDescription.getAppSoftware()))) {
                 return "appSoftware";
             }
 
             /*
-             * *********************************************** HOST QUEUE
-             ***********************************************/
+             * *********************************************************************************************************
+             * HOST QUEUE
+             ***********************************************************************************************************/
             if (!(iDescription.getHostQueues().isEmpty()) && !(wDescription.getHostQueues().containsAll(iDescription.getHostQueues()))) {
                 return "hostQueues";
             }
@@ -279,8 +288,9 @@ public class TestCompatible {
         }
 
         /*
-         * *********************************************** ALL CONSTAINT VALUES OK
-         ***********************************************/
+         * ************************************************************************************************************
+         * ALL CONSTAINT VALUES OK
+         *************************************************************************************************************/
         return null;
     }
 

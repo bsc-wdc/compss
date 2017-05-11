@@ -1,6 +1,7 @@
 package integratedtoolkit.util.parsers;
 
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.util.CoreManager;
@@ -8,8 +9,8 @@ import integratedtoolkit.util.CoreManager;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,10 +18,13 @@ import org.apache.logging.log4j.Logger;
 
 public class IDLParser {
 
-    private static final Logger logger = LogManager.getLogger(Loggers.TS_COMP);
+    // Logger
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
 
+    // Error constants
     private static final String CONSTR_LOAD_ERR = "Error loading constraints";
 
+    // Parser IDL Tags
     private static final String CONSTRAINT_IDL = "@Constraints";
     private static final String IMPLEMENTS_IDL = "@Implements";
     private static final String PROCESSOR_IDL = "processors";
@@ -28,31 +32,25 @@ public class IDLParser {
 
 
     private static enum CodeRegion {
-        COMMENT, 
-        TASK, 
-        CONSTRAINT, 
-        FUNCTION, 
-        IMPLEMENTATION
+        COMMENT, // For comments
+        TASK, // For tasks
+        CONSTRAINT, // For constraints annotation
+        FUNCTION, // Function (not task)
+        IMPLEMENTATION // Implementation
     }
 
 
-    public static int parseIDLMethods(LinkedList<Integer> updatedMethods,
-            HashMap<Integer, LinkedList<MethodImplementation>> readMethodImpls, HashMap<Integer, LinkedList<String>> readMethodSignatures,
-            String constraintsFile) {
-        
-        MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
+    public static void parseIDLMethods(String constraintsFile) {
+        LOGGER.debug("Loading file " + constraintsFile);
 
-        logger.debug("Loading file " + constraintsFile);
-        BufferedReader br = null;
-        String line;
-        int coreCount = 0;
-        try {
-            br = new BufferedReader(new FileReader(constraintsFile));
+        try (BufferedReader br = new BufferedReader(new FileReader(constraintsFile))) {
+            MethodResourceDescription defaultCtr = MethodResourceDescription.EMPTY_FOR_CONSTRAINTS.copy();
             boolean isReadingCodeRegion = false;
             StringBuilder structureString = new StringBuilder();
             CodeRegion type = null;
             CImplementation implementation = null;
             MethodResourceDescription currConstraints = new MethodResourceDescription(defaultCtr);
+            String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 // System.out.println("Read line: "+ line);
@@ -66,26 +64,20 @@ public class IDLParser {
                         } else {
                             continue;
                         }
-
                     } else {
                         if (line.matches(".*[)];")) {
                             isReadingCodeRegion = false;
                             structureString.append(line);
                             if (type.equals(CodeRegion.CONSTRAINT)) {
-                                logger.debug("[IDL Parser] Loading constraint: " + structureString.toString());
+                                LOGGER.debug("[IDL Parser] Loading constraint: " + structureString.toString());
                                 currConstraints = loadCConstraints(structureString.toString());
                             } else if (type.equals(CodeRegion.IMPLEMENTATION)) {
-                                logger.debug("[IDL Parser] Loading implementation: " + structureString.toString());
+                                LOGGER.debug("[IDL Parser] Loading implementation: " + structureString.toString());
                                 implementation = loadCImplementation(structureString.toString());
                             } else if (type.equals(CodeRegion.FUNCTION)) {
-                                logger.debug(
+                                LOGGER.debug(
                                         "[IDL Parser] Loading function: " + structureString.toString() + " constraint:" + currConstraints);
-                                parseCFunction(structureString.toString(), updatedMethods, readMethodImpls, readMethodSignatures,
-                                        currConstraints, implementation);
-
-                                if (implementation == null) {
-                                    coreCount++;
-                                }
+                                parseCFunction(structureString.toString(), currConstraints, implementation);
                                 currConstraints = new MethodResourceDescription(defaultCtr);
                                 implementation = null;
                             }
@@ -104,7 +96,7 @@ public class IDLParser {
                         type = CodeRegion.COMMENT;
                     } else if (line.matches(CONSTRAINT_IDL + "[(].*[)];")) {
                         // Line contains
-                        logger.debug("[IDL Parser] Loading constraint: " + line);
+                        LOGGER.debug("[IDL Parser] Loading constraint: " + line);
                         currConstraints = loadCConstraints(line);
                         continue;
                     } else if (line.matches(CONSTRAINT_IDL + "[(].*")) {
@@ -114,7 +106,7 @@ public class IDLParser {
                         type = CodeRegion.CONSTRAINT;
                     } else if (line.matches(IMPLEMENTS_IDL + "[(].*[)];")) {
                         // Line implements
-                        logger.debug("[IDL Parser] Loading implementation: " + line);
+                        LOGGER.debug("[IDL Parser] Loading implementation: " + line);
                         implementation = loadCImplementation(line);
                         continue;
                     } else if (line.matches(IMPLEMENTS_IDL + "[(].*")) {
@@ -124,11 +116,9 @@ public class IDLParser {
                         type = CodeRegion.IMPLEMENTATION;
                     } else if (line.matches(".*[(].*[)];")) {
                         // Line contains a function
-                        logger.debug("[IDL Parser] Loading function: " + line + " constraint:" + currConstraints);
-                        parseCFunction(line, updatedMethods, readMethodImpls, readMethodSignatures, currConstraints, implementation);
-                        if (implementation == null) {
-                            coreCount++;
-                        }
+                        LOGGER.debug("[IDL Parser] Loading function: " + line + " constraint:" + currConstraints);
+                        parseCFunction(line, currConstraints, implementation);
+
                         currConstraints = new MethodResourceDescription(defaultCtr);
                         implementation = null;
                     } else if (line.matches(".*[(].*")) {
@@ -139,19 +129,9 @@ public class IDLParser {
                     }
                 }
             }
-        } catch (Exception e) {
-            logger.fatal(CONSTR_LOAD_ERR, e);
-        } finally {
-            if (br != null)
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    // Nothing to do;
-                }
+        } catch (IOException ioe) {
+            LOGGER.fatal(CONSTR_LOAD_ERR, ioe);
         }
-
-        return coreCount;
-
     }
 
     private static CImplementation loadCImplementation(String line) {
@@ -161,14 +141,15 @@ public class IDLParser {
         int indexOfSeparator = line.indexOf(CLASS_METHOD_SEPARATOR);
         if (indexOfSeparator > 0) {
             String className = line.substring(0, indexOfSeparator);
-            //String methodName = line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length());
+            // String methodName = line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length());
             StringBuilder methodNameBuilder = new StringBuilder();
-            methodNameBuilder.append(className).append(CLASS_METHOD_SEPARATOR).append(line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length()));
+            methodNameBuilder.append(className).append(CLASS_METHOD_SEPARATOR)
+                    .append(line.substring(indexOfSeparator + CLASS_METHOD_SEPARATOR.length()));
             String methodName = methodNameBuilder.toString();
-            //logger.debug("New C method implementation: "+className+"::"+methodName);
-            logger.debug("New C method implementation:");
-            logger.debug("\t Classname: " + className);
-            logger.debug("\t Methodname: " + methodName);
+            // logger.debug("New C method implementation: "+className+"::"+methodName);
+            LOGGER.debug("New C method implementation:");
+            LOGGER.debug("\t Classname: " + className);
+            LOGGER.debug("\t Methodname: " + methodName);
             return new CImplementation(className, methodName);
         } else {
             // logger.debug("New C method implementation: "+line);
@@ -176,15 +157,12 @@ public class IDLParser {
         }
     }
 
-    private static void parseCFunction(String line, LinkedList<Integer> updatedMethods,
-            HashMap<Integer, LinkedList<MethodImplementation>> readMethodImpls, HashMap<Integer, LinkedList<String>> readMethodSignatures,
-            MethodResourceDescription currConstraints, CImplementation implementation) {
-
+    private static void parseCFunction(String line, MethodResourceDescription currConstraints, CImplementation implementation) {
         StringBuilder implementedTaskSignatureBuffer = new StringBuilder();
         StringBuilder implementationSignatureBuffer = new StringBuilder();
+
         line = line.replaceAll("[(|)|,|;|\n|\t]", " ");
         String[] splits = line.split("\\s+");
-        // String returnType = splits[0];
         CImplementation task = loadCImplementation(splits[1]);
         String methodName = task.getMethodName();
         String declaringClass = task.getClassName();
@@ -194,6 +172,7 @@ public class IDLParser {
             implementedTaskSignatureBuffer.append(methodName).append("(");
         }
         implementationSignatureBuffer.append(methodName).append("(");
+
         // Computes the method's signature
         for (int i = 2; i < splits.length; i++) {
             String paramDirection = splits[i++];
@@ -244,42 +223,41 @@ public class IDLParser {
 
         String taskSignature = implementedTaskSignatureBuffer.toString();
         String implementationSignature = implementationSignatureBuffer.toString();
-        // Adds a new Signature-Id if not exists in the TreeMap
-        Integer methodId = CoreManager.registerCoreId(taskSignature);
-        logger.debug("CoreId for task" + taskSignature +" is " +methodId);
-        updatedMethods.add(methodId);
-        LinkedList<MethodImplementation> impls = readMethodImpls.get(methodId);
-        LinkedList<String> signs = readMethodSignatures.get(methodId);
-        if (impls == null) {
-            impls = new LinkedList<MethodImplementation>();
-            signs = new LinkedList<String>();
-            logger.debug("[IDL Parser] Creating the implementation list for CE id " + methodId);
-            readMethodImpls.put(methodId, impls);
-            readMethodSignatures.put(methodId, signs);
+
+        // Create the core Element if it does not exist
+        Integer coreId = CoreManager.registerNewCoreElement(taskSignature);
+        if (coreId == null) {
+            // The coreId already exists
+            coreId = CoreManager.getCoreId(taskSignature);
         }
-        MethodImplementation m = new MethodImplementation(declaringClass, methodName, methodId, impls.size(), currConstraints);
-        logger.debug("[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + methodId);
-        impls.add(m);
-        signs.add(implementationSignature);
+        LOGGER.debug("CoreId for task" + taskSignature + " is " + coreId);
+
+        // Add the implementation to the core element
+        int implId = CoreManager.getNumberCoreImplementations(coreId);
+        List<Implementation<?>> newImpls = new LinkedList<>();
+        MethodImplementation m = new MethodImplementation(declaringClass, methodName, coreId, implId, currConstraints);
+        newImpls.add(m);
+        List<String> newSigns = new LinkedList<>();
+        newSigns.add(implementationSignature);
+        CoreManager.registerNewImplementations(coreId, newImpls, newSigns);
+        LOGGER.debug("[IDL Parser] Adding implementation: " + declaringClass + "." + methodName + " for CE id " + coreId);
     }
 
     private static MethodResourceDescription loadCConstraints(String line) {
         line = line.substring(CONSTRAINT_IDL.length() + 1);
         String proc = new String();
 
-
-        if (line.matches(".*" + PROCESSOR_IDL + ".*")){
-                int procStart = line.indexOf("{");
-                int procEnd = line.indexOf("}");
-                proc = line.substring(procStart, procEnd+1);
-                line = line.replace(proc, "");
-                line = line.replace("processors=", "");
-                proc = proc.replaceAll("[{}]", "");
-                logger.debug("[IDL Parser] Loading processors: " + proc);
-                line = line.replaceFirst(",", "");
+        if (line.matches(".*" + PROCESSOR_IDL + ".*")) {
+            int procStart = line.indexOf("{");
+            int procEnd = line.indexOf("}");
+            proc = line.substring(procStart, procEnd + 1);
+            line = line.replace(proc, "");
+            line = line.replace("processors=", "");
+            proc = proc.replaceAll("[{}]", "");
+            LOGGER.debug("[IDL Parser] Loading processors: " + proc);
+            line = line.replaceFirst(",", "");
         }
-        
-        
+
         line = line.replaceAll("[() ;\n\t]", "");
         String[] constraints = line.split(",");
 
@@ -288,26 +266,26 @@ public class IDLParser {
         return mrd;
     }
 
-    
+
     private static class CImplementation {
-    
-        private String className;
-        private String methodName;
-    
-    
+
+        private final String className;
+        private final String methodName;
+
+
         public CImplementation(String className, String methodName) {
             this.className = className;
             this.methodName = methodName;
         }
-    
+
         public String getClassName() {
             return this.className;
         }
-    
+
         public String getMethodName() {
             return this.methodName;
         }
-    
+
     }
 
 }

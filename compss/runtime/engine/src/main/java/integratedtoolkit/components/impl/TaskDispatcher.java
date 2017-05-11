@@ -16,6 +16,7 @@ import integratedtoolkit.components.ResourceUser;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Profile;
@@ -63,8 +64,8 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
     protected boolean keepGoing;
 
     // Logging
-    protected static final Logger logger = LogManager.getLogger(Loggers.TD_COMP);
-    protected static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private static final String ERR_LOAD_SCHEDULER = "Error loading scheduler";
     private static final String ERROR_QUEUE_OFFER = "ERROR: TaskDispatcher queue offer error on ";
@@ -111,7 +112,7 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Worker<T, I> worker = (Worker<T, I>) w;
             scheduler.updatedWorker(worker);
         }
-        logger.info("Initialization finished");
+        LOGGER.info("Initialization finished");
     }
 
     // Dispatcher thread
@@ -136,14 +137,14 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
                 Thread.currentThread().interrupt();
                 continue;
             } catch (ShutdownException se) {
-                logger.debug("Exiting dispatcher because of shutting down");
+                LOGGER.debug("Exiting dispatcher because of shutting down");
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
                 se.getSemaphore().release();
                 break;
             } catch (Exception e) {
-                logger.error("Error in request " + requestType, e);
+                LOGGER.error("Error in request " + requestType, e);
                 if (Tracer.isActivated()) {
                     Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
                 }
@@ -181,10 +182,10 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      * @param task
      */
     public void executeTask(TaskProducer producer, Task task) {
-        if (debug) {
+        if (DEBUG) {
             StringBuilder sb = new StringBuilder("Schedule task: ");
             sb.append(task.getTaskDescription().getName()).append("(").append(task.getId()).append(") ");
-            logger.debug(sb);
+            LOGGER.debug(sb);
         }
         ExecuteTasksRequest<P, T, I> request = new ExecuteTasksRequest<>(producer, task);
         addRequest(request);
@@ -283,8 +284,8 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
      * @param forName
      */
     public void addInterface(Class<?> forName) {
-        if (debug) {
-            logger.debug("Updating CEI " + forName.getName());
+        if (DEBUG) {
+            LOGGER.debug("Updating CEI " + forName.getName());
         }
         Semaphore sem = new Semaphore(0);
         UpdateLocalCEIRequest<P, T, I> request = new UpdateLocalCEIRequest<>(forName, sem);
@@ -296,35 +297,40 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Thread.currentThread().interrupt();
         }
 
-        if (debug) {
-            logger.debug("Updated CEI " + forName.getName());
+        if (DEBUG) {
+            LOGGER.debug("Updated CEI " + forName.getName());
         }
     }
 
     /**
      * Adds a new request to register a new CoreElement
      * 
-     * @param signature
-     * @param methodName
-     * @param declaringClass
-     * @param constraints
+     * @param coreElementSignature
+     * @param implSignature
+     * @param implConstraints
+     * @param implType
+     * @param implTypeArgs
      */
-    public void registerCEI(String signature, String methodName, String declaringClass, MethodResourceDescription constraints) {
-        if (debug) {
-            logger.debug("Registering CEI");
+    public void registerNewCoreElement(String coreElementSignature, String implSignature, MethodResourceDescription implConstraints,
+            MethodType implType, String[] implTypeArgs) {
+
+        if (DEBUG) {
+            LOGGER.debug("Registering new CoreElement");
         }
         Semaphore sem = new Semaphore(0);
-        CERegistration<P, T, I> request = new CERegistration<>(signature, methodName, declaringClass, constraints, sem);
+        CERegistration<P, T, I> request = new CERegistration<>(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs,
+                sem);
         addRequest(request);
 
+        // Waiting for registration
         try {
             sem.acquire();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        if (debug) {
-            logger.debug("Registered CEI");
+        if (DEBUG) {
+            LOGGER.debug("Registered new CoreElement");
         }
     }
 
@@ -342,25 +348,25 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Thread.currentThread().interrupt();
         }
     }
-    
+
     @Override
     public String toString() {
         return "TaskDispatcher[Instance" + this.hashCode() + "]";
     }
 
     private static void loadSchedulerJars() {
-        logger.info("Loading schedulers...");
+        LOGGER.info("Loading schedulers...");
         String itHome = System.getenv(ITConstants.IT_HOME);
 
         if (itHome == null || itHome.isEmpty()) {
-            logger.warn("WARN: IT_HOME not defined, no schedulers loaded.");
+            LOGGER.warn("WARN: IT_HOME not defined, no schedulers loaded.");
             return;
         }
 
         try {
-            Classpath.loadPath(itHome + SCHEDULERS_REL_PATH, logger);
+            Classpath.loadPath(itHome + SCHEDULERS_REL_PATH, LOGGER);
         } catch (FileNotFoundException ex) {
-            logger.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
+            LOGGER.warn("WARN: Schedulers folder not defined, no schedulers loaded.");
         }
     }
 
@@ -372,8 +378,8 @@ public class TaskDispatcher<P extends Profile, T extends WorkerResourceDescripti
             Class<?> schedClass = Class.forName(schedFQN);
             Constructor<?> schedCnstr = schedClass.getDeclaredConstructors()[0];
             scheduler = (TaskScheduler<P, T, I>) schedCnstr.newInstance();
-            if (debug) {
-                logger.debug("Loaded scheduler " + scheduler);
+            if (DEBUG) {
+                LOGGER.debug("Loaded scheduler " + scheduler);
             }
         } catch (Exception e) {
             ErrorManager.fatal(ERR_LOAD_SCHEDULER, e);

@@ -11,8 +11,11 @@ import integratedtoolkit.scheduler.types.fake.FakeAllocatableAction;
 import integratedtoolkit.scheduler.types.fake.FakeImplementation;
 import integratedtoolkit.scheduler.types.fake.FakeProfile;
 import integratedtoolkit.scheduler.types.fake.FakeResourceDescription;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.util.CoreManager;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 import org.junit.After;
@@ -38,14 +41,30 @@ public class PriorityActionSetTest {
     @BeforeClass
     public static void setUpClass() {
         CoreManager.clear();
-        CoreManager.resizeStructures(3);
+        CoreManager.registerNewCoreElement("fakeSignature00");
+        CoreManager.registerNewCoreElement("fakeSignature10");
+        CoreManager.registerNewCoreElement("fakeSignature20");
 
         FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(0, new FakeImplementation[] { impl00 }, new String[] { "fakeSignature00" });
+        List<Implementation<?>> impls0 = new LinkedList<>();
+        impls0.add(impl00);
+        List<String> signatures0 = new LinkedList<>();
+        signatures0.add("fakeSignature00");
+        CoreManager.registerNewImplementations(0, impls0, signatures0);
+
         FakeImplementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
-        CoreManager.registerImplementations(1, new FakeImplementation[] { impl10 }, new String[] { "fakeSignature10" });
+        List<Implementation<?>> impls1 = new LinkedList<>();
+        impls1.add(impl10);
+        List<String> signatures1 = new LinkedList<>();
+        signatures1.add("fakeSignature10");
+        CoreManager.registerNewImplementations(1, impls1, signatures1);
+
         FakeImplementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
-        CoreManager.registerImplementations(2, new FakeImplementation[] { impl20 }, new String[] { "fakeSignature20" });
+        List<Implementation<?>> impls2 = new LinkedList<>();
+        impls2.add(impl20);
+        List<String> signatures2 = new LinkedList<>();
+        signatures2.add("fakeSignature20");
+        CoreManager.registerNewImplementations(2, impls2, signatures2);
     }
 
     @AfterClass
@@ -76,14 +95,14 @@ public class PriorityActionSetTest {
 
         PriorityQueue<AllocatableAction<FakeProfile, FakeResourceDescription, FakeImplementation>> peeks;
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action1.getSchedulingInfo())
                 .setToReschedule(true);
         pas.offer(action1);
         if (action1 != pas.peek()) {
             fail(action1 + " expected to be the most prioritary action and " + pas.peek() + " was.");
         }
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action2.getSchedulingInfo())
                 .setToReschedule(true);
         pas.offer(action2);
@@ -102,7 +121,7 @@ public class PriorityActionSetTest {
                 action3 };
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(1));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action4.getSchedulingInfo())
                 .setToReschedule(true);
         pas.offer(action4);
@@ -142,10 +161,10 @@ public class PriorityActionSetTest {
         expectedPeeks = new AllocatableAction[] {};
         Verifiers.verifyPriorityActions(peeks, expectedPeeks);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, CoreManager.getCoreImplementations(1));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action5.getSchedulingInfo())
                 .setToReschedule(true);
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, CoreManager.getCoreImplementations(1));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action6.getSchedulingInfo())
                 .setToReschedule(true);
         pas.offer(action6);

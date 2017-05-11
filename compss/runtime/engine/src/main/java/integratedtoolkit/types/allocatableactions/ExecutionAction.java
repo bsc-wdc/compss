@@ -457,7 +457,14 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @SuppressWarnings("unchecked")
     @Override
     public final I[] getImplementations() {
-        return (I[]) CoreManager.getCoreImplementations(task.getTaskDescription().getId());
+        List<Implementation<?>> coreImpls = CoreManager.getCoreImplementations(task.getTaskDescription().getId());
+
+        int coreImplsSize = coreImpls.size();
+        I[] impls = (I[]) new Implementation[coreImplsSize];
+        for (int i = 0; i < coreImplsSize; ++i) {
+            impls[i] = (I) coreImpls.get(i);
+        }
+        return impls;
     }
 
     @Override
@@ -484,9 +491,6 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        //if (DEBUG) {
-        //    LOGGER.debug("Scheduling " + this + ". Computing best worker and best implementation");
-        //}
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
 
         // COMPUTE RESOURCE CANDIDATES
@@ -532,11 +536,6 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             }
         }
 
-        // CHECK SCHEDULING RESULT
-        //if (DEBUG) {
-        //    LOGGER.debug(debugString.toString());
-        //}
-
         if (bestWorker == null && usefulResources == 0) {
             LOGGER.warn("No worker can run " + this);
             throw new BlockedActionException();
@@ -548,10 +547,6 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     public final void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-
-        //if (DEBUG) {
-        //    LOGGER.debug("Scheduling " + this + " on worker " + targetWorker.getName() + ". Computing best implementation");
-        //}
 
         if (targetWorker == null
                 // Resource is not compatible with the Core
@@ -595,20 +590,8 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     public final void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
-            /*if (targetWorker == null && impl == null) {
-                LOGGER.debug("Not available resources to run " + this + " because both the target worker and the best implementation are null");
-            } else if (targetWorker == null) {
-                LOGGER.debug("Not available resources to run " + this + " because the target worker is null");
-            } else if (impl == null) {
-                LOGGER.debug("Not available resources to run " + this + " because the best implementation is null");
-            }*/
             throw new UnassignedActionException();
         }
-
-        //if (DEBUG) {
-        //    LOGGER.debug(
-        //            "Scheduling " + this + " on worker " + targetWorker.getName() + " with implementation " + impl.getImplementationId());
-        //}
 
         if (// Resource is not compatible with the implementation
         !targetWorker.getResource().canRun(impl)

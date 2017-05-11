@@ -527,7 +527,7 @@ public class RuntimeConfigManager {
     public void setServiceName(String serviceName) {
         config.setProperty(ITConstants.IT_SERVICE_NAME, serviceName);
     }
-    
+
     /**
      * Returns the service name
      * 

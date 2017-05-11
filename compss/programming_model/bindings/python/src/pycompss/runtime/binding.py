@@ -174,7 +174,7 @@ def get_logPath():
     logger.debug("Log path received: %s" % logPath)
     return logPath
 
-
+'''
 def set_constraints(func_name, func_module, constraints):
     """
     Calls the external python library (that calls the bindings-common) in order to notify the runtime
@@ -206,6 +206,107 @@ def set_constraints(func_name, func_module, constraints):
                            parameterCount,  # not necessary for python apps
                            values)          # not necessary for python apps
     logger.debug("Constraints submitted to runtime.")
+'''
+
+def register_ce(coreElement):
+    """
+    Calls the external python library (that calls the bindings-common) in order to notify the runtime
+    about a core element that needs to be registered.
+    Java Examples:
+
+        // METHOD
+        System.out.println("Registering METHOD implementation");
+        String coreElementSignature = "methodClass.methodName";
+        String implSignature = "methodClass.methodName";
+        String implConstraints = "ComputingUnits:2";
+        String implType = "METHOD";
+        String[] implTypeArgs = new String[] { "methodClass", "methodName" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        // MPI
+        System.out.println("Registering MPI implementation");
+        coreElementSignature = "methodClass1.methodName1";
+        implSignature = "mpi.MPI";
+        implConstraints = "StorageType:SSD";
+        implType = "MPI";
+        implTypeArgs = new String[] { "mpiBinary", "mpiWorkingDir", "mpiRunner" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        // BINARY
+        System.out.println("Registering BINARY implementation");
+        coreElementSignature = "methodClass2.methodName2";
+        implSignature = "binary.BINARY";
+        implConstraints = "MemoryType:RAM";
+        implType = "BINARY";
+        implTypeArgs = new String[] { "binary", "binaryWorkingDir" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        // OMPSS
+        System.out.println("Registering OMPSS implementation");
+        coreElementSignature = "methodClass3.methodName3";
+        implSignature = "ompss.OMPSS";
+        implConstraints = "ComputingUnits:3";
+        implType = "OMPSS";
+        implTypeArgs = new String[] { "ompssBinary", "ompssWorkingDir" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        // OPENCL
+        System.out.println("Registering OPENCL implementation");
+        coreElementSignature = "methodClass4.methodName4";
+        implSignature = "opencl.OPENCL";
+        implConstraints = "ComputingUnits:4";
+        implType = "OPENCL";
+        implTypeArgs = new String[] { "openclKernel", "openclWorkingDir" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        // VERSIONING
+        System.out.println("Registering METHOD implementation");
+        coreElementSignature = "methodClass.methodName";
+        implSignature = "anotherClass.anotherMethodName";
+        implConstraints = "ComputingUnits:1";
+        implType = "METHOD";
+        implTypeArgs = new String[] { "anotherClass", "anotherMethodName" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+    ---------------------
+
+    Core Element fields:
+
+    ce_signature: <String> Core Element signature  (e.g.- "methodClass.methodName")
+    implSignature: <String> Implementation signature (e.g.- "methodClass.methodName")
+    implConstraints: <Dict> Implementation constraints (e.g.- "{ComputingUnits:2}")
+    implType: <String> Implementation type ("METHOD" | "MPI" | "BINARY" | "OMPSS" | "OPENCL")
+    implTypeArgs: <List(Strings)> Implementation arguments (e.g.- ["methodClass", "methodName"])
+
+    :param coreElement: <CE> Core Element to register
+    """
+    # Retrieve Core element fields
+    ce_signature = coreElement.get_ce_signature()
+    implSignature = coreElement.get_implSignature()
+    implConstraints = coreElement.get_implConstraints()
+    implType = coreElement.get_implType()
+    implTypeArgs = coreElement.get_implTypeArgs()
+
+    logger.debug("Registering CE with signature: %s" % (ce_signature))
+    logger.debug("\t - Implementation signature: %s" % (implSignature))
+
+    # Build constraints string from constraints dictionary
+    implConstraints_string = ''
+    for key, value in implConstraints.iteritems():
+        implConstraints_string += key + ":" + str(value) + ";"
+
+    logger.debug("\t - Implementation constraints: %s" % (implConstraints_string))
+    logger.debug("\t - Implementation type: %s" % (implType))
+    implTypeArgs_string = ' '.join(implTypeArgs)
+    logger.debug("\t - Implementation type arguments: %s" %(implTypeArgs_string))
+
+    # Call runtime with the appropiate parameters
+    compss.register_core_element(ce_signature,
+                                 implSignature,
+                                 implConstraints_string,
+                                 implType,
+                                 implTypeArgs)
+    logger.debug("CE with signature %s registered." % (ce_signature))
 
 
 def get_task_objects():
@@ -328,6 +429,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     # Check that there is the same amount of values as their types, as well as their directions.
     assert(len(values) == len(compss_types) and len(values) == len(compss_directions))
 
+    '''
     # Submit task to the runtime (call to the C extension):
     # Parameters:
     #    0 - <Integer>   - application id (by default always 0 due to it is not currently needed for the signature)
@@ -342,6 +444,21 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
                         path,
                         f.__name__,
                         has_priority,
+                        has_target,
+                        values, compss_types, compss_directions)
+    '''
+
+    signature = path + f.__name__
+    num_nodes = 0 # default due to not MPI decorator yet
+    replicated = False
+    distributed = False
+
+    compss.process_task(app_id,
+                        signature,
+                        has_priority,
+                        num_nodes,
+                        replicated,
+                        distributed,
                         has_target,
                         values, compss_types, compss_directions)
 
@@ -680,6 +797,19 @@ def turn_into_file(p):
     This functions stores the object into task_objects
     :param p: wrapper of the object to turn into file
     """
+    '''
+    print "XXXXXXXXXXXXXXXXX"
+    print "p           : ", p
+    print "p.value     : ", p.value
+    print "p.type      : ", p.type
+    print "p.direction : ", p.direction
+    print "XXXXXXXXXXXXXXXXX"
+    if p.direction == Direction.OUT:
+        # If the parameter is out, infer the type and create an empty instance
+        # of the same type as the original parameter:
+        t = type(p.value)
+        p.value = t()
+    '''
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
     if file_name is None:

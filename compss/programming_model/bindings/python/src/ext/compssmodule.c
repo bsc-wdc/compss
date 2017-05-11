@@ -69,9 +69,9 @@ process_task(PyObject *self, PyObject *args)
 	printf ("####C#### Has target: %d\n", has_target);
 	int parameterCount = (int)PyInt_AsLong(PyTuple_GetItem(args, 7));
 
-	PyObject *values = PyList_AsTuple(PyTuple_GetItem(args, 5));
-	PyObject *compss_types = PyList_AsTuple(PyTuple_GetItem(args, 6));
-	PyObject *compss_directions = PyList_AsTuple(PyTuple_GetItem(args, 7));
+	PyObject *values = PyList_AsTuple(PyTuple_GetItem(args, 8));
+	PyObject *compss_types = PyList_AsTuple(PyTuple_GetItem(args, 9));
+	PyObject *compss_directions = PyList_AsTuple(PyTuple_GetItem(args, 10));
 	Py_ssize_t num_pars = PyTuple_Size(values);
 
 	printf ("####C#### Num pars: %d\n", num_pars);

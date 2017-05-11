@@ -2,6 +2,7 @@ package commons;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
@@ -62,7 +63,14 @@ public class Action extends AllocatableAction<Profile, WorkerResourceDescription
     @SuppressWarnings("unchecked")
     @Override
     public Implementation<WorkerResourceDescription>[] getImplementations() {
-        return (Implementation<WorkerResourceDescription>[]) CoreManager.getCoreImplementations(coreId);
+        List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+
+        int implsSize = impls.size();
+        Implementation<WorkerResourceDescription>[] resultImpls = new Implementation[implsSize];
+        for (int i = 0; i < implsSize; ++i) {
+            resultImpls[i] = (Implementation<WorkerResourceDescription>) impls.get(i);
+        }
+        return resultImpls;
     }
 
     @Override

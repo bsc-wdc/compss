@@ -21,8 +21,9 @@ public abstract class Job<T extends COMPSsWorker> {
     // Job identifier management
     protected static final int FIRST_JOB_ID = 1;
     protected static int nextJobId = FIRST_JOB_ID;
+    
     // Language
-    protected static final String lang = System.getProperty(ITConstants.IT_LANG);
+    protected static final String LANG = System.getProperty(ITConstants.IT_LANG);
 
     // Environment variables for job execution
     private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null

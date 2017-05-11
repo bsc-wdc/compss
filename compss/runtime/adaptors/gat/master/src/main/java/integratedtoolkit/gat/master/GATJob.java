@@ -269,7 +269,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
 
         // Common arguments: language working_dir lib_path num_obsolete [obs1... obsN] tracing [event_type task_id
         // slot_id]
-        lArgs.add(lang);
+        lArgs.add(LANG);
         lArgs.add(getResourceNode().getWorkingDir());
         lArgs.add(getResourceNode().getLibPath());
         LinkedList<LogicalData> obsoleteFiles = getResource().clearObsoletes();

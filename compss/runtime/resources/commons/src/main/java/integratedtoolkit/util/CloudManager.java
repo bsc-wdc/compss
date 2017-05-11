@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
@@ -178,7 +179,7 @@ public class CloudManager {
         cp.addInstanceType(rd);
     }
 
-    public static void newCoreElementsDetected(LinkedList<Integer> newCores) {
+    public static void newCoreElementsDetected(List<Integer> newCores) {
         pendingCoreCount = new int[CoreManager.getCoreCount()];
         for (ResourceCreationRequest rcr : pendingRequests) {
             int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
@@ -196,11 +197,11 @@ public class CloudManager {
     }
 
     /**
-     * *************************************************************
-     * ************************************************************* 
-     * ************** RESOURCE REQUESTS MANAGEMENT ***************** 
-     * *************************************************************
-     * *************************************************************
+     * *********************************************************************************************************
+     * *********************************************************************************************************
+     * RESOURCE REQUESTS MANAGEMENT
+     * *********************************************************************************************************
+     * *********************************************************************************************************
      */
     /**
      * Queries the creation requests pending to be served
@@ -277,11 +278,13 @@ public class CloudManager {
         if (simultaneousCounts == null) {
             simultaneousCounts = new int[coreCount][];
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                Implementation<?>[] impls = CoreManager.getCoreImplementations(coreId);
-                simultaneousCounts[coreId] = new int[impls.length];
-                for (int implId = 0; implId < impls.length; ++implId) {
-                    if (impls[implId].getTaskType() == TaskType.METHOD) {
-                        MethodResourceDescription description = (MethodResourceDescription) impls[implId].getRequirements();
+                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                int implsSize = impls.size();
+                simultaneousCounts[coreId] = new int[implsSize];
+                for (int implId = 0; implId < implsSize; ++implId) {
+                    Implementation<?> impl = impls.get(implId);
+                    if (impl.getTaskType() == TaskType.METHOD) {
+                        MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
                         if (description != null) {
                             Integer into = bestConstraints.canHostSimultaneously(description);
                             simultaneousCounts[coreId][implId] = into;
@@ -291,7 +294,8 @@ public class CloudManager {
             }
         }
 
-        runtimeLogger.debug("[Cloud Manager] Asking for resource creation " + bestConstraints.getName() + " with image" + bestConstraints.getImage().getImageName());
+        runtimeLogger.debug("[Cloud Manager] Asking for resource creation " + bestConstraints.getName() + " with image"
+                + bestConstraints.getImage().getImageName());
         ResourceCreationRequest rcr = new ResourceCreationRequest(bestConstraints, simultaneousCounts, bestProvider.getName());
 
         try {
@@ -382,8 +386,8 @@ public class CloudManager {
             if (cp == null) { // it's not a cloud machine
                 continue;
             }
-            if (res.hasPendingReductions()){
-            	continue;
+            if (res.hasPendingReductions()) {
+                continue;
             }
             HashMap<String, Object[]> typeToPoints = cp.getPossibleReductions(res, destroyRecommendations);
 

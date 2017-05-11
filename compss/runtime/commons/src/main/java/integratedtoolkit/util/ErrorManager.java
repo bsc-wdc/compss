@@ -29,7 +29,7 @@ public final class ErrorManager {
     private static final Integer REQUEST_ERROR = 1;
     private static final Integer REQUEST_FATAL = 2;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.ERROR_MANAGER);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.ERROR_MANAGER);
 
     private static COMPSsRuntime compssRuntime = null;
     private static Integer errorRequest = -1;
@@ -44,7 +44,7 @@ public final class ErrorManager {
         public void run() {
             if (errorRequest == REQUEST_ERROR || errorRequest == REQUEST_FATAL) {
                 if (compssRuntime != null) {
-                    logger.error(PREFIX_ERRMGR + "Error detected. Shutting down COMPSs");
+                    LOGGER.error(PREFIX_ERRMGR + "Error detected. Shutting down COMPSs");
                     compssRuntime.stopIT(true);
                 }
 
@@ -74,9 +74,9 @@ public final class ErrorManager {
             prettyPrint(PREFIX_WARNING, msg, e, System.err);
         }
 
-        if (logger != null) {
+        if (LOGGER != null) {
             for (String line : msg.split(REGEX_NEWLINE)) {
-                logger.warn(line);
+                LOGGER.warn(line);
             }
         }
     }
@@ -115,9 +115,9 @@ public final class ErrorManager {
             new Thread(errorRunnable, "ErrorManager Error Thread").start();
         }
 
-        if (logger != null) {
+        if (LOGGER != null) {
             for (String line : msg.split(REGEX_NEWLINE)) {
-                logger.error(line);
+                LOGGER.error(line);
             }
         }
     }
@@ -156,9 +156,9 @@ public final class ErrorManager {
             new Thread(errorRunnable, "ErrorManager Fatal Thread").start();
         }
 
-        if (logger != null) {
+        if (LOGGER != null) {
             for (String line : msg.split(REGEX_NEWLINE)) {
-                logger.fatal(line);
+                LOGGER.fatal(line);
             }
         }
     }
@@ -182,8 +182,7 @@ public final class ErrorManager {
     }
 
     /*
-     * **************************************************** 
-     * PRIVATE METHODS
+     * **************************************************** PRIVATE METHODS
      ****************************************************/
 
     /**

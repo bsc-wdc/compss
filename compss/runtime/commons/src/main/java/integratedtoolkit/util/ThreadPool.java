@@ -8,12 +8,12 @@ import java.util.concurrent.Semaphore;
  */
 public class ThreadPool {
 
-    protected final int size;
-    protected final String name;
-    protected final Thread[] workerThreads;
-    protected final RequestDispatcher<?> runObject;
-    protected final RequestQueue<?> queue;
-    protected final Semaphore sem;
+    private final int size;
+    private final String name;
+    private final Thread[] workerThreads;
+    private final RequestDispatcher<?> runObject;
+    private final RequestQueue<?> queue;
+    private final Semaphore sem;
 
 
     /**

@@ -69,14 +69,14 @@ public class ITAppEditor extends ExprEditor {
     private static final String DATA_TYPES = DataType.class.getCanonicalName();
     private static final String DATA_DIRECTION = Direction.class.getCanonicalName();
     private static final String DATA_STREAM = Stream.class.getCanonicalName();
-    
+
     private static final String CHECK_SCO_TYPE = "LoaderUtils.checkSCOType(";
     private static final String RUN_METHOD_ON_OBJECT = "LoaderUtils.runMethodOnObject(";
 
     // Logger
-    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
-    private static final boolean debug = logger.isDebugEnabled();
-    
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
+
     private static final String ERROR_NO_EMTPY_CONSTRUCTOR = "ERROR: No empty constructor on object class ";
 
 
@@ -126,9 +126,9 @@ public class ITAppEditor extends ExprEditor {
                         if (parType.isPrimitive()) {
                             callPars.append(parId);
                         } else { // Object (also array)
-                            if (debug) {
-                                logger.debug("Parameter " + (i - 1) + " of constructor " + ne.getConstructor() 
-                                                + " is an object, adding access");
+                            if (DEBUG) {
+                                LOGGER.debug(
+                                        "Parameter " + (i - 1) + " of constructor " + ne.getConstructor() + " is an object, adding access");
                             }
 
                             String internalObject = itORVar + GET_INTERNAL_OBJECT + parId + ")";
@@ -151,8 +151,8 @@ public class ITAppEditor extends ExprEditor {
                 modifiedExpr.append(toSerialize);
             }
 
-            if (debug) {
-                logger.debug("Replacing regular constructor call of class " + fullName + " by " + modifiedExpr.toString());
+            if (DEBUG) {
+                LOGGER.debug("Replacing regular constructor call of class " + fullName + " by " + modifiedExpr.toString());
             }
 
             // Update new expression
@@ -170,8 +170,8 @@ public class ITAppEditor extends ExprEditor {
     private String inspectCreation(String className, StringBuilder callPars) {
         String modifiedExpr = "";
 
-        if (debug) {
-            logger.debug("Inspecting the creation of an object of class " + className);
+        if (DEBUG) {
+            LOGGER.debug("Inspecting the creation of an object of class " + className);
         }
 
         // $$ = pars separated by commas, $args = pars in an array of objects
@@ -199,7 +199,7 @@ public class ITAppEditor extends ExprEditor {
      * 
      */
     public void edit(MethodCall mc) throws CannotCompileException {
-        logger.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
+        LOGGER.debug("---- BEGIN EDIT METHOD CALL " + mc.getMethodName() + " ----");
 
         Method declaredMethod = null;
         CtMethod calledMethod = null;
@@ -209,79 +209,78 @@ public class ITAppEditor extends ExprEditor {
         } catch (NotFoundException e) {
             throw new CannotCompileException(e);
         }
-        
 
         if (declaredMethod != null) {
             // Current method must be executed remotely, change the call
-            if (debug) {
-                logger.debug("Replacing task method call " + mc.getMethodName());
+            if (DEBUG) {
+                LOGGER.debug("Replacing task method call " + mc.getMethodName());
             }
-            
+
             // Replace the call to the method by the call to executeTask
             String executeTask = replaceTaskMethodCall(mc.getMethodName(), mc.getClassName(), declaredMethod, calledMethod);
-            if (debug) {
-                logger.debug("Replacing task method call by " + executeTask);
+            if (DEBUG) {
+                LOGGER.debug("Replacing task method call by " + executeTask);
             }
-            
+
             mc.replace(executeTask);
         } else if (LoaderUtils.isStreamClose(mc)) {
-            if (debug) {
-                logger.debug("Replacing close on a stream of class " + mc.getClassName());
+            if (DEBUG) {
+                LOGGER.debug("Replacing close on a stream of class " + mc.getClassName());
             }
 
             // Close call on a stream
             // No need to instrument the stream object, assuming it will always be local
             String streamClose = replaceCloseStream();
-            if (debug) {
-                logger.debug("Replacing stream close by " + streamClose);
+            if (DEBUG) {
+                LOGGER.debug("Replacing stream close by " + streamClose);
             }
-            
+
             mc.replace(streamClose);
         } else if (LoaderUtils.isFileDelete(mc)) {
-            if (debug) {
-                logger.debug("Replacing delete file");
+            if (DEBUG) {
+                LOGGER.debug("Replacing delete file");
             }
-            
+
             String deleteFile = replaceDeleteFile();
-            if (debug) {
-                logger.debug("Replacing delete file by " + deleteFile);
+            if (DEBUG) {
+                LOGGER.debug("Replacing delete file by " + deleteFile);
             }
-            
+
             mc.replace(deleteFile);
         } else if (mc.getClassName().equals(LoaderConstants.CLASS_COMPSS_API)) {
             // The method is an API call
-            if (debug) {
-                logger.debug("Replacing API call " + mc.getMethodName());
+            if (DEBUG) {
+                LOGGER.debug("Replacing API call " + mc.getMethodName());
             }
-            
+
             String modifiedAPICall = replaceAPICall(mc.getMethodName(), calledMethod);
-            if (debug) {
-                logger.debug("Replacing API call by " + modifiedAPICall);
+            if (DEBUG) {
+                LOGGER.debug("Replacing API call by " + modifiedAPICall);
             }
-            
+
             mc.replace(modifiedAPICall);
         } else if (!LoaderUtils.contains(instrCandidates, calledMethod)) {
             // The method is a black box
-            if (debug) {
-                logger.debug("Replacing regular method call " + mc.getMethodName());
+            if (DEBUG) {
+                LOGGER.debug("Replacing regular method call " + mc.getMethodName());
             }
-            
+
             String modifiedCall = replaceBlackBox(mc.getMethodName(), mc.getClassName(), calledMethod);
-            if (debug) {
-                logger.debug("Replacing regular method call by " + modifiedCall);
+            if (DEBUG) {
+                LOGGER.debug("Replacing regular method call by " + modifiedCall);
             }
-            
+
             mc.replace(modifiedCall);
         } else {
             // The method is an instrumented method
-            if (debug) {
-                logger.debug("Skipping instrumented method " + mc.getMethodName());
+            if (DEBUG) {
+                LOGGER.debug("Skipping instrumented method " + mc.getMethodName());
             }
-            
+
             // Nothing to do
         }
-        
-        logger.debug("---- END EDIT METHOD CALL ----");
+
+        LOGGER.debug("---- END EDIT METHOD CALL ----");
     }
 
     /**
@@ -295,9 +294,9 @@ public class ITAppEditor extends ExprEditor {
      */
     private String replaceTaskMethodCall(String methodName, String className, Method declaredMethod, CtMethod calledMethod)
             throws CannotCompileException {
-        
-        if (debug) {
-            logger.debug("Found call to remote method " + methodName);
+
+        if (DEBUG) {
+            LOGGER.debug("Found call to remote method " + methodName);
         }
 
         Class<?> retType = declaredMethod.getReturnType();
@@ -311,16 +310,16 @@ public class ITAppEditor extends ExprEditor {
         if (!isVoid) {
             numParams++;
         }
-        
+
         // Build the executeTask call string
         StringBuilder executeTask = new StringBuilder();
         executeTask.append(itApiVar).append(EXECUTE_TASK);
         executeTask.append(itAppIdVar).append(',');
-        
+
         // Common values
         boolean isPrioritary = Boolean.parseBoolean(Constants.IS_NOT_PRIORITARY_TASK);
         int numNodes = Constants.SINGLE_NODE;
-        
+
         // Scheduler hints values
         boolean isReplicated = Boolean.parseBoolean(Constants.IS_NOT_REPLICATED_TASK);
         boolean isDistributed = Boolean.parseBoolean(Constants.IS_NOT_DISTRIBUTED_TASK);
@@ -329,14 +328,14 @@ public class ITAppEditor extends ExprEditor {
             isReplicated = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(schedAnnot.isReplicated()));
             isDistributed = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(schedAnnot.isDistributed()));
         }
-        
+
         // Specific implementation values
-        boolean isMethod = ! ( declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class) );
+        boolean isMethod = !(declaredMethod.isAnnotationPresent(Service.class) || declaredMethod.isAnnotationPresent(Services.class));
         if (isMethod) {
-            // Method: native, MPI, OMPSs, Binary, OpenCL, etc.            
+            // Method: native, MPI, OMPSs, Binary, OpenCL, etc.
             if (declaredMethod.isAnnotationPresent(integratedtoolkit.types.annotations.task.Method.class)) {
-                integratedtoolkit.types.annotations.task.Method methodAnnot = 
-                        declaredMethod.getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
+                integratedtoolkit.types.annotations.task.Method methodAnnot = declaredMethod
+                        .getAnnotation(integratedtoolkit.types.annotations.task.Method.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(methodAnnot.priority()));
             } else if (declaredMethod.isAnnotationPresent(MPI.class)) {
                 MPI mpiAnnot = declaredMethod.getAnnotation(MPI.class);
@@ -355,19 +354,19 @@ public class ITAppEditor extends ExprEditor {
                 Binary binaryAnnot = declaredMethod.getAnnotation(Binary.class);
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(binaryAnnot.priority()));
             }
-            
+
             executeTask.append("\"").append(className).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
         } else {
             // Service
             Service serviceAnnot = declaredMethod.getAnnotation(Service.class);
-            
+
             executeTask.append("\"").append(serviceAnnot.namespace()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.name()).append("\"").append(',');
             executeTask.append("\"").append(serviceAnnot.port()).append("\"").append(',');
             executeTask.append("\"").append(methodName).append("\"").append(',');
         }
-        
+
         // Add scheduler common values
         executeTask.append(isPrioritary).append(',');
         executeTask.append(numNodes).append(",");
@@ -463,7 +462,7 @@ public class ITAppEditor extends ExprEditor {
         Direction paramDirection = par.direction();
         Stream paramStream = par.stream();
         String paramPrefix = par.prefix();
-        
+
         StringBuilder infoToAppend = new StringBuilder("");
         StringBuilder infoToPrepend = new StringBuilder("");
         String type = "";
@@ -511,12 +510,8 @@ public class ITAppEditor extends ExprEditor {
             infoToAppend.append("$").append(paramIndex + 1).append(",");
         }
 
-        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), 
-                                                                    infoToPrepend.toString(), 
-                                                                    type, 
-                                                                    paramDirection,
-                                                                    paramStream, 
-                                                                    paramPrefix);
+        ParameterInformation infoParam = new ParameterInformation(infoToAppend.toString(), infoToPrepend.toString(), type, paramDirection,
+                paramStream, paramPrefix);
         return infoParam;
     }
 
@@ -541,10 +536,10 @@ public class ITAppEditor extends ExprEditor {
             }
             // Add target object
             targetObj.append("$0,");
-            
+
             // Add type
             targetObj.append(CHECK_SCO_TYPE + "$0)");
-            
+
             // Add direction
             // Check if the method will modify the target object (default yes)
             if (isMethod) {
@@ -559,7 +554,7 @@ public class ITAppEditor extends ExprEditor {
             } else {// Service
                 targetObj.append(',').append(DATA_DIRECTION + ".INOUT");
             }
-            
+
             // Add binary stream
             targetObj.append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED);
             // Add emtpy prefix
@@ -589,14 +584,12 @@ public class ITAppEditor extends ExprEditor {
 
             if (retType.isPrimitive()) {
                 /*
-                 * *********************************
-                 * PRIMITIVE
-                 * *********************************
+                 * ********************************* PRIMITIVE *********************************
                  */
                 String tempRetVar = "ret" + System.nanoTime();
                 infoToAppend.append(tempRetVar).append(',').append(DATA_TYPES + ".OBJECT_T").append(',').append(DATA_DIRECTION + ".OUT")
-                    .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED)
-                    .append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
+                        .append(',').append(DATA_STREAM + "." + Stream.UNSPECIFIED).append(',').append("\"").append(Constants.PREFIX_EMTPY)
+                        .append("\"");
 
                 String retValueCreation = "Object " + tempRetVar + " = ";
                 String cast;
@@ -647,8 +640,7 @@ public class ITAppEditor extends ExprEditor {
                         .append(converterMethod).append(";");
             } else if (retType.isArray()) {
                 /*
-                 * ********************************* 
-                 * ARRAY
+                 * ********************************* ARRAY
                  *********************************/
                 String typeName = retType.getName();
                 Class<?> compType = retType.getComponentType();
@@ -668,8 +660,7 @@ public class ITAppEditor extends ExprEditor {
                 infoToAppend.append(',').append("\"").append(Constants.PREFIX_EMTPY).append("\"");
             } else {
                 /*
-                 * ********************************* 
-                 * OBJECT
+                 * ********************************* OBJECT
                  *********************************/
                 // Wrapper for a primitive type: return a default value
                 if (retType.isAssignableFrom(Boolean.class)) {
@@ -697,7 +688,7 @@ public class ITAppEditor extends ExprEditor {
                     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
                         throw new CannotCompileException(ERROR_NO_EMTPY_CONSTRUCTOR + typeName);
                     }
-                    
+
                     infoToPrepend.insert(0, "$_ = new " + typeName + "();");
                 }
 
@@ -781,8 +772,8 @@ public class ITAppEditor extends ExprEditor {
      * @return
      */
     private String replaceBlackBox(String methodName, String className, CtMethod method) throws CannotCompileException {
-        if (debug) {
-            logger.debug("Inspecting method call to black-box method " + methodName + ", looking for objects");
+        if (DEBUG) {
+            LOGGER.debug("Inspecting method call to black-box method " + methodName + ", looking for objects");
         }
 
         StringBuilder modifiedCall = new StringBuilder();
@@ -831,9 +822,9 @@ public class ITAppEditor extends ExprEditor {
                             aux1.append("new Double(").append(parId).append(')');
                         }
                     } else if (parType.getName().equals(String.class.getName())) { // This is a string
-                        if (debug) {
-                            logger.debug("Parameter " + i + " of black-box method " + methodName + 
-                                             " is an String, adding File/object access");
+                        if (DEBUG) {
+                            LOGGER.debug(
+                                    "Parameter " + i + " of black-box method " + methodName + " is an String, adding File/object access");
                         }
                         if (isArrayWatch && i == 3) {
                             // Prevent from synchronizing task return objects to be stored in an array position
@@ -861,8 +852,8 @@ public class ITAppEditor extends ExprEditor {
                             }
                         }
                     } else { // Object (also array)
-                        if (debug) {
-                            logger.debug("Parameter " + i + " of black-box method " + methodName + " is an object, adding access");
+                        if (DEBUG) {
+                            LOGGER.debug("Parameter " + i + " of black-box method " + methodName + " is an object, adding access");
                         }
 
                         if (isArrayWatch && i == 3) {
@@ -914,8 +905,8 @@ public class ITAppEditor extends ExprEditor {
         }
         String fieldName = field.getName();
 
-        if (debug) {
-            logger.debug("Keeping track of access to field " + fieldName + " of class " + field.getDeclaringClass().getName());
+        if (DEBUG) {
+            LOGGER.debug("Keeping track of access to field " + fieldName + " of class " + field.getDeclaringClass().getName());
         }
 
         boolean isWriter = fa.isWriter();
@@ -942,11 +933,11 @@ public class ITAppEditor extends ExprEditor {
 
         fa.replace(toInclude.toString());
 
-        if (debug) {
-            logger.debug("Replaced regular field access by " + toInclude.toString());
+        if (DEBUG) {
+            LOGGER.debug("Replaced regular field access by " + toInclude.toString());
         }
     }
-    
+
 
     private class ParameterInformation {
 
@@ -982,11 +973,11 @@ public class ITAppEditor extends ExprEditor {
         public String getDirection() {
             return DATA_DIRECTION + "." + this.direction.name();
         }
-        
+
         public String getStream() {
             return DATA_STREAM + "." + this.stream.name();
         }
-        
+
         public String getPrefix() {
             return "\"" + this.prefix + "\"";
         }

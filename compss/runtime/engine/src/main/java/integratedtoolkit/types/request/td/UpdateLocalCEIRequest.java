@@ -6,24 +6,31 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.util.CEIParser;
-
-import java.util.concurrent.Semaphore;
-
 import integratedtoolkit.util.ResourceManager;
 
-import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
+import java.util.List;
 
 
 public class UpdateLocalCEIRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
         extends TDRequest<P, T, I> {
 
-    private Class<?> ceiClass;
-    private Semaphore sem;
+    private final Class<?> ceiClass;
+    private final Semaphore sem;
 
 
     public UpdateLocalCEIRequest(Class<?> ceiClass, Semaphore sem) {
         this.ceiClass = ceiClass;
         this.sem = sem;
+    }
+
+    /**
+     * Returns the CoreElement Interface class
+     * 
+     * @return
+     */
+    public Class<?> getCeiClass() {
+        return this.ceiClass;
     }
 
     /**
@@ -35,33 +42,21 @@ public class UpdateLocalCEIRequest<P extends Profile, T extends WorkerResourceDe
         return sem;
     }
 
-    /**
-     * Sets the semaphore where to synchronize until the operation is done
-     *
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
-     */
-    public void setSemaphore(Semaphore sem) {
-        this.sem = sem;
-    }
-
-    public void setCeiClass(Class<?> ceiClass) {
-        this.ceiClass = ceiClass;
-    }
-
-    public Class<?> getCeiClass() {
-        return this.ceiClass;
-    }
-
     @Override
     public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
         logger.debug("Treating request to update core elements");
-        LinkedList<Integer> newCores = CEIParser.loadJava(this.ceiClass);
+
+        // Load new coreElements
+        List<Integer> newCores = CEIParser.loadJava(this.ceiClass);
         if (debug) {
             logger.debug("New methods: " + newCores);
         }
+        // Update Resources structures
         ResourceManager.coreElementUpdates(newCores);
+        // Update Scheduler structures
         ts.coreElementsUpdated();
+
+        // Release
         logger.debug("Data structures resized and CE-resources links updated");
         sem.release();
     }

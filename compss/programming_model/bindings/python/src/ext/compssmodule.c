@@ -21,7 +21,6 @@
 #include <stdio.h>
 
 
-
 struct list_int {
    void *val;
    struct list_el *next;
@@ -48,27 +47,34 @@ stop_runtime(PyObject *self, PyObject *args)
     return Py_BuildValue("i", 0);
 }
 
+
 static PyObject *
 process_task(PyObject *self, PyObject *args)
 {
-	//printf ("####C#### PROCESS TASK\n");
+	printf ("####C#### PROCESS TASK\n");
 
 	long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
-	//printf ("####C####App id: %ld\n", app_id);
-	char *path = PyString_AsString(PyTuple_GetItem(args, 1));
-	//printf ("####C####Path: %s\n", path);
-	char *func_name = PyString_AsString(PyTuple_GetItem(args, 2));
-	//printf ("####C####Function name: %s\n", func_name);
-	int priority = (int)PyInt_AsLong(PyTuple_GetItem(args, 3));
-	//printf ("####C####Priority: %d\n", priority);
-	int has_target = (int)PyInt_AsLong(PyTuple_GetItem(args, 4));
-	//printf ("####C####Has target: %d\n", has_target);
+	printf ("####C#### App id: %ld\n", app_id);
+	char *signature =  PyString_AsString(PyTuple_GetItem(args, 1));
+	printf ("####C#### Signature: %s\n", signature);
+	int priority = (int)PyInt_AsLong(PyTuple_GetItem(args, 2));
+	printf ("####C#### Priority: %d\n", priority);
+	int num_nodes = (int)PyInt_AsLong(PyTuple_GetItem(args, 3));
+	printf ("####C#### MPI Num nodes: %d\n", num_nodes);
+	int replicated = (int)PyInt_AsLong(PyTuple_GetItem(args, 4));
+	printf ("####C#### Replicated: %d\n", replicated);
+	int distributed = (int)PyInt_AsLong(PyTuple_GetItem(args, 5));
+	printf ("####C#### Distributed: %d\n", distributed);
+    int has_target = (int)PyInt_AsLong(PyTuple_GetItem(args, 6));
+	printf ("####C#### Has target: %d\n", has_target);
+	int parameterCount = (int)PyInt_AsLong(PyTuple_GetItem(args, 7));
 
 	PyObject *values = PyList_AsTuple(PyTuple_GetItem(args, 5));
 	PyObject *compss_types = PyList_AsTuple(PyTuple_GetItem(args, 6));
 	PyObject *compss_directions = PyList_AsTuple(PyTuple_GetItem(args, 7));
 	Py_ssize_t num_pars = PyTuple_Size(values);
-	//printf ("####C####Num pars: %d\n", num_pars);
+
+	printf ("####C#### Num pars: %d\n", num_pars);
 
 	PyObject *type, *val, *direction;
 
@@ -190,13 +196,15 @@ process_task(PyObject *self, PyObject *args)
     }
 
     // Invoke the C library
-    GS_ExecuteTask(app_id,
-    			   path, // class_name
-    			   func_name, // method_name
-    			   priority,
-    			   has_target,
-    			   (int)num_pars,
-    			   params);
+    GS_ExecuteTaskNew(app_id,
+    			      signature,
+    			      priority,
+    			      num_nodes,
+    			      replicated,
+    			      distributed,
+    			      has_target,
+    			      (int)num_pars,
+    			      params);
 
     //free(c_values);
     PyMem_Free(ini_c_values);
@@ -267,6 +275,7 @@ get_logging_path(PyObject *self, PyObject *args)
 
 }
 
+/*
 static PyObject *
 set_constraints(PyObject *self, PyObject *args)
 {
@@ -305,7 +314,42 @@ set_constraints(PyObject *self, PyObject *args)
 
 	//printf("####C#### COMPSs CONSTRAINTS ALREADY SET\n");
     return Py_BuildValue("i", 0);
+}
+*/
 
+static PyObject *
+register_core_element(PyObject *self, PyObject *args)
+{
+    printf ("####C#### REGISTER CORE ELEMENT\n");
+
+    char *CESignature = PyString_AsString(PyTuple_GetItem(args, 0));
+    printf ("####C#### Core Element Signature: %s\n", CESignature);
+    char *ImplSignature = PyString_AsString(PyTuple_GetItem(args, 1));
+    printf ("####C#### Implementation Signature: %s\n", ImplSignature);
+    char *ImplConstraints = PyString_AsString(PyTuple_GetItem(args, 2));
+    printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
+    char *ImplType = PyString_AsString(PyTuple_GetItem(args, 3));
+    printf ("####C#### Implementation Type: %s\n", ImplType);
+    PyObject *typeArgs = PyTuple_GetItem(args, 4);
+    int num_params = PyList_Size(typeArgs);
+    printf ("####C#### Implementation Type num args: %i\n", num_params);
+    char **ImplTypeArgs = (char**)malloc(num_params*sizeof(char*));
+    int i;
+    for (i=0; i<num_params; i++){
+        ImplTypeArgs[i] = ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval;
+        printf ("####C#### Implementation Type Arg: %s\n", ((PyStringObject*) PyList_GetItem(typeArgs, i))->ob_sval);
+    }
+
+	// Invoke the C library
+	GS_RegisterCE(CESignature,
+	              ImplSignature,
+	              ImplConstraints,
+	              ImplType,
+	              num_params,
+	              ImplTypeArgs);
+
+	printf("####C#### COMPSs ALREADY REGISTERED THE CORE ELEMENT\n");
+    return Py_BuildValue("i", 0);
 }
 
 static PyMethodDef CompssMethods[] = {
@@ -324,7 +368,9 @@ static PyMethodDef CompssMethods[] = {
 
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
 
-    { "set_constraints", set_constraints, METH_VARARGS, "Sets the task constraints." },
+    /*{ "set_constraints", set_constraints, METH_VARARGS, "Sets the task constraints." },*/
+
+    { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 
     { NULL, NULL, 0, NULL } /* sentinel */
 

@@ -21,8 +21,7 @@ public class NIOParam implements Externalizable {
     private Object value;
     private Data data;
     private String originalName;
-    
-    public static final String NO_NAME="NO_NAME";
+
 
     public NIOParam() {
         // Only executed by externalizable
@@ -75,13 +74,13 @@ public class NIOParam implements Externalizable {
     public void setValue(Object o) {
         this.value = o;
     }
-    
+
     public String getOriginalName() {
         return this.originalName;
     }
-    
-    public void setOriginalName(String originalName){
-    	this.originalName = originalName;
+
+    public void setOriginalName(String originalName) {
+        this.originalName = originalName;
     }
 
     @Override

@@ -40,18 +40,13 @@ public class NIOJob extends Job<NIOWorkerNode> {
     }
 
     @Override
-    public String getHostName() {
-        return worker.getName();
+    public TaskType getType() {
+        return TaskType.METHOD;
     }
 
     @Override
-    public String toString() {
-        MethodImplementation method = (MethodImplementation) this.impl;
-
-        String className = method.getDeclaringClass();
-        String methodName = taskParams.getName();
-
-        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
+    public String getHostName() {
+        return worker.getName();
     }
 
     @Override
@@ -84,7 +79,7 @@ public class NIOJob extends Job<NIOWorkerNode> {
         }
 
         // Create NIOTask
-        NIOTask nt = new NIOTask(lang, debug, absMethodImpl, hasTarget, hasReturn, params, numParams, reqs, this.slaveWorkersNodeNames,
+        NIOTask nt = new NIOTask(LANG, debug, absMethodImpl, hasTarget, hasReturn, params, numParams, reqs, this.slaveWorkersNodeNames,
                 this.taskId, this.taskParams.getId(), this.jobId, this.history, this.transferId);
 
         return nt;
@@ -125,18 +120,14 @@ public class NIOJob extends Job<NIOWorkerNode> {
                     value = btParB.getValue();
                     preserveSourceData = false; // Basic parameters are not preserved on Worker
                     writeFinalValue = false; // Basic parameters are not stored on Worker
-                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value, null, DependencyParameter.NO_NAME);
+                    np = new NIOParam(type, param.getStream(), param.getPrefix(), preserveSourceData, writeFinalValue, value, null,
+                            DependencyParameter.NO_NAME);
                     break;
             }
 
             params.add(np);
         }
         return params;
-    }
-
-    @Override
-    public TaskType getType() {
-        return TaskType.METHOD;
     }
 
     public void taskFinished(boolean successful) {
@@ -150,6 +141,16 @@ public class NIOJob extends Job<NIOWorkerNode> {
     @Override
     public void stop() throws Exception {
         // Do nothing
+    }
+
+    @Override
+    public String toString() {
+        MethodImplementation method = (MethodImplementation) this.impl;
+
+        String className = method.getDeclaringClass();
+        String methodName = taskParams.getName();
+
+        return "NIOJob JobId" + this.jobId + " for method " + methodName + " at class " + className;
     }
 
 }

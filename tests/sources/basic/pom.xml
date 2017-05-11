@@ -87,6 +87,7 @@
                 <module>54-schedulerLifo</module>
                 <module>55-schedulerFifoData</module>
                 <module>56-schedulerData</module>
+		<module>57-multiImplementations</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

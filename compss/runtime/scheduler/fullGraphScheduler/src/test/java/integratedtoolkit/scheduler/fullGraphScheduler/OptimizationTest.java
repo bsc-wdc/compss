@@ -19,6 +19,7 @@ import integratedtoolkit.scheduler.types.fake.FakeProfile;
 import integratedtoolkit.scheduler.types.fake.FakeResourceDescription;
 import integratedtoolkit.scheduler.types.fake.FakeResourceScheduler;
 import integratedtoolkit.scheduler.types.fake.FakeWorker;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.util.CoreManager;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 import org.junit.BeforeClass;
@@ -49,22 +51,63 @@ public class OptimizationTest {
     @BeforeClass
     public static void setUpClass() {
         CoreManager.clear();
-        CoreManager.resizeStructures(7);
+        CoreManager.registerNewCoreElement("fakeSignature00");
+        CoreManager.registerNewCoreElement("fakeSignature10");
+        CoreManager.registerNewCoreElement("fakeSignature20");
+        CoreManager.registerNewCoreElement("fakeSignature30");
+        CoreManager.registerNewCoreElement("fakeSignature40");
+        CoreManager.registerNewCoreElement("fakeSignature50");
+        CoreManager.registerNewCoreElement("fakeSignature60");
+        CoreManager.registerNewCoreElement("fakeSignature70");
 
         FakeImplementation impl00 = new FakeImplementation(0, 0, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(0, new FakeImplementation[] { impl00 }, new String[] { "fakeSignature00" });
+        List<Implementation<?>> impls0 = new LinkedList<>();
+        impls0.add(impl00);
+        List<String> signatures0 = new LinkedList<>();
+        signatures0.add("fakeSignature00");
+        CoreManager.registerNewImplementations(0, impls0, signatures0);
+
         FakeImplementation impl10 = new FakeImplementation(1, 0, new FakeResourceDescription(3));
-        CoreManager.registerImplementations(1, new FakeImplementation[] { impl10 }, new String[] { "fakeSignature10" });
+        List<Implementation<?>> impls1 = new LinkedList<>();
+        impls1.add(impl10);
+        List<String> signatures1 = new LinkedList<>();
+        signatures1.add("fakeSignature10");
+        CoreManager.registerNewImplementations(1, impls1, signatures1);
+
         FakeImplementation impl20 = new FakeImplementation(2, 0, new FakeResourceDescription(1));
-        CoreManager.registerImplementations(2, new FakeImplementation[] { impl20 }, new String[] { "fakeSignature20" });
+        List<Implementation<?>> impls2 = new LinkedList<>();
+        impls2.add(impl20);
+        List<String> signatures2 = new LinkedList<>();
+        signatures2.add("fakeSignature20");
+        CoreManager.registerNewImplementations(2, impls2, signatures2);
+
         FakeImplementation impl30 = new FakeImplementation(3, 0, new FakeResourceDescription(4));
-        CoreManager.registerImplementations(3, new FakeImplementation[] { impl30 }, new String[] { "fakeSignature30" });
+        List<Implementation<?>> impls3 = new LinkedList<>();
+        impls3.add(impl30);
+        List<String> signatures3 = new LinkedList<>();
+        signatures3.add("fakeSignature30");
+        CoreManager.registerNewImplementations(3, impls3, signatures3);
+
         FakeImplementation impl40 = new FakeImplementation(4, 0, new FakeResourceDescription(2));
-        CoreManager.registerImplementations(4, new FakeImplementation[] { impl40 }, new String[] { "fakeSignature40" });
+        List<Implementation<?>> impls4 = new LinkedList<>();
+        impls4.add(impl40);
+        List<String> signatures4 = new LinkedList<>();
+        signatures4.add("fakeSignature40");
+        CoreManager.registerNewImplementations(4, impls4, signatures4);
+
         FakeImplementation impl50 = new FakeImplementation(5, 0, new FakeResourceDescription(1));
-        CoreManager.registerImplementations(5, new FakeImplementation[] { impl50 }, new String[] { "fakeSignature50" });
+        List<Implementation<?>> impls5 = new LinkedList<>();
+        impls5.add(impl50);
+        List<String> signatures5 = new LinkedList<>();
+        signatures5.add("fakeSignature50");
+        CoreManager.registerNewImplementations(5, impls5, signatures5);
+
         FakeImplementation impl60 = new FakeImplementation(6, 0, new FakeResourceDescription(3));
-        CoreManager.registerImplementations(6, new FakeImplementation[] { impl60 }, new String[] { "fakeSignature60" });
+        List<Implementation<?>> impls6 = new LinkedList<>();
+        impls6.add(impl60);
+        List<String> signatures6 = new LinkedList<>();
+        signatures6.add("fakeSignature60");
+        CoreManager.registerNewImplementations(6, impls6, signatures6);
 
         int maxSlots = 4;
         FakeResourceDescription frd = new FakeResourceDescription(maxSlots);
@@ -139,7 +182,7 @@ public class OptimizationTest {
         drs2.clear();
         workers.add(drs1);
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
         action1.selectExecution(drs1, (FakeImplementation) action1.getImplementations()[0]);
         drs1.scheduleAction(action1);
         try {
@@ -147,7 +190,7 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, CoreManager.getCoreImplementations(4));
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
         try {
@@ -155,19 +198,19 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, CoreManager.getCoreImplementations(4));
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(5));
         action4.selectExecution(drs1, (FakeImplementation) action4.getImplementations()[0]);
         drs1.scheduleAction(action4);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, CoreManager.getCoreImplementations(4));
         action5.selectExecution(drs1, (FakeImplementation) action5.getImplementations()[0]);
         drs1.scheduleAction(action5);
 
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(6));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, CoreManager.getCoreImplementations(6));
         action6.selectExecution(drs1, (FakeImplementation) action6.getImplementations()[0]);
         drs1.scheduleAction(action6);
 
@@ -179,24 +222,21 @@ public class OptimizationTest {
     // @Test
     @SuppressWarnings("unchecked")
     public void testScan() {
-        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .setExpectedEnd(10);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .scheduled();
         external10.selectExecution(drs2, (FakeImplementation) external10.getImplementations()[0]);
 
-        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .setExpectedEnd(20);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .scheduled();
         external20.selectExecution(drs2, (FakeImplementation) external20.getImplementations()[0]);
 
-        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
                 .setExpectedEnd(90);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
@@ -206,7 +246,7 @@ public class OptimizationTest {
         drs1.clear();
         drs2.clear();
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
         action1.selectExecution(drs1, (FakeImplementation) action1.getImplementations()[0]);
         drs1.scheduleAction(action1);
         try {
@@ -214,7 +254,7 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, CoreManager.getCoreImplementations(4));
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
         try {
@@ -222,52 +262,49 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, CoreManager.getCoreImplementations(4));
         action3.addDataPredecessor(external90);
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(5));
         action4.selectExecution(drs1, (FakeImplementation) action4.getImplementations()[0]);
         drs1.scheduleAction(action4);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, CoreManager.getCoreImplementations(4));
         action5.selectExecution(drs1, (FakeImplementation) action5.getImplementations()[0]);
         drs1.scheduleAction(action5);
 
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(6));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, CoreManager.getCoreImplementations(6));
         action6.selectExecution(drs1, (FakeImplementation) action6.getImplementations()[0]);
         drs1.scheduleAction(action6);
 
-        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, CoreManager.getCoreImplementations(5));
         action7.addDataPredecessor(external10);
         action7.selectExecution(drs1, (FakeImplementation) action7.getImplementations()[0]);
         drs1.scheduleAction(action7);
 
-        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, CoreManager.getCoreImplementations(5));
         action8.addDataPredecessor(external20);
         action8.selectExecution(drs1, (FakeImplementation) action8.getImplementations()[0]);
         drs1.scheduleAction(action8);
 
-        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, CoreManager.getCoreImplementations(4));
         action9.addDataPredecessor(external90);
         action9.selectExecution(drs1, (FakeImplementation) action9.getImplementations()[0]);
         drs1.scheduleAction(action9);
 
-        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, CoreManager.getCoreImplementations(4));
         action10.addDataPredecessor(action5);
         action10.selectExecution(drs1, (FakeImplementation) action10.getImplementations()[0]);
         drs1.scheduleAction(action10);
 
-        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, CoreManager.getCoreImplementations(4));
         action11.addDataPredecessor(action6);
         action11.selectExecution(drs1, (FakeImplementation) action11.getImplementations()[0]);
         drs1.scheduleAction(action11);
 
-        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, CoreManager.getCoreImplementations(4));
         action12.addDataPredecessor(action5);
         action12.addDataPredecessor(action6);
         action12.selectExecution(drs1, (FakeImplementation) action12.getImplementations()[0]);
@@ -317,24 +354,21 @@ public class OptimizationTest {
     public void testPendingActions() {
         LinkedList<AllocatableAction<FakeProfile, FakeResourceDescription, FakeImplementation>> pendingActions = new LinkedList<>();
 
-        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .setExpectedEnd(10);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .scheduled();
         external10.selectExecution(drs2, (FakeImplementation) external10.getImplementations()[0]);
 
-        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .setExpectedEnd(20);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .scheduled();
         external20.selectExecution(drs2, (FakeImplementation) external20.getImplementations()[0]);
 
-        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
                 .setExpectedEnd(90);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
@@ -344,7 +378,7 @@ public class OptimizationTest {
         drs1.clear();
         drs2.clear();
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
         action1.selectExecution(drs1, (FakeImplementation) action1.getImplementations()[0]);
         drs1.scheduleAction(action1);
         try {
@@ -352,7 +386,7 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, CoreManager.getCoreImplementations(4));
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
         try {
@@ -360,52 +394,49 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, CoreManager.getCoreImplementations(4));
         action3.addDataPredecessor(external90);
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(5));
         action4.selectExecution(drs1, (FakeImplementation) action4.getImplementations()[0]);
         drs1.scheduleAction(action4);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, CoreManager.getCoreImplementations(4));
         action5.selectExecution(drs1, (FakeImplementation) action5.getImplementations()[0]);
         drs1.scheduleAction(action5);
 
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(6));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, CoreManager.getCoreImplementations(6));
         action6.selectExecution(drs1, (FakeImplementation) action6.getImplementations()[0]);
         drs1.scheduleAction(action6);
 
-        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, CoreManager.getCoreImplementations(5));
         action7.addDataPredecessor(external10);
         action7.selectExecution(drs1, (FakeImplementation) action7.getImplementations()[0]);
         pendingActions.add(action7);
 
-        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, CoreManager.getCoreImplementations(5));
         action8.addDataPredecessor(external20);
         action8.selectExecution(drs1, (FakeImplementation) action8.getImplementations()[0]);
         pendingActions.add(action8);
 
-        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, CoreManager.getCoreImplementations(4));
         action9.addDataPredecessor(external90);
         action9.selectExecution(drs1, (FakeImplementation) action9.getImplementations()[0]);
         pendingActions.add(action9);
 
-        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, CoreManager.getCoreImplementations(4));
         action10.addDataPredecessor(action5);
         action10.selectExecution(drs1, (FakeImplementation) action10.getImplementations()[0]);
         pendingActions.add(action10);
 
-        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, CoreManager.getCoreImplementations(4));
         action11.addDataPredecessor(action6);
         action11.selectExecution(drs1, (FakeImplementation) action11.getImplementations()[0]);
         pendingActions.add(action11);
 
-        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, CoreManager.getCoreImplementations(4));
         action12.addDataPredecessor(action5);
         action12.addDataPredecessor(action6);
         action12.selectExecution(drs1, (FakeImplementation) action12.getImplementations()[0]);
@@ -445,31 +476,28 @@ public class OptimizationTest {
         drs1.clear();
         drs2.clear();
 
-        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external10 = new FakeAllocatableAction(fao, 13, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .setExpectedEnd(10);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external10.getSchedulingInfo())
                 .scheduled();
         external10.selectExecution(drs2, (FakeImplementation) external10.getImplementations()[0]);
 
-        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external20 = new FakeAllocatableAction(fao, 14, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .setExpectedEnd(20);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external20.getSchedulingInfo())
                 .scheduled();
         external20.selectExecution(drs2, (FakeImplementation) external20.getImplementations()[0]);
 
-        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction external90 = new FakeAllocatableAction(fao, 15, 0, CoreManager.getCoreImplementations(4));
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
                 .setExpectedEnd(90);
         ((FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) external90.getSchedulingInfo())
                 .scheduled();
         external90.selectExecution(drs2, (FakeImplementation) external90.getImplementations()[0]);
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
         action1.selectExecution(drs1, (FakeImplementation) action1.getImplementations()[0]);
         drs1.scheduleAction(action1);
         try {
@@ -477,7 +505,7 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, CoreManager.getCoreImplementations(4));
         action2.selectExecution(drs1, (FakeImplementation) action2.getImplementations()[0]);
         drs1.scheduleAction(action2);
         try {
@@ -485,52 +513,49 @@ public class OptimizationTest {
         } catch (Exception e) {
         }
 
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 1, CoreManager.getCoreImplementations(4));
         action3.addDataPredecessor(external90);
         action3.selectExecution(drs1, (FakeImplementation) action3.getImplementations()[0]);
         drs1.scheduleAction(action3);
 
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(5));
         action4.selectExecution(drs1, (FakeImplementation) action4.getImplementations()[0]);
         drs1.scheduleAction(action4);
 
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 1, CoreManager.getCoreImplementations(4));
         action5.selectExecution(drs1, (FakeImplementation) action5.getImplementations()[0]);
         drs1.scheduleAction(action5);
 
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, (FakeImplementation[]) CoreManager.getCoreImplementations(6));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 1, CoreManager.getCoreImplementations(6));
         action6.selectExecution(drs1, (FakeImplementation) action6.getImplementations()[0]);
         drs1.scheduleAction(action6);
 
-        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, CoreManager.getCoreImplementations(5));
         action7.addDataPredecessor(external10);
         action7.selectExecution(drs1, (FakeImplementation) action7.getImplementations()[0]);
         drs1.scheduleAction(action7);
 
-        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(5));
+        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, CoreManager.getCoreImplementations(5));
         action8.addDataPredecessor(external20);
         action8.selectExecution(drs1, (FakeImplementation) action8.getImplementations()[0]);
         drs1.scheduleAction(action8);
 
-        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, CoreManager.getCoreImplementations(4));
         action9.addDataPredecessor(external90);
         action9.selectExecution(drs1, (FakeImplementation) action9.getImplementations()[0]);
         drs1.scheduleAction(action9);
 
-        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, CoreManager.getCoreImplementations(4));
         action10.addDataPredecessor(action5);
         action10.selectExecution(drs1, (FakeImplementation) action10.getImplementations()[0]);
         drs1.scheduleAction(action10);
 
-        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, CoreManager.getCoreImplementations(4));
         action11.addDataPredecessor(action6);
         action11.selectExecution(drs1, (FakeImplementation) action11.getImplementations()[0]);
         drs1.scheduleAction(action11);
 
-        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(4));
+        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, CoreManager.getCoreImplementations(4));
         action12.addDataPredecessor(action5);
         action12.addDataPredecessor(action6);
         action12.selectExecution(drs1, (FakeImplementation) action12.getImplementations()[0]);
@@ -667,33 +692,27 @@ public class OptimizationTest {
 
         drs1.clear();
 
-        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(1));
-        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(2));
-        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(3));
-        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(2));
-        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(3));
-        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(0));
-        FakeAllocatableAction action13 = new FakeAllocatableAction(fao, 13, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action2 = new FakeAllocatableAction(fao, 2, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action3 = new FakeAllocatableAction(fao, 3, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action4 = new FakeAllocatableAction(fao, 4, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action5 = new FakeAllocatableAction(fao, 5, 0, CoreManager.getCoreImplementations(1));
+        FakeAllocatableAction action6 = new FakeAllocatableAction(fao, 6, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action7 = new FakeAllocatableAction(fao, 7, 0, CoreManager.getCoreImplementations(2));
+        FakeAllocatableAction action8 = new FakeAllocatableAction(fao, 8, 0, CoreManager.getCoreImplementations(3));
+        FakeAllocatableAction action9 = new FakeAllocatableAction(fao, 9, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action10 = new FakeAllocatableAction(fao, 10, 0, CoreManager.getCoreImplementations(2));
+        FakeAllocatableAction action11 = new FakeAllocatableAction(fao, 11, 0, CoreManager.getCoreImplementations(3));
+        FakeAllocatableAction action12 = new FakeAllocatableAction(fao, 12, 0, CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action13 = new FakeAllocatableAction(fao, 13, 0, CoreManager.getCoreImplementations(1));
 
-        FakeAllocatableAction action14 = new FakeAllocatableAction(fao, 14, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action14 = new FakeAllocatableAction(fao, 14, 0, CoreManager.getCoreImplementations(0));
         action14.selectExecution(drs2, (FakeImplementation) action14.getImplementations()[0]);
         FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation> dsi14 = (FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action14
                 .getSchedulingInfo();
         dsi14.setExpectedEnd(10_000);
 
-        FakeAllocatableAction action15 = new FakeAllocatableAction(fao, 15, 0,
-                (FakeImplementation[]) CoreManager.getCoreImplementations(0));
+        FakeAllocatableAction action15 = new FakeAllocatableAction(fao, 15, 0, CoreManager.getCoreImplementations(0));
         action15.selectExecution(drs2, (FakeImplementation) action15.getImplementations()[0]);
         FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation> dsi15 = (FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>) action15
                 .getSchedulingInfo();

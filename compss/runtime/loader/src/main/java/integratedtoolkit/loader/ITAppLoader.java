@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 public class ITAppLoader {
 
-    private static final Logger logger = LogManager.getLogger(Loggers.LOADER);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER);
 
 
     /**
@@ -46,12 +46,12 @@ public class ITAppLoader {
             Class<?> modifierClass = myLoader.loadClass(loaderName);
 
             Object modifier = modifierClass.newInstance();
-            logger.debug("Modifying application " + appName + " with loader " + chosenLoader);
+            LOGGER.debug("Modifying application " + appName + " with loader " + chosenLoader);
 
             Method method = modifierClass.getMethod("modify", new Class[] { String.class });
             Class<?> modAppClass = (Class<?>) method.invoke(modifier, new Object[] { appName });
             if (modAppClass != null) { // if null, the modified app has been written to a file, and thus we're done
-                logger.debug("Application " + appName + " instrumented, executing...");
+                LOGGER.debug("Application " + appName + " instrumented, executing...");
                 Method main = modAppClass.getDeclaredMethod("main", new Class[] { String[].class });
                 main.invoke(null, new Object[] { appArgs });
             }
@@ -79,7 +79,7 @@ public class ITAppLoader {
         try {
             load(args[0], args[1], appArgs);
         } catch (Exception e) {
-            logger.fatal("There was an error when loading or executing your application.", e);
+            LOGGER.fatal("There was an error when loading or executing your application.", e);
             System.exit(1);
         }
     }

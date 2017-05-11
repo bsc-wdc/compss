@@ -14,12 +14,13 @@ public class DependencyParameter extends Parameter implements Transferable {
      * Serializable objects Version UID are 1L in all Runtime
      */
     private static final long serialVersionUID = 1L;
-    
-    public static final String NO_NAME="NO_NAME";
+
+    public static final String NO_NAME = "NO_NAME";
+
     private DataAccessId daId;
     private Object dataSource;
     private String dataTarget; // Full path with PROTOCOL
-    
+
 
     public DependencyParameter(DataType type, Direction direction, Stream stream, String prefix) {
         super(type, direction, stream, prefix);
@@ -52,17 +53,14 @@ public class DependencyParameter extends Parameter implements Transferable {
     public void setDataTarget(String target) {
         this.dataTarget = target;
     }
-    
-    public String getOriginalName(){
-    	return NO_NAME;
+
+    public String getOriginalName() {
+        return NO_NAME;
     }
-    
-    public void setOriginalName(String originalName){
-    	//Nothing to do in the superclass
+
+    @Override
+    public String toString() {
+        return "DependencyParameter";
     }
-    
-   
-    
-    	
 
 }

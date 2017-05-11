@@ -8,21 +8,22 @@ import integratedtoolkit.scheduler.fullGraphScheduler.FullGraphSchedulingInforma
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
 import integratedtoolkit.scheduler.types.Score;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 
-import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeResourceDescription, FakeImplementation> {
 
-    private int id;
-    private int priority;
-    private FakeImplementation[] impls;
+    private final int id;
+    private final int priority;
+    private final List<Implementation<?>> impls;
 
 
     public FakeAllocatableAction(ActionOrchestrator<FakeProfile, FakeResourceDescription, FakeImplementation> orchestrator, int id,
-            int priority, FakeImplementation[] impls) {
+            int priority, List<Implementation<?>> impls) {
 
         super(new FullGraphSchedulingInformation<FakeProfile, FakeResourceDescription, FakeImplementation>(), orchestrator);
 
@@ -57,8 +58,11 @@ public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeRe
     @Override
     public LinkedList<FakeImplementation> getCompatibleImplementations(
             ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> r) {
+
         LinkedList<FakeImplementation> ret = new LinkedList<>();
-        ret.addAll(Arrays.asList(impls));
+        for (Implementation<?> impl : this.impls) {
+            ret.add((FakeImplementation) impl);
+        }
 
         return ret;
     }
@@ -70,7 +74,12 @@ public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeRe
 
     @Override
     public FakeImplementation[] getImplementations() {
-        return this.impls;
+        int implsSize = this.impls.size();
+        FakeImplementation[] implementations = new FakeImplementation[implsSize];
+        for (int i = 0; i < implsSize; ++i) {
+            implementations[i] = (FakeImplementation) this.impls.get(i);
+        }
+        return implementations;
     }
 
     @Override
@@ -110,7 +119,9 @@ public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeRe
     @Override
     public void schedule(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        this.assignImplementation(impls[0]);
+
+        FakeImplementation impl = (FakeImplementation) impls.get(0);
+        this.assignImplementation(impl);
         this.assignResources(targetWorker);
         targetWorker.scheduleAction(this);
     }
@@ -145,10 +156,10 @@ public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeRe
 
     @Override
     public Integer getCoreId() {
-        if (impls == null || impls.length == 0) {
+        if (impls == null || impls.size() == 0) {
             return null;
         } else {
-            return impls[0].getCoreId();
+            return impls.get(0).getCoreId();
         }
     }
 

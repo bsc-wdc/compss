@@ -153,10 +153,10 @@ public class TestAvailable {
          */
 
         System.out.println("Worker " + NAME_WORKER + ": " + worker.getDescription());
-        System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1)[0]);
+        System.out.println("Implementation 1: " + CoreManager.getCoreImplementations(ce1).get(0));
 
         MethodResourceDescription consumed1 = (MethodResourceDescription) worker
-                .runTask(CoreManager.getCoreImplementations(ce1)[0].getRequirements());
+                .runTask(CoreManager.getCoreImplementations(ce1).get(0).getRequirements());
 
         System.out.println("CONSUMED: " + consumed1);
         // Check Consumed: 2 CPUs 2 GPUs 1 FPGA
@@ -173,7 +173,7 @@ public class TestAvailable {
             System.exit(-1);
         }
         MethodResourceDescription consumed2 = (MethodResourceDescription) worker
-                .runTask(CoreManager.getCoreImplementations(ce2)[0].getRequirements());
+                .runTask(CoreManager.getCoreImplementations(ce2).get(0).getRequirements());
         System.out.println("CONSUMED: " + consumed2);
 
         // Check consumed 1 CPU 2 OTHER 1 FPGA

@@ -16,10 +16,10 @@ import java.util.List;
 public class RequestQueue<T> {
 
     /** Queue of requests **/
-    LinkedList<T> queue;
+    private final LinkedList<T> queue;
 
     /** Number of threads waiting for requests */
-    int waiting;
+    private int waiting;
 
 
     /**

@@ -68,7 +68,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         this.coreExecutionCounter = new int[coreCount];
         this.profiles = new Profile[coreCount][];
         for (int coreId = 0; coreId < coreCount; ++coreId) {
-            int implCount = CoreManager.getCoreImplementations(coreId).length;
+            int implCount = CoreManager.getNumberCoreImplementations(coreId);
             this.profiles[coreId] = new Profile[implCount];
             for (int implId = 0; implId < implCount; implId++) {
                 this.profiles[coreId][implId] = generateProfileForAllocatable();
@@ -137,7 +137,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
         Profile[][] profiles = new Profile[newCoreCount][0];
         for (int coreId = 0; coreId < newCoreCount; coreId++) {
             int oldImplCount = this.profiles[coreId].length;
-            int newImplCount = CoreManager.getCoreImplementations(coreId).length;
+            int newImplCount = CoreManager.getNumberCoreImplementations(coreId);
             profiles[coreId] = (Profile[]) (new Profile[newImplCount]);
             int implId = 0;
             if (coreId < oldCoreCount) {
@@ -316,7 +316,7 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      */
     public final void tryToLaunchBlockedActions() {
         LOGGER.debug("[ResourceScheduler] Try to launch blocked actions on resource " + getName());
-        
+
         while (this.hasBlockedActions()) {
             AllocatableAction<P, T, I> firstBlocked = this.getFirstBlocked();
             if (firstBlocked.areEnoughResources()) {

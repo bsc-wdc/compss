@@ -1,21 +1,22 @@
 #!/bin/bash -e
 
-  #Define Global Variables
+  # Define Global Variables
   source_base_dir=$1
   target_base_dir=$2
+  onlyLang=$3
 
-  #Erase current deployment
+  # Erase current deployment
   echo "---- Erasing current deployment"
   rm -rf ${target_base_dir}
    
-  #Create new deployment structure
+  # Create new deployment structure
   echo "---- Creating new deployment structure"
   mkdir ${target_base_dir}
   mkdir ${target_base_dir}/apps_basic
   mkdir ${target_base_dir}/logs
 
   
-  #TEST BASIC APPS
+  # TEST BASIC APPS
   echo "---- Deploying Basic Block Apps"
   basic_app_folders=$(ls ${source_base_dir}/basic/)
   counter=1
@@ -28,6 +29,26 @@
         fi
         mkdir $target
         ${source_base_dir}/basic/$app/deploy "${source_base_dir}/basic/$app" $target
+
+        # Add skip if language flag
+        if [ "$onlyLang" == "JAVA" ]; then
+           if [[ "$app" == *"_python" ]] || [[ "$app" == *"_c" ]]; then
+             echo "skip" > $target/skip
+           fi
+        elif [ "$onlyLang" == "PYTHON" ]; then
+           if [[ "$app" != *"_python" ]]; then 
+              echo "skip" > $target/skip
+           fi
+        elif [ "$onlyLang" == "C" ]; then
+           if [[ "$app" != *"_c" ]]; then 
+              echo "skip" > $target/skip
+           fi
+        else
+           # The remaining value is NONE, we shoud not skip anything
+           :
+        fi
+
+        # Increase the app counter
         counter=$((counter+1))
      fi
   done

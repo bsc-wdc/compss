@@ -20,8 +20,8 @@
   scoresList=$(cat $runtimelog | egrep -A 4 "Scheduling.*execution:")
   
   while read -r line; do
-    #PARSE LINE
-    taskId=$(echo $line | tr " " "\n" | sed -n 10p | rev | cut -c 2- | rev)
+    # PARSE LINE
+    taskId=$(echo $line | tr " " "\n" | sed -n 10p | tr "," "\t" | awk {' print $1 '})
     
     # Next 4 lines are the resources
     i=0
@@ -77,9 +77,10 @@
       fi
       i=$((i+1))
     done
+    
     # If task had no resource, look for forced schedule message
     if [ "$bestActionScore" == "null" ]; then
-     bestResourceId=$(cat $runtimelog | egrep "Scheduling ExecutionAction \( Task ${taskId},.*on worker " | awk {' print $16 '})
+      bestResourceId=$(cat $runtimelog | egrep "Schedule action ExecutionAction \( Task ${taskId},.*on resource " | awk {' print $NF '})
     fi
     
     # Print result

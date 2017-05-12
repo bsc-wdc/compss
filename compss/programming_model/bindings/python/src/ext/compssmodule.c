@@ -52,25 +52,26 @@ static PyObject *
 process_task(PyObject *self, PyObject *args)
 {
 	// printf ("####C#### PROCESS TASK\n");
+  long app_id;
+  const char* signature;
+  int priority, num_nodes, replicated, distributed, has_target;
+  PyObject* values;
+  PyObject* compss_types;
+  PyObject* compss_directions;
 
-	long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
+  if(!PyArg_ParseTuple(args, "lsiiiiiOOO", &app_id, &signature, &priority,
+     &num_nodes, &replicated, &distributed, &has_target, &values, &compss_types,
+     &compss_directions)) {
+    return NULL;
+  }
+
 	// printf ("####C#### App id: %ld\n", app_id);
-	char *signature =  PyString_AsString(PyTuple_GetItem(args, 1));
 	// printf ("####C#### Signature: %s\n", signature);
-	int priority = (int)PyInt_AsLong(PyTuple_GetItem(args, 2));
 	// printf ("####C#### Priority: %d\n", priority);
-	int num_nodes = (int)PyInt_AsLong(PyTuple_GetItem(args, 3));
 	// printf ("####C#### MPI Num nodes: %d\n", num_nodes);
-	int replicated = (int)PyInt_AsLong(PyTuple_GetItem(args, 4));
 	// printf ("####C#### Replicated: %d\n", replicated);
-	int distributed = (int)PyInt_AsLong(PyTuple_GetItem(args, 5));
 	// printf ("####C#### Distributed: %d\n", distributed);
-    int has_target = (int)PyInt_AsLong(PyTuple_GetItem(args, 6));
 	// printf ("####C#### Has target: %d\n", has_target);
-
-	PyObject *values = PyList_AsTuple(PyTuple_GetItem(args, 7));
-	PyObject *compss_types = PyList_AsTuple(PyTuple_GetItem(args, 8));
-	PyObject *compss_directions = PyList_AsTuple(PyTuple_GetItem(args, 9));
 	Py_ssize_t num_pars = PyTuple_Size(values);
 
 	// printf ("####C#### Num pars: %d\n", num_pars);
@@ -320,16 +321,21 @@ static PyObject *
 register_core_element(PyObject *self, PyObject *args)
 {
     // printf ("####C#### REGISTER CORE ELEMENT\n");
+    const char* CESignature;
+    const char* ImplSignature;
+    const char* ImplConstraints;
+    const char* ImplType;
+    PyObject* typeArgs;
 
-    char *CESignature = PyString_AsString(PyTuple_GetItem(args, 0));
+    if(!PyArg_ParseTuple(args, "ssssO", &CESignature, &ImplSignature,
+       &ImplConstraints, &ImplType, &typeArgs)) {
+         return NULL;
+   }
+
     // printf ("####C#### Core Element Signature: %s\n", CESignature);
-    char *ImplSignature = PyString_AsString(PyTuple_GetItem(args, 1));
     // printf ("####C#### Implementation Signature: %s\n", ImplSignature);
-    char *ImplConstraints = PyString_AsString(PyTuple_GetItem(args, 2));
     // printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
-    char *ImplType = PyString_AsString(PyTuple_GetItem(args, 3));
     // printf ("####C#### Implementation Type: %s\n", ImplType);
-    PyObject *typeArgs = PyTuple_GetItem(args, 4);
     int num_params = PyList_Size(typeArgs);
     // printf ("####C#### Implementation Type num args: %i\n", num_params);
     char **ImplTypeArgs = (char**)malloc(num_params*sizeof(char*));

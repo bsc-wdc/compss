@@ -52,7 +52,7 @@ PyMethodDef module_methods[] = {
     will be changed."},
     {"getaffinity", pysched_getaffinity, METH_VARARGS,
     "Args: (pid[OPTIONAL]) -> returns the affinity for the thread with given\
-    pid. If now specified, returns the affinity for the current thread."},
+    pid. If not specified, returns the affinity for the current thread."},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 

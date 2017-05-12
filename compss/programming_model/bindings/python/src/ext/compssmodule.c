@@ -65,14 +65,14 @@ process_task(PyObject *self, PyObject *args)
     return NULL;
   }
 
-	// printf ("####C#### App id: %ld\n", app_id);
-	// printf ("####C#### Signature: %s\n", signature);
-	// printf ("####C#### Priority: %d\n", priority);
-	// printf ("####C#### MPI Num nodes: %d\n", num_nodes);
-	// printf ("####C#### Replicated: %d\n", replicated);
-	// printf ("####C#### Distributed: %d\n", distributed);
-	// printf ("####C#### Has target: %d\n", has_target);
-	Py_ssize_t num_pars = PyTuple_Size(values);
+	printf ("####C#### App id: %ld\n", app_id);
+	printf ("####C#### Signature: %s\n", signature);
+	printf ("####C#### Priority: %d\n", priority);
+	printf ("####C#### MPI Num nodes: %d\n", num_nodes);
+	printf ("####C#### Replicated: %d\n", replicated);
+	printf ("####C#### Distributed: %d\n", distributed);
+	printf ("####C#### Has target: %d\n", has_target);
+	Py_ssize_t num_pars = PyList_Size(values);
 
 	// printf ("####C#### Num pars: %d\n", num_pars);
 
@@ -92,8 +92,8 @@ process_task(PyObject *self, PyObject *args)
 
     // Get C types and directions
     for (j = 0; j < num_pars; j++) {
-    	type = PyTuple_GetItem(compss_types, j); // this does not increment reference (we don't own it) so no need for decref
-    	direction = PyTuple_GetItem(compss_directions, j);
+    	type = PyList_GetItem(compss_types, j); // this does not increment reference (we don't own it) so no need for decref
+    	direction = PyList_GetItem(compss_directions, j);
 
     	c_types[j] = (int)PyInt_AsLong(type);
     	c_directions[j] = (int)PyInt_AsLong(direction);
@@ -143,7 +143,7 @@ process_task(PyObject *self, PyObject *args)
     ini_c_values = c_values;
     for (j = 0; j < num_pars; j++) {
     	pj = j * 3;
-    	val = PyTuple_GetItem(values, j); // this does not increment reference (we don't own it) so no need for decref
+    	val = PyList_GetItem(values, j); // this does not increment reference (we don't own it) so no need for decref
     	params[pj] = (void *)c_values;
     	switch ((enum datatype) c_types[j]) {
             case file_dt:
@@ -332,12 +332,12 @@ register_core_element(PyObject *self, PyObject *args)
          return NULL;
    }
 
-    // printf ("####C#### Core Element Signature: %s\n", CESignature);
-    // printf ("####C#### Implementation Signature: %s\n", ImplSignature);
-    // printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
-    // printf ("####C#### Implementation Type: %s\n", ImplType);
+    printf ("####C#### Core Element Signature: %s\n", CESignature);
+    printf ("####C#### Implementation Signature: %s\n", ImplSignature);
+    printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
+    printf ("####C#### Implementation Type: %s\n", ImplType);
     int num_params = PyList_Size(typeArgs);
-    // printf ("####C#### Implementation Type num args: %i\n", num_params);
+    printf ("####C#### Implementation Type num args: %i\n", num_params);
     char **ImplTypeArgs = (char**)malloc(num_params*sizeof(char*));
     int i;
     for (i=0; i<num_params; i++){

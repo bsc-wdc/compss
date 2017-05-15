@@ -11,8 +11,8 @@ import integratedtoolkit.types.resources.WorkerResourceDescription;
 public abstract class Implementation<T extends WorkerResourceDescription> implements Externalizable {
 
     public enum TaskType {
-        METHOD, 
-        SERVICE
+        METHOD, // Generic method type
+        SERVICE // Services type
     }
 
 
@@ -32,37 +32,37 @@ public abstract class Implementation<T extends WorkerResourceDescription> implem
     }
 
     public Integer getCoreId() {
-        return coreId;
+        return this.coreId;
     }
 
     public Integer getImplementationId() {
-        return implementationId;
+        return this.implementationId;
     }
 
     public T getRequirements() {
-        return requirements;
+        return this.requirements;
     }
 
     public abstract TaskType getTaskType();
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Implementation ").append(implementationId);
-        sb.append(" for core ").append(coreId);
+        StringBuilder sb = new StringBuilder("Implementation ").append(this.implementationId);
+        sb.append(" for core ").append(this.coreId);
         sb.append(":");
         return sb.toString();
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-        coreId = (Integer) in.readObject();
-        implementationId = (Integer) in.readObject();
+        this.coreId = (Integer) in.readObject();
+        this.implementationId = (Integer) in.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeObject(coreId);
-        out.writeObject(implementationId);
+        out.writeObject(this.coreId);
+        out.writeObject(this.implementationId);
     }
 
 }

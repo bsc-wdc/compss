@@ -66,12 +66,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public static final int MAX_RECEIVE_WORKER = 5;
 
     // Logging
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
     /*
      * The master port can be: 1. Given by the IT_MASTER_PORT property 2. A BASE_MASTER_PORT plus a random number
      */
-
     private static final int BASE_MASTER_PORT = 43_000;
     private static final int MAX_RANDOM_VALUE = 1_000;
     private static final int RANDOM_VALUE = new Random().nextInt(MAX_RANDOM_VALUE);
@@ -87,20 +87,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     // private static final String SER_RCV_ERR =
     // "Error serializing received object";
 
-    private static final HashSet<NIOWorkerNode> nodes = new HashSet<>();
+    private static final HashSet<NIOWorkerNode> NODES = new HashSet<>();
 
-    private static final ConcurrentHashMap<Integer, NIOJob> runningJobs = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, NIOJob> RUNNING_JOBS = new ConcurrentHashMap<>();
 
-    private static final HashMap<Integer, LinkedList<Copy>> groupToCopy = new HashMap<>();
+    private static final HashMap<Integer, LinkedList<Copy>> GROUP_TO_COPY = new HashMap<>();
 
-    private static final HashMap<Connection, ClosingWorker> stoppingNodes = new HashMap<>();
+    private static final HashMap<Connection, ClosingWorker> STOPPING_NODES = new HashMap<>();
 
-    private static final HashMap<Connection, ClosingExecutor> stoppingExecutors = new HashMap<>();
+    private static final HashMap<Connection, ClosingExecutor> STOPPING_EXECUTORS = new HashMap<>();
 
     private Semaphore tracingGeneration = new Semaphore(0);
     private Semaphore workersDebugInfo = new Semaphore(0);
-
-    private static final boolean WORKER_DEBUG = LogManager.getLogger(Loggers.WORKER).isDebugEnabled();
 
 
     public NIOAdaptor() {
@@ -113,16 +111,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void init() {
-        logger.info("Initializing NIO Adaptor...");
+        LOGGER.info("Initializing NIO Adaptor...");
         masterNode = new NIONode(null, MASTER_PORT);
 
         // Instantiate the NIO Message Handler
         final NIOMessageHandler mhm = new NIOMessageHandler(this);
 
         // Init the Transfer Manager
-        logger.debug("  Initializing the TransferManager structures...");
+        LOGGER.debug("  Initializing the TransferManager structures...");
         try {
-            tm.init(NIOEventManagerClass, null, mhm);
+            TM.init(NIO_EVENT_MANAGER_CLASS, null, mhm);
         } catch (CommException ce) {
             String errMsg = "Error initializing the TransferManager";
             ErrorManager.error(errMsg, ce);
@@ -133,17 +131,17 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
 
         // Start the server
-        logger.debug("  Starting transfer server...");
+        LOGGER.debug("  Starting transfer server...");
         try {
-            tm.startServer(masterNode);
+            TM.startServer(masterNode);
         } catch (CommException ce) {
             String errMsg = "Error starting transfer server";
             ErrorManager.error(errMsg, ce);
         }
 
         // Start the Transfer Manager thread (starts the EventManager)
-        logger.debug("  Starting TransferManager Thread");
-        tm.start();
+        LOGGER.debug("  Starting TransferManager Thread");
+        TM.start();
     }
 
     @Override
@@ -172,7 +170,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (min_project < 0) {
             min_final = min_resources;
         } else if (min_project < min_resources) {
-            logger.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
+            LOGGER.warn("resources.xml MinPort is more restrictive than project.xml. Loading resources.xml values");
             min_final = min_resources;
         } else {
             min_final = min_project;
@@ -182,9 +180,9 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         if (max_project < 0) {
             if (max_resources < 0) {
                 // No max port defined
-                logger.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
+                LOGGER.warn("MaxPort not defined in resources.xml/project.xml. Loading no limit");
             } else {
-                logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+                LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
                 max_final = max_resources;
             }
         } else if (max_resources < 0) {
@@ -192,12 +190,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         } else if (max_project < max_resources) {
             max_final = max_project;
         } else {
-            logger.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
+            LOGGER.warn("resources.xml MaxPort is more restrictive than project.xml. Loading resources.xml values");
             max_final = max_resources;
         }
 
-        logger.info("NIO Min Port: " + min_final);
-        logger.info("NIO MAX Port: " + max_final);
+        LOGGER.info("NIO Min Port: " + min_final);
+        LOGGER.info("NIO MAX Port: " + max_final);
         config.setMinPort(min_final);
         config.setMaxPort(max_final);
 
@@ -217,47 +215,47 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public NIOWorkerNode initWorker(String workerName, Configuration config) {
-        logger.debug("Init NIO Worker Node named " + workerName);
+        LOGGER.debug("Init NIO Worker Node named " + workerName);
         NIOWorkerNode worker = new NIOWorkerNode(workerName, (NIOConfiguration) config, this);
-        nodes.add(worker);
+        NODES.add(worker);
         return worker;
     }
 
     public void removedNode(NIOWorkerNode worker) {
-        logger.debug("Remove worker " + worker.getName());
-        nodes.remove(worker);
+        LOGGER.debug("Remove worker " + worker.getName());
+        NODES.remove(worker);
     }
 
     @Override
     public void stop() {
-        logger.debug("NIO Adaptor stopping workers...");
+        LOGGER.debug("NIO Adaptor stopping workers...");
         HashSet<NIOWorkerNode> workers = new HashSet<NIOWorkerNode>();
-        workers.addAll(nodes);
+        workers.addAll(NODES);
 
         Semaphore sem = new Semaphore(0);
         ShutdownListener sl = new ShutdownListener(sem);
         for (NIOWorkerNode worker : workers) {
-            logger.debug("- Stopping worker " + worker.getName());
+            LOGGER.debug("- Stopping worker " + worker.getName());
             sl.addOperation();
             worker.stop(sl);
         }
 
-        logger.debug("- Waiting for workers to shutdown...");
+        LOGGER.debug("- Waiting for workers to shutdown...");
         sl.enable();
         try {
             sem.acquire();
         } catch (Exception e) {
-            logger.error("ERROR: Exception raised on worker shutdown");
+            LOGGER.error("ERROR: Exception raised on worker shutdown");
         }
-        logger.debug("- Workers stopped");
+        LOGGER.debug("- Workers stopped");
 
-        logger.debug("- Shutting down TM...");
-        tm.shutdown(null);
-        logger.debug("NIO Adaptor stop completed!");
+        LOGGER.debug("- Shutting down TM...");
+        TM.shutdown(null);
+        LOGGER.debug("NIO Adaptor stop completed!");
     }
 
     protected static void submitTask(NIOJob job) throws Exception {
-        logger.debug("NIO submitting new job " + job.getJobId());
+        LOGGER.debug("NIO submitting new job " + job.getJobId());
         Resource res = job.getResource();
         NIOWorkerNode worker = (NIOWorkerNode) res.getNode();
 
@@ -267,7 +265,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
             obsoleteRenamings.add(ld.getName());
         }
 
-        runningJobs.put(job.getJobId(), job);
+        RUNNING_JOBS.put(job.getJobId(), job);
         worker.submitTask(job, obsoleteRenamings);
     }
 
@@ -290,18 +288,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void setWorkerIsReady(String nodeName) {
-        logger.info("Notifying that worker is ready '" + nodeName + "'");
+        LOGGER.info("Notifying that worker is ready '" + nodeName + "'");
         WorkerStarter ws = WorkerStarter.getWorkerStarter(nodeName);
         if (ws != null) {
             ws.setWorkerIsReady();
-        }else{
-        	logger.warn("WARN: worker starter for worker " + nodeName + " is null.");
+        } else {
+            LOGGER.warn("WARN: worker starter for worker " + nodeName + " is null.");
         }
     }
 
     @Override
     public void receivedTaskDone(Connection c, NIOTaskResult tr, boolean successful) {
-        NIOJob nj = runningJobs.remove(tr.getTaskId());
+        NIOJob nj = RUNNING_JOBS.remove(tr.getTaskId());
 
         // Update information
         for (int i = 0; i < tr.getParamTypes().size(); ++i) {
@@ -355,10 +353,10 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     public void registerCopy(Copy c) {
         for (EventListener el : c.getEventListeners()) {
             Integer groupId = el.getId();
-            LinkedList<Copy> copies = groupToCopy.get(groupId);
+            LinkedList<Copy> copies = GROUP_TO_COPY.get(groupId);
             if (copies == null) {
                 copies = new LinkedList<Copy>();
-                groupToCopy.put(groupId, copies);
+                GROUP_TO_COPY.put(groupId, copies);
             }
             copies.add(c);
         }
@@ -404,43 +402,43 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void copiedData(int transferGroupId) {
-        logger.debug("Notifying copied Data to master");
-        LinkedList<Copy> copies = groupToCopy.remove(transferGroupId);
+        LOGGER.debug("Notifying copied Data to master");
+        LinkedList<Copy> copies = GROUP_TO_COPY.remove(transferGroupId);
         if (copies == null) {
-            logger.debug("No copies to process");
+            LOGGER.debug("No copies to process");
             return;
         }
         for (Copy c : copies) {
-            logger.debug("Treating copy " + c.getName());
+            LOGGER.debug("Treating copy " + c.getName());
             if (!c.isRegistered()) {
-                logger.debug("No registered copy " + c.getName());
+                LOGGER.debug("No registered copy " + c.getName());
                 continue;
             }
             DataLocation actualLocation = c.getSourceData().finishedCopy(c);
             if (actualLocation != null) {
-                logger.debug("Actual Location " + actualLocation.getPath());
+                LOGGER.debug("Actual Location " + actualLocation.getPath());
             } else {
-                logger.debug("Actual Location is null");
+                LOGGER.debug("Actual Location is null");
             }
             LogicalData tgtData = c.getTargetData();
             if (tgtData != null) {
-                logger.debug("targetData is not null");
+                LOGGER.debug("targetData is not null");
                 switch (actualLocation.getType()) {
                     case PERSISTENT:
-                        logger.debug("Persistent location no need to update location for " + tgtData.getName());
+                        LOGGER.debug("Persistent location no need to update location for " + tgtData.getName());
                         break;
                     case PRIVATE:
-                        logger.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
+                        LOGGER.debug("Adding location:" + actualLocation.getPath() + " to " + tgtData.getName());
                         tgtData.addLocation(actualLocation);
                         break;
                     case SHARED:
-                        logger.debug("Shared location no need to update location for " + tgtData.getName());
+                        LOGGER.debug("Shared location no need to update location for " + tgtData.getName());
                         break;
                 }
-                logger.debug("Locations for " + tgtData.getName() + " are: " + tgtData.getURIs());
+                LOGGER.debug("Locations for " + tgtData.getName() + " are: " + tgtData.getURIs());
 
             } else {
-                logger.warn("No target Data defined for copy " + c.getName());
+                LOGGER.warn("No target Data defined for copy " + c.getName());
             }
         }
     }
@@ -503,12 +501,12 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void stopSubmittedJobs() {
-        synchronized (runningJobs) {
-            for (Job<?> job : runningJobs.values()) {
+        synchronized (RUNNING_JOBS) {
+            for (Job<?> job : RUNNING_JOBS.values()) {
                 try {
                     job.stop();
                 } catch (Exception e) {
-                    logger.error(TERM_ERR, e);
+                    LOGGER.error(TERM_ERR, e);
                 }
             }
         }
@@ -527,16 +525,16 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
     }
 
     public void shuttingDown(NIOWorkerNode worker, Connection c, ShutdownListener listener) {
-        stoppingNodes.put(c, new ClosingWorker(worker, listener));
+        STOPPING_NODES.put(c, new ClosingWorker(worker, listener));
     }
 
     public void shuttingDownEM(NIOWorkerNode worker, Connection c, ExecutorShutdownListener listener) {
-        stoppingExecutors.put(c, new ClosingExecutor(listener));
+        STOPPING_EXECUTORS.put(c, new ClosingExecutor(listener));
     }
 
     @Override
     public void shutdownNotification(Connection c) {
-        ClosingWorker closing = stoppingNodes.remove(c);
+        ClosingWorker closing = STOPPING_NODES.remove(c);
         NIOWorkerNode worker = closing.worker;
         removedNode(worker);
         ShutdownListener listener = closing.listener;
@@ -556,7 +554,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
     @Override
     public void shutdownExecutionManagerNotification(Connection c) {
-        ClosingExecutor closing = stoppingExecutors.remove(c);
+        ClosingExecutor closing = STOPPING_EXECUTORS.remove(c);
         ExecutorShutdownListener listener = closing.listener;
         listener.notifyEnd();
     }
@@ -566,7 +564,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         try {
             tracingGeneration.acquire();
         } catch (InterruptedException ex) {
-            logger.error("Error waiting for package generation");
+            LOGGER.error("Error waiting for package generation");
         }
 
     }
@@ -581,7 +579,7 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         try {
             workersDebugInfo.acquire();
         } catch (InterruptedException ex) {
-            logger.error("Error waiting for package generation");
+            LOGGER.error("Error waiting for package generation");
         }
 
     }

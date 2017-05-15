@@ -156,7 +156,7 @@ public class WorkerStarter {
                     if (DEBUG) {
                         LOGGER.debug("[WorkerStarter] Sending check command to worker " + name);
                     }
-                    Connection c = NIOAdaptor.tm.startConnection(n);
+                    Connection c = NIOAdaptor.getTransferManager().startConnection(n);
                     c.sendCommand(cmd);
                     c.receive();
                     c.finishConnection();
@@ -289,29 +289,26 @@ public class WorkerStarter {
         cmd[3] = workerClasspath.isEmpty() ? "null" : workerClasspath;
         cmd[4] = String.valueOf(jvmFlags.length);
         for (int i = 0; i < jvmFlags.length; ++i) {
-            cmd[5 + i] = jvmFlags[i];
+            cmd[NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + i] = jvmFlags[i];
         }
 
         /* Values for NIOWorker ********************************** */
-        int nextPosition = 5 + jvmFlags.length;
+        int nextPosition = NIOAdaptor.NUM_PARAMS_PER_WORKER_SH + jvmFlags.length;
         cmd[nextPosition++] = workerDebug;
 
         // Internal parameters
-        int workerThreadSlots;
-        int limitOfTasks = node.getLimitOfTasks();
-        int cus = node.getTotalComputingUnits();
-        if (limitOfTasks < 0) {
-            workerThreadSlots = cus;
-        } else {
-            workerThreadSlots = Math.min(limitOfTasks, cus);
-        }
-        cmd[nextPosition++] = String.valueOf(workerThreadSlots);
-
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_SEND_WORKER);
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MAX_RECEIVE_WORKER);
         cmd[nextPosition++] = node.getName();
         cmd[nextPosition++] = String.valueOf(workerPort);
         cmd[nextPosition++] = String.valueOf(NIOAdaptor.MASTER_PORT);
+
+        // Worker parameters
+        cmd[nextPosition++] = String.valueOf(node.getTotalComputingUnits());
+        cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
+        cmd[nextPosition++] = String.valueOf(NIOAdaptor.BINDER_DISABLED);
+        cmd[nextPosition++] = String.valueOf(NIOAdaptor.BINDER_DISABLED);
+        cmd[nextPosition++] = String.valueOf(node.getLimitOfTasks());
 
         // Application parameters
         cmd[nextPosition++] = DEPLOYMENT_ID;
@@ -337,15 +334,6 @@ public class WorkerStarter {
         // Storage parameters
         cmd[nextPosition++] = storageConf;
         cmd[nextPosition++] = executionType;
-
-        // GPU parameters
-        cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
-
-        // TODO: check if values have been set in runcompss or other configuration file
-        // This is the insertion point of the current implementation
-        // CPU parameters
-        cmd[nextPosition++] = "0";
-        cmd[nextPosition++] = "-";
 
         return cmd;
     }

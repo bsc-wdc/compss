@@ -17,22 +17,35 @@ public class DataManager {
     private final HashMap<String, Object> objectCache;
 
 
+    /**
+     * Instantiates a new Data Manager
+     * 
+     */
     public DataManager() {
         objectCache = new HashMap<>();
     }
 
+    /**
+     * Initializes the Data Manager
+     * 
+     * @throws InitializationException
+     */
     public void init() throws InitializationException {
         // All structures are already defined
     }
 
+    /**
+     * Stops the Data Manager and its sub-components
+     * 
+     */
     public void stop() {
 
     }
 
     /*
-     * ************************************ 
+     * ****************************************************************************************************************
      * STORE METHODS
-     ************************************/
+     *****************************************************************************************************************/
     public synchronized void storeObject(String name, Object value) {
         try {
             objectCache.put(name, value);
@@ -42,25 +55,25 @@ public class DataManager {
     }
 
     /*
-     * ************************************ 
+     * ****************************************************************************************************************
      * GET METHODS
-     ************************************/
+     *****************************************************************************************************************/
     public synchronized Object getObject(String name) {
         return objectCache.get(name);
     }
 
     /*
-     * ************************************ 
+     * ****************************************************************************************************************
      * REMOVE METHODS
-     ************************************/
+     *****************************************************************************************************************/
     public synchronized void remove(String name) {
         objectCache.remove(name);
     }
 
     /*
-     * ************************************ 
+     * ****************************************************************************************************************
      * CHECKER METHODS
-     ************************************/
+     *****************************************************************************************************************/
     public synchronized boolean checkPresence(String name) {
         return objectCache.containsKey(name);
     }

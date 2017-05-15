@@ -1,20 +1,26 @@
-package integratedtoolkit.nio.worker.util;
+package integratedtoolkit.nio.worker.binders;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
 import integratedtoolkit.log.Loggers;
 
-import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
-import integratedtoolkit.nio.worker.exceptions.InitializationException;
+import integratedtoolkit.nio.worker.exceptions.InvalidMapException;
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 
 
-public class ThreadBinderCPU implements ThreadBinder {
+/**
+ * Class to bind the threads to an specific resource map (obtained by lscpu or given by the user)
+ *
+ */
+public class BindToMap implements ThreadBinder {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_BINDER);
     private static final boolean DEBUG = LOGGER.isDebugEnabled();
@@ -30,17 +36,13 @@ public class ThreadBinderCPU implements ThreadBinder {
      * "/" is used to separate sockets For example: "1,2,3,6-8/1,3-5" = "1-3,6,7,8/1,3,4,5"
      * 
      * @param numThreads
-     *            amount of tasks to be launched in a given node
-     * @throws InitializationException
+     * @param socketString
      */
-    public ThreadBinderCPU(int numThreads, int amountSockets, String socketString) throws BadAmountSocketsException {
+    public BindToMap(int numThreads, String socketString) {
         ArrayList<ArrayList<Integer>> computingUnitsIds = new ArrayList<>();
         int realAmountThreads = 0;
 
         String[] slots = socketString.split("/");
-        if (amountSockets != slots.length) {
-            throw new BadAmountSocketsException(amountSockets + " sockets declared but " + slots.length + " defined");
-        }
         for (String availableCPUs : slots) {
             String[] intervals = availableCPUs.split(",");
             ArrayList<Integer> currentIds = new ArrayList<>();
@@ -63,12 +65,110 @@ public class ThreadBinderCPU implements ThreadBinder {
         auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
     }
 
-    public ThreadBinderCPU(int numThreads, ArrayList<ArrayList<Integer>> computingUnitsIds) {
-        int realAmountThreads = 0;
-        for (ArrayList<Integer> currentBinds : this.idList) {
-            realAmountThreads += currentBinds.size();
+    public static String getResourceCPUDescription() throws InvalidMapException {
+        // Get LSCPU output
+        String cmdOutput = getLsCpuOutput();
+
+        // Process the LSCPU output
+        return processLsCpuOutput(cmdOutput);
+    }
+
+    private static String getLsCpuOutput() throws InvalidMapException {
+        // **************************************************************************************
+        // Get LSCPU output
+        // **************************************************************************************
+        String cmdOutput = null;
+        ProcessBuilder pb = new ProcessBuilder("lscpu");
+        try {
+            Process process = pb.start();
+
+            // Disable inputs to process
+            process.getOutputStream().close();
+
+            // Wait and retrieve exit value
+            int exitValue = process.waitFor();
+            if (exitValue != 0) {
+                throw new InvalidMapException("ERROR: LSCPU command failed with exitValue " + exitValue);
+            }
+
+            // Retrieve command output
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+            } catch (IOException ioe) {
+                throw new InvalidMapException("ERROR: Cannot retrieve LSCPU command output", ioe);
+            }
+            cmdOutput = sb.toString();
+        } catch (IOException ioe) {
+            throw new InvalidMapException("ERROR: Cannot start LSCPU ProcessBuilder", ioe);
+        } catch (InterruptedException ie) {
+            throw new InvalidMapException("ERROR: LSCPU command interrupted", ie);
         }
-        auxiliarConstructor(numThreads, computingUnitsIds, realAmountThreads);
+
+        return cmdOutput;
+    }
+
+    public static String processLsCpuOutput(String cmdOutput) throws InvalidMapException {
+        LOGGER.debug("Parsing LSCPU Output : " + cmdOutput);
+        String[] cmdLines = cmdOutput.split("\n");
+        Integer numSockets = null;
+        Integer coresPerSocket = null;
+        Integer threadsPerCore = null;
+        Integer numCPUs = null;
+        for (String line : cmdLines) {
+            if (line.contains("Socket(s):")) {
+                String[] lineValues = line.split(" ");
+                String numSocketsSTR = lineValues[lineValues.length - 1];
+                if (numSocketsSTR != null && !numSocketsSTR.isEmpty()) {
+                    numSockets = Integer.parseInt(numSocketsSTR);
+                }
+            } else if (line.contains("Core(s) per socket:")) {
+                String[] lineValues = line.split(" ");
+                String coresPerSocketSTR = lineValues[lineValues.length - 1];
+                if (coresPerSocketSTR != null && !coresPerSocketSTR.isEmpty()) {
+                    coresPerSocket = Integer.parseInt(coresPerSocketSTR);
+                }
+            } else if (line.contains("Thread(s) per core:")) {
+                String[] lineValues = line.split(" ");
+                String threadsPerCoreSTR = lineValues[lineValues.length - 1];
+                if (threadsPerCoreSTR != null && !threadsPerCoreSTR.isEmpty()) {
+                    threadsPerCore = Integer.parseInt(threadsPerCoreSTR);
+                }
+            } else if (line.contains("CPU(s):") && !line.contains("NUMA")) {
+                String[] lineValues = line.split(" ");
+                String numCPUsSTR = lineValues[lineValues.length - 1];
+                if (numCPUsSTR != null && !numCPUsSTR.isEmpty()) {
+                    numCPUs = Integer.parseInt(numCPUsSTR);
+                }
+            }
+        }
+
+        String cpuMap;
+        if (numSockets == null || numSockets <= 0) {
+            // Do general affinity: per core
+            LOGGER.debug("CPU Map constructed by General Affinity");
+            cpuMap = "0-" + String.valueOf(numCPUs);
+        } else {
+            // Do affinity per socket
+            LOGGER.debug("CPU Map constructed by Affinity per socket");
+            StringBuilder sb = new StringBuilder();
+            int cpusPerSocket = coresPerSocket * threadsPerCore;
+            for (int i = 0; i < numSockets; ++i) {
+                int low = i * cpusPerSocket;
+                int high = (i + 1) * cpusPerSocket - 1;
+                if (i != 0) {
+                    sb.append("/");
+                }
+                sb.append(String.valueOf(low)).append("-").append(String.valueOf(high));
+            }
+            cpuMap = sb.toString();
+        }
+
+        LOGGER.info("CPU MAP: " + cpuMap);
+        return cpuMap;
     }
 
     @Override
@@ -186,8 +286,6 @@ public class ThreadBinderCPU implements ThreadBinder {
      *            : amount of threads that needs to be allocated
      * @param index
      *            : lower socket allowed to hosts the threads
-     * @param sockets
-     *            : maximum different amount of sockets allowed to host the threads
      * @return : True if succeeded, False if failed
      */
     private ArrayList<Integer> recursiveBindingComputingUnits(int jobId, int amount, int index) {

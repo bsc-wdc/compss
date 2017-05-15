@@ -1,13 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<!-- GENERAL INFORMATION -->
 	<artifactId>compss-adaptors-nio-worker</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-adaptors-nio</artifactId>
-<version>2.0.rc1704</version>
+		<version>2.0.rc1704</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -15,7 +16,7 @@
 	<!-- PROJECT INFORMATION -->
 	<name>COMPSs Back-end NIO Worker</name>
 	<description>Worker to run COMPSs tasks submitted via the NIO communication library in remote resources </description>
-	<url>http://www.bsc.es</url>  
+	<url>http://www.bsc.es</url>
 	<inceptionYear>2014</inceptionYear>
 	<licenses>
 		<license>
@@ -27,7 +28,7 @@
 		<name>BSC</name>
 		<url>http://www.bsc.es</url>
 	</organization>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
 		<dependency>
@@ -35,8 +36,15 @@
 			<artifactId>compss-adaptors-nio-commons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- JUnit dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
-	
+
 	<!-- BUILD -->
 	<build>
 		<finalName>${project.artifactId}</finalName>
@@ -49,8 +57,8 @@
 					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
-			
-			<!-- Copia les dependencies a la carpeta lib-->
+
+			<!-- Copia les dependencies a la carpeta lib -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -58,18 +66,18 @@
 					<execution>
 						<id>copy</id>
 						<phase>packaging</phase>
-						<goals> 
-							<goal>copy-dependencies</goal> 
-						</goals> 
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/lib</outputDirectory> 
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 							<silent>true</silent>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-				    
-			<!-- Crea el Jar amb les dependencies-->
+
+			<!-- Crea el Jar amb les dependencies -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -86,8 +94,8 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			<!--Copy compss-adaptors-gat-master.jar to adaptor basedir-->
+
+			<!--Copy compss-adaptors-gat-master.jar to adaptor basedir -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>

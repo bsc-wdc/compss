@@ -37,11 +37,13 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class NIOAgent {
 
-    protected static final String NIOEventManagerClass = NIOEventManager.class.getCanonicalName();
+    protected static final String NIO_EVENT_MANAGER_CLASS = NIOEventManager.class.getCanonicalName();
     public static final String ID = NIOAgent.class.getCanonicalName();
     
     public static final int NUM_PARAMS_PER_WORKER_SH = 5;
-    public static final int NUM_PARAMS_NIO_WORKER = 23;
+    public static final int NUM_PARAMS_NIO_WORKER = 24;
+    public static final String BINDER_DISABLED = "disabled";
+    public static final String BINDER_AUTOMATIC = "automatic";
 
     private int sendTransfers;
     private final int MAX_SEND_TRANSFERS;
@@ -68,10 +70,10 @@ public abstract class NIOAgent {
     protected NIONode masterNode;
 
     // Transfer Manager instance
-    public static final TransferManager tm = new TransferManager();
+    protected static final TransferManager TM = new TransferManager();
 
     // Logging
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     // Tracing
     protected static boolean tracing;
@@ -108,6 +110,10 @@ public abstract class NIOAgent {
      */
     public NIONode getMaster() {
         return masterNode;
+    }
+    
+    public static TransferManager getTransferManager() {
+        return TM;
     }
 
     /**
@@ -164,8 +170,8 @@ public abstract class NIOAgent {
             Connection c = null;
 
             try {
-                c = tm.startConnection(nn);
-                logger.debug("Connection " + c.hashCode() + " will be used to acquire data " + dr.getTarget() + " stored in " + nn
+                c = TM.startConnection(nn);
+                LOGGER.debug("Connection " + c.hashCode() + " will be used to acquire data " + dr.getTarget() + " stored in " + nn
                         + " with name " + dr.getSource().getName());
                 Data remoteData = new Data(source.getName(), uri);
                 CommandDataDemand cdd = new CommandDataDemand(this, remoteData, tracingID);
@@ -240,7 +246,7 @@ public abstract class NIOAgent {
         if (path.startsWith(File.separator)) {
             File f = new File(path);
             if (f.exists()) {
-                logger.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
+                LOGGER.debug("Connection " + c.hashCode() + " will transfer file " + path + " as data " + d.getName());
                 c.sendDataFile(path);
             } else {
                 ErrorManager.warn("Can't send file '" + path + "' via connection " + c.hashCode() + " because file doesn't exist.");
@@ -249,12 +255,12 @@ public abstract class NIOAgent {
         } else {
             try {
                 Object o = getObject(path);
-                logger.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
+                LOGGER.debug("Connection " + c.hashCode() + " will transfer an object as data " + d.getName());
                 c.sendDataObject(o);
             } catch (SerializedObjectException soe) {
                 // Exception has been raised because object has been serialized
                 String newLocation = getObjectAsFile(path);
-                logger.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
+                LOGGER.debug("Connection " + c.hashCode() + " will transfer an object-file " + newLocation + " as data " + d.getName());
                 c.sendDataFile(newLocation);
             }
 
@@ -319,7 +325,7 @@ public abstract class NIOAgent {
                         receivedValue(t.getDestination(), targetName, o, reqs);
                     }
                 } catch (IOException | ClassNotFoundException e) {
-                    logger.warn("Can not replicate received Data", e);
+                    LOGGER.warn("Can not replicate received Data", e);
                 }
 
             }
@@ -340,7 +346,7 @@ public abstract class NIOAgent {
      * @param filesToSend
      */
     public void receivedShutdown(Connection requester, LinkedList<Data> filesToSend) {
-        logger.debug("Command for shutdown received. Preparing for shutdown...");
+        LOGGER.debug("Command for shutdown received. Preparing for shutdown...");
         closingConnection = requester;
         finish = true;
 

@@ -171,7 +171,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 sl.notifyFailure(new UnstartedNodeException());
                 LOGGER.error("Shutdown has failed");
             }
-            Connection c = NIOAgent.tm.startConnection(node);
+            Connection c = NIOAgent.getTransferManager().startConnection(node);
             commManager.shuttingDown(this, c, sl);
             CommandShutdown cmd = new CommandShutdown(null, null);
             c.sendCommand(cmd);
@@ -192,7 +192,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 esl.notifyFailure(new UnstartedNodeException());
                 LOGGER.error("Shutdown execution manager has failed");
             }
-            Connection c = NIOAgent.tm.startConnection(node);
+            Connection c = NIOAgent.getTransferManager().startConnection(node);
             commManager.shuttingDownEM(this, c, esl);
 
             CommandExecutorShutdown cmd = new CommandExecutorShutdown(null);
@@ -462,7 +462,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 return false;
             } else {
 
-                Connection c = NIOAgent.tm.startConnection(node);
+                Connection c = NIOAgent.getTransferManager().startConnection(node);
                 CommandGeneratePackage cmd = new CommandGeneratePackage();
                 c.sendCommand(cmd);
                 c.receive();
@@ -486,7 +486,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 LOGGER.error("Worker debug files generation has failed.");
             }
 
-            Connection c = NIOAgent.tm.startConnection(node);
+            Connection c = NIOAgent.getTransferManager().startConnection(node);
             CommandGenerateWorkerDebugFiles cmd = new CommandGenerateWorkerDebugFiles();
             c.sendCommand(cmd);
             c.receive();
@@ -507,7 +507,7 @@ public class NIOWorkerNode extends COMPSsWorker {
         }
         NIOTask t = job.prepareJob();
         CommandNewTask cmd = new CommandNewTask(t, obsolete);
-        Connection c = NIOAgent.tm.startConnection(node);
+        Connection c = NIOAgent.getTransferManager().startConnection(node);
         c.sendCommand(cmd);
         c.finishConnection();
     }

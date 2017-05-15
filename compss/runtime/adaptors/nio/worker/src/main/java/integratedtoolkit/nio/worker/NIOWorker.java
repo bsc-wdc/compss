@@ -38,7 +38,7 @@ import integratedtoolkit.nio.dataRequest.WorkerDataRequest.TransferringTask;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.components.DataManager;
 import integratedtoolkit.nio.worker.components.ExecutionManager;
-import integratedtoolkit.nio.worker.exceptions.BadAmountSocketsException;
+import integratedtoolkit.nio.worker.exceptions.InvalidMapException;
 import integratedtoolkit.nio.worker.exceptions.InitializationException;
 import integratedtoolkit.nio.worker.util.ThreadPrintStream;
 import integratedtoolkit.nio.NIOTracer;
@@ -104,9 +104,9 @@ public class NIOWorker extends NIOAgent {
     }
 
 
-    public NIOWorker(int numJobThreads, int snd, int rcv, int masterPort, String appUuid, String lang, String hostName, String workingDir,
-            String installDir, String appDir, String libPath, String classpath, String pythonpath, int numGPUs, int amountSockets,
-            String socketString) {
+    public NIOWorker(int snd, int rcv, String hostName, int masterPort, int computingUnitsCPU, int computingUnitsGPU, String cpuMap,
+            String gpuMap, int limitOfTasks, String appUuid, String lang, String workingDir, String installDir, String appDir,
+            String libPath, String classpath, String pythonpath) {
 
         super(snd, rcv, masterPort);
 
@@ -138,9 +138,9 @@ public class NIOWorker extends NIOAgent {
         // Start Execution Manager
         ExecutionManager em = null;
         try {
-            em = new ExecutionManager(this, numJobThreads, amountSockets, socketString, numGPUs);
-        } catch (BadAmountSocketsException base) {
-            ErrorManager.fatal(base);
+            em = new ExecutionManager(this, computingUnitsCPU, computingUnitsGPU, cpuMap, gpuMap, limitOfTasks);
+        } catch (InvalidMapException ime) {
+            ErrorManager.fatal(ime);
             return;
         } finally {
             this.executionManager = em;
@@ -571,7 +571,7 @@ public class NIOWorker extends NIOAgent {
         Connection c = null;
         while (retries < MAX_RETRIES) {
             try {
-                c = tm.startConnection(masterNode);
+                c = TM.startConnection(masterNode);
                 if (c == null) {
                     throw new Exception("Nullable connection");
                 }
@@ -643,7 +643,7 @@ public class NIOWorker extends NIOAgent {
     }
 
     private boolean tryNofiyDataReceived(CommandDataReceived cdr) {
-        Connection c = tm.startConnection(masterNode);
+        Connection c = TM.startConnection(masterNode);
         c.sendCommand(cdr);
         c.finishConnection();
 
@@ -701,7 +701,7 @@ public class NIOWorker extends NIOAgent {
                 closingConnection.finishConnection();
             }
 
-            tm.shutdown(closingConnection);
+            TM.shutdown(closingConnection);
 
             // End storage
             String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
@@ -908,62 +908,62 @@ public class NIOWorker extends NIOAgent {
     }
 
     public static void main(String[] args) {
-        /*
-         * ************************************** Get arguments
-         **************************************/
+        // Check arguments length
         if (args.length != (NUM_PARAMS_NIO_WORKER)) {
+            if (WORKER_LOGGER_DEBUG) {
+                WORKER_LOGGER.debug("Received parameters: ");
+                for (int i = 0; i < args.length; ++i) {
+                    WORKER_LOGGER.debug("Param " + i + ":  " + args[i]);
+                }
+            }
             ErrorManager.fatal(ERROR_INCORRECT_NUM_PARAMS);
         }
 
-        if (WORKER_LOGGER_DEBUG) {
-            WORKER_LOGGER.debug("Received parameters: ");
-            for (int i = 0; i < args.length; ++i) {
-                WORKER_LOGGER.debug("Param " + i + ":  " + args[i]);
-            }
-        }
-
+        // Parse arguments
         isWorkerDebugEnabled = Boolean.valueOf(args[0]);
 
-        int jobThreads = new Integer(args[1]);
-        int maxSnd = new Integer(args[2]);
-        int maxRcv = new Integer(args[3]);
+        int maxSnd = Integer.parseInt(args[1]);
+        int maxRcv = Integer.parseInt(args[2]);
+        String workerIP = args[3];
+        int wPort = Integer.parseInt(args[4]);
+        int mPort = Integer.parseInt(args[5]);
 
-        String workerIP = args[4];
-        int wPort = new Integer(args[5]);
-        int mPort = new Integer(args[6]);
+        int computingUnitsCPU = Integer.parseInt(args[6]);
+        int computingUnitsGPU = Integer.parseInt(args[7]);
+        String cpuMap = args[8];
+        String gpuMap = args[9];
+        int limitOfTasks = Integer.parseInt(args[10]);
 
-        String appUuid = args[7];
-        String lang = args[8];
-        String workingDir = args[9];
-        String installDir = args[10];
-        String appDir = args[11];
-        String libPath = args[12];
-        String classpath = args[13];
-        String pythonpath = args[14];
+        String appUuid = args[11];
+        String lang = args[12];
+        String workingDir = args[13];
+        String installDir = args[14];
+        String appDir = args[15];
+        String libPath = args[16];
+        String classpath = args[17];
+        String pythonpath = args[18];
 
-        String trace = args[15];
-        String extraeFile = args[16];
-        String host = args[17];
+        String trace = args[19];
+        String extraeFile = args[20];
+        String host = args[21];
 
-        String storageConf = args[18];
-        executionType = args[19];
+        String storageConf = args[22];
+        executionType = args[23];
 
-        int numGPUs = Integer.parseInt(args[20]);
-
-        int amountSockets = Integer.parseInt(args[21]);
-        String socketString = args[22];
-
-        /*
-         * ************************************** Print args
-         **************************************/
+        // Print arguments
         if (isWorkerDebugEnabled) {
-            WORKER_LOGGER.debug("jobThreads: " + String.valueOf(jobThreads));
             WORKER_LOGGER.debug("maxSnd: " + String.valueOf(maxSnd));
             WORKER_LOGGER.debug("maxRcv: " + String.valueOf(maxRcv));
 
             WORKER_LOGGER.debug("WorkerName: " + workerIP);
             WORKER_LOGGER.debug("WorkerPort: " + String.valueOf(wPort));
             WORKER_LOGGER.debug("MasterPort: " + String.valueOf(mPort));
+
+            WORKER_LOGGER.debug("Computing Units CPU: " + String.valueOf(computingUnitsCPU));
+            WORKER_LOGGER.debug("Computing Units GPU: " + String.valueOf(computingUnitsGPU));
+            WORKER_LOGGER.debug("User defined CPU Map: " + cpuMap);
+            WORKER_LOGGER.debug("User defined GPU Map: " + gpuMap);
+            WORKER_LOGGER.debug("Limit Of Tasks: " + String.valueOf(limitOfTasks));
 
             WORKER_LOGGER.debug("App uuid: " + appUuid);
             WORKER_LOGGER.debug("WorkingDir:" + workingDir);
@@ -980,14 +980,10 @@ public class NIOWorker extends NIOAgent {
             WORKER_LOGGER.debug("StorageConf: " + storageConf);
             WORKER_LOGGER.debug("executionType: " + executionType);
 
-            WORKER_LOGGER.debug("Gpus per node: " + String.valueOf(numGPUs));
-
             WORKER_LOGGER.debug("Remove Sanbox WD: " + removeWD);
         }
 
-        /*
-         * ************************************** Configure Storage
-         **************************************/
+        // Configure storage
         System.setProperty(ITConstants.IT_STORAGE_CONF, storageConf);
         try {
             if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
@@ -999,13 +995,9 @@ public class NIOWorker extends NIOAgent {
             ErrorManager.fatal("Error loading storage configuration file: " + storageConf, e);
         }
 
-        /*
-         * ************************************** Configure tracing
-         **************************************/
+        // Configure tracing
         System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, extraeFile);
         tracing_level = Integer.parseInt(trace);
-
-        // Initialize tracing system
         if (tracing_level > 0) {
             NIOTracer.init(tracing_level);
             NIOTracer.emitEvent(NIOTracer.Event.START.getId(), NIOTracer.Event.START.getType());
@@ -1019,17 +1011,18 @@ public class NIOWorker extends NIOAgent {
         }
 
         /*
-         * ************************************** LAUNCH THE WORKER
-         **************************************/
-        NIOWorker nw = new NIOWorker(jobThreads, maxSnd, maxRcv, mPort, appUuid, lang, workerIP, workingDir, installDir, appDir, libPath,
-                classpath, pythonpath, numGPUs, amountSockets, socketString);
+         * ***********************************************************************************************************
+         * LAUNCH THE WORKER
+         *************************************************************************************************************/
+        NIOWorker nw = new NIOWorker(maxSnd, maxRcv, workerIP, mPort, computingUnitsCPU, computingUnitsGPU, cpuMap, gpuMap, limitOfTasks,
+                appUuid, lang, workingDir, installDir, appDir, libPath, classpath, pythonpath);
 
         NIOMessageHandler mh = new NIOMessageHandler(nw);
 
         // Initialize the Transfer Manager
         WORKER_LOGGER.debug("  Initializing the TransferManager structures...");
         try {
-            tm.init(NIOEventManagerClass, null, mh);
+            TM.init(NIO_EVENT_MANAGER_CLASS, null, mh);
         } catch (CommException ce) {
             WORKER_LOGGER.error("Error initializing Transfer Manager on worker " + nw.getHostName(), ce);
             // Shutdown the Worker since the error it is not recoverable
@@ -1039,9 +1032,9 @@ public class NIOWorker extends NIOAgent {
 
         // Start the Transfer Manager thread (starts the EventManager)
         WORKER_LOGGER.debug("  Starting TransferManager Thread");
-        tm.start();
+        TM.start();
         try {
-            tm.startServer(new NIONode(null, wPort));
+            TM.startServer(new NIONode(null, wPort));
         } catch (CommException ce) {
             WORKER_LOGGER.error("Error starting TransferManager Server at Worker" + nw.getHostName(), ce);
             nw.shutdown(null);
@@ -1053,11 +1046,12 @@ public class NIOWorker extends NIOAgent {
         }
 
         /*
-         * ************************************** JOIN AND END
-         **************************************/
+         * ***********************************************************************************************************
+         * JOIN AND END
+         *************************************************************************************************************/
         // Wait for the Transfer Manager thread to finish (the shutdown is received on that thread)
         try {
-            tm.join();
+            TM.join();
         } catch (InterruptedException ie) {
             WORKER_LOGGER.warn("TransferManager interrupted", ie);
             Thread.currentThread().interrupt();

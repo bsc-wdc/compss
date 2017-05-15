@@ -100,6 +100,10 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
      */
     @Override
     protected void doCompleted() {
+        // Update worker core elements information
+        ts.updatedWorker(worker.getResource());
+
+        // Notify worker available
         LOGGER.info("Worker " + worker.getName() + " is ready to execute tasks.");
     }
 
@@ -175,7 +179,7 @@ public class StartWorkerAction<P extends Profile, T extends WorkerResourceDescri
     @Override
     public void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
-        
+
         // WARN: targetWorker is ignored
         schedule(this.worker, this.impl);
     }

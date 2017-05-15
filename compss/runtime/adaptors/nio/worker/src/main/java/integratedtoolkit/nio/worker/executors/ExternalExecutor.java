@@ -146,10 +146,10 @@ public abstract class ExternalExecutor extends Executor {
 
     @Override
     public void finish() {
-        logger.info("Finishing ExternalExecutor");
+        LOGGER.info("Finishing ExternalExecutor");
 
         // Send quit tag to pipe
-        logger.debug("Send quit tag to pipe " + writePipe);
+        LOGGER.debug("Send quit tag to pipe " + writePipe);
         boolean done = false;
         int retries = 0;
         while (!done && retries < MAX_RETRIES) {
@@ -160,7 +160,7 @@ public abstract class ExternalExecutor extends Executor {
                 output.write(quitCMD.getBytes());
                 output.flush();
             } catch (Exception e) {
-                logger.warn("Error on writing on pipe " + writePipe + ". Retrying " + retries + "/" + MAX_RETRIES);
+                LOGGER.warn("Error on writing on pipe " + writePipe + ". Retrying " + retries + "/" + MAX_RETRIES);
                 ++retries;
             } finally {
                 if (output != null) {
@@ -179,7 +179,7 @@ public abstract class ExternalExecutor extends Executor {
 
         // ------------------------------------------------------
         // Ask TaskResultReader to stop and wait for it to finish
-        logger.debug("Waiting for TaskResultReader");
+        LOGGER.debug("Waiting for TaskResultReader");
         Semaphore sem = new Semaphore(0);
         taskResultReader.shutdown(sem);
         try {
@@ -188,7 +188,7 @@ public abstract class ExternalExecutor extends Executor {
             Thread.currentThread().interrupt();
         }
 
-        logger.info("End Finishing ExternalExecutor");
+        LOGGER.info("End Finishing ExternalExecutor");
     }
 
     public abstract ArrayList<String> getTaskExecutionCommand(NIOWorker nw, NIOTask nt, String sandBox, int[] assignedCoreUnits,
@@ -294,7 +294,7 @@ public abstract class ExternalExecutor extends Executor {
             emitStartTask(taskId, taskType);
         }
 
-        logger.debug("Starting job process ...");
+        LOGGER.debug("Starting job process ...");
         // Send executeTask tag to pipe
         boolean done = false;
         int retries = 0;
@@ -304,15 +304,15 @@ public abstract class ExternalExecutor extends Executor {
                 // Send to pipe : task tID command(jobOut jobErr externalCMD) \n
                 String taskCMD = EXECUTE_TASK_TAG + TOKEN_SEP + jobId + TOKEN_SEP + command + TOKEN_NEW_LINE;
 
-                if (logger.isDebugEnabled()) {
-                    logger.debug("EXECUTOR COMMAND: " + taskCMD);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("EXECUTOR COMMAND: " + taskCMD);
                 }
 
                 output = new FileOutputStream(writePipe, true);
                 output.write(taskCMD.getBytes());
                 output.flush();
             } catch (Exception e) {
-                logger.debug("Error on pipe write. Retry");
+                LOGGER.debug("Error on pipe write. Retry");
                 ++retries;
             } finally {
                 if (output != null) {
@@ -350,11 +350,11 @@ public abstract class ExternalExecutor extends Executor {
             emitEndTask();
         }
 
-        logger.debug("Task finished");
+        LOGGER.debug("Task finished");
         if (exitValue != 0) {
             throw new JobExecutionException("Job " + jobId + " has failed. Exit values is " + exitValue);
         } else {
-            logger.debug("Job " + jobId + " has finished with exit value 0");
+            LOGGER.debug("Job " + jobId + " has finished with exit value 0");
         }
     }
 

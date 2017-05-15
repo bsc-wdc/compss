@@ -26,7 +26,7 @@ public class JavaExecutor extends Executor {
 
     @Override
     public void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs) {
-        if (logger.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             System.out.println("HOSTNAMES: " + hostnames);
             System.out.println("NUM_NODES: " + numNodes);
             System.out.println("CPU_COMPUTING_UNITS: " + cus);
@@ -82,7 +82,7 @@ public class JavaExecutor extends Executor {
     @Override
     public void finish() {
         // Nothing to do since everything is deleted in each task execution
-        logger.info("Executor finished");
+        LOGGER.info("Executor finished");
     }
 
 }

@@ -41,8 +41,8 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
     private final int maxOthersTaskCount;
 
     // Logger
-    protected static final Logger logger = LogManager.getLogger(Loggers.RM_COMP);
-    protected static final boolean debug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     @SuppressWarnings("unchecked")
@@ -188,6 +188,9 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
      * -----------------------------------------------------------------------*/
     @SuppressWarnings("unchecked")
     public void updatedCoreElements(List<Integer> updatedCoreIds) {
+        if (DEBUG) {
+            LOGGER.debug("Update coreElements on Worker " + this.getName());
+        }
         int coreCount = CoreManager.getCoreCount();
         boolean[] coresToUpdate = new boolean[coreCount];
         for (int coreId : updatedCoreIds) {
@@ -387,8 +390,8 @@ public abstract class Worker<T extends WorkerResourceDescription, I extends Impl
     }
 
     public void endTask(T consumption) {
-        if (debug) {
-            logger.debug("End task received. Releasing resource " + getName());
+        if (DEBUG) {
+            LOGGER.debug("End task received. Releasing resource " + getName());
         }
 
         this.decreaseUsedTaskCount();

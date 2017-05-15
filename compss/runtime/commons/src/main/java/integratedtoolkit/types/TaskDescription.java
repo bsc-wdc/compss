@@ -7,6 +7,7 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.util.CoreManager;
+import integratedtoolkit.util.ErrorManager;
 
 import java.io.Serializable;
 
@@ -47,6 +48,10 @@ public class TaskDescription implements Serializable {
         this.hasTarget = hasTarget;
         this.parameters = parameters;
         this.hasReturn = hasReturn;
+
+        if (this.numNodes < Constants.SINGLE_NODE) {
+            ErrorManager.error("Invalid number of nodes " + this.numNodes + " on executeTask " + this.signature);
+        }
     }
 
     public TaskDescription(String namespace, String service, String port, String operation, boolean isPrioritary, boolean hasTarget,

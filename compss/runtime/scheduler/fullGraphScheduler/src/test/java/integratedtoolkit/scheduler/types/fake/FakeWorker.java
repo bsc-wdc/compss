@@ -75,7 +75,7 @@ public class FakeWorker extends Worker<FakeResourceDescription, FakeImplementati
 
     @Override
     public boolean usesGPU(FakeResourceDescription consumption) {
-        logger.debug("fake worker");
+        LOGGER.debug("fake worker");
         return false;
     }
 

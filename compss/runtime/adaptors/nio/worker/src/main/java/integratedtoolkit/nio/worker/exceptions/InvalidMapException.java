@@ -1,7 +1,6 @@
 package integratedtoolkit.nio.worker.exceptions;
 
-
-public class BadAmountSocketsException extends Exception{
+public class InvalidMapException extends Exception {
 
     /**
      * Exception Version UID are 2L in all Runtime
@@ -9,16 +8,16 @@ public class BadAmountSocketsException extends Exception{
     private static final long serialVersionUID = 2L;
 
 
-    public BadAmountSocketsException(String message) {
+    public InvalidMapException(String message) {
         super(message);
     }
 
-    public BadAmountSocketsException(Exception e) {
+    public InvalidMapException(Exception e) {
         super(e);
     }
 
-    public BadAmountSocketsException(String msg, Exception e) {
+    public InvalidMapException(String msg, Exception e) {
         super(msg, e);
     }
-    
+
 }

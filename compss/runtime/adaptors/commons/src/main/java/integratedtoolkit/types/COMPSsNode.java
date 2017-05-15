@@ -30,8 +30,8 @@ import org.apache.logging.log4j.Logger;
 public abstract class COMPSsNode implements Comparable<COMPSsNode> {
 
     // Log and debug
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    public static final boolean debug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    public static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     protected static final String DELETE_ERR = "Error deleting intermediate files";
     protected static final String URI_CREATION_ERR = "Error creating new URI";
@@ -77,7 +77,7 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      * @param listener
      * @return
      */
-    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res, 
+    public abstract Job<?> newJob(int taskId, TaskDescription taskparams, Implementation<?> impl, Resource res,
             List<String> slaveWorkersNodeNames, JobListener listener);
 
     /**
@@ -142,7 +142,6 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
      */
     public abstract void shutdownExecutionManager(ExecutorShutdownListener sl);
 
-
     /**
      * Generates the debug information in the node
      * 
@@ -154,17 +153,17 @@ public abstract class COMPSsNode implements Comparable<COMPSsNode> {
     public int compareTo(COMPSsNode host) {
         return getName().compareTo(host.getName());
     }
-    
+
     @Override
-    public boolean equals (Object obj) {
+    public boolean equals(Object obj) {
         if (!(obj instanceof COMPSsNode) || obj == null) {
             return false;
         }
-        
+
         COMPSsNode host = (COMPSsNode) obj;
         return getName().equals(host.getName());
     }
-    
+
     @Override
     public int hashCode() {
         return getName().hashCode();

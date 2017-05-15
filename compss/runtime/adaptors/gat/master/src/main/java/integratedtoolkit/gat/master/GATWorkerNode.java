@@ -44,7 +44,7 @@ public class GATWorkerNode extends COMPSsWorker {
             + File.separator + "adaptors" + File.separator + "gat" + File.separator;
     private static final String CLEANER_SCRIPT_NAME = "clean.sh";
     private static final String INIT_SCRIPT_NAME = "init.sh";
-    
+
     private GATConfiguration config;
     private org.gridlab.gat.resources.Job tracingJob;
 
@@ -69,7 +69,7 @@ public class GATWorkerNode extends COMPSsWorker {
     public void start() throws InitNodeException {
         initWorkingDir();
         if (GATTracer.isActivated()) {
-            logger.debug("Starting GAT tracer " + this.getName());
+            LOGGER.debug("Starting GAT tracer " + this.getName());
             tracingJob = GATTracer.startTracing(this);
             waitForTracingReady();
         }
@@ -102,7 +102,7 @@ public class GATWorkerNode extends COMPSsWorker {
         traceParams.add(pars);
 
         // Use cleaner to run the trace script and generate the package
-        logger.debug("Initializing working dir " + workingDir + "  in host " + getName());
+        LOGGER.debug("Initializing working dir " + workingDir + "  in host " + getName());
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "init_" + host);
         if (!result) {
             throw new InitNodeException("Error executing init script for initializing working dir " + workingDir + " in host " + getName());
@@ -219,9 +219,9 @@ public class GATWorkerNode extends COMPSsWorker {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, 
-            List<String> slaveWorkersNodeNames, JobListener listener) {
-        
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+            JobListener listener) {
+
         return new GATJob(taskId, taskParams, impl, res, listener, config.getContext(), config.isUserNeeded(), config.isUsingGlobus(),
                 slaveWorkersNodeNames);
     }
@@ -239,7 +239,7 @@ public class GATWorkerNode extends COMPSsWorker {
             gat = new org.gridlab.gat.URI(s);
             uri.setInternalURI(GATAdaptor.ID, gat);
         } catch (URISyntaxException e) {
-            logger.error(URI_CREATION_ERR, e);
+            LOGGER.error(URI_CREATION_ERR, e);
         }
     }
 
@@ -257,7 +257,7 @@ public class GATWorkerNode extends COMPSsWorker {
                 }
             }
         } catch (FileNotFoundException e) {
-            logger.warn("Could not remove clean node working dir\n" + e);
+            LOGGER.warn("Could not remove clean node working dir\n" + e);
         }
         sl.notifyEnd();
     }
@@ -292,7 +292,7 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public void updateTaskCount(int processorCoreCount) {
         if (GATTracer.isActivated()) {
-            logger.error("Tracing system and Cloud do not work together");
+            LOGGER.error("Tracing system and Cloud do not work together");
         }
     }
 
@@ -354,7 +354,7 @@ public class GATWorkerNode extends COMPSsWorker {
             traceScripts.add(new URI(
                     Protocol.ANY_URI.getSchema() + user + host + File.separator + installDir + GAT_SCRIPT_PATH + CLEANER_SCRIPT_NAME));
         } catch (URISyntaxException e) {
-            logger.error("Error deleting working dir " + workingDir + " in host " + getName(), e);
+            LOGGER.error("Error deleting working dir " + workingDir + " in host " + getName(), e);
             return;
         }
         String pars = workingDir;
@@ -362,16 +362,16 @@ public class GATWorkerNode extends COMPSsWorker {
         traceParams.add(pars);
 
         // Use cleaner to run the trace script and generate the package
-        logger.debug("Deleting working dir " + workingDir + "  in host " + getName());
+        LOGGER.debug("Deleting working dir " + workingDir + "  in host " + getName());
         boolean result = new GATScriptExecutor(this).executeScript(traceScripts, traceParams, "clean_" + host);
         if (!result) {
-            logger.error("Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
+            LOGGER.error("Error executing clean script for deleting working dir " + workingDir + " in host " + getName());
         }
     }
 
     @Override
     public boolean generatePackage() {
-        logger.debug("Generating GAT tracing package");
+        LOGGER.debug("Generating GAT tracing package");
         GATTracer.generatePackage(this);
         return true;
     }
@@ -379,13 +379,13 @@ public class GATWorkerNode extends COMPSsWorker {
     @Override
     public boolean generateWorkersDebugInfo() {
         // This feature is only for persistent workers (NIO)
-        logger.info("Worker debug files not supported on GAT Adaptor");
+        LOGGER.info("Worker debug files not supported on GAT Adaptor");
         return false;
     }
 
-
     @Override
     public void shutdownExecutionManager(ExecutorShutdownListener sl) {
-        // GAT has no execution managers
+        // GAT has no execution managers, release listener immediately
+        sl.notifyEnd();
     }
 }

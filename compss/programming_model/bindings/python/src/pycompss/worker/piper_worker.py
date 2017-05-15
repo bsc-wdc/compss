@@ -32,7 +32,7 @@ from exceptions import ValueError
 from multiprocessing import Process, Queue, Pipe
 
 
-from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
+from pycompss.api.parameter import *
 from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
@@ -461,7 +461,6 @@ USE_CACHE = False
 def cache_proc(cache_queue, cache_pipes):
     from persistent_cache import Cache
     from shm_manager import shm_manager as SHM
-    from pycompss.api.parameter import *
     cache = Cache(size_limit = 1024**3)
 
     while True:

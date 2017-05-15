@@ -58,7 +58,6 @@ public class ShutdownRequest<P extends Profile, T extends WorkerResourceDescript
 
         // Shutdown Job Dispatcher
         JobDispatcher.shutdown();
-        ;
 
         // Shutdown TaskScheduler
         ts.shutdown();

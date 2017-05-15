@@ -72,8 +72,9 @@ public class ResourceManager {
 
 
     /*
-     * ******************************************************************** INITIALIZER METHOD
-     ********************************************************************/
+     * **********************************************************************************************************
+     * INITIALIZER METHOD
+     ************************************************************************************************************/
     /**
      * Constructs a new ResourceManager using the Resources xml file content. First of all, an empty resource pool is
      * created and the Cloud Manager is initialized without any providers. Secondly the resource file is validated and
@@ -129,8 +130,9 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** SHUTDOWN METHOD
-     ********************************************************************/
+     * **********************************************************************************************************
+     * SHUTDOWN METHOD
+     ***********************************************************************************************************/
     /**
      * Stops all the nodes within the pool
      *
@@ -152,16 +154,6 @@ public class ResourceManager {
         // Stop all Cloud VM
         if (CloudManager.isUseCloud()) {
             // Transfer files
-            /*
-             * Semaphore sem = new Semaphore(0); ShutdownListener sl = new ShutdownListener(sem);
-             * resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping cloud workers...]"); for (Worker<?> r :
-             * pool.getDynamicResources()) { // TODO: The worker is not really needed to be stopped because VM is going
-             * to be erased. // However, the app-files and the tracing files MUST be transferred r.stop(false, sl); }
-             * resourcesLogger.debug("DEBUG_MSG = [Waiting for cloud workers to shutdown...]"); sl.enable(); try {
-             * sem.acquire(); } catch (Exception e) {
-             * resourcesLogger.error("ERROR_MSG= [ERROR: Exception raised on cloud worker shutdown]"); }
-             * resourcesLogger.info("INFO_MSG = [Cloud Workers stopped]");
-             */
             resourcesLogger.debug("DEBUG_MSG = [Terminating cloud instances...]");
             try {
                 CloudManager.terminateALL();
@@ -175,7 +167,6 @@ public class ResourceManager {
         // Stop static workers - Order its destruction from runtime and transfer files
         // Physical worker (COMM) is erased now - because of cloud
         if (pool != null && !pool.getStaticResources().isEmpty()) {
-
             resourcesLogger.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
             for (Worker<?, ?> r : pool.getStaticResources()) {
                 r.retrieveData(false);
@@ -200,8 +191,9 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** STATIC POOL METHODS
-     ********************************************************************/
+     * ********************************************************************************************************** STATIC
+     * POOL METHODS
+     ***********************************************************************************************************/
     /**
      * Returns a worker instance with the given name @name
      *
@@ -497,8 +489,9 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** GETTERS
-     ********************************************************************/
+     * **********************************************************************************************************
+     * GETTERS
+     ***********************************************************************************************************/
     /**
      * Returns the total slots per per core
      *
@@ -591,8 +584,9 @@ public class ResourceManager {
     }
 
     /*
-     * ******************************************************************** LOGGER METHODS
-     ********************************************************************/
+     * ************************************************************************************************************
+     * LOGGER METHODS
+     ***********************************************************************************************************/
     /**
      * Returns the resources state
      *

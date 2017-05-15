@@ -21,6 +21,10 @@ PyCOMPSs Core Element
     This file contains the Core Element class, needed for the task registration.
 """
 
+# QUESTION: why is this a class instead of a named tuple?
+#   from collections import namedtuple
+#   CE = namedtuple('CE', 'ce_signature implSignature implConstraints implType implTypeArgs')
+# QUESTION: why there are getters and setters if all attributes are "public"?
 class CE:
     ce_signature = ""
     implSignature = ""

@@ -67,8 +67,8 @@
             socketString=$socketString"/"$((i * CUperSocket))"-"$(($((i + 1)) * CUperSocket - 1))
         done
     fi   
-    #No data set by the user and lscpu didn't manage to get the good architecture
-    #It is assumed that the amount of threads specified in the resources file is equal to the number of cores in theworker
+    #No data set by the user and lscpu didn't manage to get the good architecture socket aware
+    #It is assumed that there is only one socket
     if [ "$amountSockets" == "" -o "$amountSockets" == "" ]; then
         amountSockets="1"
         realAmountThreads=$(lscpu | grep "CPU(s)" | grep -v -E ",|-" | awk '{ print $2 }')

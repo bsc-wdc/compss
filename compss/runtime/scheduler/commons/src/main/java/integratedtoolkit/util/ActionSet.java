@@ -31,24 +31,24 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
     }
 
     @SuppressWarnings("unchecked")
-    public void updateCoreCount() {
+    public void updateCoreCount(int newCoreCount) {
         int oldCoreCount = coreIndexed.length;
-        int newCoreCount = CoreManager.getCoreCount();
-
-        LinkedList<AllocatableAction<P, T, I>>[] coreIndexed = new LinkedList[newCoreCount];
-        int[] counts = new int[newCoreCount];
-        int coreId = 0;
-        for (; coreId < oldCoreCount; coreId++) {
-            coreIndexed[coreId] = this.coreIndexed[coreId];
-            counts[coreId] = this.counts[coreId];
+        if (oldCoreCount < newCoreCount) {
+            // Increase the coreIndexed and the counts arrays
+            LinkedList<AllocatableAction<P, T, I>>[] coreIndexed = new LinkedList[newCoreCount];
+            int[] counts = new int[newCoreCount];
+            int coreId = 0;
+            for (; coreId < oldCoreCount; coreId++) {
+                coreIndexed[coreId] = this.coreIndexed[coreId];
+                counts[coreId] = this.counts[coreId];
+            }
+            for (; coreId < newCoreCount; coreId++) {
+                coreIndexed[coreId] = new LinkedList<>();
+                counts[coreId] = 0;
+            }
+            this.coreIndexed = coreIndexed;
+            this.counts = counts;
         }
-        for (; coreId < newCoreCount; coreId++) {
-            coreIndexed[coreId] = new LinkedList<>();
-            counts[coreId] = 0;
-        }
-
-        this.coreIndexed = coreIndexed;
-        this.counts = counts;
     }
 
     public void addAction(AllocatableAction<P, T, I> aa) {
@@ -59,6 +59,10 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
             // Start and stop action do not have implementations?? Fix NPE in StartAction
             if (impls != null && impls.length > 0 && impls[0] != null) {
                 int core = impls[0].getCoreId();
+                // Update coreCount if the core is out of bounds (has been registered meanwhile)
+                if (core >= this.coreIndexed.length) {
+                    updateCoreCount(CoreManager.getCoreCount());
+                }
                 this.coreIndexed[core].add(aa);
                 this.counts[core]++;
             }

@@ -18,7 +18,7 @@ import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
-import integratedtoolkit.nio.worker.components.ExecutionManager;
+import integratedtoolkit.nio.worker.components.ExecutionManager.BinderType;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.types.annotations.Constants;
@@ -32,8 +32,8 @@ import integratedtoolkit.types.resources.MethodResourceDescription;
 
 public abstract class Executor implements Runnable {
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
-    protected static final boolean workerDebug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.WORKER_EXECUTOR);
+    protected static final boolean WORKER_DEBUG = LOGGER.isDebugEnabled();
     private static final String ERROR_OUT_FILES = "ERROR: One or more OUT files have not been created by task with Method Definition [";
 
     // Attached component NIOWorker
@@ -45,7 +45,7 @@ public abstract class Executor implements Runnable {
 
 
     public Executor(NIOWorker nw, JobsThreadPool pool, RequestQueue<NIOTask> queue) {
-        logger.info("Executor init");
+        LOGGER.info("Executor init");
         this.nw = nw;
         this.pool = pool;
         this.queue = queue;
@@ -73,18 +73,18 @@ public abstract class Executor implements Runnable {
             nt = queue.dequeue(); // Get tasks until there are no more tasks pending
 
             if (nt == null) {
-                logger.debug("Dequeued job is null");
+                LOGGER.debug("Dequeued job is null");
                 break;
             }
 
-            if (workerDebug) {
-                logger.debug("Dequeuing job " + nt.getJobId());
+            if (WORKER_DEBUG) {
+                LOGGER.debug("Dequeuing job " + nt.getJobId());
             }
 
             boolean success = executeTask(nt);
 
-            if (workerDebug) {
-                logger.debug("Job " + nt.getJobId() + " finished (success: " + success + ")");
+            if (WORKER_DEBUG) {
+                LOGGER.debug("Job " + nt.getJobId() + " finished (success: " + success + ")");
             }
 
             nw.sendTaskDone(nt, success);
@@ -98,7 +98,7 @@ public abstract class Executor implements Runnable {
             case C:
                 return execute(nt, nw);
             default:
-                logger.error("Incorrect language " + nt.getLang() + " in job " + nt.getJobId());
+                LOGGER.error("Incorrect language " + nt.getLang() + " in job " + nt.getJobId());
                 // Print to the job.err file
                 System.err.println("Incorrect language " + nt.getLang() + " in job " + nt.getJobId());
                 return false;
@@ -152,39 +152,39 @@ public abstract class Executor implements Runnable {
             twd = createTaskSandbox(nt);
 
             // Bind files to task sandbox working dir
-            logger.debug("Binding renamed files to sandboxed original names for Job " + nt.getJobId());
+            LOGGER.debug("Binding renamed files to sandboxed original names for Job " + nt.getJobId());
             bindOriginalFilenamesToRenames(nt, twd.getWorkingDir());
 
             // Bind Computing units
             int[] assignedCoreUnits = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalCPUComputingUnits(),
-                    ExecutionManager.BINDER_TYPE.CPU);
+                    BinderType.CPU);
             int[] assignedGPUs = nw.getExecutionManager().bind(nt.getJobId(), nt.getResourceDescription().getTotalGPUComputingUnits(),
-                    ExecutionManager.BINDER_TYPE.GPU);
+                    BinderType.GPU);
 
             // Execute task
-            logger.debug("Executing Task of Job " + nt.getJobId());
+            LOGGER.debug("Executing Task of Job " + nt.getJobId());
             executeTask(nw, nt, outputsBasename, twd.getWorkingDir(), assignedCoreUnits, assignedGPUs);
 
             // Unbind files from task sandbox working dir
-            logger.debug("Removing renamed files to sandboxed original names for Job " + nt.getJobId());
+            LOGGER.debug("Removing renamed files to sandboxed original names for Job " + nt.getJobId());
             removeOriginalFilenames(nt);
 
             // Check job output files
-            logger.debug("Checking generated files for Job " + nt.getJobId());
+            LOGGER.debug("Checking generated files for Job " + nt.getJobId());
             checkJobFiles(nt);
 
             // Return
             return true;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            LOGGER.error(e.getMessage(), e);
             return false;
         } finally {
             // Always clean the task sandbox working dir
             cleanTaskSandbox(twd);
 
             // Always release the binded computing units
-            nw.getExecutionManager().release(nt.getJobId(), ExecutionManager.BINDER_TYPE.CPU);
-            nw.getExecutionManager().release(nt.getJobId(), ExecutionManager.BINDER_TYPE.GPU);
+            nw.getExecutionManager().release(nt.getJobId(), BinderType.CPU);
+            nw.getExecutionManager().release(nt.getJobId(), BinderType.GPU);
 
             // Always end task tracing
             if (NIOTracer.isActivated()) {
@@ -260,7 +260,7 @@ public abstract class Executor implements Runnable {
                 try {
                     Files.deleteIfExists(workingDir.toPath());
                 } catch (IOException e) {
-                    logger.warn("Error deleting sandbox " + e.getMessage());
+                    LOGGER.warn("Error deleting sandbox " + e.getMessage());
                 }
             }
         }
@@ -287,13 +287,13 @@ public abstract class Executor implements Runnable {
                     param.setOriginalName(renamedFilePath);
                 } else {
                     String newOrigFilePath = sandbox.getAbsolutePath() + File.separator + param.getOriginalName();
-                    logger.debug("Setting Original Name to " + newOrigFilePath);
+                    LOGGER.debug("Setting Original Name to " + newOrigFilePath);
                     param.setOriginalName(newOrigFilePath);
                     File newOrigFile = new File(newOrigFilePath);
                     if (renamedFile.exists()) {
                         // IN or INOUT File creating a symbolic link
                         if (!newOrigFile.exists()) {
-                            logger.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
+                            LOGGER.debug("Creating symlink" + newOrigFile.toPath() + " pointing to " + renamedFile.toPath());
                             Files.createSymbolicLink(newOrigFile.toPath(), renamedFile.toPath());
                         }
                     }
@@ -318,30 +318,30 @@ public abstract class Executor implements Runnable {
             if (param.getType().equals(DataType.FILE_T)) {
                 String renamedFilePath = (String) param.getValue();
                 String newOriginalFilePath = param.getOriginalName();
-                logger.debug("Treating file " + renamedFilePath);
+                LOGGER.debug("Treating file " + renamedFilePath);
 
                 if (!renamedFilePath.equals(newOriginalFilePath)) {
                     File newOrigFile = new File(newOriginalFilePath);
                     File renamedFile = new File(renamedFilePath);
                     if (renamedFile.exists() && Files.isSymbolicLink(newOrigFile.toPath())) {
                         // If a symbolic link is created remove it (IN INOUT)
-                        logger.debug("Deleting symlink" + newOrigFile.toPath());
+                        LOGGER.debug("Deleting symlink" + newOrigFile.toPath());
                         Files.delete(newOrigFile.toPath());
                     } else if (!renamedFile.exists() && newOrigFile.exists() && !Files.isSymbolicLink(newOrigFile.toPath())) {
                         // If an output file is created move to the renamed path (OUT Case)
-                        logger.debug("Moving " + newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
+                        LOGGER.debug("Moving " + newOrigFile.toPath().toString() + " to " + renamedFile.toPath().toString());
                         try {
                             Files.move(newOrigFile.toPath(), renamedFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
                         } catch (AtomicMoveNotSupportedException amnse) {
-                            logger.warn(
+                            LOGGER.warn(
                                     "WARN: AtomicMoveNotSupportedException. File cannot be atomically moved. Trying to move without atomic");
                             Files.move(newOrigFile.toPath(), renamedFile.toPath());
                         }
                     } else if (renamedFile.exists() && !newOrigFile.exists()) {
-                        logger.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
+                        LOGGER.debug("Repeated data for " + renamedFilePath + ". Nothing to do");
                     } else {
                         // Unexpected case
-                        logger.error("Unexpected case: A Problem occurred with File " + renamedFilePath
+                        LOGGER.error("Unexpected case: A Problem occurred with File " + renamedFilePath
                                 + ". Either this file or the original name " + newOriginalFilePath + " do not exist.");
                         System.err.println("Unexpected case: A Problem occurred with File " + renamedFilePath
                                 + ". Either this file or the original name " + newOriginalFilePath + " do not exist.");

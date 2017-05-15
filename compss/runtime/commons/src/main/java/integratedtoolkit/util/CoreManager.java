@@ -21,10 +21,10 @@ public class CoreManager {
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TD_COMP);
 
     // Constants definition
-    private static final String WARN_INVALID_SIGNATURE = "Invalid signature. Skipping addition";
+    private static final String ERROR_INVALID_SIGNATURE = "Invalid signature. Skipping addition";
+    private static final String ERROR_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition of ";
+    private static final String ERROR_INVALID_IMPLS_SIGNS = "Attempting to register a different number of implementations and signatures. Skipping addition";
     private static final String WARN_REGISTERED_CORE_ELEMENT = "Already registered CoreElement. Skipping addition of ";
-    private static final String WARN_UNREGISTERED_CORE_ELEMENT = "Unregistered CoreElement. Skipping addition of ";
-    private static final String WARN_INVALID_IMPLS_SIGNS = "Attempting to register a different number of implementations and signatures. Skipping addition";
     private static final String WARN_UNREGISTERED_IMPL = "Unregistered implementation. Skipping addition";
 
     // List of implementations of each coreElement
@@ -66,7 +66,7 @@ public class CoreManager {
     public static Integer registerNewCoreElement(String signature) {
         // Check that the signature is valid
         if (signature == null || signature.isEmpty()) {
-            LOGGER.warn(WARN_INVALID_SIGNATURE);
+            LOGGER.warn(ERROR_INVALID_SIGNATURE);
             return null;
         }
 
@@ -104,16 +104,16 @@ public class CoreManager {
      */
     public static void registerNewImplementations(int coreId, List<Implementation<?>> impls, List<String> signs) {
         if (coreId < 0 || coreId >= coreCount) {
-            LOGGER.warn(WARN_UNREGISTERED_CORE_ELEMENT + coreId);
+            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + coreId);
             return;
         }
         if (impls.size() != signs.size()) {
-            LOGGER.warn(WARN_INVALID_IMPLS_SIGNS);
+            ErrorManager.error(ERROR_INVALID_IMPLS_SIGNS);
             return;
         }
         for (String signature : signs) {
             if (signature == null || signature.isEmpty()) {
-                LOGGER.warn(WARN_INVALID_SIGNATURE);
+                ErrorManager.error(ERROR_INVALID_SIGNATURE);
                 return;
             }
         }
@@ -143,14 +143,14 @@ public class CoreManager {
     public static Integer getCoreId(String signature) {
         // Check that the signature is valid
         if (signature == null || signature.isEmpty()) {
-            LOGGER.warn(WARN_INVALID_SIGNATURE);
+            ErrorManager.error(ERROR_INVALID_SIGNATURE);
             return null;
         }
 
         // Check that the signature does not exist
         Integer methodId = SIGNATURE_TO_CORE_ID.get(signature);
         if (methodId == null) {
-            LOGGER.warn(WARN_UNREGISTERED_CORE_ELEMENT + signature);
+            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT + signature);
             return null;
         }
 
@@ -167,7 +167,7 @@ public class CoreManager {
      */
     public static String getSignature(int coreId, int implId) {
         if (coreId < 0 || coreId >= coreCount) {
-            LOGGER.warn(WARN_UNREGISTERED_CORE_ELEMENT);
+            LOGGER.warn(ERROR_UNREGISTERED_CORE_ELEMENT);
             return null;
         }
         List<String> coreSignatures = SIGNATURES.get(coreId);
@@ -213,7 +213,7 @@ public class CoreManager {
      */
     public static List<Implementation<?>> getCoreImplementations(int coreId) {
         if (coreId < 0 || coreId >= coreCount) {
-            ErrorManager.error(WARN_UNREGISTERED_CORE_ELEMENT);
+            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT);
             return null;
         }
 
@@ -228,7 +228,7 @@ public class CoreManager {
      */
     public static int getNumberCoreImplementations(int coreId) {
         if (coreId < 0 || coreId >= coreCount) {
-            ErrorManager.error(WARN_UNREGISTERED_CORE_ELEMENT);
+            ErrorManager.error(ERROR_UNREGISTERED_CORE_ELEMENT);
             return -1;
         }
 

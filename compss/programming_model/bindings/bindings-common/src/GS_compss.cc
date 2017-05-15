@@ -9,7 +9,7 @@
 #include "param_metadata.h"
 
 // Uncomment the following define to get debug information.
-#define DEBUG_BINDING
+//#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
 #define debug_printf(args...) printf(args)

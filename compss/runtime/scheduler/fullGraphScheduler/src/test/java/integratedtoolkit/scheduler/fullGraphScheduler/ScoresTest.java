@@ -68,6 +68,7 @@ public class ScoresTest {
         CoreManager.registerNewCoreElement("fakeSignature20");
         CoreManager.registerNewCoreElement("fakeSignature30");
         CoreManager.registerNewCoreElement("fakeSignature40");
+        CoreManager.registerNewCoreElement("task");
 
         System.setProperty(ITConstants.IT_TRACING, "0");
         System.setProperty(ITConstants.IT_EXTRAE_CONFIG_FILE, "");
@@ -202,7 +203,7 @@ public class ScoresTest {
         DependencyParameter dpD2V2 = new DependencyParameter(DataType.FILE_T, Direction.IN, Stream.UNSPECIFIED, Constants.PREFIX_EMTPY);
         dpD2V2.setDataAccessId(new RAccessId(2, 2));
 
-        TaskDescription params = new TaskDescription("", false, Constants.SINGLE_NODE, false, false, false, false,
+        TaskDescription params = new TaskDescription("task", false, Constants.SINGLE_NODE, false, false, false, false,
                 new Parameter[] { dpD1V1, dpD2V2 });
         FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation> actionScore = (FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation>) ds
                 .generateActionScore(action1);
@@ -231,11 +232,10 @@ public class ScoresTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testImplementationScores() throws BlockedActionException, UnassignedActionException {
-
         drs1.clear();
         // No resources and no dependencies
         FakeAllocatableAction action1 = new FakeAllocatableAction(fao, 1, 0, CoreManager.getCoreImplementations(4));
-        TaskDescription tp1 = new TaskDescription("", false, Constants.SINGLE_NODE, false, false, false, false, new Parameter[0]);
+        TaskDescription tp1 = new TaskDescription("task", false, Constants.SINGLE_NODE, false, false, false, false, new Parameter[0]);
         FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation> score1 = (FullGraphScore<FakeProfile, FakeResourceDescription, FakeImplementation>) ds
                 .generateActionScore(action1);
         Verifiers.verifyScore(score1, 0, 0, 0, 0, 0);

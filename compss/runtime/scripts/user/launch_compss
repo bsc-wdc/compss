@@ -203,13 +203,16 @@ worker_cmd() {
   local nodeName=$2
   local jvm_opts_size=$3
   local jvm_opts_str=$4
-  local cus=$5
-  local gpus=$6
+  local cusCPU=$5
+  local cusGPU=$6
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
   local maxReceive=5
   local worker_port=43001
+  local cpuMap="disabled"
+  local gpuMap="disabled"
+  local lot=-1
   if [ -z "${container_image}" ]; then
      WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else 
@@ -221,12 +224,16 @@ worker_cmd() {
             ${jvm_opts_size} \
             ${jvm_opts_str} \
             ${debug} \
-            ${cus} \
             ${maxSend} \
             ${maxReceive} \
             ${nodeName} \
             ${worker_port} \
             ${master_port} \
+            ${cusCPU} \
+            ${cusGPU} \
+            ${cpuMap} \
+            ${gpuMap} \
+            ${lot} \
             ${uuid} \
             ${lang} \
             ${sandbox_worker_working_dir} \
@@ -239,8 +246,7 @@ worker_cmd() {
             ${custom_extrae_file} \
             ${nodeId} \
             ${storage_conf} \
-            ${taskExecution} \
-	    ${gpus}"
+            ${taskExecution}"
 }
 
 ###############################################

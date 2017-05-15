@@ -1,6 +1,5 @@
 package integratedtoolkit.nio.worker.exceptions;
 
-
 public class UnsufficientAvailableComputingUnitsException extends Exception {
 
     /**

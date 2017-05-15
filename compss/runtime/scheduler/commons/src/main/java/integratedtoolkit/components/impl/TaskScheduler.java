@@ -100,8 +100,19 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      */
     public final void coreElementsUpdated() {
         LOGGER.info("[TaskScheduler] Update core elements");
-        this.blockedActions.updateCoreCount();
-        this.readyCounts = new int[CoreManager.getCoreCount()];
+        int newCoreCount = CoreManager.getCoreCount();
+        
+        // Update scheduling information
+        SchedulingInformation.updateCoreCount(newCoreCount);
+        
+        // Update actions
+        this.blockedActions.updateCoreCount(newCoreCount);
+        this.readyCounts = new int[newCoreCount];
+        
+        // Update resource schedulers
+        for (ResourceScheduler<P, T, I> rs : workers.values()) {
+            rs.updatedCoreElements(newCoreCount);
+        }
     }
 
     /**
@@ -153,11 +164,8 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         SchedulingInformation.changesOnWorker(ui);
 
         if (ui.getExecutableCores().isEmpty()) {
-            // Remove useless workers
-            synchronized (this.workers) {
-                this.workers.remove(ui.getResource());
-            }
-            workerRemoved(ui);
+            // We no longer remove workers with empty executable cores since new core elements
+            // can be registered on execution time
         } else {
             // Inspect blocked actions to be freed
             LinkedList<AllocatableAction<P, T, I>> compatibleActions = this.blockedActions.removeAllCompatibleActions(worker);

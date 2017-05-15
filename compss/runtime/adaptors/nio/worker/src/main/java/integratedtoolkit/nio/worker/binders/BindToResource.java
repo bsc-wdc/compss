@@ -1,9 +1,14 @@
-package integratedtoolkit.nio.worker.util;
+package integratedtoolkit.nio.worker.binders;
 
 import integratedtoolkit.nio.worker.exceptions.UnsufficientAvailableComputingUnitsException;
 
 
-public class ThreadBinderUnaware implements ThreadBinder {
+/**
+ * Class to bind the threads to the resource (which is supposed to have as many cores as the given computing Units of
+ * the resource)
+ *
+ */
+public class BindToResource implements ThreadBinder {
 
     private final int[] bindedComputingUnits;
 
@@ -13,7 +18,7 @@ public class ThreadBinderUnaware implements ThreadBinder {
      * 
      * @param numThreads
      */
-    public ThreadBinderUnaware(int numThreads) {
+    public BindToResource(int numThreads) {
         this.bindedComputingUnits = new int[numThreads];
         for (int i = 0; i < numThreads; i++) {
             this.bindedComputingUnits[i] = -1;
@@ -22,9 +27,6 @@ public class ThreadBinderUnaware implements ThreadBinder {
 
     @Override
     public int[] bindComputingUnits(int jobId, int numCUs) throws UnsufficientAvailableComputingUnitsException {
-        if (numCUs == 0) {
-            return new int[0];
-        }
         int assignedCoreUnits[] = new int[numCUs];
         int numAssignedCores = 0;
 

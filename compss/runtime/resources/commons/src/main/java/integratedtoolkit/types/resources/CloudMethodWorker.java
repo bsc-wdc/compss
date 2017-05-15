@@ -89,7 +89,7 @@ public class CloudMethodWorker extends MethodWorker {
 
     @Override
     public synchronized void releaseResource(MethodResourceDescription consumption) {
-        logger.debug("[CloudMethodWorker] Checking " + this.getName()+ " cloud resource to release...");
+        LOGGER.debug("[CloudMethodWorker] Checking " + this.getName()+ " cloud resource to release...");
         // Freeing task constraints
         super.releaseResource(consumption);
 
@@ -108,7 +108,7 @@ public class CloudMethodWorker extends MethodWorker {
                             toRemove.reduce(pRed.reduction);
                         }
                         // Reduction is done, release sem
-                        logger.debug("[CloudMethodWorker] Releasing cloud resource " + this.getName());
+                        LOGGER.debug("[CloudMethodWorker] Releasing cloud resource " + this.getName());
                         pRed.sem.release();
                         pendingReductions.remove(pRed);
                     } else {
@@ -120,7 +120,7 @@ public class CloudMethodWorker extends MethodWorker {
     }
 
     public synchronized Semaphore reduceFeatures(CloudMethodResourceDescription reduction) {
-    	logger.debug("[CloudMethodWorker] Reducing features for " + this.getName());
+    	LOGGER.debug("[CloudMethodWorker] Reducing features for " + this.getName());
     	Semaphore sem = null;
     	synchronized (pendingReductions) {
     		synchronized (description) {

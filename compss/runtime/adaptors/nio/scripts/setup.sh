@@ -36,67 +36,48 @@
     # Shift parameters for script and leave only the NIOWorker parameters
     paramsToShift=$((4 + numJvmFlags))
     shift ${paramsToShift}
-    paramsToCOMPSsWorker="${*:1:21}"
+    paramsToCOMPSsWorker=$@ #"${*:1:21}"
  
     # Catch some NIOWorker parameters
     debug=$1
-    numThreads=$2
-    hostName=$5
-    worker_port=$6
-    appUuid=$8
-    lang=$9
-    workingDir=${10}
-    installDir=${11}
-    appDirNW=${12}
-    libPathNW=${13}
-    cpNW=${14}
-    pythonpath=${15}
-    tracing=${16}
-    extraeFile=${17}
-    hostId=${18}
-    gpus=${21}
-    amountSockets=${*:22:1}
-    socketString=${*:23:1}
-    #No data set by the user
-    if [ "$amountSockets" == "" -o "$amountSockets" == "0" ]; then
-        amountSockets=$(lscpu | grep "Socket(s)" | awk '{ print $2 }')
-        CoresPerSocket=$(lscpu | grep "Core(s) per socket" | awk '{ print $4 }')
-        CUperSocket=$(($(lscpu | grep "Thread(s) per core" | awk '{ print $4 }') * $CoresPerSocket))
-        socketString="0-"$(($CUperSocket - 1))
-        for i in $(seq 1 $(($amountSockets - 1))); do
-            socketString=$socketString"/"$((i * CUperSocket))"-"$(($((i + 1)) * CUperSocket - 1))
-        done
-    fi   
-    #No data set by the user and lscpu didn't manage to get the good architecture socket aware
-    #It is assumed that there is only one socket
-    if [ "$amountSockets" == "" -o "$amountSockets" == "" ]; then
-        amountSockets="1"
-        realAmountThreads=$(lscpu | grep "CPU(s)" | grep -v -E ",|-" | awk '{ print $2 }')
-        socketString="0-"$(($realAmountThreads - 1))
-    fi 
-
-    paramsToCOMPSsWorker="$paramsToCOMPSsWorker $amountSockets $socketString"
+    hostName=$4
+    worker_port=$5
+    cusCPU=$7
+    cusGPU=$8
+    lot=${11}
+    appUuid=${12}
+    lang=${13}
+    workingDir=${14}
+    installDir=${15}
+    appDirNW=${16}
+    libPathNW=${17}
+    cpNW=${18}
+    pythonpath=${19}
+    tracing=${20}
+    extraeFile=${21}
+    hostId=${22}
 
     if [ "$debug" == "true" ]; then
       echo "PERSISTENT_WORKER.sh"
-      echo "- HostName:          $hostName"
-      echo "- WorkerPort:        ${worker_port}"
-      echo "- WorkingDir:        $workingDir"
-      echo "- InstallDir:        $installDir"
-      echo "- NumThreads:        $numThreads"
-      echo "- Gpus/node:         $gpus"
-      echo "- Amount of sockets: $amountSockets"
-      echo "- Socket string:     $socketString"
-      echo "- JVM Opts:          $jvmFlags"
+      echo "- HostName:            $hostName"
+      echo "- WorkerPort:          ${worker_port}"
+      echo "- WorkingDir:          $workingDir"
+      echo "- InstallDir:          $installDir"
 
-      echo "- AppUUID:           ${appUuid}"
-      echo "- Lang:              ${lang}"
-      echo "- AppDir:            $appDirNW"
-      echo "- libPath:           $libPathNW"
-      echo "- Classpath:         $cpNW"
-      echo "- Pythonpath:        $pythonpath"
-      echo "- Tracing:           $tracing"
-      echo "- ExtraeFile:        ${extraeFile}"
+      echo "- Computing Units CPU: ${cusCPU}"
+      echo "- Computing Units GPU: ${cusGPU}"
+      echo "- Limit Of Tasks:      ${lot}"
+      echo "- JVM Opts:            $jvmFlags"
+
+      echo "- AppUUID:             ${appUuid}"
+      echo "- Lang:                ${lang}"
+      echo "- AppDir:              $appDirNW"
+      echo "- libPath:             $libPathNW"
+      echo "- Classpath:           $cpNW"
+      echo "- Pythonpath:          $pythonpath"
+
+      echo "- Tracing:             $tracing"
+      echo "- ExtraeFile:          ${extraeFile}"
     fi
 
     # Calculate Log4j file

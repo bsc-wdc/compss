@@ -23,6 +23,13 @@
   # MPICC binary path
   binary="${base_app_dir}/bin/addVector"
   export VEC_SUM_MPI_BINARY=${binary}
+
+  #----------------------------------------------------------------------------------
+  # Add manual cleaner for the MPI binary
+  clean() {
+    ps -elfa | grep "${binary}" | awk {' print $4 '} | xargs -i -t kill -9 {}
+  }
+  trap clean EXIT
   
   #----------------------------------------------------------------------------------
   # Run application 1 - Java MPI

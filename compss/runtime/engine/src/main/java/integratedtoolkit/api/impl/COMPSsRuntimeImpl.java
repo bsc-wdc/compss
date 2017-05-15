@@ -490,8 +490,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints, String implType,
             String... implTypeArgs) {
 
+        LOGGER.info("Registering CoreElement " + coreElementSignature);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Registering CoreElement " + coreElementSignature);
             LOGGER.debug("\t - Implementation: " + implSignature);
             LOGGER.debug("\t - Constraints   : " + implConstraints);
             LOGGER.debug("\t - Type          : " + implType);

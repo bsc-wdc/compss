@@ -131,23 +131,27 @@ public class ResourceScheduler<P extends Profile, T extends WorkerResourceDescri
      * Updates the coreElement structures
      * 
      */
-    public final void updatedCoreElements() {
+    public final void updatedCoreElements(int newCoreCount) {        
         int oldCoreCount = this.profiles.length;
-        int newCoreCount = CoreManager.getCoreCount();
-        Profile[][] profiles = new Profile[newCoreCount][0];
+        Profile[][] profiles = new Profile[newCoreCount][];
+        
         for (int coreId = 0; coreId < newCoreCount; coreId++) {
-            int oldImplCount = this.profiles[coreId].length;
-            int newImplCount = CoreManager.getNumberCoreImplementations(coreId);
-            profiles[coreId] = (Profile[]) (new Profile[newImplCount]);
-            int implId = 0;
+            int oldImplCount = 0;
             if (coreId < oldCoreCount) {
-                // There were previous implementations. Copy old Implementations
-                for (; implId < oldImplCount; implId++) {
-                    profiles[coreId][implId] = this.profiles[coreId][implId];
-                }
-            } else {
-                // Its a newly detected CE. Do Nothing.
+                oldImplCount = this.profiles[coreId].length;
             }
+            int newImplCount = CoreManager.getNumberCoreImplementations(coreId);
+            
+            // Create new array
+            profiles[coreId] = new Profile[newImplCount];
+            
+            // Copy the previous profile implementations
+            int implId = 0;
+            for (; implId < oldImplCount; implId++) {
+                profiles[coreId][implId] = this.profiles[coreId][implId];
+            }
+            
+            // Add the new entries
             for (; implId < newImplCount; implId++) {
                 profiles[coreId][implId] = generateProfileForAllocatable();
             }

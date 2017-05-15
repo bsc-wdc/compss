@@ -30,10 +30,10 @@ public class CExecutor extends ExternalExecutor {
             int[] assignedGPUs) {
         ArrayList<String> lArgs = new ArrayList<>();
 
-        logger.debug("getting the task execution command");
-        logger.debug("mida interna de la memoria de la gpu: " + nt.getResourceDescription().getProcessors().get(0).getInternalMemory());
+        LOGGER.debug("getting the task execution command");
+        LOGGER.debug("mida interna de la memoria de la gpu: " + nt.getResourceDescription().getProcessors().get(0).getInternalMemory());
         if (nt.getResourceDescription().getProcessors().size() > 1)
-            logger.debug(
+            LOGGER.debug(
                     "mida interna de la memoria de la gpu-2: " + nt.getResourceDescription().getProcessors().get(1).getInternalMemory());
 
         // NX_ARGS string built from the Resource Description
@@ -42,7 +42,7 @@ public class CExecutor extends ExternalExecutor {
         reqs.append("NX_ARGS='--smp-cpus=").append(numCUs);
 
         // Debug mode on
-        if (workerDebug) {
+        if (WORKER_DEBUG) {
             reqs.append(" --summary");
         }
 
@@ -89,12 +89,13 @@ public class CExecutor extends ExternalExecutor {
 
         // Taskset string to bind the job
         StringBuilder taskset = new StringBuilder();
-        taskset.append("taskset -c ");
-        for (int i = 0; i < (numCUs - 1); i++) {
-            taskset.append(assignedCoreUnits[i]).append(",");
+        if (assignedCoreUnits != null && assignedCoreUnits.length > 0) {
+            taskset.append("taskset -c ");
+            for (int i = 0; i < (numCUs - 1); i++) {
+                taskset.append(assignedCoreUnits[i]).append(",");
+            }
+            taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
         }
-
-        taskset.append(assignedCoreUnits[numCUs - 1]).append(" ");
 
         lArgs.add(cuda_visible.toString() + opencl_visible.toString() + reqs.toString() + taskset.toString() + nw.getAppDir()
                 + WORKER_C_RELATIVE_PATH);
@@ -115,7 +116,7 @@ public class CExecutor extends ExternalExecutor {
         ldLibraryPath = ldLibraryPath.concat(":" + nw.getInstallDir() + C_LIB_RELATIVE_PATH);
         ldLibraryPath = ldLibraryPath.concat(":" + nw.getInstallDir() + BINDINGS_RELATIVE_PATH);
 
-        env.put("LD_LIBRARY_PATH", ldLibraryPath);
+        env.put(LIBRARY_PATH_ENV, ldLibraryPath);
         return env;
     }
 

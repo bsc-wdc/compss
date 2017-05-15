@@ -449,7 +449,7 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     '''
 
     signature = path + '.' + f.__name__
-    num_nodes = 0 # default due to not MPI decorator yet
+    num_nodes = 1 # default due to not MPI decorator yet
     replicated = False
     distributed = False
 

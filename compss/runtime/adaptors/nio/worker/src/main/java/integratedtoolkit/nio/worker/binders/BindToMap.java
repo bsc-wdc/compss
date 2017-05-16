@@ -112,7 +112,9 @@ public class BindToMap implements ThreadBinder {
     }
 
     public static String processLsCpuOutput(String cmdOutput) throws InvalidMapException {
-        LOGGER.debug("Parsing LSCPU Output : " + cmdOutput);
+        if (DEBUG) {
+            LOGGER.debug("Parsing LSCPU Output : " + cmdOutput);
+        }
         String[] cmdLines = cmdOutput.split("\n");
         Integer numSockets = null;
         Integer coresPerSocket = null;
@@ -167,7 +169,7 @@ public class BindToMap implements ThreadBinder {
             cpuMap = sb.toString();
         }
 
-        LOGGER.info("CPU MAP: " + cpuMap);
+        LOGGER.info("CPU Map: " + cpuMap);
         return cpuMap;
     }
 

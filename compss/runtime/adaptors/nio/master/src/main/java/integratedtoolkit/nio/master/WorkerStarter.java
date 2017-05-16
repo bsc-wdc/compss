@@ -25,14 +25,24 @@ public class WorkerStarter {
 
     // Static Environment variables
     private static final String LIB_SEPARATOR = ":";
-    private static final String classpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_CP) != null
-            && !System.getProperty(ITConstants.IT_WORKER_CP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_CP) : "";
+    private static final String CLASSPATH_FROM_ENVIRONMENT = (System.getProperty(ITConstants.IT_WORKER_CP) != null
+            && !System.getProperty(ITConstants.IT_WORKER_CP).isEmpty()) ? System.getProperty(ITConstants.IT_WORKER_CP) : "";
 
-    private static final String pythonpathFromEnvironment = (System.getProperty(ITConstants.IT_WORKER_PP) != null
-            && !System.getProperty(ITConstants.IT_WORKER_PP).equals("")) ? System.getProperty(ITConstants.IT_WORKER_PP) : "";
+    private static final String PYTHONPATH_FROM_ENVIRONMENT = (System.getProperty(ITConstants.IT_WORKER_PP) != null
+            && !System.getProperty(ITConstants.IT_WORKER_PP).isEmpty()) ? System.getProperty(ITConstants.IT_WORKER_PP) : "";
 
-    private static final String libPathFromEnvironment = (System.getenv(ITConstants.LD_LIBRARY_PATH) != null
-            && !System.getenv(ITConstants.LD_LIBRARY_PATH).equals("")) ? System.getenv(ITConstants.LD_LIBRARY_PATH) : "";
+    private static final String LIBPATH_FROM_ENVIRONMENT = (System.getenv(ITConstants.LD_LIBRARY_PATH) != null
+            && !System.getenv(ITConstants.LD_LIBRARY_PATH).isEmpty()) ? System.getenv(ITConstants.LD_LIBRARY_PATH) : "";
+
+    private static final boolean IS_CPU_AFFINITY_DEFINED = System.getProperty(ITConstants.IT_WORKER_CPU_AFFINITY) != null
+            && !System.getProperty(ITConstants.IT_WORKER_CPU_AFFINITY).isEmpty();
+    private static final String CPU_AFFINITY = IS_CPU_AFFINITY_DEFINED ? System.getProperty(ITConstants.IT_WORKER_CPU_AFFINITY)
+            : NIOAdaptor.BINDER_DISABLED;
+
+    private static final boolean IS_GPU_AFFINITY_DEFINED = System.getProperty(ITConstants.IT_WORKER_GPU_AFFINITY) != null
+            && !System.getProperty(ITConstants.IT_WORKER_GPU_AFFINITY).isEmpty();
+    private static final String GPU_AFFINITY = IS_GPU_AFFINITY_DEFINED ? System.getProperty(ITConstants.IT_WORKER_GPU_AFFINITY)
+            : NIOAdaptor.BINDER_DISABLED;
 
     // Deployment ID
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
@@ -58,23 +68,48 @@ public class WorkerStarter {
     private NIOWorkerNode nw;
 
 
+    /**
+     * Instantiates a new WorkerStarter for a given Worker
+     * 
+     * @param nw
+     */
     public WorkerStarter(NIOWorkerNode nw) {
         this.nw = nw;
     }
 
+    /**
+     * Returns the WorkerStarter registered to a given address
+     * 
+     * @param address
+     * @return
+     */
     public static WorkerStarter getWorkerStarter(String address) {
         return addresstoWorkerStarter.get(address);
     }
 
+    /**
+     * Marks the worker as ready
+     * 
+     */
     public void setWorkerIsReady() {
         LOGGER.debug("[WorkerStarter] Worker " + nw.getName() + " set to ready.");
         workerIsReady = true;
     }
 
+    /**
+     * Marks the worker to be stopped
+     * 
+     */
     public void setToStop() {
         toStop = true;
     }
 
+    /**
+     * Starts the current worker
+     * 
+     * @return
+     * @throws InitNodeException
+     */
     public NIONode startWorker() throws InitNodeException {
         String name = nw.getName();
         String user = nw.getUser();
@@ -216,39 +251,39 @@ public class WorkerStarter {
         String workerClasspath = "";
         String classpathFromFile = node.getClasspath();
         if (!classpathFromFile.isEmpty()) {
-            if (!classpathFromEnvironment.isEmpty()) {
-                workerClasspath = classpathFromFile + LIB_SEPARATOR + classpathFromEnvironment;
+            if (!CLASSPATH_FROM_ENVIRONMENT.isEmpty()) {
+                workerClasspath = classpathFromFile + LIB_SEPARATOR + CLASSPATH_FROM_ENVIRONMENT;
             } else {
                 workerClasspath = classpathFromFile;
             }
         } else {
-            workerClasspath = classpathFromEnvironment;
+            workerClasspath = CLASSPATH_FROM_ENVIRONMENT;
         }
 
         // Merge command pythonpath and worker defined pythonpath
         String workerPythonpath = "";
         String pythonpathFromFile = node.getPythonpath();
         if (!pythonpathFromFile.isEmpty()) {
-            if (!pythonpathFromEnvironment.isEmpty()) {
-                workerPythonpath = pythonpathFromFile + LIB_SEPARATOR + pythonpathFromEnvironment;
+            if (!PYTHONPATH_FROM_ENVIRONMENT.isEmpty()) {
+                workerPythonpath = pythonpathFromFile + LIB_SEPARATOR + PYTHONPATH_FROM_ENVIRONMENT;
             } else {
                 workerPythonpath = pythonpathFromFile;
             }
         } else {
-            workerPythonpath = pythonpathFromEnvironment;
+            workerPythonpath = PYTHONPATH_FROM_ENVIRONMENT;
         }
 
         // Merge command libpath and machine defined libpath
         String workerLibPath = "";
         String libPathFromFile = node.getLibPath();
         if (!libPathFromFile.isEmpty()) {
-            if (!libPathFromEnvironment.isEmpty()) {
-                workerLibPath = libPathFromFile + LIB_SEPARATOR + libPathFromEnvironment;
+            if (!LIBPATH_FROM_ENVIRONMENT.isEmpty()) {
+                workerLibPath = libPathFromFile + LIB_SEPARATOR + LIBPATH_FROM_ENVIRONMENT;
             } else {
                 workerLibPath = libPathFromFile;
             }
         } else {
-            workerLibPath = libPathFromEnvironment;
+            workerLibPath = LIBPATH_FROM_ENVIRONMENT;
         }
 
         // Get JVM Flags
@@ -306,8 +341,8 @@ public class WorkerStarter {
         // Worker parameters
         cmd[nextPosition++] = String.valueOf(node.getTotalComputingUnits());
         cmd[nextPosition++] = String.valueOf(node.getTotalGPUs());
-        cmd[nextPosition++] = String.valueOf(NIOAdaptor.BINDER_DISABLED);
-        cmd[nextPosition++] = String.valueOf(NIOAdaptor.BINDER_DISABLED);
+        cmd[nextPosition++] = String.valueOf(CPU_AFFINITY);
+        cmd[nextPosition++] = String.valueOf(GPU_AFFINITY);
         cmd[nextPosition++] = String.valueOf(node.getLimitOfTasks());
 
         // Application parameters
@@ -347,10 +382,8 @@ public class WorkerStarter {
         return cmd;
     }
 
-    protected ProcessOut executeCommand(String user, String resource, String[] command) {
-
+    private ProcessOut executeCommand(String user, String resource, String[] command) {
         ProcessOut processOut = new ProcessOut();
-
         String[] cmd = this.nw.getConfiguration().getRemoteExecutionCommand(user, resource, command);
         if (cmd == null) {
             LOGGER.warn("Worker configured to be sarted by queue system.");

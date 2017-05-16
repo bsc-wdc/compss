@@ -44,6 +44,8 @@ DEFAULT_SCHEDULER=integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalanci
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
 DEFAULT_JVM_MASTER=""
 DEFAULT_JVM_WORKERS="-Xms1024m,-Xmx1024m,-Xmn400m"
+DEFAULT_CPU_AFFINITY="automatic" # disabled, automatic, user string
+DEFAULT_GPU_AFFINITY="automatic" # disabled, automatic, user string
 
 DEFAULT_DEBUGGER=false
 DEFAULT_DEBUGGER_ARGUMENT=true
@@ -129,6 +131,12 @@ show_opts() {
                                             Default: ${DEFAULT_JVM_MASTER}
     --jvm_workers_opts="<string>"	    Extra options for the COMPSs Workers JVMs. Each option separed by "," and without blank spaces (Notice the quotes)
                                             Default: ${DEFAULT_JVM_WORKERS}
+    --cpu_affinity="<string>"               Sets the CPU affinity for the workers
+                                            Supported options: disabled, automatic, user defined map of the form "0-8/9,10,11/12-14,15,16"
+                                            Default: ${DEFAULT_CPU_AFFINITY}
+    --gpu_affinity="<string>"               Sets the GPU affinity for the workers
+                                            Supported options: disabled, automatic, user defined map of the form "0-8/9,10,11/12-14,15,16"
+                                            Default: ${DEFAULT_GPU_AFFINITY}
     --task_count=<int>                      Only for C/Python Bindings. Maximum number of different functions/methods, invoked from the application, that have been selected as tasks
                                             Default: ${DEFAULT_TASK_COUNT}
     --pythonpath=<path>                     Additional folders or paths to add to the PYTHONPATH
@@ -258,10 +266,6 @@ error_msg() {
 }
 
 check_env() {
-  #if [ -z "${XML_DIR}" ]; then
-  #  export XML_DIR=$(dirname $0)
-  #fi
-  
   # Added for SGE queue systems which do not allow to copy LD_LIBRARY_PATH
   if [ -z "$LD_LIBRARY_PATH" ]; then
      if [ -n "$LIBRARY_PATH" ]; then
@@ -306,7 +310,7 @@ check_env() {
 }
 
 get_args() {
-  #Parse COMPSs Options
+  # Parse COMPSs Options
   while getopts hvgtmd-: flag; do
     # Treat the argument
     case "$flag" in
@@ -453,6 +457,14 @@ get_args() {
           jvm_workers_opts=*)
             # Workers JVMs option
             jvm_workers_opts=$(echo $OPTARG | sed -e 's/jvm_workers_opts=//g')
+            ;;
+          cpu_affinity=*)
+            # Worker CPU affinity
+            worker_cpu_affinity=$(echo $OPTARG | sed -e 's/cpu_affinity=//g')
+            ;;
+          gpu_affinity=*)
+            # Worker GPU affinity
+            worker_gpu_affinity=$(echo $OPTARG | sed -e 's/gpu_affinity=//g')
             ;;
           external_debugger=*)
             # Enable external debugger on specific port
@@ -711,6 +723,14 @@ check_args() {
     jvm_workers_opts=${DEFAULT_JVM_WORKERS}
   fi
 
+  # WORKER THREAD AFFINITY
+  if [ -z "${worker_cpu_affinity}" ]; then
+    worker_cpu_affinity=${DEFAULT_CPU_AFFINITY}
+  fi
+  if [ -z "${worker_gpu_affinity}" ]; then
+    worker_gpu_affinity=${DEFAULT_GPU_AFFINITY}
+  fi
+
   # Debugger
   if [ -z "$external_debugger" ]; then
     external_debugger=${DEFAULT_DEBUGGER}
@@ -814,6 +834,8 @@ ${jvm_debugger_opts}
 -Dit.gat.file.adaptor=sshtrilead
 -Dit.worker.cp=${cp}:${CLASSPATH}
 -Dit.worker.jvm_opts=${jvm_workers_opts}
+-Dit.worker.cpu_affinity=${worker_cpu_affinity}
+-Dit.worker.gpu_affinity=${worker_gpu_affinity}
 EOT
 }
 

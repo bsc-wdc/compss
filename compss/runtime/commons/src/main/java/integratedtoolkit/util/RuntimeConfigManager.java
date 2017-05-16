@@ -403,6 +403,42 @@ public class RuntimeConfigManager {
     }
 
     /**
+     * Sets the new CPU Affinity for the Workers
+     * 
+     * @param isAffinityEnabled
+     */
+    public void setWorkerCPUAffinity(boolean isAffinityEnabled) {
+        config.setProperty(ITConstants.IT_WORKER_CPU_AFFINITY, isAffinityEnabled);
+    }
+
+    /**
+     * Returns the Workers CPU Affinity flag value
+     * 
+     * @return
+     */
+    public boolean isWorkerCPUAffinityEnabled() {
+        return config.getBoolean(ITConstants.IT_WORKER_CPU_AFFINITY, false);
+    }
+    
+    /**
+     * Sets the new GPU Affinity for the Workers
+     * 
+     * @param isAffinityEnabled
+     */
+    public void setWorkerGPUAffinity(boolean isAffinityEnabled) {
+        config.setProperty(ITConstants.IT_WORKER_GPU_AFFINITY, isAffinityEnabled);
+    }
+
+    /**
+     * Returns the Workers GPU Affinity flag value
+     * 
+     * @return
+     */
+    public boolean isWorkerGPUAffinityEnabled() {
+        return config.getBoolean(ITConstants.IT_WORKER_GPU_AFFINITY, false);
+    }
+
+    /**
      * Returns the graph flag value
      * 
      * @return

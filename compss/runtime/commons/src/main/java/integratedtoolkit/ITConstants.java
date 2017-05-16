@@ -74,6 +74,8 @@ public class ITConstants {
     public static final String IT_WORKER_PP = "it.worker.pythonpath";
     public static final String IT_WORKER_JVM_OPTS = "it.worker.jvm_opts";
     public static final String IT_WORKER_REMOVE_WD = "it.worker.removeWD";
+    public static final String IT_WORKER_CPU_AFFINITY = "it.worker.cpu_affinity";
+    public static final String IT_WORKER_GPU_AFFINITY = "it.worker.gpu_affinity";
     public static final String IT_CORE_COUNT = "it.core.count";
 
     public static final String IT_COMM_ADAPTOR = "it.comm";

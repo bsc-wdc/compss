@@ -53,7 +53,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     private static final String WARN_FILE_EMPTY_DEFAULT = "WARNING: IT Properties file is null. Setting default values";
     private static final String WARN_VERSION_PROPERTIES = "WARNING: COMPSs Runtime VERSION-BUILD properties file could not be read";
     private static final String ERROR_FILE_NAME = "ERROR: Cannot parse file name";
-    private static final String WARN_WRONG_DIRECTION = "ERROR: Invalid parameter direction: ";
+    private static final String WARN_WRONG_DIRECTION = "WARNING: Invalid parameter direction: ";
 
     // COMPSs Version and buildnumber attributes
     private static String COMPSs_VERSION = null;
@@ -163,12 +163,20 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 if (manager.getGATFileAdaptor() != null && System.getProperty(ITConstants.GAT_FILE_ADAPTOR) == null) {
                     System.setProperty(ITConstants.GAT_FILE_ADAPTOR, manager.getGATFileAdaptor());
                 }
+
                 if (manager.getWorkerCP() != null && System.getProperty(ITConstants.IT_WORKER_CP) == null) {
                     System.setProperty(ITConstants.IT_WORKER_CP, manager.getWorkerCP());
                 }
-
                 if (manager.getWorkerJVMOpts() != null && System.getProperty(ITConstants.IT_WORKER_JVM_OPTS) == null) {
                     System.setProperty(ITConstants.IT_WORKER_JVM_OPTS, manager.getWorkerJVMOpts());
+                }
+                if (System.getProperty(ITConstants.IT_WORKER_CPU_AFFINITY) == null
+                        || System.getProperty(ITConstants.IT_WORKER_CPU_AFFINITY).isEmpty()) {
+                    System.setProperty(ITConstants.IT_WORKER_CPU_AFFINITY, Boolean.toString(manager.isWorkerCPUAffinityEnabled()));
+                }
+                if (System.getProperty(ITConstants.IT_WORKER_GPU_AFFINITY) == null
+                        || System.getProperty(ITConstants.IT_WORKER_GPU_AFFINITY).isEmpty()) {
+                    System.setProperty(ITConstants.IT_WORKER_GPU_AFFINITY, Boolean.toString(manager.isWorkerGPUAffinityEnabled()));
                 }
 
                 if (manager.getServiceName() != null && System.getProperty(ITConstants.IT_SERVICE_NAME) == null) {

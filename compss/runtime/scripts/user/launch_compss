@@ -19,6 +19,8 @@ DEFAULT_TRACING_ARG=true
 DEFAULT_CUSTOM_EXTRAE_FILE="null"
 DEFAULT_MASTER_PORT_BASE=43000
 DEFAULT_MASTER_PORT_RAND_RANGE=1000
+DEFAULT_CPU_AFFINITY="automatic"
+DEFAULT_GPU_AFFINITY="automatic"
 DEFAULT_TASK_EXECUTION=compss
 DEFAULT_STORAGE_CONF=null
 
@@ -30,9 +32,10 @@ ERROR_CFG_SC="SuperComputer CFG file doesn't exist"
 ERROR_CFG_Q="Queue system CFG file doesn't exist"
 ERROR_MASTER_NODE="Missing master node parameter"
 ERROR_WORKER_NODES="Missing worker nodes parameter"
+ERROR_NUM_CPUS="Invalid number of CPUS per node"
 ERROR_WORKER_WD="Invalid Worker Working Dir option"
 ERROR_NETWORK="Invalid network option"
-ERROR_WORKER_IN_MASTER_TASKS="Parameter worker_in_master_tasks is bigger than the maximum number of tasks_per_node"
+ERROR_WORKER_IN_MASTER_CPUS="Parameter worker_in_master_cpus is bigger than the maximum number of cpus_per_node"
 ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
 ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH="Parameter worker_in_master_memory exceeds the node_memory limit"
 ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_tasks is not 0"
@@ -91,8 +94,12 @@ show_opts() {
   
   # Show usage
   cat <<EOT
-    --tasks_per_node=<int>                  Maximum number of simultaneous tasks running on a node
-                                            Default: ${DEFAULT_TASKS_PER_NODE}
+    --cpus_per_node=<int>                   Available CPU computing units on each node
+                                            Default: ${DEFAULT_CPUS_PER_NODE}
+    --gpus_per_node=<int>                   Available GPU computing units on each node
+                                            Default: ${DEFAULT_GPUS_PER_NODE}
+    --max_tasks_per_node=<int>              Maximum number of simultaneous tasks running on a node
+                                            Default: ${DEFAULT_MAX_TASKS_PER_NODE}
     --node_memory=<MB>                      Maximum node memory: disabled | <int> (MB)
                                             Default: ${DEFAULT_NODE_MEMORY}
     --network=<name>                        Communication network for transfers: default | ethernet | infiniband | data.
@@ -112,8 +119,8 @@ show_opts() {
     --worker_working_dir=<name | path>      Worker directory. Use: scratch | gpfs | <path>
                                             Default: ${DEFAULT_WORKER_WORKING_DIR}
                                               
-    --worker_in_master_tasks=<int>          Maximum number of tasks that the master node can run as worker. Cannot exceed tasks_per_node.
-                                            Default: ${DEFAULT_WORKER_IN_MASTER_TASKS}
+    --worker_in_master_cpus=<int>           Maximum number of CPU computing units that the master node can run as worker. Cannot exceed cpus_per_node.
+                                            Default: ${DEFAULT_WORKER_IN_MASTER_CPUS}
     --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
                                             Mandatory if worker_in_master_tasks is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
@@ -205,14 +212,14 @@ worker_cmd() {
   local jvm_opts_str=$4
   local cusCPU=$5
   local cusGPU=$6
+  local cpuMap=$7
+  local gpuMap=$8
+  local lot=$9
 
   local sandbox_worker_working_dir=${worker_working_dir}/${uuid}/${nodeName}
   local maxSend=5
   local maxReceive=5
   local worker_port=43001
-  local cpuMap="disabled"
-  local gpuMap="disabled"
-  local lot=-1
   if [ -z "${container_image}" ]; then
      WCMD="${IT_HOME}/Runtime/scripts/system/adaptors/nio/persistent_worker_starter.sh"
   else 
@@ -331,11 +338,22 @@ get_args() {
         sc_cfg=*)
           sc_cfg=$(echo $OPTARG | sed -e 's/sc_cfg=//g')
           ;;
+        cpus_per_node=*)
+          cpus_per_node=$(echo $OPTARG | sed -e 's/cpus_per_node=//g')
+          ;;
         gpus_per_node=*)
           gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
           ;;
-        tasks_per_node=*)
-          tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
+        max_tasks_per_node=*)
+          max_tasks_per_node=$(echo $OPTARG | sed -e 's/max_tasks_per_node=//g')
+          ;;
+        cpu_affinity=*)
+          cpu_affinity=$(echo $OPTARG | sed -e 's/cpu_affinity=//g')
+          args_pass="$args_pass --$OPTARG"
+          ;;
+        gpu_affinity=*)
+          gpu_affinity=$(echo $OPTARG | sed -e 's/gpu_affinity=//g')
+          args_pass="$args_pass --$OPTARG"
           ;;
         master_working_dir=*)
           master_working_dir=$(echo $OPTARG | sed -e 's/master_working_dir=//g')
@@ -343,8 +361,8 @@ get_args() {
         worker_working_dir=*)
           worker_working_dir=$(echo $OPTARG | sed -e 's/worker_working_dir=//g')
           ;; 
-        worker_in_master_tasks=*)
-          worker_in_master_tasks=$(echo $OPTARG | sed -e 's/worker_in_master_tasks=//g')
+        worker_in_master_cpus=*)
+          worker_in_master_cpus=$(echo $OPTARG | sed -e 's/worker_in_master_cpus=//g')
           ;;
         worker_in_master_memory=*)
           worker_in_master_memory=$(echo $OPTARG | sed -e 's/worker_in_master_memory=//g')
@@ -551,23 +569,39 @@ check_args() {
   ###############################################################
   # Node checks
   ###############################################################
-  if [ -z "${tasks_per_node}" ]; then
-    tasks_per_node=${DEFAULT_TASKS_PER_NODE}
+  if [ -z "${max_tasks_per_node}" ]; then
+    max_tasks_per_node=${DEFAULT_MAX_TASKS_PER_NODE}
+  fi
+
+  if [ -z "${cpus_per_node}" ]; then
+    cpus_per_node=${DEFAULT_CPUS_PER_NODE}
+  fi
+  
+  if [ ${cpus_per_node} -lt ${MINIMUM_CPUS_PER_NODE} ]; then
+    display_error "${ERROR_NUM_CPUS}"                                                                                                                                                                                                       
   fi
 
   if [ -z "${gpus_per_node}" ]; then
     gpus_per_node=${DEFAULT_GPUS_PER_NODE}
   fi
 
+  if [ -z "${cpu_affinity}" ]; then
+    cpu_affinity=${DEFAULT_CPU_AFFINITY}
+  fi
+
+  if [ -z "${gpu_affinity}" ]; then
+    gpu_affinity=${DEFAULT_GPU_AFFINITY}
+  fi
+
   if [ -z "${node_memory}" ]; then
     node_memory=${DEFAULT_NODE_MEMORY}
   fi 
  
-  if [ -z "${worker_in_master_tasks}" ]; then
-    worker_in_master_tasks=${DEFAULT_WORKER_IN_MASTER_TASKS}
+  if [ -z "${worker_in_master_cpus}" ]; then
+    worker_in_master_cpus=${DEFAULT_WORKER_IN_MASTER_CPUS}
   fi
-  if [ ${worker_in_master_tasks} -gt ${tasks_per_node} ]; then
-    display_error "${ERROR_WORKER_IN_MASTER_TASKS}"
+  if [ ${worker_in_master_cpus} -gt ${cpus_per_node} ]; then
+    display_error "${ERROR_WORKER_IN_MASTER_CUS}"
   fi
 
   if [ -z "${worker_in_master_memory}" ]; then
@@ -581,7 +615,7 @@ check_args() {
     fi 
   fi
 
-  if [ ${worker_in_master_tasks} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
+  if [ ${worker_in_master_cpus} -gt 0 ] && [ "${worker_in_master_memory}" == "${DEFAULT_WORKER_IN_MASTER_MEMORY}" ]; then
     display_error "${ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED}"
   fi
 
@@ -777,10 +811,13 @@ log_variables() {
   echo "-------- Launch arguments --------"
   echo "Master:                    ${master_node}"
   echo "Workers:                   ${worker_nodes}"
-  echo "Tasks per Node:            ${tasks_per_node}"
-  echo "Gpus per Node:             ${gpus_per_node}"
+  echo "Tasks per Node:            ${max_tasks_per_node}"
+  echo "CPUs per Node:             ${cpus_per_node}"
+  echo "GPUs per Node:             ${gpus_per_node}"
+  echo "CPU Affinity:              ${cpu_affinity}"
+  echo "GPU Affinity:              ${gpu_affinity}"
   echo "Network:                   ${network}"
-  echo "Worker in Master Tasks:    ${worker_in_master_tasks}"
+  echo "Worker in Master CPUs:     ${worker_in_master_cpus}"
   echo "Worker in Master Memory:   ${worker_in_master_memory}"
   echo "Master Port:               ${master_port}"
   echo "Master WD:                 ${master_working_dir}"
@@ -822,13 +859,15 @@ create_xml_files() {
   echo "List of workers: ${worker_nodes}"
 
   # Add worker slots on master if needed
-  if [ ${worker_in_master_tasks} -ne 0 ]; then
-    add_compute_node "${master_node}" ${worker_in_master_tasks} ${worker_in_master_memory} ${gpus_per_node}       
+  if [ ${worker_in_master_cpus} -ne 0 ]; then
+    # add_compute_node name cpus gpus lot memory
+    add_compute_node "${master_node}" ${worker_in_master_cpus} ${gpus_per_node} ${max_tasks_per_node} ${worker_in_master_memory}
   fi
 
   # Find the number of tasks to be executed on each node
   for node in ${worker_nodes}; do
-    add_compute_node "$node" ${tasks_per_node} ${node_memory} ${gpus_per_node}
+    # add_compute_node name cpus gpus lot memory
+    add_compute_node "$node" ${cpus_per_node} ${gpus_per_node} ${max_tasks_per_node} ${node_memory}
   done
 
   # Finish the resources file and the project file 
@@ -849,11 +888,12 @@ launch() {
   if [ "${comm/NIO}" != "${comm}" ]; then
     # Start workers' processes
     local hostid=1
-    if [ ${worker_in_master_tasks} -ne 0 ]; then
+    if [ ${worker_in_master_cpus} -ne 0 ]; then
       # Worker in master node
       local jvm_worker_in_master_opts_str=$(echo "${jvm_worker_in_master_opts}" | tr "," " ")
       local jvm_worker_in_master_opts_size=$(echo "${jvm_worker_in_master_opts_str}" | wc -w)
-      worker_cmd $hostid "${master_node}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_tasks} ${gpus_per_node}
+      # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
+      worker_cmd $hostid "${master_node}${network}" ${jvm_worker_in_master_opts_size} "${jvm_worker_in_master_opts_str}" ${worker_in_master_cpus} ${gpus_per_node} ${cpu_affinity} ${gpu_affinity} ${max_tasks_per_node}
       WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${master_node} ${WCMD}"
       echo "CMD Worker $hostid launcher: $WCMD"
       $WCMD&
@@ -864,7 +904,8 @@ launch() {
     local jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
     if [ ! -z "${worker_nodes}" ]; then
       for node in ${worker_nodes}; do
-        worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${tasks_per_node} ${gpus_per_node}
+        # worker_cmd id name jvmOptsSize jvmOpts cpus gpus cpuMap gpuMap lot
+        worker_cmd $hostid "$node${network}" ${jvm_workers_opts_size} "${jvm_workers_opts_str}" ${cpus_per_node} ${gpus_per_node} ${cpu_affinity} ${gpu_affinity} ${max_tasks_per_node}
         WCMD="${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${node} ${WCMD}"
         echo "CMD Worker $hostid launcher: $WCMD"
         $WCMD&
@@ -1012,8 +1053,9 @@ EOT
 add_compute_node() {
   local nodeName=$1
   local cus=$2
-  local memory=$3
-  local gpus=$4
+  local gpus=$3
+  local lot=$4
+  local memory=$5
 
   echo "Worker WD mkdir: ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}"
   ${LAUNCH_CMD} ${LAUNCH_PARAMS}${LAUNCH_SEPARATOR}${nodeName} ${CMD_SEPARATOR}mkdir -p ${worker_working_dir}${CMD_SEPARATOR}
@@ -1099,6 +1141,14 @@ EOT
       <Application>
           <LibraryPath>${library_path}</LibraryPath>
       </Application>
+EOT
+  if [ "$lot" != "" ] && [ $lot -ge 0 ]; then
+    cat >> ${PROJECT_FILE} <<EOT
+      <LimitOfTasks>${lot}</LimitOfTasks>
+EOT
+  fi
+
+  cat >> ${PROJECT_FILE} << EOT
   </ComputeNode>
 
 EOT

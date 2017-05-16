@@ -10,6 +10,7 @@ DEFAULT_SC_CFG="default"
 # ERROR CONSTANTS DECLARATION
 #---------------------------------------------------
 ERROR_NUM_NODES="Invalid number of nodes"
+ERROR_NUM_CPUS="Invalid number of CPUS per node"
 ERROR_SWITCHES="Too little switches for the specified number of nodes"
 ERROR_NO_ASK_SWITCHES="Cannot ask switches for less than ${MIN_NODES_REQ_SWITCH} nodes"
 ERROR_NODE_MEMORY="Incorrect node_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
@@ -72,9 +73,6 @@ show_opts() {
                                             Maximum nodes per switch: ${MAX_NODES_SWITCH}
                                             Only available for at least ${MIN_NODES_REQ_SWITCH} nodes. 
                                             Default: ${DEFAULT_NUM_SWITCHES} 
-    --gpus_per_node=<int>                   Number of desired GPUs per node.
-                                            Leave this field empty if your application doesn't use GPUs.
-                                            Default: ${DEFAULT_GPUS_PER_NODE}
     --queue=<name>                          Queue name to submit the job. Depends on the queue system.
                                             For example (MN3): bsc_cs | bsc_debug | debug | interactive
                                             Default: ${DEFAULT_QUEUE}
@@ -234,14 +232,14 @@ get_args() {
           num_switches=*)
             num_switches=$(echo $OPTARG | sed -e 's/num_switches=//g')
             ;;
+          cpus_per_node=*)
+            cpus_per_node=$(echo $OPTARG | sed -e 's/cpus_per_node=//g')
+            args_pass="$args_pass --$OPTARG"
+            ;;
           gpus_per_node=*)
             gpus_per_node=$(echo $OPTARG | sed -e 's/gpus_per_node=//g')
             args_pass="$args_pass --$OPTARG"
             ;;
-	      tasks_per_node=*)
-	        tasks_per_node=$(echo $OPTARG | sed -e 's/tasks_per_node=//g')
-	        args_pass="$args_pass --$OPTARG"
-	        ;;
           queue=*)
             queue=$(echo $OPTARG | sed -e 's/queue=//g')
             ;;
@@ -335,20 +333,16 @@ check_args() {
     num_switches=${DEFAULT_NUM_SWITCHES}
   fi
 
+  if [ -z "${cpus_per_node}" ]; then
+    cpus_per_node=${DEFAULT_CPUS_PER_NODE}
+  fi
+
+  if [ ${cpus_per_node} -lt ${MINIMUM_CPUS_PER_NODE} ]; then
+    display_error "${ERROR_NUM_CPUS}"
+  fi
+
   if [ -z "${gpus_per_node}" ]; then
     gpus_per_node=${DEFAULT_GPUS_PER_NODE}
-  fi
-
-  if [ -z "${tasks_per_node}" ]; then
-    tasks_per_node=${DEFAULT_TASKS_PER_NODE}
-  fi
-
-  if [ -z "${MAX_TASKS_PER_NODE}" ]; then
-    MAX_TASKS_PER_NODE=${DEFAULT_TASKS_PER_NODE}
-  fi
-
-  if [ ${MAX_TASKS_PER_NODE} -lt ${tasks_per_node} ]; then
-    tasks_per_node=${MAX_TASKS_PER_NODE}
   fi
 
   maxnodes=$(expr ${num_switches} \* ${MAX_NODES_SWITCH})
@@ -526,7 +520,7 @@ EOT
     if [ -n "${QNUM_PROCESSES_VALUE}" ]; then
       eval processes=${QNUM_PROCESSES_VALUE}
     else
-      processes=${tasks_per_node}
+      processes=${cpus_per_node}
     fi
     echo "Requesting $processes processes"
     cat >> $TMP_SUBMIT_SCRIPT << EOT

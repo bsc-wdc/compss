@@ -491,8 +491,6 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
-        StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-
         // COMPUTE RESOURCE CANDIDATES
         LinkedList<ResourceScheduler<P, T, I>> candidates = new LinkedList<>();
         if (this.forcedResource != null) {
@@ -509,6 +507,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         }
 
         // COMPUTE BEST WORKER AND IMPLEMENTATION
+        StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
         ResourceScheduler<P, T, I> bestWorker = null;
         I bestImpl = null;
         Score bestScore = null;
@@ -536,6 +535,11 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             }
         }
 
+        // CHECK SCHEDULING RESULT
+        if (DEBUG) {
+            LOGGER.debug(debugString.toString());
+        }
+
         if (bestWorker == null && usefulResources == 0) {
             LOGGER.warn("No worker can run " + this);
             throw new BlockedActionException();
@@ -559,29 +563,16 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
             LOGGER.warn(message);
             throw new UnassignedActionException();
         }
-
-        StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution for worker " + targetWorker + ":\n");
-        if (DEBUG) {
-            debugString.append("\t Resource ").append(targetWorker.getName()).append("\n");
-        }
-
+        
         I bestImpl = null;
         Score bestScore = null;
         Score resourceScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
         for (I impl : getCompatibleImplementations(targetWorker)) {
             Score implScore = targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
-            if (DEBUG) {
-                debugString.append("\t\t Implementation ").append(impl.getImplementationId()).append(implScore).append("\n");
-            }
             if (Score.isBetter(implScore, bestScore)) {
                 bestImpl = impl;
                 bestScore = implScore;
             }
-        }
-
-        // CHECK SCHEDULING RESULT
-        if (DEBUG) {
-            LOGGER.debug(debugString.toString());
         }
 
         schedule(targetWorker, bestImpl);
@@ -591,6 +582,11 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     public final void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
+        }
+
+        if (DEBUG) {
+            LOGGER.debug("Scheduling " + this + " on worker " + (targetWorker == null ? "null" : targetWorker.getName())
+                    + " with implementation " + (impl == null ? "null" : impl.getImplementationId()));
         }
 
         if (// Resource is not compatible with the implementation

@@ -72,6 +72,7 @@ process_task(PyObject *self, PyObject *args)
 	printf ("####C#### Replicated: %d\n", replicated);
 	printf ("####C#### Distributed: %d\n", distributed);
 	printf ("####C#### Has target: %d\n", has_target);
+  fflush(stdout);
 	Py_ssize_t num_pars = PyList_Size(values);
 
 	// printf ("####C#### Num pars: %d\n", num_pars);

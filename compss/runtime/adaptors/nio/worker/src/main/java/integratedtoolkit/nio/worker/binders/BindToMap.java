@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import integratedtoolkit.log.Loggers;
 
@@ -120,6 +121,7 @@ public class BindToMap implements ThreadBinder {
         Integer coresPerSocket = null;
         Integer threadsPerCore = null;
         Integer numCPUs = null;
+        List<String> numaDescription = new ArrayList<>();
         for (String line : cmdLines) {
             if (line.contains("Socket(s):")) {
                 String[] lineValues = line.split(" ");
@@ -139,7 +141,11 @@ public class BindToMap implements ThreadBinder {
                 if (threadsPerCoreSTR != null && !threadsPerCoreSTR.isEmpty()) {
                     threadsPerCore = Integer.parseInt(threadsPerCoreSTR);
                 }
-            } else if (line.contains("CPU(s):") && !line.contains("NUMA")) {
+            } else if (line.contains("NUMA node") && line.contains("CPU(s):")) {
+                String[] lineValues = line.split(" ");
+                String coresDescription = lineValues[lineValues.length - 1];
+                numaDescription.add(coresDescription);
+            } else if (line.contains("CPU(s):")) {
                 String[] lineValues = line.split(" ");
                 String numCPUsSTR = lineValues[lineValues.length - 1];
                 if (numCPUsSTR != null && !numCPUsSTR.isEmpty()) {
@@ -153,6 +159,20 @@ public class BindToMap implements ThreadBinder {
             // Do general affinity: per core
             LOGGER.debug("CPU Map constructed by General Affinity");
             cpuMap = "0-" + String.valueOf(numCPUs);
+        } else if (numaDescription.size() != 0) {
+            // Do affinity per NUMA Node
+            LOGGER.debug("CPU Map constructed by Affinity per Numa Node");
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for (String descr : numaDescription) {
+                if (!first) {
+                    sb.append("/");
+                } else {
+                    first = false;
+                }
+                sb.append(descr);
+            }
+            cpuMap = sb.toString();
         } else {
             // Do affinity per socket
             LOGGER.debug("CPU Map constructed by Affinity per socket");

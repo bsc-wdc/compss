@@ -12,7 +12,7 @@
 //#define DEBUG_BINDING
 
 #ifdef DEBUG_BINDING
-#define debug_printf(args...) printf(args)
+#define debug_printf(args...) printf(args); fflush(stdout);
 #else
 #define debug_printf(args...) {}
 #endif
@@ -166,7 +166,6 @@ JNIEnv* create_vm(JavaVM ** jvm) {
   } else {
     debug_printf("[   BINDING]  -  @create_vm  -  JVM Ready\n");
   }
-
   return env;
 }
 

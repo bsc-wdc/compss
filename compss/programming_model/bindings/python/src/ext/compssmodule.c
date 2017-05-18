@@ -52,30 +52,30 @@ static PyObject *
 process_task(PyObject *self, PyObject *args)
 {
 	// printf ("####C#### PROCESS TASK\n");
-  long app_id;
-  const char* signature;
-  int priority, num_nodes, replicated, distributed, has_target;
-  PyObject* values;
-  PyObject* compss_types;
-  PyObject* compss_directions;
+    long app_id;
+    const char* signature;
+    int priority, num_nodes, replicated, distributed, has_target;
+    PyObject* values;
+    PyObject* compss_types;
+    PyObject* compss_directions;
 
-  if(!PyArg_ParseTuple(args, "lsiiiiiOOO", &app_id, &signature, &priority,
-     &num_nodes, &replicated, &distributed, &has_target, &values, &compss_types,
-     &compss_directions)) {
-    return NULL;
-  }
+    if(!PyArg_ParseTuple(args, "lsiiiiiOOO", &app_id, &signature, &priority,
+       &num_nodes, &replicated, &distributed, &has_target, &values, &compss_types,
+       &compss_directions)) {
+        return NULL;
+    }
 
-	printf ("####C#### App id: %ld\n", app_id);
-	printf ("####C#### Signature: %s\n", signature);
-	printf ("####C#### Priority: %d\n", priority);
-	printf ("####C#### MPI Num nodes: %d\n", num_nodes);
-	printf ("####C#### Replicated: %d\n", replicated);
-	printf ("####C#### Distributed: %d\n", distributed);
-	printf ("####C#### Has target: %d\n", has_target);
+  //printf ("####C#### App id: %ld\n", app_id);
+	//printf ("####C#### Signature: %s\n", signature);
+	//printf ("####C#### Priority: %d\n", priority);
+	//printf ("####C#### MPI Num nodes: %d\n", num_nodes);
+	//printf ("####C#### Replicated: %d\n", replicated);
+	//printf ("####C#### Distributed: %d\n", distributed);
+	//printf ("####C#### Has target: %d\n", has_target);
   fflush(stdout);
-	Py_ssize_t num_pars = PyList_Size(values);
 
-	// printf ("####C#### Num pars: %d\n", num_pars);
+	Py_ssize_t num_pars = PyList_Size(values);
+	//printf ("####C#### Num pars: %d\n", num_pars);
 
 	PyObject *type, *val, *direction;
 
@@ -276,48 +276,6 @@ get_logging_path(PyObject *self, PyObject *args)
 
 }
 
-/*
-static PyObject *
-set_constraints(PyObject *self, PyObject *args)
-{
-    //printf ("####C#### REGISTER CONSTRAINTS\n");
-
-	long app_id = PyInt_AsLong(PyTuple_GetItem(args, 0));
-    //printf ("####C####App id: %ld\n", app_id);
-	char *func_module = PyString_AsString(PyTuple_GetItem(args, 1));
-	//printf ("####C####Path: %s\n", func_module);
-	char *func_name = PyString_AsString(PyTuple_GetItem(args, 2));
-	//printf ("####C####Function name: %s\n", func_name);
-	int has_target = (int)PyInt_AsLong(PyTuple_GetItem(args, 3));
-	//printf ("####C####Has target: %d\n", has_target);
-	int has_return = (int)PyInt_AsLong(PyTuple_GetItem(args, 4));
-	//printf ("####C####Has return: %d\n", has_return);
-	char *constraints = PyString_AsString(PyTuple_GetItem(args, 5));
-	//printf ("####C####Constraints: %s\n", constraints);
-	int parameterCount = (int)PyInt_AsLong(PyTuple_GetItem(args, 6));
-	//printf ("####C####parameter Count: %d\n", parameterCount);
-
-	PyObject *values = PyList_AsTuple(PyTuple_GetItem(args, 7));
-	Py_ssize_t num_pars = PyTuple_Size(values);
-	//printf ("####C####Num pars: %d\n", num_pars);
-
-    void **params[num_pars]; // = 0;
-
-	// Invoke the C library
-	GS_RegisterCE(app_id,
-			      func_module,
-				  func_name,
-				  has_target,
-				  has_return,
-				  parameterCount, //(int)num_pars,
-				  params,
-				  constraints);
-
-	//printf("####C#### COMPSs CONSTRAINTS ALREADY SET\n");
-    return Py_BuildValue("i", 0);
-}
-*/
-
 static PyObject *
 register_core_element(PyObject *self, PyObject *args)
 {
@@ -333,12 +291,12 @@ register_core_element(PyObject *self, PyObject *args)
          return NULL;
    }
 
-    printf ("####C#### Core Element Signature: %s\n", CESignature);
-    printf ("####C#### Implementation Signature: %s\n", ImplSignature);
-    printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
-    printf ("####C#### Implementation Type: %s\n", ImplType);
+    //printf ("####C#### Core Element Signature: %s\n", CESignature);
+    //printf ("####C#### Implementation Signature: %s\n", ImplSignature);
+    //printf ("####C#### Implementation Constraints: %s\n", ImplConstraints);
+    //printf ("####C#### Implementation Type: %s\n", ImplType);
     int num_params = PyList_Size(typeArgs);
-    printf ("####C#### Implementation Type num args: %i\n", num_params);
+    //printf ("####C#### Implementation Type num args: %i\n", num_params);
     char **ImplTypeArgs = (char**)malloc(num_params*sizeof(char*));
     int i;
     for (i=0; i<num_params; i++){
@@ -373,8 +331,6 @@ static PyMethodDef CompssMethods[] = {
     { "barrier", barrier, METH_VARARGS, "Perform a barrier until the tasks already submitted have finished." },
 
     { "get_logging_path", get_logging_path, METH_VARARGS, "Requests the app log path." },
-
-    /*{ "set_constraints", set_constraints, METH_VARARGS, "Sets the task constraints." },*/
 
     { "register_core_element", register_core_element, METH_VARARGS, "Registers a task in the Runtime." },
 

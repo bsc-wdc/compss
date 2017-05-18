@@ -405,6 +405,12 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
     # Get priority
     has_priority = self_kwargs['priority']
 
+    # Signature and other parameters:
+    signature = path + '.' + f.__name__
+    num_nodes = 1         # default due to not MPI decorator yet
+    replicated = False    # default due to not replicated tag yet
+    distributed = False   # default due to not distributed tag yet
+
     # Log the task submission values for debugging purposes.
     if logger.isEnabledFor(logging.DEBUG):
         values_str = ''
@@ -420,8 +426,12 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
         logger.debug("\t- App id: " + str(app_id))
         logger.debug("\t- Path: " + path)
         logger.debug("\t- Function name: " + f.__name__)
+        logger.debug("\t- Signature: " + signature)
         logger.debug("\t- Priority: " + str(has_priority))
         logger.debug("\t- Has target: " + str(has_target))
+        logger.debug("\t- Num nodes: " + str(num_nodes))
+        logger.debug("\t- Replicated: " + str(replicated))
+        logger.debug("\t- Distributed: " + str(distributed))
         logger.debug("\t- Values: " + values_str)
         logger.debug("\t- COMPSs types: " + types_str)
         logger.debug("\t- COMPSs directions: " + direct_str)
@@ -447,11 +457,6 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
                         has_target,
                         values, compss_types, compss_directions)
     '''
-
-    signature = path + '.' + f.__name__
-    num_nodes = 1 # default due to not MPI decorator yet
-    replicated = False
-    distributed = False
 
     compss.process_task(app_id,
                         signature,

@@ -123,6 +123,7 @@ class task(object):
 
         # Set default booleans
         self.is_instance = False
+        self.is_classmethod=False
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False
@@ -192,7 +193,7 @@ class task(object):
         # The registration needs to be done only in the master node
         if i_am_at_master():
             logger.debug("Registering function %s in module %s" % (f.__name__, self.module))
-            registerTask(f, self.module)
+            registerTask(f, self.module, self.is_instance)
 
         # Modified variables until now that will be used later:
         #   - self.spec_args    : Function argspect (Named tuple)
@@ -288,7 +289,7 @@ def getModuleName(path, file_name):
     return mod_name
 
 
-def registerTask(f, module):
+def registerTask(f, module, is_instance):
     """
     This function is used to register the task in the runtime.
     This registration must be done only once on the task decorator initialization.
@@ -315,11 +316,18 @@ def registerTask(f, module):
     logger.debug("[@TASK] Top decorator of function %s in module %s: %s" % (f.__name__, module, str(topDecorator)))
     f.__who_registers__ = topDecorator
     # Include the registering info related to @task
-    ce_signature = module + "." + f.__name__
+    ins = inspect.getouterframes(inspect.currentframe())
+    class_name = ins[2][3]  # I know that this is ugly, but I see no other way to get the class name
+    is_classmethod = class_name != '<module>' # I know that this is ugly, but I see no other way to check if it is a classs method.
+    if is_instance or is_classmethod:
+        ce_signature = module + "." + class_name + '.' + f.__name__
+        implTypeArgs = [module + "." + class_name, f.__name__]
+    else:
+        ce_signature = module + "." + f.__name__
+        implTypeArgs = [module, f.__name__]
     implSignature = ce_signature
     implConstraints = {}
     implType = "METHOD"
-    implTypeArgs = [module, f.__name__]
     coreElement = CE(ce_signature,
                      implSignature,
                      implConstraints,

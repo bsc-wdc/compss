@@ -192,7 +192,6 @@ class task(object):
 
         # The registration needs to be done only in the master node
         if i_am_at_master():
-            logger.debug("Registering function %s in module %s" % (f.__name__, self.module))
             registerTask(f, self.module, self.is_instance)
 
         # Modified variables until now that will be used later:

@@ -25,6 +25,7 @@ import inspect
 import logging
 import os
 from functools import wraps
+from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
 
 
@@ -49,7 +50,6 @@ class constraint(object):
 
         if i_am_at_master():
             # master code
-            from pycompss.runtime.binding import set_constraints
 
             mod = inspect.getmodule(func)
             self.module = mod.__name__    # not func.__module__
@@ -83,16 +83,16 @@ class constraint(object):
                 self.module = mod_name
 
             # Include the registering info related to @constraint
-            func.__to_register__[__name__] = "@constraintStuff"
+
+            # Retrieve the base coreElement established at @task decorator
+            coreElement = func.__to_register__
+            # Update the core element information with the constraints
+            coreElement.set_implConstraints(self.kwargs)
+            func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 logger.debug("[@CONSTRAINT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                logger.debug("[@CONSTRAINT] %s" % str(func.__to_register__))
-
-            # logger.debug("Registering constraints for function %s of module %s" % (func.__name__, self.module))
-            for key, value in self.kwargs.iteritems():
-                logger.debug("%s -> %s" % (key, value))
-            set_constraints(func.__name__, self.module, self.kwargs)
+                register_ce(coreElement)
         else:
             # worker code
             pass

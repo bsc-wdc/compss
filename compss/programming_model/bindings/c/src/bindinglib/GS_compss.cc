@@ -139,6 +139,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
    
     } else {
       debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
+      result = 1;
     }
     
     debug_printf("[   BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);
@@ -168,6 +169,7 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
 	objectMap[ref] = entry;
       } else {
 	debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
+	result = 1;
       }
       
       debug_printf("[   BINDING]  -  @GS_register  -  Entry.type: %d\n", entry.type);

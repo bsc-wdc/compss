@@ -1,0 +1,43 @@
+#!/bin/bash
+ 
+  #############################################################
+  # Name: buildSSF_aux
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in SSF
+  # Parameters: <targetDir> Base Target Installation folder
+  #
+  # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 
+  #            EXECUTED FROM buildSSF script
+  #############################################################
+
+  usage() {
+    echo "Incorrect number of parameters"
+    echo " Usage: buildSSF_aux <FullTargetPath>"
+    echo " "
+    exit 1
+  }
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -ne 1 ]; then
+    usage
+  fi
+
+  # SET SCRIPT VARIABLES
+  targetDir=$1
+  scriptDir=$(dirname $0)
+
+  modules="autotools"
+  additionalExports="export BOOST_CPPFLAGS=-I/opt/intel/hpc-orchestrator/pub/libs/gnu/mvapich2/boost/1.63.0/include PATH=/usr/include/libxml:$PATH"
+  queues_cfg="ssf.cfg"
+  extrae_with_openmpi="false"
+  openmpi_version=""
+  extrae_with_impi="true"
+  impi_version=""
+
+  ${scriptDir}/buildSC_aux ${targetDir} "${modules}" "${additionalExports}" "${queues_cfg}" "${extrae_with_openmpi}" "${openmpi_version}" "${extrae_with_impi}" "${impi_version}"
+
+  # END
+  exit 0
+

@@ -67,6 +67,21 @@
             "handlers": ["debug_file_handler","error_file_handler"],
             "propagate": "no"
         },
+        "pycompss.api.binary": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
+        "pycompss.api.ompss": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
+        "pycompss.api.opencl": {
+            "level": "DEBUG",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
         "pycompss.api.implement": {
             "level": "DEBUG",
             "handlers": ["debug_file_handler","error_file_handler"],

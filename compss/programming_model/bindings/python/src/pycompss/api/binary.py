@@ -16,9 +16,9 @@
 """
 @author: fconejer
 
-PyCOMPSs API - Implement (Versioning)
-=====================================
-    This file contains the class constraint, needed for the implement
+PyCOMPSs API - BINARY
+==================
+    This file contains the class constraint, needed for the binary task
     definition through the decorator.
 """
 import inspect
@@ -32,7 +32,7 @@ from pycompss.util.location import i_am_at_master
 logger = logging.getLogger(__name__)
 
 
-class implement(object):
+class Binary(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -41,7 +41,7 @@ class implement(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init @implement decorator...")
+        logger.debug("Init @Binary decorator...")
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.
@@ -81,22 +81,25 @@ class implement(object):
                         break
                 self.module = mod_name
 
-            # Include the registering info related to @MPI
+            # Include the registering info related to @Binary
 
             # Retrieve the base coreElement established at @task decorator
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
-            anotherClass = self.kwargs['class']
-            anotherMethod = self.kwargs['method']
-            implSignature = anotherClass + '.' + anotherMethod
+            coreElement.set_implType("BINARY")
+            binary = self.kwargs['binary']
+            if 'workingDir' in self.kwargs:
+                workingDir = self.kwargs['workingDir']
+            else:
+                workingDir = '[unassigned]'   # Empty or '[unassigned]'
+            implSignature = 'BINARY.' + binary
             coreElement.set_implSignature(implSignature)
-            implArgs = [anotherClass, anotherMethod]
+            implArgs = [binary, workingDir]
             coreElement.set_implTypeArgs(implArgs)
-            coreElement.set_implType("METHOD")
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
-                logger.debug("[@IMPLEMENT] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                logger.debug("[@BINARY] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -104,27 +107,29 @@ class implement(object):
 
 
         @wraps(func)
-        def implement_f(*args, **kwargs):
+        def binary_f(*args, **kwargs):
             # This is executed only when called.
-            logger.debug("Executing implement_f wrapper.")
+            logger.debug("Executing binary_f wrapper.")
 
-            # The 'self' for a method function is passed as args[0]
-            slf = args[0]
+            if len(args) > 0:
+                # The 'self' for a method function is passed as args[0]
+                slf = args[0]
 
-            # Replace and store the attributes
-            saved = {}
-            for k, v in self.kwargs.items():
-                if hasattr(slf, k):
-                    saved[k] = getattr(slf, k)
-                    setattr(slf, k, v)
+                # Replace and store the attributes
+                saved = {}
+                for k, v in self.kwargs.items():
+                    if hasattr(slf, k):
+                        saved[k] = getattr(slf, k)
+                        setattr(slf, k, v)
 
             # Call the method
             ret = func(*args, **kwargs)
 
-            # Put things back
-            for k, v in saved.items():
-                setattr(slf, k, v)
+            if len(args) > 0:
+                # Put things back
+                for k, v in saved.items():
+                    setattr(slf, k, v)
 
             return ret
-        implement_f.__doc__ = func.__doc__
-        return implement_f
+        binary_f.__doc__ = func.__doc__
+        return binary_f

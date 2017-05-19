@@ -123,7 +123,7 @@ class task(object):
 
         # Set default booleans
         self.is_instance = False
-        self.is_classmethod=False
+        self.is_classmethod=False   # not used currently in this scope, only when registering the task
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False
@@ -596,7 +596,7 @@ def getTopDecorator(code):
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
     funcCode = code[0]
-    decoratorKeys = ("implement", "constraint", "mpi", "task")
+    decoratorKeys = ("implement", "constraint", "MPI", "OmpSs", "Binary", "OpenCL", "task")
     decorators = [l for l in funcCode if l.strip().startswith('@')]  # Could be improved if it stops when the first line without @ is found.
                                                                      # but we have to be care if a decorator is commented (# before @)
                                                                      # The strip is due to the spaces that appear before functions definitions,
@@ -604,7 +604,7 @@ def getTopDecorator(code):
     for dk in decoratorKeys:
         for d in decorators:
             if dk in d:
-                return "pycompss.api." + dk  # each decorator __name__
+                return "pycompss.api." + dk.lower()  # each decorator __name__
 
 
 def getCOMPSsType(value):

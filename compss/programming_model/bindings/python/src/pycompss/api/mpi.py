@@ -25,6 +25,7 @@ import inspect
 import logging
 import os
 from functools import wraps
+from pycompss.runtime.binding import register_ce
 from pycompss.util.location import i_am_at_master
 
 
@@ -41,6 +42,14 @@ class MPI(object):
         self.args = args
         self.kwargs = kwargs
         logger.debug("Init @MPI decorator...")
+
+        # Get the computing nodes -- This parameter will have to go down until execution when invoked.
+        if 'computingNodes' not in self.kwargs:
+            self.kwargs['computingNodes'] = 1
+        else:
+            self.kwargs['computingNodes'] = kwargs['computingNodes']
+        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + "computing nodes.")
+
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.
@@ -81,17 +90,26 @@ class MPI(object):
                 self.module = mod_name
 
             # Include the registering info related to @MPI
-            func.__to_register__[__name__] = "@mpiStuff"
+
+            # Retrieve the base coreElement established at @task decorator
+            coreElement = func.__to_register__
+            # Update the core element information with the mpi information
+            coreElement.set_implType("MPI")
+            binary = self.kwargs['binary']
+            if 'workingDir' in self.kwargs:
+                workingDir = self.kwargs['workingDir']
+            else:
+                workingDir = '[unassigned]'   # Empty or '[unassigned]'
+            runner = self.kwargs['runner']
+            implSignature = 'MPI.' + binary
+            coreElement.set_implSignature(implSignature)
+            implArgs = [binary, workingDir, runner]
+            coreElement.set_implTypeArgs(implArgs)
+            func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
                 logger.debug("[@MPI] I have to do the register of function %s in module %s" % (func.__name__, self.module))
-                logger.debug("[@MPI] %s" % str(func.__to_register__))
-
-            # logger.debug("Registering MPI parameters for function %s of module %s" % (func.__name__, self.module))
-
-            for key, value in self.kwargs.iteritems():
-                logger.debug("%s -> %s" % (key, value))
-            # set_constraints(func.__name__, self.module, self.kwargs)
+                register_ce(coreElement)
         else:
             # worker code
             pass
@@ -102,22 +120,24 @@ class MPI(object):
             # This is executed only when called.
             logger.debug("Executing mpi_f wrapper.")
 
-            # The 'self' for a method function is passed as args[0]
-            slf = args[0]
+            if len(args) > 0:
+                # The 'self' for a method function is passed as args[0]
+                slf = args[0]
 
-            # Replace and store the attributes
-            saved = {}
-            for k, v in self.kwargs.items():
-                if hasattr(slf, k):
-                    saved[k] = getattr(slf, k)
-                    setattr(slf, k, v)
+                # Replace and store the attributes
+                saved = {}
+                for k, v in self.kwargs.items():
+                    if hasattr(slf, k):
+                        saved[k] = getattr(slf, k)
+                        setattr(slf, k, v)
 
             # Call the method
             ret = func(*args, **kwargs)
 
-            # Put things back
-            for k, v in saved.items():
-                setattr(slf, k, v)
+            if len(args) > 0:
+                # Put things back
+                for k, v in saved.items():
+                    setattr(slf, k, v)
 
             return ret
         mpi_f.__doc__ = func.__doc__

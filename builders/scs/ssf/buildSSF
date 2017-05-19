@@ -1,0 +1,54 @@
+#!/bin/bash -e 
+ 
+  #############################################################
+  # Name: buildKNL
+  # Description: SCRIPT FOR SSF COMPSs BUILD
+  # Parameters: <KNL_user> SSF user account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on SSF for deployment
+  #             <FullTargetPath> Base Target Installation folder on SSF
+  #############################################################
+
+  ####################
+  # FUNCTIONS
+  ####################
+  usage() {
+    echo " Usage: buildSSF <SSF_user> <FullTmpPath> <FullTargetPath>"
+    echo " "
+  }
+
+
+  ####################
+  # MAIN
+  ####################
+  # Get parameters
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "usage" ]; then
+      usage
+      exit 0
+    fi
+  fi
+  if [ $# -ne 3 ]; then
+    echo "Incorrect number of parameters"
+    usage
+    exit 1
+  fi
+
+  # SET SCRIPT VARIABLES
+  scriptDir=$(pwd)/$(dirname $0)
+
+  SSFuser=$1
+  SSFtmpDir=$2
+  SSFtargetDir=$3
+  SSFloginNode=ssflogin.bsc.es
+  SSFauxScript=${scriptDir}/buildSSF_aux
+  PRELOAD_ENV=""
+
+  # Perform installation
+  cd ${scriptDir}/../commons
+  ./buildSC ${SSFuser} ${SSFloginNode} ${SSFtmpDir} ${SSFtargetDir} ${SSFauxScript} "${PRELOAD_ENV}"
+  exitStatus=$?
+  cd ${scriptDir}
+
+  # END
+  exit $exitStatus
+

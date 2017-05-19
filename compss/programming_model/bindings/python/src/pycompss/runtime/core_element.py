@@ -72,3 +72,17 @@ class CE:
 
     def set_implTypeArgs(self, impl_typeArgs):
         self.implTypeArgs = impl_typeArgs
+
+    # Representation
+    def __repr__(self):
+        repr = 'CORE ELEMENT: \n'
+        repr += '\t - CE signature    : ' + self.ce_signature + '\n'
+        repr += '\t - Impl. signature : ' + self.implSignature + '\n'
+        implConstraints = ''
+        for key, value in self.implConstraints.iteritems():
+            implConstraints += key + ":" + str(value) + ";"
+        repr += '\t - Impl. constrings: ' + implConstraints + '\n'
+        repr += '\t - Impl. type      : ' + self.implType + '\n'
+        repr += '\t - Impl. type args : ' + ' '.join(self.implTypeArgs)
+        return repr
+

@@ -16,7 +16,7 @@
 """
 @author: fconejer
 
-PyCOMPSs API - Constraint
+PyCOMPSs API - CONSTRAINT
 =========================
     This file contains the class constraint, needed for the constraint
     definition through the decorator.
@@ -103,22 +103,24 @@ class constraint(object):
             # This is executed only when called.
             logger.debug("Executing constrained_f wrapper.")
 
-            # The 'self' for a method function is passed as args[0]
-            slf = args[0]
+            if len(args) > 0:
+                # The 'self' for a method function is passed as args[0]
+                slf = args[0]
 
-            # Replace and store the attributes
-            saved = {}
-            for k, v in self.kwargs.items():
-                if hasattr(slf, k):
-                    saved[k] = getattr(slf, k)
-                    setattr(slf, k, v)
+                # Replace and store the attributes
+                saved = {}
+                for k, v in self.kwargs.items():
+                    if hasattr(slf, k):
+                        saved[k] = getattr(slf, k)
+                        setattr(slf, k, v)
 
             # Call the method
             ret = func(*args, **kwargs)
 
-            # Put things back
-            for k, v in saved.items():
-                setattr(slf, k, v)
+            if len(args) > 0:
+                # Put things back
+                for k, v in saved.items():
+                    setattr(slf, k, v)
 
             return ret
         constrained_f.__doc__ = func.__doc__

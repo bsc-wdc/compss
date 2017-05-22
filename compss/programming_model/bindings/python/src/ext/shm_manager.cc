@@ -55,7 +55,10 @@ static PyObject* shm_manager_new(PyTypeObject* type,
   self->flags = 0600 | IPC_CREAT | IPC_EXCL | SHM_NORESERVE | SHM_LOCKED;
   self->offset = 0;
   // try avoid as many collisions as possible
-  srand(time(NULL) + getpid());
+  if(FIRST_TIME) {
+    std::srand(time(NULL) + getpid() + std::clock());
+    FIRST_TIME = false;
+  }
 
   if(!PyArg_ParseTuple(
         //read |lli as optional args (but in this order): two longs and an int
@@ -78,7 +81,7 @@ static PyObject* shm_manager_new(PyTypeObject* type,
   attempt_count++ < MAX_SHMGET_ATTEMPTS &&
   (self->id = shmget(self->key, self->byte_amount, self->flags)) == -1) {
     do {
-      self->key = (key_t)rand();
+      self->key = (key_t)std::rand();
     } while(!self->key);
   }
   // we tried to create or get an shm with no success? throw an error

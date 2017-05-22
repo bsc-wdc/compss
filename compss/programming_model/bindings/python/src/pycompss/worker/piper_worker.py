@@ -461,7 +461,7 @@ USE_CACHE = False
 def cache_proc(cache_queue, cache_pipes):
     from persistent_cache import Cache
     from shm_manager import shm_manager as SHM
-    cache = Cache(size_limit = 1024**3)
+    cache = Cache(size_limit = 1024)
 
     while True:
         msg = cache_queue.get()
@@ -485,7 +485,7 @@ def cache_proc(cache_queue, cache_pipes):
                 cache.set_object(suf_file_name, manager, segment_bytes)
             # add the object
             else:
-                cache.add(suf_file_name, manager, segment_bytes)
+                cache.add(suf_file_name, manager, 1)
             # notify the worker that we are done
             cache_pipes[process_ord].send('DONE')
         elif cache.has_object(suf_file_name):
@@ -510,7 +510,7 @@ def cache_proc(cache_queue, cache_pipes):
                 dumped_obj = open(file_name, 'rb').read()
                 manager = SHM(1337, len(dumped_obj))
                 manager.write_object(dumped_obj)
-                cache.add(suf_file_name, manager, manager.bytes)
+                cache.add(suf_file_name, manager, 1)
 
 ######################
 # Main method

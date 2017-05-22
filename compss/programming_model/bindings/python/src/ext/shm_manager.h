@@ -69,6 +69,9 @@ static const int MAX_SHMGET_ATTEMPTS = 100;
 // the string that it contains
 static const unsigned long long SPARE_OBJECT_BYTES = 128ll;
 
+// Do we need to set the random seed?
+static bool FIRST_TIME = true;
+
 /*
   This struct contains all the necessary information in order to work
   with a Shared Memory Segment

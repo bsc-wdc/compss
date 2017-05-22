@@ -28,11 +28,12 @@ import os
 import signal
 import sys
 import traceback
+import thread_affinity
 from exceptions import ValueError
 from multiprocessing import Process, Queue, Pipe
+import thread_affinity
 
-
-from pycompss.api.parameter import *
+from pycompss.api.parameter import Type, JAVA_MAX_INT, JAVA_MIN_INT
 from pycompss.util.serializer import serialize_to_file, deserialize_from_file, deserialize_from_string, SerializerException
 from pycompss.util.logs import init_logging_worker
 
@@ -124,69 +125,84 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     while alive:
         with open(input_pipe, 'r', 0) as in_pipe:
             for line in in_pipe:
-                if line != "":
-                    line = line.split()
-                    if line[0] == EXECUTE_TASK_TAG:
-                        # task jobId command
-                        job_id = line[1]
-                        job_out = line[2]
-                        job_err = line[3]
-                        # line[4] = <boolean> = ?
-                        # line[5] = <integer> = ?
-                        # line[6] = <boolean> = ?
-                        # line[7] = null      = ?
-                        # line[8] = <string>  = operation type (e.g. METHOD)
+                def process_task(line):
+                    if line != "":
+                        line = line.split()
+                        if line[0] == EXECUTE_TASK_TAG:
+                            # CPU binding
+                            binded_cpus = line[-1]
 
-                        # Swap logger from stream handler to file handler.
-                        logger.removeHandler(logger.handlers[0])
-                        out_file_handler = logging.FileHandler(job_out)
-                        out_file_handler.setLevel(level)
-                        out_file_handler.setFormatter(formatter)
-                        logger.addHandler(out_file_handler)
-                        err_file_handler = logging.FileHandler(job_err)
-                        err_file_handler.setLevel(logging.ERROR)
-                        err_file_handler.setFormatter(formatter)
-                        logger.addHandler(err_file_handler)
+                            def bind_cpus(binded_cpus):
+                                if binded_cpus != "-":
+                                    binded_cpus = map(int, binded_cpus.split(","))
+                                    thread_affinity.setaffinity(binded_cpus)
 
-                        logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
-                        logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(line)))
-                        try:
-                            out = open(job_out, 'w')
-                            err = open(job_err, 'w')
-                            sys.stdout = out
-                            sys.stderr = err
-                            exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe, local_cache)
-                            sys.stdout = stdout
-                            sys.stderr = stderr
-                            out.close()
-                            err.close()
+                            bind_cpus(binded_cpus)
 
-                            # endTask jobId exitValue
-                            message = END_TASK_TAG + " " + str(job_id) + " " + str(exitvalue) + "\n"
-                            logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" %(str(process_name),
-                                                                                               str(output_pipe),
-                                                                                               str(message)))
-                            with open(output_pipe, 'w+') as out_pipe:
-                                out_pipe.write(message)
-                        except Exception, e:
-                            logger.exception("[PYTHON WORKER %s] Exception %s" %(str(process_name), str(e)))
-                            queue.put("EXCEPTION")
+                            line = line[0:-1]
+                            # task jobId command
+                            job_id = line[1]
+                            job_out = line[2]
+                            job_err = line[3]
+                            # line[4] = <boolean> = ?
+                            # line[5] = <integer> = ?
+                            # line[6] = <boolean> = ?
+                            # line[7] = null      = ?
+                            # line[8] = <string>  = operation type (e.g. METHOD)
 
-                        # Restore logger
-                        logger.removeHandler(out_file_handler)
-                        logger.removeHandler(err_file_handler)
-                        logger.addHandler(handler)
+                            # Swap logger from stream handler to file handler.
+                            logger.removeHandler(logger.handlers[0])
+                            out_file_handler = logging.FileHandler(job_out)
+                            out_file_handler.setLevel(level)
+                            out_file_handler.setFormatter(formatter)
+                            logger.addHandler(out_file_handler)
+                            err_file_handler = logging.FileHandler(job_err)
+                            err_file_handler.setLevel(logging.ERROR)
+                            err_file_handler.setFormatter(formatter)
+                            logger.addHandler(err_file_handler)
 
-                    elif line[0] == QUIT_TAG:
-                        # Received quit message -> Suicide
-                        logger.debug("[PYTHON WORKER %s] Received quit." % str(process_name))
-                        alive = False
+                            logger.debug("[PYTHON WORKER %s] Received task." % str(process_name))
+                            logger.debug("[PYTHON WORKER %s] - TASK CMD: %s" % (str(process_name), str(line)))
+                            try:
+                                out = open(job_out, 'w')
+                                err = open(job_err, 'w')
+                                sys.stdout = out
+                                sys.stderr = err
+                                exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe, local_cache)
+                                sys.stdout = stdout
+                                sys.stderr = stderr
+                                out.close()
+                                err.close()
+
+                                # endTask jobId exitValue
+                                message = END_TASK_TAG + " " + str(job_id) + " " + str(exitvalue) + "\n"
+                                logger.debug("[PYTHON WORKER %s] - Pipe %s END TASK MESSAGE: %s" %(str(process_name),
+                                                                                                   str(output_pipe),
+                                                                                                   str(message)))
+                                with open(output_pipe, 'w+') as out_pipe:
+                                    out_pipe.write(message)
+                            except Exception, e:
+                                logger.exception("[PYTHON WORKER %s] Exception %s" %(str(process_name), str(e)))
+                                queue.put("EXCEPTION")
+
+                            # Restore logger
+                            logger.removeHandler(out_file_handler)
+                            logger.removeHandler(err_file_handler)
+                            logger.addHandler(handler)
+
+                        elif line[0] == QUIT_TAG:
+                            # Received quit message -> Suicide
+                            logger.debug("[PYTHON WORKER %s] Received quit." % str(process_name))
+                            return False
+                    return True
+                alive = process_task(line)
 
     # TRACING
     # if tracing:
     #     pyextrae.eventandcounters(TASK_EVENTS, PROCESS_DESTRUCTION)
+    sys.stdout.flush()
+    sys.stderr.flush()
     print("[PYTHON WORKER] Exiting process ", process_name)
-
 
 #####################################
 # Execute Task Method - Task handler
@@ -362,7 +378,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
             logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
-            getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+            def task_execution():
+                getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
+            task_execution()
             logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
             #if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -407,7 +425,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 logger.debug("[PYTHON WORKER %s] Starting task execution")
-                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                def task_execution():
+                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                task_execution()
                 logger.debug("[PYTHON WORKER %s] Finished task execution")
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -424,7 +444,9 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 logger.debug("[PYTHON WORKER %s] Starting task execution")
-                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                def task_execution():
+                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
+                task_execution()
                 logger.debug("[PYTHON WORKER %s] Finished task execution")
                 #if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
@@ -580,15 +602,16 @@ def compss_persistent_worker():
         else:
             cache_queue_p = None
             cache_pipe_p = None
-
-        processes.append(Process(target=worker, args=(queues[i],
-                                                      process_name,
-                                                      in_pipes[i],
-                                                      out_pipes[i],
-                                                      cache_queue_p,
-                                                      cache_pipe_p,
-                                                      storage_conf)))
-        processes[i].start()
+        def create_threads():
+            processes.append(Process(target=worker, args=(queues[i],
+                                                          process_name,
+                                                          in_pipes[i],
+                                                          out_pipes[i],
+                                                          cache_queue_p,
+                                                          cache_pipe_p,
+                                                          storage_conf)))
+            processes[i].start()
+        create_threads()
 
     # Catch SIGTERM send by bindings_piper to exit all processes
     signal.signal(signal.SIGTERM, shutdown_handler)

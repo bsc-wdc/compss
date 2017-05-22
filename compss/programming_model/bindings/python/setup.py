@@ -31,15 +31,20 @@ compssmodule = Extension('compss',
         extra_compile_args = ['-fPIC'],
         sources = ['src/ext/compssmodule.c'])
 
-shm_manager = Extension("shm_manager",
+shm_manager = Extension('shm_manager',
 	include_dirs = ['src/ext'],
 	sources = ['src/ext/shm_manager.cc'],
     language='c++'
 )
 
-persistent_cache = Extension("persistent_cache",
+persistent_cache = Extension('persistent_cache',
 	include_dirs = ['src/ext'],
 	sources = ['src/ext/persistent_cache.cc']
+)
+
+thread_affinity = Extension('thread_affinity',
+	include_dirs = ['src/ext'],
+	sources = ['src/ext/thread_affinity.cc']
 )
 
 setup (name='pycompss',
@@ -53,5 +58,5 @@ setup (name='pycompss',
     package_dir={'pycompss':'src/pycompss'},
 	packages=['', 'pycompss', 'pycompss.api', 'pycompss.runtime', 'pycompss.worker', 'pycompss.storage', 'pycompss.util', 'pycompss.util.serialization', 'pycompss.api.dummy', 'pycompss.functions', 'pycompss.matlib', 'pycompss.matlib.algebra', 'pycompss.matlib.classification', 'pycompss.matlib.clustering'],
 	package_data={'' : ['log/logging.json', 'log/logging.json.debug', 'log/logging.json.off', 'bin/worker_python.sh']},
-	ext_modules=[compssmodule, shm_manager, persistent_cache])
+	ext_modules=[compssmodule, shm_manager, persistent_cache, thread_affinity])
     

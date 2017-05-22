@@ -32,8 +32,8 @@ import java.util.concurrent.Semaphore;
 
 public abstract class ExternalExecutor extends Executor {
 
-    protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" +
-            File.separator + "lib";
+    protected static final String BINDINGS_RELATIVE_PATH = File.separator + "Bindings" + File.separator + "bindings-common" + File.separator
+            + "lib";
 
     private static final String ERROR_PIPE_CLOSE = "Error on closing pipe ";
     private static final String ERROR_PIPE_QUIT = "Error sending quit to pipe ";
@@ -116,12 +116,28 @@ public abstract class ExternalExecutor extends Executor {
 
         ArrayList<String> args = getTaskExecutionCommand(nw, nt, taskSandboxWorkingDir.getAbsolutePath(), assignedCoreUnits, assignedGPUs);
         addArguments(args, nt, nw);
+
+        addThreadAffinity(args, assignedCoreUnits);
+
         String externalCommand = getArgumentsAsString(args);
 
         String command = outputsBasename + NIOWorker.SUFFIX_OUT + TOKEN_SEP + outputsBasename + NIOWorker.SUFFIX_ERR + TOKEN_SEP
                 + externalCommand;
 
         executeExternal(nt.getJobId(), command, nt, nw);
+    }
+
+    private void addThreadAffinity(ArrayList<String> args, int[] assignedCoreUnits) {
+        String computingUnits;
+        if (assignedCoreUnits.length == 0) {
+            computingUnits = "-";
+        } else {
+            computingUnits = String.valueOf(assignedCoreUnits[0]);
+            for (int i = 1; i < assignedCoreUnits.length; ++i) {
+                computingUnits = computingUnits + "," + assignedCoreUnits[i];
+            }
+        }
+        args.add(computingUnits);
     }
 
     private void executeNonNativeMethod(String outputsBasename, Invoker invoker) throws JobExecutionException {
@@ -133,7 +149,6 @@ public abstract class ExternalExecutor extends Executor {
         try {
             invoker.processTask();
         } catch (JobExecutionException jee) {
-            System.out.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Error in task execution");
             System.err.println("[EXTERNAL EXECUTOR] executeNonNativeTask - Error in task execution");
             jee.printStackTrace();
             throw jee;

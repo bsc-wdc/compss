@@ -1,1 +1,8 @@
-execute_task
+process_task
+task_execution
+import_module
+bind_cpus
+deserialize_from_string
+deserialize_from_file
+serialize_to_file
+create_threads

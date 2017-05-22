@@ -121,17 +121,14 @@ public abstract class Tracer {
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
         // Task Events
-        EXECUTE_PYTHON_TASK(1, INSIDE_TASKS_TYPE, "Execute task"),
+        TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),
+        USER_CODE_PYTHON(2, INSIDE_TASKS_TYPE, "User code execution"),
+        IMPORTING_MODULES_PYTHON(3, INSIDE_TASKS_TYPE, "Importing modules"),
+        THREAD_BINDING_PYTHON(4, INSIDE_TASKS_TYPE, "Thread binding"),
+        DESERIALIZE_OBJECT_PYTHON1(5, INSIDE_TASKS_TYPE, "Deserializing object"),
+        DESERIALIZE_OBJECT_PYTHON2(6, INSIDE_TASKS_TYPE, "Deserializing object"),
+        SERIALIZE_OBJECT_PYTHON(7, INSIDE_TASKS_TYPE, "Serializing object"),
         WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
-        PROCESS_CREATION(100, INSIDE_TASKS_TYPE, "Subprocess creation"),
-        PARAMETER_PROCESSING(103, INSIDE_TASKS_TYPE, "Parameter processing"),
-        LOGGING(104, INSIDE_TASKS_TYPE, "Logging"), 
-        MODULES_IMPORT(105, INSIDE_TASKS_TYPE, "Python Modules import"),
-        WORKER_END(106, INSIDE_TASKS_TYPE, "Worker End"), 
-        PROCESS_DESTRUCTION(107, INSIDE_TASKS_TYPE, "Subprocess destruction"),
-
-        TASK_EXECUTION(120, INSIDE_TASKS_TYPE, "User Method Execution"), 
-        SERIALIZATION(121, INSIDE_TASKS_TYPE, "Python Serialization"),
 
         READY_COUNT(1, READY_COUNTS, "Ready queue count");
 

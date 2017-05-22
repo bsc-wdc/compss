@@ -41,6 +41,7 @@ public final class ErrorManager {
      */
     private static Runnable errorRunnable = new Runnable() {
 
+        @Override
         public void run() {
             if (errorRequest == REQUEST_ERROR || errorRequest == REQUEST_FATAL) {
                 if (compssRuntime != null) {

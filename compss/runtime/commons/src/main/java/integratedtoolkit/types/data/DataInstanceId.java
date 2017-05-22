@@ -3,7 +3,10 @@ package integratedtoolkit.types.data;
 import java.io.Serializable;
 
 
-// A File Instance is identified by its file and version identifiers 
+/**
+ * A File Instance is identified by its file and version identifiers 
+ *
+ */
 public class DataInstanceId implements Serializable, Comparable<DataInstanceId> {
 
     /**
@@ -23,6 +26,7 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
 
 
     public DataInstanceId() {
+        // For serialization
     }
 
     public DataInstanceId(int dataId, int versionId) {
@@ -43,9 +47,16 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
         return renaming;
     }
 
-    @Override
-    public String toString() {
-        return "d" + dataId + "v" + versionId;
+    public static String previousVersionRenaming(String renaming) {
+        int dIdx = renaming.indexOf('d');
+        int vIdx = renaming.indexOf('v');
+        int tIndex = renaming.indexOf('_');
+        if (vIdx == 1) {
+            return null;
+        }
+        int dataId = Integer.parseInt(renaming.substring(dIdx + 1, vIdx));
+        int previousVersion = Integer.parseInt(renaming.substring(vIdx + 1, tIndex)) - 1;
+        return "d" + dataId + "v" + previousVersion + "_" + timeStamp + ".IT";
     }
 
     // Comparable interface implementation
@@ -74,16 +85,9 @@ public class DataInstanceId implements Serializable, Comparable<DataInstanceId> 
         return super.hashCode();
     }
 
-    public static String previousVersionRenaming(String renaming) {
-        int dIdx = renaming.indexOf('d');
-        int vIdx = renaming.indexOf('v');
-        int tIndex = renaming.indexOf('_');
-        if (vIdx == 1) {
-            return null;
-        }
-        int dataId = Integer.parseInt(renaming.substring(dIdx + 1, vIdx));
-        int previousVersion = Integer.parseInt(renaming.substring(vIdx + 1, tIndex)) - 1;
-        return "d" + dataId + "v" + previousVersion + "_" + timeStamp + ".IT";
+    @Override
+    public String toString() {
+        return "d" + dataId + "v" + versionId;
     }
 
 }

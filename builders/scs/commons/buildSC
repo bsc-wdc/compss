@@ -80,7 +80,6 @@
   cp ${sourcesDir}/pom.xml ${tmpDir}
   cp ${sourcesDir}/README ${tmpDir}
   cp ${sourcesDir}/RELEASE_NOTES ${tmpDir}
-  #chmod 775 -R ${tmpDir}
   find . -name .svn | xargs rm -rf  #Cleans svn files
 
   # CLEAN TRUNK COMPILATION

@@ -12,9 +12,9 @@ public abstract class DataAccessId implements Serializable {
 
 
     public static enum Direction {
-        R,
-        RW,
-        W
+        R, // Read
+        RW, // Read and write
+        W // Write
     }
 
 
@@ -23,7 +23,10 @@ public abstract class DataAccessId implements Serializable {
     public abstract Direction getDirection();
 
 
-    // Read access
+    /**
+     * Read access
+     *
+     */
     public static class RAccessId extends DataAccessId {
 
         /**
@@ -38,6 +41,7 @@ public abstract class DataAccessId implements Serializable {
 
 
         public RAccessId() {
+            // For serialization
         }
 
         public RAccessId(int dataId, int rVersionId) {
@@ -77,7 +81,10 @@ public abstract class DataAccessId implements Serializable {
 
     }
 
-    // Write access
+    /**
+     * Write access
+     *
+     */
     public static class WAccessId extends DataAccessId {
 
         /**
@@ -90,6 +97,7 @@ public abstract class DataAccessId implements Serializable {
 
 
         public WAccessId() {
+            // For serialization
         }
 
         public WAccessId(int dataId, int wVersionId) {
@@ -125,7 +133,10 @@ public abstract class DataAccessId implements Serializable {
 
     }
 
-    // Read-Write access
+    /**
+     * Read-Write access
+     *
+     */
     public static class RWAccessId extends DataAccessId {
 
         /**
@@ -142,6 +153,7 @@ public abstract class DataAccessId implements Serializable {
 
 
         public RWAccessId() {
+            // For serialization
         }
 
         public RWAccessId(DataInstanceId rdi, DataInstanceId wdi, boolean preserveSourceData) {

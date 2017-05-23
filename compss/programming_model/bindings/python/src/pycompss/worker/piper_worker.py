@@ -578,7 +578,7 @@ def compss_persistent_worker():
     logger.debug("[PYTHON WORKER] Tasks per node : " + str(tasks_x_node))
     logger.debug("[PYTHON WORKER] In Pipes       : " + str(in_pipes))
     logger.debug("[PYTHON WORKER] Out Pipes      : " + str(out_pipes))
-    logger.debug("[PYTHON WORKER] Storage conf.  : " + str(out_pipes))
+    logger.debug("[PYTHON WORKER] Storage conf.  : " + str(storage_conf))
     logger.debug("[PYTHON WORKER] -----------------------------")
 
     # Initialize storage

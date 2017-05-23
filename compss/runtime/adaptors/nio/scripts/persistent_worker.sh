@@ -34,7 +34,7 @@
   if [ "$debug" == "true" ]; then
       export NX_ARGS="--summary"
       echo "Calling NIOWorker"
-      echo "Cmd: $cmd $*"
+      echo "Cmd: $cmd ${paramsToCOMPSsWorker}"
   fi
 
   nohup $cmd ${paramsToCOMPSsWorker} 1>$workingDir/log/worker_${hostName}.out 2> $workingDir/log/worker_${hostName}.err | echo $! &

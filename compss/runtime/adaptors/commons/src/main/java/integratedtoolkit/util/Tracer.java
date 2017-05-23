@@ -128,6 +128,7 @@ public abstract class Tracer {
         DESERIALIZE_OBJECT_PYTHON1(5, INSIDE_TASKS_TYPE, "Deserializing object"),
         DESERIALIZE_OBJECT_PYTHON2(6, INSIDE_TASKS_TYPE, "Deserializing object"),
         SERIALIZE_OBJECT_PYTHON(7, INSIDE_TASKS_TYPE, "Serializing object"),
+        CREATE_THREADS_PYTHON(8, INSIDE_TASKS_TYPE, "Create persistent threads"),
         WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
 
         READY_COUNT(1, READY_COUNTS, "Ready queue count");
@@ -376,7 +377,8 @@ public abstract class Tracer {
             String signature = entry.getKey();
             Integer methodId = entry.getValue();
             values[i] = methodId + 1;
-            String methodName = signature.substring(0, signature.indexOf('('));
+            logger.debug("Tracing debug: " + signature);
+            String methodName = signature.substring(signature.indexOf('.') + 1, signature.length());
             descriptionValues[i] = methodName;
             if (debug) {
                 logger.debug("Tracing[TASKS_FUNC_TYPE] Event [i,methodId]: [" + i + "," + methodId + "] => value: " + values[i] + ", Desc: "

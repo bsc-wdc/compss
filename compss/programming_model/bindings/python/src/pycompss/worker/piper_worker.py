@@ -65,8 +65,9 @@ try:
     from storage.api import TaskContext
     from storage.api import initWorker as initStorageAtWorker
     from storage.api import finishWorker as finishStorageAtWorker
-except ImportError:
+except ImportError as e:
     # If not present, import dummy functions
+    sys.stderr.write("[PYTHON WORKER] Warning: No storage API found with exception: \n" + str(e) + "\n")
     from pycompss.storage.api import getByID
     from pycompss.storage.api import TaskContext
     from pycompss.storage.api import initWorker as initStorageAtWorker

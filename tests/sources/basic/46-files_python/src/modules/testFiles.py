@@ -93,8 +93,11 @@ class testFiles(unittest.TestCase):
         res = compss_wait_on(res)
         with compss_open(fout, 'r') as fout_r:
             content_r = fout_r.read()
-        fileInFolder = os.path.exists(fout)
-        self.assertTrue(fileInFolder, "FILE_OUT is not in the final location")
+        # The final file is only stored after the execution.
+        # During the execution, you have to use the compss_open, which will
+        # provide the real file where the output file is.
+        #fileInFolder = os.path.exists(fout)
+        #self.assertTrue(fileInFolder, "FILE_OUT is not in the final location")
         self.assertEqual(res, content, "strings are not equal: {}, {}".format(res, content))
         self.assertEqual(content_r, content, "strings are not equal: {}, {}".format(content_r, content))
 

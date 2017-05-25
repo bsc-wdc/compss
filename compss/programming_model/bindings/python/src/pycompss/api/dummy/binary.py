@@ -22,7 +22,7 @@ PyCOMPSs Dummy API - Binary
 """
 
 
-class Binary(object):
+class binary(object):
     """
     Dummy Binary class (decorator style)
     """

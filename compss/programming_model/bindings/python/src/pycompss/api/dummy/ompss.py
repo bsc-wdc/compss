@@ -22,7 +22,7 @@ PyCOMPSs Dummy API - OmpSs
 """
 
 
-class OmpSs(object):
+class ompss(object):
     """
     Dummy constraint class (decorator style)
     """

@@ -596,7 +596,7 @@ def getTopDecorator(code):
     # code[0] = the entire function code.
     # code[1] = the number of lines of the function code.
     funcCode = code[0]
-    decoratorKeys = ("implement", "constraint", "MPI", "OmpSs", "Binary", "OpenCL", "task")
+    decoratorKeys = ("implement", "constraint", "mpi", "ompss", "binary", "opencl", "task")
     decorators = [l for l in funcCode if l.strip().startswith('@')]  # Could be improved if it stops when the first line without @ is found.
                                                                      # but we have to be care if a decorator is commented (# before @)
                                                                      # The strip is due to the spaces that appear before functions definitions,

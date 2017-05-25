@@ -32,7 +32,7 @@ from pycompss.util.location import i_am_at_master
 logger = logging.getLogger(__name__)
 
 
-class OpenCL(object):
+class opencl(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -41,7 +41,7 @@ class OpenCL(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init @OpenCL decorator...")
+        logger.debug("Init @opencl decorator...")
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.

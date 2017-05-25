@@ -13,53 +13,188 @@
 
 using namespace std;
 
-void runThread(const char* inPipe, const char* outPipe){
+string END_TASK_TAG = "endTask";
+string QUIT_TAG = "quit";
+string EXECUTE_TASK_TAG = "task";
 
 /*
-        int value;
-        string filename;
-        int opCod;
-
-        while(cin >> opCod >> filename >> value){
-                //
-                // tag taskset -c ts_args worker_c worker_c_args[]...
-                //if (tag == END_TAG) break;
-                // if tag EXECUTE_TASK
-                //1-ts_args -> threadAffinity (bitmask)
-
-                // Tot a una int exitcode = execute_task(worker_c_args)
-                //2- parse opId + params
-
-                if (opCod == -1) break;
-                cout << "id is " << boost::this_thread::get_id() << endl;
-                int ret = execute(opCod, objectStorage, value, filename);
-                sleep(5);
-                //int ret = pipeWrite(params);
-
+int readline(int fd, string& command, int& start) {
+    char c;
+    char buffer[4096];
+    int counter = 0;
+   
+    cout << "reading from " << start << endl;
+    lseek(fd, start, SEEK_SET);
+    while (read(fd, &c, 1)) {
+        if (c == '\n') {
+            break;
         }
+        buffer[counter++] = c;
+    }
+    string aux(buffer);
+    command = aux;
+    start = counter;
+    cout << "counter is " << counter << endl;
+    cout << "read string is " << command << endl;
+    return counter;
+}*/
+
+
+string readline(const char* inPipe) {
+	cout << "OPENING PIPE THREAD " << boost::this_thread::get_id() << endl;
+	fflush(NULL);
+	ifstream inFile;
+	inFile.open( inPipe , ios::in);
+
+//nt fd = open(inPipe, O_RDONLY);
+
+        cout << "READING LINE THREAD " << boost::this_thread::get_id() << endl;
+	fflush(NULL);
+	string command;
+//	getline(inFile,command);
+/*
+	char c;
+    char buffer[4096];
+    int counter = 0;
+
+    while (read(fd, &c, 1)) {
+        if (c == '\n') {
+            break;
+        }
+        buffer[counter++] = c;
+    }
+    string aux(buffer);
+    command = aux;
+
+	cout << "NUMBER OF READ CHARACTERS: " << counter << endl;
+	fflush(NULL);
 */
+	while(!getline(inFile,command)){
+		cout << "WAITING FOR COMMAND THREAD " << boost::this_thread::get_id() << endl;
+		inFile.close();
+		fflush(NULL);
+		usleep(1000);
+		inFile.open(inPipe , ios::in);		
+	}
+
+//	cout << "CLOSING FILE, RET VALUE IS " << ret << endl;
+	inFile.close();
+	//close(fd);
+	cout << "READ COMMAND IS \'" << command << "\'" << endl;
+	return command;
+}
+
+
+
+void runThread(const char* inPipe, const char* outPipe){
 
 	printf("Hello world\n");
         fflush(NULL);
 
-        ifstream inFile( inPipe , ios::in);
         ofstream outFile;
         outFile.open(outPipe);
 
+	
+	//int fd = open(inPipe, O_WRONLY);
+	
+
+
+
+//	ifstream inFile;
+ //       inFile.open( inPipe , ios::in);
+//
+//	vector<string> commandArgs;
+//	vector<string> executeArgs;
+//	char** executeArgsC;
+
         string command;
-        string end = "TASK_END 0 1\n";
-        while(getline(inFile, command)){
-                printf("getting the line\n");
-                fflush(NULL);
-                //inFile.getline(s,200000);
-                //getline(inFile, command);
-                cout << command << endl;
-                fflush(NULL);
-                outFile << end;
+	string output;
+
+	while(true){
+		
+		//getline(inFile, command);
+		command = readline(inPipe);
+/*
+		if (inFile.eof()) {
+			cout <<" READ EOF" << endl;
+			fflush(NULL);
+			inFile.close();
+			outFile.close();
+			cout <<"TRYING TO OPEN" << endl;
+                        fflush(NULL);
+			inFile.open(inPipe, ios::in);
+			outFile.open(outPipe);
+			cout <<"OPENED" << endl;
+                        fflush(NULL);
+		}
+*/
+	        cout << "getting the line" << endl;
+		//ut << "THE COMMAND IS: " << command << endl;
+
+		cout << "THE THREAD IS IS " << boost::this_thread::get_id() << endl;
+
+		if (command == QUIT_TAG) {
+			cout << "QUIT RECEIVED" << endl;
+			break;
+		}
+		string aux;
+                stringstream ss(command);
+
+		vector<string> commandArgs;
+        	vector<string> executeArgs;
+        	char** executeArgsC;
+
+                while (ss >> aux){
+                        commandArgs.push_back(aux);
+                }
+
+                for (int i = 0; i < commandArgs.size(); i++) cout << "ARG " << i << " IS " << commandArgs[i] << endl;
+
+                for (int i = 0; i < commandArgs.size(); i++) {   
+                        int pos = commandArgs[i].find("worker_c");         
+                        if (pos != -1){
+				cout << "FOUND WORKER_C in position " << i  <<  endl;
+                                executeArgs = vector<string>(commandArgs.begin() + i, commandArgs.end());
+				cout << "THE SIZE IS " << executeArgs.size();
+                        }
+                }
+
+		//executeArgs[2] = commandArgs[1];
+
+		ofstream job_out(commandArgs[2].c_str());
+		job_out << "This is a sample output.\n";
+		job_out.close();	
+
+		ofstream job_err(commandArgs[3].c_str());
+                job_err << "This is a sample error.\n";
+                job_err.close();
+
+		executeArgsC = new char*[executeArgs.size()];
+
+		for (int i = 0; i < executeArgs.size(); i++){
+			cout << "EXECUTE ARG " << i << " IS " << executeArgs[i] << endl;
+			executeArgsC[i] = new char[executeArgs[i].size() + 1];
+			strcpy(executeArgsC[i], executeArgs[i].c_str());
+		}
+
+		int ret = execute(executeArgs.size(), executeArgsC);
+
+		ostringstream out_ss;
+		out_ss << END_TASK_TAG << " " << commandArgs[1] << " " << ret << endl;
+		output = out_ss.str();
+
+		cout << "THE OUTPUT IS: " << output << endl;
+
+                outFile << output;
+		fflush(NULL);
+		outFile.close();
+		outFile.open(outPipe);
+		
         }
 
-        outFile.close();
-        inFile.close();	
+	outFile.close();
+	cout << "THREAD " << boost::this_thread::get_id() << " QUITTING" << endl;
+
 }
 
 
@@ -93,25 +228,27 @@ int main(int argc, char **argv) {
     }
 
     fflush(NULL);
-    
+   
+    cout << "THE TAGS ARE:" << endl;
+    cout << "END_TASK_TAG: " << END_TASK_TAG << endl;
+    cout << "QUIT_TAG: " << END_TASK_TAG << endl;
+    cout << "EXECUTE_TASK_TAG: " << END_TASK_TAG << endl;
+
+ 
     //Add here treads stuff
 
-	boost::asio::io_service ioService;
-        boost::thread_group threadpool;
+    boost::asio::io_service ioService;
+    boost::thread_group threadpool;
 
-        boost::asio::io_service::work work(ioService);
-        //COMPROVAR ARGS
-        //if argsc >
-        // PARSE cmdPipes resultPipes
-        //char** cmdpipes, resultpipes;
-        //Parse NTHREADS size cmdpipes
-        for (int i = 0; i < numInPipes; i++){
-                threadpool.create_thread(
-                        boost::bind(runThread, inPipes[i], outPipes[i])
-                );
-                //boost::bind(runThread(cmdpipes[i],resultpipes[i])
-        }
-        threadpool.join_all();
-    
+    boost::asio::io_service::work work(ioService);
+    for (int i = 0; i < numInPipes; i++){
+            threadpool.create_thread(
+                    boost::bind(runThread, inPipes[i], outPipes[i])
+            );
+    }
+    threadpool.join_all();
+ 
+    cout << "ABOUT TO RETURN" << endl;
+   
     return 0;
 } 

@@ -88,6 +88,7 @@
                 <module>55-schedulerFifoData</module>
                 <module>56-schedulerData</module>
 		<module>57-multiImplementations</module>
+                <!-- <module>58-binaryDecorator_python</module>-->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

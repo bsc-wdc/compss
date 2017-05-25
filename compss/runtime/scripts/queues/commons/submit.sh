@@ -539,7 +539,7 @@ EOT
   cat >> $TMP_SUBMIT_SCRIPT << EOT
   
 host_list=\$(${HOSTLIST_CMD} \$${ENV_VAR_NODE_LIST} ${HOSTLIST_TREATMENT})
-master_node=\$(hostname)
+master_node=\$(${MASTER_NAME_CMD})
 worker_nodes=\$(echo \${host_list} | sed -e "s/\${master_node}//g")
 EOT
 

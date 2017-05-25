@@ -301,7 +301,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
         // Notify end
         int jobId = job.getJobId();
-        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK");
+        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: "+profile.getAverageExecutionTime()+")");
 
         // Job finished, update info about the generated/updated data
         doOutputTransfers(job);

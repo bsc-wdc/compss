@@ -86,7 +86,7 @@ class implement(object):
             # Retrieve the base coreElement established at @task decorator
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
-            anotherClass = self.kwargs['class']
+            anotherClass = self.kwargs['source_class']
             anotherMethod = self.kwargs['method']
             implSignature = anotherClass + '.' + anotherMethod
             coreElement.set_implSignature(implSignature)

@@ -22,7 +22,7 @@ PyCOMPSs Dummy API - MPI
 """
 
 
-class MPI(object):
+class mpi(object):
     """
     Dummy MPI class (decorator style)
     """

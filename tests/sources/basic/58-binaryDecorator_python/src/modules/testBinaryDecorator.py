@@ -2,34 +2,34 @@ import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import barrier, compss_open
-from pycompss.api.binary import Binary
+from pycompss.api.binary import binary
 from pycompss.api.constraint import constraint
 
 
-@Binary(binary="date", workingDir="/tmp")
+@binary(binary="date", workingDir="/tmp")
 @task()
 def myDate(dprefix, param):
     pass
 
 @constraint(computingUnits="2")
-@Binary(binary="date", workingDir="/tmp")
+@binary(binary="date", workingDir="/tmp")
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
-@Binary(binary="sed", workingDir=".")
+@binary(binary="sed", workingDir=".")
 @task(file=FILE_IN)
 def mySedIN(expression, file):
     pass
 
 # skipped
-@Binary(binary="sed", workingDir=".")
+@binary(binary="sed", workingDir=".")
 @task(file=FILE_INOUT)
 def mySedINOUT(flag, expression, file):
     pass
 
 # skipped
-@Binary(binary="grep", workingDir=".")
+@binary(binary="grep", workingDir=".")
 @task(infile=FILE_IN, result=FILE_OUT)
 def myGrepper(keyword, infile, redirect, result):
     pass

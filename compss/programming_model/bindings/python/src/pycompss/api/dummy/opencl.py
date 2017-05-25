@@ -22,7 +22,7 @@ PyCOMPSs Dummy API - OpenCL
 """
 
 
-class OpenCL(object):
+class opencl(object):
     """
     Dummy OpenCL class (decorator style)
     """

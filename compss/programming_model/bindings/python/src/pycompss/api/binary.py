@@ -32,7 +32,7 @@ from pycompss.util.location import i_am_at_master
 logger = logging.getLogger(__name__)
 
 
-class Binary(object):
+class binary(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -41,7 +41,7 @@ class Binary(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init @Binary decorator...")
+        logger.debug("Init @binary decorator...")
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.

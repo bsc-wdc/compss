@@ -32,7 +32,7 @@ from pycompss.util.location import i_am_at_master
 logger = logging.getLogger(__name__)
 
 
-class MPI(object):
+class mpi(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -41,7 +41,7 @@ class MPI(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init @MPI decorator...")
+        logger.debug("Init @mpi decorator...")
 
         # Get the computing nodes -- This parameter will have to go down until execution when invoked.
         if 'computingNodes' not in self.kwargs:

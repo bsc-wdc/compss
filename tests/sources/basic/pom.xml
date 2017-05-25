@@ -88,7 +88,8 @@
                 <module>55-schedulerFifoData</module>
                 <module>56-schedulerData</module>
 		<module>57-multiImplementations</module>
-                <!-- <module>58-binaryDecorator_python</module>-->
+                <!-- Module 58 is 58-binaryDecorator_python -->
+                <!-- Module 59 is 59-ompssDecorator_python -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

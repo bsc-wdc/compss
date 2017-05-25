@@ -92,6 +92,7 @@
                 <!-- Module 59 is 59-ompssDecorator_python -->
                 <!-- Module 60 is 60-mpiDecorator_python -->
                 <!-- Module 61 is 61-openclDecorator_python -->
+                <!-- Module 62 is 62-implementsDecorator_python -->
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

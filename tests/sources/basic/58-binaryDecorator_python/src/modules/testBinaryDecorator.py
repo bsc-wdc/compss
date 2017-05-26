@@ -24,16 +24,21 @@ def mySedIN(expression, file):
 
 # skipped
 @binary(binary="sed", workingDir=".")
-@task(file=FILE_INOUT)
+@task(file={type_dir=FILE_INOUT, stream="STDOUT"})
 def mySedINOUT(flag, expression, file):
     pass
 
 # skipped
 @binary(binary="grep", workingDir=".")
-@task(infile=FILE_IN, result=FILE_OUT)
-def myGrepper(keyword, infile, redirect, result):
+@task(infile={type_dir=FILE_IN,stream="STDIN"}, result={type_dir=FILE_OUT, stream="STDOUT"})
+def myGrepper(keyword, infile result):
     pass
 
+# skipped
+@binary(binary="ls")
+@task(hide={type_dir=FILE_IN, prefix="--hide="}, show={type_dir=FILE_IN, prefix="#"})
+def myLs(flag, hide, show):
+    pass
 
 class testBinaryDecorator(unittest.TestCase):
 
@@ -65,7 +70,7 @@ class testBinaryDecorator(unittest.TestCase):
     def testFileManagement(self):
         infile = "infile"
         outfile = "outfile"
-        myGrepper("Hi", infile, ">>", outfile)
+        myGrepper("Hi", infile, outfile)
         barrier()
         with compss_open(outfile, "r") as fout_r:
             content_r = fout_r.read()

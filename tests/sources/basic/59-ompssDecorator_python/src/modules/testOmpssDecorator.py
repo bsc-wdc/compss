@@ -8,7 +8,7 @@ from pycompss.api.constraint import constraint
 
 @ompss(binary="date", workingDir="/tmp")
 @task()
-def myDate():
+def myDate(dprefix, param):
     pass
 
 @constraint(computingUnits="2")
@@ -17,11 +17,12 @@ def myDate():
 def myDateConstrained(dprefix, param):
     pass
 
+# TODO: ADD STREAMS
 
 class testOmpssDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
-        myDate()
+        myDate("-d", "next friday")
         barrier()
 
     def testFunctionalUsageWithConstraint(self):

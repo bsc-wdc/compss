@@ -30,6 +30,20 @@
   #----------------------------------------------------------------------------------
   # TODO: Check inout and output files consolidation
 
+  jobs_logs="${target_log_folder}/jobs"
+
+  friday=$(grep -r -l "date -d next friday" $jobs_logs)
+  fridayDate=$(date -d "next friday")
+  if ! $(cat "$friday" | grep -E -q "$fridayDate"); then
+    echo "ERROR: TASK FAILED: testFunctionalUsage function failed." | tee -a ${output_file}
+    exit 1
+  fi
+  monday=$(grep -r -l "date -d next monday" $jobs_logs)
+  mondayDate=$(date -d "next monday")
+  if ! $(cat "$monday" | grep -E -q "$mondayDate"); then
+    echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a ${output_file}
+    exit 1
+  fi
   
   #----------------------------------------------------------------------------------
   # Grep for unit test errors (ERROR or FAIL)

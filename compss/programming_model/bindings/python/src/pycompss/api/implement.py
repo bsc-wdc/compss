@@ -86,12 +86,19 @@ class implement(object):
             # Retrieve the base coreElement established at @task decorator
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
+            ce_signature = coreElement.get_ce_signature()
+            implSignature = ce_signature
+            coreElement.set_implSignature(implSignature)
+
             anotherClass = self.kwargs['source_class']
             anotherMethod = self.kwargs['method']
-            implSignature = anotherClass + '.' + anotherMethod
-            coreElement.set_implSignature(implSignature)
-            implArgs = [anotherClass, anotherMethod]
-            coreElement.set_implTypeArgs(implArgs)
+            ce_signature = anotherClass + '.' + anotherMethod
+            coreElement.set_ce_signature(ce_signature)
+
+            # This is not needed since the arguments are already set by the task decorator.
+            #implArgs = [anotherClass, anotherMethod]
+            #coreElement.set_implTypeArgs(implArgs)
+
             coreElement.set_implType("METHOD")
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator

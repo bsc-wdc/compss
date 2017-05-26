@@ -32,7 +32,15 @@ PyCOMPSs API - Parameter
         - LONG
         - FLOAT
         - OBJECT
-    3. Parameter.
+        - PSCO
+        - EXTERNAL_PSCO
+    3. Stream.
+        - STDIN
+        - STDOUT
+        - STDERR
+        - UNSPECIFIED
+    4. Parameter.
+    5. Aliases.
 """
 
 
@@ -45,36 +53,64 @@ class Direction:
 
 # Numbers match both C and Java enums
 class Type:
-    FILE = 0
-    BOOLEAN = 1
-    STRING = 3
-    INT = 6
-    LONG = 7
-    FLOAT = 9    # C double
-    OBJECT = 10
-    # COMPLEX = 8
+    BOOLEAN = 0
+    CHAR = 1
+    # BYTE = 2      # Does not exist in python
+    # SHORT = 3     # Does not exist in python
+    INT = 4
+    LONG = 5
+    # FLOAT = 6		# C double --> in python, use double for floats
+    DOUBLE = 7      # In python, floats are doubles
+    STRING = 8
+    FILE = 9
+    OBJECT = 10         # Unavailable (can not pass an object directly to Java)
+    PSCO = 11           # Unavailable (TODO: use this type instead of EXTERNAL_PSCO)
+    EXTERNAL_PSCO = 12	# PSCO
 
+# Numbers match both C and Java enums
+class Stream:
+    STDIN = 0
+    STDOUT = 1
+    STDERR = 2
+    UNSPECIFIED = 3
 
 class Parameter:
     """
     Parameter class
     Used to group the type, direction and value of a parameter
     """
-    def __init__(self, p_type=None, p_direction=Direction.IN):
+    def __init__(self, p_type=None, p_direction=Direction.IN, p_stream=Stream.UNSPECIFIED):
         self.type = p_type
         self.direction = p_direction
+        self.stream = p_stream
         self.value = None    # placeholder for parameter value
 
 
-# Aliases for parameters
+# Aliases for objects (just direction)
 IN = Parameter()
 OUT = Parameter(p_direction=Direction.OUT)
 INOUT = Parameter(p_direction=Direction.INOUT)
 
+# Aliases for files with direction
 FILE = Parameter(p_type=Type.FILE)
 FILE_IN = Parameter(p_type=Type.FILE)
 FILE_OUT = Parameter(p_type=Type.FILE, p_direction=Direction.OUT)
 FILE_INOUT = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT)
+
+# Aliases for files with direction and stream
+FILE_STDIN = Parameter(p_type=Type.FILE, p_stream=Stream.STDIN)
+FILE_STDERR = Parameter(p_type=Type.FILE, p_stream=Stream.STDERR)
+FILE_STDOUT = Parameter(p_type=Type.FILE, p_stream=Stream.STDOUT)
+FILE_IN_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDIN)
+FILE_IN_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDERR)
+FILE_IN_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.IN, p_stream=Stream.STDOUT)
+FILE_OUT_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDIN)
+FILE_OUT_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDERR)
+FILE_OUT_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.OUT, p_stream=Stream.STDOUT)
+FILE_INOUT_STDIN = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDIN)
+FILE_INOUT_STDERR = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDERR)
+FILE_INOUT_STDOUT = Parameter(p_type=Type.FILE, p_direction=Direction.INOUT, p_stream=Stream.STDOUT)
+
 
 # Java max and min integer and long values
 JAVA_MAX_INT = 2147483647

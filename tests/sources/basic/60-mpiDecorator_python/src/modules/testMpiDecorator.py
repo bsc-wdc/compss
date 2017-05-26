@@ -10,12 +10,16 @@ from pycompss.api.constraint import constraint
 def myDate(dprefix, param):
     pass
 
+
+# TODO: CHECK THE COMPUTING NODES !!!
+
 @constraint(computingUnits="2")
 @mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2)
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
+# TODO: ADD SUPPORT FOR STREAMS !!! 
 
 class testMpiDecorator(unittest.TestCase):
 

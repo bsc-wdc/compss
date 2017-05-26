@@ -22,22 +22,29 @@ def myDateConstrained(dprefix, param):
 def mySedIN(expression, file):
     pass
 
+# skipped
+@binary(binary="sed", workingDir=".")
+#@task(file=Parameter(Type.FILE, Direction.INOUT, Stream.STDOUT))
+@task(file=FILE_INOUT_STDOUT)
+def mySedINOUT(flag, expression, file):
+    pass
+
 '''
 # skipped
 @binary(binary="sed", workingDir=".")
-@task(file={type_dir=FILE_INOUT, stream="STDOUT"})
+@task(file={TYPE=FILE_INOUT, STREAM="STDOUT"})
 def mySedINOUT(flag, expression, file):
     pass
 
 # skipped
 @binary(binary="grep", workingDir=".")
-@task(infile={type_dir=FILE_IN,stream="STDIN"}, result={type_dir=FILE_OUT, stream="STDOUT"})
+@task(infile={TYPE=FILE_IN, STREAM="STDIN"}, Result={TYPE=FILE_OUT, STREAM="STDOUT"})
 def myGrepper(keyword, infile result):
     pass
 
 # skipped
 @binary(binary="ls")
-@task(hide={type_dir=FILE_IN, prefix="--hide="}, show={type_dir=FILE_IN, prefix="#"})
+@task(hide={TYPE=FILE_IN, PREFIX="--hide="}, show={TYPE=FILE_IN, PREFIX="#"})
 def myLs(flag, hide, show):
     pass
 '''

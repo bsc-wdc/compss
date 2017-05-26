@@ -5,27 +5,37 @@ from pycompss.api.api import compss_wait_on
 from pycompss.api.implement import implement
 from pycompss.api.constraint import constraint
 
-@implement(source_class="testImplementsDecorator", method="addtwovectors")
-@constraint(computingUnits="2")
-@task(returns=list)
-def myfunctionWithNumpy2Cores(list1, list2):
-    import numpy as np
-    x = np.array(list1)
-    y = np.array(list2)
-    z = x + y
-    return z.tolist()
-
-@implement(source_class="testImplementsDecorator", method="addtwovectors")
+@implement(source_class="modules.testImplementsDecorator", method="addtwovectors")
+@constraint(AppSoftware="NUMPY")
 @task(returns=list)
 def myfunctionWithNumpy(list1, list2):
+    print "myfunctionWithNumpy"
+    assert(len(list1) == len(list2))
     import numpy as np
     x = np.array(list1)
     y = np.array(list2)
     z = x + y
     return z.tolist()
 
+# TODO: FUTURE WORK TO PROVIDE SUPPORT FOR THIS TYPE OF TASKS
+# THE SCHEDULER WILL HAVE TO BE ABLE TO CHECK WHICH ONE IS FASTER
+# AND DECIDE WHETHER TO CHOOSE THE IMPLEMENTATION OR THE REAL ON
+# EACH RESOURCE.
+'''
+@implement(source_class="modules.testImplementsDecorator", method="addtwovectors")
+@task(returns=list)
+def myfunctionImplementation(list1, list2):
+    import numpy as np
+    x = np.array(list1)
+    y = np.array(list2)
+    z = x + y
+    return z.tolist()
+'''
+
+@constraint(AppSoftware="NonNumpy")
 @task(returns=list)
 def addtwovectors(list1, list2):
+    print "addtwovectors"
     assert(len(list1) == len(list2))
     for i in range(len(list1)):
         list1[i] += list2[i]

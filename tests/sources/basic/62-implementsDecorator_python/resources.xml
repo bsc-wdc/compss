@@ -4,6 +4,9 @@
         <Processor Name="MainProcessor">
             <ComputingUnits>4</ComputingUnits>
         </Processor>
+        <Software>
+            <Application>NUMPY</Application>
+        </Software>
         <Adaptors>
             <Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
                 <SubmissionSystem>

@@ -63,17 +63,19 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
      */
 
     @Override
-    public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
-
+    protected void purgeFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
+            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
+            ResourceScheduler<P, T, I> resource){
+        LOGGER.debug("[DataScheduler] Treating dependency free actions");
+        
         PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
-        for (AllocatableAction<P, T, I> action : executionCandidates) {
+        for (AllocatableAction<P, T, I> action : dataFreeActions) {
             FIFODataScore actionScore = this.generateActionScore(action);
             FIFODataScore fullScore = (FIFODataScore) action.schedulingScore(resource, actionScore);
             ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(action, fullScore);
             executableActions.add(obj);
         }
-        executionCandidates.clear();
+        dataFreeActions.clear();
         while (!executableActions.isEmpty()) {
             ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
             AllocatableAction<P, T, I> freeAction = obj.getObject();
@@ -84,12 +86,13 @@ public class FIFODataScheduler<P extends Profile, T extends WorkerResourceDescri
                 removeFromReady(freeAction);
                 addToBlocked(freeAction);
             } catch (UnassignedActionException e) {
-                executionCandidates.add(freeAction);
+                dataFreeActions.add(freeAction);
             }
         }
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
         this.unassignedReadyActions.removeAllActions();
-        executionCandidates.addAll(unassignedReadyActions);
+        dataFreeActions.addAll(unassignedReadyActions);
+        
     }
 
 }

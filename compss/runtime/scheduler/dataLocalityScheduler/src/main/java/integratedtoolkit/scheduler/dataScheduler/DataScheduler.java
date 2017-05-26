@@ -58,17 +58,17 @@ public class DataScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-
+    
     @Override
-    public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
-
-        // Schedules all possible free actions (LIFO type)
+    protected void purgeFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
+            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
+            ResourceScheduler<P, T, I> resource){
         LOGGER.debug("[DataScheduler] Treating dependency free actions");
-
+        
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
         this.unassignedReadyActions.removeAllActions();
-        executionCandidates.addAll(unassignedReadyActions);
+        dataFreeActions.addAll(unassignedReadyActions);
+        
     }
 
 }

@@ -125,14 +125,14 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       entry.classname = strdup(classname);
       
       if ((datatype)entry.type != file_dt) {
-	entry.filename =  strdup("compss-serialized-obj_XXXXXX");
-	int fd = mkstemp(entry.filename);
-	if (fd== -1){
-	  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
-	  return 1;
-	}		
+    	  entry.filename =  strdup("compss-serialized-obj_XXXXXX");
+    	  int fd = mkstemp(entry.filename);
+    	  if (fd== -1){
+    		  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
+    		  return 1;
+    	  }
       } else {
-	entry.filename = strdup(filename);
+    	  entry.filename = strdup(filename);
       }
       
       objectMap[ref] = entry;
@@ -155,20 +155,18 @@ int GS_register(void *ref, datatype type, direction dir, char *classname, char *
       entry = objectMap[ref];
       
       if (entry.filename == NULL) {
-	debug_printf("[   BINDING]  -  @GS_register  -  ENTRY ADDED\n");
-	entry.type = type;
-	entry.classname = strdup(classname);
-	entry.filename =  strdup("compss-serialized-obj_XXXXXX");
-	int fd = mkstemp(entry.filename);
-	if (fd== -1){
-	  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
-	  return 1;
-	}
-	
-	
-	objectMap[ref] = entry;
+    	  debug_printf("[   BINDING]  -  @GS_register  -  ENTRY ADDED\n");
+    	  entry.type = type;
+    	  entry.classname = strdup(classname);
+    	  entry.filename =  strdup("compss-serialized-obj_XXXXXX");
+    	  int fd = mkstemp(entry.filename);
+    	  if (fd== -1){
+    		  printf("[   BINDING]  -  @GS_register  -  ERROR creating temporal file\n");
+    		  return 1;
+    	  }
+    	  objectMap[ref] = entry;
       } else {
-	debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
+    	  debug_printf("[   BINDING]  -  @GS_register  -  ENTRY FOUND\n");
 	result = 1;
       }
       

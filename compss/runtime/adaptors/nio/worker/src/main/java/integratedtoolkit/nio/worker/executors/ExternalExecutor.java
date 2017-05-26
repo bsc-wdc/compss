@@ -19,6 +19,7 @@ import integratedtoolkit.nio.worker.util.TaskResultReader;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
+import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
 
 import integratedtoolkit.util.ErrorManager;
@@ -81,7 +82,15 @@ public abstract class ExternalExecutor extends Executor {
 
     @Override
     public void setEnvironmentVariables(String hostnames, int numNodes, int cus, MethodResourceDescription reqs) {
-        // TODO: Add environment variables for MPI or Ompss tasks executed with bindings
+        if (LOGGER.isDebugEnabled()) {
+            System.out.println("HOSTNAMES: " + hostnames);
+            System.out.println("NUM_NODES: " + numNodes);
+            System.out.println("CPU_COMPUTING_UNITS: " + cus);
+        }
+
+        System.setProperty(Constants.COMPSS_HOSTNAMES, hostnames.toString());
+        System.setProperty(Constants.COMPSS_NUM_NODES, String.valueOf(numNodes));
+        System.setProperty(Constants.COMPSS_NUM_THREADS, String.valueOf(cus));
     }
 
     @Override

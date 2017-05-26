@@ -41,15 +41,15 @@ public abstract class Tracer {
     protected static final boolean debug = logger.isDebugEnabled();
     protected static final String ERROR_TRACE_DIR = "ERROR: Cannot create trace directory";
 
-    private static final int TASKS_FUNC_TYPE    = 8_000_000;
-    private static final int RUNTIME_EVENTS     = 8_000_001;
-    private static final int TASKS_ID_TYPE      = 8_000_002;
-    private static final int TASK_TRANSFERS     = 8_000_003;
-    private static final int DATA_TRANSFERS     = 8_000_004;
-    private static final int STORAGE_TYPE       = 8_000_005;
-    private static final int READY_COUNTS       = 8_000_006;
-    private static final int SYNC_TYPE          = 8_000_666;
-    private static final int INSIDE_TASKS_TYPE  = 60_000_100;
+    private static final int TASKS_FUNC_TYPE = 8_000_000;
+    private static final int RUNTIME_EVENTS = 8_000_001;
+    private static final int TASKS_ID_TYPE = 8_000_002;
+    private static final int TASK_TRANSFERS = 8_000_003;
+    private static final int DATA_TRANSFERS = 8_000_004;
+    private static final int STORAGE_TYPE = 8_000_005;
+    private static final int READY_COUNTS = 8_000_006;
+    private static final int SYNC_TYPE = 8_000_666;
+    private static final int INSIDE_TASKS_TYPE = 60_000_100;
 
     public static final int EVENT_END = 0;
 
@@ -59,7 +59,7 @@ public abstract class Tracer {
     public static final String EXTRAE_CONFIG_FILE = "EXTRAE_CONFIG_FILE";
 
     protected static int tracing_level = 0;
-    
+
     private static final boolean isCustomExtraeFile = (System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE) != null)
             && !System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).isEmpty()
             && !System.getProperty(ITConstants.IT_EXTRAE_CONFIG_FILE).equals("null");
@@ -79,7 +79,6 @@ public abstract class Tracer {
         TASK_RUNNING(11, RUNTIME_EVENTS, "Task Running"),
         DELETE(12, RUNTIME_EVENTS, "Delete File"),
         WORKER_RECEIVED_NEW_TASK(13, RUNTIME_EVENTS, "Received new task"),
-
 
         // Access Processor Events
         DEBUG(17, RUNTIME_EVENTS, "Access Processor: Debug"),
@@ -102,6 +101,7 @@ public abstract class Tracer {
         GRAPHSTATE(34, RUNTIME_EVENTS, "Access Processor: Graphstate"),
         TASKSTATE(35, RUNTIME_EVENTS, "Access Processor: Taskstate"),
         DELETE_FILE(36, RUNTIME_EVENTS, "Access Processor: Delete file"),
+        
         // Storage Events
         STORAGE_GETBYID(37, STORAGE_TYPE, "getByID"), 
         STORAGE_NEWREPLICA(38, STORAGE_TYPE, "newReplica"), 
@@ -109,7 +109,8 @@ public abstract class Tracer {
         STORAGE_INVOKE(40, STORAGE_TYPE, "invoke"), 
         STORAGE_EXECUTETASK(41, STORAGE_TYPE,"executeTask"), 
         STORAGE_GETLOCATIONS(42, STORAGE_TYPE, "getLocations"), 
-        STORAGE_CONSOLIDATE(43, STORAGE_TYPE, "consolidateVersion"), 
+        STORAGE_CONSOLIDATE(43, STORAGE_TYPE, "consolidateVersion"),
+        
         // Task Dispatcher Events
         ACTION_UPDATE(45, RUNTIME_EVENTS, "Task Dispatcher: Action update"), 
         CE_REGISTRATION(46, RUNTIME_EVENTS, "Task Dispatcher: CE registration"), 
@@ -120,6 +121,7 @@ public abstract class Tracer {
         TD_SHUTDOWN(51, RUNTIME_EVENTS, "Task Dispatcher: Shutdown"), 
         UPDATE_CEI_LOCAL(52, RUNTIME_EVENTS, "Task Dispatcher: Update CEI local"), 
         WORKER_UPDATE_REQUEST(53, RUNTIME_EVENTS, "Task Dispatcher: Worker update request"),
+        
         // Task Events
         TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),
         USER_CODE_PYTHON(2, INSIDE_TASKS_TYPE, "User code execution"),
@@ -138,7 +140,7 @@ public abstract class Tracer {
         private final String signature;
 
 
-        Event(int id, int type, String signature) {
+        private Event(int id, int type, String signature) {
             this.id = id;
             this.type = type;
             this.signature = signature;
@@ -193,7 +195,7 @@ public abstract class Tracer {
     public static int getLevel() {
         return tracing_level;
     }
-    
+
     public static String getExtraeFile() {
         return extraeFile;
     }

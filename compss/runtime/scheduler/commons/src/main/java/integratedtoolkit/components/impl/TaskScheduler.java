@@ -101,14 +101,14 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     public final void coreElementsUpdated() {
         LOGGER.info("[TaskScheduler] Update core elements");
         int newCoreCount = CoreManager.getCoreCount();
-        
+
         // Update scheduling information
         SchedulingInformation.updateCoreCount(newCoreCount);
-        
+
         // Update actions
         this.blockedActions.updateCoreCount(newCoreCount);
         this.readyCounts = new int[newCoreCount];
-        
+
         // Update resource schedulers
         for (ResourceScheduler<P, T, I> rs : workers.values()) {
             rs.updatedCoreElements(newCoreCount);
@@ -304,7 +304,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * @param action
      *            Action to be scheduled.
      */
-    public void newAllocatableAction(AllocatableAction<P, T, I> action) {
+    public final void newAllocatableAction(AllocatableAction<P, T, I> action) {
         LOGGER.info("[TaskScheduler] Registering new AllocatableAction " + action);
 
         if (!action.hasDataPredecessors()) {
@@ -332,59 +332,25 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         // Mark action as finished
         ResourceScheduler<P, T, I> resource = action.getAssignedResource();
         removeFromReady(action);
-        LinkedList<AllocatableAction<P, T, I>> resourceFree = resource.unscheduleAction(action);
+        LinkedList<AllocatableAction<P, T, I>> resourceFreeActions = resource.unscheduleAction(action);
 
         // Get the data free actions and mark them as ready
         LinkedList<AllocatableAction<P, T, I>> dataFreeActions = action.completed();
-        LinkedList<AllocatableAction<P, T, I>> executionCandidates = new LinkedList<>();
         for (AllocatableAction<P, T, I> dataFreeAction : dataFreeActions) {
-            if (dataFreeAction.isNotScheduling()) {
-                addToReady(dataFreeAction);
-                executionCandidates.add(dataFreeAction);
-            }
-        }
-
-        // Schedule data free actions
-        LinkedList<AllocatableAction<P, T, I>> blockedCandidates = new LinkedList<>();
-        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
-        // and those that remain unassigned must be added to the unassigned list
-        handleDependencyFreeActions(executionCandidates, blockedCandidates, resource);
-        for (AllocatableAction<P, T, I> aa : blockedCandidates) {
-            removeFromReady(aa);
-            addToBlocked(aa);
+            addToReady(dataFreeAction);
         }
 
         // We update the worker load
         workerLoadUpdate(resource);
 
-        // Try to launch all the data free actions and the resource free actions
-        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
-        for (AllocatableAction<P, T, I> freeAction : executionCandidates) {
-            Score actionScore = generateActionScore(freeAction);
-            Score fullScore = freeAction.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
-            executableActions.add(obj);
-        }
-        for (AllocatableAction<P, T, I> freeAction : resourceFree) {
-            Score actionScore = generateActionScore(freeAction);
-            Score fullScore = freeAction.schedulingScore(resource, actionScore);
-            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
-            if (!executableActions.contains(obj)) {
-                executableActions.add(obj);
-            }
-        }
-        while (!executableActions.isEmpty()) {
-            ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
-            AllocatableAction<P, T, I> freeAction = obj.getObject();
+        // Schedule data free actions
+        LinkedList<AllocatableAction<P, T, I>> blockedCandidates = new LinkedList<>();
 
-            // LOGGER.debug("Trying to launch action " + freeAction);
-            try {
-                scheduleAction(freeAction, obj.getScore());
-                tryToLaunch(freeAction);
-            } catch (BlockedActionException e) {
-                removeFromReady(freeAction);
-                addToBlocked(freeAction);
-            }
+        // Actions can only be scheduled and those that remain blocked must be added to the blockedCandidates list
+        handleDependencyFreeActions(dataFreeActions, resourceFreeActions, blockedCandidates, resource);
+        for (AllocatableAction<P, T, I> aa : blockedCandidates) {
+            removeFromReady(aa);
+            addToBlocked(aa);
         }
     }
 
@@ -513,36 +479,47 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
     }
 
     /**
-     * Notifies to the scheduler that some actions have become free of data dependencies.
-     * 
-     * @param executionCandidates
-     * @param unassignedCandidates
-     *            OUT, list of unassigned candidates
+     * Notifies to the scheduler that some actions have become free of data dependencies or resource dependencies.
+     *
+     * @param dataFreeActions
+     *            IN, list of actions free of data dependencies
+     * @param resourceFreeActions
+     *            IN, list of actions free of resource dependencies
      * @param blockedCandidates
      *            OUT, list of blocked candidates
-     * @throws UnassignedActionException
-     * @throws BlockedActionException
+     * @param resource
+     *            Resource where the previous task was executed
      */
-    public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
-
+    public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
+            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
+            ResourceScheduler<P, T, I> resource) {
         LOGGER.debug("[TaskScheduler] Treating dependency free actions");
-
         // All actions should have already been assigned to a resource, no need
         // to change the assignation once they become free of dependencies
-        for (AllocatableAction<P, T, I> action : executionCandidates) {
-            if (action.getAssignedResource() == null) {
-                Score actionScore = generateActionScore(action);
-                try {
-                    action.schedule(resource, actionScore);
-                    tryToLaunch(action);
-                    executionCandidates.remove(action);
-                } catch (BlockedActionException e) {
-                    blockedCandidates.add(action);
-                } catch (UnassignedActionException ex) {
-                    // Nothing to do, action stay in executionCandidates queue
-                }
+
+        // Try to launch all the data free actions and the resource free actions
+        PriorityQueue<ObjectValue<AllocatableAction<P, T, I>>> executableActions = new PriorityQueue<>();
+        for (AllocatableAction<P, T, I> freeAction : dataFreeActions) {
+            Score actionScore = generateActionScore(freeAction);
+            Score fullScore = freeAction.schedulingScore(resource, actionScore);
+            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
+            executableActions.add(obj);
+        }
+        for (AllocatableAction<P, T, I> freeAction : resourceFreeActions) {
+            Score actionScore = generateActionScore(freeAction);
+            Score fullScore = freeAction.schedulingScore(resource, actionScore);
+            ObjectValue<AllocatableAction<P, T, I>> obj = new ObjectValue<>(freeAction, fullScore);
+            if (!executableActions.contains(obj)) {
+                executableActions.add(obj);
             }
+        }
+
+        while (!executableActions.isEmpty()) {
+            ObjectValue<AllocatableAction<P, T, I>> obj = executableActions.poll();
+            AllocatableAction<P, T, I> freeAction = obj.getObject();
+
+            // LOGGER.debug("Trying to launch action " + freeAction);
+            tryToLaunch(freeAction);
         }
     }
 

@@ -58,14 +58,17 @@ public class FIFOScheduler<P extends Profile, T extends WorkerResourceDescriptio
      * *********************************************************************************************************
      * *********************************************************************************************************
      */
-
+    
     @Override
-    public void handleDependencyFreeActions(LinkedList<AllocatableAction<P, T, I>> executionCandidates,
-            LinkedList<AllocatableAction<P, T, I>> blockedCandidates, ResourceScheduler<P, T, I> resource) {
-
+    protected void purgeFreeActions(LinkedList<AllocatableAction<P, T, I>> dataFreeActions,
+            LinkedList<AllocatableAction<P, T, I>> resourceFreeActions, LinkedList<AllocatableAction<P, T, I>> blockedCandidates,
+            ResourceScheduler<P, T, I> resource){
+        LOGGER.debug("[DataScheduler] Treating dependency free actions");
+        
         LinkedList<AllocatableAction<P, T, I>> unassignedReadyActions = getUnassignedActions();
         this.unassignedReadyActions.removeAllActions();
-        executionCandidates.addAll(unassignedReadyActions);
+        dataFreeActions.addAll(unassignedReadyActions);
+        
     }
 
 }

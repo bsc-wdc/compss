@@ -22,6 +22,7 @@ def myDateConstrained(dprefix, param):
 def mySedIN(expression, file):
     pass
 
+'''
 # skipped
 @binary(binary="sed", workingDir=".")
 @task(file={type_dir=FILE_INOUT, stream="STDOUT"})
@@ -39,6 +40,7 @@ def myGrepper(keyword, infile result):
 @task(hide={type_dir=FILE_IN, prefix="--hide="}, show={type_dir=FILE_IN, prefix="#"})
 def myLs(flag, hide, show):
     pass
+'''
 
 class testBinaryDecorator(unittest.TestCase):
 

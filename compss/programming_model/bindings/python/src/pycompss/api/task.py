@@ -65,6 +65,10 @@ class task(object):
             self.kwargs['returns'] = False
         if 'priority' not in self.kwargs:
             self.kwargs['priority'] = False
+        if 'isReplicated' not in self.kwargs:
+            self.kwargs['isReplicated'] = False
+        if 'isDistributed' not in self.kwargs:
+            self.kwargs['isDistributed'] = False
 
         # Pre-process decorator arguments
         from pycompss.api.parameter import Parameter, Type, Direction
@@ -72,7 +76,7 @@ class task(object):
 
         if i_am_at_master():
             for arg_name in self.kwargs.keys():
-                if arg_name not in ['isModifier', 'returns', 'priority']:
+                if arg_name not in ['isModifier', 'returns', 'priority', 'isReplicated', 'isDistributed']:
                     # Prevent p.value from being overwritten later by ensuring
                     # each Parameter is a separate object
                     p = self.kwargs[arg_name]
@@ -203,6 +207,8 @@ class task(object):
         #   - self.has_defaults : Boolean - if the function has default values
         #   - self.has_return   : Boolean - if the function has return
         #   - self.module       : module as string (e.g. test.kmeans)
+        #   - is_replicated     : Boolean - if the task is replicated
+        #   - is_distributed    : Boolean - if the task is distributed
         # Other variables that will be used:
         #   - f                 : Decorated function
         #   - self.args         : Decorator args tuple (usually empty)
@@ -215,6 +221,14 @@ class task(object):
         def wrapped_f(*args, **kwargs):
             # args   - <Tuple>      - Contains the objects that the function has been called with (positional).
             # kwargs - <Dictionary> - Contains the named objects that the function has been called with.
+
+            is_replicated = self.kwargs['isReplicated']
+            is_distributed = self.kwargs['isDistributed']
+            computingNodes = 1
+            if 'computingNodes' in kwargs:
+                # There is a @mpi decorator over task that overrides the default value of computing nodes
+                computingNodes = kwargs['computingNodes']
+                del kwargs['computingNodes']
 
             # Check if this call is nested using the launch_pycompss_module function from launch.py.
             is_nested = False
@@ -248,6 +262,9 @@ class task(object):
                                 self.has_keywords,
                                 self.has_defaults,
                                 self.has_return,
+                                is_replicated,
+                                is_distributed,
+                                computingNodes,
                                 args,
                                 self.args,
                                 kwargs,
@@ -477,6 +494,7 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
             del manager
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
+               is_replicated, is_distributed, num_nodes,
                args, self_args, kwargs, self_kwargs, self_spec_args):
     """
     Task decorator body executed in the master
@@ -487,6 +505,9 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     :param has_keywords: <Boolean> - If the function has **kwargs
     :param has_defaults: <Boolean> - If the function has default values
     :param has_return: <Boolean> - If the function has return
+    :param is_replicated: <Boolean> - If the function is replicated
+    :param is_distributed: <Boolean> - If the function is distributed
+    :param num_nodes: <Integer> - Number of computing nodes
     :param args: <Tuple> - Contains the objects that the function has been called with (positional).
     :param self_args: <Tuple> - Decorator args (usually empty)
     :param kwargs: <Dictionary> - Contains the named objects that the function has been called with.
@@ -575,7 +596,8 @@ def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defau
     # Build the final list of values for each parameter
     values = tuple(vals + args_vals)
 
-    fo = process_task(f, self_module, class_name, ftype, has_return, spec_args, values, kwargs, self_kwargs)
+    fo = process_task(f, self_module, class_name, ftype, has_return, spec_args, values, kwargs, self_kwargs, num_nodes,
+                      is_replicated, is_distributed)
     # Starts the asynchronous creation of the task.
     # First calling the PyCOMPSs library and then C library (bindings-commons).
     return fo

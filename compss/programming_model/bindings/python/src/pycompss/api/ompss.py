@@ -42,6 +42,14 @@ class ompss(object):
         self.args = args
         self.kwargs = kwargs
         logger.debug("Init @ompss decorator...")
+
+        # Get the computing nodes -- This parameter will have to go down until execution when invoked.
+        if 'computingNodes' not in self.kwargs:
+            self.kwargs['computingNodes'] = 1
+        else:
+            self.kwargs['computingNodes'] = kwargs['computingNodes']
+        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+
         # self = itself.
         # args = not used.
         # kwargs = dictionary with the given constraints.
@@ -110,6 +118,9 @@ class ompss(object):
         def ompss_f(*args, **kwargs):
             # This is executed only when called.
             logger.debug("Executing ompss_f wrapper.")
+
+            # Set the computingNodes variable in kwargs for its usage in @task decorator
+            kwargs['computingNodes'] = self.kwargs['computingNodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

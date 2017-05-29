@@ -357,7 +357,7 @@ def synchronize(obj, mode):
     return new_obj
 
 
-def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs):
+def process_task(f, module_name, class_name, ftype, has_return, spec_args, args, kwargs, self_kwargs, num_nodes, replicated, distributed):
     """
     Function that submits a task to the runtime.
     :param f: Function or method
@@ -407,9 +407,9 @@ def process_task(f, module_name, class_name, ftype, has_return, spec_args, args,
 
     # Signature and other parameters:
     signature = path + '.' + f.__name__
-    num_nodes = 1         # default due to not MPI decorator yet
-    replicated = False    # default due to not replicated tag yet
-    distributed = False   # default due to not distributed tag yet
+    #num_nodes = 1         # default due to not MPI decorator yet
+    #replicated = False    # default due to not replicated tag yet
+    #distributed = False   # default due to not distributed tag yet
 
     # Log the task submission values for debugging purposes.
     if logger.isEnabledFor(logging.DEBUG):

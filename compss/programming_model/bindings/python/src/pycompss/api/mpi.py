@@ -48,7 +48,7 @@ class mpi(object):
             self.kwargs['computingNodes'] = 1
         else:
             self.kwargs['computingNodes'] = kwargs['computingNodes']
-        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + "computing nodes.")
+        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
 
         # self = itself.
         # args = not used.
@@ -119,6 +119,9 @@ class mpi(object):
         def mpi_f(*args, **kwargs):
             # This is executed only when called.
             logger.debug("Executing mpi_f wrapper.")
+
+            # Set the computingNodes variable in kwargs for its usage in @task decorator
+            kwargs['computingNodes'] = self.kwargs['computingNodes']
 
             if len(args) > 0:
                 # The 'self' for a method function is passed as args[0]

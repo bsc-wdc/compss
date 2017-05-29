@@ -43,6 +43,12 @@
   if ! $(cat "$monday" | grep -E -q "$mondayDate"); then
     echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function failed." | tee -a ${output_file}
     exit 1
+  else
+    apearances=$(cat "$monday" | grep "$mondayDate" | wc -l)
+    if [ ! "$apearances" -eq "2" ]; then
+      echo "ERROR: TASK FAILED: testFunctionalUsageWithConstraint function computingNodes parameter failed." | tee -a ${output_file}
+      exit 1
+    fi
   fi
 
 

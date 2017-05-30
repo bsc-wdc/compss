@@ -3,7 +3,7 @@ bin_PROGRAMS = PACKAGE
 
 ACLOCAL_AMFLAGS=-I m4
 
-PACKAGE_CPPFLAGS = -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
+PACKAGE_CPPFLAGS = --std=c++11 -I../../src -I../../include -Wno-write-strings -I$(CS_HOME)/../bindings-common/include -I$(CS_HOME)/include -w
 
 PACKAGE_SOURCES = PACKAGE-stubs.cc \
         PACKAGE.cc

@@ -650,24 +650,34 @@ check_args() {
     fi
   fi
 
+  # Storage configuration
+  if [ -z "$storageConf" ]; then
+    storageConf="null"
+  fi 
+
+  # Master log level
   if [ "${log_level}" == "${DEFAULT_LOG_LEVEL}" ]; then
     itlog4j_file="COMPSsMaster-log4j"
   else
     itlog4j_file="COMPSsMaster-log4j.${log_level}"
   fi
 
+  # Adaptor
   if [ -z "$comm" ]; then
     comm=${DEFAULT_COMMUNICATION_ADAPTOR}
   fi
-
+  
+  # Connector
   if [ -z "$conn" ]; then
     conn=${DEFAULT_CONNECTOR}
   fi
 
+  # Scheduler
   if [ -z "$scheduler" ]; then
     scheduler=${DEFAULT_SCHEDULER}
   fi
 
+  # Classpath
   if [ -z "$cp" ]; then
     cp=${DEFAULT_CLASSPATH}
     for jar in $(ls ${DEFAULT_CLASSPATH} | grep *.jar); do
@@ -956,7 +966,7 @@ exec_python() {
   if [ $tracing -gt 0 ]; then
     export LD_PRELOAD=${EXTRAE_LIB}/libpttrace.so
   fi
-  python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $fullAppPath $application_args
+  python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
   endCode=$?
   if [ $tracing -gt 0 ]; then
       unset LD_PRELOAD  # no tracing check because if not set does nothing

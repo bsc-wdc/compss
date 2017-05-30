@@ -15,6 +15,8 @@ import storage.StubItf;
  */
 public class StorageManager {
 
+    private static final String PSCO_EXTENSION = ".PSCO";
+
     private static final String ERROR_SERIALIZE = "ERROR: Cannot serialize object to id=";
     private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
@@ -24,7 +26,7 @@ public class StorageManager {
         if (id != null) {
             List<String> hostnames = StorageItf.getLocations(id);
             for (String h : hostnames) {
-                String path = BASE_WORKING_DIR + h + File.separator + id;
+                String path = BASE_WORKING_DIR + h + File.separator + id + PSCO_EXTENSION;
                 try {
                     Serializer.serialize(o, path);
                 } catch (IOException e) {

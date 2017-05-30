@@ -1,9 +1,11 @@
 package storage;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,8 +31,9 @@ import storage.utils.Serializer;
 public final class StorageItf {
 
     // Logger According to Loggers.STORAGE
-    private static final Logger logger = LogManager.getLogger("integratedtoolkit.Storage");
+    private static final Logger LOGGER = LogManager.getLogger("integratedtoolkit.Storage");
 
+    // Error Messages
     private static final String ERROR_HOSTNAME = "ERROR: Cannot find localhost hostname";
     private static final String ERROR_CREATE_WD = "ERROR: Cannot create WD ";
     private static final String ERROR_ERASE_WD = "ERROR: Cannot erase WD";
@@ -47,12 +50,17 @@ public final class StorageItf {
     private static final String ERROR_RETRIEVE_ID = "ERROR: Cannot retrieve PSCO for executeTask with id ";
     private static final String ERROR_CLASS_NOT_FOUND = "ERROR: Target object class not found";
 
+    // Directories
     private static final String BASE_WORKING_DIR = File.separator + "tmp" + File.separator + "PSCO" + File.separator;
 
     private static final String MASTER_HOSTNAME;
     private static final String MASTER_WORKING_DIR;
 
-    private static final LinkedList<String> hostnames = new LinkedList<String>();
+    private static final String ID_EXTENSION = ".ID";
+    private static final String PSCO_EXTENSION = ".PSCO";
+
+    // Worker Hostnames
+    private static final LinkedList<String> HOSTNAMES = new LinkedList<>();
 
     static {
         String hostname = null;
@@ -74,6 +82,7 @@ public final class StorageItf {
      * Constructor
      */
     public StorageItf() {
+        // Nothing to do since everything is static
     }
 
     /**
@@ -83,32 +92,22 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void init(String storageConf) throws StorageException {
-        logger.info("[LOG] Storage Initialization");
+        LOGGER.info("[LOG] Storage Initialization");
 
         // Add master hostname
-        hostnames.add(MASTER_HOSTNAME);
+        HOSTNAMES.add(MASTER_HOSTNAME);
 
         // Add worker' hostnames (by storageConf)
-        logger.info("[LOG] Configuration received: " + storageConf);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(storageConf));
+        LOGGER.info("[LOG] Configuration received: " + storageConf);
+        try (BufferedReader br = new BufferedReader(new FileReader(storageConf))) {
             String line;
             while ((line = br.readLine()) != null) {
-                hostnames.add(line);
+                HOSTNAMES.add(line);
             }
         } catch (FileNotFoundException e) {
             throw new StorageException(ERROR_CONFIGURATION_NOT_FOUND, e);
         } catch (IOException e) {
             throw new StorageException(ERROR_CONFIGURATION_CANNOT_OPEN, e);
-        } finally {
-            try {
-                if (br != null) {
-                    br.close();
-                }
-            } catch (IOException e) {
-                // No need to handle such exceptions
-            }
         }
 
         // Create base WD if needed
@@ -122,8 +121,8 @@ public final class StorageItf {
         }
 
         // Create specific WD
-        for (String hostname : hostnames) {
-            logger.debug("[LOG] Hostname: " + hostname);
+        for (String hostname : HOSTNAMES) {
+            LOGGER.debug("[LOG] Hostname: " + hostname);
             String hostPath = BASE_WORKING_DIR + hostname;
             File hostWD = new File(hostPath);
             if (!hostWD.exists()) {
@@ -136,7 +135,7 @@ public final class StorageItf {
         }
 
         // Log Initialization
-        logger.info("[LOG] Storage Initialization finished");
+        LOGGER.info("[LOG] Storage Initialization finished");
     }
 
     /**
@@ -145,7 +144,7 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void finish() throws StorageException {
-        logger.info("[LOG] Storage Finish");
+        LOGGER.info("[LOG] Storage Finish");
 
         // Remove WD
         // All nodes may execute this code so we only erase it
@@ -160,7 +159,7 @@ public final class StorageItf {
         }
 
         // Log
-        logger.info("[LOG] Storage Finish finished");
+        LOGGER.info("[LOG] Storage Finish finished");
     }
 
     /**
@@ -171,10 +170,10 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
-        List<String> result = new LinkedList<String>();
+        List<String> result = new LinkedList<>();
 
-        for (String hostname : hostnames) {
-            String path = BASE_WORKING_DIR + hostname + File.separator + id;
+        for (String hostname : HOSTNAMES) {
+            String path = BASE_WORKING_DIR + hostname + File.separator + id + ID_EXTENSION;
             File pscoLocation = new File(path);
             if (pscoLocation.exists()) {
                 result.add(hostname);
@@ -192,11 +191,27 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void newReplica(String id, String hostName) throws StorageException {
-        logger.info("NEW REPLICA: " + id + " on host " + hostName);
+        LOGGER.info("NEW REPLICA: " + id + " on host " + hostName);
         // New replica always copies PSCO from master
-        File source = new File(MASTER_WORKING_DIR + id);
+
+        // Copy ID file
+        File source = new File(MASTER_WORKING_DIR + id + ID_EXTENSION);
         if (source.exists()) {
-            String targetPath = BASE_WORKING_DIR + hostName + File.separator + id;
+            String targetPath = BASE_WORKING_DIR + hostName + File.separator + id + ID_EXTENSION;
+            File target = new File(targetPath);
+            try {
+                Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new StorageException(ERROR_NEW_REPLICA + id, e);
+            }
+        } else {
+            throw new StorageException(ERROR_NO_PSCO + id);
+        }
+
+        // Copy PSCO content file
+        source = new File(MASTER_WORKING_DIR + id + PSCO_EXTENSION);
+        if (source.exists()) {
+            String targetPath = BASE_WORKING_DIR + hostName + File.separator + id + PSCO_EXTENSION;
             File target = new File(targetPath);
             try {
                 Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -217,13 +232,26 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static String newVersion(String id, String hostName) throws StorageException {
-        logger.info("NEW VERSION: " + id + " on host " + hostName);
+        LOGGER.info("NEW VERSION: " + id + " on host " + hostName);
 
         // New version always copies PSCO from master
-        File source = new File(MASTER_WORKING_DIR + id);
         String newId = "psco_" + UUID.randomUUID().toString();
+
+        // Create ID file
+        File newIdFile = new File(MASTER_WORKING_DIR + newId + ID_EXTENSION);
+        try (BufferedWriter br = new BufferedWriter(new FileWriter(newIdFile))) {
+            br.write(newId);
+            br.flush();
+        } catch (FileNotFoundException e) {
+            throw new StorageException(ERROR_NEW_VERSION + id, e);
+        } catch (IOException e) {
+            throw new StorageException(ERROR_NEW_VERSION + id, e);
+        }
+
+        // Copy object content
+        File source = new File(MASTER_WORKING_DIR + id + PSCO_EXTENSION);
         if (source.exists()) {
-            String targetPath = MASTER_WORKING_DIR + newId;
+            String targetPath = MASTER_WORKING_DIR + newId + PSCO_EXTENSION;
             File target = new File(targetPath);
             try {
                 Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -246,8 +274,8 @@ public final class StorageItf {
      */
     public static Object getByID(String id) throws StorageException {
         // Retrieves the Object from any worker location
-        for (String hostname : hostnames) {
-            String path = BASE_WORKING_DIR + hostname + File.separator + id;
+        for (String hostname : HOSTNAMES) {
+            String path = BASE_WORKING_DIR + hostname + File.separator + id + PSCO_EXTENSION;
             File source = new File(path);
             if (source.exists()) {
                 try {
@@ -280,7 +308,7 @@ public final class StorageItf {
     public static String executeTask(String id, String descriptor, Object[] values, String hostName, CallbackHandler callback)
             throws StorageException {
 
-        logger.info("EXECUTE TASK: " + descriptor + " on host " + hostName);
+        LOGGER.info("EXECUTE TASK: " + descriptor + " on host " + hostName);
 
         String localUUID = UUID.randomUUID().toString();
 
@@ -301,9 +329,9 @@ public final class StorageItf {
                     if (obj == null) {
                         throw new StorageException(ERROR_RETRIEVE_ID + id);
                     } else {
-                        logger.info("- Target object is PSCO with class " + obj.getClass() + " with id = " + id);
+                        LOGGER.info("- Target object is PSCO with class " + obj.getClass() + " with id = " + id);
                     }
-                    
+
                     // Retrieve method from Object and descriptor
                     ClassPool pool = ClassPool.getDefault();
                     Method methodToExecute = null;
@@ -321,12 +349,12 @@ public final class StorageItf {
 
                         String methodAvailableDescriptor;
                         try {
-                            methodAvailableDescriptor = methodAvailable.getName() 
+                            methodAvailableDescriptor = methodAvailable.getName()
                                     + Descriptor.ofMethod(pool.getCtClass(methodAvailable.getReturnType().getName()), ctParams);
                         } catch (NotFoundException e) {
                             throw new Exception(ERROR_CLASS_NOT_FOUND + " " + methodAvailable.getReturnType().getName(), e);
                         }
-                        
+
                         if (descriptor.equals(methodAvailableDescriptor)) {
                             methodToExecute = methodAvailable;
                             break;
@@ -344,13 +372,13 @@ public final class StorageItf {
                     // Retrieve result
                     callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.SUCCESS, retValue));
                 } catch (StorageException se) {
-                    logger.error(ERROR_GET_BY_ID, se);
+                    LOGGER.error(ERROR_GET_BY_ID, se);
                     callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, se.getMessage()));
                 } catch (InvocationTargetException | IllegalAccessException e) {
-                    logger.error(ERROR_REFLECTION, e);
+                    LOGGER.error(ERROR_REFLECTION, e);
                     callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, e.getMessage()));
                 } catch (Exception e) {
-                    logger.error("EXCEPTION ON ExecuteTask", e);
+                    LOGGER.error("EXCEPTION ON ExecuteTask", e);
                     callback.eventListener(new CallbackEvent(getName(), CallbackEvent.EventType.FAIL, e.getMessage()));
                 }
             }
@@ -366,7 +394,7 @@ public final class StorageItf {
      * @return
      */
     public static Object getResult(CallbackEvent event) throws StorageException {
-        logger.info("Get result");
+        LOGGER.info("Get result");
         try {
             return event.getContent();
         } catch (Exception e) {
@@ -381,15 +409,15 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void consolidateVersion(String idFinal) throws StorageException {
-        logger.info("Consolidating version for " + idFinal);
+        LOGGER.info("Consolidating version for " + idFinal);
 
         // Nothing to do in this dummy implementation
     }
 
     /*
-     * ************************************************ 
+     * ****************************************************************************************************************
      * SPECIFIC IMPLEMENTATION METHODS
-     ************************************************/
+     *****************************************************************************************************************/
     /**
      * Stores the object @o in the persistent storage with id @id
      * 
@@ -398,7 +426,19 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static void makePersistent(Object o, String id) throws StorageException {
-        String path = MASTER_WORKING_DIR + id;
+        // Create ID file
+        File idFile = new File(MASTER_WORKING_DIR + id + ID_EXTENSION);
+        try (BufferedWriter br = new BufferedWriter(new FileWriter(idFile))) {
+            br.write(id);
+            br.flush();
+        } catch (FileNotFoundException e) {
+            throw new StorageException(ERROR_NEW_VERSION + id, e);
+        } catch (IOException e) {
+            throw new StorageException(ERROR_NEW_VERSION + id, e);
+        }
+
+        // Copy object content
+        String path = MASTER_WORKING_DIR + id + PSCO_EXTENSION;
         try {
             Serializer.serialize(o, path);
         } catch (IOException e) {
@@ -413,11 +453,19 @@ public final class StorageItf {
      */
     public static void removeById(String id) {
         // Retrieves the Object from any worker location
-        for (String hostname : hostnames) {
-            String path = BASE_WORKING_DIR + hostname + File.separator + id;
-            File source = new File(path);
-            if (source.exists()) {
-                source.delete();
+        for (String hostname : HOSTNAMES) {
+            // Remove ID File
+            String idPath = BASE_WORKING_DIR + hostname + File.separator + id + ID_EXTENSION;
+            File idSource = new File(idPath);
+            if (idSource.exists()) {
+                idSource.delete();
+            }
+
+            // Remove PSCO Content
+            String pscoPath = BASE_WORKING_DIR + hostname + File.separator + id + PSCO_EXTENSION;
+            File pscoSource = new File(pscoPath);
+            if (pscoSource.exists()) {
+                pscoSource.delete();
             }
         }
     }

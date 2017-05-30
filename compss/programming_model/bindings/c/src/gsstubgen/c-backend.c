@@ -495,7 +495,7 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
   while (arg != NULL) {
     i = j*3;
     
-    if (arg->dir == out_dir ){
+    /*if (arg->dir == out_dir ){
     	switch (arg->type) {
     		case char_dt:
     		case wchar_dt:
@@ -540,7 +540,8 @@ static void generate_parameter_marshalling(FILE *outFile, function *func)
     		case null_dt:
     		default:;
     	}
-    }else if ( arg->dir == inout_dir) {
+    }else if ( arg->dir == inout_dir) {*/
+    if (arg->dir == out_dir ||  arg->dir == inout_dir){
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:

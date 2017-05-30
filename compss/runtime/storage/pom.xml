@@ -11,8 +11,7 @@
 	<description>Dummy implementation of the storage API to compile the runtime and default execution when there are no storage backend defined</description>
 
 	<!-- DEPENDENCIES -->
-	<dependencies>
-	</dependencies>
+	<dependencies />
 
 	<!-- BUILD -->
 	<build>

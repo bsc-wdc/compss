@@ -43,20 +43,20 @@ public class PythonThreadPool extends ExternalThreadPool {
     @Override
     public String getLaunchCommand() {
         // Specific launch command is of the form: binding bindingExecutor bindingArgs
-        // In the PYTHON case binding executor is python -u piper_worker.py debug tracing #threads cmdPipes resultPipes
+        // The bindingArgs are of the form python -u piper_worker.py debug tracing storageConf #threads cmdPipes resultPipes
 
         StringBuilder cmd = new StringBuilder();
 
         cmd.append(ITConstants.Lang.PYTHON).append(ExternalExecutor.TOKEN_SEP);
-        cmd.append(NIOTracer.isActivated()).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
 
         cmd.append("python").append(ExternalExecutor.TOKEN_SEP).append("-u").append(ExternalExecutor.TOKEN_SEP);
         cmd.append(installDir).append(PythonExecutor.PYCOMPSS_RELATIVE_PATH).append(WORKER_PY_RELATIVE_PATH)
                 .append(ExternalExecutor.TOKEN_SEP);
 
-
         cmd.append(NIOWorker.isWorkerDebugEnabled()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(NIOWorker.isTracingEnabled()).append(ExternalExecutor.TOKEN_SEP);
+        cmd.append(NIOWorker.getStorageConf()).append(ExternalExecutor.TOKEN_SEP);
         cmd.append(size).append(ExternalExecutor.TOKEN_SEP);
 
         for (int i = 0; i < writePipeFiles.length; ++i) {

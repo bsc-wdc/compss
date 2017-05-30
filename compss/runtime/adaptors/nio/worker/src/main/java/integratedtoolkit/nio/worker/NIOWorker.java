@@ -80,6 +80,7 @@ public class NIOWorker extends NIOAgent {
     private final String pythonpath;
 
     // Storage attributes
+    private static String storageConf;
     private static String executionType;
 
     // Internal components
@@ -189,6 +190,14 @@ public class NIOWorker extends NIOAgent {
 
     public static boolean isTracingEnabled() {
         return NIOTracer.isActivated();
+    }
+
+    public static String getStorageConf() {
+        if (storageConf == null || storageConf.equals("") || storageConf.equals("null")) {
+            return "null";
+        } else {
+            return storageConf;
+        }
     }
 
     public ExecutionManager getExecutionManager() {
@@ -947,7 +956,7 @@ public class NIOWorker extends NIOAgent {
         String extraeFile = args[20];
         String host = args[21];
 
-        String storageConf = args[22];
+        storageConf = args[22];
         executionType = args[23];
 
         // Print arguments

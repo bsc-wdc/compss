@@ -37,14 +37,6 @@ from random import randint
 import traceback
 import pycompss.runtime.binding as binding
 
-try:
-    # Import storage libraries if possible
-    from storage.api import init as initStorage
-    from storage.api import finish as finishStorage
-except ImportError:
-    # If not present, import dummy functions
-    from pycompss.storage.api import init as initStorage
-    from pycompss.storage.api import finish as finishStorage
 
 app_path = None
 
@@ -64,6 +56,10 @@ def module_warnings():
 
 
 def main():
+    '''
+    General call:
+    python $PYCOMPSS_HOME/pycompss/runtime/launch.py $log_level $PyObject_serialize $storageConf $fullAppPath $application_args
+    '''
 
     # TODO: get rid of that global variable (is it possible?)
     global app_path
@@ -74,7 +70,7 @@ def main():
     log_level = sys.argv[1]
 
     # Get object_conversion boolean
-    o_c = sys.argv[3]
+    o_c = sys.argv[2]
     if o_c.lower() == 'true':
         # set cross-module variable
         binding.object_conversion = True
@@ -82,12 +78,20 @@ def main():
         # set cross-module variable
         binding.object_conversion = False
 
+    # Get storage configuration at master
+    storage_conf = sys.argv[3]
+    persistent_storage = False
+    if storage_conf != 'null':
+        persistent_storage = True
+        from storage.api import init as initStorage
+        from storage.api import finish as finishStorage
+
     # Enable or disable the use of mmap
     # serializer.mmap_file_storage = False
 
     # Remove launch.py, log_level and object_conversion from sys.argv,
     # It will be inherited by the app through execfile
-    sys.argv = sys.argv[3:]
+    sys.argv = sys.argv[4:]
 
     # Get application execution path
     app_path = sys.argv[0]
@@ -114,16 +118,18 @@ def main():
     # Get JVM options
     jvm_opts = os.environ['JVM_OPTIONS_FILE']
     opts = convertToDict(jvm_opts)
-    storage_conf = opts.get('-Dit.storage.conf')
+    # storage_conf = opts.get('-Dit.storage.conf')
 
     try:
         logger.debug("--- START ---")
         logger.debug("PyCOMPSs Log path: %s" % logPath)
         logger.debug("Storage configuration file: %s" % storage_conf)
-        initStorage(config_file_path=storage_conf)
+        if persistent_storage:
+            initStorage(config_file_path=storage_conf)
         module_warnings()
         execfile(app_path, globals())    # MAIN EXECUTION
-        finishStorage()
+        if persistent_storage:
+            finishStorage()
         logger.debug("--- END ---")
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.

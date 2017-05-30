@@ -59,6 +59,7 @@ processes = []
 #if sys.version_info >= (2, 7):
 #    import importlib
 
+'''
 try:
     # Import storage libraries if possible
     from storage.api import getByID
@@ -72,6 +73,7 @@ except ImportError as e:
     from pycompss.storage.api import TaskContext
     from pycompss.storage.api import initWorker as initStorageAtWorker
     from pycompss.storage.api import finishWorker as finishStorageAtWorker
+'''
 
 
 #####################
@@ -215,6 +217,13 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
     logger = logging.getLogger('pycompss.worker.worker')
 
     logger.debug("[PYTHON WORKER %s] Begin task execution" % process_name)
+
+    persistent_storage = False
+    if storage_conf != 'null':
+        persistent_storage = True
+        from storage.api import getByID
+        from storage.api import TaskContext
+
     # COMPSs keywords for tasks (ie: tracing, cache data structures...)
     compss_kwargs = {
         'compss_tracing' : tracing,
@@ -222,6 +231,7 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
         'compss_cache_pipe': cache_pipe,
         'compss_process_name': process_name,
         'compss_local_cache': local_cache,
+        'compss_storage_conf': storage_conf
     }
 
     # Retrieve the parameters from the params argument
@@ -284,13 +294,13 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
         prefixes.append(pPrefix)
 
         if pType == Type.FILE:
-            # check if it is a persistent object
+            # check if it is a persistent object  # CHECK AND UPDATE
             if 'getID' in dir(pValue) and pValue.getID() is not None:
                 po = getByID(pValue.getID())
                 values.append(po)
             else:
                 values.append(pValue)
-        elif pType == Type.EXTERNAL_PSCO:
+        elif pType == Type.EXTERNAL_PSCO and persistent_storage:
             po = getByID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)
@@ -374,18 +384,23 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
             module = __import__(path, globals(), locals(), [path], -1)
             logger.debug("[PYTHON WORKER %s] Module successfully loaded (Python version < 2.7" % process_name)
 
-        with TaskContext(logger, values, config_file_path=storage_conf):
-            #if tracing:
+        def task_execution():
+            # if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
             logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
-            def task_execution():
-                getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
-            task_execution()
+            getattr(module, method_name)(*values, compss_types=types, **compss_kwargs)
             logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
-            #if tracing:
+            # if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+
+        if persistent_storage:
+            with TaskContext(logger, values, config_file_path=storage_conf):
+                task_execution()
+        else:
+            task_execution()
+
     # ==========================================================================
     except AttributeError:
         # Appears with functions that have not been well defined.
@@ -421,18 +436,23 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
             types.pop()
             types.insert(0, Type.OBJECT)
 
-            with TaskContext(logger, values, config_file_path=storage_conf):
-                #if tracing:
+            def task_execution():
+                # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 logger.debug("[PYTHON WORKER %s] Starting task execution")
-                def task_execution():
-                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
-                task_execution()
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 logger.debug("[PYTHON WORKER %s] Finished task execution")
-                #if tracing:
+                # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+
+            if persistent_storage:
+                with TaskContext(logger, values, config_file_path=storage_conf):
+                    task_execution()
+            else:
+                task_execution()
+
             logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
             logger.debug("[PYTHON WORKER %s] Obj: %s" % (process_name,str(obj)))
             serialize_to_file(obj, file_name)
@@ -440,18 +460,23 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)  # class must be first type
 
-            with TaskContext(logger, values, config_file_path=storage_conf):
-                #if tracing:
+            def task_execution():
+                # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
                 logger.debug("[PYTHON WORKER %s] Starting task execution")
-                def task_execution():
-                    getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
-                task_execution()
+                getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
                 logger.debug("[PYTHON WORKER %s] Finished task execution")
-                #if tracing:
+                # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
+
+            if persistent_storage:
+                with TaskContext(logger, values, config_file_path=storage_conf):
+                    task_execution()
+            else:
+                task_execution()
+
     # ==========================================================================
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -545,10 +570,10 @@ def compss_persistent_worker():
     # Get args
     debug = (sys.argv[1] == 'true')
     tracing = (sys.argv[2] == 'true')
-    tasks_x_node = int(sys.argv[3])
-    in_pipes = sys.argv[4:4 + tasks_x_node]
-    out_pipes = sys.argv[4 + tasks_x_node:]
-    storage_conf = None # TODO: NEEDS TO BE PASSED BY THE RUNTIME
+    storage_conf = sys.argv[3]
+    tasks_x_node = int(sys.argv[4])
+    in_pipes = sys.argv[5:5 + tasks_x_node]
+    out_pipes = sys.argv[5 + tasks_x_node:]
 
     if tracing:
         import pyextrae.multiprocessing as pyextrae
@@ -558,6 +583,12 @@ def compss_persistent_worker():
     if debug:
         assert tasks_x_node == len(in_pipes)
         assert tasks_x_node == len(out_pipes)
+
+    persistent_storage = False
+    if storage_conf != 'null':
+        persistent_storage = True
+        from storage.api import initWorker as initStorageAtWorker
+        from storage.api import finishWorker as finishStorageAtWorker
 
     # Load log level configuration file
     worker_path = os.path.dirname(os.path.realpath(__file__))
@@ -582,8 +613,10 @@ def compss_persistent_worker():
     logger.debug("[PYTHON WORKER] Storage conf.  : " + str(storage_conf))
     logger.debug("[PYTHON WORKER] -----------------------------")
 
-    # Initialize storage
-    initStorageAtWorker(config_file_path=storage_conf)
+    if persistent_storage:
+        # Initialize storage
+        initStorageAtWorker(config_file_path=storage_conf)
+
     if USE_CACHE:
         cache_queue = Queue()
         cache_pipes = [Pipe() for _ in range(tasks_x_node)]
@@ -641,8 +674,9 @@ def compss_persistent_worker():
         q.close()
         q.join_thread()
 
-    # Finish storage
-    finishStorageAtWorker()
+    if persistent_storage:
+        # Finish storage
+        finishStorageAtWorker()
 
     logger.debug("[PYTHON WORKER] Finished")
     if tracing:

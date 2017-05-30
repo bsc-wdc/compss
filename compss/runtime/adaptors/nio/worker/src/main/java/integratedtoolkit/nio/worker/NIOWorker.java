@@ -257,12 +257,14 @@ public class NIOWorker extends NIOAgent {
                 WORKER_LOGGER.debug("- Checking transfers for data of parameter " + (String) param.getValue());
 
                 switch (param.getType()) {
+                    case OBJECT_T:
+                        askForObject(param, i, tt);
+                        break;
                     case PSCO_T:
                         askForPSCO(param);
                         break;
-                    case OBJECT_T:
                     case EXTERNAL_PSCO_T:
-                        askForObject(param, i, tt);
+                        // Nothing to do since external parameters send their ID directly
                         break;
                     case FILE_T:
                         askForFile(param, i, tt);

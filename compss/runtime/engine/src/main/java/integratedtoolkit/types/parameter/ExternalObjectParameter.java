@@ -13,26 +13,26 @@ public class ExternalObjectParameter extends DependencyParameter {
      */
     private static final long serialVersionUID = 1L;
 
-    private int hashCode;
-    private Object value;
+    private final int hashCode;
+    private String pscoId;
 
 
-    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, Object value, int hashCode) {
+    public ExternalObjectParameter(Direction direction, Stream stream, String prefix, String pscoId, int hashCode) {
         super(DataType.EXTERNAL_PSCO_T, direction, stream, prefix);
-        this.value = value;
+        this.pscoId = pscoId;
         this.hashCode = hashCode;
     }
 
-    public Object getValue() {
-        return value;
+    public String getId() {
+        return this.pscoId;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setId(String pscoId) {
+        this.pscoId = pscoId;
     }
 
     public int getCode() {
-        return hashCode;
+        return this.hashCode;
     }
 
     @Override

@@ -958,14 +958,12 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
                 case PSCO_T:
                 case OBJECT_T:
-                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]) // hashCode
-                    );
+                    pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
                     break;
 
                 case EXTERNAL_PSCO_T:
-                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, parameters[i],
-                            oReg.newObjectParameter(parameters[i]) // hashCode
-                    );
+                    String pscoId = (String) parameters[i];
+                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, pscoId, oReg.newObjectParameter(pscoId));
                     break;
 
                 default:

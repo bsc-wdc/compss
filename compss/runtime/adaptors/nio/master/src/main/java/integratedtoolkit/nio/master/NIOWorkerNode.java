@@ -437,7 +437,7 @@ public class NIOWorkerNode extends COMPSsWorker {
                 break;
             case EXTERNAL_PSCO_T:
                 // The value of the registered object in the runtime is the PSCO Id
-                path = Protocol.OBJECT_URI.getSchema() + name;
+                path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             default:
                 return null;

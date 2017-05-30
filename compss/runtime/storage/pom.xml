@@ -4,19 +4,14 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>2.0.rc1704</version>
+		<version>2.0.rc1704</version>
 	</parent>
 	<artifactId>compss-storage</artifactId>
 	<name>Compss storage API</name>
 	<description>Dummy implementation of the storage API to compile the runtime and default execution when there are no storage backend defined</description>
-	
+
 	<!-- DEPENDENCIES -->
 	<dependencies>
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-		</dependency>
-
 	</dependencies>
 
 	<!-- BUILD -->

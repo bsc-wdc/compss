@@ -93,6 +93,7 @@
                 <!-- Module 60 is 60-mpiDecorator_python -->
                 <!-- Module 61 is 61-openclDecorator_python -->
                 <!-- Module 62 is 62-implementsDecorator_python -->
+		<module>63-decaf</module>
 		<!-- Add new modules below. Respect numbering -->
 	</modules>
 </project>

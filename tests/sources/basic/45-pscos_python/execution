@@ -14,28 +14,41 @@
   #----------------------------------------------------------------------------------
   #Generate Project.xml according to system
   sed -i '/<InstallDir>/c<InstallDir>'${IT_HOME}'<\/InstallDir>' ${base_app_dir}/project.xml
- 
+
   #----------------------------------------------------------------------------------
   #Create all working dir folders
   mkdir -p /tmp/COMPSsWorker01/
-  
+
+  #----------------------------------------------------------------------------------
+  # Create storage Conf
+  storageConf=${target_log_folder}/storage.conf
+  cat > $storageConf << EOF
+COMPSsWorker01
+EOF
+
+  #----------------------------------------------------------------------------------
+  # Set Storage implementation location
+  storageImplPath=${base_app_dir}/jars/compss-dummyPSCO.jar
+
   #----------------------------------------------------------------------------------
   #Run application 1 - Test
   echo
   echo "*** RUNNING PYTHON PSCOs TEST"
   output_log="${target_log_folder}/python_test_0${retryNum}.outputlog"
-  error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"  
+  error_log="${target_log_folder}/python_test_0${retryNum}.errorlog"
   expectedTime=80s
 
   timeout --signal=2 $expectedTime ${COMPSs_exec} \
      --pythonpath=${base_app_dir}/src \
+     --classpath=${storageImplPath} \
      --project=${base_app_dir}/project.xml \
      --resources=${base_app_dir}/resources.xml \
      --debug \
+     --storage_conf=${storageConf} \
      --comm=$comm \
      --lang=python \
      ${base_app_dir}/src/pscos.py > >(tee ${output_log}) 2> >(tee ${error_log} >&2)
-  
+
   #Check timeout
   if [[ "$?" = "124" ]]; then
      #Copy LOG files
@@ -47,7 +60,7 @@
   else
      #Copy LOG files
      cp -rf ${COMPSs_log_folder}/pscos.py_0${retryNum}/* ${target_log_folder}
-  
+
      #Check result
      ${base_app_dir}/result ${output_log} ${error_log} ${target_log_folder}
      exitValue=$?
@@ -60,4 +73,3 @@
   #----------------------------------------------------------------------------------
   #Return execution status
   exit $exitValue
-

@@ -294,13 +294,14 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
         prefixes.append(pPrefix)
 
         if pType == Type.FILE:
-            # check if it is a persistent object  # CHECK AND UPDATE
-            if 'getID' in dir(pValue) and pValue.getID() is not None:
-                po = getByID(pValue.getID())
-                values.append(po)
-            else:
-                values.append(pValue)
-        elif pType == Type.EXTERNAL_PSCO and persistent_storage:
+            ## check if it is a persistent object --- TO REMOVE THESE LINES
+            #if 'getID' in dir(pValue) and pValue.getID() is not None:
+            #    po = getByID(pValue.getID())
+            #    values.append(po)
+            #else:
+            #    values.append(pValue)
+            values.append(pValue)
+        elif pType == Type.EXTERNAL_PSCO:
             po = getByID(pValue)
             values.append(po)
             pos += 1  # Skip info about direction (R, W)

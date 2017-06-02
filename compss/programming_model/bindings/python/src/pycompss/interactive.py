@@ -24,28 +24,18 @@ Provides the current start and stop for the use of pycompss interactively.
 import os
 import logging
 from tempfile import mkdtemp
-from pycompss.api.api import compss_start, compss_stop
+import time
+# from random import randint
+# from multiprocessing import Process
+from pycompss.api.api import compss_start
+from pycompss.api.api import compss_stop
 from pycompss.runtime.binding import get_logPath
 from pycompss.runtime.binding import get_task_objects
 from pycompss.runtime.launch import initialize_compss
 from pycompss.util.logs import init_logging
-from random import randint
 import pycompss.runtime.binding as binding
-import time
-# from multiprocessing import Process
 
-
-try:
-    # Import storage libraries if possible
-    from storage.api import init as initStorage
-    from storage.api import finish as finishStorage
-except ImportError:
-    # If not present, import dummy functions
-    from pycompss.storage.api import init as initStorage
-    from pycompss.storage.api import finish as finishStorage
-
-
-storage = False
+persistent_storage = False
 myUuid = 0
 app_path = "InteractiveMode"  # Warning! The name should start with InteractiveMode due to @task checks it explicitly.
 running = False               #          If has to be changed, it is necessary to update the task decorator.
@@ -62,7 +52,7 @@ def start(log_level="off",
           resources_xml=None,
           summary=False,
           taskExecution='compss',
-          storageConf=None,
+          storage=None,
           taskCount=50,
           appName='Interactive',
           uuid=None,
@@ -81,11 +71,13 @@ def start(log_level="off",
     # it_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
     it_home = os.path.sep.join(launchPath.split(os.path.sep)[:-3])
 
+    # Get environment variables
     cp = os.getcwd() + '/'
     pythonPath = os.environ['PYTHONPATH']
     classPath = os.environ['CLASSPATH']
     ld_library_path = os.environ['LD_LIBRARY_PATH']
 
+    # Set extrae dependencies
     extrae_home = it_home + '/Dependencies/extrae'
     extrae_lib = extrae_home + '/lib'
     os.environ['EXTRAE_HOME'] = extrae_home
@@ -142,7 +134,7 @@ def start(log_level="off",
         config['resources_xml'] = resources_xml
     config['summary'] = summary
     config['taskExecution'] = taskExecution
-    config['storageConf'] = storageConf
+    config['storageConf'] = storage
     config['taskCount'] = taskCount
     if appName is None:
         config['appName'] = file_name
@@ -208,16 +200,18 @@ def start(log_level="off",
 
     printSetup(verbose,
                log_level, o_c, debug, graph, trace, monitor,
-               project_xml, resources_xml, summary, taskExecution, storageConf,
+               project_xml, resources_xml, summary, taskExecution, storage,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % logPath)
-    if storageConf != None:
+    if storage != None:
         logger.debug("Storage configuration file: %s" % storageConf)
-        initStorage(config_file_path=storageConf)
-        storage = True
+        from storage.api import init as initStorage
+        initStorage(config_file_path=storage)
+        global persistent_storage
+        persistent_storage = True
 
     # MAIN EXECUTION
     # let the user write an interactive application
@@ -296,7 +290,9 @@ def stop(sync=False):
     else:
         print "Warning: some of the variables used with PyCOMPSs may"
         print "         have not been brought to the master."
-    if storage == True:
+
+    if persistent_storage == True:
+        from storage.api import finish as finishStorage
         finishStorage()
 
     compss_stop()

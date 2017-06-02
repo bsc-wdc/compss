@@ -146,7 +146,7 @@ class testLocal(unittest.TestCase):
             'sheep': 'animal',
             'cactus': 'plant'},
             original_object);
-
+    """
     @unittest.skip("Speed test -> ignoring")
     def testHugeObjects(self):
         N = 5000
@@ -155,3 +155,4 @@ class testLocal(unittest.TestCase):
         x = solve_equation_system(A, b)
         # well... does it works if the objects are huge?
         self.assertTrue(np.allclose(np.dot(A, x), b))
+    """

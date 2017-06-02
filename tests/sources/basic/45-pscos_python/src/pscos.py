@@ -91,7 +91,7 @@ def basicTest():
 	v = simpleTask(o)
 	v1 = compss_wait_on(v)
 	# Remove the persisted object from disk (from /tmp/uuid.PSCO)
-	o.delete()
+	o.deletePersistent()
 	if v1 == 100:
 	    print "- Simple Test Python PSCOs: OK"
 	    return True
@@ -363,12 +363,12 @@ def TiramisuMockup2():
   
 def main():
 	results = {}
-	results['basic'] =  basicTest()
-	results['basic2'] =  basic2Test()
-	results['wordcount'] = WordCount()
+	#results['basic'] =  basicTest()
+	#results['basic2'] =  basic2Test()
+	#results['wordcount'] = WordCount()
 	results['wordcount2'] = WordCount2()
-	results['tiramisu'] = TiramisuMockup()
-	# results['tiramisu2'] = TiramisuMockup2()
+	#results['tiramisu'] = TiramisuMockup()
+	#results['tiramisu2'] = TiramisuMockup2()
 	if all(x for x in results.values()):
 	    print "- PSCOs TEST FINISHED SUCCESSFULLY."
 	else:

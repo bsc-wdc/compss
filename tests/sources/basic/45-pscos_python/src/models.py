@@ -1,4 +1,4 @@
-from pycompss.storage.Object import SCO
+from storage.Object import SCO
 
 # For simple PSCO test
 

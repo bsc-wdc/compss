@@ -170,12 +170,15 @@ public final class StorageItf {
      * @throws StorageException
      */
     public static List<String> getLocations(String id) throws StorageException {
+        LOGGER.info("[LOG] Get locations of " + id);
         List<String> result = new LinkedList<>();
 
         for (String hostname : HOSTNAMES) {
+            LOGGER.info("[LOG] Checking hostname " + hostname);
             String path = BASE_WORKING_DIR + hostname + File.separator + id + ID_EXTENSION;
             File pscoLocation = new File(path);
             if (pscoLocation.exists()) {
+                LOGGER.info("[LOG] Hostname " + hostname + " has id. Adding");
                 result.add(hostname);
             }
         }

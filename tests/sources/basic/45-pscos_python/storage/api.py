@@ -29,7 +29,7 @@ from uuid import UUID
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 
-storage_path = '/tmp/'
+storage_path = '/tmp/PSCO/linux-BSC/'
 
 
 def init(config_file_path=None, **kwargs):
@@ -117,6 +117,8 @@ def getByID(id):
 
 
 def makePersistent(obj, *args):
+    print "Make persistent"
+
     if obj.id is None:
         if len(args) == 0:
             # The user has not indicated the id
@@ -127,10 +129,16 @@ def makePersistent(obj, *args):
         else:
             raise ValueError('Too many arguments when calling makePersistent.')
         obj.id = str(uid)
+        # Write ID file
+        file_name = str(uid) + '.ID'
+        file_path = storage_path + file_name
+        with open (file_path, 'w') as f:
+            f.write(obj.id)
+
+        # Write PSCO file
         file_name = str(uid) + '.PSCO'
         file_path = storage_path + file_name
-        # Serialize object and write to disk
-        serialize_to_file(self, file_path)
+        serialize_to_file(obj, file_path)
     else:
         # The obj is already persistent
         pass

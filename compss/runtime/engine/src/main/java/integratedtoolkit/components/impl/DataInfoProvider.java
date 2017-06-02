@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Semaphore;
 import java.io.File;
+import java.io.IOException;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.data.*;
@@ -50,8 +51,8 @@ public class DataInfoProvider {
     private TreeMap<String, Object> renamingToValue; // TODO: Remove obsolete from here
 
     // Component logger - No need to configure, ProActive does
-    private static final Logger logger = LogManager.getLogger(Loggers.DIP_COMP);
-    private static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.DIP_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
 
     /**
@@ -64,7 +65,7 @@ public class DataInfoProvider {
         idToData = new TreeMap<>();
         renamingToValue = new TreeMap<>();
 
-        logger.info("Initialization finished");
+        LOGGER.info("Initialization finished");
     }
 
     /**
@@ -97,8 +98,8 @@ public class DataInfoProvider {
 
         // First access to this file
         if (fileId == null) {
-            if (debug) {
-                logger.debug("FIRST access to " + location.getLocationKey());
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to " + location.getLocationKey());
             }
             // Update mappings
             fileInfo = new FileInfo(location);
@@ -112,8 +113,8 @@ public class DataInfoProvider {
             }
         } else {
             // The file has already been accessed, all location are already registered
-            if (debug) {
-                logger.debug("Another access to " + location.getLocationKey());
+            if (DEBUG) {
+                LOGGER.debug("Another access to " + location.getLocationKey());
             }
             fileInfo = idToData.get(fileId);
         }
@@ -136,8 +137,8 @@ public class DataInfoProvider {
 
         // First access to this datum
         if (aoId == null) {
-            if (debug) {
-                logger.debug("FIRST access to object " + code);
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to object " + code);
             }
 
             // Update mappings
@@ -156,8 +157,53 @@ public class DataInfoProvider {
             }
         } else {
             // The datum has already been accessed
-            if (debug) {
-                logger.debug("Another access to object " + code);
+            if (DEBUG) {
+                LOGGER.debug("Another access to object " + code);
+            }
+
+            oInfo = idToData.get(aoId);
+        }
+
+        // Version management
+        return willAccess(mode, oInfo);
+    }
+
+    /**
+     * DataAccess interface: registers a new object access
+     * 
+     * @param mode
+     * @param value
+     * @param code
+     * @return
+     */
+    public DataAccessId registerExternalObjectAccess(AccessMode mode, String pscoId, int code) {
+        DataInfo oInfo;
+        Integer aoId = codeToId.get(code);
+
+        // First access to this datum
+        if (aoId == null) {
+            if (DEBUG) {
+                LOGGER.debug("FIRST access to external object " + code);
+            }
+
+            // Update mappings
+            oInfo = new ObjectInfo(code);
+            aoId = oInfo.getDataId();
+            codeToId.put(code, aoId);
+            idToData.put(aoId, oInfo);
+
+            // Serialize this first version of the object to a file
+            DataInstanceId lastDID = oInfo.getCurrentDataInstanceId();
+            String renaming = lastDID.getRenaming();
+
+            // Inform the File Transfer Manager about the new file containing the object
+            if (mode != AccessMode.W) {
+                Comm.registerExternalPSCO(renaming, pscoId);
+            }
+        } else {
+            // The datum has already been accessed
+            if (DEBUG) {
+                LOGGER.debug("Another access to external object " + code);
             }
 
             oInfo = idToData.get(aoId);
@@ -174,26 +220,26 @@ public class DataInfoProvider {
             case R:
                 di.willBeRead();
                 daId = new RAccessId(di.getCurrentDataInstanceId());
-                if (debug) {
+                if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: R").append("\n");
                     sb.append("  * Read Datum: d").append(daId.getDataId()).append("v").append(((RAccessId) daId).getRVersionId())
                             .append("\n");
-                    logger.debug(sb.toString());
+                    LOGGER.debug(sb.toString());
                 }
                 break;
 
             case W:
                 di.willBeWritten();
                 daId = new WAccessId(di.getCurrentDataInstanceId());
-                if (debug) {
+                if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: W").append("\n");
                     sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((WAccessId) daId).getWVersionId())
                             .append("\n");
-                    logger.debug(sb.toString());
+                    LOGGER.debug(sb.toString());
                 }
                 break;
 
@@ -204,7 +250,7 @@ public class DataInfoProvider {
                 di.willBeWritten();
                 DataInstanceId writtenInstance = di.getCurrentDataInstanceId();
                 daId = new RWAccessId(readInstance, writtenInstance, preserveSourceData);
-                if (debug) {
+                if (DEBUG) {
                     StringBuilder sb = new StringBuilder("");
                     sb.append("Access:").append("\n");
                     sb.append("  * Type: RW").append("\n");
@@ -212,7 +258,7 @@ public class DataInfoProvider {
                             .append("\n");
                     sb.append("  * Write Datum: d").append(daId.getDataId()).append("v").append(((RWAccessId) daId).getWVersionId())
                             .append("\n");
-                    logger.debug(sb.toString());
+                    LOGGER.debug(sb.toString());
                 }
                 break;
         }
@@ -259,7 +305,7 @@ public class DataInfoProvider {
      * @return
      */
     public boolean alreadyAccessed(DataLocation loc) {
-        logger.debug("Check already accessed: " + loc.getLocationKey());
+        LOGGER.debug("Check already accessed: " + loc.getLocationKey());
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
         return fileId != null;
@@ -377,7 +423,7 @@ public class DataInfoProvider {
      * @return
      */
     public FileInfo deleteData(DataLocation loc) {
-        logger.debug("Deleting Data location: " + loc.getPath());
+        LOGGER.debug("Deleting Data location: " + loc.getPath());
         String locationKey = loc.getLocationKey();
         Integer fileId = nameToId.get(locationKey);
         if (fileId == null) {
@@ -404,8 +450,8 @@ public class DataInfoProvider {
 
         String sourceName = rwaId.getReadDataInstance().getRenaming();
         // String targetName = rwaId.getWrittenDataInstance().getRenaming();
-        if (debug) {
-            logger.debug("Requesting getting object " + sourceName);
+        if (DEBUG) {
+            LOGGER.debug("Requesting getting object " + sourceName);
         }
         LogicalData ld = Comm.getData(sourceName);
 
@@ -415,23 +461,23 @@ public class DataInfoProvider {
         }
 
         if (ld.isInMemory()) {
-            if (!ld.isOnStorage()) {
-                // Only if there are no readers
-                try {
-                    ld.writeToStorage();
-                    ld.removeValue();
-                } catch (Exception e) {
-                    ErrorManager.error("Exception writing object to file.", e);
-                }
-            } else {
-                Comm.clearValue(sourceName);
+            // Write to storage (if needed)
+            try {
+                ld.writeToStorage();
+            } catch (IOException e) {
+                ErrorManager.error("Exception writing object to file.", e);
             }
+
+            // Clear value
+            ld.removeValue();
+
+            // Set response
             toRequest.setResponse(ld.getValue());
             toRequest.setTargetData(ld);
             toRequest.getSemaphore().release();
         } else {
-            if (debug) {
-                logger.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
+            if (DEBUG) {
+                LOGGER.debug("Object " + sourceName + " not in memory. Requesting tranfers to " + Comm.getAppHost().getName());
             }
             DataLocation targetLocation = null;
             String path = DataLocation.Protocol.FILE_URI.getSchema() + Comm.getAppHost().getTempDirPath() + sourceName;
@@ -463,8 +509,8 @@ public class DataInfoProvider {
             String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
             String origName = splitPath[splitPath.length - 1];
             if (origName.startsWith("compss-serialized-obj_")) { // Do not transfer objects serialized by the bindings
-                if (debug) {
-                    logger.debug("Discarding file " + origName + " as a result");
+                if (DEBUG) {
+                    LOGGER.debug("Discarding file " + origName + " as a result");
                 }
                 return null;
             }
@@ -482,7 +528,7 @@ public class DataInfoProvider {
                 renaming = DataInstanceId.previousVersionRenaming(renaming);
             }
             if (renaming == null) {
-                logger.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming() + " nor any of its previous versions");
+                LOGGER.error(RES_FILE_TRANSFER_ERR + ": Cannot transfer file " + fId.getRenaming() + " nor any of its previous versions");
                 return null;
             }
 
@@ -496,13 +542,13 @@ public class DataInfoProvider {
                     try {
                         StorageItf.consolidateVersion(pscoId);
                     } catch (StorageException e) {
-                        logger.error("Cannot consolidate PSCO " + pscoId, e);
+                        LOGGER.error("Cannot consolidate PSCO " + pscoId, e);
                     } finally {
                         if (Tracer.isActivated()) {
                             Tracer.emitEvent(Tracer.EVENT_END, Tracer.Event.STORAGE_CONSOLIDATE.getType());
                         }
                     }
-                    logger.debug("Returned because persistent object");
+                    LOGGER.debug("Returned because persistent object");
                     return rf;
                 }
 
@@ -513,10 +559,10 @@ public class DataInfoProvider {
             Comm.getAppHost().getData(renaming, rf.getOriginalLocation(), new FileTransferable(), listener);
             return rf;
         } else if (fileInfo != null && fileInfo.isCurrentVersionToDelete()) {
-            if (debug) {
+            if (DEBUG) {
                 String[] splitPath = fileInfo.getOriginalLocation().getPath().split(File.separator);
                 String origName = splitPath[splitPath.length - 1];
-                logger.debug("Trying to delete file " + origName);
+                LOGGER.debug("Trying to delete file " + origName);
             }
             if (fileInfo.delete()) {
                 // idToData.remove(dataId);

@@ -36,7 +36,7 @@ public class PersistentLocation extends DataLocation {
     }
 
     @Override
-    public LinkedList<MultiURI> getURIs() {
+    public List<MultiURI> getURIs() {
         // Retrieve locations from Back-end
         List<String> locations = null;
         try {
@@ -55,7 +55,7 @@ public class PersistentLocation extends DataLocation {
             if (host != null) {
                 uris.add(new MultiURI(Protocol.PERSISTENT_URI, host, this.id));
             } else {
-                logger.warn("Storage Back-End returned non-registered host " + hostName + ". Skipping URI in host");
+                LOGGER.warn("Storage Back-End returned non-registered host " + hostName + ". Skipping URI in host");
             }
         }
 
@@ -63,8 +63,8 @@ public class PersistentLocation extends DataLocation {
     }
 
     @Override
-    public LinkedList<Resource> getHosts() {
-        logger.debug("Get PSCO locations for " + this.id);
+    public List<Resource> getHosts() {
+        LOGGER.debug("Get PSCO locations for " + this.id);
 
         // Retrieve locations from Back-end
         List<String> locations = null;
@@ -78,13 +78,13 @@ public class PersistentLocation extends DataLocation {
         }
 
         // Get hosts
-        LinkedList<Resource> hosts = new LinkedList<>();
+        List<Resource> hosts = new LinkedList<>();
         for (String hostName : locations) {
             Resource host = Resource.getResource(hostName);
             if (host != null) {
                 hosts.add(host);
             } else {
-                logger.warn("Storage Back-End returned non-registered host " + hostName);
+                LOGGER.warn("Storage Back-End returned non-registered host " + hostName);
             }
         }
 

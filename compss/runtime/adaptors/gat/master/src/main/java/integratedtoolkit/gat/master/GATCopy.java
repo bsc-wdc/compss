@@ -19,6 +19,7 @@ import integratedtoolkit.util.ErrorManager;
 
 import java.io.File;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.gridlab.gat.GATInvocationException;
 import org.gridlab.gat.GATObjectCreationException;
@@ -53,16 +54,16 @@ public class GATCopy extends ImmediateCopy {
                 }
             }
         }
-        logger.debug(DBG_PREFIX + "GAT Specific Copy created");
+        LOGGER.debug(DBG_PREFIX + "GAT Specific Copy created");
     }
 
     @Override
     public void specificCopy() throws CopyException {
-        logger.debug(DBG_PREFIX + "Performing GAT Specific Copy for "+getName());
+        LOGGER.debug(DBG_PREFIX + "Performing GAT Specific Copy for " + getName());
 
         // Fetch valid destination URIs
-        LinkedList<MultiURI> targetURIs = tgtLoc.getURIs();
-        LinkedList<URI> selectedTargetURIs = new LinkedList<>();
+        List<MultiURI> targetURIs = tgtLoc.getURIs();
+        List<URI> selectedTargetURIs = new LinkedList<>();
         for (MultiURI uri : targetURIs) {
             try {
                 URI internalURI = (URI) uri.getInternalURI(GATAdaptor.ID);
@@ -75,13 +76,13 @@ public class GATCopy extends ImmediateCopy {
         }
 
         if (selectedTargetURIs.isEmpty()) {
-        	logger.error(DBG_PREFIX + ERR_NO_TGT_URI);
+            LOGGER.error(DBG_PREFIX + ERR_NO_TGT_URI);
             throw new GATCopyException(ERR_NO_TGT_URI);
         }
-        logger.debug(DBG_PREFIX + "Selected target URIs" );
+        LOGGER.debug(DBG_PREFIX + "Selected target URIs");
         // Fetch valid source URIs
-        LinkedList<MultiURI> sourceURIs;
-        LinkedList<URI> selectedSourceURIs = new LinkedList<>();
+        List<MultiURI> sourceURIs;
+        List<URI> selectedSourceURIs = new LinkedList<>();
         synchronized (srcData) {
             if (srcLoc != null) {
                 sourceURIs = srcLoc.getURIs();
@@ -92,7 +93,7 @@ public class GATCopy extends ImmediateCopy {
                             selectedSourceURIs.add(internalURI);
                         }
                     } catch (UnstartedNodeException une) {
-                    	logger.error(DBG_PREFIX + "Exception selecting source URI");
+                        LOGGER.error(DBG_PREFIX + "Exception selecting source URI");
                         throw new GATCopyException(une);
                     }
                 }
@@ -106,14 +107,14 @@ public class GATCopy extends ImmediateCopy {
                         selectedSourceURIs.add(internalURI);
                     }
                 } catch (UnstartedNodeException une) {
-                	logger.error(DBG_PREFIX + "Exception selecting source URI for " + getName());
+                    LOGGER.error(DBG_PREFIX + "Exception selecting source URI for " + getName());
                     throw new GATCopyException(une);
                 }
             }
 
             if (selectedSourceURIs.isEmpty()) {
                 if (srcData.isInMemory()) {
-                	logger.debug("Data for " + getName() + " is in memory");
+                    LOGGER.debug("Data for " + getName() + " is in memory");
                     try {
                         srcData.writeToStorage();
                         sourceURIs = srcData.getURIs();
@@ -124,11 +125,11 @@ public class GATCopy extends ImmediateCopy {
                             }
                         }
                     } catch (Exception e) {
-                        logger.fatal("Exception writing object to file.", e);
+                        LOGGER.fatal("Exception writing object to file.", e);
                         throw new GATCopyException(ERR_NO_SRC_URI);
                     }
                 } else {
-                	logger.error(DBG_PREFIX + ERR_NO_SRC_URI);
+                    LOGGER.error(DBG_PREFIX + ERR_NO_SRC_URI);
                     throw new GATCopyException(ERR_NO_SRC_URI);
                 }
             }
@@ -138,30 +139,30 @@ public class GATCopy extends ImmediateCopy {
         for (URI src : selectedSourceURIs) {
             for (URI tgt : selectedTargetURIs) {
                 try {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("GATCopy From: " + src + " to " + tgt);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("GATCopy From: " + src + " to " + tgt);
                     }
                     // Source and target URIs contain Runtime information (schema)
                     // Convert it to GAT format
                     URI gatSrc = new URI(DataLocation.Protocol.ANY_URI.getSchema() + src.getHost() + "/" + src.getPath());
                     URI gatTgt = new URI(DataLocation.Protocol.ANY_URI.getSchema() + tgt.getHost() + "/" + tgt.getPath());
 
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("GATCopy From: " + gatSrc + " to " + gatTgt);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("GATCopy From: " + gatSrc + " to " + gatTgt);
                     }
                     doCopy(gatSrc, gatTgt);
                     // Try to copy from each location until successful
                 } catch (Exception e) {
                     exception.add("default logical file", e);
-                    logger.warn("Error copying file", e);
+                    LOGGER.warn("Error copying file", e);
                     continue;
                 }
                 return;
             }
         }
-        
+
         if (!(this.reason instanceof WorkersDebugInfoCopyTransferable)) {
-            ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.",exception);
+            ErrorManager.error("File '" + srcData.getName() + "' could not be copied because it does not exist.", exception);
         }
 
         throw new GATCopyException(exception);
@@ -170,23 +171,23 @@ public class GATCopy extends ImmediateCopy {
     private void doCopy(org.gridlab.gat.URI src, org.gridlab.gat.URI dest) throws GATCopyException {
         // Try to copy from each location until successful
         FileInterface f = null;
-        logger.debug("RawPath: " + src.getRawPath());
-        logger.debug("isLocal: " + src.isLocal());
+        LOGGER.debug("RawPath: " + src.getRawPath());
+        LOGGER.debug("isLocal: " + src.isLocal());
         if (src.isLocal() && !(new File(src.getRawPath())).exists()) {
             String errorMessage = null;
             if (this.reason instanceof WorkersDebugInfoCopyTransferable) {
                 // Only warn, hide error to ErrorManager
                 errorMessage = "Workers Debug Information not supported in GAT Adaptor";
-                logger.warn(errorMessage);
+                LOGGER.warn(errorMessage);
             } else {
                 // Notify error to ErrorManager
                 errorMessage = "File '" + src.toString() + "' could not be copied to '" + dest.toString() + "' because it does not exist.";
                 ErrorManager.warn(errorMessage);
-                logger.warn(errorMessage);
+                LOGGER.warn(errorMessage);
             }
             throw new GATCopyException(errorMessage);
         }
-        
+
         try {
             f = org.gridlab.gat.GAT.createFile(GATAdaptor.getTransferContext(), src).getFileInterface();
             f.copy(dest);

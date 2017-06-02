@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
  * Representation of the Communication interface of the Runtime
  * 
@@ -49,16 +50,16 @@ public class Comm {
     private static final Map<String, CommAdaptor> adaptors = new ConcurrentHashMap<>();
 
     // Log and debug
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    private static final boolean debug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // Logical data
     private static Map<String, LogicalData> data = Collections.synchronizedMap(new TreeMap<String, LogicalData>());
 
     // Master information
     private static MasterResource appHost;
-    
-    
+
+
     /**
      * Private constructor to avoid instantiation
      */
@@ -73,13 +74,13 @@ public class Comm {
         appHost = new MasterResource();
         try {
             if (STORAGE_CONF == null || STORAGE_CONF.equals("") || STORAGE_CONF.equals("null")) {
-                logger.warn("No storage configuration file passed");
+                LOGGER.warn("No storage configuration file passed");
             } else {
-                logger.debug("Initializing Storage with: " + STORAGE_CONF);
+                LOGGER.debug("Initializing Storage with: " + STORAGE_CONF);
                 StorageItf.init(STORAGE_CONF);
             }
         } catch (StorageException e) {
-            logger.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
+            LOGGER.fatal("Error loading storage configuration file: " + STORAGE_CONF, e);
             System.exit(1);
         }
 
@@ -88,7 +89,7 @@ public class Comm {
          * Initializes the Tracer activation value to enable querying Tracer.isActivated()
          */
         if (System.getProperty(ITConstants.IT_TRACING) != null && Integer.parseInt(System.getProperty(ITConstants.IT_TRACING)) > 0) {
-            logger.debug("Tracing is activated");
+            LOGGER.debug("Tracing is activated");
             int tracing_level = Integer.parseInt(System.getProperty(ITConstants.IT_TRACING));
             Tracer.init(tracing_level);
             Tracer.emitEvent(Tracer.Event.STATIC_IT.getId(), Tracer.Event.STATIC_IT.getType());
@@ -105,8 +106,8 @@ public class Comm {
      * @return
      * @throws ConstructConfigurationException
      */
-    public static Configuration constructConfiguration(String adaptorName, Object project_properties,
-            Object resources_properties) throws ConstructConfigurationException {
+    public static Configuration constructConfiguration(String adaptorName, Object project_properties, Object resources_properties)
+            throws ConstructConfigurationException {
 
         // Check if adaptor has already been used
         CommAdaptor adaptor = adaptors.get(adaptorName);
@@ -115,27 +116,27 @@ public class Comm {
             try {
                 Constructor<?> constrAdaptor = Class.forName(adaptorName).getConstructor();
                 adaptor = (CommAdaptor) constrAdaptor.newInstance();
-            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | 
-                    InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                
+            } catch (NoSuchMethodException | SecurityException | ClassNotFoundException | InstantiationException | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException e) {
+
                 throw new ConstructConfigurationException(e);
             }
-            
+
             // Initialize adaptor
             adaptor.init();
-            
+
             // Add adaptor to used adaptors
             adaptors.put(adaptorName, adaptor);
         }
 
-        if (debug) {
-            logger.debug("Adaptor Name: " + adaptorName);
+        if (DEBUG) {
+            LOGGER.debug("Adaptor Name: " + adaptorName);
         }
 
         // Construct properties
         return adaptor.constructConfiguration(project_properties, resources_properties);
     }
-    
+
     /**
      * Returns the resource assigned as master node
      * 
@@ -159,8 +160,7 @@ public class Comm {
     }
 
     /**
-     * Stops the communication layer. 
-     * Clean FTM, Job, {GATJob, NIOJob} and WSJob
+     * Stops the communication layer. Clean FTM, Job, {GATJob, NIOJob} and WSJob
      */
     public static void stop() {
         appHost.deleteIntermediate();
@@ -171,10 +171,10 @@ public class Comm {
         // Stop Storage interface
         if (STORAGE_CONF != null && !STORAGE_CONF.equals("") && !STORAGE_CONF.equals("null")) {
             try {
-                logger.debug("Stopping Storage...");
+                LOGGER.debug("Stopping Storage...");
                 StorageItf.finish();
             } catch (StorageException e) {
-                logger.error("Error releasing storage library: " + e.getMessage());
+                LOGGER.error("Error releasing storage library: " + e.getMessage());
             }
         }
         // Stop tracing system
@@ -191,42 +191,40 @@ public class Comm {
      * @return
      */
     public static synchronized LogicalData registerData(String dataId) {
-        logger.debug("Register new data " + dataId);
-        
+        LOGGER.debug("Register new data " + dataId);
+
         LogicalData logicalData = new LogicalData(dataId);
         data.put(dataId, logicalData);
-        
+
         return logicalData;
     }
 
     /**
-     * Registers a new location @location for the data with id @dataId
-     * dataId must exist
+     * Registers a new location @location for the data with id @dataId dataId must exist
      * 
      * @param dataId
      * @param location
      * @return
      */
     public static synchronized LogicalData registerLocation(String dataId, DataLocation location) {
-        logger.debug("Registering new Location for data " + dataId + ":");
-        logger.debug("  * Location: " + location);
-        
+        LOGGER.debug("Registering new Location for data " + dataId + ":");
+        LOGGER.debug("  * Location: " + location);
+
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
-        
+
         return logicalData;
     }
 
     /**
-     * Registers a new value @value for the data with id @dataId
-     * dataId must exist
+     * Registers a new value @value for the data with id @dataId dataId must exist
      * 
      * @param dataId
      * @param value
      * @return
      */
     public static synchronized LogicalData registerValue(String dataId, Object value) {
-        logger.debug("Register value " + value + " for data " + dataId);
+        LOGGER.debug("Register value " + value + " for data " + dataId);
 
         String targetPath = Protocol.OBJECT_URI.getSchema() + dataId;
         DataLocation location = null;
@@ -240,7 +238,7 @@ public class Comm {
         LogicalData logicalData = data.get(dataId);
         logicalData.addLocation(location);
         logicalData.setValue(value);
-        
+
         // Register PSCO Location if needed it's PSCO and it's persisted
         if (value instanceof StubItf) {
             String id = ((StubItf) value).getID();
@@ -253,14 +251,27 @@ public class Comm {
     }
 
     /**
-     * Registers a new PSCO id @id for the data with id @dataId
-     * dataId must exist
+     * Registers a new External PSCO id @id for the data with id @dataId dataId must exist
      * 
      * @param dataId
      * @param id
      * @return
      */
-    public static synchronized LogicalData registerPSCO(String dataId, String id) {
+    public static synchronized LogicalData registerExternalPSCO(String dataId, String id) {
+        LogicalData ld = registerPSCO(dataId, id);
+        ld.setValue(id);
+
+        return ld;
+    }
+
+    /**
+     * Registers a new PSCO id @id for the data with id @dataId dataId must exist
+     * 
+     * @param dataId
+     * @param id
+     * @return
+     */
+    private static synchronized LogicalData registerPSCO(String dataId, String id) {
         String targetPath = Protocol.PERSISTENT_URI.getSchema() + id;
         DataLocation location = null;
         try {
@@ -283,7 +294,7 @@ public class Comm {
      * @return
      */
     public static synchronized Object clearValue(String dataId) {
-        logger.debug("Clear value of data " + dataId);
+        LOGGER.debug("Clear value of data " + dataId);
         LogicalData logicalData = data.get(dataId);
 
         return logicalData.removeValue();
@@ -306,8 +317,8 @@ public class Comm {
      * @return
      */
     public static synchronized LogicalData getData(String dataId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get data " + data.get(dataId));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Get data " + data.get(dataId));
         }
 
         return data.get(dataId);
@@ -359,24 +370,23 @@ public class Comm {
      * @param renaming
      */
     public static synchronized void removeData(String renaming) {
-        logger.debug("Remove data " + renaming);
+        LOGGER.debug("Remove data " + renaming);
 
         LogicalData ld = data.remove(renaming);
         ld.isObsolete();
-        for(DataLocation dl : ld.getLocations()){
-        	MultiURI uri = dl.getURIInHost(appHost);
-        	if (uri != null){
-        		File f = new File (uri.getPath());
-        		if (f.exists()){
-        			logger.info("Deleting file " + f.getAbsolutePath());
-        			if (!f.delete()) {
-        			    logger.error("Cannot delete file " + f.getAbsolutePath());
-        			}
-        		}
-        	}
+        for (DataLocation dl : ld.getLocations()) {
+            MultiURI uri = dl.getURIInHost(appHost);
+            if (uri != null) {
+                File f = new File(uri.getPath());
+                if (f.exists()) {
+                    LOGGER.info("Deleting file " + f.getAbsolutePath());
+                    if (!f.delete()) {
+                        LOGGER.error("Cannot delete file " + f.getAbsolutePath());
+                    }
+                }
+            }
         }
-       
-        
+
     }
 
     /**
@@ -399,18 +409,18 @@ public class Comm {
     }
 
     private static void loadAdaptorsJars() {
-        logger.info("Loading Adaptors...");
+        LOGGER.info("Loading Adaptors...");
         String itHome = System.getenv(ITConstants.IT_HOME);
 
         if (itHome == null || itHome.isEmpty()) {
-            logger.warn("WARN: IT_HOME not defined, no adaptors loaded.");
+            LOGGER.warn("WARN: IT_HOME not defined, no adaptors loaded.");
             return;
         }
 
         try {
-            Classpath.loadPath(itHome + ADAPTORS_REL_PATH, logger);
+            Classpath.loadPath(itHome + ADAPTORS_REL_PATH, LOGGER);
         } catch (FileNotFoundException ex) {
-            logger.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
+            LOGGER.warn("WARN_MSG = [Adaptors folder not defined, no adaptors loaded.]");
         }
     }
 

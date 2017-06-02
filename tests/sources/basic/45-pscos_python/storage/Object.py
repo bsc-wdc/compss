@@ -38,7 +38,8 @@ class SCO(object):
         return self.id
 
     def makePersistent(self, *args):
-        api.makePersistent(self, args)
+        api.makePersistent(self, *args)
 
     def deletePersistent(self):
         api.removeById(self)
+

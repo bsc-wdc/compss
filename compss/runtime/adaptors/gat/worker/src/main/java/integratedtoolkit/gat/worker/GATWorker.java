@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import storage.StorageException;
@@ -492,23 +491,21 @@ public class GATWorker {
 
         boolean firstElement = true;
         StringBuilder hostnamesSTR = new StringBuilder();
-        for (Iterator<String> it = GATWorker.hostnames.iterator(); it.hasNext();) {
-            String nodeName = it.next();
-            // Remove infiniband suffix
+        for (String nodeName : GATWorker.hostnames) {
             if (nodeName.endsWith("-ib0")) {
-                nodeName = nodeName.substring(0, hostname.lastIndexOf("-ib0"));
+                nodeName = nodeName.substring(0, nodeName.lastIndexOf("-ib0"));
             }
-
+            
             // Add one host name per process to launch
             if (firstElement) {
                 firstElement = false;
-                hostnamesSTR.append(hostname);
+                hostnamesSTR.append(nodeName);
                 for (int i = 1; i < GATWorker.cus; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
+                    hostnamesSTR.append(",").append(nodeName);
                 }
             } else {
                 for (int i = 0; i < GATWorker.cus; ++i) {
-                    hostnamesSTR.append(",").append(hostname);
+                    hostnamesSTR.append(",").append(nodeName);
                 }
             }
         }

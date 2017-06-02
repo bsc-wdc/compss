@@ -780,6 +780,12 @@ def manage_persistent_object(p):
     In particular, saves the object id provided by the persistent storage (getID()) into the task_objects dictionary.
     :param p: wrapper of the object to manage
     """
+    p.type = Type.EXTERNAL_PSCO
+    obj_id = p.value.getID()
+    task_objects[obj_id] = obj_id
+    p.value = obj_id
+    logger.debug("Managed persistent object: %s" % (obj_id))
+    '''
     # TODO: This code will have to be reviewed when the final implementation of Persistent workers is done.
     obj_id = id(p.value)
     file_name = objid_to_filename.get(obj_id)
@@ -792,6 +798,7 @@ def manage_persistent_object(p):
     else:
         p.type = Type.OBJECT
         turn_into_file(p)
+    '''
 
 
 def turn_into_file(p):

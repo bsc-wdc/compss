@@ -127,7 +127,7 @@ class task(object):
 
         # Set default booleans
         self.is_instance = False
-        self.is_classmethod=False   # not used currently in this scope, only when registering the task
+        self.is_classmethod = False   # not used currently in this scope, only when registering the task
         self.has_varargs = False
         self.has_keywords = False
         self.has_defaults = False

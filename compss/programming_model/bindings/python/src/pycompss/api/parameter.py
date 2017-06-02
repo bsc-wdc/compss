@@ -64,8 +64,8 @@ class Type:
     STRING = 8
     FILE = 9
     OBJECT = 10         # Unavailable (can not pass an object directly to Java)
-    PSCO = 11           # Unavailable (TODO: use this type instead of EXTERNAL_PSCO)
-    EXTERNAL_PSCO = 12	# PSCO
+    PSCO = 11           # Unavailable (this type is reserved for Java PSCOs)
+    EXTERNAL_PSCO = 12	# PSCO (type for PSCOs from bindings)
 
 # Numbers match both C and Java enums
 class Stream:

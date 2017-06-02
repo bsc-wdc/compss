@@ -123,8 +123,8 @@ def main():
     try:
         logger.debug("--- START ---")
         logger.debug("PyCOMPSs Log path: %s" % logPath)
-        logger.debug("Storage configuration file: %s" % storage_conf)
         if persistent_storage:
+            logger.debug("Storage configuration file: %s" % storage_conf)
             initStorage(config_file_path=storage_conf)
         module_warnings()
         execfile(app_path, globals())    # MAIN EXECUTION

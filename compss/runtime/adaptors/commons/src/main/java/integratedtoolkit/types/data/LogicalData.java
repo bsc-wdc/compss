@@ -6,6 +6,9 @@ import integratedtoolkit.exceptions.UnstartedNodeException;
 import integratedtoolkit.log.Loggers;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 
 import integratedtoolkit.types.data.listener.SafeCopyListener;
@@ -24,7 +27,6 @@ import integratedtoolkit.util.Tracer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -49,12 +51,10 @@ public class LogicalData {
     private String id;
 
     // List of existing copies
-    private final TreeSet<DataLocation> locations = new TreeSet<>();
+    private final Set<DataLocation> locations = new TreeSet<>();
     // In progress
-    private final LinkedList<CopyInProgress> inProgress = new LinkedList<>();
+    private final List<CopyInProgress> inProgress = new LinkedList<>();
 
-    // Indicates if object is also in storage
-    private boolean onStorage;
     // Indicates if LogicalData has been ordered to save before
     private boolean isBeingSaved;
     // Locks the host while LogicalData is being copied
@@ -74,7 +74,6 @@ public class LogicalData {
         this.value = null;
         this.id = null;
 
-        this.onStorage = false;
         this.isBeingSaved = false;
     }
 
@@ -105,11 +104,12 @@ public class LogicalData {
      * 
      * @return
      */
-    public synchronized HashSet<Resource> getAllHosts() {
-        HashSet<Resource> list = new HashSet<>();
+    public synchronized Set<Resource> getAllHosts() {
+        Set<Resource> list = new HashSet<>();
         for (DataLocation loc : this.locations) {
             list.addAll(loc.getHosts());
         }
+
         return list;
     }
 
@@ -118,19 +118,20 @@ public class LogicalData {
      * 
      * @return
      */
-    public synchronized LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> list = new LinkedList<>();
+    public synchronized List<MultiURI> getURIs() {
+        List<MultiURI> list = new LinkedList<>();
         for (DataLocation loc : this.locations) {
-            LinkedList<MultiURI> locationURIs = loc.getURIs();
+            List<MultiURI> locationURIs = loc.getURIs();
             // Adds all the valid locations
             if (locationURIs != null) {
                 list.addAll(locationURIs);
             }
         }
+
         return list;
     }
 
-    public synchronized TreeSet<DataLocation> getLocations() {
+    public synchronized Set<DataLocation> getLocations() {
         return this.locations;
     }
 
@@ -141,17 +142,6 @@ public class LogicalData {
      */
     public synchronized boolean isInMemory() {
         return (this.value != null);
-    }
-
-    /**
-     * Returns if the data is on storage or not
-     * 
-     * @return
-     */
-    public boolean isOnStorage() {
-        // WARN: The data can be in memory and on storage (disk / persistent
-        // storage) at the same time
-        return this.onStorage;
     }
 
     /**
@@ -236,7 +226,7 @@ public class LogicalData {
      * 
      * @throws Exception
      */
-    public synchronized void writeToStorage() throws Exception {
+    public synchronized void writeToStorage() throws IOException {
         if (this.id != null) {
             // It is a persistent object that is already persisted
             // Nothing to do
@@ -362,7 +352,7 @@ public class LogicalData {
      * @param sharedMountPoints
      * @return a valid location if the file is unique
      */
-    public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, HashMap<String, String> sharedMountPoints) {
+    public synchronized DataLocation removeHostAndCheckLocationToSave(Resource host, Map<String, String> sharedMountPoints) {
         // If the file is being saved means that this function has already been
         // executed
         // for the same LogicalData. Thus, all the host locations are already
@@ -431,7 +421,7 @@ public class LogicalData {
      * @return
      */
     public synchronized Collection<Copy> getCopiesInProgress() {
-        LinkedList<Copy> copies = new LinkedList<Copy>();
+        List<Copy> copies = new LinkedList<>();
         for (CopyInProgress cp : this.inProgress) {
             copies.add(cp.getCopy());
         }

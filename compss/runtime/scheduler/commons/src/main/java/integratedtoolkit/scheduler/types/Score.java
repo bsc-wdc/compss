@@ -1,6 +1,6 @@
 package integratedtoolkit.scheduler.types;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.TaskDescription;
@@ -151,7 +151,7 @@ public class Score implements Comparable<Score> {
             return -1;
         }
     }
-    
+
     public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
         long resourceScore = 0;
         if (params != null) {
@@ -181,7 +181,7 @@ public class Score implements Comparable<Score> {
                     if (dId != null) {
                         LogicalData dataLD = Comm.getData(dId.getRenaming());
                         if (dataLD != null) {
-                            HashSet<Resource> hosts = dataLD.getAllHosts();
+                            Set<Resource> hosts = dataLD.getAllHosts();
                             for (Resource host : hosts) {
                                 if (host == w) {
                                     resourceScore++;

@@ -19,15 +19,15 @@ public abstract class Copy extends DataOperation {
 
     public Copy(LogicalData srcData, DataLocation prefSrc, DataLocation prefTgt, LogicalData tgtData, Transferable reason,
             EventListener listener) {
-        
+
         super(srcData, listener);
         this.srcData = srcData;
         this.srcLoc = prefSrc;
         this.tgtData = tgtData;
         this.tgtLoc = prefTgt;
         this.reason = reason;
-        if (debug) {
-            logger.debug("Created copy " + this.getName() + " (id: " + this.getId() + ")");
+        if (DEBUG) {
+            LOGGER.debug("Created copy " + this.getName() + " (id: " + this.getId() + ")");
         }
     }
 
@@ -56,8 +56,8 @@ public abstract class Copy extends DataOperation {
     }
 
     public void setFinalTarget(String targetAbsolutePath) {
-        if (debug) {
-            logger.debug(" Setting copy final target to : " + targetAbsolutePath);
+        if (DEBUG) {
+            LOGGER.debug(" Setting copy final target to : " + targetAbsolutePath);
         }
         reason.setDataTarget(targetAbsolutePath);
     }

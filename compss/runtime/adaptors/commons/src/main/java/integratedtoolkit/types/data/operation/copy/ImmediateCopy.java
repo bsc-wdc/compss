@@ -1,5 +1,7 @@
 package integratedtoolkit.types.data.operation.copy;
 
+import java.util.LinkedList;
+
 import integratedtoolkit.exceptions.CopyException;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.Transferable;
@@ -19,8 +21,8 @@ public abstract class ImmediateCopy extends Copy {
     }
 
     public void perform() {
-        Resource targetHost = tgtLoc.getHosts().getFirst();
-        logger.debug("THREAD " + Thread.currentThread().getName() + " - Copy file " + getName() + " to " + tgtLoc);
+        Resource targetHost = ((LinkedList<Resource>) tgtLoc.getHosts()).getFirst();
+        LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - Copy file " + getName() + " to " + tgtLoc);
 
         synchronized (srcData) {
             if (tgtData != null) {
@@ -28,7 +30,7 @@ public abstract class ImmediateCopy extends Copy {
                 if ((u = srcData.alreadyAvailable(targetHost)) != null) {
                     setFinalTarget(u.getPath());
                     end(DataOperation.OpEndState.OP_OK);
-                    logger.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName() + " is already present at "
+                    LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy of " + getName() + " is already present at "
                             + targetHost + " on path " + u.getPath());
                     return;
                 }
@@ -43,7 +45,7 @@ public abstract class ImmediateCopy extends Copy {
                     synchronized (copyInProgress.getEventListeners()) {
                         copyInProgress.addEventListeners(getEventListeners());
                     }
-                    logger.debug("THREAD " + Thread.currentThread().getName() + " - A copy to " + path
+                    LOGGER.debug("THREAD " + Thread.currentThread().getName() + " - A copy to " + path
                             + " is already in progress, skipping replication");
                     return;
                 }
@@ -52,7 +54,7 @@ public abstract class ImmediateCopy extends Copy {
         }
 
         try {
-            logger.debug("[InmediateCopy] Performing Inmediate specific Copy for " + getName());
+            LOGGER.debug("[InmediateCopy] Performing Inmediate specific Copy for " + getName());
             specificCopy();
         } catch (CopyException e) {
             end(DataOperation.OpEndState.OP_FAILED, e);
@@ -75,7 +77,7 @@ public abstract class ImmediateCopy extends Copy {
         synchronized (srcData) {
             end(DataOperation.OpEndState.OP_OK);
         }
-        logger.debug("[InmediateCopy] Inmediate Copy for " + getName() + " performed.");
+        LOGGER.debug("[InmediateCopy] Inmediate Copy for " + getName() + " performed.");
     }
 
     public abstract void specificCopy() throws CopyException;

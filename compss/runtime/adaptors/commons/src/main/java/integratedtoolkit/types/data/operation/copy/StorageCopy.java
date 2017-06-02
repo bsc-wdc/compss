@@ -25,8 +25,8 @@ public class StorageCopy extends DataOperation {
         this.tgtData = tgtData;
         this.tgtLoc = prefTgt;
         this.reason = reason;
-        if (debug) {
-            logger.debug("Created replica " + this.getName() + " (id: " + this.getId() + ")");
+        if (DEBUG) {
+            LOGGER.debug("Created replica " + this.getName() + " (id: " + this.getId() + ")");
         }
     }
 
@@ -47,8 +47,8 @@ public class StorageCopy extends DataOperation {
     }
 
     public void setFinalTarget(String targetAbsolutePath) {
-        if (debug) {
-            logger.debug(" Setting StorageCopy final target to : " + targetAbsolutePath);
+        if (DEBUG) {
+            LOGGER.debug(" Setting StorageCopy final target to : " + targetAbsolutePath);
         }
         reason.setDataTarget(targetAbsolutePath);
     }

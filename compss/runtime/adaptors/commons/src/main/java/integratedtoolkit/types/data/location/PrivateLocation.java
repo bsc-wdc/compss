@@ -4,6 +4,7 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.uri.MultiURI;
 
 import java.util.LinkedList;
+import java.util.List;
 
 
 public class PrivateLocation extends DataLocation {
@@ -27,16 +28,16 @@ public class PrivateLocation extends DataLocation {
     }
 
     @Override
-    public LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> list = new LinkedList<>();
+    public List<MultiURI> getURIs() {
+        List<MultiURI> list = new LinkedList<>();
         list.add(this.uri);
 
         return list;
     }
 
     @Override
-    public LinkedList<Resource> getHosts() {
-        LinkedList<Resource> list = new LinkedList<>();
+    public List<Resource> getHosts() {
+        List<Resource> list = new LinkedList<>();
         list.add(this.uri.getHost());
         return list;
     }

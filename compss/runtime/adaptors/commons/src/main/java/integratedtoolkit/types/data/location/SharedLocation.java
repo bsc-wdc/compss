@@ -46,8 +46,8 @@ public class SharedLocation extends DataLocation {
     }
 
     @Override
-    public LinkedList<MultiURI> getURIs() {
-        LinkedList<MultiURI> uris = new LinkedList<>();
+    public List<MultiURI> getURIs() {
+        List<MultiURI> uris = new LinkedList<>();
         List<Resource> resList = SharedDiskManager.getAllMachinesfromDisk(diskName);
         Resource[] resources = resList.toArray(new Resource[resList.size()]);
         for (Resource host : resources) {
@@ -63,7 +63,7 @@ public class SharedLocation extends DataLocation {
     }
 
     @Override
-    public LinkedList<Resource> getHosts() {
+    public List<Resource> getHosts() {
         return SharedDiskManager.getAllMachinesfromDisk(diskName);
     }
 

@@ -20,8 +20,8 @@ public abstract class DataOperation {
     private OpEndState endState = null;
     private Exception endException = null;
 
-    protected static final Logger logger = LogManager.getLogger(Loggers.COMM);
-    protected static final boolean debug = logger.isDebugEnabled();
+    protected static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
+    protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     private String name;
 

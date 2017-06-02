@@ -381,7 +381,7 @@ public class NIOWorkerNode extends COMPSsWorker {
     private void orderCopy(DeferredCopy c) {
         LOGGER.info("Order Copy for " + c.getSourceData());
 
-        Resource tgtRes = c.getTargetLoc().getHosts().getFirst();
+        Resource tgtRes = ((LinkedList<Resource>) c.getTargetLoc().getHosts()).getFirst();
         LogicalData ld = c.getSourceData();
         String path;
         synchronized (ld) {

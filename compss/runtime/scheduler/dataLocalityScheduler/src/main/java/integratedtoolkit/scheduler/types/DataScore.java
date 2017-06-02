@@ -1,6 +1,6 @@
 package integratedtoolkit.scheduler.types;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import integratedtoolkit.comm.Comm;
 import integratedtoolkit.types.TaskDescription;
@@ -74,7 +74,7 @@ public class DataScore extends ReadyScore {
                     if (dId != null) {
                         LogicalData dataLD = Comm.getData(dId.getRenaming());
                         if (dataLD != null) {
-                            HashSet<Resource> hosts = dataLD.getAllHosts();
+                            Set<Resource> hosts = dataLD.getAllHosts();
                             for (Resource host : hosts) {
                                 if (host == w) {
                                     resourceScore++;

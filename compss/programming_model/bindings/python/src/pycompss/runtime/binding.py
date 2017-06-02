@@ -782,7 +782,7 @@ def manage_persistent_object(p):
     """
     p.type = Type.EXTERNAL_PSCO
     obj_id = p.value.getID()
-    task_objects[obj_id] = obj_id
+    task_objects[id(obj_id)] = obj_id
     p.value = obj_id
     logger.debug("Managed persistent object: %s" % (obj_id))
     '''

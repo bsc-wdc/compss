@@ -204,7 +204,7 @@ public class TaskAnalyser {
                     ExternalObjectParameter externalPSCOparam = (ExternalObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
                     externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
-                    daId = DIP.registerObjectAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
+                    daId = DIP.registerExternalObjectAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                     break;
                 case OBJECT_T:
                     ObjectParameter op = (ObjectParameter) p;

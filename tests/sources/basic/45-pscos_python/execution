@@ -26,6 +26,12 @@
 COMPSsWorker01
 EOF
 
+  # Add trap to clean folder
+  clean() {
+    rm -rf /tmp/PSCO/
+  }
+  trap clean EXIT 
+
   #----------------------------------------------------------------------------------
   # Set Storage implementation location
   storageImplPath=${base_app_dir}/jars/compss-dummyPSCO.jar

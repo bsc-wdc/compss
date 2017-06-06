@@ -29,6 +29,7 @@ from pycompss.util.sizer import total_sizeof
 
 import types
 import os
+import sys
 import re
 import inspect
 import logging
@@ -330,6 +331,22 @@ def synchronize(obj, mode):
     # TODO - CUANDO SE LLAME A compss.get_file, anadir un booleano diferenciando si es fichero u objeto
     # Objetivo: mejorar el detalle de las trazas. Esto se tiene que implementar primero en el runtime, despues
     # adaptar el api de C, y finalmente anadir el booleano aqui.
+
+    if 'getID' in dir(obj) and obj.getID() is not None:
+        print "SYNCHRONIZE"
+        print obj
+        print "INSIDE GETID"
+        obj_id = obj.getID()
+        if obj_id not in task_objects:
+            print "NOT IN TASK_OBJECTS"
+            return obj
+        else:
+            print "IN TASK_OBJECTS"
+            file_name = compss.get_file("storage://" + str(obj_id), mode)
+            from storage.api import getByID
+            new_obj = getByID(file_name)
+            return new_obj
+
     logger.debug("Synchronizing object %d with mode %s" % (id(obj), mode))
 
     obj_id = id(obj)
@@ -639,7 +656,6 @@ def serialize_object_into_file(p, is_future, i, val_type):
             logger.exception("Pickling error exception: non-serializable object found as a parameter.")
             logger.exception(''.join(line for line in lines))
             print("[ ERROR ]: Non serializable objects can not be used as parameters (e.g. methods).")
-            print("[ ERROR ]: Task: %s --> Parameter: %s" % (f.__name__, spec_arg))
             print("[ ERROR ]: Value: %s" % p.value)
             raise  # raise the exception up tu launch.py in order to point where the error is in the user code.
             # return fu  # the execution continues, but without processing this task
@@ -782,8 +798,13 @@ def manage_persistent_object(p):
     """
     p.type = Type.EXTERNAL_PSCO
     obj_id = p.value.getID()
-    task_objects[id(obj_id)] = obj_id
+    task_objects[obj_id] = p.value #obj_id
     p.value = obj_id
+    #print "XXXXXXXXXXXXXXXXXXXXXX"
+    #print "p : ", str(p)
+    #print "obj_id : ", str(obj_id)
+    #print task_objects
+    #print "XXXXXXXXXXXXXXXXXXXXXX"
     logger.debug("Managed persistent object: %s" % (obj_id))
     '''
     # TODO: This code will have to be reviewed when the final implementation of Persistent workers is done.

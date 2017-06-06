@@ -1,5 +1,12 @@
 from storage.Object import SCO
 
+def updateFile(obj):
+    if obj.getID() is not None:
+        storage_path = '/tmp/PSCO/localhost/'
+        from pycompss.util.serializer import serialize_to_file
+        serialize_to_file(obj, storage_path + obj.getID() + ".PSCO")
+
+
 # For simple PSCO test
 
 class mySO(SCO):
@@ -12,6 +19,7 @@ class mySO(SCO):
 
     def put(self, v):
         self.value = v
+        updateFile(self)
 
 
 # For Wordcount Test
@@ -21,10 +29,10 @@ class Words(SCO):
     @ClassField wordinfo dict <<position:int>,wordinfo:str>
     '''
     text = ''
-    
+
     def __init__(self, t):
     	self.text = t
-    
+
     def get(self):
     	return self.text
 
@@ -43,9 +51,10 @@ class Result(SCO):
     	return self.myd
 
     def set(self, d):
-    	self.myd = d
-    	
-    	
+        self.myd = d
+        updateFile(self)
+
+
 # For Tiramisu mockup test
 
 class InputData(SCO):
@@ -53,12 +62,13 @@ class InputData(SCO):
     @ClassField images dict <<image_id:str>, value:list>
     '''
     images = {}
-    
+
     def __init__(self):
         pass
-        
+
     def get(self):
     	return self.images
 
     def set(self, i):
     	self.images = i
+        updateFile(self)

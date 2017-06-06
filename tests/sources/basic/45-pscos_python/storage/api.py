@@ -29,7 +29,7 @@ from uuid import UUID
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 
-storage_path = '/tmp/PSCO/linux-BSC/'
+storage_path = '/tmp/PSCO/localhost/'
 
 
 def init(config_file_path=None, **kwargs):
@@ -90,21 +90,30 @@ def getByID(id):
     @param obj: key/object of the object to be retrieved.
     @return: the real object.
     """
-    print "-----------------------------------------------------"
-    print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
-    print "| Call to: getByID                                  |"
-    print "|   *********************************************   |"
-    print "|   *** Check that you really want to use the ***   |"
-    print "|   ************* dummy storage api *************   |"
-    print "|   *********************************************   |"
-    print "-----------------------------------------------------"
+    #print "-----------------------------------------------------"
+    #print "| WARNING!!! - YOU ARE USING THE DUMMY STORAGE API. |"
+    #print "| Call to: getByID                                  |"
+    #print "|   *********************************************   |"
+    #print "|   *** Check that you really want to use the ***   |"
+    #print "|   ************* dummy storage api *************   |"
+    #print "|   *********************************************   |"
+    #print "-----------------------------------------------------"
+    print "*********************"
+    print id
+    print "*********************"
     if id is not None:
         try:
-            # Validate that the uuid is uuid4
-            val = UUID(id, version=4)
+            # Validate that the uuid is uuid4 -- not necessary
+            # val = UUID(id, version=4)
             file_name = id + '.PSCO'
             file_path = storage_path + file_name
             obj = deserialize_from_file(file_path)
+            print "-----------------------------"
+            print file_name
+            print file_path
+            print obj
+            print obj.get()
+            print "-----------------------------"
             return obj
         except ValueError:
             # The id does not complain uuid4 --> raise an exception

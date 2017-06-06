@@ -1,10 +1,10 @@
 package integratedtoolkit.test.api.impl;
 
 import static org.junit.Assert.assertEquals;
-
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation;
+import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.util.CoreManager;
 
 import org.junit.After;
@@ -62,7 +62,21 @@ public class COMPSsRuntimeImplTest {
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(0);
+        assertEquals(MethodType.MPI, mi.getMethodType());
         assertEquals("SSD", mi.getRequirements().getStorageType());
+        
+        // DECAF
+        System.out.println("Registering DECAF implementation");
+        coreElementSignature = "methodClass1.methodName1";
+        implSignature = "decaf.DECAF";
+        implConstraints = "StorageSize:2.0";
+        implType = "DECAF";
+        implTypeArgs = new String[] { "dfScript", "dfExceutor", "dfLib", "dfWorkingDir", "mpiRunner" };
+        rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
+
+        mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(1).get(1);
+        assertEquals(MethodType.DECAF, mi.getMethodType());
+        assertEquals(2.0, mi.getRequirements().getStorageSize(),0.1);
 
         // BINARY
         System.out.println("Registering BINARY implementation");
@@ -72,8 +86,9 @@ public class COMPSsRuntimeImplTest {
         implType = "BINARY";
         implTypeArgs = new String[] { "binary", "binaryWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
-
+        
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(2).get(0);
+        assertEquals(MethodType.BINARY, mi.getMethodType());
         assertEquals("RAM", mi.getRequirements().getMemoryType());
 
         // OMPSS
@@ -84,8 +99,9 @@ public class COMPSsRuntimeImplTest {
         implType = "OMPSS";
         implTypeArgs = new String[] { "ompssBinary", "ompssWorkingDir" };
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
-
+        
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(3).get(0);
+        assertEquals(MethodType.OMPSS, mi.getMethodType());
         assertEquals(3, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 
         // OPENCL
@@ -98,6 +114,7 @@ public class COMPSsRuntimeImplTest {
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(4).get(0);
+        assertEquals(MethodType.OPENCL, mi.getMethodType());
         assertEquals(4, mi.getRequirements().getProcessors().get(0).getComputingUnits());
 
         // VERSIONING
@@ -110,6 +127,7 @@ public class COMPSsRuntimeImplTest {
         rt.registerCoreElement(coreElementSignature, implSignature, implConstraints, implType, implTypeArgs);
 
         mi = (AbstractMethodImplementation) CoreManager.getCoreImplementations(0).get(1);
+        assertEquals(MethodType.METHOD, mi.getMethodType());
         assertEquals(1, mi.getRequirements().getProcessors().get(0).getComputingUnits());
     }
 

@@ -1,16 +1,16 @@
 package decaf;
 
-public class Decaf {
+public class DECAF {
 
     public static int taskSingleDecaf(String fileOut) {
         return -1;
     }
     
-    public static int taskMultipleDecaf(String fileOut) {
+    public static Integer taskMultipleDecaf(String fileOut) {
         return -1;
     }
     
-    public static int taskConcurrentMultipleDecaf(String fileOut) {
+    public static Integer taskConcurrentMultipleDecaf(String fileOut) {
         return -1;
     }
 

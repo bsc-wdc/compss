@@ -6,6 +6,7 @@ import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.executors.util.BinaryInvoker;
+import integratedtoolkit.nio.worker.executors.util.DecafInvoker;
 import integratedtoolkit.nio.worker.executors.util.Invoker;
 import integratedtoolkit.nio.worker.executors.util.JavaInvoker;
 import integratedtoolkit.nio.worker.executors.util.MPIInvoker;
@@ -54,6 +55,9 @@ public class JavaExecutor extends Executor {
                     break;
                 case MPI:
                     invoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                    break;
+                case DECAF:
+                    invoker = new DecafInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                     break;
                 case OMPSS:
                     invoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);

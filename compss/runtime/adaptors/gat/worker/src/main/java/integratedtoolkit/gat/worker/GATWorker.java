@@ -127,6 +127,11 @@ public class GATWorker {
                 GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1] };
                 argPosition += 2;
                 break;
+            case DECAF:
+                // mpiRunner, mpiBinary
+                GATWorker.methodDefinition = new String[] { args[argPosition], args[argPosition + 1], args[argPosition + 2], args[argPosition + 3], args[argPosition + 4] };
+                argPosition += 5;
+                break;
             case OMPSS:
                 // binary
                 GATWorker.methodDefinition = new String[] { args[argPosition] };
@@ -540,6 +545,12 @@ public class GATWorker {
             case MPI:
                 GATWorker.retValue = Invokers.invokeMPIMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
                         GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes,
+                        GATWorker.taskSandboxWorkingDir);
+                break;
+            case DECAF:
+                GATWorker.retValue = Invokers.invokeDecafMethod(GATWorker.methodDefinition[0], GATWorker.methodDefinition[1],
+                		GATWorker.methodDefinition[2],  GATWorker.methodDefinition[3], GATWorker.methodDefinition[4],
+                		GATWorker.target, GATWorker.values, GATWorker.hasReturn, GATWorker.streams, GATWorker.prefixes,
                         GATWorker.taskSandboxWorkingDir);
                 break;
             case OMPSS:

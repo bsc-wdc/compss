@@ -518,6 +518,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             case "MPI":
                 mt = MethodType.MPI;
                 break;
+            case "DECAF":
+                mt = MethodType.DECAF;
+                break;
             case "BINARY":
                 mt = MethodType.BINARY;
                 break;

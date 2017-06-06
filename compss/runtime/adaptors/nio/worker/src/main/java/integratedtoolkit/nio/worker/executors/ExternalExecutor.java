@@ -1,7 +1,6 @@
 package integratedtoolkit.nio.worker.executors;
 
 import integratedtoolkit.ITConstants;
-
 import integratedtoolkit.nio.NIOParam;
 import integratedtoolkit.nio.NIOTask;
 import integratedtoolkit.nio.NIOTracer;
@@ -9,19 +8,18 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.exceptions.SerializedObjectException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.nio.worker.executors.util.BinaryInvoker;
+import integratedtoolkit.nio.worker.executors.util.DecafInvoker;
 import integratedtoolkit.nio.worker.executors.util.Invoker;
 import integratedtoolkit.nio.worker.executors.util.MPIInvoker;
 import integratedtoolkit.nio.worker.executors.util.OmpSsInvoker;
 import integratedtoolkit.nio.worker.executors.util.OpenCLInvoker;
 import integratedtoolkit.nio.worker.util.JobsThreadPool;
 import integratedtoolkit.nio.worker.util.TaskResultReader;
-
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
-
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.RequestQueue;
 
@@ -108,6 +106,10 @@ public abstract class ExternalExecutor extends Executor {
                 MPIInvoker mpiInvoker = new MPIInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, mpiInvoker);
                 break;
+            case DECAF:
+                DecafInvoker decafInvoker = new DecafInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
+                executeNonNativeMethod(outputsBasename, decafInvoker);
+                break;  
             case OMPSS:
                 OmpSsInvoker ompssInvoker = new OmpSsInvoker(nw, nt, taskSandboxWorkingDir, assignedCoreUnits);
                 executeNonNativeMethod(outputsBasename, ompssInvoker);

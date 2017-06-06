@@ -14,7 +14,7 @@ public class GenericInvoker {
 	private static final int NUM_BASE_MPI_ARGS = 6;
 	private static final int NUM_BASE_OMPSS_ARGS = 1;
 	private static final int NUM_BASE_BINARY_ARGS = 1;
-
+	private static final int NUM_BASE_DECAF_ARGS = 9;
 	private static final String OMP_NUM_THREADS = "OMP_NUM_THREADS";
 
 	public static Object invokeMPIMethod(String mpiRunner, String mpiBinary,
@@ -71,6 +71,69 @@ public class GenericInvoker {
 		System.out.println("[MPI INVOKER] MPI STDIN: " + streamValues.getStdIn());
 		System.out.println("[MPI INVOKER] MPI STDOUT: " + streamValues.getStdOut());
 		System.out.println("[MPI INVOKER] MPI STDERR: " + streamValues.getStdErr());
+
+		// Launch command
+		return BinaryRunner.executeCMD(cmd, hasReturn, streamValues,
+		        taskSandboxWorkingDir);
+	}
+	
+	public static Object invokeDecafMethod(String dfRunner, String dfScript, 
+			String dfExecutor, String dfLib, String mpiRunner,
+	        Object[] values, boolean hasReturn, Stream[] streams, String[] prefixes,
+	        File taskSandboxWorkingDir) throws InvokeExecutionException {
+
+		System.out.println("");
+		System.out.println("[DECAF INVOKER] Begin DECAF call to " + dfScript);
+		System.out.println("[DECAF INVOKER] On WorkingDir : "
+		        + taskSandboxWorkingDir.getAbsolutePath());
+
+		// Command similar to
+		// export OMP_NUM_THREADS=1 ; mpirun -H COMPSsWorker01,COMPSsWorker02 -n
+		// 2 (--bind-to core) exec args
+
+		// Get COMPSS ENV VARS
+		String workers = System.getProperty(Constants.COMPSS_HOSTNAMES);
+		String numNodes = System.getProperty(Constants.COMPSS_NUM_NODES);
+		String computingUnits = System.getProperty(Constants.COMPSS_NUM_THREADS);
+		String numProcs = String
+		        .valueOf(Integer.valueOf(numNodes) * Integer.valueOf(computingUnits));
+		System.out.println("[DECAF INVOKER] COMPSS HOSTNAMES: " + workers);
+		System.out.println("[DECAF INVOKER] COMPSS_NUM_NODES: " + numNodes);
+		System.out.println("[DECAF INVOKER] COMPSS_NUM_THREADS: " + computingUnits);
+
+		// Convert binary parameters and calculate binary-streams redirection
+		StreamSTD streamValues = new StreamSTD();
+		ArrayList<String> binaryParams = BinaryRunner
+		        .createCMDParametersFromValues(values, streams, prefixes, streamValues);
+
+		// Prepare command
+		String[] cmd = new String[NUM_BASE_DECAF_ARGS + binaryParams.size()];
+		cmd[0] = dfRunner;
+		cmd[1] = dfScript;
+		cmd[2] = dfExecutor;
+		cmd[3] = dfLib;
+		cmd[4] = mpiRunner;
+		cmd[5] = "-H";
+		cmd[6] = workers;
+		cmd[7] = "-n";
+		cmd[8] = numProcs;
+
+		for (int i = 0; i < binaryParams.size(); ++i) {
+			cmd[NUM_BASE_DECAF_ARGS + i] = binaryParams.get(i);
+		}
+
+		// Prepare environment
+		System.setProperty(OMP_NUM_THREADS, computingUnits);
+
+		// Debug command
+		System.out.print("[DECAF INVOKER] MPI CMD: ");
+		for (int i = 0; i < cmd.length; ++i) {
+			System.out.print(cmd[i] + " ");
+		}
+		System.out.println("");
+		System.out.println("[DECAF INVOKER] Decaf STDIN: " + streamValues.getStdIn());
+		System.out.println("[DECAF INVOKER] Decaf STDOUT: " + streamValues.getStdOut());
+		System.out.println("[DECAF INVOKER] Decaf STDERR: " + streamValues.getStdErr());
 
 		// Launch command
 		return BinaryRunner.executeCMD(cmd, hasReturn, streamValues,

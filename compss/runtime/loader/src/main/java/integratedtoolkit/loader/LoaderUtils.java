@@ -1,22 +1,22 @@
 package integratedtoolkit.loader;
 
 import integratedtoolkit.log.Loggers;
-
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.Decaf;
 import integratedtoolkit.types.annotations.task.MPI;
 import integratedtoolkit.types.annotations.task.Method;
 import integratedtoolkit.types.annotations.task.OmpSs;
 import integratedtoolkit.types.annotations.task.OpenCL;
 import integratedtoolkit.types.annotations.task.Service;
 import integratedtoolkit.types.annotations.task.repeatables.Binaries;
+import integratedtoolkit.types.annotations.task.repeatables.Decafs;
 import integratedtoolkit.types.annotations.task.repeatables.MPIs;
 import integratedtoolkit.types.annotations.task.repeatables.Methods;
 import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
 import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
 import integratedtoolkit.types.annotations.parameter.DataType;
-
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 import integratedtoolkit.util.ErrorManager;
 
@@ -40,6 +40,7 @@ public class LoaderUtils {
     public static final String OMPSS_SIGNATURE = "ompss.OMPSS";
     public static final String OPENCL_SIGNATURE = "opencl.OPPENCL";
     public static final String BINARY_SIGNATURE = "binary.BINARY";
+    public static final String DECAF_SIGNATURE = "decaf.DECAF";
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.LOADER_UTILS);
 
@@ -103,6 +104,12 @@ public class LoaderUtils {
                     return remoteMethod_javaLang;
                 }
             }
+            if (remoteMethod_javaLang.isAnnotationPresent(Decaf.class)) {
+                // BINARY
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
             // REPEATABLES
             if (remoteMethod_javaLang.isAnnotationPresent(Methods.class)) {
                 // METHODS
@@ -144,6 +151,12 @@ public class LoaderUtils {
             if (remoteMethod_javaLang.isAnnotationPresent(Binaries.class)) {
                 // BINARIES
                 if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, BINARY_SIGNATURE)) {
+                    return remoteMethod_javaLang;
+                }
+            }
+            if (remoteMethod_javaLang.isAnnotationPresent(Decafs.class)) {
+                // BINARIES
+                if (isSelectedNonNativeMethod(method, remoteMethod_javaLang, DECAF_SIGNATURE)) {
                     return remoteMethod_javaLang;
                 }
             }

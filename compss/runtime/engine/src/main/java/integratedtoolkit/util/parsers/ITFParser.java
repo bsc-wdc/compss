@@ -2,7 +2,6 @@ package integratedtoolkit.util.parsers;
 
 import integratedtoolkit.loader.LoaderUtils;
 import integratedtoolkit.log.Loggers;
-
 import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -11,18 +10,21 @@ import integratedtoolkit.types.annotations.Constraints;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.SchedulerHints;
 import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.Decaf;
 import integratedtoolkit.types.annotations.task.MPI;
 import integratedtoolkit.types.annotations.task.Method;
 import integratedtoolkit.types.annotations.task.OmpSs;
 import integratedtoolkit.types.annotations.task.OpenCL;
 import integratedtoolkit.types.annotations.task.Service;
 import integratedtoolkit.types.annotations.task.repeatables.Binaries;
+import integratedtoolkit.types.annotations.task.repeatables.Decafs;
 import integratedtoolkit.types.annotations.task.repeatables.MPIs;
 import integratedtoolkit.types.annotations.task.repeatables.Methods;
 import integratedtoolkit.types.annotations.task.repeatables.MultiOmpSs;
 import integratedtoolkit.types.annotations.task.repeatables.OpenCLs;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
 import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.DecafImplementation;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.MPIImplementation;
 import integratedtoolkit.types.implementations.MethodImplementation;
@@ -143,13 +145,14 @@ public class ITFParser {
                     && !annot.annotationType().getName().equals(Method.class.getName())
                     && !annot.annotationType().getName().equals(Service.class.getName())
                     && !annot.annotationType().getName().equals(MPI.class.getName())
+                    && !annot.annotationType().getName().equals(Decaf.class.getName())
                     && !annot.annotationType().getName().equals(OmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCL.class.getName())
                     && !annot.annotationType().getName().equals(Binary.class.getName())
                     // Repeatable annotations
                     && !annot.annotationType().getName().equals(Methods.class.getName())
                     && !annot.annotationType().getName().equals(Services.class.getName())
-                    && !annot.annotationType().getName().equals(MPIs.class.getName())
+                    && !annot.annotationType().getName().equals(Decafs.class.getName())
                     && !annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                     && !annot.annotationType().getName().equals(OpenCLs.class.getName())
                     && !annot.annotationType().getName().equals(Binaries.class.getName())
@@ -173,11 +176,13 @@ public class ITFParser {
          */
         for (Annotation annot : m.getAnnotations()) {
             if (annot.annotationType().getName().equals(MPI.class.getName())
+            		|| annot.annotationType().getName().equals(Decaf.class.getName())
                     || annot.annotationType().getName().equals(OmpSs.class.getName())
                     || annot.annotationType().getName().equals(OpenCL.class.getName())
                     || annot.annotationType().getName().equals(Binary.class.getName())
                     // Repeatable annotations
                     || annot.annotationType().getName().equals(MPIs.class.getName())
+                    || annot.annotationType().getName().equals(Decafs.class.getName())
                     || annot.annotationType().getName().equals(MultiOmpSs.class.getName())
                     || annot.annotationType().getName().equals(OpenCLs.class.getName())
                     || annot.annotationType().getName().equals(Binaries.class.getName())) {
@@ -508,6 +513,46 @@ public class ITFParser {
 
             // Register method implementation
             Implementation<?> impl = new MPIImplementation(binary, workingDir, mpiRunner, methodId, implId, implConstraints);
+            ++implId;
+            implementations.add(impl);
+        }
+        
+        /*
+         * Decaf
+         */
+        for (Decaf decafAnnot : m.getAnnotationsByType(Decaf.class)) {
+            LOGGER.debug("   * Processing @DECAF annotation");
+
+            String dfScript = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfScript());
+            String dfExecutor = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfExecutor());
+            String dfLib = EnvironmentLoader.loadFromEnvironment(decafAnnot.dfLib());
+            String workingDir = EnvironmentLoader.loadFromEnvironment(decafAnnot.workingDir());
+            String mpiRunner = EnvironmentLoader.loadFromEnvironment(decafAnnot.mpiRunner());
+
+            if (mpiRunner == null || mpiRunner.isEmpty()) {
+                ErrorManager.error("Empty mpiRunner annotation for method " + m.getName());
+            }
+            if (dfScript == null || dfScript.isEmpty()) {
+                ErrorManager.error("Empty binary annotation for method " + m.getName());
+            }
+
+            LOGGER.debug("DF Script: " + dfScript);
+            LOGGER.debug("DF Executor: " + dfExecutor);
+            LOGGER.debug("DF Lib: " + dfLib);
+            LOGGER.debug("mpiRunner: " + mpiRunner);
+
+            String mpiSignature = calleeMethodSignature.toString() + LoaderUtils.DECAF_SIGNATURE;
+            signatures.add(mpiSignature);
+
+            // Load specific method constraints if present
+            MethodResourceDescription implConstraints = defaultConstraints;
+            if (decafAnnot.constraints() != null) {
+                implConstraints = new MethodResourceDescription(decafAnnot.constraints());
+                implConstraints.mergeMultiConstraints(defaultConstraints);
+            }
+
+            // Register method implementation
+            Implementation<?> impl = new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }

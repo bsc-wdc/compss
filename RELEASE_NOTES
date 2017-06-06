@@ -205,6 +205,43 @@ For further information please refer to COMPSs User Manual: Application developm
 
 -------------------------------
 
+Release number 2.1
+Release date: June-2017
+-------------------------
+New features:
+        * Runtime:
+                - Annotations to simplify the creation of tasks with binaries
+                - Integration with other programming models MPI, OMPSs and Decaf
+                - Support for singularity in Clusters
+                - Multi-node task support
+                - Grid Engine clusters support
+                - Lang flag automatically infered in runcompss
+                - New tasks schedulers based on task generation order
+                - Affinity and over-subscribing management in cluster queue scripts
+
+        * Python:
+                - @local annotation for simplifiying data synchronizations at master (requires to install guppy)
+                - args and kwargs parameters as task dependencies
+                - versioning support in python
+                - Persistent workers
+                - Task-thread affinity
+
+        * C:
+                - File management API (compss_fopen, compss_ifstream, compss_ofstream)
+                - Task-thread affinity
+
+        * Tools:
+                - Visualization of not-assigned tasks in current graph of the COMPSs Monitor
+
+Improvements:
+        - Improved pyCOMPSs serialization
+        - Improvements in cluster job scripts and supercomputers configuration
+        - Several bug fixes
+
+Known Limitations:
+        * When executing python applications with constraints in the cloud the initial VMs
+ must be set to 0
+        * Problem tracing user events in Python
 
 
 Please find more details about the COMP Superscalar framework at: 

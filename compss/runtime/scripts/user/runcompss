@@ -103,6 +103,7 @@ show_opts() {
                                             Default: ${DEFAULT_COMMUNICATION_ADAPTOR}
     --conn=<className>                      Class that implements the runtime connector for the cloud
                                             Supported connectors: integratedtoolkit.connectors.DefaultSSHConnector
+								  | integratedtoolkit.connectors.DefaultNoSSHConnector
                                             Default: ${DEFAULT_CONNECTOR}
     --scheduler=<className>	            Class that implements the Scheduler for COMPSs
                                             Supported schedulers: integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler

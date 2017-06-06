@@ -123,6 +123,15 @@
 									<destFileName>vmm-conn.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
+                                                                        <groupId>es.bsc</groupId>
+                                                                        <artifactId>slurm-conn</artifactId>
+                                                                        <version>${conn.version}</version>
+                                                                        <type>jar</type>
+                                                                        <overWrite>false</overWrite>
+                                                                        <outputDirectory>${project.build.directory}/cloud-conn/</outputDirectory>
+                                                                        <destFileName>slurm-conn.jar</destFileName>
+                                                                </artifactItem>
+								<artifactItem>
 									<groupId>es.bsc</groupId>
 									<artifactId>docker-conn</artifactId>
 									<version>${conn.version}</version>

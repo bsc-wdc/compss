@@ -56,6 +56,19 @@ public class Invokers {
 
         return retValue;
     }
+    
+    public static Object invokeDecafMethod(String dfRunner, String dfScript, String dfExecutor, String dfLib, String mpiRunner, Object target, Object[] values, boolean hasReturn,
+            Stream[] streams, String[] prefixes, File taskSandboxWorkingDir) {
+
+        Object retValue = null;
+        try {
+            retValue = GenericInvoker.invokeDecafMethod(dfRunner, dfScript, dfExecutor, dfLib, mpiRunner, values, hasReturn, streams, prefixes, taskSandboxWorkingDir);
+        } catch (InvokeExecutionException iee) {
+            ErrorManager.error(ERROR_INVOKE, iee);
+        }
+
+        return retValue;
+    }
 
     public static Object invokeOmpSsMethod(String ompssBinary, Object target, Object[] values, boolean hasReturn, Stream[] streams,
             String[] prefixes, File taskSandboxWorkingDir) {

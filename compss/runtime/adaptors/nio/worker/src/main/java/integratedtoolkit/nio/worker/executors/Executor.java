@@ -24,6 +24,7 @@ import integratedtoolkit.util.RequestQueue;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.DecafImplementation;
 import integratedtoolkit.types.implementations.MPIImplementation;
 import integratedtoolkit.types.implementations.OmpSsImplementation;
 import integratedtoolkit.types.implementations.OpenCLImplementation;
@@ -213,6 +214,10 @@ public abstract class Executor implements Runnable {
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) nt.getMethodImplementation();
                 specificWD = mpiImpl.getWorkingDir();
+                break;
+            case DECAF:
+                DecafImplementation decafImpl = (DecafImplementation) nt.getMethodImplementation();
+                specificWD = decafImpl.getWorkingDir();
                 break;
             case OMPSS:
                 OmpSsImplementation ompssImpl = (OmpSsImplementation) nt.getMethodImplementation();

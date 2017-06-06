@@ -19,12 +19,9 @@ import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 import javassist.expr.MethodCall;
 import javassist.expr.NewExpr;
-
 import integratedtoolkit.loader.LoaderConstants;
 import integratedtoolkit.loader.LoaderUtils;
-
 import integratedtoolkit.log.Loggers;
-
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -33,12 +30,12 @@ import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.SchedulerHints;
 import integratedtoolkit.types.annotations.task.Binary;
+import integratedtoolkit.types.annotations.task.Decaf;
 import integratedtoolkit.types.annotations.task.MPI;
 import integratedtoolkit.types.annotations.task.OmpSs;
 import integratedtoolkit.types.annotations.task.OpenCL;
 import integratedtoolkit.types.annotations.task.Service;
 import integratedtoolkit.types.annotations.task.repeatables.Services;
-
 import integratedtoolkit.util.EnvironmentLoader;
 
 
@@ -342,6 +339,13 @@ public class ITAppEditor extends ExprEditor {
                 isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(mpiAnnot.priority()));
                 // Parse computingNodes from environment if needed
                 String numNodesSTR = EnvironmentLoader.loadFromEnvironment(mpiAnnot.computingNodes());
+                numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
+                        ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
+            } else if (declaredMethod.isAnnotationPresent(Decaf.class)) {
+                Decaf decafAnnot = declaredMethod.getAnnotation(Decaf.class);
+                isPrioritary = Boolean.parseBoolean(EnvironmentLoader.loadFromEnvironment(decafAnnot.priority()));
+                // Parse computingNodes from environment if needed
+                String numNodesSTR = EnvironmentLoader.loadFromEnvironment(decafAnnot.computingNodes());
                 numNodes = (numNodesSTR != null && !numNodesSTR.isEmpty() && !numNodesSTR.equals(Constants.UNASSIGNED))
                         ? Integer.valueOf(numNodesSTR) : Constants.SINGLE_NODE;
             } else if (declaredMethod.isAnnotationPresent(OmpSs.class)) {

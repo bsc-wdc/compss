@@ -23,7 +23,8 @@ public abstract class AbstractMethodImplementation extends Implementation<Method
         MPI, // For MPI methods
         OMPSS, // For OmpSs methods
         OPENCL, // For OpenCL methods
-        BINARY // For binary methods
+        BINARY, // For binary methods
+        DECAF // For decaf methods
     }
 
 

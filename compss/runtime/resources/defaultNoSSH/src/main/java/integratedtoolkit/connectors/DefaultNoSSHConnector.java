@@ -3,12 +3,14 @@ package integratedtoolkit.connectors;
 import es.bsc.conn.Connector;
 import es.bsc.conn.exceptions.ConnException;
 import es.bsc.conn.types.HardwareDescription;
+import es.bsc.conn.types.InstallationDescription;
 import es.bsc.conn.types.Processor;
 import es.bsc.conn.types.SoftwareDescription;
 import es.bsc.conn.types.VirtualResource;
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudImageDescription;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.util.Classpath;
 
@@ -138,8 +140,13 @@ public class DefaultNoSSHConnector extends AbstractConnector {
 
     private SoftwareDescription getSoftwareDescription(CloudMethodResourceDescription cmrd) {
         return new SoftwareDescription(cmrd.getOperatingSystemType(), cmrd.getOperatingSystemDistribution(),
-                cmrd.getOperatingSystemVersion(), cmrd.getAppSoftware());
+                cmrd.getOperatingSystemVersion(), cmrd.getAppSoftware(),getInstallationDescription(cmrd.getImage().getConfig()));
     }
+    
+    private InstallationDescription getInstallationDescription(MethodConfiguration config) {
+		return new InstallationDescription(config.getInstallDir(), config.getAppDir(), config.getClasspath(), config.getPythonpath(), 
+				config.getLibraryPath(), config.getWorkingDir(), config.getLimitOfTasks());
+	}
 
     private VirtualResource getVirtualResource(Object id, CloudMethodResourceDescription cmrd) {
         return new VirtualResource((String) id, getHardwareDescription(cmrd), getSoftwareDescription(cmrd),

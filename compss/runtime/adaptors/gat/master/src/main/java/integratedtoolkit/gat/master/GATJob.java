@@ -35,6 +35,7 @@ import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation;
 import integratedtoolkit.types.implementations.BinaryImplementation;
+import integratedtoolkit.types.implementations.DecafImplementation;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.MPIImplementation;
@@ -253,7 +254,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
     private JobDescription prepareJob() throws Exception {
         // Get the information related to the job
         TaskDescription taskParams = this.taskParams;
-
+        
         String targetPath = getResourceNode().getInstallDir();
         String targetHost = getResourceNode().getHost();
         String targetUser = getResourceNode().getUser();
@@ -296,6 +297,11 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
             case MPI:
                 MPIImplementation mpiImpl = (MPIImplementation) absImpl;
                 sandboxDir = mpiImpl.getWorkingDir();
+                isSpecific = true;
+                break;
+            case DECAF:
+                DecafImplementation decafImpl = (DecafImplementation) absImpl;
+                sandboxDir = decafImpl.getWorkingDir();
                 isSpecific = true;
                 break;
             case OMPSS:
@@ -374,6 +380,30 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                 MPIImplementation mpiImpl = (MPIImplementation) absImpl;
                 lArgs.add(mpiImpl.getMpiRunner());
                 lArgs.add(mpiImpl.getBinary());
+                break;
+            case DECAF:
+                DecafImplementation decafImpl = (DecafImplementation) absImpl;
+                lArgs.add(targetPath+DecafImplementation.SCRIPT_PATH);
+                String dfScript = decafImpl.getDfScript();
+                if (!dfScript.startsWith(File.separator)){
+                	String appPath = getResourceNode().getAppDir();
+                	dfScript = appPath + File.separator+ dfScript;
+                }
+                lArgs.add(dfScript);
+                String dfExecutor = decafImpl.getDfExecutor();
+                if (dfExecutor == null || dfExecutor.isEmpty() || dfExecutor.equals(Constants.UNASSIGNED)) {
+                	dfExecutor = "executor.sh";
+                }
+                if (!dfExecutor.startsWith(File.separator) && !dfExecutor.startsWith("./")){
+                	dfExecutor = "./" + dfExecutor;
+                }
+                lArgs.add(dfExecutor);
+                String dfLib = decafImpl.getDfLib();
+                if (dfLib == null || dfLib.isEmpty()) {
+                	dfLib = Constants.UNASSIGNED;
+                }
+                lArgs.add(dfLib);
+                lArgs.add(decafImpl.getMpiRunner());
                 break;
             case OMPSS:
                 OmpSsImplementation ompssImpl = (OmpSsImplementation) absImpl;

@@ -131,6 +131,8 @@ show_opts() {
                                             Default: Empty
     --container_compss_path=<path>          Path where compss is installed in the Singularity container image
                                             Default: /opt/COMPSs
+    --elasticity=<max_extra_nodes>	    Activate elasticity specifiying the maximum extra nodes (ONLY AVAILABLE FORM SLURM CLUSTERS WITH NIO ADAPTOR)
+				            Default: 0
 
   Runcompss configuration:
 
@@ -478,7 +480,17 @@ get_args() {
           # Remove from runcompss since launcher will add it
           master_port=$(echo $OPTARG | sed -e 's/master_port=//g')
           ;;
-        *)
+	container_image=*)
+          container_image=$(echo $OPTARG | sed -e 's/container_image=//g')
+          ;;
+        container_compss_path=*)
+          container_compss_path=$(echo $OPTARG | sed -e 's/container_compss_path=//g')
+          ;;
+        elasticity=*)
+          elasticity=$(echo $OPTARG | sed -e 's/elasticity=//g')
+	  args_pass="$args_pass --conn=integratedtoolkit.connectors.DefaultNoSSHConnector"
+          ;;
+	*)
           # Flag didn't match any patern. Add to COMPSs 
           args_pass="$args_pass --$OPTARG"
           ;;
@@ -869,7 +881,9 @@ create_xml_files() {
     # add_compute_node name cpus gpus lot memory
     add_compute_node "$node" ${cpus_per_node} ${gpus_per_node} ${max_tasks_per_node} ${node_memory}
   done
-
+  if [ ! -z "${elasticity}" ]; then
+  	insert_xml_elasticity ${elasticity} ${cpus_per_node} ${gpus_per_node} ${max_tasks_per_node} ${node_memory}
+  fi
   # Finish the resources file and the project file 
   insert_xml_footers
 
@@ -1046,6 +1060,183 @@ EOT
 </Project>
 EOT
 }
+
+
+###############################################
+# Insert XML Elasticity 
+###############################################
+insert_xml_elasticity() {
+  local max_vms=$1
+  local cus=$2
+  local gpus=$3
+  local lot=$4
+  local memory=$5
+  local jvm_workers_opts_str=$(echo "${jvm_workers_opts}" | tr "," " ")
+  local jvm_workers_opts_size=$(echo "${jvm_workers_opts_str}" | wc -w)
+  cat >> ${RESOURCES_FILE} << EOT
+   <CloudProvider Name="SLURM-Cluster">
+        <Endpoint>
+            <Server></Server>
+            <ConnectorJar>slurm-conn.jar</ConnectorJar>
+            <ConnectorClass>es.bsc.conn.slurm.SLURMConnector</ConnectorClass>
+        </Endpoint>
+        <Images>
+EOT
+  if [ -z "${container_image}" ]; then
+	cat >> ${RESOURCES_FILE} << EOT
+            <Image Name="None">
+EOT
+  else
+       cat >> ${RESOURCES_FILE} << EOT
+            <Image Name="${container_image}">
+EOT
+  fi
+  cat >> ${RESOURCES_FILE} << EOT
+                <CreationTime>120</CreationTime>
+      		<OperatingSystem>
+          		<Type>Linux</Type>
+          		<Distribution>SMP</Distribution>
+          		<Version>3.0.101-0.35-default</Version>
+      		</OperatingSystem>
+      		<Software>
+          		<Application>JAVA</Application>
+          		<Application>PYTHON</Application>
+          		<Application>EXTRAE</Application>
+          		<Application>COMPSS</Application>
+      		</Software>
+      		<Adaptors>
+          		<Adaptor Name="integratedtoolkit.nio.master.NIOAdaptor">
+              			<SubmissionSystem>
+                  			<Interactive/>
+              			</SubmissionSystem>
+              			<Ports>
+                  			<MinPort>43001</MinPort>
+                  			<MaxPort>43002</MaxPort>
+                  			<RemoteExecutionCommand>${REMOTE_EXECUTOR}</RemoteExecutionCommand>
+              			</Ports>
+          		</Adaptor>
+      		</Adaptors>
+      		<SharedDisks>
+          		<AttachedDisk Name="gpfs">
+              			<MountPoint>${GPFS_PREFIX}</MountPoint>
+          		</AttachedDisk>
+EOT
+  if [ "${GPFS2_PREFIX}" != "" ] && [ "${GPFS2_PREFIX}" != "${GPFS_PREFIX}" ]; then
+    cat >> ${RESOURCES_FILE} << EOT
+          		<AttachedDisk Name="gpfs2">
+              			<MountPoint>${GPFS2_PREFIX}</MountPoint>
+          		</AttachedDisk>
+EOT
+  fi
+
+  cat >> ${RESOURCES_FILE} << EOT
+      		</SharedDisks>
+            </Image>
+        </Images>
+        <InstanceTypes>
+            <InstanceType Name="Resource-Type-1">
+		<Processor Name="MainProcessor">
+          		<ComputingUnits>${cus}</ComputingUnits>
+          		<Architecture>Intel</Architecture>
+          		<Speed>2.6</Speed>
+      		</Processor>
+EOT
+  if [ ${gpus} != $DEFAULT_GPUS_PER_NODE ]; then
+    cat >> ${RESOURCES_FILE} << EOT
+        	<Processor Name="GPU">
+            		<Type>GPU</Type>
+            		<ComputingUnits>${gpus}</ComputingUnits>
+            		<Architecture>k80</Architecture>
+            		<Speed>2.6</Speed>
+        	</Processor>
+EOT
+  fi
+cat >> ${RESOURCES_FILE} << EOT
+		<Memory>
+          		<Size>${memory}</Size>
+      		</Memory>		
+                <Price>
+                    <TimeUnit>1</TimeUnit>
+                    <PricePerUnit>0.085</PricePerUnit>
+                </Price>
+            </InstanceType>
+        </InstanceTypes>
+    </CloudProvider>
+
+EOT
+
+
+  cat >> ${PROJECT_FILE} << EOT
+  <Cloud>
+        <InitialVMs>0</InitialVMs>
+        <MinimumVMs>0</MinimumVMs>
+        <MaximumVMs>${max_vms}</MaximumVMs>
+        <CloudProvider Name="SLURM-Cluster">
+		<LimitOfVMs>${max_vms}</LimitOfVMs>
+            		<Properties>
+                		<Property>
+                    			<Name>master_name</Name>
+                    			<Value>${master_node}</Value>
+                		</Property>
+				<Property>
+                                        <Name>master_port</Name>
+                                        <Value>${master_port}</Value>
+                                </Property>
+				<Property>
+                                        <Name>worker_debug</Name>
+                                        <Value>${tracing}</Value>
+                                </Property>
+				<Property>
+                                        <Name>jvm_opts_size</Name>
+                                        <Value>${jvm_workers_opts_size}</Value>
+                                </Property>
+				<Property>
+                                        <Name>jvm_opts_str</Name>
+                                        <Value>${jvm_workers_opts_str}</Value>
+                                </Property>
+                		<Property>
+                    			<Name>estimated-creation-time</Name>
+                    			<Value>100</Value>
+                		</Property>
+            		</Properties>
+		<Images>
+EOT
+  if [ -z "${container_image}" ]; then
+        cat >> ${PROJECT_FILE} << EOT
+            		<Image Name="None">
+EOT
+  else
+	cat >> ${PROJECT_FILE} << EOT
+                        <Image Name="${container_image}">
+EOT
+  fi
+  cat >> ${PROJECT_FILE} <<EOT
+				<InstallDir>${worker_install_dir}</InstallDir>
+      				<WorkingDir>${worker_working_dir}</WorkingDir>
+      				<Application>
+          				<LibraryPath>${library_path}</LibraryPath>
+      				</Application>
+EOT
+  if [ "$lot" != "" ] && [ $lot -ge 0 ]; then
+    cat >> ${PROJECT_FILE} <<EOT
+      				<LimitOfTasks>${lot}</LimitOfTasks>
+      
+EOT
+  fi
+
+  cat >> ${PROJECT_FILE} << EOT
+  			</Image>
+            </Images>
+            <InstanceTypes>
+                <InstanceType Name="Resource-Type-1"/>
+            </InstanceTypes>
+        </CloudProvider>
+    </Cloud>
+EOT
+
+}
+
+
 
 ###############################################
 # Adds a compute node to Resources/Project

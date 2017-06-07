@@ -17,7 +17,7 @@ public enum DataType {
     FILE_T,             // Java: File , Bindings: File / Object serialized
     OBJECT_T,           // Java: OBJ / SCO , Bindings: does not exist
     PSCO_T,             // Java: PSCOs
-    EXTERNAL_PSCO_T     // Bindings: PSCOs
+    EXTERNAL_OBJECT_T   // Bindings: Objects (currently, PSCOs)
 }
 
 

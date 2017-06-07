@@ -72,7 +72,7 @@ public class TaskDescription implements Serializable {
             Parameter lastParam = parameters[parameters.length - 1];
             DataType type = lastParam.getType();
             this.hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
         }
 
         this.signature = ServiceImplementation.getSignature(namespace, service, port, operation, hasTarget, hasReturn, parameters);

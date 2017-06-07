@@ -29,7 +29,8 @@ from uuid import UUID
 from pycompss.util.serializer import serialize_to_file
 from pycompss.util.serializer import deserialize_from_file
 
-storage_path = '/tmp/PSCO/localhost/'
+import socket
+storage_path = '/tmp/PSCO/' + str(socket.gethostname()) + '/'
 
 
 def init(config_file_path=None, **kwargs):
@@ -98,22 +99,12 @@ def getByID(id):
     #print "|   ************* dummy storage api *************   |"
     #print "|   *********************************************   |"
     #print "-----------------------------------------------------"
-    print "*********************"
-    print id
-    print "*********************"
     if id is not None:
         try:
-            # Validate that the uuid is uuid4 -- not necessary
-            # val = UUID(id, version=4)
             file_name = id + '.PSCO'
             file_path = storage_path + file_name
             obj = deserialize_from_file(file_path)
-            print "-----------------------------"
-            print file_name
-            print file_path
-            print obj
-            print obj.get()
-            print "-----------------------------"
+            obj.setID(id)
             return obj
         except ValueError:
             # The id does not complain uuid4 --> raise an exception
@@ -126,8 +117,6 @@ def getByID(id):
 
 
 def makePersistent(obj, *args):
-    print "Make persistent"
-
     if obj.id is None:
         if len(args) == 0:
             # The user has not indicated the id
@@ -155,7 +144,15 @@ def makePersistent(obj, *args):
 
 def removeById(obj):
     if obj.id is not None:
-        # Remove file from /tmp
+        # Remove ID file from /tmp/PSCO
+        file_name = str(obj.id) + '.ID'
+        file_path = storage_path + file_name
+        try:
+            os.remove(file_path)
+        except:
+            print "PSCO: " + file_path + " Does not exist!"
+
+        # Remove PSCO file from /tmp/PSCO
         file_name = str(obj.id) + '.PSCO'
         file_path = storage_path + file_name
         try:

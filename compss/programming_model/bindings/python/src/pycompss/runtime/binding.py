@@ -333,16 +333,14 @@ def synchronize(obj, mode):
     # adaptar el api de C, y finalmente anadir el booleano aqui.
 
     if 'getID' in dir(obj) and obj.getID() is not None:
-        print "SYNCHRONIZE"
-        print obj
-        print "INSIDE GETID"
         obj_id = obj.getID()
         if obj_id not in task_objects:
-            print "NOT IN TASK_OBJECTS"
             return obj
         else:
-            print "IN TASK_OBJECTS"
-            file_name = compss.get_file("storage://" + str(obj_id), mode)
+            # file_path is of the form storage://pscoID or file://sys_path_to_file
+            file_path = compss.get_file("storage://" + str(obj_id), mode)
+            # TODO: Add switch on protocol
+            protocol, file_name = file_path.split("://")
             from storage.api import getByID
             new_obj = getByID(file_name)
             return new_obj

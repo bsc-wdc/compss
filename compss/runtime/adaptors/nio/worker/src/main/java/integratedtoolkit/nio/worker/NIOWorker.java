@@ -263,7 +263,7 @@ public class NIOWorker extends NIOAgent {
                     case PSCO_T:
                         askForPSCO(param);
                         break;
-                    case EXTERNAL_PSCO_T:
+                    case EXTERNAL_OBJECT_T:
                         // Nothing to do since external parameters send their ID directly
                         break;
                     case FILE_T:

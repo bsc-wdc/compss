@@ -149,7 +149,7 @@ public class ServiceInstance extends COMPSsWorker {
             case PSCO_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
-            case EXTERNAL_PSCO_T:
+            case EXTERNAL_OBJECT_T:
                 path = Protocol.PERSISTENT_URI.getSchema() + name;
                 break;
             default:

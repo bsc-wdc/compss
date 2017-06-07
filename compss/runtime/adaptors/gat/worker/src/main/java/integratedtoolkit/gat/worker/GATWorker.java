@@ -257,7 +257,7 @@ public class GATWorker {
                     GATWorker.mustWrite[i] = ((String) args[argPosition++]).equals("W");
                     retrievePSCO(renamings[i], i);
                     break;
-                case EXTERNAL_PSCO_T:
+                case EXTERNAL_OBJECT_T:
                     GATWorker.types[i] = String.class;
                     GATWorker.values[i] = args[argPosition++];
                     break;

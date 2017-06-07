@@ -200,10 +200,10 @@ public class TaskAnalyser {
                     pscop.setType(DataType.PSCO_T);
                     daId = DIP.registerObjectAccess(am, pscop.getValue(), pscop.getCode());
                     break;
-                case EXTERNAL_PSCO_T:
+                case EXTERNAL_OBJECT_T:
                     ExternalObjectParameter externalPSCOparam = (ExternalObjectParameter) p;
                     // Check if its PSCO class and persisted to infer its type
-                    externalPSCOparam.setType(DataType.EXTERNAL_PSCO_T);
+                    externalPSCOparam.setType(DataType.EXTERNAL_OBJECT_T);
                     daId = DIP.registerExternalObjectAccess(am, externalPSCOparam.getId(), externalPSCOparam.getCode());
                     break;
                 case OBJECT_T:
@@ -311,7 +311,7 @@ public class TaskAnalyser {
 
         for (Parameter param : task.getTaskDescription().getParameters()) {
             DataType type = param.getType();
-            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T) {
+            if (type == DataType.FILE_T || type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T) {
                 DependencyParameter dPar = (DependencyParameter) param;
                 DataAccessId dAccId = dPar.getDataAccessId();
                 LOGGER.debug("Treating that data " + dAccId + " has been accessed at " + dPar.getDataTarget());

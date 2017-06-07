@@ -26,6 +26,7 @@ import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import integratedtoolkit.types.data.AccessParams.FileAccessParams;
 import integratedtoolkit.types.data.location.DataLocation.Protocol;
+import integratedtoolkit.types.data.location.PersistentLocation;
 import integratedtoolkit.types.implementations.AbstractMethodImplementation.MethodType;
 import integratedtoolkit.types.implementations.MethodImplementation;
 import integratedtoolkit.types.parameter.BasicTypeParameter;
@@ -381,10 +382,10 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 LOGGER.debug("Initializing components");
 
                 // Initialize object registry for bindings if needed
-                String lang = System.getProperty(ITConstants.IT_LANG);
-                if (lang != ITConstants.Lang.JAVA.name() && oReg == null) {
-                    oReg = new ObjectRegistry(this);
-                }
+                // String lang = System.getProperty(ITConstants.IT_LANG);
+                // if (lang != ITConstants.Lang.JAVA.name() && oReg == null) {
+                // oReg = new ObjectRegistry(this);
+                // }
 
                 // Initialize main runtime components
                 td = new TaskDispatcher();
@@ -573,7 +574,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Parameter lastParam = pars[pars.length - 1];
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
         }
         String signature = MethodImplementation.getSignature(methodClass, methodName, hasTarget, hasReturn, pars);
 
@@ -609,7 +610,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Parameter lastParam = pars[pars.length - 1];
             DataType type = lastParam.getType();
             hasReturn = (lastParam.getDirection() == Direction.OUT
-                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_PSCO_T));
+                    && (type == DataType.OBJECT_T || type == DataType.PSCO_T || type == DataType.EXTERNAL_OBJECT_T));
         }
 
         int task = ap.newTask(appId, signature, isPrioritary, numNodes, isReplicated, isDistributed, hasTarget, hasReturn, pars);
@@ -747,9 +748,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Tracer.emitEvent(Tracer.Event.GET_FILE.getId(), Tracer.Event.GET_FILE.getType());
         }
 
+        // Parse the destination path
         if (!destDir.endsWith(File.separator)) {
             destDir += File.separator;
         }
+
         // Parse the file name
         DataLocation sourceLocation;
         try {
@@ -763,33 +766,21 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             return null;
         }
 
-        FileAccessParams fap = new FileAccessParams(AccessMode.R, sourceLocation);
-        DataLocation targetLocation = ap.mainAccessToFile(sourceLocation, fap, destDir);
-        String path;
-        if (targetLocation == null) {
-            MultiURI u = sourceLocation.getURIInHost(Comm.getAppHost());
-            if (u != null) {
-                path = u.getPath();
-            } else {
-                path = fileName;
-            }
-        } else {
-            // Return the name of the file (a renaming) on which the stream will be opened
-            path = targetLocation.getPath();
-        }
+        // Ask the AP to
+        String finalPath = mainAccessToFile(fileName, sourceLocation, AccessMode.R, destDir);
 
         if (Tracer.isActivated()) {
             Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
         }
 
-        return path;
+        return finalPath;
     }
 
     /**
      * Returns a copy of the last object version
      */
     @Override
-    public Object getObject(Object o, int hashCode, String destDir) {
+    public Object getObject(Object obj, int hashCode, String destDir) {
         /*
          * We know that the object has been accessed before by a task, otherwise the ObjectRegistry would have discarded
          * it and this method would not have been called.
@@ -801,18 +792,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Getting object with hash code " + hashCode);
         }
-        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
-        if (validValue) {
-            // Main code is still performing the same modification. No need to register it as a new version.
-            if (Tracer.isActivated()) {
-                Tracer.emitEvent(Tracer.EVENT_END, Tracer.getRuntimeEventsType());
-            }
 
-            return null;
-        }
-
-        // Otherwise we request it from a task
-        Object oUpdated = ap.mainAcessToObject(o, hashCode, destDir);
+        Object oUpdated = mainAccessToObject(obj, hashCode);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Object obtained " + ((oUpdated == null) ? oUpdated : oUpdated.hashCode()));
@@ -823,7 +804,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         return oUpdated;
-
     }
 
     /**
@@ -831,13 +811,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      */
     @Override
     public void serializeObject(Object o, int hashCode, String destDir) {
-        /*
-         * System.out.println("IT: Serializing object"); String rename = TP.getLastRenaming(hashCode);
-         * 
-         * try { DataLocation loc = DataLocation.getLocation(Comm.appHost, destDir + rename); Serializer.serialize(o,
-         * destDir + rename); Comm.registerLocation(rename, loc); } catch (Exception e) {
-         * logger.fatal(ERROR_OBJECT_SERIALIZE + ": " + destDir + rename, e); System.exit(1); }
-         */
         // throw new NotImplementedException();
     }
 
@@ -858,8 +831,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /*
-     * ******************************************************************************************************** COMMON
-     * IN BOTH APIs
+     * ***********************************************************************************************************
+     * COMMON IN BOTH APIs
      * ********************************************************************************************************
      */
 
@@ -872,8 +845,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
             Tracer.emitEvent(Tracer.Event.OPEN_FILE.getId(), Tracer.Event.OPEN_FILE.getType());
         }
 
-        LOGGER.info("Opening file " + fileName + " in mode " + mode);
+        LOGGER.info("Opening " + fileName + " in mode " + mode);
 
+        // Parse arguments to internal structures
         DataLocation loc;
         try {
             loc = createLocation(fileName);
@@ -895,27 +869,25 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                 break;
         }
 
-        // Tell the DM that the application wants to access a file.
-        FileAccessParams fap = new FileAccessParams(am, loc);
-        DataLocation targetLocation = ap.mainAccessToFile(loc, fap, null);
-
-        String path = (targetLocation == null) ? fileName : targetLocation.getPath();
-        DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
-        if (finalLocation == null) {
-            ErrorManager.fatal(ERROR_FILE_NAME);
-            return null;
-        }
-
+        // Request AP that the application wants to access a FILE or a EXTERNAL_PSCO
         String finalPath;
-        MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
-        if (u != null) {
-            finalPath = u.getPath();
-        } else {
-            finalPath = path;
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("File target Location: " + finalPath);
+        switch (loc.getType()) {
+            case PRIVATE:
+            case SHARED:
+                finalPath = mainAccessToFile(fileName, loc, am, null);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("File target Location: " + finalPath);
+                }
+                break;
+            case PERSISTENT:
+                finalPath = mainAccessToExternalObject(fileName, loc);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("External Object target Location: " + finalPath);
+                }
+                break;
+            default:
+                finalPath = null;
+                ErrorManager.error("ERROR: Unrecognised protocol requesting openFile " + fileName);
         }
 
         if (Tracer.isActivated()) {
@@ -924,10 +896,11 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
         return finalPath;
     }
+    
 
     /*
-     * ******************************************************************************************************** PRIVATE
-     * HELPER METHODS
+     * ************************************************************************************************************
+     * PRIVATE HELPER METHODS
      * ********************************************************************************************************
      */
 
@@ -964,9 +937,9 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
                     pars[npar] = new ObjectParameter(direction, stream, prefix, parameters[i], oReg.newObjectParameter(parameters[i]));
                     break;
 
-                case EXTERNAL_PSCO_T:
-                    String pscoId = (String) parameters[i];
-                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, pscoId, oReg.newObjectParameter(pscoId));
+                case EXTERNAL_OBJECT_T:
+                    String id = (String) parameters[i];
+                    pars[npar] = new ExternalObjectParameter(direction, stream, prefix, id, externalObjectHashcode(id));
                     break;
 
                 default:
@@ -983,6 +956,66 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
         }
 
         return pars;
+    }
+
+    private int externalObjectHashcode(String id) {
+        int hashCode = 7;
+        for (int i = 0; i < id.length(); ++i) {
+            hashCode = hashCode * 31 + id.charAt(i);
+        }
+
+        return hashCode;
+    }
+    
+    private String mainAccessToFile(String fileName, DataLocation loc, AccessMode am, String destDir) {
+        // Tell the AP that the application wants to access a file.
+        FileAccessParams fap = new FileAccessParams(am, loc);
+        DataLocation targetLocation = ap.mainAccessToFile(loc, fap, destDir);
+
+        // Checks on target
+        String path = (targetLocation == null) ? fileName : targetLocation.getPath();
+        DataLocation finalLocation = (targetLocation == null) ? loc : targetLocation;
+        if (finalLocation == null) {
+            ErrorManager.fatal(ERROR_FILE_NAME);
+            return null;
+        }
+
+        // Return the final target path
+        String finalPath;
+        MultiURI u = finalLocation.getURIInHost(Comm.getAppHost());
+        if (u != null) {
+            finalPath = u.getPath();
+        } else {
+            finalPath = path;
+        }
+
+        return finalPath;
+    }
+
+    private Object mainAccessToObject(Object obj, int hashCode) {
+        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return null;
+        }
+
+        // Otherwise we request it from a task
+        return ap.mainAcessToObject(obj, hashCode);
+    }
+
+    private String mainAccessToExternalObject(String fileName, DataLocation loc) {
+        String id = ((PersistentLocation) loc).getId();
+        int hashCode = externalObjectHashcode(id);
+        boolean validValue = ap.isCurrentRegisterValueValid(hashCode);
+        if (validValue) {
+            // Main code is still performing the same modification.
+            // No need to register it as a new version.
+            return fileName;
+        }
+
+        // Otherwise we request it from a task
+        return ap.mainAcessToExternalObject(id, hashCode);
     }
 
     private DataLocation createLocation(String fileName) throws IOException {

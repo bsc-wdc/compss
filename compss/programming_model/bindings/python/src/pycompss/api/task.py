@@ -379,8 +379,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
     """
     # Retrieve internal parameters from worker.py.
     tracing = kwargs.get('compss_tracing')
-    cache_queue = kwargs.get('compss_cache_queue')
-    cache_pipe = kwargs.get('compss_cache_pipe')
     process_name = kwargs.get('compss_process_name')
     local_cache = kwargs.get('compss_local_cache')
 
@@ -419,8 +417,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                                                spec_args,
                                                self_kwargs,
                                                kwargs['compss_types'],
-                                               cache_queue,
-                                               cache_pipe,
                                                local_cache,
                                                process_name,
                                                returns)
@@ -479,19 +475,6 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
                 local_cache.set_object(suf_file_name, obj, file_size)
             else:
                 local_cache.add(suf_file_name, obj, file_size)
-            # deal with persistent cache
-            # lets create and write the segment on the worker and
-            # send an special message to the cache process to add it
-            from shm_manager import shm_manager as SHM
-            serialized_content = open(file_name, 'rb').read()
-            manager = SHM(1337, len(serialized_content))
-            manager.write_object(serialized_content)
-            cache_queue.put((process_name.split('-')[-1], file_name, ('ATTACH_SEGMENT', manager.key, manager.bytes)))
-            # we must wait to the cache process to notify us that the segment
-            # has been attached, otherwise we could reach natcch = 0 for this
-            # segment and delete it prematurely
-            answer = cache_pipe.recv()
-            del manager
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                is_replicated, is_distributed, num_nodes,
@@ -680,8 +663,7 @@ def get_default_args(f):
 
 def reveal_objects(values,
                    spec_args, deco_kwargs, compss_types,
-                   cache_queue, cache_pipe, local_cache,
-                   process_name, returns):
+                   local_cache, process_name, returns):
     """
     Function that goes through all parameters in order to
     find and open the files.
@@ -689,8 +671,6 @@ def reveal_objects(values,
     :param spec_args: <List> - Specific arguments.
     :param deco_kwargs: <List> - The decoratos.
     :param compss_types: <List> - The types of the values.
-    :param cache_queue: <Queue> - Global cache queue.
-    :param cache_pipe: <Pipe> - Global cache pipe.
     :param local_cache: <Dictionary> - Local cache dictionary.
     :param process_name: <String> - Process name (id).
     :param returns: If the function returns a value. Type = Boolean.
@@ -737,7 +717,8 @@ def reveal_objects(values,
         if compss_type == Type.FILE and p.type != Type.FILE:
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
-            if cache_queue is not None:
+            if local_cache is not None:
+                print 'local_cache is not NONE!!!'
                 comments = 'NORMAL' if p.direction == Direction.IN else 'INOUT_IN'
                 # ask the cache for the object
                 t_cache_interaction_start = time.time()
@@ -745,31 +726,19 @@ def reveal_objects(values,
                 if local_cache.has_object(suffix_name):
                     obj = local_cache.get(suffix_name)
                     local_cache.hit(suffix_name)
-                    logger.debug('Time to hit and assign on local cache: %.08fs'%elapsed(t_cache_interaction_start))
+                    print('Time to hit and assign on local cache: %.08fs'%elapsed(t_cache_interaction_start))
                 else:
-                    cache_queue.put((process_name.split('-')[-1], value, (comments)))
-                    answer = cache_pipe.recv()
-                    # have we received an answer of the form (key, bytes) ?
-                    # if yes, read from the indicated SHM
-                    #obj = deserialize_from_file(value)
-                    if isinstance(answer, tuple):
-                        from shm_manager import shm_manager as SHM
-                        manager = SHM(answer[0], answer[1], 0600)
-                        cache_pipe.send('D') # DONE!
-                        obj = deserialize_from_string(manager.read_object())
-                        del manager
-                        logger.debug('Time to miss on local and hit and assign in global cache: %.08fs'%elapsed(t_cache_interaction_start))
-                    else:
-                        obj = deserialize_from_file(value)
-                        logger.debug('Time to miss on both local and global and read from disk %.08fs'%elapsed(t_cache_interaction_start))
                     t_local_cache_addition = time.time()
                     file_size = os.path.getsize(value)
+                    obj = deserialize_from_file(value)
+                    # we must avoid to put outdated objects in our cache
+                    # and INOUT_IN objects are, by definition, outdated
                     if comments != 'INOUT_IN':
                         local_cache.add(suffix_name, obj, file_size)
-                    logger.debug('Time to add an object on the local cache: %.08fs'%elapsed(t_local_cache_addition))
+                    print('Time to add an object on the local cache: %.08fs'%elapsed(t_local_cache_addition))
             else:
+                print 'local_cache is NONE!!!'
                 obj = deserialize_from_file(value)
-
             real_values.append(obj)
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))

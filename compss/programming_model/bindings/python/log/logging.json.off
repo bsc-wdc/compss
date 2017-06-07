@@ -55,6 +55,11 @@
             "handlers": ["debug_file_handler","error_file_handler"],
             "propagate": "no"
         },
+        "pycompss.api.decaf": {
+            "level": "ERROR",
+            "handlers": ["debug_file_handler","error_file_handler"],
+            "propagate": "no"
+        },
         "pycompss.api.mpi": {
             "level": "ERROR",
             "handlers": ["debug_file_handler","error_file_handler"],

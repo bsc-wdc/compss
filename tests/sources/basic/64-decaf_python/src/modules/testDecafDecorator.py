@@ -2,23 +2,28 @@ import unittest
 from pycompss.api.task import task
 from pycompss.api.parameter import *
 from pycompss.api.api import barrier
-from pycompss.api.mpi import mpi
+from pycompss.api.decaf import decaf
 from pycompss.api.constraint import constraint
 
-@mpi(binary="date", workingDir="/tmp", runner="mpirun")
+@decaf(binary="date", workingDir="/tmp", runner="mpirun", dfScript="myscript")
+@task()
+def myDate(dprefix, param):
+    pass
+
+@decaf(binary="date", workingDir="/tmp", runner="mpirun", dfScript="myscript", dfExecutor="executor", dfLib="lib")
 @task()
 def myDate(dprefix, param):
     pass
 
 @constraint(computingUnits="2")
-@mpi(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2)
+@decaf(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2, dfScript="myscript", dfExecutor="executor", dfLib="lib")
 @task()
 def myDateConstrained(dprefix, param):
     pass
 
 # TODO: ADD SUPPORT FOR STREAMS !!!
 
-class testMpiDecorator(unittest.TestCase):
+class testDecafDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
         myDate("-d", "next friday")

@@ -15,10 +15,11 @@
 #
 """
 @author: fconejer
+@author: jejarque
 
-PyCOMPSs API - MPI
+PyCOMPSs API - DECAF
 ==================
-    This file contains the class mpi, needed for the mpi
+    This file contains the class decaf, needed for the @decaf task
     definition through the decorator.
 """
 import inspect
@@ -32,7 +33,7 @@ from pycompss.util.location import i_am_at_master
 logger = logging.getLogger(__name__)
 
 
-class mpi(object):
+class decaf(object):
     """
     This decorator also preserves the argspec, but includes the __init__ and
     __call__ methods, useful on mpi task creation.
@@ -41,14 +42,14 @@ class mpi(object):
         # store arguments passed to the decorator
         self.args = args
         self.kwargs = kwargs
-        logger.debug("Init @mpi decorator...")
+        logger.debug("Init @decaf decorator...")
 
         # Get the computing nodes -- This parameter will have to go down until execution when invoked.
         if 'computingNodes' not in self.kwargs:
             self.kwargs['computingNodes'] = 1
         else:
             self.kwargs['computingNodes'] = kwargs['computingNodes']
-        logger.debug("This MPI task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
+        logger.debug("This DECAF task will have " + str(self.kwargs['computingNodes']) + " computing nodes.")
 
         # self = itself.
         # args = not used.
@@ -94,21 +95,30 @@ class mpi(object):
             # Retrieve the base coreElement established at @task decorator
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
-            coreElement.set_implType("MPI")
+            coreElement.set_implType("DECAF")
             binary = self.kwargs['binary']
             if 'workingDir' in self.kwargs:
                 workingDir = self.kwargs['workingDir']
             else:
                 workingDir = '[unassigned]'   # Empty or '[unassigned]'
             runner = self.kwargs['runner']
-            implSignature = 'MPI.' + binary
+            dfScript = self.kwargs['dfScript']
+            if 'dfExecutor' in self.kwargs:
+                dfExecutor = self.kwargs['dfExecutor']
+            else:
+                dfExecutor = '[unassigned]'   # Empty or '[unassigned]'
+            if 'dfLib' in self.kwargs:
+                dfLib = self.kwargs['dfLib']
+            else:
+                dfLib = '[unassigned]'   # Empty or '[unassigned]'
+            implSignature = 'DECAF.' + binary
             coreElement.set_implSignature(implSignature)
-            implArgs = [binary, workingDir, runner]
+            implArgs = [binary, workingDir, runner, dfScript, dfExecutor, dfLib]
             coreElement.set_implTypeArgs(implArgs)
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator
             if func.__who_registers__ == __name__:
-                logger.debug("[@MPI] I have to do the register of function %s in module %s" % (func.__name__, self.module))
+                logger.debug("[@DECAF] I have to do the register of function %s in module %s" % (func.__name__, self.module))
                 register_ce(coreElement)
         else:
             # worker code
@@ -116,9 +126,9 @@ class mpi(object):
 
 
         @wraps(func)
-        def mpi_f(*args, **kwargs):
+        def decaf_f(*args, **kwargs):
             # This is executed only when called.
-            logger.debug("Executing mpi_f wrapper.")
+            logger.debug("Executing decaf_f wrapper.")
 
             # Set the computingNodes variable in kwargs for its usage in @task decorator
             kwargs['computingNodes'] = self.kwargs['computingNodes']
@@ -143,5 +153,5 @@ class mpi(object):
                     setattr(slf, k, v)
 
             return ret
-        mpi_f.__doc__ = func.__doc__
-        return mpi_f
+        decaf_f.__doc__ = func.__doc__
+        return decaf_f

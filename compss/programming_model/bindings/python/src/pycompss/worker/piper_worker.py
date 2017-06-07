@@ -83,12 +83,12 @@ INIT = "init"  # -- worker.py debug tracing #thr pipes_CMD pipes_RESULT
 EXECUTE_TASK_TAG = "task"  # -- "task" taskId jobOut jobErr task_params
 END_TASK_TAG = "endTask"  # -- "endTask" taskId endStatus
 QUIT_TAG = "quit"  # -- "quit"
-
+USE_CACHE = False
 
 ######################
 #  Processes body
 ######################
-def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe, storage_conf):
+def worker(queue, process_name, input_pipe, output_pipe, storage_conf):
     """
     Thread main body - Overrides Threading run method.
     Iterates over the input pipe in order to receive tasks (with their
@@ -100,8 +100,6 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     :param process_name: Process name (Thread-X, where X is the thread id).
     :param input_pipe: Input pipe for the thread. To receive messages from the runtime.
     :param output_pipe: Output pipe for the thread. To send messages to the runtime.
-    :param cache_queue: Queue where to put interprocess cache requests
-    :param cache_pipe: Pipe to read interprocess cache results
     :return: Nothing
     """
 
@@ -122,7 +120,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
     local_cache = None
     if USE_CACHE:
         from persistent_cache import Cache
-        local_cache = Cache(size_limit = 200 * 1024**2)
+        local_cache = Cache(size_limit = 1024**3)
 
     logger.debug("[PYTHON WORKER] Starting process " + str(process_name))
     while alive:
@@ -171,7 +169,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
                                 err = open(job_err, 'w')
                                 sys.stdout = out
                                 sys.stderr = err
-                                exitvalue = execute_task(process_name, storage_conf, line[9:], cache_queue, cache_pipe, local_cache)
+                                exitvalue = execute_task(process_name, storage_conf, line[9:], local_cache)
                                 sys.stdout = stdout
                                 sys.stderr = stderr
                                 out.close()
@@ -210,7 +208,7 @@ def worker(queue, process_name, input_pipe, output_pipe, cache_queue, cache_pipe
 #####################################
 # Execute Task Method - Task handler
 #####################################
-def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, local_cache):
+def execute_task(process_name, storage_conf, params, local_cache):
     """
     ExecuteTask main method
     """
@@ -227,8 +225,6 @@ def execute_task(process_name, storage_conf, params, cache_queue, cache_pipe, lo
     # COMPSs keywords for tasks (ie: tracing, cache data structures...)
     compss_kwargs = {
         'compss_tracing' : tracing,
-        'compss_cache_queue': cache_queue,
-        'compss_cache_pipe': cache_pipe,
         'compss_process_name': process_name,
         'compss_local_cache': local_cache,
         'compss_storage_conf': storage_conf
@@ -503,64 +499,6 @@ def shutdown_handler(signal, frame):
             proc.terminate()
 
 
-USE_CACHE = False
-# tamanyo
-# politica/s de borrado
-
-def cache_proc(cache_queue, cache_pipes):
-    from persistent_cache import Cache
-    from shm_manager import shm_manager as SHM
-    cache = Cache(size_limit = 1024)
-
-    while True:
-        msg = cache_queue.get()
-        if msg == '##END##':
-            return
-        # if msg is not the poisoned pill
-        # then it is a triplet (id, filename, comments)
-        # that must be read as "the process with identifier id wants the file
-        # named filename and the additional given comments must be followed"
-        process_id, file_name, comments = msg
-        suf_file_name = os.path.split(file_name)[-1]
-        process_ord = int(process_id)
-        # some worker has created an SHM segment and wants it to be added to
-        # the persistent worker's cache
-        if comments[0] == 'ATTACH_SEGMENT':
-            segment_key, segment_bytes = map(long, comments[1:])
-            manager = SHM(segment_key, segment_bytes, 0666)
-            # we have this object, lets update it
-            if cache.has_object(suf_file_name):
-                cache.hit(suf_file_name)
-                cache.set_object(suf_file_name, manager, segment_bytes)
-            # add the object
-            else:
-                cache.add(suf_file_name, manager, 1)
-            # notify the worker that we are done
-            cache_pipes[process_ord].send('DONE')
-        elif cache.has_object(suf_file_name):
-            cache.hit(suf_file_name)
-            shm_manager = cache.get(suf_file_name)
-            cache_pipes[process_ord].send((shm_manager.key, shm_manager.bytes))
-            # let's wait until the requesting process has attached the SHM
-            # and notified it to the Cache process
-            # note that attaching does not mean immediate remapping or
-            # reading, so this wait does not prevent workers to read in
-            # parallel from SHMs
-            cache_pipes[process_ord].recv()
-        else:
-            # we dont have the object, so lets tell the caller to read the obj,
-            # and store it in the cache
-            cache_pipes[process_ord].send('N') # NO!
-            # we must avoid to put outdated versions of INOUT objects so,
-            # if we do not have some INOUT object queried as an IN, we must
-            # simply tell the worker to read it from disk since it makes no
-            # sense to store an outdated object for future uses
-            if comments[0] != 'INOUT_IN':
-                dumped_obj = open(file_name, 'rb').read()
-                manager = SHM(1337, len(dumped_obj))
-                manager.write_object(dumped_obj)
-                cache.add(suf_file_name, manager, 1)
-
 ######################
 # Main method
 ######################
@@ -618,32 +556,17 @@ def compss_persistent_worker():
         # Initialize storage
         initStorageAtWorker(config_file_path=storage_conf)
 
-    if USE_CACHE:
-        cache_queue = Queue()
-        cache_pipes = [Pipe() for _ in range(tasks_x_node)]
-        # Create cache process
-        cache_process = Process(target=cache_proc, args=(cache_queue, [p[0] for p in cache_pipes]))
-        cache_process.start()
-
     # Create new threads
     queues = []
     for i in xrange(0, tasks_x_node):
         logger.debug("[PYTHON WORKER] Launching process " + str(i))
         process_name = 'Process-' + str(i)
         queues.append(Queue())
-        if USE_CACHE:
-            cache_queue_p = cache_queue
-            cache_pipe_p = cache_pipes[i][1]
-        else:
-            cache_queue_p = None
-            cache_pipe_p = None
         def create_threads():
             processes.append(Process(target=worker, args=(queues[i],
                                                           process_name,
                                                           in_pipes[i],
                                                           out_pipes[i],
-                                                          cache_queue_p,
-                                                          cache_pipe_p,
                                                           storage_conf)))
             processes[i].start()
         create_threads()
@@ -654,17 +577,6 @@ def compss_persistent_worker():
     # Wait for all threads
     for i in xrange(0, tasks_x_node):
         processes[i].join()
-
-    if USE_CACHE:
-        cache_queue.put("##END##")
-
-        cache_queue.close()
-        cache_queue.join_thread()
-        for (x, y) in cache_pipes:
-            x.close()
-            y.close()
-        cache_process.join()
-
 
     # Check if there is any exception message from the threads
     for i in xrange(0, tasks_x_node):

@@ -37,6 +37,9 @@ class SCO(object):
     def getID(self):
         return self.id
 
+    def setID(self, id):
+        self.id = id
+
     def makePersistent(self, *args):
         api.makePersistent(self, *args)
 

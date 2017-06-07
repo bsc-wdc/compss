@@ -348,7 +348,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
                         case PSCO_T:
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
                             break;
-                        case EXTERNAL_PSCO_T:
+                        case EXTERNAL_OBJECT_T:
                             // Its value is the PSCO Id
                             targetProtocol = DataLocation.Protocol.PERSISTENT_URI.getSchema();
                             break;

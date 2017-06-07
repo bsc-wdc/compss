@@ -273,7 +273,7 @@ public abstract class Invoker {
                     this.values[i] = obj;
                 }
                 break;
-            case EXTERNAL_PSCO_T:
+            case EXTERNAL_OBJECT_T:
                 this.types[i] = String.class;
                 this.values[i] = np.getValue();
                 this.writeFinalValue[i] = np.isWriteFinalValue();

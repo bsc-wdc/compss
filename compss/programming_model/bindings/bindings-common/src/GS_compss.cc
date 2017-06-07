@@ -569,7 +569,7 @@ void process_param(void **params, int i, jobjectArray jobjOBJArr) {
       }
       debug_printf ("[   BINDING]  -  @process_param  -  Persistent: %s\n", *(char **)parVal);
 
-      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("EXTERNAL_PSCO_T"));
+      jobjParType = env->CallStaticObjectMethod(clsParType, midParTypeCon, env->NewStringUTF("EXTERNAL_OBJECT_T"));
       if (env->ExceptionOccurred()) {
 	env->ExceptionDescribe();
 	exit(1);

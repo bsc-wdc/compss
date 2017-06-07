@@ -41,7 +41,7 @@ import storage.StorageItf;
 public class LogicalData {
 
     // Logger
-    private static final Logger logger = LogManager.getLogger(Loggers.COMM);
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.COMM);
 
     // Logical data name
     private final String name;
@@ -548,7 +548,7 @@ public class LogicalData {
         try {
             lockHostRemoval.acquire();
         } catch (InterruptedException e) {
-            logger.error("Exception", e);
+            LOGGER.error("Exception", e);
         }
     }
 

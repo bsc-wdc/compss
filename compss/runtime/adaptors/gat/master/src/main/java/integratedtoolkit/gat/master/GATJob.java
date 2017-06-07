@@ -586,7 +586,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
                     }
                     break;
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
+                case EXTERNAL_OBJECT_T:
                     logger.error("GAT Adaptor does not support PSCO Types");
                     listener.jobFailed(this, JobEndStatus.SUBMISSION_FAILED);
                     break;

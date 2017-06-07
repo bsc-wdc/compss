@@ -282,7 +282,7 @@ public abstract class ExternalExecutor extends Executor {
                     break;
                 case OBJECT_T:
                 case PSCO_T:
-                case EXTERNAL_PSCO_T:
+                case EXTERNAL_OBJECT_T:
                     lArgs.add(np.getValue().toString());
                     lArgs.add(np.isWriteFinalValue() ? "W" : "R");
                     break;

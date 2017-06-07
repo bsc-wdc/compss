@@ -48,6 +48,7 @@ import integratedtoolkit.types.uri.SimpleURI;
 import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -302,32 +303,18 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
         NIOJob nj = RUNNING_JOBS.remove(tr.getTaskId());
 
         // Update information
-        for (int i = 0; i < tr.getParamTypes().size(); ++i) {
-            DataType d = tr.getParamTypes().get(i);
-            if (d.equals(DataType.PSCO_T)) {
-                String pscoId = (String) tr.getParamValue(i);
-                DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
-                if (dp.getType().equals(DataType.PSCO_T)) {
-                    // The parameter was already a PSCO, we only update the information just in case
-                    dp.setDataTarget(pscoId);
-                } else {
-                    // The parameter was a OBJECT, we change its type and value and register its new location
-                    String renaming = dp.getDataTarget();
-
-                    // Update COMM information
-                    String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
-                    SimpleURI targetURI = new SimpleURI(targetPath);
-                    try {
-                        DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
-                        Comm.registerLocation(renaming, loc);
-                    } catch (Exception e) {
-                        ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
-                    }
-
-                    // Update Task information
-                    dp.setType(DataType.PSCO_T);
-                    dp.setDataTarget(pscoId);
-                }
+        List<DataType> taskResultTypes = tr.getParamTypes();
+        for (int i = 0; i < taskResultTypes.size(); ++i) {
+            switch (taskResultTypes.get(i)) {
+                case PSCO_T:
+                case EXTERNAL_OBJECT_T:
+                    String pscoId = (String) tr.getParamValue(i);
+                    DependencyParameter dp = (DependencyParameter) nj.getTaskParams().getParameters()[i];
+                    updateParameter(pscoId, dp);
+                    break;
+                default:
+                    // We only update information about PSCOs or EXTERNAL_OBJECTS
+                    break;
             }
         }
 
@@ -348,6 +335,34 @@ public class NIOAdaptor extends NIOAgent implements CommAdaptor {
 
         // Close connection
         c.finishConnection();
+    }
+
+    private void updateParameter(String pscoId, DependencyParameter dp) {
+        switch (dp.getType()) {
+            case PSCO_T:
+            case EXTERNAL_OBJECT_T:
+                // The parameter was already a PSCO, we only update the information just in case
+                dp.setDataTarget(pscoId);
+                break;
+            default:
+                // The parameter was an OBJECT or a FILE, we change its type and value and register its new location
+                String renaming = dp.getDataTarget();
+
+                // Update COMM information
+                String targetPath = Protocol.PERSISTENT_URI.getSchema() + pscoId;
+                SimpleURI targetURI = new SimpleURI(targetPath);
+                try {
+                    DataLocation loc = DataLocation.createLocation(Comm.getAppHost(), targetURI);
+                    Comm.registerLocation(renaming, loc);
+                } catch (Exception e) {
+                    ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath + " for " + renaming, e);
+                }
+
+                // Update Task information
+                dp.setType(DataType.PSCO_T);
+                dp.setDataTarget(pscoId);
+                break;
+        }
     }
 
     public void registerCopy(Copy c) {

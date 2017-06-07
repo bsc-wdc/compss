@@ -25,6 +25,7 @@ import integratedtoolkit.types.data.DataInstanceId;
 import integratedtoolkit.types.data.LogicalData;
 import integratedtoolkit.types.data.ResultFile;
 import integratedtoolkit.types.data.location.DataLocation;
+import integratedtoolkit.types.data.location.DataLocation.Protocol;
 import integratedtoolkit.types.request.ap.TransferRawFileRequest;
 import integratedtoolkit.types.request.ap.AlreadyAccessedRequest;
 import integratedtoolkit.types.request.ap.GetResultFilesRequest;
@@ -314,20 +315,19 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Notifies a main access to an object @o
+     * Notifies a main access to an object @obj
      * 
-     * @param o
+     * @param obj
      * @param hashCode
-     * @param destDir
      * @return
      */
-    public Object mainAcessToObject(Object o, int hashCode, String destDir) {
+    public Object mainAcessToObject(Object obj, int hashCode) {
         if (DEBUG) {
             LOGGER.debug("Requesting main access to object with hash code " + hashCode);
         }
 
         // Tell the DIP that the application wants to access an object
-        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, o, hashCode);
+        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, obj, hashCode);
         DataAccessId oaId = registerDataAccess(oap);
         DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
         String wRename = wId.getRenaming();
@@ -351,6 +351,39 @@ public class AccessProcessor implements Runnable, TaskProducer {
         }
         setObjectVersionValue(wRename, oUpdated);
         return oUpdated;
+    }
+
+    /**
+     * Notifies a main access to an external object {@code id}
+     * 
+     * @param fileName
+     * @param id
+     * @param hashCode
+     * @return
+     */
+    public String mainAcessToExternalObject(String id, int hashCode) {
+        if (DEBUG) {
+            LOGGER.debug("Requesting main access to external object with hash code " + hashCode);
+        }
+
+        // Tell the DIP that the application wants to access an object
+        AccessParams.ObjectAccessParams oap = new AccessParams.ObjectAccessParams(AccessMode.RW, id, hashCode);
+        DataAccessId oaId = registerDataAccess(oap);
+        DataInstanceId wId = ((DataAccessId.RWAccessId) oaId).getWrittenDataInstance();
+        String wRename = wId.getRenaming();
+
+        // Wait until the last writer task for the object has finished
+        if (DEBUG) {
+            LOGGER.debug("Waiting for last writer of " + oaId.getDataId() + " with renaming " + wRename);
+        }
+        waitForTask(oaId.getDataId(), AccessMode.RW);
+
+        // TODO: Check if the object was already piggybacked in the task notification
+        
+        String lastRenaming = ((DataAccessId.RWAccessId) oaId).getReadDataInstance().getRenaming();
+        String newId = Comm.getData(lastRenaming).getId();
+
+        return Protocol.PERSISTENT_URI.getSchema() + newId;
     }
 
     /**

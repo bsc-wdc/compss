@@ -64,11 +64,6 @@ def reduceTask(dic1, dic2):
 
 @task(final=INOUT)
 def reduceTaskPSCOs(final, dic2):
-    print "REDUCE TASK PSCOs"
-    print "PPPPPPPPPPPPPPPPPPP"
-    print final.get()
-    print dic2
-    print "PPPPPPPPPPPPPPPPPPP"
     dic1 = final.get()
     for k in dic2:
         if k in dic1:
@@ -76,9 +71,6 @@ def reduceTaskPSCOs(final, dic2):
         else:
             dic1[k] = dic2[k]
     final.set(dic1)
-    print "PPPPPPPPPPPPPPPPPPP"
-    print final.get()
-    print "PPPPPPPPPPPPPPPPPPP"
 
 
 def basicTest():
@@ -173,7 +165,7 @@ def WordCount2():
 	    - Wordcount task receives a PSCO and returns a dictionary.
 	    - Reduce task receives a INOUT PSCO (result) where accumulates the partial results.
     '''
-    words = [Words('This is a test'), Words('This is a test')] #, Words('This is a test'), Words('This is a test')]
+    words = [Words('This is a test'), Words('This is a test'), Words('This is a test'), Words('This is a test')]
     for w in words:
         w.makePersistent()
     result = Result()
@@ -183,9 +175,6 @@ def WordCount2():
     for w in words:
         partialResults = wordcountTask(w)
         reduceTaskPSCOs(result, partialResults)
-
-    from pycompss.api.api import barrier
-    barrier()
 
     final = compss_wait_on(result)
     print "XXXXXXXXXXXXXXXXXX"

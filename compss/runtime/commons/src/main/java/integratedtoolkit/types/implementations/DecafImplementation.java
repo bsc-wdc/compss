@@ -6,14 +6,14 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 
 
 public class DecafImplementation extends AbstractMethodImplementation implements Externalizable {
 
-    public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator+"scripts"+File.separator+"system"+File.separator+"decaf"+File.separator+"run_decaf.sh";
-	private String mpiRunner;
+    public static final String SCRIPT_PATH = File.separator + "Runtime" + File.separator + "scripts" + File.separator + "system"
+            + File.separator + "decaf" + File.separator + "run_decaf.sh";
+    private String mpiRunner;
     private String dfScript;
     private String dfExecutor;
     private String dfLib;
@@ -25,8 +25,8 @@ public class DecafImplementation extends AbstractMethodImplementation implements
         super();
     }
 
-    public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner, Integer coreId, Integer implementationId,
-            MethodResourceDescription annot) {
+    public DecafImplementation(String dfScript, String dfExecutor, String dfLib, String workingDir, String mpiRunner, Integer coreId,
+            Integer implementationId, MethodResourceDescription annot) {
 
         super(coreId, implementationId, annot);
 
@@ -40,11 +40,11 @@ public class DecafImplementation extends AbstractMethodImplementation implements
     public String getDfScript() {
         return this.dfScript;
     }
-    
+
     public String getDfExecutor() {
         return this.dfExecutor;
     }
-    
+
     public String getDfLib() {
         return this.dfLib;
     }
@@ -76,7 +76,8 @@ public class DecafImplementation extends AbstractMethodImplementation implements
 
     @Override
     public String toString() {
-        return super.toString() + " Decaf Method with script " + dfScript + ", executor " + dfScript + ", library " + dfLib + " and MPIrunner " + mpiRunner;
+        return super.toString() + " Decaf Method with script " + dfScript + ", executor " + dfScript + ", library " + dfLib
+                + " and MPIrunner " + mpiRunner;
     }
 
     @Override

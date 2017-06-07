@@ -8,7 +8,6 @@ import integratedtoolkit.nio.exceptions.JobExecutionException;
 import integratedtoolkit.nio.worker.NIOWorker;
 import integratedtoolkit.types.annotations.Constants;
 import integratedtoolkit.types.implementations.DecafImplementation;
-import integratedtoolkit.types.implementations.MPIImplementation;
 import integratedtoolkit.worker.invokers.GenericInvoker;
 
 
@@ -53,17 +52,17 @@ public class DecafInvoker extends Invoker {
         if (this.dfScript == null || this.dfScript.isEmpty()) {
             throw new JobExecutionException(ERROR_DECAF_BINARY);
         }
-        if (!this.dfScript.startsWith(File.separator)){
-        	this.dfScript=nw.getAppDir()+File.separator+this.dfScript;
+        if (!this.dfScript.startsWith(File.separator)) {
+            this.dfScript = nw.getAppDir() + File.separator + this.dfScript;
         }
-        if (this.dfExecutor == null || this.dfExecutor.isEmpty() ||  this.dfExecutor.equals(Constants.UNASSIGNED)) {
-        	this.dfExecutor = "executor.sh";
+        if (this.dfExecutor == null || this.dfExecutor.isEmpty() || this.dfExecutor.equals(Constants.UNASSIGNED)) {
+            this.dfExecutor = "executor.sh";
         }
-        if (!this.dfExecutor.startsWith(File.separator) && !this.dfExecutor.startsWith("./")){
-        	this.dfExecutor = "./"+this.dfExecutor;
+        if (!this.dfExecutor.startsWith(File.separator) && !this.dfExecutor.startsWith("./")) {
+            this.dfExecutor = "./" + this.dfExecutor;
         }
         if (this.dfLib == null || this.dfLib.isEmpty()) {
-        	this.dfLib = "null";
+            this.dfLib = "null";
         }
         if (this.target.getValue() != null) {
             throw new JobExecutionException(ERROR_TARGET_PARAM);
@@ -73,8 +72,8 @@ public class DecafInvoker extends Invoker {
     private Object invokeMPIMethod() throws JobExecutionException {
         logger.info("Invoked " + this.dfScript + " in " + this.nw.getHostName());
         try {
-            return GenericInvoker.invokeDecafMethod(nw.getInstallDir()+DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor, this.dfLib, this.mpiRunner, this.values, this.hasReturn, this.streams, this.prefixes,
-                    this.taskSandboxWorkingDir);
+            return GenericInvoker.invokeDecafMethod(nw.getInstallDir() + DecafImplementation.SCRIPT_PATH, this.dfScript, this.dfExecutor,
+                    this.dfLib, this.mpiRunner, this.values, this.hasReturn, this.streams, this.prefixes, this.taskSandboxWorkingDir);
         } catch (InvokeExecutionException iee) {
             throw new JobExecutionException(iee);
         }

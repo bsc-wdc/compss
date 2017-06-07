@@ -718,7 +718,6 @@ def reveal_objects(values,
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             if local_cache is not None:
-                print 'local_cache is not NONE!!!'
                 comments = 'NORMAL' if p.direction == Direction.IN else 'INOUT_IN'
                 # ask the cache for the object
                 t_cache_interaction_start = time.time()
@@ -737,7 +736,6 @@ def reveal_objects(values,
                         local_cache.add(suffix_name, obj, file_size)
                     print('Time to add an object on the local cache: %.08fs'%elapsed(t_local_cache_addition))
             else:
-                print 'local_cache is NONE!!!'
                 obj = deserialize_from_file(value)
             real_values.append(obj)
             if p.direction != Direction.IN:

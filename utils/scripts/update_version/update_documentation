@@ -85,7 +85,7 @@ usage() {
   #---------------------------------------------------------------------
   # Copy documentation
   echo "- Copy documentation to trunk"
-  allowed_pdfs="COMPSs_Installation_Manual.pdf COMPSs_MareNostrum_Manual.pdf COMPSs_User_Manual_App_Development.pdf COMPSs_User_Manual_App_Exec.pdf COMPSs_Tracing_Manual.pdf"
+  allowed_pdfs="COMPSs_Installation_Manual.pdf COMPSs_Supercomputers_Manual.pdf COMPSs_User_Manual_App_Development.pdf COMPSs_User_Manual_App_Exec.pdf COMPSs_Tracing_Manual.pdf"
   pdfs=$(find ${documentation_dir} -name *.pdf)
   for doc in ${pdfs}; do
     docname=$(basename $doc)

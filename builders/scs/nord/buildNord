@@ -2,17 +2,17 @@
  
   #############################################################
   # Name: buildMN
-  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
-  # Parameters: <MN_user> MareNostrum user account. Preferable with ssh keys inserted
-  #             <FullTmpPath> Tmp path on MareNostrum for deployment
-  #             <FullTargetPath> Base Target Installation folder on MareNostrum
+  # Description: SCRIPT FOR Nord 3 COMPSs BUILD
+  # Parameters: <Nord_user> Nord 3 account. Preferable with ssh keys inserted
+  #             <FullTmpPath> Tmp path on Nord 3 for deployment
+  #             <FullTargetPath> Base Target Installation folder on Nord 3
   #############################################################
 
   ####################
   # FUNCTIONS
   ####################
   usage() {
-    echo " Usage: buildNord <MN_user> <FullTmpPath> <FullTargetPath>"
+    echo " Usage: buildNord <Nord_user> <FullTmpPath> <FullTargetPath>"
     echo " "
   }
 

@@ -2,7 +2,7 @@
  
   #############################################################
   # Name: buildMN_aux
-  # Description: SCRIPT FOR LOCAL COMPSs BUILD in MareNostrum
+  # Description: SCRIPT FOR LOCAL COMPSs BUILD in Nord 3
   # Parameters: <targetDir>           Base Target Installation folder
   #
   # ATTENTION: DO NOT EXECUTE THIS FILE. IT IS AUTOMATICALLY 

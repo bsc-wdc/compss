@@ -4,7 +4,7 @@
   # Name: buildJureca
   # Description: SCRIPT FOR Jureca COMPSs BUILD
   # Parameters: <Jureca_user> Jureca user account. Preferable with ssh keys inserted
-  #             <FullTmpPath> Tmp path on MareNostrum for deployment
+  #             <FullTmpPath> Tmp path on Jureca for deployment
   #             <FullTargetPath> Base Target Installation folder on Jureca
   #############################################################
 

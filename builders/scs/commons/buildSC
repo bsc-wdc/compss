@@ -2,12 +2,12 @@
  
   #############################################################
   # Name: buildSC
-  # Description: SCRIPT FOR MareNostrum COMPSs BUILD
-  # Parameters: <SC_user>         SuperComputer user account. Preferable with ssh keys inserted
-  #             <SC_loginNode>    Node to login to the SuperComputer
-  #             <FullTmpPath>     Tmp path on MareNostrum for deployment
-  #             <FullTargetPath>  Base Target Installation folder on SuperComputer
-  #             <AuxScript>       Script to execute inside the SuperComputer
+  # Description: SCRIPT FOR Supercomputers COMPSs BUILD
+  # Parameters: <SC_user>         Supercomputer user account. Preferable with ssh keys inserted
+  #             <SC_loginNode>    Node to login to the Supercomputer
+  #             <FullTmpPath>     Tmp path on the Supercomputer for deployment
+  #             <FullTargetPath>  Base Target Installation folder on Supercomputer
+  #             <AuxScript>       Script to execute inside the Supercomputer
   #             <PRELOAD_ENV>     Pre-load environment on <AuxScript> execution
   #############################################################
 

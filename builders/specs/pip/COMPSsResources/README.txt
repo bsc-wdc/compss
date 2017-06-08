@@ -19,7 +19,7 @@ COMPSs documentation can be found at http://compss.bsc.es (Documentation tab)
 * COMPSs_User_Manual_App_Development.pdf
 * COMPSs_User_Manual_App_Execution.pdf
 
-* COMPSs_MareNostrum_Manual.pdf
+* COMPSs_Supercomputers_Manual.pdf
 * Tracing_Manual.pdf
 
 * COMPSs_Developer_Manual.pdf

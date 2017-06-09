@@ -6,8 +6,11 @@ import sys
 from types import (BuiltinFunctionType, GetSetDescriptorType, FrameType,
                    MemberDescriptorType, MethodType)
 
-import guppy
-from guppy.heapy import Path
+try:
+    import guppy
+    from guppy.heapy import Path
+except:
+    raise ImportError('Cannot use local decorator without guppy!')
 
 hp = guppy.hpy()
 

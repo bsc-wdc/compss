@@ -6,6 +6,7 @@
   comm=$3
   number_of_tasks=32
   number_of_workers=1
+  number_of_threads=4
   errors=false
 
   # Log files
@@ -27,7 +28,7 @@
   # GAT does not support task tracing
   if [ "${comm}" != "integratedtoolkit.gat.master.GATAdaptor" ]; then
 
-      evts_tasks=$(grep -c ":${TASK_EVENTS}:${WORKER_TASK}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
+      evts_tasks=$(grep -c ":${TASK_EVENTS}:[1-9][0-9]*" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_tasks_end=$(grep -c "${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running=$(grep -c ":${TASK_EVENTS}:${WORKER_RUNNING}" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
       evts_worker_running_end=$(grep -c "2:1:1:2:1:.*:${TASK_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
@@ -36,19 +37,24 @@
       sync_evts_end=$(grep -c ":${SYNC_EVENTS}:0" ${target_log_folder}/trace/task_tracing_kmeans.py_compss_trace_*.prv)
 
 
-      if [ "${evts_tasks}" != "$((${number_of_tasks}+${number_of_workers}))" ]; then
-         echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/${number_of_tasks}]"
-         errors=true
-      fi
+#      if [ "${evts_tasks}" != "$((${number_of_tasks}+${number_of_threads}))" ]; then
+#         echo "[ERROR] Incorrect number of python task start events. [${evts_tasks}/$((${number_of_tasks}+${number_of_threads}))]"
+#         errors=true
+#      fi
+#
+#      if [ "${evts_tasks_end}" != "$((${number_of_tasks}+${number_of_threads}))" ]; then
+#         echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/$((${number_of_tasks}+${number_of_threads}))]"
+#         errors=true
+#      fi
 
-      if [ "${evts_tasks_end}" != "$((${number_of_tasks}+${number_of_workers}))" ]; then
-         echo "[ERROR] Incorrect number of python task end events. [${evts_tasks_end}/${number_of_tasks}]"
+      if [ "${evts_tasks_end}" != "${evts_tasks}" ]; then
+         echo "[ERROR] Start and end events counts do not match. [${evts_tasks}/${evts_tasks_end}]"
          errors=true
       fi
 
       start_evts=${evts_tasks}
-      if [ "${evts_worker_running}" != "${evts_worker_running_end}" ] ; then
-        echo "[ERROR] Number of start and end worker emits are not equal [${evts_worker_running}, ${evts_worker_running_end}]"
+      if [ "${evts_worker_running}" != "1" ] ; then
+        echo "[ERROR] Number of worker start events different than actual number of workers [${evts_worker_running} != 1]"
         errors=true
       fi
 

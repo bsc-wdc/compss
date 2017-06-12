@@ -5,30 +5,32 @@ from pycompss.api.api import barrier
 from pycompss.api.decaf import decaf
 from pycompss.api.constraint import constraint
 
-@decaf(binary="date", workingDir="/tmp", runner="mpirun", dfScript="myscript")
-@task()
-def myDate(dprefix, param):
+@decaf(dfScript="decaf/test-auto.py")
+@task(param=FILE_OUT)
+def myDecaf(dprefix, param):
     pass
 
-@decaf(binary="date", workingDir="/tmp", runner="mpirun", dfScript="myscript", dfExecutor="executor", dfLib="lib")
-@task()
-def myDate(dprefix, param):
+@decaf(workingDir=".", runner="mpirun", dfScript="decaf/test.py", dfExecutor="test.sh", dfLib="lib")
+@task(param=FILE_OUT)
+def myDecafAll(dprefix, param):
     pass
 
 @constraint(computingUnits="2")
-@decaf(binary="date", workingDir="/tmp", runner="mpirun", computingNodes=2, dfScript="myscript", dfExecutor="executor", dfLib="lib")
-@task()
-def myDateConstrained(dprefix, param):
+@decaf(runner="mpirun", computingNodes=2, dfScript="myscript", dfExecutor="executor", dfLib="lib")
+@task(param=FILE_OUT)
+def myDecafConstrained(dprefix, param):
     pass
-
-# TODO: ADD SUPPORT FOR STREAMS !!!
 
 class testDecafDecorator(unittest.TestCase):
 
     def testFunctionalUsage(self):
-        myDate("-d", "next friday")
+        myDecaf("--file", "outFile")
+        barrier()
+
+    def testFunctionalUsageAll(self):
+        myDecafAll("--file", "outFileAll")
         barrier()
 
     def testFunctionalUsageWithConstraint(self):
-        myDateConstrained("-d", "next monday")
+        myDecafConstrained("--file", "outFileConstrained")
         barrier()

@@ -96,7 +96,6 @@ class decaf(object):
             coreElement = func.__to_register__
             # Update the core element information with the mpi information
             coreElement.set_implType("DECAF")
-            binary = self.kwargs['binary']
             if 'workingDir' in self.kwargs:
                 workingDir = self.kwargs['workingDir']
             else:
@@ -111,9 +110,9 @@ class decaf(object):
                 dfLib = self.kwargs['dfLib']
             else:
                 dfLib = '[unassigned]'   # Empty or '[unassigned]'
-            implSignature = 'DECAF.' + binary
+            implSignature = 'DECAF.' + dfScript 
             coreElement.set_implSignature(implSignature)
-            implArgs = [binary, workingDir, runner, dfScript, dfExecutor, dfLib]
+            implArgs = [ workingDir, runner, dfScript, dfExecutor, dfLib]
             coreElement.set_implTypeArgs(implArgs)
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator

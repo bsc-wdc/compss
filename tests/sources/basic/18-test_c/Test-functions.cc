@@ -20,6 +20,7 @@ void char_size(char c, file filename) {
 
 void string_size(char *s, file filename) {
 	FILE *fp;
+	printf("Running function with %s, %s\n",s, filename);
 	fp = fopen(filename, "a");
 
 	fprintf(fp, "[TEST_FILE] Testing {in} string parameter.......................");

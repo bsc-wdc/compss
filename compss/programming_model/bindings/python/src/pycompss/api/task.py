@@ -455,10 +455,12 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
             rets = args[total_rets:]
             i = 0
             for ret_filename in rets:
+                ret_filename = ret_filename.split(':')[-1]
                 to_serialize.append((ret[i], ret_filename))
                 i += 1
         else:  # simple return
             ret_filename = args[-1]
+            ret_filename = ret_filename.split(':')[-1]
             to_serialize.append((ret, ret_filename))
 
     if len(to_serialize) > 0:
@@ -715,13 +717,17 @@ def reveal_objects(values,
             return time.time() - start
 
         if compss_type == Type.FILE and p.type != Type.FILE:
+            # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile" 
+            forig,fdest,preserve,write_final,fname = value.split(':')
+            suffix_name = forig
+            value = fname
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             if local_cache is not None:
                 comments = 'NORMAL' if p.direction == Direction.IN else 'INOUT_IN'
                 # ask the cache for the object
                 t_cache_interaction_start = time.time()
-                suffix_name = os.path.split(value)[-1]
+                #suffix_name = os.path.split(value)[-1]
                 if local_cache.has_object(suffix_name):
                     obj = local_cache.get(suffix_name)
                     local_cache.hit(suffix_name)
@@ -741,5 +747,9 @@ def reveal_objects(values,
             if p.direction != Direction.IN:
                 to_serialize.append((obj, value))
         else:
+            print('compss_type' + str(compss_type)+ ' type'+ str(p.type))
+            if compss_type == Type.FILE:
+                forig,fdest,preserve,write_final,fname = value.split(':')
+                value = fname
             real_values.append(value)
     return real_values, to_serialize

@@ -31,7 +31,6 @@ int main(int argc, char **argv)
 
 	fp = fopen(filename, "w");
 	fprintf(fp, "[TEST_FILE] TestFile content. Initialized from master \n");
-	fprintf(fp, "\n");
 	fclose(fp);
 
 	// Log init test

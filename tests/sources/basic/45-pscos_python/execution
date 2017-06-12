@@ -32,6 +32,10 @@ EOF
   }
   trap clean EXIT 
 
+  # Create the persistent folders for the Dummy Storage
+  #mkdir -p /tmp/PSCO/$(hostname)
+  #mkdir -p /tmp/PSCO/COMPSsWorker01
+  
   #----------------------------------------------------------------------------------
   # Set Storage implementation location
   storageImplPath=${base_app_dir}/jars/compss-dummyPSCO.jar

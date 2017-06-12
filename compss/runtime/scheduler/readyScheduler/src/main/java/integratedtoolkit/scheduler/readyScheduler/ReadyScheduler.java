@@ -73,9 +73,7 @@ public abstract class ReadyScheduler<P extends Profile, T extends WorkerResource
      */
     @Override
     protected void scheduleAction(AllocatableAction<P, T, I> action, Score actionScore) throws BlockedActionException {
-        if (action.hasDataPredecessors()) {
-            this.dependingActions.addAction(action);
-        } else {
+        if (!action.hasDataPredecessors()) {
             try {
                 action.schedule(actionScore);
             } catch (UnassignedActionException ex) {
@@ -87,9 +85,7 @@ public abstract class ReadyScheduler<P extends Profile, T extends WorkerResource
     protected void scheduleAction(AllocatableAction<P, T, I> action, ResourceScheduler<P, T, I> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
 
-        if (action.hasDataPredecessors()) {
-            this.dependingActions.addAction(action);
-        } else {
+        if (!action.hasDataPredecessors()) {
             action.schedule(targetWorker, actionScore);
         }
     }

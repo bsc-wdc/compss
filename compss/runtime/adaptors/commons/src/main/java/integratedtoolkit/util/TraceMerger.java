@@ -39,6 +39,7 @@ public class TraceMerger {
 
     private String workerThreadInfo = "(^\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(\\d+):(.*)";
     private Pattern workerThreadInfoPattern = Pattern.compile(workerThreadInfo);
+    private static final Integer STATE_TYPE = 1;
     private static final Integer WORKER_THREAD_ID = 2;
     private static final Integer WORKER_TIMESTAMP = 6;
     private static final Integer WORKER_LINE_INFO = 7;
@@ -223,10 +224,10 @@ public class TraceMerger {
         Matcher taskMatcher = workerThreadInfoPattern.matcher(line);
         String newLine = "";
         if (taskMatcher.find()) {
-            String baseWorkerHeader = workerHeader.getResourceId();
 
             Integer threadID = Integer.parseInt(taskMatcher.group(WORKER_THREAD_ID));
-            String eventHeader = baseWorkerHeader + ":" + workerID + ":" + threadID; // WRONG
+            Integer stateID = Integer.parseInt(taskMatcher.group(STATE_TYPE));
+            String eventHeader = stateID + ":" + threadID + ":1:" + workerID + ":" + threadID;
             Long timestamp = workerHeader.getTimestamp() + Long.parseLong(taskMatcher.group(WORKER_TIMESTAMP));
             String lineInfo = taskMatcher.group(WORKER_LINE_INFO);
             newLine = eventHeader + ":" + timestamp + ":" + lineInfo;

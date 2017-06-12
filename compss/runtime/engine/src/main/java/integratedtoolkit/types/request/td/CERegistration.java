@@ -97,7 +97,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
                 break;
             case MPI:
                 if (this.implTypeArgs.length != 3) {
-                    ErrorManager.error("Incorrect parameters for type DECAF on " + this.coreElementSignature);
+                    ErrorManager.error("Incorrect parameters for type MPI on " + this.coreElementSignature);
                 }
                 String mpiBinary = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                 String mpiWorkingDir = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
@@ -112,7 +112,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
                 break;
             case DECAF:
                 if (this.implTypeArgs.length != 5) {
-                    ErrorManager.error("Incorrect parameters for type MPI on " + this.coreElementSignature);
+                    ErrorManager.error("Incorrect parameters for type DECAF on " + this.coreElementSignature);
                 }
                 String dfScript = EnvironmentLoader.loadFromEnvironment(implTypeArgs[0]);
                 String dfExecutor = EnvironmentLoader.loadFromEnvironment(implTypeArgs[1]);
@@ -123,7 +123,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
                     ErrorManager.error("Empty mpiRunner annotation for DECAF method " + this.coreElementSignature);
                 }
                 if (dfScript == null || dfScript.isEmpty()) {
-                    ErrorManager.error("Empty binary annotation for DECAF method " + this.coreElementSignature);
+                    ErrorManager.error("Empty dfScript annotation for DECAF method " + this.coreElementSignature);
                 }
                 m = new DecafImplementation(dfScript, dfExecutor, dfLib, decafWorkingDir, decafRunner, coreId, implId, this.implConstraints);
                 break;

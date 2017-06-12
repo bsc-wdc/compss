@@ -100,7 +100,10 @@ class decaf(object):
                 workingDir = self.kwargs['workingDir']
             else:
                 workingDir = '[unassigned]'   # Empty or '[unassigned]'
-            runner = self.kwargs['runner']
+            if 'mpiRunner' in self.kwargs:
+                runner = self.kwargs['mpiRunner']
+            else:
+                runner = 'mpirun'
             dfScript = self.kwargs['dfScript']
             if 'dfExecutor' in self.kwargs:
                 dfExecutor = self.kwargs['dfExecutor']
@@ -112,7 +115,7 @@ class decaf(object):
                 dfLib = '[unassigned]'   # Empty or '[unassigned]'
             implSignature = 'DECAF.' + dfScript 
             coreElement.set_implSignature(implSignature)
-            implArgs = [ workingDir, runner, dfScript, dfExecutor, dfLib]
+            implArgs = [ dfScript, dfExecutor, dfLib, workingDir, runner]
             coreElement.set_implTypeArgs(implArgs)
             func.__to_register__ = coreElement
             # Do the task register if I am the top decorator

@@ -124,13 +124,15 @@ public abstract class Tracer {
         
         // Task Events
         TASK_EXECUTION_PYTHON(1, INSIDE_TASKS_TYPE, "Task execution"),
-        USER_CODE_PYTHON(2, INSIDE_TASKS_TYPE, "User code execution"),
-        IMPORTING_MODULES_PYTHON(3, INSIDE_TASKS_TYPE, "Importing modules"),
-        THREAD_BINDING_PYTHON(4, INSIDE_TASKS_TYPE, "Thread binding"),
-        DESERIALIZE_OBJECT_PYTHON1(5, INSIDE_TASKS_TYPE, "Deserializing object"),
-        DESERIALIZE_OBJECT_PYTHON2(6, INSIDE_TASKS_TYPE, "Deserializing object"),
-        SERIALIZE_OBJECT_PYTHON(7, INSIDE_TASKS_TYPE, "Serializing object"),
-        CREATE_THREADS_PYTHON(8, INSIDE_TASKS_TYPE, "Create persistent threads"),
+        USER_CODE_PYTHON1(2, INSIDE_TASKS_TYPE, "User code execution 1"),
+        USER_CODE_PYTHON2(3, INSIDE_TASKS_TYPE, "User code execution 2"),
+        USER_CODE_PYTHON3(4, INSIDE_TASKS_TYPE, "User code execution 3"),
+        IMPORTING_MODULES_PYTHON(5, INSIDE_TASKS_TYPE, "Importing modules"),
+        THREAD_BINDING_PYTHON(6, INSIDE_TASKS_TYPE, "Thread binding"),
+        DESERIALIZE_OBJECT_PYTHON1(7, INSIDE_TASKS_TYPE, "Deserializing object"),
+        DESERIALIZE_OBJECT_PYTHON2(8, INSIDE_TASKS_TYPE, "Deserializing object"),
+        SERIALIZE_OBJECT_PYTHON(9, INSIDE_TASKS_TYPE, "Serializing object"),
+        CREATE_THREADS_PYTHON(10, INSIDE_TASKS_TYPE, "Create persistent threads"),
         WORKER_RUNNING(102, INSIDE_TASKS_TYPE, "Worker running"),
 
         READY_COUNT(1, READY_COUNTS, "Ready queue count");

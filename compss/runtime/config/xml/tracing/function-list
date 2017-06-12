@@ -1,5 +1,7 @@
 process_task
-task_execution
+task_execution_1
+task_execution_2
+task_execution_3
 import_module
 bind_cpus
 deserialize_from_string

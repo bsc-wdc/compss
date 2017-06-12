@@ -40,6 +40,7 @@ DEFAULT_MASTER_NAME=""
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fullGraphScheduler.FullGraphScheduler
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fifoScheduler.FIFOScheduler
 #DEFAULT_SCHEDULER=integratedtoolkit.scheduler.fifoDataScheduler.FIFODataScheduler
+#DEFAULT_SCHEDULER=integratedtoolkit.components.impl.TaskScheduler
 DEFAULT_SCHEDULER=integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler
 RUNTIME_LOADER=integratedtoolkit.loader.ITAppLoader
 DEFAULT_JVM_MASTER=""

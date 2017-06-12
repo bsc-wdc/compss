@@ -370,6 +370,8 @@ def execute_task(process_name, storage_conf, params, local_cache):
     #    pyextrae.event(TASK_EVENTS, 0)
     #    pyextrae.event(TASK_EVENTS, MODULES_IMPORT)
 
+    import_error = False
+
     try:
         # Try to import the module (for functions)
         logger.debug("[PYTHON WORKER %s] Trying to import the user module." % process_name)
@@ -381,7 +383,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
             module = __import__(path, globals(), locals(), [path], -1)
             logger.debug("[PYTHON WORKER %s] Module successfully loaded (Python version < 2.7" % process_name)
 
-        def task_execution():
+        def task_execution_1():
             # if tracing:
             #    pyextrae.eventandcounters(TASK_EVENTS, 0)
             #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -394,9 +396,9 @@ def execute_task(process_name, storage_conf, params, local_cache):
 
         if persistent_storage:
             with TaskContext(logger, values, config_file_path=storage_conf):
-                task_execution()
+                task_execution_1()
         else:
-            task_execution()
+            task_execution_1()
 
     # ==========================================================================
     except AttributeError:
@@ -409,6 +411,16 @@ def execute_task(process_name, storage_conf, params, local_cache):
         exit(1)
     # ==========================================================================
     except ImportError:
+        import_error = True
+    # ==========================================================================
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
+        logger.exception(''.join(line for line in lines))
+        return 1
+
+    if import_error:
         logger.debug("[PYTHON WORKER %s] Could not import the module. Reason: Method in class." % process_name)
         # Not the path of a module, it ends with a class name
         class_name = path.split('.')[-1]
@@ -433,7 +445,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
             types.pop()
             types.insert(0, Type.OBJECT)
 
-            def task_execution():
+            def task_execution_2():
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -446,9 +458,9 @@ def execute_task(process_name, storage_conf, params, local_cache):
 
             if persistent_storage:
                 with TaskContext(logger, values, config_file_path=storage_conf):
-                    task_execution()
+                    task_execution_2()
             else:
-                task_execution()
+                task_execution_2()
 
             logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
             logger.debug("[PYTHON WORKER %s] Obj: %s" % (process_name,str(obj)))
@@ -457,7 +469,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
             # Class method - class is not included in values (e.g. values = [7])
             types.insert(0, None)  # class must be first type
 
-            def task_execution():
+            def task_execution_3():
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
@@ -470,17 +482,9 @@ def execute_task(process_name, storage_conf, params, local_cache):
 
             if persistent_storage:
                 with TaskContext(logger, values, config_file_path=storage_conf):
-                    task_execution()
+                    task_execution_3()
             else:
-                task_execution()
-
-    # ==========================================================================
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        logger.exception("[PYTHON WORKER %s] WORKER EXCEPTION" % process_name)
-        logger.exception(''.join(line for line in lines))
-        return 1
+                task_execution_3()
 
     # EVERYTHING OK
     logger.debug("[PYTHON WORKER %s] End task execution. Status: Ok" % process_name)

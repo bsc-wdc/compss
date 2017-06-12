@@ -9,6 +9,7 @@
   cp -f ${source_base_dir}/result ${target_base_dir}/result
 
   cp -rf ${source_base_dir}/src ${target_base_dir}/src
+  cp -rf ${source_base_dir}/decaf ${target_base_dir}/decaf
 
   cp -f ${source_base_dir}/project.xml ${target_base_dir}/project.xml
   cp -f ${source_base_dir}/resources.xml ${target_base_dir}/resources.xml

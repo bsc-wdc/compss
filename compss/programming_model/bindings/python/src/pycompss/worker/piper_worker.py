@@ -424,7 +424,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
 
         if has_target == 'true':
             # Instance method
-            file_name = values.pop()
+            file_name = values.pop().split(':')[-1]
             logger.debug("[PYTHON WORKER %s] Deserialize self from file." % process_name)
             obj = deserialize_from_file(file_name)
 

@@ -2,11 +2,13 @@
 
 import os
 import stat
+import sys 
 
 print("Executing python script.")
 
 file = open('executor.sh','w')
-file.write('#!/bin/sh\n') 
-file.write('echo "Executing binary"\n') 
+file.write('#!/bin/sh\n')
+print('echo "Executing binary for auto" > '+ sys.argv[-1] +'\n')
+file.write('echo "Executing binary for auto" > '+ sys.argv[-1] +'\n') 
 file.close()
-os.chmod('test.sh', stat.S_IRWXU)
+os.chmod('executor.sh', stat.S_IRWXU)

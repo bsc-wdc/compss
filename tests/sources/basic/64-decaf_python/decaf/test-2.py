@@ -2,13 +2,12 @@
 
 import os
 import stat
-import sys 
-
+import sys
 
 print("Executing python script.")
 
-file = open('test.sh','w')
+file = open('test-2.sh','w')
 file.write('#!/bin/sh\n') 
-file.write('echo "Executing binary" >'+sys.argv[-1]+'\n') 
+file.write('echo "Executing binary for 2" >'+sys.argv[-1]+'\n') 
 file.close()
-os.chmod('test.sh', stat.S_IRWXU)
+os.chmod('test-2.sh', stat.S_IRWXU)

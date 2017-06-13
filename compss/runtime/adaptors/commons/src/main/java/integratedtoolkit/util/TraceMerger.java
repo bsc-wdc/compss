@@ -155,6 +155,8 @@ public class TraceMerger {
             HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
+            logger.debug("Not removing folder " + workingDir + File.separator + traceSubDir +
+                    File.separator + workerSubDir + " because mergin may fail.");
 //            TODO: do not remove because merging may fail
 //            if (!debug) {
 //                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);

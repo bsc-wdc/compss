@@ -335,7 +335,10 @@ def cleanTempFiles():
     Currently: app_path, which contains the file path where all interactive code required by the worker is.
     '''
     try:
-        os.remove(app_path)
+        if os.path.exists(app_path):
+            os.remove(app_path)
+        if os.path.exists(app_path + 'c'):
+            os.remove(app_path + 'c')
     except OSError:
         print "[ERROR] An error has occurred when cleaning temporary files."
 

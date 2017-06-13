@@ -679,12 +679,6 @@ def reveal_objects(values,
     :return: a list with the real values
     """
     from pycompss.api.parameter import Parameter, Type, Direction
-    try:
-        # Import storage libraries if possible
-        from storage.api import getByID
-    except ImportError:
-        # If not present, import dummy functions
-        from pycompss.storage.api import getByID
 
     num_pars = len(spec_args)
     real_values = []

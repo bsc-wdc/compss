@@ -1,6 +1,6 @@
 from pycompss.api.task import task
 from pycompss.api.parameter import *
-from pycompss.storage.api import getByID
+from storage.api import getByID
 
 from models import mySO
 from models import Words, Result

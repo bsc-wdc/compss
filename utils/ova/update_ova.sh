@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
   # Installation
-  ./install_deps.sh
+  #./install_deps.sh
   ./install_compss.sh
 
   # Sync data

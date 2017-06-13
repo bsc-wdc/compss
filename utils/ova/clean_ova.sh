@@ -20,6 +20,7 @@
   sudo find . -name ".COMPSs" | xargs -r -i -t rm -rf {}
 
   # Add 0's to image 
+  cd -
   echo "Adding 0's"
   ./clean_0s.sh
 

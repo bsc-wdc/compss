@@ -515,12 +515,18 @@ EOT
 #${QUEUE_CMD} ${QARG_NUM_NODES}${QUEUE_SEPARATOR}${num_nodes}
 EOT
   fi
+
   # Add num processes when defined in queue system
+  req_cpus_per_node=${cpus_per_node}
+  if [ ${req_cpus_per_node} -gt ${DEFAULT_CPUS_PER_NODE} ]; then
+    req_cpus_per_node=${DEFAULT_CPUS_PER_NODE}
+  fi
+
   if [ -n "${QARG_NUM_PROCESSES}" ]; then 
     if [ -n "${QNUM_PROCESSES_VALUE}" ]; then
       eval processes=${QNUM_PROCESSES_VALUE}
     else
-      processes=${cpus_per_node}
+      processes=${req_cpus_per_node}
     fi
     echo "Requesting $processes processes"
     cat >> $TMP_SUBMIT_SCRIPT << EOT

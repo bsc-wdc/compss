@@ -101,6 +101,9 @@ public class TraceMerger {
         File f = new File(workingDir + File.separator + traceSubDir);
         File[] matchingFiles = f.listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
 
+        if (matchingFiles == null){
+            throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
+        }
         if (!(matchingFiles.length < 1)) {
             masterTrace = matchingFiles[0];
             masterTracePath = masterTrace.getAbsolutePath();
@@ -134,8 +137,10 @@ public class TraceMerger {
         logger.debug("Parsing master sync events");
         HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);
 
-        logger.debug("Proceeding to merge task traces into master");
+        logger.debug("Proceeding to merge task traces into master which contains " +
+        masterSyncEvents.size() + " lines.");
         for (File workerFile : workersTraces) {
+            logger.debug("Merging worker " + workerFile);
             String workerFileName = workerFile.getName();
             String wID = "";
 
@@ -150,21 +155,18 @@ public class TraceMerger {
             HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
-            if (!debug) {
-                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
-            }
+//            TODO: do not remove because merging may fail
+//            if (!debug) {
+//                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+//            }
         }
         masterWriter.close();
         logger.debug("Merging finished.");
     }
 
     private void add(HashMap<Integer, List<LineInfo>> map, Integer key, LineInfo newValue) {
-        List<LineInfo> currentValue = map.get(key);
+        List<LineInfo> currentValue = map.computeIfAbsent(key, k -> new ArrayList<>());
 
-        if (currentValue == null) {
-            currentValue = new ArrayList<>();
-            map.put(key, currentValue);
-        }
         currentValue.add(newValue);
     }
 
@@ -212,6 +214,7 @@ public class TraceMerger {
     private void writeWorkerEvents(HashMap<Integer, List<LineInfo>> masterSyncEvents, HashMap<Integer, List<LineInfo>> workerSyncEvents,
             List<String> eventsLine, Integer workerID) {
 
+        logger.debug("Writing " + eventsLine.size() + " lines from worker " + workerID);
         LineInfo workerHeader = getWorkerInfo(masterSyncEvents.get(workerID), workerSyncEvents.get(workerID));
 
         for (String line : eventsLine) {

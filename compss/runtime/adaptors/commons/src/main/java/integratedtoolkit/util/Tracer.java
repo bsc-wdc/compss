@@ -584,7 +584,7 @@ public abstract class Tracer {
             try {
                 new TraceMerger(System.getProperty(ITConstants.IT_APP_LOG_DIR), appName).merge();
             } catch (IOException e) {
-                ErrorManager.warn("Error while trying to merge files", e);
+                ErrorManager.warn("Error while trying to merge files: " + e.toString());
             }
         }
     }

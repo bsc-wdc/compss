@@ -21,7 +21,6 @@
   basic_app_folders=$(ls ${source_base_dir}/basic/)
   counter=1
   for app in $basic_app_folders; do
-     echo "app value: $app"
      if [ "$app" != "pom.xml" ] && [[ "$app" != *".iml" ]]; then
         if [ $counter -lt 10 ]; then 
            target="${target_base_dir}/apps_basic/app0$counter"

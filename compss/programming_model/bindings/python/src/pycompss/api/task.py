@@ -446,6 +446,10 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
         pyextrae.eventandcounters(TASK_EVENTS, 0)
         pyextrae.eventandcounters(TASK_EVENTS, SERIALIZATION)
 
+    # this will contain the same as to_serialize but we will store the whole
+    # file identifier string instead of simply the file_name
+    _output_objects = []
+
     if returns:
         # If there is multireturn then serialize each one on a different file
         # Multireturn example: a,b,c = fun() , where fun() has a return x,y,z
@@ -455,11 +459,13 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
             rets = args[total_rets:]
             i = 0
             for ret_filename in rets:
+                _output_objects.append((ret[i], ret_filename))
                 ret_filename = ret_filename.split(':')[-1]
                 to_serialize.append((ret[i], ret_filename))
                 i += 1
         else:  # simple return
             ret_filename = args[-1]
+            _output_objects.append((ret, ret_filename))
             ret_filename = ret_filename.split(':')[-1]
             to_serialize.append((ret, ret_filename))
 
@@ -468,15 +474,33 @@ def workerCode(f, is_instance, has_varargs, has_keywords, has_defaults, has_retu
 
     # deal with INOUT_OUT vs CACHE separately
     if local_cache is not None:
-        for (obj, file_name) in to_serialize:
-            suf_file_name = os.path.split(file_name)[-1]
-            file_size = os.path.getsize(file_name)
-            # deal with local cache
-            if local_cache.has_object(suf_file_name):
-                local_cache.hit(suf_file_name)
-                local_cache.set_object(suf_file_name, obj, file_size)
+        for (obj, value) in _output_objects:
+            forig, fdest, preserve, write_final, fname = value.split(':')
+            preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
+            # here we can assume that forig != fdest
+            suf_file_name = fdest
+            file_size = os.path.getsize(fname)
+            cache_contains_orig = local_cache.has_object(forig)
+            cache_contains_dest = local_cache.has_object(fdest)
+            # We want to preserve the old version of the INOUT object.
+            if preserve:
+                # This should never happen (we cannot have a recently created
+                # object previously stored)
+                if cache_contains_dest:
+                    raise Exception("THIS SHOULD NEVER HAPPEN!!!111!!11ONE")
+                    local_cache.hit(fdest)
+                else:
+                    local_cache.add(fdest, obj)
             else:
-                local_cache.add(suf_file_name, obj, file_size)
+                # We do not want to preserve the old object => overwrite the
+                # cached object. Set_object preserves the hit amount
+                # (this is why we do not delete the old version on reveal_objects)
+                if cache_contains_orig:
+                    local_cache.set_object(forig, obj)
+                    local_cache.hit(forig)
+                else:
+                    local_cache.add(forig, obj)
+
 
 def masterCode(f, self_module, is_instance, has_varargs, has_keywords, has_defaults, has_return,
                is_replicated, is_distributed, num_nodes,
@@ -711,31 +735,56 @@ def reveal_objects(values,
             return time.time() - start
 
         if compss_type == Type.FILE and p.type != Type.FILE:
-            # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile" 
-            forig,fdest,preserve,write_final,fname = value.split(':')
+            # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
+            forig, fdest, preserve, write_final, fname = value.split(':')
+            preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
             suffix_name = forig
             value = fname
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
             if local_cache is not None:
-                comments = 'NORMAL' if p.direction == Direction.IN else 'INOUT_IN'
-                # ask the cache for the object
-                t_cache_interaction_start = time.time()
-                #suffix_name = os.path.split(value)[-1]
-                if local_cache.has_object(suffix_name):
-                    obj = local_cache.get(suffix_name)
-                    local_cache.hit(suffix_name)
-                    print('Time to hit and assign on local cache: %.08fs'%elapsed(t_cache_interaction_start))
+                if forig != fdest:
+                    # The object will be written. So we must check if we can
+                    # retrieve the old version (that is, the "input" version)
+                    # from the cache and then check if we want to preserve
+                    # this old version in our cache
+                    is_object_in_cache = local_cache.has_object(suffix_name)
+                    # First, lets try to retrieve the object
+                    if is_object_in_cache:
+                        obj = local_cache.get(suffix_name)
+                    else:
+                        obj = deserialize_from_file(value)
+                    # Check if we want to preserve it
+                    if preserve:
+                        # If we want to preserve the object it means that we
+                        # want it to stay on our cache. If it already was, this
+                        # can be interpreted as a hit to our object. If not,
+                        # then we can simply add it
+                        if is_object_in_cache:
+                            local_cache.hit(suffix_name)
+                        else:
+                            local_cache.add(suffix_name)
+                    # A possible approach when preserve is not true could consist
+                    # in deleting the current object and then adding the new one
+                    # However, this approach would delete information as the
+                    # hits on this object. What we do instead is to call
+                    # the set_object method, which replaces the cached object
+                    # "inner object" with the new one.
+                    # This replacement is done after the users function has
+                    # been called. This is why you do not see an else to the
+                    # if preserve conditional.
                 else:
-                    t_local_cache_addition = time.time()
-                    file_size = os.path.getsize(value)
-                    obj = deserialize_from_file(value)
-                    # we must avoid to put outdated objects in our cache
-                    # and INOUT_IN objects are, by definition, outdated
-                    if comments != 'INOUT_IN':
-                        local_cache.add(suffix_name, obj, file_size)
-                    print('Time to add an object on the local cache: %.08fs'%elapsed(t_local_cache_addition))
+                    # The object will not be modified. Let's try to get it
+                    # from the cache (and add it if not possible). This is what
+                    # happens when, for example, the object is an IN.
+                    if local_cache.has_object(suffix_name):
+                        obj = local_cache.get(suffix_name)
+                        local_cache.hit(suffix_name)
+                    else:
+                        obj = deserialize_from_file(value)
+                        local_cache.add(suffix_name, obj)
             else:
+                # Cache is not enable; read from disk
                 obj = deserialize_from_file(value)
             real_values.append(obj)
             if p.direction != Direction.IN:

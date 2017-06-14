@@ -52,7 +52,7 @@ def start(log_level="off",
           resources_xml=None,
           summary=False,
           taskExecution='compss',
-          storage=None,
+          storageConf=None,
           taskCount=50,
           appName='Interactive',
           uuid=None,
@@ -134,10 +134,10 @@ def start(log_level="off",
         config['resources_xml'] = resources_xml
     config['summary'] = summary
     config['taskExecution'] = taskExecution
-    config['storageConf'] = storage
+    config['storageConf'] = storageConf
     config['taskCount'] = taskCount
     if appName is None:
-        config['appName'] = file_name
+        config['appName'] = 'Interactive'
     else:
         config['appName'] = appName
     config['uuid'] = uuid
@@ -200,16 +200,16 @@ def start(log_level="off",
 
     printSetup(verbose,
                log_level, o_c, debug, graph, trace, monitor,
-               project_xml, resources_xml, summary, taskExecution, storage,
+               project_xml, resources_xml, summary, taskExecution, storageConf,
                taskCount, appName, uuid, baseLogDir, specificLogDir, extraeCfg,
                comm, conn, masterName, masterPort, scheduler, jvmWorkers)
 
     logger.debug("--- START ---")
     logger.debug("PyCOMPSs Log path: %s" % logPath)
-    if storage != None:
+    if storageConf != None:
         logger.debug("Storage configuration file: %s" % storageConf)
         from storage.api import init as initStorage
-        initStorage(config_file_path=storage)
+        initStorage(config_file_path=storageConf)
         global persistent_storage
         persistent_storage = True
 

@@ -131,6 +131,11 @@ def main():
         if persistent_storage:
             finishStorage()
         logger.debug("--- END ---")
+    except SystemExit as e:
+	        if e.code == 0:
+	            pass
+	        else:
+	            print "[ ERROR ]: User program ended with exitcode %s"%e.code
     except SerializerException:
         # If an object that can not be serialized has been used as a parameter.
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -140,6 +145,8 @@ def main():
                 print "[ ERROR ]: In: " + line,
 
     compss_stop()
+    sys.stdout.flush()
+    sys.stderr.flush()
 
     # --- Execution finished ---
 

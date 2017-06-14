@@ -177,7 +177,7 @@ EOT
 }
 
 show_version() {
-  echo "COMPSs version 2.0 Amapola"
+  echo "COMPSs version 2.1 Bougainvillea"
   echo " "
 }
 
@@ -206,40 +206,49 @@ EOF
 show_flower() {
   cat << EOF
 
-Amapola (Poppy) - Flower
+Bougainvillea (Bougainvillea spectabilis) - Flower
 
-A poppy is a flowering plant in the subfamily Papaveroideae
-of the family Papaveraceae. Poppies are herbaceous annual,
-biennial or short-lived perennial plants. Some species are
-monocarpic, dying after flowering. Poppies can be over 4
-feet tall with flowers up to six inches across. Flowers
-of species (not cultivars) have 4 to 6 petals, many stamens
-forming a conspicuous whorl in the center of the flower and
-an ovary of from 2 to many fused carpels. The petals are
-showy, may be of almost any color in the and some have 
-markings. The petals are crumpled in the bud and as blooming
-finishes, the petals often lie flat before falling away. In
-the temperate zones, poppies bloom from spring into early
-summer.
-                                                                                                                                                                                        
+Bougainvillea, also known as buganvilla in Spain, is a genus of thorny 
+ornamental vines, bushes, and trees with flower-like spring leaves near
+its flowers. They are native plants of South America from Brazil west
+to Ecuador and south to southern Argentina (Chubut Province). 
+
+Different authors accept between 4 and 18 species in the genus. The 
+vine species grow anywhere from 1 to 12 m (3 to 40 ft.) tall, 
+scrambling over other plants with their spiky thorns. The thorns are
+tipped with a black, waxy substance. They are evergreen where rainfall 
+occurs all year, or deciduous if there is a dry season. The leaves are
+alternate, simple ovate-acuminate, 4–13 cm long and 2–6 cm broad. The 
+actual flower of the plant is small and generally white, but each 
+cluster of three flowers is surrounded by three or six bracts with the
+bright colours associated with the plant, including pink, magenta, 
+purple, red, orange, white, or yellow. 
+
 Check more information at:
-   https://en.wikipedia.org/wiki/Poppy
+   https://en.wikipedia.org/wiki/Bougainvillea
 
 EOF
 }
 
-show_receipt() {
+show_recipe() {
   cat << EOF
 
-Amapola (Poppy) - Cocktail
+Bougainvillea - Cocktail
 
- A few pieces of crushed ice.
- 1/3 of a glass of Italian vermouth.
- 1/3 of a glass of rum.
- 1/3 of a glass of maraschino.
- A few drops of pineapple juice.
+  100 ml pink, sparkling wine
+  100 ml fresh-squeezed orange juice 
 
- Stir and serve in a cocktail glass.
+  75 ml pink, sparkling wine 
+  75 ml fresh-squeezed orange juice (preferably blood orange)
+  75 ml freshly-brewed, then cooled hibiscus tea
+  25 ml homemade grenadine:
+    1/4 cup sugar
+    1 cup unsweetened organic pomegranate juice
+    1/2 lemon
+  10 ml elderflower liqueur
+  10 ml maraschino liqueur
+  5 dashes cardamom bitters
+  bougainvillea blossoms for garnish
 
 EOF
 }
@@ -363,9 +372,9 @@ get_args() {
             show_flower
             exit 0
             ;;
-          receipt)
-            # Display receipt
-            show_receipt
+          recipe)
+            # Display recipe
+            show_recipe
             exit 0
             ;;
 	  project=*)

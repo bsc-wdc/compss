@@ -2,12 +2,14 @@
  COMP SUPERSCALAR FRAMEWORK
 -----------------------------
 
-COMP Superscalar (COMPSs) is a programming model which aims to ease the development of applications for distributed infrastructures, such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of applications at execution time.
+COMP Superscalar (COMPSs) is a programming model which aims to ease the development of applications for distributed infrastructures,
+such as Clusters, Grids and Clouds. COMP superscalar also features a runtime system that exploits the inherent parallelism of 
+applications at execution time.
 
 
 Release number 1.1.1
 Release date: 30-Jul-2013 
--------------------------
+-------------------------------
 This is the first public release of the COMP Superscalar Framework.
 
 Implemented features:
@@ -55,7 +57,7 @@ Known limitations:
 
 Release number 1.1.2
 Release date: 28-Apr-2014
--------------------------
+-------------------------------
 Implemented features:
  * C/C++ binding.
  * Python binding.
@@ -74,7 +76,7 @@ Implemented features:
 
 Release number 1.2
 Release date: Nov-2014 
--------------------------
+-------------------------------
 Implemented features:
  * N implementations for task methods, each with its own constraints.
  * Constraint-aware resource management.
@@ -96,7 +98,7 @@ Implemented features:
 
 Release number 1.3
 Release date: Nov-2015
--------------------------
+-------------------------------
 New features:
         * Runtime:
                 - Persistent workers: workers can be deployed on computing nodes and persist during all the application lifetime, reducing runtime overhead.
@@ -136,7 +138,7 @@ For further information please refer to COMPSs User Manual: Application developm
 
 Release number 1.4
 Release date: April-2016
--------------------------
+-------------------------------
 New features:
             * Runtime:
                     - Support for Dockers added
@@ -164,9 +166,9 @@ For further information please refer to COMPSs User Manual: Application developm
 -------------------------------
 
 
-Release number 2.0
+Release number 2.0 Amapola (Poppy)
 Release date: November-2016
--------------------------
+-------------------------------
 New features:
         * Runtime:
                 - Upgrade to Java 8
@@ -205,46 +207,53 @@ For further information please refer to COMPSs User Manual: Application developm
 
 -------------------------------
 
-Release number 2.1
+
+Release number 2.1 Bougainvillea
 Release date: June-2017
--------------------------
+-------------------------------
 New features:
-        * Runtime:
-                - Annotations to simplify the creation of tasks with binaries
-                - Integration with other programming models MPI, OMPSs, ...
-                - Support for singularity in Clusters
-                - Multi-node task support (MPI apps as COMPSs Tasks)
-                - Grid Engine clusters support
-                - Lang flag automatically infered in runcompss
-                - New tasks schedulers based on task generation order
-                - Affinity and over-subscribing management in cluster queue scripts
+	* Runtime:
+		- New annotations to simplify tasks that call external binaries
+		- Integration with other programming models (MPI, OmpSs...)
+		- Support for Singularity containers in clusters
+		- Extension of the scheduling to support multi-node tasks (MPI applications as tasks)
+		- Support for Grid Engine job scheduler in clusters
+		- Language flag automatically inferred in the runcompss script
+		- New schedulers based on tasks’ generation order
+		- Core affinity and over-subscribing thread management in multi-core clusters (used with MKL libraries, for example)
 
-        * Python:
-                - @local annotation for simplifiying data synchronizations at master (requires to install guppy)
-                - args and kwargs parameters as task dependencies
-                - versioning support in python
-                - Persistent workers
-                - Task-thread affinity
+	* Python:
+		- @local annotation to support simpler data synchronizations in master (requires to install guppy)
+		- Support for args and kwargs parameters as task dependencies
+		- Task versioning support in python (multiple behaviors of the same task)
+		- New Python persistent workers that reduce overhead of Python tasks
+		- Support for task-thread affinity
+		- Tracing extended to support for Python user events and HW counters (with known issues)
 
-        * C:
-                - File management API (compss_fopen, compss_ifstream, compss_ofstream, compss_delete_file)
-                - Task-thread affinity
+	* C/C++:
+		- Extension of file management API (compss_fopen, compss_ifstream,  compss_ofstream, compss_delete_file)
+		- Support for task-thread affinity
 
-        * Tools:
-                - Visualization of not-assigned tasks in current graph of the COMPSs Monitor
+	* Tools:
+		- Visualization of not-running tasks in current graph of the COMPSs Monitor
 
-Improvements:
-        - Improved pyCOMPSs serialization
-        - Improvements in cluster job scripts and supercomputers configuration
-        - Several bug fixes
+
+Improvements
+	- Improved PyCOMPSs serialization
+	- Improvements in cluster job scripts and supercomputers configuration
+	- Several bug fixes
+
 
 Known Limitations:
-        * When executing python applications with constraints in the cloud the initial VMs
- must be set to 0
-        *  Defining Task using numpy and MKL can have issues if tasks uses a different number of MKL threads. 
-It is due to MKL reuses threads in the different calls and it does not change the number of thresds from one call to the 
-other.
+	- When executing Python applications with constraints in the cloud the <InitialVMs> property must be set to 0
+	- Tasks that invoke numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to  
+          the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
  
+
+For further information, please refer to “COMPSs User Manual: Application development guide”.
+
+------------------------------- 
+
 
 
 Please find more details about the COMP Superscalar framework at: 

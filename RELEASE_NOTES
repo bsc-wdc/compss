@@ -211,9 +211,9 @@ Release date: June-2017
 New features:
         * Runtime:
                 - Annotations to simplify the creation of tasks with binaries
-                - Integration with other programming models MPI, OMPSs and Decaf
+                - Integration with other programming models MPI, OMPSs, ...
                 - Support for singularity in Clusters
-                - Multi-node task support
+                - Multi-node task support (MPI apps as COMPSs Tasks)
                 - Grid Engine clusters support
                 - Lang flag automatically infered in runcompss
                 - New tasks schedulers based on task generation order
@@ -227,7 +227,7 @@ New features:
                 - Task-thread affinity
 
         * C:
-                - File management API (compss_fopen, compss_ifstream, compss_ofstream)
+                - File management API (compss_fopen, compss_ifstream, compss_ofstream, compss_delete_file)
                 - Task-thread affinity
 
         * Tools:
@@ -241,7 +241,10 @@ Improvements:
 Known Limitations:
         * When executing python applications with constraints in the cloud the initial VMs
  must be set to 0
-        * Problem tracing user events in Python
+        *  Defining Task using numpy and MKL can have issues if tasks uses a different number of MKL threads. 
+It is due to MKL reuses threads in the different calls and it does not change the number of thresds from one call to the 
+other.
+ 
 
 
 Please find more details about the COMP Superscalar framework at: 

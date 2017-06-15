@@ -99,7 +99,7 @@ def main():
     logPath = get_logPath()
     binding.temp_dir = mkdtemp(prefix='pycompss', dir=logPath + '/tmpFiles/')
 
-    # 1.3 logging
+    # logging
     if log_level == "debug":
         init_logging(os.getenv('IT_HOME') +
                      '/Bindings/python/log/logging.json.debug', logPath)
@@ -307,6 +307,8 @@ def initialize_compss(config):
         - 'classpath'      = <String>       = CLASSPATH environment variable contents
         - 'pythonPath'     = <String>       = PYTHONPATH environment variable contents
         - 'jvmWorkers'     = <String>       = Worker's jvm configuration (example: "-Xms1024m,-Xmx1024m,-Xmn400m")
+        - 'cpuAffinity'
+        - 'gpuAffinity'
     :param config: Configuration parameters dictionary
     '''
     from tempfile import mkstemp
@@ -325,19 +327,18 @@ def initialize_compss(config):
     jvm_options_file.write('-Dit.to.file=false\n')
     jvm_options_file.write('-Dit.project.file=' + config['project_xml'] + '\n')
     jvm_options_file.write('-Dit.resources.file=' + config['resources_xml'] + '\n')
-    jvm_options_file.write('-Dit.project.schema=' + config['it_home'] + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
-    jvm_options_file.write('-Dit.resources.schema=' + config['it_home'] + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
+    jvm_options_file.write(
+        '-Dit.project.schema=' + config['it_home'] + '/Runtime/configuration/xml/projects/project_schema.xsd\n')
+    jvm_options_file.write(
+        '-Dit.resources.schema=' + config['it_home'] + '/Runtime/configuration/xml/resources/resources_schema.xsd\n')
     jvm_options_file.write('-Dit.lang=python\n')
-
     if config['summary']:
         jvm_options_file.write('-Dit.summary=true\n')
     else:
         jvm_options_file.write('-Dit.summary=false\n')
-
     jvm_options_file.write('-Dit.task.execution=' + config['taskExecution'] + '\n')
-
     if config['storageConf'] is None:
-        jvm_options_file.write('-Dit.storage.conf=\n')
+        jvm_options_file.write('-Dit.storage.conf=null\n')
     else:
         jvm_options_file.write('-Dit.storage.conf=' + config['storageConf'] + '\n')
 
@@ -351,10 +352,11 @@ def initialize_compss(config):
 
     jvm_options_file.write('-Dit.uuid=' + myUuid + '\n')
 
-    if config['baseLogDir'] != None:
-        jvm_options_file.write('-Dit.baseLogDir=' + config['baseLogDir'] + '\n')
+    if config['baseLogDir'] is None:
+        # it will be within $HOME/.COMPSs
+        jvm_options_file.write('-Dit.baseLogDir=\n')
     else:
-        pass  # it will be within $HOME/.COMPSs
+        jvm_options_file.write('-Dit.baseLogDir=' + config['baseLogDir'] + '\n')
 
     if config['specificLogDir'] is None:
         jvm_options_file.write('-Dit.specificLogDir=\n')
@@ -403,11 +405,16 @@ def initialize_compss(config):
     jvm_options_file.write('-Dit.gat.file.adaptor=sshtrilead\n')
     jvm_options_file.write('-Dit.worker.cp=' + config['cp'] + ':' + config['classpath'] + '\n')
     jvm_options_file.write('-Dit.worker.jvm_opts=' + config['jvmWorkers'] + '\n')
+    jvm_options_file.write('-Dit.worker.cpu_affinity=' + config['cpuAffinity'] + '\n')
+    jvm_options_file.write('-Dit.worker.gpu_affinity=' + config['gpuAffinity'] + '\n')
     jvm_options_file.write('-Djava.class.path=' + config['cp'] + ':' + config['it_home'] + '/Runtime/compss-engine.jar:' + config['classpath'] + '\n')
     jvm_options_file.write('-Dit.worker.pythonpath=' + config['cp'] + ':'+ config['pythonPath'] + '\n')
     jvm_options_file.close()
     os.close(fd)
     os.environ['JVM_OPTIONS_FILE'] = temp_path
+
+    # print "Uncomment if you want to check the configuration file path."
+    # print "JVM_OPTIONS_FILE", temp_path
 
 
 # Version 3.0

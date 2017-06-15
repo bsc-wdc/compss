@@ -87,6 +87,8 @@ aargs_as_tuple = False
 
 # Setup logger
 logger = logging.getLogger(__name__)
+#logger = logging.getLogger()    # for jupyter logging
+#logger.setLevel(logging.DEBUG)  # for jupyter logging
 
 
 ###############################################################################

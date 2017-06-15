@@ -42,6 +42,8 @@ SERIALIZATION = 121
 
 
 logger = logging.getLogger('pycompss.api.task')
+#logger = logging.getLogger()   # for jupyter logging
+#logger.setLevel(logging.DEBUG)
 
 
 class task(object):

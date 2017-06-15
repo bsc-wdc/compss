@@ -60,12 +60,14 @@ def start(log_level="off",
           specificLogDir=None,
           extraeCfg=None,
           comm='NIO',
-          conn='integratedtoolkit.connectors.DefaultSSHConnector',
+          conn='',
           masterName='',
-          masterPort='43000',
+          masterPort='',
           scheduler='integratedtoolkit.scheduler.loadBalancingScheduler.LoadBalancingScheduler',
           jvmWorkers='-Xms1024m,-Xmx1024m,-Xmn400m',
-          verbose=False
+          verbose=False,
+          cpuAffinity="automatic",
+          gpuAffinity="automatic"
           ):
     launchPath = os.path.dirname(os.path.abspath(__file__))
     # it_home = launchPath without the last 3 folders (Bindings/python/pycompss/runtime)
@@ -156,6 +158,8 @@ def start(log_level="off",
     config['classpath'] = classPath
     config['jvmWorkers'] = jvmWorkers
     config['pythonPath'] = pythonPath
+    config['cpuAffinity'] = cpuAffinity
+    config['gpuAffinity'] = gpuAffinity
 
     initialize_compss(config)
 
@@ -195,7 +199,6 @@ def start(log_level="off",
     else:
         # Default
         init_logging(os.getenv('IT_HOME') + '/Bindings/python/log/logging.json', logPath)
-
     logger = logging.getLogger("pycompss.runtime.launch")
 
     printSetup(verbose,

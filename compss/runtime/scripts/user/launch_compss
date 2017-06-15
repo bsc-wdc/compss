@@ -38,7 +38,7 @@ ERROR_NETWORK="Invalid network option"
 ERROR_WORKER_IN_MASTER_CPUS="Parameter worker_in_master_cpus is bigger than the maximum number of cpus_per_node"
 ERROR_WORKER_IN_MASTER_MEMORY="Incorrect worker_in_master_memory parameter. Only disabled or <int> allowed. I.e. 33000, 66000"
 ERROR_WORKER_IN_MASTER_MEMORY_TOO_HIGH="Parameter worker_in_master_memory exceeds the node_memory limit"
-ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_tasks is not 0"
+ERROR_WORKER_IN_MASTER_MEMORY_NOT_SPECIFIED="Parameter worker_in_master_memory is mandatory if worker_in_master_cpus is not 0"
 ERROR_PROLOG_ACTION="Exception executing prolog action"
 ERROR_EPILOG_ACTION="Exception executing epilog action"
 
@@ -122,7 +122,7 @@ show_opts() {
     --worker_in_master_cpus=<int>           Maximum number of CPU computing units that the master node can run as worker. Cannot exceed cpus_per_node.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_CPUS}
     --worker_in_master_memory=<int> MB      Maximum memory in master node assigned to the worker. Cannot exceed the node_memory.
-                                            Mandatory if worker_in_master_tasks is specified.
+                                            Mandatory if worker_in_master_cpus is specified.
                                             Default: ${DEFAULT_WORKER_IN_MASTER_MEMORY}
     --jvm_worker_in_master_opts="<string>"  Extra options for the JVM of the COMPSs Worker in the Master Node. 
                                             Each option separed by "," and without blank spaces (Notice the quotes)
@@ -554,7 +554,7 @@ check_args() {
   fi
   
   if [ -z "${worker_nodes}" ]; then
-    if [ -z "${worker_in_master_tasks}" ]; then
+    if [ -z "${worker_in_master_cpus}" ]; then
       display_error "${ERROR_WORKER_NODES}"
     else
       worker_nodes=""
@@ -1214,7 +1214,10 @@ EOT
 				<InstallDir>${worker_install_dir}</InstallDir>
       				<WorkingDir>${worker_working_dir}</WorkingDir>
       				<Application>
+					<AppDir>${appdir}</AppDir>
           				<LibraryPath>${library_path}</LibraryPath>
+					<Classpath>${cp}</Classpath>
+					<Pythonpath>${pythonpath}</Pythonpath>
       				</Application>
 EOT
   if [ "$lot" != "" ] && [ $lot -ge 0 ]; then

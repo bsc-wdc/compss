@@ -90,6 +90,7 @@ usage() {
   for doc in ${pdfs}; do
     docname=$(basename $doc)
     if [[ *$docname* == ${allowed_pdfs} ]]; then
+      echo "*** Synchronizing $doc to trunk"
       cp $doc ${trunk_dir}/doc/
     fi
   done

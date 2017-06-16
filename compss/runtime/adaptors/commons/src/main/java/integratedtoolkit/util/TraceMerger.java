@@ -73,10 +73,6 @@ public class TraceMerger {
             this.timestamp = timestamp;
         }
 
-        public String getResourceId() {
-            return resourceId;
-        }
-
         public Long getTimestamp() {
             return timestamp;
         }
@@ -101,7 +97,7 @@ public class TraceMerger {
         File f = new File(workingDir + File.separator + traceSubDir);
         File[] matchingFiles = f.listFiles((File dir, String name) -> name.startsWith(traceNamePrefix) && name.endsWith(traceExtension));
 
-        if (matchingFiles == null){
+        if (matchingFiles == null) {
             throw new FileNotFoundException("Master trace " + traceNamePrefix + "*" + traceExtension + " not found.");
         }
         if (!(matchingFiles.length < 1)) {
@@ -137,8 +133,7 @@ public class TraceMerger {
         logger.debug("Parsing master sync events");
         HashMap<Integer, List<LineInfo>> masterSyncEvents = getSyncEvents(masterTracePath, -1);
 
-        logger.debug("Proceeding to merge task traces into master which contains " +
-        masterSyncEvents.size() + " lines.");
+        logger.debug("Proceeding to merge task traces into master which contains " + masterSyncEvents.size() + " lines.");
         for (File workerFile : workersTraces) {
             logger.debug("Merging worker " + workerFile);
             String workerFileName = workerFile.getName();
@@ -155,12 +150,12 @@ public class TraceMerger {
             HashMap<Integer, List<LineInfo>> workerSyncEvents = getSyncEvents(workerFile.getPath(), workerID);
 
             writeWorkerEvents(masterSyncEvents, workerSyncEvents, cleanLines, workerID);
-            logger.debug("Not removing folder " + workingDir + File.separator + traceSubDir +
-                    File.separator + workerSubDir + " because mergin may fail.");
-//            TODO: do not remove because merging may fail
-//            if (!debug) {
-//                removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
-//            }
+            logger.debug("Not removing folder " + workingDir + File.separator + traceSubDir + File.separator + workerSubDir
+                    + " because mergin may fail.");
+            // TODO: do not remove because merging may fail
+            // if (!debug) {
+            // removeFolder(workingDir + File.separator + traceSubDir + File.separator + workerSubDir);
+            // }
         }
         masterWriter.close();
         logger.debug("Merging finished.");
@@ -255,22 +250,6 @@ public class TraceMerger {
 
         return new LineInfo(javaStart.resourceId, javaStart.getTimestamp() + overhead);
 
-    }
-
-    private void removeFolder(String folderPath) throws IOException {
-        File folder = new File(folderPath);
-        remove(folder);
-    }
-
-    private void remove(File f) throws IOException {
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                for (File child : f.listFiles()) {
-                    remove(child);
-                }
-            }
-            Files.delete(f.toPath());
-        }
     }
 
 }

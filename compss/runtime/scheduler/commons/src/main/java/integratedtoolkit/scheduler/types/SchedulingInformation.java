@@ -36,11 +36,22 @@ public class SchedulingInformation<P extends Profile, T extends WorkerResourceDe
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void updateResource(
+            ResourceScheduler<P, T, I> ui) {
+
+        // Add the new description of the worker
+        LinkedList<Integer> executableCores = ui.getExecutableCores();
+        for (int coreId : executableCores) {
+            coreToWorkers.get(coreId)
+                    .add((ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) ui);
+        }
+    }
+
     public boolean isExecutable() {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     public static <P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> void changesOnWorker(
             ResourceScheduler<P, T, I> ui) {
 
@@ -48,16 +59,12 @@ public class SchedulingInformation<P extends Profile, T extends WorkerResourceDe
         for (LinkedList<ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>> coreToWorker : coreToWorkers) {
             coreToWorker.remove(ui);
         }
-        
+
         // Update registered coreElements
         SchedulingInformation.updateCoreCount(CoreManager.getCoreCount());
-        
+
         // Add the new description of the worker
-        LinkedList<Integer> executableCores = ui.getExecutableCores();
-        for (int coreId : executableCores) {
-            coreToWorkers.get(coreId)
-                    .add((ResourceScheduler<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) ui);
-        }
+        updateResource(ui);
     }
 
     @SuppressWarnings("unchecked")

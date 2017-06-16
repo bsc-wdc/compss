@@ -112,6 +112,7 @@ public class TaskScheduler<P extends Profile, T extends WorkerResourceDescriptio
         // Update resource schedulers
         for (ResourceScheduler<P, T, I> rs : workers.values()) {
             rs.updatedCoreElements(newCoreCount);
+            SchedulingInformation.updateResource(rs);
         }
     }
 

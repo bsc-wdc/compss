@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-runtime</artifactId>
-<version>2.1</version>
+<version>2.1.rc1706</version>
 	</parent>
 	<artifactId>compss-storage</artifactId>
 	<name>Compss storage API</name>

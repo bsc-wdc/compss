@@ -29,7 +29,7 @@
   package_base_folder=${script_dir}/../../builders/packages/           #Folder to store packages and upload them to repository
   declare -a distributions_name=('ubuntu' 'suse' 'centos' 'debian' 'sc')
   declare -a distributions_static_vm_id=('9082' '9083' '9198' '9674' 'None')
-  declare -a distributions_static_vm_ip=('172.16.8.229' '172.16.8.231' '172.16.8.219' '172.16.8.213' 'None')
+  declare -a distributions_static_vm_ip=('172.1.rc17066.8.229' '172.1.rc17066.8.2.1.rc1706' '172.1.rc17066.8.219' '172.1.rc17066.8.213' 'None')
   declare -a distributions_pid=('' '' '' '' '')                        
   TIME_BETWEEN_DISTR=1800s						# 30 min
 

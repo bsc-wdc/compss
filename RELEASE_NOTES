@@ -214,41 +214,38 @@ Release date: June-2017
 New features:
 	* Runtime:
 		- New annotations to simplify tasks that call external binaries
-		- Integration with other programming models (MPI, OmpSs...)
-		- Support for Singularity containers in clusters
-		- Extension of the scheduling to support multi-node tasks (MPI applications as tasks)
+		- Integration with other programming models (MPI, OmpSs,..)
+		- Support for Singularity containers in Clusters
+		- Extension of the scheduling to support multi-node tasks (MPI apps as tasks)
 		- Support for Grid Engine job scheduler in clusters
-		- Language flag automatically inferred in the runcompss script
+		- Language flag automatically inferred in runcompss script
 		- New schedulers based on tasks’ generation order
-		- Core affinity and over-subscribing thread management in multi-core clusters (used with MKL libraries, for example)
+		- Core affinity and over-subscribing thread management in multi-core cluster queue scripts (used with MKL libraries, for example)
 
 	* Python:
 		- @local annotation to support simpler data synchronizations in master (requires to install guppy)
 		- Support for args and kwargs parameters as task dependencies
-		- Task versioning support in python (multiple behaviors of the same task)
+		- Task versioning support in Python (multiple behaviors of the same task)
 		- New Python persistent workers that reduce overhead of Python tasks
 		- Support for task-thread affinity
 		- Tracing extended to support for Python user events and HW counters (with known issues)
 
-	* C/C++:
+	* C:
 		- Extension of file management API (compss_fopen, compss_ifstream,  compss_ofstream, compss_delete_file)
 		- Support for task-thread affinity
 
 	* Tools:
 		- Visualization of not-running tasks in current graph of the COMPSs Monitor
-
-
-Improvements
+ 
+Improvements:
 	- Improved PyCOMPSs serialization
 	- Improvements in cluster job scripts and supercomputers configuration
 	- Several bug fixes
-
-
+ 
 Known Limitations:
 	- When executing Python applications with constraints in the cloud the <InitialVMs> property must be set to 0
-	- Tasks that invoke numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to  
+	- Tasks that invoke Numpy and MKL may experience issues if tasks use a different number of MKL threads. This is due to
           the fact that MKL reuses threads in the different calls and it does not change the number of threads from one call to another.
- 
 
 For further information, please refer to “COMPSs User Manual: Application development guide”.
 

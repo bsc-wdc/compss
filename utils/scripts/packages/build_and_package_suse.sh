@@ -7,7 +7,7 @@
   #---------------------------------------------------------------------------------------------------------------------
   #Install needed software
   echo "--- Installing needed software..."
-  sudo zypper ar http://download.opensuse.org/repositories/Application:/Geo/openSUSE_Leap_42.1/ mvn
+  sudo zypper ar http://download.opensuse.org/repositories/Application:/Geo/openSUSE_Leap_42.1.rc1706/ mvn
   sudo zypper --gpg-auto-import-keys refresh
 
   # Build dependencies

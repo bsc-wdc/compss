@@ -1,5 +1,5 @@
 %define name	 	compss-monitor 
-%define version		2.1
+%define version		2.1.rc1706
 %define release		1
 
 Requires: compss-engine, xdg-utils, graphviz

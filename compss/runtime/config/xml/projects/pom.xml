@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>es.bsc.compss</groupId>
 		<artifactId>compss-xml-schemas</artifactId>
-<version>2.1</version>
+<version>2.1.rc1706</version>
 		<relativePath>..</relativePath>
 	</parent>
 

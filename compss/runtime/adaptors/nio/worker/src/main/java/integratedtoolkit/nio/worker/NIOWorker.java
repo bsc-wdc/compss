@@ -699,40 +699,41 @@ public class NIOWorker extends NIOAgent {
     }
 
     // Shutdown the worker, at this point there are no active transfers
+    @Override
     public void shutdown(Connection closingConnection) {
         WORKER_LOGGER.debug("Entering shutdown method on worker");
-        try {
 
-            // Stop the Data Manager
-            dataManager.stop();
+        // Stop the Data Manager
+        dataManager.stop();
 
-            // Finish the main thread
-            if (closingConnection != null) {
-                closingConnection.sendCommand(new CommandShutdownACK());
-                closingConnection.finishConnection();
-            }
-
-            TM.shutdown(closingConnection);
-
-            // End storage
-            String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
-            if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
-                try {
-                    StorageItf.finish();
-                } catch (StorageException e) {
-                    WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
-                }
-            }
-
-            // Remove workingDir
-            if (removeWD) {
-                WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir");
-                String wDir = workingDir.substring(0, workingDir.indexOf(deploymentId) + deploymentId.length());
-                removeFolder(wDir);
-            }
-        } catch (Exception e) {
-            WORKER_LOGGER.error("Exception", e);
+        // Finish the main thread
+        if (closingConnection != null) {
+            closingConnection.sendCommand(new CommandShutdownACK());
+            closingConnection.finishConnection();
         }
+
+        TM.shutdown(closingConnection);
+
+        // End storage
+        String storageConf = System.getProperty(ITConstants.IT_STORAGE_CONF);
+        if (storageConf != null && !storageConf.equals("") && !storageConf.equals("null")) {
+            try {
+                StorageItf.finish();
+            } catch (StorageException e) {
+                WORKER_LOGGER.error("Error releasing storage library: " + e.getMessage(), e);
+            }
+        }
+
+        // Remove workingDir
+        if (removeWD) {
+            WORKER_LOGGER.debug("Erasing Worker Sandbox WorkingDir: " + this.workingDir);
+            try {
+                removeFolder(this.workingDir);
+            } catch (IOException ioe) {
+                WORKER_LOGGER.error("Exception", ioe);
+            }
+        }
+
         WORKER_LOGGER.debug("Finish shutdown method on worker");
     }
 

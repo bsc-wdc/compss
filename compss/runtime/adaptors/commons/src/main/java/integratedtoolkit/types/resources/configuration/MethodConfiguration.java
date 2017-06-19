@@ -8,7 +8,7 @@ import java.io.File;
 public class MethodConfiguration extends Configuration {
 
     private static final String DEPLOYMENT_ID = System.getProperty(ITConstants.IT_DEPLOYMENT_ID);
-    
+
     private String host;
     private String user = "";
 
@@ -96,7 +96,7 @@ public class MethodConfiguration extends Configuration {
             this.workingDir = workingDir;
         }
         String host = this.getHost().replace("/", "_").replace(":", "_"); // Replace nasty characters
-        String sandboxWorkingDir = this.getWorkingDir() + DEPLOYMENT_ID + File.separator + host + File.separator;
+        String sandboxWorkingDir = this.workingDir + DEPLOYMENT_ID + File.separator + host + File.separator;
         this.setSandboxWorkingDir(sandboxWorkingDir);
     }
 
@@ -111,8 +111,7 @@ public class MethodConfiguration extends Configuration {
             this.totalComputingUnits = 0;
         }
     }
-    
-    
+
     public int getTotalGPUComputingUnits() {
         return totalGPUComputingUnits;
     }
@@ -124,8 +123,7 @@ public class MethodConfiguration extends Configuration {
             this.totalGPUComputingUnits = 0;
         }
     }
-    
-    
+
     public int getTotalFPGAComputingUnits() {
         return totalFPGAComputingUnits;
     }
@@ -137,8 +135,7 @@ public class MethodConfiguration extends Configuration {
             this.totalFPGAComputingUnits = 0;
         }
     }
-    
-    
+
     public int getTotalOTHERComputingUnits() {
         return totalOTHERComputingUnits;
     }
@@ -150,8 +147,6 @@ public class MethodConfiguration extends Configuration {
             this.totalOTHERComputingUnits = 0;
         }
     }
-    
-    
 
     public String getAppDir() {
         return appDir;

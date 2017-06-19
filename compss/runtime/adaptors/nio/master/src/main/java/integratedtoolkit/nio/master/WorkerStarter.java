@@ -396,6 +396,15 @@ public class WorkerStarter {
         return cmd;
     }
 
+    private String[] getCleanWorkerWorkingDir(String workingDir) {
+        String[] cmd = new String[3];
+        // Send SIGTERM to allow ShutdownHooks on Worker
+        cmd[0] = "rm";
+        cmd[1] = "-rf";
+        cmd[2] = workingDir;
+        return cmd;
+    }
+
     private String[] getStopCommand(int pid) {
         String[] cmd = new String[3];
         // Send SIGTERM to allow ShutdownHooks on Worker
@@ -461,8 +470,15 @@ public class WorkerStarter {
         if (pid > 0) {
             String user = node.getUser();
 
+            // Clean worker working directory
+            String sandboxWorkingDir = node.getBaseWorkingDir() + DEPLOYMENT_ID + File.separator;
+            String[] command = getCleanWorkerWorkingDir(sandboxWorkingDir);
+            if (command != null) {
+                executeCommand(user, node.getName(), command);
+            }
+
             // Execute stop command
-            String[] command = getStopCommand(pid);
+            command = getStopCommand(pid);
             if (command != null) {
                 executeCommand(user, node.getName(), command);
             }

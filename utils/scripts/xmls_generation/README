@@ -1,0 +1,18 @@
+=== Scripts for generating COMPSs auxiliar configuration files ===
+
+Usage:
+	./generate_all.sh <projectFilePath> <resourcesFilePath> <remoteUser> <Worker1>...<WorkerN>
+
+Warnings:
+	- The <projectFilePath> will be overwritten
+	- The <resourcesFilePath> will be overwritten
+	- You will be prompted for several ssh passwords if the ssh is not configured passwordless between the Master and the worker machines
+
+Execution Example:
+ - Without user login
+	./generate_all.sh ./project.xml ./resources.xml "" COMPSsWorker01 COMPSsWorker02
+
+ - With user login
+	./generate_all.sh ./project.xml ./resources.xml myUserName COMPSsWorker01 COMPSsWorker02
+
+

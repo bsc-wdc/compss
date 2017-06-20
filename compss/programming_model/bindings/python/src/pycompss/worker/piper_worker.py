@@ -436,9 +436,9 @@ def execute_task(process_name, storage_conf, params, local_cache):
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                logger.debug("[PYTHON WORKER %s] Starting task execution")
+                logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
                 getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
-                logger.debug("[PYTHON WORKER %s] Finished task execution")
+                logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)
@@ -460,9 +460,9 @@ def execute_task(process_name, storage_conf, params, local_cache):
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, TASK_EXECUTION)
-                logger.debug("[PYTHON WORKER %s] Starting task execution")
+                logger.debug("[PYTHON WORKER %s] Starting task execution" % process_name)
                 getattr(klass, method_name)(*values, compss_types=types, **compss_kwargs)
-                logger.debug("[PYTHON WORKER %s] Finished task execution")
+                logger.debug("[PYTHON WORKER %s] Finished task execution" % process_name)
                 # if tracing:
                 #    pyextrae.eventandcounters(TASK_EVENTS, 0)
                 #    pyextrae.eventandcounters(TASK_EVENTS, WORKER_END)

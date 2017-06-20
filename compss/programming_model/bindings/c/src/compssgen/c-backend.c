@@ -125,12 +125,13 @@ void generate_prolog()
   fprintf(workerFile, "#include <fstream>\n");
   fprintf(workerFile, "#include <boost/archive/text_iarchive.hpp>\n");
   fprintf(workerFile, "#include <boost/archive/text_oarchive.hpp>\n");
-  
+  fprintf(workerFile, "#include <boost/filesystem.hpp>\n");  
+
   fprintf(workerFile, "#include \"%s\"\n", includeName);
   fprintf(workerFile, "\n");
   fprintf(workerFile, "using namespace std;\n");
   fprintf(workerFile, "\n");
-  fprintf(workerFile, "int execute(int argc, char **argv) {\n");
+  fprintf(workerFile, "int execute(int argc, char **argv, std::map<std::string, void*>& cache) {\n");
   fprintf(workerFile, "\n");
   // Args consistent with Runtime [0, NUM_INTERNAL_ARGS]: executable, tracing, taskId, workerDebug, storageConf, method_type, className, methodName, 
   //                                                      numSlaves, [slaves], numCus, hasTarget, returnType, numAppParams
@@ -608,7 +609,7 @@ static void generate_worker_case(FILE *outFile, function *func)
     fprintf(outFile, "\t\t\t %s this_%s;\n", func->classname, func->classname);
     fprintf(outFile, "\t\t\t \n");
     fprintf(outFile, "\t\t\t arg_offset += 1;\n");
-    fprintf(outFile, "\t\t\t char *this_filename = strdup(argv[arg_offset]);\n");
+	fprintf(outFile, "\t\t\t char *this_filename = strdup(argv[arg_offset]);\n");
     fprintf(outFile, "\t\t\t char *this_orig_id = strsep(&this_filename,\":\");\n");
     fprintf(outFile, "\t\t\t char *this_dest_id = strsep(&this_filename,\":\");\n");
     fprintf(outFile, "\t\t\t char *this_pres_data = strsep(&this_filename,\":\");\n");
@@ -672,7 +673,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	fprintf(outFile, "\t\t\t char *%s;\n", arg->name);
 	break;
       case object_dt:
-	fprintf(outFile, "\t\t\t %s %s;\n", arg->classname, arg->name);
+	fprintf(outFile, "\t\t\t %s* %s = new %s();\n", arg->classname, arg->name, arg->classname);
 	break;
       case void_dt:
       case any_dt:
@@ -736,8 +737,8 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  break;
 	case file_dt:
           fprintf(outFile, "\t\t\t arg_offset += 3;\n");
-	  fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
-	  fprintf(outFile, "\t\t\t char *%s = %s_og;\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
+          fprintf(outFile, "\t\t\t char *%s = %s_og;\n", arg->name, arg->name);
           fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
           fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
           fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
@@ -769,18 +770,34 @@ static void generate_worker_case(FILE *outFile, function *func)
           fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
 	  break;
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
 	  fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name); 
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t %s_ia >> %s;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t %s_ifs.close();\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+
+	  fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
+	
+	  fprintf(outFile, "\t\t\t if (cache.find(%s_orig_id_str) == cache.end()){\n", arg->name, arg->name);	  
+	  fprintf(outFile, "\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t %s_ifs.close();\n", arg->name);
+	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
+
+
+	  fprintf(outFile, "\t\t\t }\n");
+	  fprintf(outFile, "\t\t\t else{\n");
+	  fprintf(outFile, "\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
+	  fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl;\n", arg->name);
+	  fprintf(outFile, "\t\t\t}\n");
+
+      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+
 	  break;
 	case void_dt:
 	case any_dt:
@@ -789,7 +806,7 @@ static void generate_worker_case(FILE *outFile, function *func)
       }
     }
     
-    if (arg->dir == inout_dir || arg->dir == out_dir) {
+    if (arg->dir == inout_dir) {
       switch (arg->type) {
 	case char_dt:
 	case wchar_dt:
@@ -801,18 +818,37 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case float_dt:
 	case double_dt:
 	case object_dt:
-          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
 	  fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
-          fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t %s_ia >> %s;\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t %s_ifs.close();\n", arg->name);
-          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+
+	  fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
+
+	  fprintf(outFile, "\t\t\t if ((string(%s_pres_data) == \"true\")|| (cache.find(%s_orig_id_str) == cache.end())){\n", arg->name, arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t %s_ia >> *%s;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t %s_ifs.close();\n", arg->name);
+	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
+
+
+      fprintf(outFile, "\t\t\t }\n");
+      fprintf(outFile, "\t\t\t else{\n");
+      fprintf(outFile, "\t\t\t\t %s = (%s*)cache[%s_orig_id_str];\n", arg->name, arg->classname, arg->name);
+      fprintf(outFile, "\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
+	  fprintf(outFile, "\t\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been read from the cache.\" << endl;\n", arg->name);
+      fprintf(outFile, "\t\t\t}\n");
+
+      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+
+
 	  break;
 	case string_dt:
 	case wstring_dt:
@@ -848,10 +884,73 @@ static void generate_worker_case(FILE *outFile, function *func)
       }
     }
     
+	 if (arg->dir == out_dir) {
+      switch (arg->type) {
+    case char_dt:
+    case wchar_dt:
+    case boolean_dt:
+    case short_dt:
+    case long_dt:
+    case longlong_dt:
+    case int_dt:
+    case float_dt:
+    case double_dt:
+    case object_dt:
+      fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+      fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
+      fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+
+      fprintf(outFile, "\t\t\t string %s_orig_id_str(%s_orig_id);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t string %s_dest_id_str(%s_dest_id);\n", arg->name, arg->name);
+
+      fprintf(outFile, "\t\t\t cache[%s_dest_id_str] = (void*)%s;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t cout << \"[Persistent C] Object \" << %s_dest_id_str << \" has been added to the cache.\" << endl;\n", arg->name);
+
+      fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+
+      break;
+    case string_dt:
+    case wstring_dt:
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+      fprintf(outFile, "\t\t\t char *%s_filename_og = strdup(argv[arg_offset]);\n", arg->name);
+          fprintf(outFile, "\t\t\t char *%s_filename = %s_filename_og ;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s_filename,\":\");\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t ifstream %s_ifs(%s_filename);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t archive::text_iarchive %s_ia(%s_ifs);\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t string %s_in_string;\n", arg->name);
+      fprintf(outFile, "\t\t\t %s_ia >> %s_in_string;\n", arg->name, arg->name);
+      fprintf(outFile, "\t\t\t %s_ifs.close();\n", arg->name);
+      fprintf(outFile, "\t\t\t %s = strdup(%s_in_string.c_str());\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+      break;
+    case file_dt:
+          fprintf(outFile, "\t\t\t arg_offset += 3;\n");
+      fprintf(outFile, "\t\t\t %s_og = strdup(argv[arg_offset]);\n", arg->name);
+      fprintf(outFile, "\t\t\t char *%s = %s_og ;\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_orig_id = strsep(&%s,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_dest_id = strsep(&%s,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_pres_data = strsep(&%s,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t char *%s_write_data = strsep(&%s,\":\");\n", arg->name, arg->name);
+          fprintf(outFile, "\t\t\t arg_offset += 1;\n\n");
+      break;
+    case void_dt:
+    case any_dt:
+    case null_dt:
+    default:;
+      }
+    }
+
     arg = arg->next_argument;
   }
   //Add function call
-  fprintf(outFile, "\t\t\tprintf(\"calling function %s.%s\");\n \t\t\tfflush(NULL);", func->classname, func->methodname);
+  fprintf(outFile, "\t\t\tprintf(\"calling function %s.%s\");\n \t\t\tfflush(NULL);\n", func->classname, func->methodname);
 
   if (( func->classname != NULL ) && (func->access_static == 0)){
     fprintf(outFile, "\t\t\t this_%s.%s(", func->classname, func->methodname);
@@ -884,7 +983,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "%s", arg->name);
 	  break;
 	case object_dt:
-	  fprintf(outFile, "&%s", arg->name);
+	  fprintf(outFile, "%s", arg->name);
 	  break;
 	case string_dt:
 	case wstring_dt:
@@ -913,7 +1012,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	  fprintf(outFile, "&%s", arg->name);
 	  break;
 	case object_dt:
-	  fprintf(outFile, "&%s", arg->name);
+	  fprintf(outFile, "%s", arg->name);
 	  break;
 	case string_dt:
 	case wstring_dt:
@@ -937,6 +1036,7 @@ static void generate_worker_case(FILE *outFile, function *func)
   fprintf(outFile, "\n");
   
   if (( func->classname != NULL ) && (func->access_static == 0)){
+	fprintf(outFile, "\t\t\t cache[(p_%s.filename()).string()] = (void*)%s;\n", arg->name, arg->name);
     fprintf(outFile, "\t\t\t ofstream this_ofs(this_filename, std::ofstream::trunc);\n");
     fprintf(outFile, "\t\t\t archive::text_oarchive this_oa(this_ofs);\n");
     fprintf(outFile, "\t\t\t this_oa << this_%s;\n", func->classname);
@@ -971,7 +1071,7 @@ static void generate_worker_case(FILE *outFile, function *func)
 	case object_dt:
 	  fprintf(outFile, "\t\t\t ofstream %s_ofs(%s_filename, std::ofstream::trunc);\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t archive::text_oarchive %s_oa(%s_ofs);\n", arg->name, arg->name);
-	  fprintf(outFile, "\t\t\t\t %s_oa << %s;\n", arg->name, arg->name);
+	  fprintf(outFile, "\t\t\t\t %s_oa << *%s;\n", arg->name, arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.flush();\n", arg->name);
 	  fprintf(outFile, "\t\t\t\t %s_ofs.close();\n", arg->name);
 	  break;
@@ -1011,23 +1111,29 @@ static void generate_worker_case(FILE *outFile, function *func)
       case int_dt:
       case float_dt:
       case double_dt:
-	if (arg->dir != in_dir) {
+        if (arg->dir != in_dir) {
                 fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         }
-	break;
+	    break;
       case object_dt:
+		fprintf(outFile, "\t\t\t if (string(%s_pres_data) == \"false\"){\n", arg->name);
+    	fprintf(outFile, "\t\t\t\t %s* %s_erase = (%s*)cache[%s_orig_id_str];\n", arg->classname, arg->name, arg->classname, arg->name);
+        fprintf(outFile, "\t\t\t\t cache.erase(%s_orig_id_str);\n", arg->name);
+        fprintf(outFile, "\t\t\t\t cout << \"[Persistent C] Object \" << %s_orig_id_str << \" has been removed from the cache.\" << endl;\n", arg->name);
+        fprintf(outFile, "\t\t\t }\n");
+
         fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         break;
       case file_dt:
-	fprintf(outFile, "\t\t\t free(%s_og);\n", arg->name);
-	break;
+        fprintf(outFile, "\t\t\t free(%s_og);\n", arg->name);
+        break;
       case string_dt:
       case wstring_dt:
-	if (arg->dir != in_dir) {
+        if (arg->dir != in_dir) {
                 fprintf(outFile, "\t\t\t free(%s_filename_og);\n", arg->name);
         }
-	fprintf(outFile, "\t\t\t free(%s);\n", arg->name);
-	break;
+	    fprintf(outFile, "\t\t\t free(%s);\n", arg->name);
+	    break;
       case void_dt:
       case any_dt:
       case null_dt:

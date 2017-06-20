@@ -778,7 +778,7 @@ def reveal_objects(values,
                         if is_object_in_cache:
                             local_cache.hit(suffix_name)
                         else:
-                            local_cache.add(suffix_name)
+                            local_cache.add(suffix_name, obj)
                     # A possible approach when preserve is not true could consist
                     # in deleting the current object and then adding the new one
                     # However, this approach would delete information as the

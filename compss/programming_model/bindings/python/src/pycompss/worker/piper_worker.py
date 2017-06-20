@@ -234,16 +234,17 @@ def execute_task(process_name, storage_conf, params, local_cache):
 
     args = args[3:]
 
-    logger.debug("[PYTHON WORKER %s] Storage conf: %s" % (str(process_name), str(storage_conf)))
-    logger.debug("[PYTHON WORKER %s] Params: %s" % (str(process_name), str(params)))
-    logger.debug("[PYTHON WORKER %s] Path: %s" % (str(process_name), str(path)))
-    logger.debug("[PYTHON WORKER %s] Method name: %s" % (str(process_name), str(method_name)))
-    logger.debug("[PYTHON WORKER %s] Num slaves: %s" % (str(process_name), str(numSlaves)))
-    logger.debug("[PYTHON WORKER %s] Slaves: %s" % (str(process_name), str(slaves)))
-    logger.debug("[PYTHON WORKER %s] Cus: %s" % (str(process_name), str(cus)))
-    logger.debug("[PYTHON WORKER %s] Has target: %s" % (str(process_name), str(has_target)))
-    logger.debug("[PYTHON WORKER %s] Num Params: %s" % (str(process_name), str(num_params)))
-    logger.debug("[PYTHON WORKER %s] Args: %s" % (str(process_name), str(args)))
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug("[PYTHON WORKER %s] Storage conf: %s" % (str(process_name), str(storage_conf)))
+        logger.debug("[PYTHON WORKER %s] Params: %s" % (str(process_name), str(params)))
+        logger.debug("[PYTHON WORKER %s] Path: %s" % (str(process_name), str(path)))
+        logger.debug("[PYTHON WORKER %s] Method name: %s" % (str(process_name), str(method_name)))
+        logger.debug("[PYTHON WORKER %s] Num slaves: %s" % (str(process_name), str(numSlaves)))
+        logger.debug("[PYTHON WORKER %s] Slaves: %s" % (str(process_name), str(slaves)))
+        logger.debug("[PYTHON WORKER %s] Cus: %s" % (str(process_name), str(cus)))
+        logger.debug("[PYTHON WORKER %s] Has target: %s" % (str(process_name), str(has_target)))
+        logger.debug("[PYTHON WORKER %s] Num Params: %s" % (str(process_name), str(num_params)))
+        logger.debug("[PYTHON WORKER %s] Args: %r" % (str(process_name), args))
 
     pos = 0
 
@@ -264,11 +265,12 @@ def execute_task(process_name, storage_conf, params, local_cache):
         pPrefix = args[pos + 2]
         pValue = args[pos + 3]
 
-        logger.debug("[PYTHON WORKER %s] Parameter : %s" % (process_name, str(i)))
-        logger.debug("[PYTHON WORKER %s] \t * Type : %s" % (process_name, str(pType)))
-        logger.debug("[PYTHON WORKER %s] \t * Stream : %s" % (process_name, str(pStream)))
-        logger.debug("[PYTHON WORKER %s] \t * Prefix : %s" % (process_name, str(pPrefix)))
-        logger.debug("[PYTHON WORKER %s] \t * Value: %s" % (process_name, str(pValue)))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("[PYTHON WORKER %s] Parameter : %s" % (process_name, str(i)))
+            logger.debug("[PYTHON WORKER %s] \t * Type : %s" % (process_name, str(pType)))
+            logger.debug("[PYTHON WORKER %s] \t * Stream : %s" % (process_name, str(pStream)))
+            logger.debug("[PYTHON WORKER %s] \t * Prefix : %s" % (process_name, str(pPrefix)))
+            logger.debug("[PYTHON WORKER %s] \t * Value: %r" % (process_name, pValue))
 
         types.append(pType)
         streams.append(pStream)
@@ -346,7 +348,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
         logger.debug("[PYTHON WORKER %s] \t- # parameters: %s" % (process_name, str(num_params)))
         logger.debug("[PYTHON WORKER %s] \t- Values:" % process_name)
         for v in values:
-            logger.debug("[PYTHON WORKER %s] \t\t %s" % (process_name, str(v)))
+            logger.debug("[PYTHON WORKER %s] \t\t %r" % (process_name, v))
         logger.debug("[PYTHON WORKER %s] \t- COMPSs types:" % process_name)
         for t in types:
             logger.debug("[PYTHON WORKER %s] \t\t %s" % (process_name, str(t)))
@@ -448,7 +450,7 @@ def execute_task(process_name, storage_conf, params, local_cache):
                 task_execution_2()
 
             logger.debug("[PYTHON WORKER %s] Serializing self to file." % process_name)
-            logger.debug("[PYTHON WORKER %s] Obj: %s" % (process_name,str(obj)))
+            logger.debug("[PYTHON WORKER %s] Obj: %r" % (process_name, obj))
             serialize_to_file(obj, file_name)
         else:
             # Class method - class is not included in values (e.g. values = [7])

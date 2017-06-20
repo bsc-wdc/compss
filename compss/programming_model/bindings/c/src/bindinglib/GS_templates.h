@@ -62,10 +62,11 @@ void compss_wait_on(T &obj) {
   debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
   
   GS_Get_File(entry.filename, in_dir, &runtime_filename);
-  
+  debug_printf("[   BINDING]  -  @compss_wait_on  -  template class\n");  
   debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-  
+
   ifstream ifs(runtime_filename);
+
   archive::text_iarchive ia(ifs);
   ia >> obj;
   ifs.close();
@@ -73,45 +74,6 @@ void compss_wait_on(T &obj) {
   // No longer needed, the current version of the object is in memory now
   remove(entry.filename);
   remove(runtime_filename);
-  objectMap.erase(&obj);
-}
-
-template <>
-void compss_wait_on<char *>(char * &obj) {
-  string in_string;
-  
-  Entry entry = objectMap[&obj];
-  char *runtime_filename;
-  
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.type: %d\n", entry.type);
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.classname: %s\n", entry.classname);
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Entry.filename: %s\n", entry.filename);
-  
-  GS_Get_File(entry.filename, in_dir, &runtime_filename);
-  
-  debug_printf("[   BINDING]  -  @compss_wait_on  -  Runtime filename: %s\n", runtime_filename);
-  
-  if ((datatype)entry.type != file_dt) {
-    debug_printf("[   BINDING]  -  @compss_wait_on  -  Object deserialization from %s\n", runtime_filename);
-    
-    ifstream ifs(runtime_filename);
-    archive::text_iarchive ia(ifs);
-    ia >> in_string;
-    ifs.close();
-    
-    obj = strdup(in_string.c_str());
-    
-    // No longer needed, the current version of the object is in memory now
-    remove(entry.filename);
-    //remove(runtime_filename);
-  } else {
-    // Update file contents
-    debug_printf("[   BINDING]  -  @compss_wait_on  -  File renaming: %s to %s\n", runtime_filename, entry.filename);
-    remove(entry.filename);
-    //rename(runtime_filename, entry.filename);
-    symlink(runtime_filename, entry.filename);
-  }
-  // No longer needed, synchronization done
   objectMap.erase(&obj);
 }
 

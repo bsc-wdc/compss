@@ -738,9 +738,22 @@ def reveal_objects(values,
 
         if compss_type == Type.FILE and p.type != Type.FILE:
             # Getting ids and file names from passed files and objects patern is "originalDataID:destinationDataID;flagToPreserveOriginalData:flagToWrite:PathToFile"
-            forig, fdest, preserve, write_final, fname = value.split(':')
-            preserve, write_final = list(map(lambda x : x == "true", [preserve, write_final]))
-            suffix_name = forig
+            # forig, fdest, preserve, write_final, fname = value.split(':')
+            complete_fname = value.split(':')
+            if len(complete_fname) > 1:
+                # In NIO we get more information
+                forig = complete_fname[0]
+                fdest = complete_fname[1]
+                preserve = complete_fname[2]
+                write_final = complete_fname[3]
+                fname = complete_fname[4]
+                preserve, write_final = list(map(lambda x: x == "true", [preserve, write_final]))
+                suffix_name = forig
+            else:
+                # In GAT we only get the name --> disable cache
+                fname = complete_fname[0]
+                # local_cache = None   # Cache must be disabled.
+
             value = fname
             # For COMPSs it is a file, but it is actually a Python object
             logger.debug("Processing a hidden object in parameter %d", i)
@@ -794,7 +807,18 @@ def reveal_objects(values,
         else:
             print('compss_type' + str(compss_type)+ ' type'+ str(p.type))
             if compss_type == Type.FILE:
-                forig,fdest,preserve,write_final,fname = value.split(':')
+                # forig, fdest, preserve, write_final, fname = value.split(':')
+                complete_fname = value.split(':')
+                if len(complete_fname) > 1:
+                    # In NIO we get more information
+                    forig = complete_fname[0]
+                    fdest = complete_fname[1]
+                    preserve = complete_fname[2]
+                    write_final = complete_fname[3]
+                    fname = complete_fname[4]
+                else:
+                    # In GAT we only get the name
+                    fname = complete_fname[0]
                 value = fname
             real_values.append(value)
     return real_values, to_serialize

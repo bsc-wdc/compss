@@ -5,12 +5,10 @@ import integratedtoolkit.components.impl.DataInfoProvider;
 import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 
-
 public class SetObjectVersionValueRequest extends APRequest {
 
     private String renaming;
     private Object value;
-
 
     public SetObjectVersionValueRequest(String renaming, Object value) {
         this.renaming = renaming;
@@ -34,7 +32,7 @@ public class SetObjectVersionValueRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         dip.setObjectVersionValue(renaming, value);
     }
 

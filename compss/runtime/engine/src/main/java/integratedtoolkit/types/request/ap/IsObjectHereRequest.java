@@ -8,14 +8,12 @@ import integratedtoolkit.types.data.DataInstanceId;
 
 import java.util.concurrent.Semaphore;
 
-
 public class IsObjectHereRequest extends APRequest {
 
     private int code;
     private Semaphore sem;
 
     private boolean response;
-
 
     public IsObjectHereRequest(int code, Semaphore sem) {
         this.code = code;
@@ -47,7 +45,7 @@ public class IsObjectHereRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         DataInstanceId dId = dip.getLastDataAccess(code);
         response = dip.isHere(dId);
         sem.release();

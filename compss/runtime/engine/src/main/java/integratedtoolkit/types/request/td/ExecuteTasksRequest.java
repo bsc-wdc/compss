@@ -5,34 +5,27 @@ import java.util.Collection;
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.components.impl.TaskProducer;
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.Task.TaskState;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.allocatableactions.MultiNodeExecutionAction;
 import integratedtoolkit.types.allocatableactions.MultiNodeGroup;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-
 
 /**
  * The ExecuteTasksRequest class represents the request to execute a task
  */
-public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class ExecuteTasksRequest extends TDRequest {
 
     private final TaskProducer producer;
     private final Task task;
 
-
     /**
      * Constructs a new ScheduleTasks Request
      *
-     * @param producer
-     *            taskProducer to be notified when the task ends
-     * @param t
-     *            Task to run
+     * @param producer taskProducer to be notified when the task ends
+     * @param t Task to run
      */
     public ExecuteTasksRequest(TaskProducer producer, Task t) {
         this.producer = producer;
@@ -49,10 +42,10 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
     }
 
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         int coreId = task.getTaskDescription().getId();
-        if (debug) {
-            logger.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreId + ")");
+        if (DEBUG) {
+            LOGGER.debug("Treating Scheduling request for task " + task.getId() + "(core " + coreId + ")");
         }
 
         task.setStatus(TaskState.TO_EXECUTE);
@@ -62,26 +55,26 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
 
         if (isReplicated) {
             // Method annotation forces to replicate task to all nodes
-            if (debug) {
-                logger.debug("Replicating task " + task.getId());
+            if (DEBUG) {
+                LOGGER.debug("Replicating task " + task.getId());
             }
 
-            Collection<ResourceScheduler<P, T, I>> resources = ts.getWorkers();
+            Collection<ResourceScheduler<? extends WorkerResourceDescription>> resources = ts.getWorkers();
             task.setExecutionCount(resources.size() * numNodes);
-            for (ResourceScheduler<P, T, I> rs : resources) {
+            for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) {
                 submitTask(ts, numNodes, rs);
             }
         } else if (isDistributed) {
             // Method annotation forces RoundRobin among nodes
             // WARN: This code is proportional to the number of resources, can lead to some overhead
-            if (debug) {
-                logger.debug("Distributing task " + task.getId());
+            if (DEBUG) {
+                LOGGER.debug("Distributing task " + task.getId());
             }
 
-            ResourceScheduler<P, T, I> selectedResource = null;
+            ResourceScheduler<? extends WorkerResourceDescription> selectedResource = null;
             int minNumTasksOfSameType = Integer.MAX_VALUE;
-            Collection<ResourceScheduler<P, T, I>> resources = ts.getWorkers();
-            for (ResourceScheduler<P, T, I> rs : resources) {
+            Collection<ResourceScheduler<? extends WorkerResourceDescription>> resources = ts.getWorkers();
+            for (ResourceScheduler<? extends WorkerResourceDescription> rs : resources) {
                 // RS numTasks only considers MasterExecutionActions
                 int numTasks = rs.getNumTasks(task.getTaskDescription().getId());
                 if (numTasks < minNumTasksOfSameType) {
@@ -94,20 +87,20 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
             submitTask(ts, numNodes, selectedResource);
         } else {
             // Normal task
-            if (debug) {
-                logger.debug("Submitting task " + task.getId());
+            if (DEBUG) {
+                LOGGER.debug("Submitting task " + task.getId());
             }
-            
+
             task.setExecutionCount(numNodes);
             submitTask(ts, numNodes, null);
         }
 
-        if (debug) {
-            logger.debug("Treated Scheduling request for task " + task.getId() + " (core " + coreId + ")");
+        if (DEBUG) {
+            LOGGER.debug("Treated Scheduling request for task " + task.getId() + " (core " + coreId + ")");
         }
     }
 
-    private void submitTask(TaskScheduler<P, T, I> ts, int numNodes, ResourceScheduler<P, T, I> specificResource) {
+    private <T extends WorkerResourceDescription> void submitTask(TaskScheduler ts, int numNodes, ResourceScheduler<T> specificResource) {
         // A task can use one or more resources
         if (numNodes == 1) {
             submitSingleTask(ts, specificResource);
@@ -116,20 +109,18 @@ public class ExecuteTasksRequest<P extends Profile, T extends WorkerResourceDesc
         }
     }
 
-    private void submitSingleTask(TaskScheduler<P, T, I> ts, ResourceScheduler<P, T, I> specificResource) {
-        logger.debug("Scheduling request for task " + task.getId() + " treated as singleTask");
-        ExecutionAction<P, T, I> action = new ExecutionAction<>(ts.generateSchedulingInformation(), ts.getOrchestrator(), producer, task,
-                specificResource);
+    private <T extends WorkerResourceDescription> void submitSingleTask(TaskScheduler ts, ResourceScheduler<T> specificResource) {
+        LOGGER.debug("Scheduling request for task " + task.getId() + " treated as singleTask");
+        ExecutionAction action = new ExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), producer, task);
         ts.newAllocatableAction(action);
     }
 
-    private void submitMultiNodeTask(TaskScheduler<P, T, I> ts, int numNodes, ResourceScheduler<P, T, I> specificResource) {
-        logger.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask with " + numNodes  + " nodes");
+    private <T extends WorkerResourceDescription> void submitMultiNodeTask(TaskScheduler ts, int numNodes, ResourceScheduler<T> specificResource) {
+        LOGGER.debug("Scheduling request for task " + task.getId() + " treated as multiNodeTask with " + numNodes + " nodes");
         // Can use one or more resources depending on the computingNodes
-        MultiNodeGroup<P, T, I> group = new MultiNodeGroup<>(numNodes);
+        MultiNodeGroup group = new MultiNodeGroup(numNodes);
         for (int i = 0; i < numNodes; ++i) {
-            MultiNodeExecutionAction<P, T, I> action = new MultiNodeExecutionAction<>(ts.generateSchedulingInformation(),
-                    ts.getOrchestrator(), producer, task, specificResource, group);
+            MultiNodeExecutionAction action = new MultiNodeExecutionAction(ts.generateSchedulingInformation(specificResource), ts.getOrchestrator(), producer, task, group);
             ts.newAllocatableAction(action);
         }
     }

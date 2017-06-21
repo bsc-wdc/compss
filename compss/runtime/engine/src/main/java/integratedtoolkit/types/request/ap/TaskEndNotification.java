@@ -6,11 +6,9 @@ import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.Task;
 
-
 public class TaskEndNotification extends APRequest {
 
     private Task task;
-
 
     public TaskEndNotification(Task task) {
         this.task = task;
@@ -25,7 +23,7 @@ public class TaskEndNotification extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.endTask(task);
     }
 

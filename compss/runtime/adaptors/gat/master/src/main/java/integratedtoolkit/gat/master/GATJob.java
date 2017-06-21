@@ -105,7 +105,7 @@ public class GATJob extends integratedtoolkit.types.job.Job<GATWorkerNode> imple
      * @param usingGlobus
      * @param slaveWorkersNodeNames
      */
-    public GATJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, JobListener listener, GATContext context,
+    public GATJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, JobListener listener, GATContext context,
             boolean userNeeded, boolean usingGlobus, List<String> slaveWorkersNodeNames) {
 
         super(taskId, taskParams, impl, res, listener);

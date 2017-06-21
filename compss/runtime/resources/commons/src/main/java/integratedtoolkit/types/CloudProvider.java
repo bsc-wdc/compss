@@ -22,7 +22,6 @@ import integratedtoolkit.log.Loggers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class CloudProvider {
 
     private final String name;
@@ -33,7 +32,7 @@ public class CloudProvider {
 
     private final Connector connector;
     private final Cost cost;
-    
+
     private int currentVMCount;
 
     // Loggers
@@ -41,7 +40,6 @@ public class CloudProvider {
     private static final String WARN_NO_COMPATIBLE_TYPE = "WARN: Cannot find any compatible instanceType";
     private static final String WARN_NO_COMPATIBLE_IMAGE = "WARN: Cannot find any compatible Image";
     private static final String WARN_NO_VALID_INSTANCE = "WARN: Cannot find a containing/contained instanceType";
-
 
     public CloudProvider(String providerName, Integer limitOfVMs, String connectorJarPath, String connectorMainClass,
             HashMap<String, String> connectorProperties)
@@ -53,12 +51,12 @@ public class CloudProvider {
 
         this.imgManager = new CloudImageManager();
         this.typeManager = new CloudTypeManager();
-        
+
         // Load Runtime connector implementation that will finally load the
         // infrastructure dependent connector
         try {
             Class<?> conClass = Class.forName(System.getProperty(ITConstants.IT_CONN));
-            Class<?>[] parameterTypes = new Class<?>[] {String.class, String.class, String.class, HashMap.class};
+            Class<?>[] parameterTypes = new Class<?>[]{String.class, String.class, String.class, HashMap.class};
             Constructor<?> ctor = conClass.getConstructor(parameterTypes);
             Object conector = ctor.newInstance(providerName, connectorJarPath, connectorMainClass, connectorProperties);
             connector = (Connector) conector;
@@ -106,8 +104,16 @@ public class CloudProvider {
         return imgManager.getAllImageNames();
     }
 
+    public CloudImageDescription getImage(String name) {
+        return imgManager.getImage(name);
+    }
+
     public Set<String> getAllInstanceTypeNames() {
         return typeManager.getAllInstanceTypeNames();
+    }
+
+    public CloudMethodResourceDescription getInstanceType(String name) {
+        return typeManager.getInstanceType(name);
     }
 
     public int[][] getSimultaneousImpls(String type) {
@@ -201,6 +207,19 @@ public class CloudProvider {
         return result;
     }
 
+    public CloudMethodResourceDescription getResourceDescription(String instanceTypeName, String imageName) {
+        CloudMethodResourceDescription result = typeManager.getInstanceType(instanceTypeName);
+        if (result != null) {
+            CloudImageDescription image = imgManager.getImage(imageName);
+            result.setProviderName(name);
+            result.setImage(image);
+            result.setValue(cost.getMachineCostPerHour(result));
+        } else {
+            logger.warn(WARN_NO_VALID_INSTANCE);
+        }
+        return result;
+    }
+
     private CloudMethodResourceDescription selectContainingInstance(LinkedList<CloudMethodResourceDescription> instances,
             MethodResourceDescription constraints, int amount) {
 
@@ -236,7 +255,7 @@ public class CloudProvider {
 
     private CloudMethodResourceDescription selectContainedInstance(LinkedList<CloudMethodResourceDescription> instances,
             MethodResourceDescription constraints, int amount) {
-        
+
         CloudMethodResourceDescription result = null;
         float bestDistance = Integer.MAX_VALUE;
 

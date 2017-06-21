@@ -7,24 +7,23 @@ import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-
-public class MethodWorker extends Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> {
+public class MethodWorker extends Worker<MethodResourceDescription> {
 
     private String name;
 
     // Available resource capabilities
     protected final MethodResourceDescription available;
 
-
-    public MethodWorker(String name, MethodResourceDescription description, COMPSsWorker worker, int limitOfTasks,
-            HashMap<String, String> sharedDisks) {
+    public MethodWorker(String name, MethodResourceDescription description,
+            COMPSsWorker worker, int limitOfTasks, HashMap<String, String> sharedDisks) {
 
         super(name, description, worker, limitOfTasks, sharedDisks);
         this.name = name;
         available = new MethodResourceDescription(description);
     }
 
-    public MethodWorker(String name, MethodResourceDescription description, MethodConfiguration conf, HashMap<String, String> sharedDisks) {
+    public MethodWorker(String name, MethodResourceDescription description,
+            MethodConfiguration conf, HashMap<String, String> sharedDisks) {
         super(name, description, conf, sharedDisks);
         this.name = name;
         this.available = new MethodResourceDescription(description); // clone
@@ -65,10 +64,19 @@ public class MethodWorker extends Worker<MethodResourceDescription, Implementati
     @Override
     public void releaseAllResources() {
         synchronized (available) {
-            super.resetUsedTaskCount();
+            super.resetUsedTaskCounts();
             available.reduceDynamic(available);
             available.increaseDynamic(description);
         }
+    }
+
+    @Override
+    public Integer fitCount(Implementation impl) {
+        if (impl.getTaskType() == TaskType.SERVICE) {
+            return null;
+        }
+        MethodResourceDescription ctrs = (MethodResourceDescription) impl.getRequirements();
+        return description.canHostSimultaneously(ctrs);
     }
 
     @Override
@@ -77,29 +85,20 @@ public class MethodWorker extends Worker<MethodResourceDescription, Implementati
             return available.containsDynamic(consumption);
         }
     }
-    
+
     @Override
-    public boolean usesGPU(MethodResourceDescription consumption){
-    	return (consumption.getTotalGPUComputingUnits() > 0);
-    }
-    
-    @Override
-    public boolean usesFPGA(MethodResourceDescription consumption){
-    	return (consumption.getTotalFPGAComputingUnits() > 0);
-    }
-    
-    @Override
-    public boolean usesOthers(MethodResourceDescription consumption){
-    	return (consumption.getTotalOTHERComputingUnits() > 0);
+    public boolean usesGPU(MethodResourceDescription consumption) {
+        return (consumption.getTotalGPUComputingUnits() > 0);
     }
 
     @Override
-    public Integer fitCount(Implementation<MethodResourceDescription> impl) {
-        if (impl.getTaskType() == TaskType.SERVICE) {
-            return null;
-        }
-        MethodResourceDescription ctrs = (MethodResourceDescription) impl.getRequirements();
-        return description.canHostSimultaneously(ctrs);
+    public boolean usesFPGA(MethodResourceDescription consumption) {
+        return (consumption.getTotalFPGAComputingUnits() > 0);
+    }
+
+    @Override
+    public boolean usesOthers(MethodResourceDescription consumption) {
+        return (consumption.getTotalOTHERComputingUnits() > 0);
     }
 
     @Override
@@ -114,11 +113,11 @@ public class MethodWorker extends Worker<MethodResourceDescription, Implementati
         sb.append(prefix).append("<TotalCPUComputingUnits>").append(description.getTotalCPUComputingUnits()).append("</TotalCPUComputingUnits>")
                 .append("\n");
         sb.append(prefix).append("<TotalGPUComputingUnits>").append(description.getTotalGPUComputingUnits()).append("</TotalGPUComputingUnits>")
-        		.append("\n");
+                .append("\n");
         sb.append(prefix).append("<TotalFPGAComputingUnits>").append(description.getTotalFPGAComputingUnits()).append("</TotalFPGAComputingUnits>")
-        		.append("\n");
+                .append("\n");
         sb.append(prefix).append("<TotalOTHERComputingUnits>").append(description.getTotalOTHERComputingUnits()).append("</TotalOTHERComputingUnits>")
-        		.append("\n");
+                .append("\n");
         sb.append(prefix).append("<Memory>").append(description.getMemorySize()).append("</Memory>").append("\n");
         sb.append(prefix).append("<Disk>").append(description.getStorageSize()).append("</Disk>").append("\n");
         return sb.toString();
@@ -163,7 +162,7 @@ public class MethodWorker extends Worker<MethodResourceDescription, Implementati
     }
 
     @Override
-    public boolean canRun(Implementation<MethodResourceDescription> implementation) {
+    public boolean canRun(Implementation implementation) {
         switch (implementation.getTaskType()) {
             case METHOD:
                 MethodResourceDescription ctrs = (MethodResourceDescription) implementation.getRequirements();
@@ -186,7 +185,7 @@ public class MethodWorker extends Worker<MethodResourceDescription, Implementati
     }
 
     @Override
-    public Worker<MethodResourceDescription, Implementation<MethodResourceDescription>> getSchedulingCopy() {
+    public MethodWorker getSchedulingCopy() {
         return new MethodWorker(this);
     }
 

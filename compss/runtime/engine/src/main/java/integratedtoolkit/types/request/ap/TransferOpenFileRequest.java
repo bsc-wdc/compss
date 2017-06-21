@@ -18,10 +18,10 @@ import integratedtoolkit.types.data.operation.OneOpWithSemListener;
 import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 
-
 /**
- * The TransferRawFileRequest class represents a request to transfer a file located in a worker to be transferred to
- * another location without register the transfer
+ * The TransferRawFileRequest class represents a request to transfer a file
+ * located in a worker to be transferred to another location without register
+ * the transfer
  */
 public class TransferOpenFileRequest extends APRequest {
 
@@ -38,14 +38,11 @@ public class TransferOpenFileRequest extends APRequest {
      */
     private Semaphore sem;
 
-
     /**
      * Constructs a new TransferOpenFileRequest
      *
-     * @param faId
-     *            Data Id and version of the requested file
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
+     * @param faId Data Id and version of the requested file
+     * @param sem Semaphore where to synchronize until the operation is done
      */
     public TransferOpenFileRequest(DataAccessId faId, Semaphore sem) {
         this.faId = faId;
@@ -64,8 +61,7 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the semaphore where to synchronize until the operation is done
      *
-     * @param sem
-     *            Semaphore where to synchronize until the operation is done
+     * @param sem Semaphore where to synchronize until the operation is done
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -83,8 +79,7 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the data Id and version of the requested file
      *
-     * @param faId
-     *            Data Id and version of the requested file
+     * @param faId Data Id and version of the requested file
      */
     public void setFaId(DataAccessId faId) {
         this.faId = faId;
@@ -102,16 +97,15 @@ public class TransferOpenFileRequest extends APRequest {
     /**
      * Sets the location where to leave the requested file
      *
-     * @param location
-     *            Location where to leave the requested file
+     * @param location Location where to leave the requested file
      */
     public void setLocation(DataLocation location) {
         this.location = location;
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
-        logger.debug("Process TransferOpenFileRequest");
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
+        LOGGER.debug("Process TransferOpenFileRequest");
         if (faId instanceof DataAccessId.WAccessId) {
             DataAccessId.WAccessId waId = (DataAccessId.WAccessId) faId;
             DataInstanceId targetFile = waId.getWrittenDataInstance();
@@ -126,7 +120,7 @@ public class TransferOpenFileRequest extends APRequest {
                 ErrorManager.error(DataLocation.ERROR_INVALID_LOCATION + " " + targetPath, e);
             }
 
-            logger.debug(targetFile + " to be opened as " + targetLocation);
+            LOGGER.debug(targetFile + " to be opened as " + targetLocation);
             Comm.registerLocation(targetName, targetLocation);
             setLocation(targetLocation);
 

@@ -344,7 +344,7 @@ public class COMPSsMaster extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation<?> impl, Resource res, List<String> slaveWorkersNodeNames,
+    public Job<?> newJob(int taskId, TaskDescription taskParams, Implementation impl, Resource res, List<String> slaveWorkersNodeNames,
             JobListener listener) {
 
         // Cannot run jobs

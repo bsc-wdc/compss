@@ -1,40 +1,39 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-
+import integratedtoolkit.types.resources.updates.ResourceUpdate;
 
 /**
- * The AddCloudNodeRequest represents a request to add a new resource ready to execute to the resource pool
+ * The AddCloudNodeRequest represents a request to add a new resource ready to
+ * execute to the resource pool
  */
-public class WorkerUpdateRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class WorkerUpdateRequest<T extends WorkerResourceDescription> extends TDRequest {
 
-    private final Worker<T, I> worker;
-
+    private final Worker<T> worker;
+    private final ResourceUpdate<T> ru;
 
     /**
      * Constructs a AddCloudNodeRequest with all its parameters
      *
-     * @param worker
-     *            Worker that has been added
+     * @param worker Worker that has been added
+     * @param update
      *
      */
-    public WorkerUpdateRequest(Worker<T, I> worker) {
+    public WorkerUpdateRequest(Worker<T> worker, ResourceUpdate<T> update) {
         this.worker = worker;
+        this.ru = update;
     }
 
-    public Worker<T, I> getWorker() {
+    public Worker<T> getWorker() {
         return worker;
     }
 
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
-        ts.updatedWorker(worker);
+    public void process(TaskScheduler ts) throws ShutdownException {
+        ts.updateWorker(worker, ru);
     }
 
     @Override

@@ -1,8 +1,6 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -10,12 +8,11 @@ import integratedtoolkit.util.ResourceManager;
 
 import java.util.concurrent.Semaphore;
 
-
 /**
- * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
+ * The MonitoringDataRequest class represents a request to obtain the current
+ * resources and cores that can be run
  */
-public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class MonitoringDataRequest extends TDRequest {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -26,31 +23,33 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
      */
     private String response;
 
-
     /**
      * Constructs a new TaskStateRequest
      *
-     * @param sem
-     *            semaphore where to synchronize until the current state is described
+     * @param sem semaphore where to synchronize until the current state is
+     * described
      */
     public MonitoringDataRequest(Semaphore sem) {
         this.sem = sem;
     }
 
     /**
-     * Returns the semaphore where to synchronize until the current state is described
+     * Returns the semaphore where to synchronize until the current state is
+     * described
      *
-     * @return the semaphore where to synchronize until the current state is described
+     * @return the semaphore where to synchronize until the current state is
+     * described
      */
     public Semaphore getSemaphore() {
         return sem;
     }
 
     /**
-     * Sets the semaphore where to synchronize until the current state is described
+     * Sets the semaphore where to synchronize until the current state is
+     * described
      *
-     * @param sem
-     *            the semaphore where to synchronize until the current state is described
+     * @param sem the semaphore where to synchronize until the current state is
+     * described
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
@@ -68,8 +67,7 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
     /**
      * Sets the current state description
      *
-     * @param response
-     *            current state description
+     * @param response current state description
      */
     public void setResponse(String response) {
         this.response = response;
@@ -77,31 +75,30 @@ public class MonitoringDataRequest<P extends Profile, T extends WorkerResourceDe
 
     @SuppressWarnings("unchecked")
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         String prefix = "\t";
         StringBuilder monitorData = new StringBuilder();
         monitorData.append(ts.getCoresMonitoringData(prefix));
 
         monitorData.append(prefix).append("<ResourceInfo>").append("\n");
         monitorData.append(ResourceManager.getPendingRequestsMonitorData(prefix + "\t"));
-        for (Worker<?, ?> r : ResourceManager.getAllWorkers()) {
-            Worker<T, I> worker = (Worker<T, I>) r;
-            monitorData.append(prefix + "\t").append("<Resource id=\"" + worker.getName() + "\">").append("\n");
+        for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
+            monitorData.append(prefix).append("\t").append("<Resource id=\"").append(worker.getName()).append("\">").append("\n");
             // CPU, Core, Memory, Disk, Provider, Image --> Inside resource
-            monitorData.append(r.getMonitoringData(prefix + "\t\t"));
+            monitorData.append(worker.getMonitoringData(prefix + "\t\t"));
             String runnningActions = ts.getRunningActionMonitorData(worker, prefix + "\t\t\t");
             if (runnningActions != null) {
                 // Resource state = running
-                monitorData.append(prefix + "\t\t").append("<Status>").append("Running").append("</Status>").append("\n");
-                monitorData.append(prefix + "\t\t").append("<Actions>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Status>").append("Running").append("</Status>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Actions>").append("\n");
                 monitorData.append(runnningActions);
-                monitorData.append(prefix + "\t\t").append("</Actions>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("</Actions>").append("\n");
             } else {
                 // Resource state = on destroy
-                monitorData.append(prefix + "\t\t").append("<Status>").append("On Destroy").append("</Status>").append("\n");
-                monitorData.append(prefix + "\t\t").append("<Actions>").append("</Actions>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Status>").append("On Destroy").append("</Status>").append("\n");
+                monitorData.append(prefix).append("\t\t").append("<Actions>").append("</Actions>").append("\n");
             }
-            monitorData.append(prefix + "\t").append("</Resource>").append("\n");
+            monitorData.append(prefix).append("\t").append("</Resource>").append("\n");
         }
         monitorData.append(prefix).append("</ResourceInfo>").append("\n");
 

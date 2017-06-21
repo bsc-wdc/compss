@@ -5,8 +5,11 @@ import integratedtoolkit.connectors.AbstractSSHConnector;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.configuration.MethodConfiguration;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class CloudImageDescription {
 
@@ -33,7 +36,6 @@ public class CloudImageDescription {
     private List<String> queues;
     // Configuration
     private MethodConfiguration config;
-
 
     public CloudImageDescription(String cloudProviderName, String imageName, Map<String, String> providerProperties) {
         this.providerName = cloudProviderName;

@@ -8,11 +8,9 @@ import integratedtoolkit.types.data.ResultFile;
 
 import java.util.List;
 
-
 public class UnblockResultFilesRequest extends APRequest {
 
     private List<ResultFile> resultFiles;
-
 
     public UnblockResultFilesRequest(List<ResultFile> resultFiles) {
         this.resultFiles = resultFiles;
@@ -27,7 +25,7 @@ public class UnblockResultFilesRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         for (ResultFile resFile : resultFiles) {
             dip.unblockDataId(resFile.getFileInstanceId().getDataId());
         }

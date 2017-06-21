@@ -15,7 +15,6 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
-
 public class MethodResourceDescription extends WorkerResourceDescription {
 
     // Constant for weight difference (dynamic increase/decrease)
@@ -101,9 +100,10 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     /**
-     * Creates a MethodResourceDescription representing a set of constraints The constraints are validated and loaded
-     * through this process. If any error occurs an exception is raised to the user through the ErrorManager
-     * 
+     * Creates a MethodResourceDescription representing a set of constraints The
+     * constraints are validated and loaded through this process. If any error
+     * occurs an exception is raised to the user through the ErrorManager
+     *
      * @param constraints
      */
     public MethodResourceDescription(Constraints constraints) {
@@ -124,7 +124,6 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         /*
          * Otherwise we parse each possible constraint
          */
-
         // Parse processors - When coming from Constraints only one processor is available
         integratedtoolkit.types.annotations.Processor[] processorsConstraints = constraints.processors();
         if (processorsConstraints != null && processorsConstraints.length > 0) {
@@ -345,7 +344,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     /**
      * For python constraints
-     * 
+     *
      * @param description
      */
     public MethodResourceDescription(String description) {
@@ -364,14 +363,14 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 addConstraints(key, val, proc);
             }
         }
-        
+
         // Add the information retrieved from the processor constraints
         this.addProcessor(proc); // Increases the totalCUs
     }
 
     /**
      * For C constraints
-     * 
+     *
      * @param constraints
      */
     public MethodResourceDescription(String[] constraints, String processorString) {
@@ -393,7 +392,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 }
                 this.addProcessor(proc);
             }
-        }else {
+        } else {
             // If no specific processor is requested, a single processor will be used with at least 1 CU
             proc.setComputingUnits(ONE_INT);
         }
@@ -406,20 +405,18 @@ public class MethodResourceDescription extends WorkerResourceDescription {
                 addConstraints(key, val, proc);
             }
         }
-        
+
         // Add the information retrieved from the processor constraints
         if (processorString == null || processorString.isEmpty()) {
             this.addProcessor(proc); // Increases the totalCUs
         }
-        
+
         if (this.totalCPUs == 0) {
             Processor p = new Processor();
             p.setComputingUnits(ONE_INT);
             this.addProcessor(p);
         }
-        
-        
-        
+
     }
 
     private void addConstraints(String key, String val, Processor proc) {
@@ -611,7 +608,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
 
     public void addProcessor(String procName, int computingUnits, String architecture, float speed, String type, float internalMemory,
             String propName, String propValue) {
-        
+
         // This method is called from XML: empty and null values must be checked
         Processor p = new Processor();
         if (procName != null && !procName.isEmpty()) {
@@ -1205,19 +1202,15 @@ public class MethodResourceDescription extends WorkerResourceDescription {
             if (mrd2.pricePerUnit > (float) 0.0) {
                 this.pricePerUnit = mrd2.pricePerUnit;
             }
-        } else {
-            if ((mrd2.pricePerUnit > (float) 0.0) && (mrd2.pricePerUnit < this.pricePerUnit)) {
-                this.pricePerUnit = mrd2.pricePerUnit;
-            }
+        } else if ((mrd2.pricePerUnit > (float) 0.0) && (mrd2.pricePerUnit < this.pricePerUnit)) {
+            this.pricePerUnit = mrd2.pricePerUnit;
         }
         if (this.priceTimeUnit == UNASSIGNED_INT) {
             if (mrd2.priceTimeUnit > 0) {
                 this.priceTimeUnit = mrd2.priceTimeUnit;
             }
-        } else {
-            if ((mrd2.priceTimeUnit > 0) && (mrd2.priceTimeUnit < this.priceTimeUnit)) {
-                this.priceTimeUnit = mrd2.priceTimeUnit;
-            }
+        } else if ((mrd2.priceTimeUnit > 0) && (mrd2.priceTimeUnit < this.priceTimeUnit)) {
+            this.priceTimeUnit = mrd2.priceTimeUnit;
         }
 
         // WallClock limit
@@ -1444,7 +1437,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public boolean canHost(Implementation<?> impl) {
+    public boolean canHost(Implementation impl) {
         if (impl.getTaskType() == TaskType.METHOD) {
             MethodResourceDescription wd = (MethodResourceDescription) impl.getRequirements();
             return this.contains(wd);
@@ -1454,7 +1447,7 @@ public class MethodResourceDescription extends WorkerResourceDescription {
     }
 
     @Override
-    public boolean canHostDynamic(Implementation<?> impl) {
+    public boolean canHostDynamic(Implementation impl) {
         if (impl.getTaskType() == TaskType.METHOD) {
             MethodResourceDescription wd = (MethodResourceDescription) impl.getRequirements();
             return this.containsDynamic(wd);
@@ -1533,4 +1526,24 @@ public class MethodResourceDescription extends WorkerResourceDescription {
         return sb.toString();
     }
 
+    @Override
+    public String getDynamicDescription() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(" Processor: ");
+        // Processor
+
+        for (Processor pThis : this.processors) {
+            sb.append(pThis.getComputingUnits() + " " + pThis.getArchitecture() + " cores");
+
+        }
+
+        // Memory
+        sb.append(" Memory: ");
+        if (this.memorySize != UNASSIGNED_FLOAT) {
+            sb.append(this.memorySize);
+        } else {
+            sb.append("Unassigned");
+        }
+        return sb.toString();
+    }
 }

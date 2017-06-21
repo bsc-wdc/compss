@@ -53,7 +53,7 @@ public class TestAvailable {
      * AVAILABLE RESOURCES TEST IMPLEMENTATION
      * ********************************************************************************************************
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void availableResourcesTest() {
         // Get CoreCount
         coreCount = CoreManager.getCoreCount();
@@ -115,8 +115,7 @@ public class TestAvailable {
         System.out.println("CONSUMED: " + consumed2);
         // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
 
-        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
-                .getOrchestrator();
+        ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
         Action a = new Action(orchestrator, ce1);
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for CORE reserve is not working");
@@ -150,7 +149,6 @@ public class TestAvailable {
         // System.out.println("CONSUMED: " + consumed1);
         // System.out.println("CONSUMED: " + consumed2);
         // System.out.println("REMAINING: " + ((MethodWorker)worker).getAvailable());
-
         if (a.findAvailableWorkers().containsKey(worker)) {
             System.out.println("[ERROR] Available resources for MEMORY reserve is not working");
             System.exit(-1);
@@ -167,7 +165,6 @@ public class TestAvailable {
         // System.out.println("FREE");
         // System.out.println("TOTAL: " + ((MethodWorker)worker).getAvailable());
         // System.out.println();
-
         System.out.println("[LOG] * Available Resources test passed");
     }
 

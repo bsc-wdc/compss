@@ -51,10 +51,9 @@ import integratedtoolkit.types.uri.SimpleURI;
 import integratedtoolkit.util.ErrorManager;
 import integratedtoolkit.util.Tracer;
 
-
 /**
  * Component to handle the tasks accesses to files and object
- * 
+ *
  */
 public class AccessProcessor implements Runnable, TaskProducer {
 
@@ -66,7 +65,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
     private static final String ERROR_QUEUE_OFFER = "ERROR: AccessProcessor queue offer error on ";
 
     // Other super-components
-    protected TaskDispatcher<?, ?, ?> taskDispatcher;
+    protected TaskDispatcher taskDispatcher;
 
     // Subcomponents
     protected TaskAnalyser taskAnalyser;
@@ -79,13 +78,12 @@ public class AccessProcessor implements Runnable, TaskProducer {
     // Tasks to be processed
     protected LinkedBlockingQueue<APRequest> requestQueue;
 
-
     /**
      * Creates a new Access Processor instance
-     * 
+     *
      * @param td
      */
-    public AccessProcessor(TaskDispatcher<?, ?, ?> td) {
+    public AccessProcessor(TaskDispatcher td) {
         taskDispatcher = td;
 
         // Start Subcomponents
@@ -109,7 +107,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Sets the GraphGenerator co-worker
-     * 
+     *
      * @param gm
      */
     public void setGM(GraphGenerator gm) {
@@ -150,7 +148,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * App : new Method Task
-     * 
+     *
      * @param appId
      * @param methodClass
      * @param methodName
@@ -176,7 +174,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * App : new Service task
-     * 
+     *
      * @param appId
      * @param namespace
      * @param service
@@ -208,7 +206,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to a given file @sourceLocation in mode @fap
-     * 
+     *
      * @param sourceLocation
      * @param fap
      * @param destDir
@@ -285,7 +283,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Returns if the value with hashCode @hashCode is valid or obsolete
-     * 
+     *
      * @param hashCode
      * @return
      */
@@ -316,7 +314,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notifies a main access to an object @obj
-     * 
+     *
      * @param obj
      * @param hashCode
      * @return
@@ -339,7 +337,6 @@ public class AccessProcessor implements Runnable, TaskProducer {
         waitForTask(oaId.getDataId(), AccessMode.RW);
 
         // TODO: Check if the object was already piggybacked in the task notification
-
         // Ask for the object
         if (DEBUG) {
             LOGGER.debug("Request object transfer " + oaId.getDataId() + " with renaming " + wRename);
@@ -388,7 +385,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Notification for no more tasks
-     * 
+     *
      * @param appId
      */
     public void noMoreTasks(Long appId) {
@@ -405,7 +402,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Returns whether the @loc has already been accessed or not
-     * 
+     *
      * @param loc
      * @return
      */
@@ -424,7 +421,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Barrier
-     * 
+     *
      * @param appId
      */
     public void barrier(Long appId) {
@@ -441,7 +438,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Synchronism for an specific task
-     * 
+     *
      * @param dataId
      * @param mode
      */
@@ -459,7 +456,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Registers a new data access
-     * 
+     *
      * @param access
      * @return
      */
@@ -478,7 +475,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Registers a new version of file/object with the same value
-     * 
+     *
      * @param rRenaming
      * @param wRenaming
      */
@@ -491,7 +488,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Sets a new value to a specific version of a file/object
-     * 
+     *
      * @param renaming
      * @param value
      */
@@ -504,7 +501,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Returns the last version of a file/object with code @code
-     * 
+     *
      * @param code
      * @return
      */
@@ -523,7 +520,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Unblock result files
-     * 
+     *
      * @param resFiles
      */
     public void unblockResultFiles(List<ResultFile> resFiles) {
@@ -535,7 +532,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Shutdown request
-     * 
+     *
      */
     public void shutdown() {
         Semaphore sem = new Semaphore(0);
@@ -567,7 +564,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Marks a location for deletion
-     * 
+     *
      * @param loc
      */
     public void markForDeletion(DataLocation loc) {
@@ -578,7 +575,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Adds a request for file raw transfer
-     * 
+     *
      * @param faId
      * @param location
      */
@@ -597,7 +594,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Adds a request for open file transfer
-     * 
+     *
      * @param faId
      * @return
      */
@@ -617,7 +614,7 @@ public class AccessProcessor implements Runnable, TaskProducer {
 
     /**
      * Adds a request to obtain an object from a worker to the master
-     * 
+     *
      * @param oaId
      * @return
      */
@@ -654,8 +651,9 @@ public class AccessProcessor implements Runnable, TaskProducer {
     }
 
     /**
-     * Adds a request to retrieve the result files from the workers to the master
-     * 
+     * Adds a request to retrieve the result files from the workers to the
+     * master
+     *
      * @param appId
      */
     public void getResultFiles(Long appId) {

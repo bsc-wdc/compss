@@ -6,13 +6,11 @@ import integratedtoolkit.components.impl.TaskAnalyser;
 import integratedtoolkit.components.impl.TaskDispatcher;
 import java.util.concurrent.Semaphore;
 
-
 public class GetLastRenamingRequest extends APRequest {
 
     private int code;
     private Semaphore sem;
     private String response;
-
 
     public GetLastRenamingRequest(int code, Semaphore sem) {
         this.code = code;
@@ -44,7 +42,7 @@ public class GetLastRenamingRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         String renaming = dip.getLastRenaming(this.code);
         response = renaming;
         sem.release();

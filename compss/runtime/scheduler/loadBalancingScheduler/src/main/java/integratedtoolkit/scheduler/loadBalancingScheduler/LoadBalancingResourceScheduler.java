@@ -2,25 +2,25 @@ package integratedtoolkit.scheduler.loadBalancingScheduler;
 
 import integratedtoolkit.scheduler.readyScheduler.ReadyResourceScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.LoadBalancingScore;
-import integratedtoolkit.scheduler.types.Profile;
+import integratedtoolkit.schedulerloadBalancingScheduler.types.LoadBalancingScore;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.TaskDescription;
+import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.parameter.Parameter;
+import org.json.JSONObject;
 
-
-public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends ReadyResourceScheduler<P, T, I> {
+public class LoadBalancingResourceScheduler<T extends WorkerResourceDescription> extends ReadyResourceScheduler<T> {
 
     /**
      * New ready resource scheduler instance
-     * 
+     *
      * @param w
+     * @param json
      */
-    public LoadBalancingResourceScheduler(Worker<T, I> w) {
-        super(w);
+    public LoadBalancingResourceScheduler(Worker<T> w, JSONObject json) {
+        super(w, json);
     }
 
     /*
@@ -29,32 +29,29 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
      * ***************************************************************************************************************
      */
     @Override
-    public Score generateBlockedScore(AllocatableAction<P, T, I> action) {
+    public Score generateBlockedScore(AllocatableAction action) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate blocked score for action " + action);
-        double actionPriority = action.getPriority();
-        double resourceScore = 0;
-        double waitingScore = 2.0;
-        if (this.blocked.size() > 0) {
-            waitingScore = (double) (1.0 / (double) this.blocked.size());
-        }
-        double implementationScore = 0;
+        long actionPriority = action.getPriority();
+        long resourceScore = 0;
+        long waitingScore = this.blocked.size();
+        long implementationScore = 0;
 
         return new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
     }
 
     @Override
-    public Score generateResourceScore(AllocatableAction<P, T, I> action, TaskDescription params, Score actionScore) {
+    public Score generateResourceScore(AllocatableAction action, TaskDescription params, Score actionScore) {
         // LOGGER.debug("[LoadBalancingScheduler] Generate resource score for action " + action);
 
         // Gets the action priority
-        double actionPriority = actionScore.getActionScore();
+        long actionPriority = actionScore.getActionScore();
 
         // Computes the resource waiting score
-        double waitingScore = (double) -action.getId();
+        long waitingScore = -action.getId();
         // Computes the priority of the resource
-        double resourceScore = actionScore.calculateResourceScore(params, this.myWorker);
+        long resourceScore = calculateResourceScore(params);
         // Computes the priority of the implementation (should not be computed)
-        double implementationScore = -(double) 100;
+        long implementationScore = -100;
 
         LoadBalancingScore score = new LoadBalancingScore(actionPriority, resourceScore, waitingScore, implementationScore);
         // LOGGER.debug("[LoadBalancingScheduler] Resource Score " + score + " " + actionPriority + " " + resourceScore
@@ -64,15 +61,27 @@ public class LoadBalancingResourceScheduler<P extends Profile, T extends WorkerR
         return score;
     }
 
+    public long calculateResourceScore(TaskDescription params) {
+        long resourceScore = 0;
+        if (params != null) {
+            Parameter[] parameters = params.getParameters();
+            if (parameters.length == 0) {
+                return 1;
+            }
+            resourceScore = 2 * Score.calculateDataLocalityScore(params, myWorker);
+        }
+        return resourceScore;
+    }
+
     @Override
-    public Score generateImplementationScore(AllocatableAction<P, T, I> action, TaskDescription params, I impl, Score resourceScore) {
+    public Score generateImplementationScore(AllocatableAction action, TaskDescription params, Implementation impl, Score resourceScore) {
         // LOGGER.debug("[LoadBalancing] Generate implementation score for action " + action);
 
-        if (myWorker.canRunNow(impl.getRequirements())) {
-            double actionPriority = resourceScore.getActionScore();
-            double resourcePriority = resourceScore.getResourceScore();
-            double waitingScore = (double) -action.getId();
-            double implScore = (double) -this.getProfile(impl).getAverageExecutionTime();
+        if (myWorker.canRunNow((T) impl.getRequirements())) {
+            long actionPriority = resourceScore.getActionScore();
+            long resourcePriority = resourceScore.getResourceScore();
+            long waitingScore = -action.getId();
+            long implScore = -this.getProfile(impl).getAverageExecutionTime();
 
             return new LoadBalancingScore(actionPriority, resourcePriority, waitingScore, implScore);
         } else {

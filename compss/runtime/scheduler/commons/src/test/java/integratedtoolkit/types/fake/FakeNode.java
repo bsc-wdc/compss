@@ -40,7 +40,7 @@ public class FakeNode extends COMPSsNode {
     }
 
     @Override
-    public Job<?> newJob(int i, TaskDescription tp, Implementation<?> i1, Resource rsrc, List<String> slaveWorkersNodeNames,
+    public Job<?> newJob(int i, TaskDescription tp, Implementation i1, Resource rsrc, List<String> slaveWorkersNodeNames,
             JobListener jl) {
 
         return null;

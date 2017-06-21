@@ -7,13 +7,11 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.types.data.AccessParams.AccessMode;
 import java.util.concurrent.Semaphore;
 
-
 public class WaitForTaskRequest extends APRequest {
 
     private int dataId;
-    private AccessMode am;
+    private final AccessMode am;
     private Semaphore sem;
-
 
     public WaitForTaskRequest(int dataId, AccessMode mode, Semaphore sem) {
         this.dataId = dataId;
@@ -42,7 +40,7 @@ public class WaitForTaskRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.findWaitedTask(this);
     }
 

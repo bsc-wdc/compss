@@ -7,7 +7,6 @@ public class InvalidSchedulingException extends Exception {
      */
     private static final long serialVersionUID = 2L;
 
-
     public InvalidSchedulingException() {
         super();
     }

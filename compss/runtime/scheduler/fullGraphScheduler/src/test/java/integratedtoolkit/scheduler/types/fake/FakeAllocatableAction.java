@@ -88,21 +88,13 @@ public class FakeAllocatableAction extends AllocatableAction<FakeProfile, FakeRe
     }
 
     @Override
-    public boolean areEnoughResources() {
-        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
-        return r.canRunNow(selectedImpl.getRequirements());
+    public boolean isToReserveResources() {
+        return true;
     }
 
     @Override
-    protected void reserveResources() {
-        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
-        r.runTask(selectedImpl.getRequirements());
-    }
-
-    @Override
-    protected void releaseResources() {
-        Worker<FakeResourceDescription, FakeImplementation> r = selectedResource.getResource();
-        r.endTask(selectedImpl.getRequirements());
+    public boolean isToReleaseResources() {
+        return true;
     }
 
     public void selectExecution(ResourceScheduler<FakeProfile, FakeResourceDescription, FakeImplementation> resource,

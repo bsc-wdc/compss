@@ -14,10 +14,10 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.util.ResourceManager;
 
-
 /**
- * Represents the thread to handle all the information needed by the COMPSs Monitor
- * 
+ * Represents the thread to handle all the information needed by the COMPSs
+ * Monitor
+ *
  */
 public class RuntimeMonitor implements Runnable {
 
@@ -32,7 +32,7 @@ public class RuntimeMonitor implements Runnable {
     /**
      * Task Dispatcher associated to the monitor
      */
-    private TaskDispatcher<?, ?, ?> TD;
+    private TaskDispatcher TD;
     /**
      * Access Processor associated to the monitor
      */
@@ -68,21 +68,20 @@ public class RuntimeMonitor implements Runnable {
         monitorDirPath = GraphGenerator.getMonitorDirPath();
     }
 
-
     /**
-     * Constructs a new Runtime monitor. If the monitor parameter has been used, it starts a new thread which
-     * periodically checks the current state of the execution and gives the outputs to the user.
+     * Constructs a new Runtime monitor. If the monitor parameter has been used,
+     * it starts a new thread which periodically checks the current state of the
+     * execution and gives the outputs to the user.
      *
-     * If only the graph parameter (or none) has been used, the monitor starts but NOT as a thread.
-     * 
-     * @param TP
-     *            Task Processor associated to the monitor
-     * @param TD
-     *            Task Dispatcher associated to the monitor
-     * @param sleepTime
-     *            interval of time between state queries
+     * If only the graph parameter (or none) has been used, the monitor starts
+     * but NOT as a thread.
+     *
+     * @param AP Task Processor associated to the monitor
+     * @param TD Task Dispatcher associated to the monitor
+     * @param GM Graph Generator to be used by the monitor
+     * @param sleepTime interval of time between state queries
      */
-    public RuntimeMonitor(AccessProcessor AP, TaskDispatcher<?, ?, ?> TD, GraphGenerator GM, long sleepTime) {
+    public RuntimeMonitor(AccessProcessor AP, TaskDispatcher TD, GraphGenerator GM, long sleepTime) {
         this.TD = TD;
         this.AP = AP;
         this.GM = GM;
@@ -97,7 +96,8 @@ public class RuntimeMonitor implements Runnable {
     }
 
     /**
-     * Checks periodically the status of the execution and returns the results to the user
+     * Checks periodically the status of the execution and returns the results
+     * to the user
      */
     public void run() {
         running = true;
@@ -110,7 +110,7 @@ public class RuntimeMonitor implements Runnable {
                 printCurrentGraph();
 
                 // Print load and resources information on log
-                ResourceManager.printLoadInfo();
+                TD.printCurrentState();
                 ResourceManager.printResourcesState();
                 Thread.sleep(sleepTime);
             } catch (IOException ioe) {
@@ -138,12 +138,10 @@ public class RuntimeMonitor implements Runnable {
 
             // Print current task graph
             printCurrentGraph();
-        } catch (IOException ioe) {
+        } catch (IOException | InterruptedException ioe) {
             logger.error(ERROR_GENERATING_DATA, ioe);
-        } catch (InterruptedException ie) {
-            logger.error(ERROR_GENERATING_DATA, ie);
         }
-        
+
         // Clears the execution files
         if (!new File(monitorDirPath + "monitor.xml").delete()) {
             logger.error("Error clearing monitor.xml execution files");
@@ -179,7 +177,7 @@ public class RuntimeMonitor implements Runnable {
 
     /**
      * Returns the monitor dir path
-     * 
+     *
      * @return
      */
     public static String getMonitorDirPath() {
@@ -188,7 +186,7 @@ public class RuntimeMonitor implements Runnable {
 
     /**
      * Returns if the monitor is enabled or not
-     * 
+     *
      * @return
      */
     public static boolean isEnabled() {

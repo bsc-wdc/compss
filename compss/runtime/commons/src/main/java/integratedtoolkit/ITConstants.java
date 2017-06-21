@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import integratedtoolkit.types.exceptions.NonInstantiableException;
 
-
 /**
  * COMPSs Runtime Constants
  *
@@ -20,7 +19,6 @@ public class ITConstants {
         C, // For C or C++ applications
         PYTHON // For Python applications
     }
-
 
     /*
      * Environment Properties
@@ -133,7 +131,6 @@ public class ITConstants {
             + "configuration" + File.separator + "xml" + File.separator + "projects" + File.separator + "project_schema.xsd";
 
     public static final String DEFAULT_GAT_ADAPTOR_LOCATION = System.getenv(GAT_LOC) + File.separator + "lib" + File.separator + "adaptors";
-
 
     private ITConstants() {
         throw new NonInstantiableException("ITConstants");

@@ -39,6 +39,9 @@
 		<!-- ZK version -->
 		<zk.version>8.0.2.2</zk.version>
 
+		<!--JSON version -->
+		<json.version>20170516</json.version>
+
 		<!--Log4j version -->
 		<log4j.version>2.7</log4j.version>
 
@@ -86,6 +89,13 @@
 				<groupId>es.bsc.storage</groupId>
 				<artifactId>storageInterface</artifactId>
 				<version>${storage.version}</version>
+			</dependency>
+
+			<!-- JSON -->
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
 			</dependency>
 
 			<!-- LOG4j -->

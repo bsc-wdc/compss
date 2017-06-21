@@ -1,31 +1,25 @@
 package integratedtoolkit.types.data.operation;
 
 import integratedtoolkit.log.Loggers;
-import integratedtoolkit.scheduler.types.Profile;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
 import integratedtoolkit.types.data.listener.EventListener;
-import integratedtoolkit.types.implementations.Implementation;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-
-public class JobTransfersListener<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends EventListener {
+public class JobTransfersListener extends EventListener {
 
     private int operation = 0;
     private int errors = 0;
     private boolean enabled = false;
 
-    private static final Logger logger = LogManager.getLogger(Loggers.FTM_COMP);
-    private static final boolean debug = logger.isDebugEnabled();
+    private static final Logger LOGGER = LogManager.getLogger(Loggers.FTM_COMP);
+    private static final boolean DEBUG = LOGGER.isDebugEnabled();
 
-    private ExecutionAction<P, T, I> execution;
+    private final ExecutionAction execution;
 
-
-    public JobTransfersListener(ExecutionAction<P, T, I> execution) {
+    public JobTransfersListener(ExecutionAction execution) {
         this.execution = execution;
     }
 
@@ -73,11 +67,11 @@ public class JobTransfersListener<P extends Profile, T extends WorkerResourceDes
 
     @Override
     public void notifyFailure(DataOperation fOp, Exception e) {
-        if (debug) {
-            logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
+        if (DEBUG) {
+            LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
                     + ", file role is JOB_FILE, operation end state is FAILED", e);
         } else {
-            logger.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
+            LOGGER.error("THREAD " + Thread.currentThread().getName() + " File Operation failed on " + fOp.getName()
                     + ", file role is JOB_FILE operation end state is FAILED");
         }
 

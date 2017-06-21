@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Helper thread for VM creation
@@ -26,9 +27,9 @@ import java.util.concurrent.Semaphore;
 public class CreationThread extends Thread {
 
     // Loggers
-    private static final Logger resourceLogger = LogManager.getLogger(Loggers.CONNECTORS_UTILS);
-    private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
-    private static final boolean debug = resourceLogger.isDebugEnabled();
+    private static final Logger RESOURCE_LOGGER = LogManager.getLogger(Loggers.CONNECTORS_UTILS);
+    private static final Logger RUNTIME_LOGGER = LogManager.getLogger(Loggers.RM_COMP);
+    private static final boolean DEBUG = RESOURCE_LOGGER.isDebugEnabled();
 
     // Error and warn messages
     private static final String ERROR_ASKING_NEW_RESOURCE = "Error asking a new Resource to ";
@@ -37,8 +38,6 @@ public class CreationThread extends Thread {
     private static final String ERROR_GRANTED_NULL = "Error: Granted description is null";
     private static final String ERROR_CONFIGURE_ACCESS_VM = "Error configuring access to machine ";
     private static final String ERROR_PREPARING_VM = "Exception preparing machine ";
-    private static final String ERROR_START_WORKER = "Error starting the worker application in machine ";
-    private static final String ERROR_START_VM = "Error: Could not turn on the VM";
     private static final String ERROR_ANNOUNCE_VM = "Error announcing the machine ";
     private static final String ERROR_WORKER_SHUTDOWN = "Exception raised on worker shutdown";
     private static final String ERROR_ANNOUNCE_VM_DESTROY = "Error announcing VM destruction";
@@ -47,8 +46,7 @@ public class CreationThread extends Thread {
     private static final String WARN_CANNOT_PROVIDE_VM = "Provider can not provide the vm";
 
     private static ResourceUser listener;
-    private static final Object countSynchronizer = new Object();
-    private static Integer count = 0;
+    private static final AtomicInteger COUNT = new AtomicInteger(0);
 
     private final Operations operations;
     private final String name; // Id for the CloudProvider or IP if VM is reused
@@ -56,10 +54,9 @@ public class CreationThread extends Thread {
     private final ResourceCreationRequest rcr;
     private final VM reused;
 
-
     /**
      * New helper thread for VM creation with the given properties
-     * 
+     *
      * @param operations
      * @param name
      * @param provider
@@ -74,39 +71,47 @@ public class CreationThread extends Thread {
         this.name = name;
         this.rcr = rR;
         this.reused = reused;
-        synchronized (countSynchronizer) {
-            count++;
-        }
+        COUNT.incrementAndGet();
+    }
+
+    /**
+     * Returns the number of active creation threads
+     *
+     * @return
+     */
+    public static int getCount() {
+        return COUNT.get();
     }
 
     @Override
-    public void run() {        
+    public void run() {
         boolean check = operations.getCheck();
-        runtimeLogger.debug("Operations check = " + check);
+        RUNTIME_LOGGER.debug("Operations check = " + check);
 
         CloudMethodResourceDescription requested = rcr.getRequested();
         VM granted;
 
-        if (reused == null) { // If the resources does not exist --> Create
+        if (reused == null) { // If the resources does not exist --> Create           
+            this.setName("Creation Thread " + name);
             try {
                 granted = createResourceOnProvider(requested);
             } catch (Exception e) {
-                runtimeLogger.error("Error creating resource.", e);
+                RUNTIME_LOGGER.error(ERROR_ASKING_NEW_RESOURCE + provider, e);
                 notifyFailure();
                 return;
             }
-            if (debug) {
-                runtimeLogger.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been created ");
+            if (DEBUG) {
+                RUNTIME_LOGGER.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been created ");
             }
-            resourceLogger.info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID " 
-                                    + granted.getEnvId() + " CREATED\n]");
+            RESOURCE_LOGGER.info("RESOURCE_GRANTED = [\n\tNAME = " + granted.getName() + "\n\tSTATUS = ID "
+                    + granted.getEnvId() + " CREATED\n]");
         } else {
             granted = reused;
-            if (debug) {
-                runtimeLogger.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been reused ");
+            if (DEBUG) {
+                RUNTIME_LOGGER.debug("Resource " + granted.getName() + " with id  " + granted.getEnvId() + " has been reused ");
             }
-            resourceLogger.info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID " 
-                                    + granted.getEnvId() + " REUSED\n]");
+            RESOURCE_LOGGER.info("RESOURCE_GRANTED = [\n\tNAME = " + reused.getName() + "\n\tSTATUS = ID "
+                    + granted.getEnvId() + " REUSED\n]");
         }
 
         this.setName("Creation Thread " + granted.getName());
@@ -114,13 +119,13 @@ public class CreationThread extends Thread {
         if (r == null) { // Resources are provided in a new VM
             if (reused == null) { // And are new --> Initiate VM
                 try {
-                    if (debug) {
-                        runtimeLogger.debug(" Preparing new worker resource " + granted.getName() + ".");
+                    if (DEBUG) {
+                        RUNTIME_LOGGER.debug(" Preparing new worker resource " + granted.getName() + ".");
                     }
                     r = prepareNewResource(granted);
                     operations.vmReady(granted);
                 } catch (Exception e) {
-                    runtimeLogger.error(ERROR_PREPARING_VM, e);
+                    RUNTIME_LOGGER.error(ERROR_PREPARING_VM, e);
                     powerOff(granted);
                     notifyFailure();
                     return;
@@ -129,8 +134,8 @@ public class CreationThread extends Thread {
                 int limitOfTasks = granted.getDescription().getTotalCPUComputingUnits();
                 r = new CloudMethodWorker(granted.getDescription(), granted.getNode(), limitOfTasks,
                         rcr.getRequested().getImage().getSharedDisks());
-                if (debug) {
-                    runtimeLogger.debug("Worker for new resource " + granted.getName() + " set.");
+                if (DEBUG) {
+                    RUNTIME_LOGGER.debug("Worker for new resource " + granted.getName() + " set.");
                 }
             }
             granted.setWorker(r);
@@ -140,23 +145,12 @@ public class CreationThread extends Thread {
             ResourceManager.increasedCloudWorker(rcr, r, granted.getDescription());
         }
 
-        synchronized (countSynchronizer) {
-            count--;
-        }
-    }
-    
-    /**
-     * Returns the number of active creation threads
-     * 
-     * @return
-     */
-    public static int getCount() {
-        return count;
+        COUNT.decrementAndGet();
     }
 
     /**
      * Sets the associated task dispatcher
-     * 
+     *
      * @param listener
      */
     public static void setTaskDispatcher(ResourceUser listener) {
@@ -165,7 +159,7 @@ public class CreationThread extends Thread {
 
     /**
      * Returns the associated task dispatcher
-     * 
+     *
      * @return
      */
     public static ResourceUser getTaskDispatcher() {
@@ -180,14 +174,14 @@ public class CreationThread extends Thread {
             // Turn on the VM and expects the new mr description
             envID = operations.poweron(name, requested);
         } catch (ConnectorException e) {
-            runtimeLogger.error(ERROR_ASKING_NEW_RESOURCE + provider + "\n", e);
-            resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_ASKING_NEW_RESOURCE + provider + "\n]", e);
+            RUNTIME_LOGGER.error(ERROR_ASKING_NEW_RESOURCE + provider + "\n", e);
+            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_ASKING_NEW_RESOURCE + provider + "\n]", e);
             throw e;
         }
 
         if (envID == null) {
-            runtimeLogger.info(WARN_CANNOT_PROVIDE_VM);
-            resourceLogger.info("INFO_MSG = [\n\t" + provider + WARN_CANNOT_PROVIDE_VM + "\n]");
+            RUNTIME_LOGGER.info(WARN_CANNOT_PROVIDE_VM);
+            RESOURCE_LOGGER.info("INFO_MSG = [\n\t" + provider + WARN_CANNOT_PROVIDE_VM + "\n]");
             throw new ConnectorException(WARN_CANNOT_PROVIDE_VM);
         }
 
@@ -196,35 +190,35 @@ public class CreationThread extends Thread {
             // Wait until the VM has been created
             granted = operations.waitCreation(envID, requested);
         } catch (ConnectorException e) {
-            runtimeLogger.error(ERROR_WAITING_VM + provider + "\n", e);
-            resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_WAITING_VM + provider + "\n]", e);
+            RUNTIME_LOGGER.error(ERROR_WAITING_VM + provider + "\n", e);
+            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_WAITING_VM + provider + "\n]", e);
             try {
                 operations.destroy(envID);
             } catch (ConnectorException ex) {
-                runtimeLogger.error(ERROR_POWEROFF_VM);
-                resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_POWEROFF_VM + "\n]");
+                RUNTIME_LOGGER.error(ERROR_POWEROFF_VM);
+                RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_POWEROFF_VM + "\n]");
             }
             throw new ConnectorException("Error waiting for the vm");
         }
 
         if (granted != null) {
-            resourceLogger.debug("CONNECTOR_REQUEST = [");
-            resourceLogger.debug("\tPROC_CPU_CU = " + requested.getTotalCPUComputingUnits());
-            resourceLogger.debug("\tPROC_GPU_CU = " + requested.getTotalGPUComputingUnits());
-            resourceLogger.debug("\tPROC_FPGA_CU = " + requested.getTotalFPGAComputingUnits());
-            resourceLogger.debug("\tPROC_OTHER_CU = " + requested.getTotalOTHERComputingUnits());
-            resourceLogger.debug("\tOS = " + requested.getOperatingSystemType());
-            resourceLogger.debug("\tMEM = " + requested.getMemorySize());
-            resourceLogger.debug("]");
+            RESOURCE_LOGGER.debug("CONNECTOR_REQUEST = [");
+            RESOURCE_LOGGER.debug("\tPROC_CPU_CU = " + requested.getTotalCPUComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_GPU_CU = " + requested.getTotalGPUComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_FPGA_CU = " + requested.getTotalFPGAComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_OTHER_CU = " + requested.getTotalOTHERComputingUnits());
+            RESOURCE_LOGGER.debug("\tOS = " + requested.getOperatingSystemType());
+            RESOURCE_LOGGER.debug("\tMEM = " + requested.getMemorySize());
+            RESOURCE_LOGGER.debug("]");
             CloudMethodResourceDescription desc = granted.getDescription();
-            resourceLogger.debug("CONNECTOR_GRANTED = [");
-            resourceLogger.debug("\tPROC_CPU_CU = " + desc.getTotalCPUComputingUnits());
-            resourceLogger.debug("\tPROC_GPU_CU = " + desc.getTotalGPUComputingUnits());
-            resourceLogger.debug("\tPROC_FPGA_CU = " + desc.getTotalFPGAComputingUnits());
-            resourceLogger.debug("\tPROC_OTHER_CU = " + desc.getTotalOTHERComputingUnits());
-            resourceLogger.debug("\tOS = " + desc.getOperatingSystemType());
-            resourceLogger.debug("\tMEM = " + desc.getMemorySize());
-            resourceLogger.debug("]");
+            RESOURCE_LOGGER.debug("CONNECTOR_GRANTED = [");
+            RESOURCE_LOGGER.debug("\tPROC_CPU_CU = " + desc.getTotalCPUComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_GPU_CU = " + desc.getTotalGPUComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_FPGA_CU = " + desc.getTotalFPGAComputingUnits());
+            RESOURCE_LOGGER.debug("\tPROC_OTHER_CU = " + desc.getTotalOTHERComputingUnits());
+            RESOURCE_LOGGER.debug("\tOS = " + desc.getOperatingSystemType());
+            RESOURCE_LOGGER.debug("\tMEM = " + desc.getMemorySize());
+            RESOURCE_LOGGER.debug("]");
         } else {
             throw new ConnectorException(ERROR_GRANTED_NULL);
         }
@@ -240,8 +234,8 @@ public class CreationThread extends Thread {
         try {
             operations.configureAccess(granted.getName(), user, password);
         } catch (ConnectorException e) {
-            runtimeLogger.error(ERROR_CONFIGURE_ACCESS_VM + granted.getName(), e);
-            resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_CONFIGURE_ACCESS_VM + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  "
+            RUNTIME_LOGGER.error(ERROR_CONFIGURE_ACCESS_VM + granted.getName(), e);
+            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_CONFIGURE_ACCESS_VM + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  "
                     + provider + "\n]", e);
             throw e;
         }
@@ -249,49 +243,30 @@ public class CreationThread extends Thread {
         try {
             operations.prepareMachine(granted.getName(), cid);
         } catch (ConnectorException e) {
-            runtimeLogger.error(ERROR_PREPARING_VM + granted.getName(), e);
-            resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_PREPARING_VM + granted.getName() + "]", e);
+            RUNTIME_LOGGER.error(ERROR_PREPARING_VM + granted.getName(), e);
+            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_PREPARING_VM + granted.getName() + "]", e);
             throw e;
         }
         CloudMethodWorker worker;
         MethodConfiguration mc = cid.getConfig();
-        try {
-            int limitOfTasks = mc.getLimitOfTasks();
-            int computingUnits = granted.getTotalCPUComputingUnits();
-            if (limitOfTasks < 0 && computingUnits < 0) {
-                mc.setLimitOfTasks(0);
-                mc.setTotalComputingUnits(0);
-            } else {
-                mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
-                mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
-            }
-            mc.setHost(granted.getName());
-
-            worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
-            //worker.start();
-        } catch (Exception e) {
-            runtimeLogger.error(ERROR_START_WORKER + granted.getName(), e);
-            resourceLogger.error(
-                    "ERROR_MSG = [\n\t" + ERROR_START_WORKER + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]");
-
-            throw new ConnectorException(ERROR_START_VM, e);
+        int limitOfTasks = mc.getLimitOfTasks();
+        int computingUnits = granted.getTotalCPUComputingUnits();
+        if (limitOfTasks < 0 && computingUnits < 0) {
+            mc.setLimitOfTasks(0);
+            mc.setTotalComputingUnits(0);
+        } else {
+            mc.setLimitOfTasks(Math.max(limitOfTasks, computingUnits));
+            mc.setTotalComputingUnits(Math.max(limitOfTasks, computingUnits));
         }
+        mc.setHost(granted.getName());
+
+        worker = new CloudMethodWorker(granted.getName(), granted, mc, cid.getSharedDisks());
 
         try {
             worker.announceCreation();
         } catch (Exception e) {
-            Semaphore sem = new Semaphore(0);
-            ShutdownListener sl = new ShutdownListener(sem);
-            worker.stop(sl);
-            runtimeLogger.error(ERROR_ANNOUNCE_VM + granted.getName() + ". Shutting down", e);
-            sl.enable();
-            try {
-                sem.acquire();
-            } catch (Exception e2) {
-                resourceLogger.error(ERROR_WORKER_SHUTDOWN, e2);
-            }
-            runtimeLogger.error("Machine " + granted.getName() + " shut down because an error announcing destruction");
-            resourceLogger.error(
+            RUNTIME_LOGGER.error("Machine " + granted.getName() + " shut down because an error announcing creation");
+            RESOURCE_LOGGER.error(
                     "ERROR_MSG = [\n\t" + ERROR_ANNOUNCE_VM + "\n\tNAME = " + granted.getName() + "\n\tPROVIDER =  " + provider + "\n]", e);
 
             throw new ConnectorException(e);
@@ -299,11 +274,11 @@ public class CreationThread extends Thread {
 
         // Add the new machine to ResourceManager
         if (operations.getTerminate()) {
-            resourceLogger.info("INFO_MSG = [\n\t" + WARN_VM_REFUSED + "\n\tRESOURCE_NAME = " + granted.getName() + "\n]");
+            RESOURCE_LOGGER.info("INFO_MSG = [\n\t" + WARN_VM_REFUSED + "\n\tRESOURCE_NAME = " + granted.getName() + "\n]");
             try {
                 worker.announceDestruction();
             } catch (Exception e) {
-                resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_ANNOUNCE_VM_DESTROY + "\n\tVM_NAME = " + granted.getName() + "\n]", e);
+                RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_ANNOUNCE_VM_DESTROY + "\n\tVM_NAME = " + granted.getName() + "\n]", e);
             }
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
@@ -313,7 +288,7 @@ public class CreationThread extends Thread {
             try {
                 sem.acquire();
             } catch (Exception e) {
-                resourceLogger.error(ERROR_WORKER_SHUTDOWN);
+                RESOURCE_LOGGER.error(ERROR_WORKER_SHUTDOWN);
             }
 
             throw new ConnectorException(ERROR_USELESS_VM);
@@ -326,14 +301,12 @@ public class CreationThread extends Thread {
         try {
             operations.poweroff(granted);
         } catch (Exception e) {
-            resourceLogger.error("ERROR_MSG = [\n\t" + ERROR_POWEROFF_VM + "\n]", e);
+            RESOURCE_LOGGER.error("ERROR_MSG = [\n\t" + ERROR_POWEROFF_VM + "\n]", e);
         }
     }
 
     private void notifyFailure() {
-        synchronized (countSynchronizer) {
-            count--;
-        }
+        COUNT.decrementAndGet();
     }
 
 }

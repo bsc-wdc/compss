@@ -36,7 +36,7 @@ public class IDLParserTest {
         assertEquals(CoreManager.getCoreCount(), CORECOUNT_RESULT);
 
         System.out.println("[IDL-Loader]: *** Checking Core Element 0");
-        List<Implementation<?>> implList = CoreManager.getCoreImplementations(0);
+        List<Implementation> implList = CoreManager.getCoreImplementations(0);
         assertNotNull(implList);
         MethodImplementation impl = (MethodImplementation) implList.get(0);
         System.out.println("[IDL-Loader]: Checking Number of implementations (1)");
@@ -155,7 +155,7 @@ public class IDLParserTest {
         assertEquals(CoreManager.getCoreCount(), 1);
 
         System.out.println("[IDL-Loader]: *** Checking Core Element 0");
-        List<Implementation<?>> implList = CoreManager.getCoreImplementations(0);
+        List<Implementation> implList = CoreManager.getCoreImplementations(0);
         assertNotNull(implList);
         assertEquals(implList.size(), 1);
 

@@ -1,13 +1,13 @@
 package integratedtoolkit.util;
 
+import integratedtoolkit.ITConstants;
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.CloudProvider;
-import integratedtoolkit.ITConstants;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.types.CloudImageDescription;
-import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
+import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
 import integratedtoolkit.types.resources.CloudMethodWorker;
@@ -24,9 +24,9 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * The CloudManager class is an utility to manage all the cloud interactions and hide the details of each provider.
+ * The CloudManager class is an utility to manage all the cloud interactions and
+ * hide the details of each provider.
  */
 public class CloudManager {
 
@@ -50,7 +50,8 @@ public class CloudManager {
      */
     private static HashMap<String, CloudProvider> providers;
     /**
-     * Relation between a resource name and the representation of the Cloud provider that support it
+     * Relation between a resource name and the representation of the Cloud
+     * provider that support it
      */
     private static HashMap<String, CloudProvider> VM2Provider;
 
@@ -59,7 +60,6 @@ public class CloudManager {
 
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.CM_COMP);
     private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
-
 
     /**
      * Initializes the internal data structures
@@ -77,8 +77,7 @@ public class CloudManager {
     /**
      * Configures the runtime to use the Cloud to adapt the resource pool
      *
-     * @param useCloud
-     *            true if enabled
+     * @param useCloud true if enabled
      */
     public static void setUseCloud(boolean useCloud) {
         CloudManager.useCloud = useCloud;
@@ -124,16 +123,16 @@ public class CloudManager {
     /**
      * Adds a new Provider to the management
      *
-     * @param name
-     *            Identifier of that cloud provider
-     * @param connectorPath
-     *            Package and class name of the connector required to interact with the provider
-     * @param limitOfVMs
-     *            Max amount of VMs that can be running at the same time for that Cloud provider
-     * @param connectorProperties
-     *            Properties to configure the connector
-     * @throws Exception
-     *             Loading the connector by reflection
+     * @param providerName Identifier of that cloud provider
+     * @param limitOfVMs Max amount of VMs that can be running at the same time
+     * for that Cloud provider
+     * @param connectorJarPath Package name of the connector required to
+     * interact with the provider
+     * @param connectorMainClass Class name of the connector required to
+     * interact with the provider
+     * @param connectorProperties Properties to configure the connector
+     *
+     * @throws ConnectorException Loading the connector by reflection
      */
     public static void newCloudProvider(String providerName, Integer limitOfVMs, String connectorJarPath, String connectorMainClass,
             HashMap<String, String> connectorProperties) throws ConnectorException {
@@ -145,12 +144,9 @@ public class CloudManager {
     /**
      * Adds an image description to a Cloud Provider
      *
-     * @param providerName
-     *            Identifier of the Cloud provider
-     * @param cid
-     *            Description of the features offered by that image
-     * @throws Exception
-     *             the cloud provider does not exist
+     * @param providerName Identifier of the Cloud provider
+     * @param cid Description of the features offered by that image
+     * @throws Exception the cloud provider does not exist
      */
     public static void addImageToProvider(String providerName, CloudImageDescription cid) throws Exception {
 
@@ -164,12 +160,9 @@ public class CloudManager {
     /**
      * Adds an instance type description to a Cloud Provider
      *
-     * @param providerName
-     *            Identifier of the Cloud provider
-     * @param rd
-     *            Description of the features offered by that instance type
-     * @throws Exception
-     *             the cloud provider does not exist
+     * @param providerName Identifier of the Cloud provider
+     * @param rd Description of the features offered by that instance type
+     * @throws Exception the cloud provider does not exist
      */
     public static void addInstanceTypeToProvider(String providerName, CloudMethodResourceDescription rd) throws Exception {
         CloudProvider cp = providers.get(providerName);
@@ -213,7 +206,8 @@ public class CloudManager {
     }
 
     /**
-     * Queries the amount of tasks that will be able to run simulataneously once all the VMs have been created
+     * Queries the amount of tasks that will be able to run simulataneously once
+     * all the VMs have been created
      *
      * @return Returns all the pending creation requests
      */
@@ -222,36 +216,39 @@ public class CloudManager {
     }
 
     /**
-     * Asks for the described resources to a Cloud provider. The CloudManager checks the best resource that each
-     * provider can offer. Then it picks one of them and it constructs a resourceRequest describing the resource and
-     * which cores can be executed on it. This ResourceRequest will be used to ask for that resource creation to the
-     * Cloud Provider and returned if the application is accepted.
+     * Asks for the described resources to a Cloud provider. The CloudManager
+     * checks the best resource that each provider can offer. Then it picks one
+     * of them and it constructs a resourceRequest describing the resource and
+     * which cores can be executed on it. This ResourceRequest will be used to
+     * ask for that resource creation to the Cloud Provider and returned if the
+     * application is accepted.
      *
-     * @param requirements
-     *            description of the resource expected to receive
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
-     * @return Description of the ResourceRequest sent to the CloudProvider. {@literal Null} if any of the Cloud
-     *         Providers can offer a resource like the requested one.
+     * @param requirements description of the resource expected to receive
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
+     * @return Description of the ResourceRequest sent to the CloudProvider.
+     * {@literal Null} if any of the Cloud Providers can offer a resource like
+     * the requested one.
      */
     public static ResourceCreationRequest askForResources(MethodResourceDescription requirements, boolean contained) {
         return askForResources(1, requirements, contained);
     }
 
     /**
-     * The CloudManager ask for resources that can execute certain amount of cores at the same time. It checks the best
-     * resource that each provider can offer to execute that amount of cores and picks one of them. It constructs a
-     * resourceRequest describing the resource and which cores can be executed on it. This ResourceRequest will be used
-     * to ask for that resource creation to the Cloud Provider and returned if the application is accepted.
+     * The CloudManager ask for resources that can execute certain amount of
+     * cores at the same time. It checks the best resource that each provider
+     * can offer to execute that amount of cores and picks one of them. It
+     * constructs a resourceRequest describing the resource and which cores can
+     * be executed on it. This ResourceRequest will be used to ask for that
+     * resource creation to the Cloud Provider and returned if the application
+     * is accepted.
      *
-     * @param amount
-     *            amount of slots
-     * @param requirements
-     *            features of the resource
-     * @param contained
-     *            {@literal true} if we want the request to ask for a resource contained in the description; else, the
-     *            result contains the passed in description.
+     * @param amount amount of slots
+     * @param requirements features of the resource
+     * @param contained {@literal true} if we want the request to ask for a
+     * resource contained in the description; else, the result contains the
+     * passed in description.
      * @return
      */
     public static ResourceCreationRequest askForResources(Integer amount, MethodResourceDescription requirements, boolean contained) {
@@ -278,11 +275,11 @@ public class CloudManager {
         if (simultaneousCounts == null) {
             simultaneousCounts = new int[coreCount][];
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 int implsSize = impls.size();
                 simultaneousCounts[coreId] = new int[implsSize];
                 for (int implId = 0; implId < implsSize; ++implId) {
-                    Implementation<?> impl = impls.get(implId);
+                    Implementation impl = impls.get(implId);
                     if (impl.getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
                         if (description != null) {
@@ -300,6 +297,63 @@ public class CloudManager {
 
         try {
             if (bestProvider.turnON(rcr)) {
+                pendingRequests.add(rcr);
+                int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
+                for (int coreId = 0; coreId < reqCounts.length; coreId++) {
+                    int coreSlots = 0;
+                    for (int implId = 0; implId < reqCounts[coreId].length; implId++) {
+                        coreSlots = Math.max(coreSlots, reqCounts[coreId][implId]);
+                    }
+                    pendingCoreCount[coreId] += coreSlots;
+                }
+                return rcr;
+            } else {
+                runtimeLogger.warn(WARN_CANNOT_TURN_ON);
+                return null;
+            }
+        } catch (Exception e) {
+            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON, e);
+            return null;
+        }
+    }
+
+    public static ResourceCreationRequest askForResources(String provider, String instanceName, String imageName) {
+        CloudProvider cp = providers.get(provider);
+        if (provider == null) {
+            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON);
+            return null;
+        }
+        CloudMethodResourceDescription constraints = cp.getResourceDescription(instanceName, imageName);
+        if (constraints == null) {
+            runtimeLogger.warn(WARN_EXCEPTION_TURN_ON);
+            return null;
+        }
+        // Code only executed if a resource fits the constraints
+        int coreCount = CoreManager.getCoreCount();
+        int[][] simultaneousCounts = cp.getSimultaneousImpls(constraints.getType());
+        if (simultaneousCounts == null) {
+            simultaneousCounts = new int[coreCount][];
+            for (int coreId = 0; coreId < coreCount; coreId++) {
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                int implsSize = impls.size();
+                simultaneousCounts[coreId] = new int[implsSize];
+                for (int implId = 0; implId < implsSize; ++implId) {
+                    Implementation impl = impls.get(implId);
+                    if (impl.getTaskType() == TaskType.METHOD) {
+                        MethodResourceDescription description = (MethodResourceDescription) impl.getRequirements();
+                        if (description != null) {
+                            Integer into = constraints.canHostSimultaneously(description);
+                            simultaneousCounts[coreId][implId] = into;
+                        }
+                    }
+                }
+            }
+        }
+
+        runtimeLogger.debug("Asking for resource creation");
+        ResourceCreationRequest rcr = new ResourceCreationRequest(constraints, simultaneousCounts, provider);
+        try {
+            if (cp.turnON(rcr)) {
                 pendingRequests.add(rcr);
                 int[][] reqCounts = rcr.requestedSimultaneousTaskCount();
                 for (int coreId = 0; coreId < reqCounts.length; coreId++) {
@@ -352,21 +406,23 @@ public class CloudManager {
     }
 
     /**
-     * Given a set of resources, it checks every possible modification of the resource and returns the one that better
-     * fits with the destruction recommendations.
+     * Given a set of resources, it checks every possible modification of the
+     * resource and returns the one that better fits with the destruction
+     * recommendations.
      *
-     * The decision-making algorithm tries to minimize the number of affected CE that weren't recommended to be
-     * modified, minimize the number of slots that weren't requested to be destroyed and maximize the number of slots
+     * The decision-making algorithm tries to minimize the number of affected CE
+     * that weren't recommended to be modified, minimize the number of slots
+     * that weren't requested to be destroyed and maximize the number of slots
      * that can be removed and they were requested for.
      *
-     * @param resourceSet
-     *            set of resources
-     * @param destroyRecommendations
-     *            number of slots to be removed for each CE
-     * @return an object array defining the best solution. 0-> (Resource) selected Resource. 1-> (int[]) record of the
-     *         #CE with removed slots and that they shouldn't be modified, #slots that will be destroyed and they
-     *         weren't recommended, #slots that will be removed and they were asked to be. 2->(int[]) #slots to be
-     *         removed by each CE. 3->(ResourceDescription) description of the resource to be destroyed.
+     * @param resourceSet set of resources
+     * @param destroyRecommendations number of slots to be removed for each CE
+     * @return an object array defining the best solution. 0-> (Resource)
+     * selected Resource. 1-> (int[]) record of the #CE with removed slots and
+     * that they shouldn't be modified, #slots that will be destroyed and they
+     * weren't recommended, #slots that will be removed and they were asked to
+     * be. 2->(int[]) #slots to be removed by each CE. 3->(ResourceDescription)
+     * description of the resource to be destroyed.
      *
      *
      */
@@ -386,9 +442,7 @@ public class CloudManager {
             if (cp == null) { // it's not a cloud machine
                 continue;
             }
-            if (res.hasPendingReductions()) {
-                continue;
-            }
+
             HashMap<String, Object[]> typeToPoints = cp.getPossibleReductions(res, destroyRecommendations);
 
             for (Entry<String, Object[]> destruction : typeToPoints.entrySet()) {
@@ -405,23 +459,19 @@ public class CloudManager {
                             bestCP = cp;
                             bestRD = rd;
                         }
-                    } else {
-                        if (bestRecord[1] > values[1]) {
-                            bestRecord = values;
-                            bestResource = res;
-                            bestType = typeName;
-                            bestCP = cp;
-                            bestRD = rd;
-                        }
-                    }
-                } else {
-                    if (bestRecord[0] > values[0]) {
+                    } else if (bestRecord[1] > values[1]) {
                         bestRecord = values;
                         bestResource = res;
                         bestType = typeName;
                         bestCP = cp;
                         bestRD = rd;
                     }
+                } else if (bestRecord[0] > values[0]) {
+                    bestRecord = values;
+                    bestResource = res;
+                    bestType = typeName;
+                    bestCP = cp;
+                    bestRD = rd;
                 }
             }
         }
@@ -440,7 +490,9 @@ public class CloudManager {
     public static void destroyResources(CloudMethodWorker res, CloudMethodResourceDescription reduction) {
         runtimeLogger.debug("[Cloud Manager] Destroying resource " + res.getName() + " for reduction");
         CloudProvider cp = VM2Provider.get(res.getName());
-        cp.turnOff(res, reduction);
+        if (cp != null) {
+            cp.turnOff(res, reduction);
+        }
     }
 
     /**
@@ -473,7 +525,8 @@ public class CloudManager {
     }
 
     /**
-     * The CloudManager notifies to all the connectors the end of generation of new tasks
+     * The CloudManager notifies to all the connectors the end of generation of
+     * new tasks
      */
     public static void stopReached() {
         for (CloudProvider cp : providers.values()) {
@@ -495,11 +548,11 @@ public class CloudManager {
     }
 
     /**
-     * Returns how long will take a resource to be ready since the CloudManager asks for it.
+     * Returns how long will take a resource to be ready since the CloudManager
+     * asks for it.
      *
      * @return time required for a resource to be ready
-     * @throws Exception
-     *             can not get the creation time for some providers.
+     * @throws Exception can not get the creation time for some providers.
      */
     public static long getNextCreationTime() throws Exception {
         long total = 0;
@@ -577,11 +630,4 @@ public class CloudManager {
             runtimeLogger.warn(WARN_NO_CONNECTORS_FOLDER);
         }
     }
-
-    /*
-     * private static class Ender extends Thread {
-     * 
-     * public void run() { for (CloudProvider cp : providers.values()) { logger.debug("Terminating all at ender");
-     * cp.terminateAll(); } } }
-     */
 }

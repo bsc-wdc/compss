@@ -1,21 +1,17 @@
 package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * The MonitoringDataRequest class represents a request to obtain the current resources and cores that can be run
+ * The MonitoringDataRequest class represents a request to obtain the current
+ * resources and cores that can be run
  */
-public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class TaskSummaryRequest extends TDRequest {
 
     /**
      * Semaphore where to synchronize until the operation is done
@@ -27,12 +23,12 @@ public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescr
      */
     private final Logger logger;
 
-
     /**
      * Constructs a new TaskStateRequest
      *
-     * @param sem
-     *            semaphore where to synchronize until the current state is described
+     * @param logger
+     * @param sem semaphore where to synchronize until the current state is
+     * described
      */
     public TaskSummaryRequest(Logger logger, Semaphore sem) {
         this.logger = logger;
@@ -40,26 +36,29 @@ public class TaskSummaryRequest<P extends Profile, T extends WorkerResourceDescr
     }
 
     /**
-     * Returns the semaphore where to synchronize until the current state is described
+     * Returns the semaphore where to synchronize until the current state is
+     * described
      *
-     * @return the semaphore where to synchronize until the current state is described
+     * @return the semaphore where to synchronize until the current state is
+     * described
      */
     public Semaphore getSemaphore() {
         return sem;
     }
 
     /**
-     * Sets the semaphore where to synchronize until the current state is described
+     * Sets the semaphore where to synchronize until the current state is
+     * described
      *
-     * @param sem
-     *            the semaphore where to synchronize until the current state is described
+     * @param sem the semaphore where to synchronize until the current state is
+     * described
      */
     public void setSemaphore(Semaphore sem) {
         this.sem = sem;
     }
 
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         ts.getTaskSummary(logger);
         sem.release();
     }

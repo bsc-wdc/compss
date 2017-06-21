@@ -2,22 +2,18 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
-
 
 /**
- * The ActionUpdate class represents the notification of an update on the state of an allocatable action.
+ * The ActionUpdate class represents the notification of an update on the state
+ * of an allocatable action.
  */
-public class ActionUpdate<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> extends TDRequest<P, T, I> {
+public class ActionUpdate extends TDRequest {
 
     /**
      * The updated allocatable action
      */
-    private final AllocatableAction<P, T, I> action;
-
+    private final AllocatableAction action;
 
     /**
      * Possible Updates applied to the action.
@@ -34,21 +30,18 @@ public class ActionUpdate<P extends Profile, T extends WorkerResourceDescription
         COMPLETED
     }
 
-
     /**
      * Update to be notified.
      */
     private final Update update;
 
-
     /**
      * Constructs a new NotifyAllocatableActionEnd for the task
      *
      * @param action
-     * @param update
-     *            update to be notified
+     * @param update update to be notified
      */
-    public ActionUpdate(AllocatableAction<P, T, I> action, Update update) {
+    public ActionUpdate(AllocatableAction action, Update update) {
         this.action = action;
         this.update = update;
     }
@@ -59,7 +52,7 @@ public class ActionUpdate<P extends Profile, T extends WorkerResourceDescription
     }
 
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         if (update == Update.COMPLETED) {
             ts.actionCompleted(action);
         } else {

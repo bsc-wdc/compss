@@ -6,7 +6,7 @@ import integratedtoolkit.types.implementations.Implementation;
 
 /**
  * Abstract representation of a Resource
- * 
+ *
  */
 public abstract class ResourceDescription implements Externalizable {
 
@@ -19,7 +19,7 @@ public abstract class ResourceDescription implements Externalizable {
 
     /**
      * New copy of a resource description
-     * 
+     *
      * @param rd
      */
     public ResourceDescription(ResourceDescription rd) {
@@ -28,18 +28,19 @@ public abstract class ResourceDescription implements Externalizable {
 
     /**
      * Copy method
-     * 
+     *
      * @return
      */
     public abstract ResourceDescription copy();
 
     /**
-     * Checks the static constraints for an implementation to be run on a resource
+     * Checks the static constraints for an implementation to be run on a
+     * resource
      *
      * @param impl
      * @return
      */
-    public abstract boolean canHost(Implementation<?> impl);
+    public abstract boolean canHost(Implementation impl);
 
     /**
      * Increases the static and dynamic capabilities
@@ -56,12 +57,13 @@ public abstract class ResourceDescription implements Externalizable {
     public abstract void reduce(ResourceDescription rd);
 
     /**
-     * Checks the dynamic capabilities for an implementation to be run on a resource
+     * Checks the dynamic capabilities for an implementation to be run on a
+     * resource
      *
      * @param impl
      * @return
      */
-    public abstract boolean canHostDynamic(Implementation<?> impl);
+    public abstract boolean canHostDynamic(Implementation impl);
 
     /**
      * Increases the dynamic capabilities
@@ -71,7 +73,8 @@ public abstract class ResourceDescription implements Externalizable {
     public abstract void increaseDynamic(ResourceDescription rd);
 
     /**
-     * Reduces the dynamic capabilities returning the description of the real capabilities that have been reduced
+     * Reduces the dynamic capabilities returning the description of the real
+     * capabilities that have been reduced
      *
      * @param rd
      * @return
@@ -107,4 +110,5 @@ public abstract class ResourceDescription implements Externalizable {
         return commons;
     }
 
+    public abstract String getDynamicDescription();
 }

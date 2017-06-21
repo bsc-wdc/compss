@@ -43,20 +43,18 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class ITFParser {
 
     private static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     private static final boolean debug = LOGGER.isDebugEnabled();
 
-
     /**
-     * 
-     * Loads the annotated class and initializes the data structures that contain the constraints. For each method found
-     * in the annotated interface creates its signature and adds the constraints to the structures.
      *
-     * @param annotItfClass
-     *            package and name of the Annotated Interface class
+     * Loads the annotated class and initializes the data structures that
+     * contain the constraints. For each method found in the annotated interface
+     * creates its signature and adds the constraints to the structures.
+     *
+     * @param annotItfClass package and name of the Annotated Interface class
      * @return
      */
     public static List<Integer> parseITFMethods(Class<?> annotItfClass) {
@@ -77,7 +75,7 @@ public class ITFParser {
 
     /**
      * Parses a single ITF Method (can have multiple annotations)
-     * 
+     *
      * @param m
      * @return
      */
@@ -115,7 +113,7 @@ public class ITFParser {
         if (debug) {
             LOGGER.debug("   * Method methodId = " + methodId + " has " + m.getAnnotations().length + " annotations");
         }
-        List<Implementation<?>> implementations = new LinkedList<>();
+        List<Implementation> implementations = new LinkedList<>();
         List<String> signatures = new LinkedList<>();
         checkDefinedImplementations(m, methodId, calleeMethodSignature, hasStreams, hasPrefixes, implementations, signatures);
 
@@ -132,7 +130,7 @@ public class ITFParser {
 
     /**
      * Checks if all the annotations present in method @m are valid or not
-     * 
+     *
      * @param m
      */
     private static void checkMethodAnnotation(java.lang.reflect.Method m) {
@@ -166,7 +164,7 @@ public class ITFParser {
 
     /**
      * Returns if the method @m has non native annotations or not
-     * 
+     *
      * @param m
      * @return
      */
@@ -195,9 +193,10 @@ public class ITFParser {
     }
 
     /**
-     * Constructs the signature of method @m and leaves the result in calleeMethodSignature. It also returns if the
-     * method has stream parameters or not
-     * 
+     * Constructs the signature of method @m and leaves the result in
+     * calleeMethodSignature. It also returns if the method has stream
+     * parameters or not
+     *
      * @param m
      * @param hasNonNative
      * @param calleeMethodSignature
@@ -260,18 +259,17 @@ public class ITFParser {
         }
         calleeMethodSignature.append(")");
 
-        boolean[] hasAnnotation = { hasStreams, hasPrefixes };
+        boolean[] hasAnnotation = {hasStreams, hasPrefixes};
         return hasAnnotation;
     }
 
     /**
-     * Infers the type of a parameter. If the parameter is annotated as a FILE or a STRING, the type is taken from the
-     * annotation. If the annotation is UNSPECIFIED, the type is taken from the formal type.
+     * Infers the type of a parameter. If the parameter is annotated as a FILE
+     * or a STRING, the type is taken from the annotation. If the annotation is
+     * UNSPECIFIED, the type is taken from the formal type.
      *
-     * @param formalType
-     *            Formal type of the parameter
-     * @param annotType
-     *            Annotation type of the parameter
+     * @param formalType Formal type of the parameter
+     * @param annotType Annotation type of the parameter
      * @return A String representing the type of the parameter
      */
     private static String inferType(Class<?> formalType, Type annotType) {
@@ -305,16 +303,15 @@ public class ITFParser {
     }
 
     /**
-     * Treats and display errors and warning related to the annotation of 1 parameter of a method/service
-     * 
-     * @param m
-     *            The method or service to be checked for warnings
-     * @param par
-     *            The parameter to analyse
-     * @param i
-     *            The position of the parameter (0 for the first parameter, 1 for the second, etc.)
-     * @param hasNonNative
-     *            Indicates if the method has non-native annotations or not
+     * Treats and display errors and warning related to the annotation of 1
+     * parameter of a method/service
+     *
+     * @param m The method or service to be checked for warnings
+     * @param par The parameter to analyse
+     * @param i The position of the parameter (0 for the first parameter, 1 for
+     * the second, etc.)
+     * @param hasNonNative Indicates if the method has non-native annotations or
+     * not
      */
     private static void checkParameterAnnotation(java.lang.reflect.Method m, Parameter par, int i, boolean hasNonNative) {
         final String WARNING_LOCATION = "In parameter number " + (i + 1) + " of method '" + m.getName() + "' in interface '"
@@ -395,7 +392,7 @@ public class ITFParser {
 
     /**
      * Check all the defined implementations of the same method
-     * 
+     *
      * @param m
      * @param methodId
      * @param calleeMethodSignature
@@ -404,7 +401,7 @@ public class ITFParser {
      * @param signatures
      */
     private static void checkDefinedImplementations(java.lang.reflect.Method m, Integer methodId, StringBuilder calleeMethodSignature,
-            boolean hasStreams, boolean hasPrefixes, List<Implementation<?>> implementations, List<String> signatures) {
+            boolean hasStreams, boolean hasPrefixes, List<Implementation> implementations, List<String> signatures) {
 
         /*
          * Global constraints of the method
@@ -417,7 +414,6 @@ public class ITFParser {
         /*
          * Check all annotations present at the method for versioning
          */
-
         String methodName = m.getName();
         int implId = 0;
 
@@ -450,7 +446,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new MethodImplementation(declaringClass, methodName, methodId, implId, implConstraints);
+            Implementation impl = new MethodImplementation(declaringClass, methodName, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -475,7 +471,7 @@ public class ITFParser {
             signatures.add(serviceSignature);
 
             // Register service implementation
-            Implementation<?> impl = new ServiceImplementation(methodId, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.port(),
+            Implementation impl = new ServiceImplementation(methodId, serviceAnnot.namespace(), serviceAnnot.name(), serviceAnnot.port(),
                     serviceAnnot.operation());
             ++implId;
             implementations.add(impl);
@@ -512,7 +508,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new MPIImplementation(binary, workingDir, mpiRunner, methodId, implId, implConstraints);
+            Implementation impl = new MPIImplementation(binary, workingDir, mpiRunner, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -552,7 +548,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, methodId, implId, implConstraints);
+            Implementation impl = new DecafImplementation(dfScript, dfExecutor, dfLib, workingDir, mpiRunner, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -580,7 +576,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new OmpSsImplementation(binary, workingDir, methodId, implId, implConstraints);
+            Implementation impl = new OmpSsImplementation(binary, workingDir, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -608,7 +604,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new OpenCLImplementation(kernel, workingDir, methodId, implId, implConstraints);
+            Implementation impl = new OpenCLImplementation(kernel, workingDir, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }
@@ -636,7 +632,7 @@ public class ITFParser {
             }
 
             // Register method implementation
-            Implementation<?> impl = new BinaryImplementation(binary, workingDir, methodId, implId, implConstraints);
+            Implementation impl = new BinaryImplementation(binary, workingDir, methodId, implId, implConstraints);
             ++implId;
             implementations.add(impl);
         }

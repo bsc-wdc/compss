@@ -19,6 +19,7 @@ import integratedtoolkit.loader.total.ObjectRegistry;
 
 import integratedtoolkit.log.Loggers;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
+import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.annotations.parameter.DataType;
 import integratedtoolkit.types.annotations.parameter.Direction;
 import integratedtoolkit.types.annotations.parameter.Stream;
@@ -46,7 +47,6 @@ import integratedtoolkit.util.Tracer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Exception constants definition
@@ -68,7 +68,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     // Components
     private static AccessProcessor ap;
-    private static TaskDispatcher<?, ?, ?> td;
+    private static TaskDispatcher td;
 
     // Monitor
     private static GraphGenerator graphMonitor;
@@ -106,7 +106,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
          */
         Comm.init();
     }
-
 
     // Code Added to support configuration files
     private static void setPropertiesFromRuntime(RuntimeConfigManager manager) {
@@ -475,7 +474,7 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Returns the Application Directory
-     * 
+     *
      */
     @Override
     public String getApplicationDirectory() {
@@ -483,17 +482,18 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Returns the action orchestrator associated to the runtime (only for testing purposes)
-     * 
+     * Returns the action orchestrator associated to the runtime (only for
+     * testing purposes)
+     *
      * @return
      */
-    public static ActionOrchestrator<?, ?, ?> getOrchestrator() {
+    public static ActionOrchestrator getOrchestrator() {
         return td;
     }
 
     /**
      * Registers a new CoreElement in the COMPSs Runtime
-     * 
+     *
      */
     @Override
     public void registerCoreElement(String coreElementSignature, String implSignature, String implConstraints, String implType,
@@ -553,6 +553,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
 
     /**
      * Execute task: methods
+     *
+     * @param methodClass
      */
     @Override
     public int executeTask(Long appId, String methodClass, String methodName, boolean isPrioritary, int numNodes, boolean isReplicated,
@@ -654,7 +656,8 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
     }
 
     /**
-     * Notifies the Runtime that there are no more tasks created by the current appId
+     * Notifies the Runtime that there are no more tasks created by the current
+     * appId
      */
     @Override
     public void noMoreTasks(Long appId, boolean terminate) {
@@ -738,7 +741,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * LoaderAPI INTERFACE IMPLEMENTATION
      * ********************************************************************************************************
      */
-
     /**
      * Returns a copy of the last file version
      */
@@ -835,7 +837,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * COMMON IN BOTH APIs
      * ********************************************************************************************************
      */
-
     /**
      * Returns the renaming of the file version opened
      */
@@ -903,7 +904,6 @@ public class COMPSsRuntimeImpl implements COMPSsRuntime, LoaderAPI {
      * PRIVATE HELPER METHODS
      * ********************************************************************************************************
      */
-
     private Parameter[] processParameters(int parameterCount, Object[] parameters) {
         Parameter[] pars = new Parameter[parameterCount];
         // Parameter parsing needed, object is not serializable

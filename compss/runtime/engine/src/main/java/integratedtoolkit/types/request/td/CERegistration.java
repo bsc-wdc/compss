@@ -23,9 +23,7 @@ import integratedtoolkit.util.ResourceManager;
 import java.util.LinkedList;
 import java.util.List;
 
-
-public class CERegistration<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class CERegistration extends TDRequest {
 
     private final String coreElementSignature;
     private final String implSignature;
@@ -34,14 +32,14 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
     private final String[] implTypeArgs;
     private final Semaphore sem;
 
-
     /**
      * Creates a new CoreElement registration request
-     * 
-     * @param signature
-     * @param methodName
-     * @param declaringClass
-     * @param mrd
+     *
+     * @param coreElementSignature
+     * @param implSignature
+     * @param implConstraints
+     * @param implType
+     * @param implTypeArgs
      * @param sem
      */
     public CERegistration(String coreElementSignature, String implSignature, MethodResourceDescription implConstraints, MethodType implType,
@@ -67,7 +65,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
     }
 
     @Override
-    public void process(TaskScheduler<P, T, I> ts) {
+    public void process(TaskScheduler ts) {
         // Register the coreElement
         Integer coreId = CoreManager.registerNewCoreElement(coreElementSignature);
         if (coreId == null) {
@@ -79,7 +77,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         int implId = CoreManager.getNumberCoreImplementations(coreId);
 
         // Create the implementation
-        Implementation<?> m = null;
+        Implementation m = null;
         switch (implType) {
             case METHOD:
                 if (this.implTypeArgs.length != 2) {
@@ -166,7 +164,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         }
 
         // Register the new implementation
-        List<Implementation<?>> newImpls = new LinkedList<>();
+        List<Implementation> newImpls = new LinkedList<>();
         newImpls.add(m);
         List<String> newSignatures = new LinkedList<>();
         newSignatures.add(implSignature);
@@ -180,7 +178,7 @@ public class CERegistration<P extends Profile, T extends WorkerResourceDescripti
         // Update the Scheduler structures
         ts.coreElementsUpdated();
 
-        logger.debug("Data structures resized and CE-resources links updated");
+        LOGGER.debug("Data structures resized and CE-resources links updated");
         sem.release();
     }
 

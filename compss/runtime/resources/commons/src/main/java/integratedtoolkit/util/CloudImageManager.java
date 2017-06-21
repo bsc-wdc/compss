@@ -14,9 +14,9 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * The CloudImageManager is an utility to manage the different images that can be used for a certain Cloud Provider
+ * The CloudImageManager is an utility to manage the different images that can
+ * be used for a certain Cloud Provider
  */
 public class CloudImageManager {
 
@@ -27,7 +27,6 @@ public class CloudImageManager {
 
     // Logger
     private static final Logger logger = LogManager.getLogger(Loggers.CM_COMP);
-
 
     /**
      * Constructs a new CloudImageManager
@@ -40,8 +39,7 @@ public class CloudImageManager {
     /**
      * Adds a new image which can be used by the Cloud Provider
      *
-     * @param cid
-     *            Description of the image
+     * @param cid Description of the image
      */
     public void add(CloudImageDescription cid) {
         logger.debug("Add new Image description");
@@ -49,11 +47,12 @@ public class CloudImageManager {
     }
 
     /**
-     * Finds all the images provided by the Cloud Provider which fulfill the resource description.
+     * Finds all the images provided by the Cloud Provider which fulfill the
+     * resource description.
      *
-     * @param requested
-     *            description of the features that the image must provide
-     * @return The best image provided by the Cloud Provider which fulfills the resource description
+     * @param requested description of the features that the image must provide
+     * @return The best image provided by the Cloud Provider which fulfills the
+     * resource description
      */
     public LinkedList<CloudImageDescription> getCompatibleImages(MethodResourceDescription requested) {
         // logger.debug("REQUESTED: " + requested.toString());
@@ -99,6 +98,15 @@ public class CloudImageManager {
             compatiblesList.add(cid);
         }
         return compatiblesList;
+    }
+
+    /**
+     *
+     * @param name
+     * @return Returns the Image associated to that name
+     */
+    public CloudImageDescription getImage(String name) {
+        return images.get(name);
     }
 
     /**

@@ -2,7 +2,6 @@ package resourceManager;
 
 import integratedtoolkit.api.impl.COMPSsRuntimeImpl;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.implementations.Implementation.TaskType;
 import integratedtoolkit.types.implementations.MethodImplementation;
@@ -13,7 +12,6 @@ import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.Worker;
-import integratedtoolkit.types.resources.WorkerResourceDescription;
 import integratedtoolkit.types.resources.components.Processor;
 import integratedtoolkit.util.CoreManager;
 
@@ -63,8 +61,7 @@ public class TestCompatible {
     private static void resourceManagerTest() {
         coreCount = CoreManager.getCoreCount();
 
-        ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>> orchestrator = (ActionOrchestrator<Profile, WorkerResourceDescription, Implementation<WorkerResourceDescription>>) COMPSsRuntimeImpl
-                .getOrchestrator();
+        ActionOrchestrator orchestrator = COMPSsRuntimeImpl.getOrchestrator();
 
         // Check for each implementation the correctness of its resources
         System.out.println("[LOG] Number of cores = " + coreCount);
@@ -72,13 +69,13 @@ public class TestCompatible {
             System.out.println("[LOG] Checking Core" + coreId);
 
             Action a = new Action(orchestrator, coreId);
-            HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> m = a.findAvailableWorkers();
+            HashMap<Worker<?>, LinkedList<Implementation>> m = a.findAvailableWorkers();
 
             // For the test construction, all implementations can be run. Check it
             if (m.size() == 0) {
                 System.err.println("[ERROR] CoreId " + coreId + " cannot be run");
-                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
-                for (Implementation<?> impl : impls) {
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
+                for (Implementation impl : impls) {
                     System.out.println("-- Impl: " + impl.getRequirements().toString());
                 }
                 System.exit(-1);
@@ -90,14 +87,14 @@ public class TestCompatible {
 
     }
 
-    private static void checkCoreResources(int coreId, HashMap<Worker<?, ?>, LinkedList<Implementation<?>>> hm) {
+    private static void checkCoreResources(int coreId, HashMap<Worker<?>, LinkedList<Implementation>> hm) {
         // Revert Map
-        HashMap<Implementation<?>, LinkedList<Worker<?, ?>>> hm_reverted = new HashMap<Implementation<?>, LinkedList<Worker<?, ?>>>();
-        for (Entry<Worker<?, ?>, LinkedList<Implementation<?>>> entry_hm : hm.entrySet()) {
-            for (Implementation<?> impl : entry_hm.getValue()) {
-                LinkedList<Worker<?, ?>> aux = hm_reverted.get(impl);
+        HashMap<Implementation, LinkedList<Worker<?>>> hm_reverted = new HashMap<>();
+        for (Entry<Worker<?>, LinkedList<Implementation>> entry_hm : hm.entrySet()) {
+            for (Implementation impl : entry_hm.getValue()) {
+                LinkedList<Worker<?>> aux = hm_reverted.get(impl);
                 if (aux == null) {
-                    aux = new LinkedList<Worker<?, ?>>();
+                    aux = new LinkedList<Worker<?>>();
                 }
                 aux.add(entry_hm.getKey());
                 hm_reverted.put(impl, aux);
@@ -105,10 +102,10 @@ public class TestCompatible {
         }
 
         // Check Resources assigned to each implementation
-        for (java.util.Map.Entry<Implementation<?>, LinkedList<Worker<?, ?>>> entry : hm_reverted.entrySet()) {
+        for (java.util.Map.Entry<Implementation, LinkedList<Worker<?>>> entry : hm_reverted.entrySet()) {
             System.out.println("[LOG] ** Checking Implementation " + entry.getKey());
             System.out.println("[LOG] **** Number of resources = " + entry.getValue().size());
-            for (Worker<?, ?> resource : entry.getValue()) {
+            for (Worker<?> resource : entry.getValue()) {
                 System.out.println("[LOG] **** Checking Resource " + resource.getName());
                 String res = checkResourcesAssignedToImpl(entry.getKey(), resource);
                 if (res != null) {
@@ -122,7 +119,7 @@ public class TestCompatible {
         }
     }
 
-    private static String checkResourcesAssignedToImpl(Implementation<?> impl, Worker<?, ?> resource) {
+    private static String checkResourcesAssignedToImpl(Implementation impl, Worker<?> resource) {
         if ((impl.getTaskType().equals(TaskType.METHOD) && resource.getType().equals(Resource.Type.SERVICE))
                 || (impl.getTaskType().equals(TaskType.SERVICE) && resource.getType().equals(Resource.Type.WORKER))) {
             return "types";

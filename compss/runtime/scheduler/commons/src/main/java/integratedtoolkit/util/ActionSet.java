@@ -1,21 +1,17 @@
 package integratedtoolkit.util;
 
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
+public class ActionSet {
 
-public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
-
-    private final LinkedList<AllocatableAction<P, T, I>> noCore;
-    private LinkedList<AllocatableAction<P, T, I>>[] coreIndexed;
+    private final LinkedList<AllocatableAction> noCore;
+    private LinkedList<AllocatableAction>[] coreIndexed;
     private int[] counts;
-
 
     @SuppressWarnings("unchecked")
     public ActionSet() {
@@ -35,7 +31,7 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         int oldCoreCount = coreIndexed.length;
         if (oldCoreCount < newCoreCount) {
             // Increase the coreIndexed and the counts arrays
-            LinkedList<AllocatableAction<P, T, I>>[] coreIndexed = new LinkedList[newCoreCount];
+            LinkedList<AllocatableAction>[] coreIndexed = new LinkedList[newCoreCount];
             int[] counts = new int[newCoreCount];
             int coreId = 0;
             for (; coreId < oldCoreCount; coreId++) {
@@ -51,29 +47,57 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         }
     }
 
-    public void addAction(AllocatableAction<P, T, I> aa) {
-        Implementation<?>[] impls = aa.getImplementations();
-        if (impls.length == 0) {
+    public void addAction(AllocatableAction aa) {
+        Integer core = aa.getCoreId();
+        if (core == null) {
             this.noCore.add(aa);
         } else {
-            // Start and stop action do not have implementations?? Fix NPE in StartAction
-            if (impls != null && impls.length > 0 && impls[0] != null) {
-                int core = impls[0].getCoreId();
-                // Update coreCount if the core is out of bounds (has been registered meanwhile)
-                if (core >= this.coreIndexed.length) {
-                    updateCoreCount(CoreManager.getCoreCount());
-                }
-                this.coreIndexed[core].add(aa);
-                this.counts[core]++;
+            // Update coreCount if the core is out of bounds (has been registered meanwhile)
+            if (core >= this.coreIndexed.length) {
+                updateCoreCount(CoreManager.getCoreCount());
             }
+            this.coreIndexed[core].add(aa);
+            this.counts[core]++;
         }
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> removeAllCompatibleActions(Worker<T, I> r) {
-        LinkedList<AllocatableAction<P, T, I>> runnable = new LinkedList<>();
-        Iterator<AllocatableAction<P, T, I>> actions = this.noCore.iterator();
+    public int[] getActionCounts() {
+        return this.counts;
+    }
+
+    public LinkedList<AllocatableAction> getActions(Integer coreId) {
+        if (coreId == null) {
+            return this.noCore;
+        } else {
+            return this.coreIndexed[coreId];
+        }
+    }
+
+    public LinkedList<AllocatableAction> getAllActions() {
+        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+        runnable.addAll(this.noCore);
+
+        for (int core = 0; core < this.coreIndexed.length; ++core) {
+            runnable.addAll(coreIndexed[core]);
+        }
+        return runnable;
+    }
+
+    public void removeAction(AllocatableAction action) {
+        Integer coreId = action.getCoreId();
+        if (coreId == null) {
+            this.noCore.remove(action);
+        } else {
+            this.coreIndexed[coreId].remove(action);
+            this.counts[coreId]--;
+        }
+    }
+
+    public <T extends WorkerResourceDescription> LinkedList<AllocatableAction> removeAllCompatibleActions(Worker<T> r) {
+        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+        Iterator<AllocatableAction> actions = this.noCore.iterator();
         while (actions.hasNext()) {
-            AllocatableAction<P, T, I> action = actions.next();
+            AllocatableAction action = actions.next();
             if (action.isCompatible(r)) {
                 actions.remove();
                 runnable.add(action);
@@ -89,11 +113,11 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         return runnable;
     }
 
-    public LinkedList<AllocatableAction<P, T, I>> removeAllActions() {
-        LinkedList<AllocatableAction<P, T, I>> runnable = new LinkedList<>();
-        Iterator<AllocatableAction<P, T, I>> actions = this.noCore.iterator();
+    public LinkedList<AllocatableAction> removeAllActions() {
+        LinkedList<AllocatableAction> runnable = new LinkedList<>();
+        Iterator<AllocatableAction> actions = this.noCore.iterator();
         while (actions.hasNext()) {
-            AllocatableAction<P, T, I> action = actions.next();
+            AllocatableAction action = actions.next();
             actions.remove();
             runnable.add(action);
         }
@@ -106,28 +130,6 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         return runnable;
     }
 
-    public int[] getActionCounts() {
-        return this.counts;
-    }
-
-    public LinkedList<AllocatableAction<P, T, I>> getActions(Integer coreId) {
-        if (coreId == null) {
-            return this.noCore;
-        } else {
-            return this.coreIndexed[coreId];
-        }
-    }
-
-    public void removeAction(AllocatableAction<P, T, I> action) {
-        Integer coreId = action.getCoreId();
-        if (coreId == null) {
-            this.noCore.remove(action);
-        } else {
-            this.coreIndexed[coreId].remove(action);
-            this.counts[coreId]--;
-        }
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(super.toString() + "\n");
@@ -137,16 +139,6 @@ public class ActionSet<P extends Profile, T extends WorkerResourceDescription, I
         }
 
         return sb.toString();
-    }
-
-    public LinkedList<AllocatableAction<P, T, I>> getAllActions() {
-        LinkedList<AllocatableAction<P, T, I>> runnable = new LinkedList<>();
-        runnable.addAll(this.noCore);
-
-        for (int core = 0; core < this.coreIndexed.length; ++core) {
-            runnable.addAll(coreIndexed[core]);
-        }
-        return runnable;
     }
 
 }

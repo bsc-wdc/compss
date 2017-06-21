@@ -13,7 +13,6 @@ import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.UnassignedActionException;
 import integratedtoolkit.scheduler.types.ActionOrchestrator;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.scheduler.types.SchedulingInformation;
 import integratedtoolkit.scheduler.types.Score;
 import integratedtoolkit.types.data.DataAccessId;
@@ -43,9 +42,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
-public class ExecutionAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends AllocatableAction<P, T, I> {
+public class ExecutionAction extends AllocatableAction {
 
     // Fault tolerance parameters
     private static final int TRANSFER_CHANCES = 2;
@@ -62,22 +59,17 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     private int transferErrors = 0;
     protected int executionErrors = 0;
 
-    // Resource execution information
-    private final ResourceScheduler<P, T, I> forcedResource;
-    private T resourceConsumption;
-
-
     /**
      * Creates a new execution action
-     * 
+     *
      * @param schedulingInformation
+     * @param orchestrator
      * @param producer
      * @param task
-     * @param forcedResource
      */
     @SuppressWarnings("unchecked")
-    public ExecutionAction(SchedulingInformation<P, T, I> schedulingInformation, ActionOrchestrator<P, T, I> orchestrator,
-            TaskProducer producer, Task task, ResourceScheduler<P, T, I> forcedResource) {
+    public ExecutionAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator,
+            TaskProducer producer, Task task) {
 
         super(schedulingInformation, orchestrator);
 
@@ -87,17 +79,14 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         this.transferErrors = 0;
         this.executionErrors = 0;
 
-        this.forcedResource = forcedResource;
-        this.resourceConsumption = null;
-
         // Add execution to task
         this.task.addExecution(this);
 
         // Register data dependencies events
         for (Task predecessor : this.task.getPredecessors()) {
-            for (ExecutionAction<?, ?, ?> e : predecessor.getExecutions()) {
+            for (ExecutionAction e : predecessor.getExecutions()) {
                 if (e != null && e.isPending()) {
-                    addDataPredecessor((ExecutionAction<P, T, I>) e);
+                    addDataPredecessor(e);
                 }
             }
         }
@@ -106,15 +95,15 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         // Restricted resource
         Task resourceConstraintTask = this.task.getEnforcingTask();
         if (resourceConstraintTask != null) {
-            for (ExecutionAction<?, ?, ?> e : resourceConstraintTask.getExecutions()) {
-                addResourceConstraint((ExecutionAction<P, T, I>) e);
+            for (ExecutionAction e : resourceConstraintTask.getExecutions()) {
+                addResourceConstraint(e);
             }
         }
     }
 
     /**
      * Returns the associated task
-     * 
+     *
      * @return
      */
     public final Task getTask() {
@@ -127,38 +116,30 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
      * ***************************************************************************************************************
      */
     @Override
-    public final boolean areEnoughResources() {
-        Worker<T, I> w = selectedResource.getResource();
-        return w.canRunNow(selectedImpl.getRequirements());
+    public boolean isToReserveResources() {
+        return true;
     }
 
     @Override
-    protected final void reserveResources() {
-        Worker<T, I> w = selectedResource.getResource();
-        resourceConsumption = w.runTask(selectedImpl.getRequirements());
-    }
-
-    @Override
-    protected final void releaseResources() {
-        Worker<T, I> w = selectedResource.getResource();
-        w.endTask(resourceConsumption);
+    public boolean isToReleaseResources() {
+        return true;
     }
 
     @Override
     protected void doAction() {
-        JOB_LOGGER.info("Ordering transfers to " + selectedResource + " to run task: " + task.getId());
+        JOB_LOGGER.info("Ordering transfers to " + getAssignedResource() + " to run task: " + task.getId());
         transferErrors = 0;
         executionErrors = 0;
         doInputTransfers();
     }
 
     private final void doInputTransfers() {
-        JobTransfersListener<P, T, I> listener = new JobTransfersListener<>(this);
+        JobTransfersListener listener = new JobTransfersListener(this);
         transferInputData(listener);
         listener.enable();
     }
 
-    private final void transferInputData(JobTransfersListener<P, T, I> listener) {
+    private final void transferInputData(JobTransfersListener listener) {
         TaskDescription taskDescription = task.getTaskDescription();
         for (Parameter p : taskDescription.getParameters()) {
             JOB_LOGGER.debug("    * " + p);
@@ -181,8 +162,8 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     }
 
     // Private method that performs data transfers
-    private final void transferJobData(DependencyParameter param, JobTransfersListener<P, T, I> listener) {
-        Worker<T, I> w = selectedResource.getResource();
+    private final void transferJobData(DependencyParameter param, JobTransfersListener listener) {
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         DataAccessId access = param.getDataAccessId();
         if (access instanceof DataAccessId.WAccessId) {
             String tgtName = ((DataAccessId.WAccessId) access).getWrittenDataInstance().getRenaming();
@@ -213,52 +194,52 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
      */
     /**
      * Code executed after some input transfers have failed
-     * 
+     *
      * @param failedtransfers
      */
     public final void failedTransfers(int failedtransfers) {
         JOB_LOGGER.debug("Received a notification for the transfers for task " + task.getId() + " with state FAILED");
         ++transferErrors;
         if (transferErrors < TRANSFER_CHANCES) {
-            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + selectedResource.getName() + " since "
+            JOB_LOGGER.debug("Resubmitting input files for task " + task.getId() + " to host " + getAssignedResource().getName() + " since "
                     + failedtransfers + " transfers failed.");
 
             doInputTransfers();
         } else {
-            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker " + selectedResource.getName() + " have failed.");
+            ErrorManager.warn("Transfers for running task " + task.getId() + " on worker " + getAssignedResource().getName() + " have failed.");
             this.notifyError();
         }
     }
 
     /**
      * Code executed when all transfers have successed
-     * 
+     *
      * @param transferGroupId
      */
     public final void doSubmit(int transferGroupId) {
         JOB_LOGGER.debug("Received a notification for the transfers of task " + task.getId() + " with state DONE");
-        JobStatusListener<P, T, I> listener = new JobStatusListener<>(this);
+        JobStatusListener listener = new JobStatusListener(this);
         Job<?> job = submitJob(transferGroupId, listener);
 
         // Register job
         jobs.add(job.getJobId());
         JOB_LOGGER.info(
-                (this.executingResources.size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
+                (this.getExecutingResources().size() > 1 ? "Rescheduled" : "New") + " Job " + job.getJobId() + " (Task: " + task.getId() + ")");
         JOB_LOGGER.info("  * Method name: " + task.getTaskDescription().getName());
-        JOB_LOGGER.info("  * Target host: " + selectedResource.getName());
+        JOB_LOGGER.info("  * Target host: " + this.getAssignedResource().getName());
 
         profile.start();
         JobDispatcher.dispatch(job);
     }
 
-    protected Job<?> submitJob(int transferGroupId, JobStatusListener<P, T, I> listener) {
+    protected Job<?> submitJob(int transferGroupId, JobStatusListener listener) {
         // Create job
         if (DEBUG) {
             LOGGER.debug(this.toString() + " starts job creation");
         }
-        Worker<T, I> w = selectedResource.getResource();
+        Worker<? extends WorkerResourceDescription> w = getAssignedResource().getResource();
         List<String> slaveNames = new ArrayList<>(); // No salves
-        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.selectedImpl, slaveNames, listener);
+        Job<?> job = w.newJob(this.task.getId(), this.task.getTaskDescription(), this.getAssignedImplementation(), slaveNames, listener);
         job.setTransferGroupId(transferGroupId);
         job.setHistory(Job.JobHistory.NEW);
 
@@ -267,7 +248,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     /**
      * Code executed when the job execution has failed
-     * 
+     *
      * @param job
      * @param endStatus
      */
@@ -278,9 +259,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         JOB_LOGGER.error("Received a notification for job " + jobId + " with state FAILED");
         ++executionErrors;
         if (transferErrors + executionErrors < SUBMISSION_CHANCES) {
-            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedResource.getName()
+            JOB_LOGGER.error("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + this.getAssignedResource().getName()
                     + " has failed; resubmitting task to the same worker.");
-            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + selectedResource.getName()
+            ErrorManager.warn("Job " + job.getJobId() + " for running task " + task.getId() + " on worker " + this.getAssignedResource().getName()
                     + " has failed; resubmitting task to the same worker.");
             job.setHistory(Job.JobHistory.RESUBMITTED);
             profile.start();
@@ -292,7 +273,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     /**
      * Code executed when the job execution has been completed
-     * 
+     *
      * @param job
      */
     public final void completedJob(Job<?> job) {
@@ -301,7 +282,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
         // Notify end
         int jobId = job.getJobId();
-        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: "+profile.getAverageExecutionTime()+")");
+        JOB_LOGGER.info("Received a notification for job " + jobId + " with state OK (avg. duration: " + profile.getAverageExecutionTime() + ")");
 
         // Job finished, update info about the generated/updated data
         doOutputTransfers(job);
@@ -312,7 +293,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     private final void doOutputTransfers(Job<?> job) {
         // Job finished, update info about the generated/updated data
-        Worker<T, I> w = selectedResource.getResource();
+        Worker<? extends WorkerResourceDescription> w = this.getAssignedResource().getResource();
 
         for (Parameter p : job.getTaskParams().getParameters()) {
             if (p instanceof DependencyParameter) {
@@ -385,7 +366,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     protected void doCompleted() {
         // Profile the resource
-        selectedResource.profiledExecution(selectedImpl, profile);
+        this.getAssignedResource().profiledExecution(this.getAssignedImplementation(), profile);
 
         // Decrease the execution counter and set the task as finished and notify the producer
         task.decreaseExecutionCount();
@@ -395,14 +376,14 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
     @Override
     protected void doError() throws FailedActionException {
-        if (this.executingResources.size() >= SCHEDULING_CHANCES) {
+        if (this.getExecutingResources().size() >= SCHEDULING_CHANCES) {
             LOGGER.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             ErrorManager.warn("Task " + task.getId() + " has already been rescheduled; notifying task failure.");
             throw new FailedActionException();
         } else {
-            ErrorManager.warn("Task " + task.getId() + " execution on worker " + selectedResource.getName()
+            ErrorManager.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
                     + " has failed; rescheduling task execution. (changing worker)");
-            LOGGER.warn("Task " + task.getId() + " execution on worker " + selectedResource.getName()
+            LOGGER.warn("Task " + task.getId() + " execution on worker " + this.getAssignedResource().getName()
                     + " has failed; rescheduling task execution. (changing worker)");
         }
     }
@@ -444,31 +425,31 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
      * ***************************************************************************************************************
      */
     @Override
-    public final LinkedList<ResourceScheduler<P, T, I>> getCompatibleWorkers() {
+    public final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers() {
         return getCoreElementExecutors(task.getTaskDescription().getId());
-    }
-
-    @Override
-    public final LinkedList<I> getCompatibleImplementations(ResourceScheduler<P, T, I> r) {
-        return r.getExecutableImpls(task.getTaskDescription().getId());
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public final I[] getImplementations() {
-        List<Implementation<?>> coreImpls = CoreManager.getCoreImplementations(task.getTaskDescription().getId());
+    public final Implementation[] getImplementations() {
+        List<Implementation> coreImpls = CoreManager.getCoreImplementations(task.getTaskDescription().getId());
 
         int coreImplsSize = coreImpls.size();
-        I[] impls = (I[]) new Implementation[coreImplsSize];
+        Implementation[] impls = (Implementation[]) new Implementation[coreImplsSize];
         for (int i = 0; i < coreImplsSize; ++i) {
-            impls[i] = (I) coreImpls.get(i);
+            impls[i] = (Implementation) coreImpls.get(i);
         }
         return impls;
     }
 
     @Override
-    public final boolean isCompatible(Worker<T, I> r) {
+    public <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r) {
         return r.canRun(task.getTaskDescription().getId());
+    }
+
+    @Override
+    public final <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r) {
+        return r.getExecutableImpls(task.getTaskDescription().getId());
     }
 
     @Override
@@ -482,7 +463,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     }
 
     @Override
-    public final Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore) {
+    public final <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore) {
         Score computedScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
         // LOGGER.debug("Scheduling Score " + computedScore);
         return computedScore;
@@ -491,14 +472,14 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     @Override
     public final void schedule(Score actionScore) throws BlockedActionException, UnassignedActionException {
         // COMPUTE RESOURCE CANDIDATES
-        LinkedList<ResourceScheduler<P, T, I>> candidates = new LinkedList<>();
-        if (this.forcedResource != null) {
+        LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> candidates = new LinkedList<>();
+        if (this.isTargetResourceEnforced()) {
             // The scheduling is forced to a given resource
-            candidates.add(this.forcedResource);
+            candidates.add((ResourceScheduler<WorkerResourceDescription>) this.getEnforcedTargetResource());
         } else if (isSchedulingConstrained()) {
             // The scheduling is constrained by dependencies
-            for (AllocatableAction<P, T, I> a : this.getConstrainingPredecessors()) {
-                candidates.add(a.getAssignedResource());
+            for (AllocatableAction a : this.getConstrainingPredecessors()) {
+                candidates.add((ResourceScheduler<WorkerResourceDescription>) a.getAssignedResource());
             }
         } else {
             // Free scheduling
@@ -507,20 +488,20 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
 
         // COMPUTE BEST WORKER AND IMPLEMENTATION
         StringBuilder debugString = new StringBuilder("Scheduling " + this + " execution:\n");
-        ResourceScheduler<P, T, I> bestWorker = null;
-        I bestImpl = null;
+        ResourceScheduler<? extends WorkerResourceDescription> bestWorker = null;
+        Implementation bestImpl = null;
         Score bestScore = null;
         int usefulResources = 0;
-        for (ResourceScheduler<P, T, I> worker : candidates) {
-            if (executingResources.contains(worker)) {
+        for (ResourceScheduler<? extends WorkerResourceDescription> worker : candidates) {
+            if (this.getExecutingResources().contains(worker)) {
                 if (DEBUG) {
-                    LOGGER.debug("Task already running on worker " + worker.getName());
+                    LOGGER.debug("Task already ran on worker " + worker.getName());
                 }
                 continue;
             }
             Score resourceScore = worker.generateResourceScore(this, task.getTaskDescription(), actionScore);
             ++usefulResources;
-            for (I impl : getCompatibleImplementations(worker)) {
+            for (Implementation impl : getCompatibleImplementations(worker)) {
                 Score implScore = worker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
                 if (DEBUG) {
                     debugString.append(" Resource ").append(worker.getName()).append(" ").append(" Implementation ")
@@ -548,25 +529,25 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     }
 
     @Override
-    public final void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
+    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException {
 
         if (targetWorker == null
                 // Resource is not compatible with the Core
                 || !targetWorker.getResource().canRun(task.getTaskDescription().getId())
                 // already ran on the resource
-                || executingResources.contains(targetWorker)) {
+                || this.getExecutingResources().contains(targetWorker)) {
 
             String message = "Worker " + (targetWorker == null ? "null" : targetWorker.getName()) + " has not available resources to run "
                     + this;
             LOGGER.warn(message);
             throw new UnassignedActionException();
         }
-        
-        I bestImpl = null;
+
+        Implementation bestImpl = null;
         Score bestScore = null;
         Score resourceScore = targetWorker.generateResourceScore(this, task.getTaskDescription(), actionScore);
-        for (I impl : getCompatibleImplementations(targetWorker)) {
+        for (Implementation impl : getCompatibleImplementations(targetWorker)) {
             Score implScore = targetWorker.generateImplementationScore(this, task.getTaskDescription(), impl, resourceScore);
             if (Score.isBetter(implScore, bestScore)) {
                 bestImpl = impl;
@@ -578,7 +559,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
     }
 
     @Override
-    public final void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException {
+    public final <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl) throws BlockedActionException, UnassignedActionException {
         if (targetWorker == null || impl == null) {
             throw new UnassignedActionException();
         }
@@ -589,9 +570,9 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
         }
 
         if (// Resource is not compatible with the implementation
-        !targetWorker.getResource().canRun(impl)
+                !targetWorker.getResource().canRun(impl)
                 // already ran on the resource
-                || executingResources.contains(targetWorker)) {
+                || this.getExecutingResources().contains(targetWorker)) {
 
             LOGGER.debug("Worker " + targetWorker.getName() + " has not available resources to run " + this);
             throw new UnassignedActionException();
@@ -601,7 +582,7 @@ public class ExecutionAction<P extends Profile, T extends WorkerResourceDescript
                 "Assigning action " + this + " to worker " + targetWorker.getName() + " with implementation " + impl.getImplementationId());
 
         this.assignImplementation(impl);
-        this.assignResources(targetWorker);
+        assignResource(targetWorker);
         targetWorker.scheduleAction(this);
     }
 

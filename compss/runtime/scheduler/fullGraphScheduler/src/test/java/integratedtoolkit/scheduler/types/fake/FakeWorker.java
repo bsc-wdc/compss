@@ -60,7 +60,7 @@ public class FakeWorker extends Worker<FakeResourceDescription, FakeImplementati
     @Override
     public void releaseAllResources() {
         synchronized (available) {
-            super.resetUsedTaskCount();
+            super.resetUsedTaskCounts();
             available.reduceDynamic(available);
             available.increaseDynamic(description);
         }

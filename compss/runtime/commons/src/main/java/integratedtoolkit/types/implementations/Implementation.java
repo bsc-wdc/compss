@@ -7,25 +7,22 @@ import java.io.ObjectOutput;
 
 import integratedtoolkit.types.resources.WorkerResourceDescription;
 
-
-public abstract class Implementation<T extends WorkerResourceDescription> implements Externalizable {
+public abstract class Implementation implements Externalizable {
 
     public enum TaskType {
         METHOD, // Generic method type
         SERVICE // Services type
     }
 
-
     protected Integer coreId;
     protected Integer implementationId;
-    protected T requirements;
-
+    protected WorkerResourceDescription requirements;
 
     public Implementation() {
         // For externalizable
     }
 
-    public Implementation(Integer coreId, Integer implementationId, T annot) {
+    public Implementation(Integer coreId, Integer implementationId, WorkerResourceDescription annot) {
         this.coreId = coreId;
         this.implementationId = implementationId;
         this.requirements = annot;
@@ -39,7 +36,7 @@ public abstract class Implementation<T extends WorkerResourceDescription> implem
         return this.implementationId;
     }
 
-    public T getRequirements() {
+    public WorkerResourceDescription getRequirements() {
         return this.requirements;
     }
 

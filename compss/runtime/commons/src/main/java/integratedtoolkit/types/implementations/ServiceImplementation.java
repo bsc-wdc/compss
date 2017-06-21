@@ -8,20 +8,18 @@ import java.io.ObjectOutput;
 import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
 
-
-public class ServiceImplementation extends Implementation<ServiceResourceDescription> implements Externalizable {
+public class ServiceImplementation extends Implementation implements Externalizable {
 
     private String operation;
-
 
     public ServiceImplementation() {
         // For externalizable
         super();
     }
-    
+
     public ServiceImplementation(Integer coreId, String namespace, String service, String port, String operation) {
         super(coreId, 0, null);
-        
+
         this.requirements = new ServiceResourceDescription(service, namespace, port, 1);
         this.operation = operation;
     }
@@ -52,19 +50,24 @@ public class ServiceImplementation extends Implementation<ServiceResourceDescrip
 
         return buffer.toString();
     }
-    
+
     @Override
     public TaskType getTaskType() {
         return TaskType.SERVICE;
     }
 
     @Override
+    public ServiceResourceDescription getRequirements() {
+        return (ServiceResourceDescription) requirements;
+    }
+
+    @Override
     public String toString() {
-        ServiceResourceDescription description = this.requirements;
+        ServiceResourceDescription description = (ServiceResourceDescription) this.requirements;
         return super.toString() + " Service in namespace " + description.getNamespace() + " with name " + description.getPort()
                 + " on port " + description.getPort() + "and operation " + operation;
     }
-    
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         super.readExternal(in);

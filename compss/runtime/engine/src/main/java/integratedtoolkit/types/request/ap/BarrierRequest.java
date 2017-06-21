@@ -7,12 +7,10 @@ import integratedtoolkit.components.impl.TaskDispatcher;
 
 import java.util.concurrent.Semaphore;
 
-
 public class BarrierRequest extends APRequest {
 
     private Semaphore sem;
     private Long appId;
-
 
     public BarrierRequest(Long appId, Semaphore sem) {
         this.appId = appId;
@@ -32,7 +30,7 @@ public class BarrierRequest extends APRequest {
     }
 
     @Override
-    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher<?, ?, ?> td) {
+    public void process(AccessProcessor ap, TaskAnalyser ta, DataInfoProvider dip, TaskDispatcher td) {
         ta.barrier(this);
     }
 

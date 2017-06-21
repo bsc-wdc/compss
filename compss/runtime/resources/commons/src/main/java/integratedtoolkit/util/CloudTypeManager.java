@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-
 public class CloudTypeManager {
 
     /**
@@ -24,7 +23,6 @@ public class CloudTypeManager {
      */
     private HashMap<String, HashMap<String, int[]>> vmToType;
 
-
     /**
      * Constructs a new CloudImageManager
      */
@@ -36,8 +34,7 @@ public class CloudTypeManager {
     /**
      * Adds a new instance type which can be used by the Cloud Provider
      *
-     * @param rd
-     *            Description of the resource
+     * @param rd Description of the resource
      */
     public void add(CloudMethodResourceDescription rd) {
         Type t = new Type(rd);
@@ -45,11 +42,12 @@ public class CloudTypeManager {
     }
 
     /**
-     * Finds all the types provided by the Cloud Provider which fulfill the resource description.
+     * Finds all the types provided by the Cloud Provider which fulfill the
+     * resource description.
      *
-     * @param requested
-     *            description of the features that the image must provide
-     * @return The best instance type provided by the Cloud Provider which fulfills the resource description
+     * @param requested description of the features that the image must provide
+     * @return The best instance type provided by the Cloud Provider which
+     * fulfills the resource description
      */
     public LinkedList<CloudMethodResourceDescription> getCompatibleTypes(MethodResourceDescription requested) {
         LinkedList<CloudMethodResourceDescription> compatiblesList = new LinkedList<CloudMethodResourceDescription>();
@@ -74,14 +72,28 @@ public class CloudTypeManager {
         return types.keySet();
     }
 
+    /**
+     *
+     * @param name
+     * @return instance type description associated to that name
+     */
+    public CloudMethodResourceDescription getInstanceType(String name) {
+        CloudMethodResourceDescription typeDescription = null;
+        Type t = types.get(name);
+        if (t != null) {
+            typeDescription = new CloudMethodResourceDescription(t.rd);
+        }
+        return typeDescription;
+    }
+
     public void createdVM(String resourceName, String requestType) {
         HashMap<String, int[]> vm = vmToType.get(resourceName);
         if (vm == null) {
             vm = new HashMap<>();
             for (String type : types.keySet()) {
-                vm.put(type, new int[] { 0 });
+                vm.put(type, new int[]{0});
             }
-            vm.put(requestType, new int[] { 1 });
+            vm.put(requestType, new int[]{1});
             vmToType.put(resourceName, vm);
         } else {
             vm.get(requestType)[0]++;
@@ -180,11 +192,11 @@ public class CloudTypeManager {
             }
             // Get new values
             for (int coreId : newCores) {
-                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 int implsSize = impls.size();
                 slotsI[coreId] = new int[implsSize];
                 for (int implId = 0; implId < implsSize; ++implId) {
-                    Implementation<?> impl = impls.get(implId);
+                    Implementation impl = impls.get(implId);
                     if (impl.getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription rd = (MethodResourceDescription) impl.getRequirements();
                         Integer into = type.getResourceDescription().canHostSimultaneously(rd);
@@ -256,13 +268,11 @@ public class CloudTypeManager {
         return sb.toString();
     }
 
-
     private class Type {
 
         private final CloudMethodResourceDescription rd;
         private int[] slotsCore;
         private int[][] slotsImpl;
-
 
         public Type(CloudMethodResourceDescription rd) {
             this.rd = rd;
@@ -273,11 +283,11 @@ public class CloudTypeManager {
 
             // Get new values
             for (int coreId = 0; coreId < coreCount; coreId++) {
-                List<Implementation<?>> impls = CoreManager.getCoreImplementations(coreId);
+                List<Implementation> impls = CoreManager.getCoreImplementations(coreId);
                 int implsSize = impls.size();
                 this.slotsImpl[coreId] = new int[implsSize];
                 for (int implId = 0; implId < implsSize; ++implId) {
-                    Implementation<?> impl = impls.get(implId);
+                    Implementation impl = impls.get(implId);
                     if (impl.getTaskType() == TaskType.METHOD) {
                         MethodResourceDescription reqs = (MethodResourceDescription) impl.getRequirements();
                         Integer into = rd.canHostSimultaneously(reqs);

@@ -2,10 +2,8 @@ package integratedtoolkit.types.request.td;
 
 import integratedtoolkit.components.impl.TaskScheduler;
 import integratedtoolkit.scheduler.types.AllocatableAction;
-import integratedtoolkit.scheduler.types.Profile;
 import integratedtoolkit.types.Task;
 import integratedtoolkit.types.allocatableactions.ExecutionAction;
-import integratedtoolkit.types.implementations.Implementation;
 import integratedtoolkit.types.request.exceptions.ShutdownException;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
@@ -18,13 +16,12 @@ import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.Semaphore;
 
-
 /**
- * The DeleteIntermediateFilesRequest represents a request to delete the intermediate files of the execution from all
- * the worker nodes of the resource pool.
+ * The DeleteIntermediateFilesRequest represents a request to delete the
+ * intermediate files of the execution from all the worker nodes of the resource
+ * pool.
  */
-public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>>
-        extends TDRequest<P, T, I> {
+public class PrintCurrentGraphRequest extends TDRequest {
 
     private static final String ERROR_PRINT_CURRENT_GRAPH = "ERROR: Cannot print current graph state";
 
@@ -38,12 +35,11 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
      */
     private BufferedWriter graph;
 
-
     /**
      * Constructs a GetCurrentScheduleRequest
      *
-     * @param sem
-     *            Semaphore to synchronize until the representation is constructed
+     * @param sem Semaphore to synchronize until the representation is
+     * constructed
      *
      */
     public PrintCurrentGraphRequest(Semaphore sem, BufferedWriter graph) {
@@ -52,7 +48,8 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
     }
 
     /**
-     * Returns the semaphore to synchronize until the representation is constructed
+     * Returns the semaphore to synchronize until the representation is
+     * constructed
      *
      * @result Semaphore to synchronize until the representation is constructed
      *
@@ -62,10 +59,11 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
     }
 
     /**
-     * Changes the semaphore to synchronize until the representation is constructed
+     * Changes the semaphore to synchronize until the representation is
+     * constructed
      *
-     * @param sem
-     *            New semaphore to synchronize until the representation is constructed
+     * @param sem New semaphore to synchronize until the representation is
+     * constructed
      *
      */
     public void setSemaphore(Semaphore sem) {
@@ -74,7 +72,7 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
 
     @SuppressWarnings("unchecked")
     @Override
-    public void process(TaskScheduler<P, T, I> ts) throws ShutdownException {
+    public void process(TaskScheduler ts) throws ShutdownException {
         try {
             PriorityQueue<Task> pending = new PriorityQueue<>();
             HashSet<Task> tasks = new HashSet<>();
@@ -105,10 +103,10 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             graph.newLine();
             graph.write(prefix + prefix + prefix + "color=red");
             graph.newLine();
-            LinkedList<AllocatableAction<P, T, I>> blockedActions = ts.getBlockedActions();
-            for (AllocatableAction<P, T, I> action : blockedActions) {
+            LinkedList<AllocatableAction> blockedActions = ts.getBlockedActions();
+            for (AllocatableAction action : blockedActions) {
                 if (action instanceof ExecutionAction) {
-                    ExecutionAction<P, T, I> se = (ExecutionAction<P, T, I>) action;
+                    ExecutionAction se = (ExecutionAction) action;
                     Task t = se.getTask();
                     graph.write(prefix + prefix + prefix + t.getDotDescription());
                     graph.newLine();
@@ -119,7 +117,7 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             }
             graph.write(prefix + prefix + "}");
             graph.newLine();
-            
+
             //Room for unassigned tasks 
             graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
             ++roomIndex;
@@ -132,10 +130,10 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             graph.newLine();
             graph.write(prefix + prefix + prefix + "color=orange");
             graph.newLine();
-            LinkedList<AllocatableAction<P, T, I>> unassignedActions = ts.getUnassignedActions();
-            for (AllocatableAction<P, T, I> action : unassignedActions) {
+            LinkedList<AllocatableAction> unassignedActions = ts.getUnassignedActions();
+            for (AllocatableAction action : unassignedActions) {
                 if (action instanceof ExecutionAction) {
-                    ExecutionAction<P, T, I> se = (ExecutionAction<P, T, I>) action;
+                    ExecutionAction se = (ExecutionAction) action;
                     Task t = se.getTask();
                     graph.write(prefix + prefix + prefix + t.getDotDescription());
                     graph.newLine();
@@ -146,10 +144,9 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             }
             graph.write(prefix + prefix + "}");
             graph.newLine();
-            
+
             // Add another room for each worker
-            for (Worker<?, ?> r : ResourceManager.getAllWorkers()) {
-                Worker<T, I> worker = (Worker<T, I>) r;
+            for (Worker<? extends WorkerResourceDescription> worker : ResourceManager.getAllWorkers()) {
                 graph.write(prefix + prefix + "subgraph cluster_room" + roomIndex + " {");
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + "label = \"" + worker.getName() + "\"");
@@ -168,10 +165,10 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + prefix + "color=green");
                 graph.newLine();
-                LinkedList<AllocatableAction<P, T, I>> hostedActions = ts.getHostedActions(worker);
-                for (AllocatableAction<P, T, I> action : hostedActions) {
+                LinkedList<AllocatableAction> hostedActions = ts.getHostedActions(worker);
+                for (AllocatableAction action : hostedActions) {
                     if (action instanceof ExecutionAction) {
-                        ExecutionAction<P, T, I> se = (ExecutionAction<P, T, I>) action;
+                        ExecutionAction se = (ExecutionAction) action;
                         Task t = se.getTask();
                         graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         graph.newLine();
@@ -193,10 +190,10 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
                 graph.newLine();
                 graph.write(prefix + prefix + prefix + prefix + "color=red");
                 graph.newLine();
-                PriorityQueue<AllocatableAction<P, T, I>> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
-                for (AllocatableAction<P, T, I> action : blockedActionsOnResource) {
+                PriorityQueue<AllocatableAction> blockedActionsOnResource = ts.getBlockedActionsOnResource(worker);
+                for (AllocatableAction action : blockedActionsOnResource) {
                     if (action instanceof ExecutionAction) {
-                        ExecutionAction<P, T, I> se = (ExecutionAction<P, T, I>) action;
+                        ExecutionAction se = (ExecutionAction) action;
                         Task t = se.getTask();
                         graph.write(prefix + prefix + prefix + prefix + t.getDotDescription());
                         graph.newLine();
@@ -258,7 +255,7 @@ public class PrintCurrentGraphRequest<P extends Profile, T extends WorkerResourc
             /* Force flush before end ***************************************** */
             graph.flush();
         } catch (IOException e) {
-            logger.error(ERROR_PRINT_CURRENT_GRAPH);
+            LOGGER.error(ERROR_PRINT_CURRENT_GRAPH);
         }
 
         sem.release();

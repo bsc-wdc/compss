@@ -2,6 +2,8 @@ package integratedtoolkit.scheduler.types;
 
 import integratedtoolkit.components.impl.ResourceScheduler;
 import integratedtoolkit.log.Loggers;
+import integratedtoolkit.scheduler.exceptions.ActionNotFoundException;
+import integratedtoolkit.scheduler.exceptions.ActionNotWaitingException;
 import integratedtoolkit.scheduler.exceptions.BlockedActionException;
 import integratedtoolkit.scheduler.exceptions.FailedActionException;
 import integratedtoolkit.scheduler.exceptions.InvalidSchedulingException;
@@ -19,15 +21,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * Abstract representation of an Allocatable Action (task execution, task transfer, etc.)
+ * Abstract representation of an Allocatable Action (task execution, task
+ * transfer, etc.)
  *
- * @param <P>
- * @param <T>
- * @param <I>
  */
-public abstract class AllocatableAction<P extends Profile, T extends WorkerResourceDescription, I extends Implementation<T>> {
+public abstract class AllocatableAction {
 
     /**
      * Available states for any allocatable action
@@ -41,33 +40,33 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         FAILED // Action has failed
     }
 
-
     // Logger
     protected static final Logger LOGGER = LogManager.getLogger(Loggers.TS_COMP);
     protected static final boolean DEBUG = LOGGER.isDebugEnabled();
 
     // AllocatableAction Id counter
-    private static AtomicInteger nextId = new AtomicInteger();
+    private static final AtomicInteger NEXT_ID = new AtomicInteger();
 
     // Orchestrator
-    protected final ActionOrchestrator<P, T, I> orchestrator;
+    protected final ActionOrchestrator orchestrator;
 
     // Id of the current AllocatableAction
     private final long id;
 
     // Allocatable actions that the action depends on due data dependencies
-    private final LinkedList<AllocatableAction<P, T, I>> dataPredecessors;
+    private final LinkedList<AllocatableAction> dataPredecessors;
     // Allocatable actions depending on the allocatable action due data dependencies
-    private final LinkedList<AllocatableAction<P, T, I>> dataSuccessors;
+    private final LinkedList<AllocatableAction> dataSuccessors;
 
     private State state;
-    protected ResourceScheduler<P, T, I> selectedResource;
-    protected I selectedImpl;
-    protected final LinkedList<ResourceScheduler<P, T, I>> executingResources;
+    private ResourceScheduler<? extends WorkerResourceDescription> selectedResource;
+    private Implementation selectedImpl;
+    private WorkerResourceDescription resourceConsumption;
+    private final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> executingResources;
 
-    private final SchedulingInformation<P, T, I> schedulingInfo;
+    private final SchedulingInformation schedulingInfo;
 
-    protected P profile;
+    protected Profile profile;
 
     // Lock to avoid many threads to modify the same action
     private final ReentrantLock lock = new ReentrantLock();
@@ -78,14 +77,14 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * CONSTRUCTOR
      * ***************************************************************************************************************
      */
-
     /**
      * Registers a new allocatable action
-     * 
+     *
      * @param schedulingInformation
+     * @param orchestrator
      */
-    public AllocatableAction(SchedulingInformation<P, T, I> schedulingInformation, ActionOrchestrator<P, T, I> orchestrator) {
-        this.id = nextId.getAndIncrement();
+    public AllocatableAction(SchedulingInformation schedulingInformation, ActionOrchestrator orchestrator) {
+        this.id = NEXT_ID.getAndIncrement();
         this.orchestrator = orchestrator;
         this.dataPredecessors = new LinkedList<>();
         this.dataSuccessors = new LinkedList<>();
@@ -104,7 +103,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     /**
      * Notify action completed to orchestrator
-     * 
+     *
      */
     protected void notifyCompleted() {
         if (DEBUG) {
@@ -128,10 +127,9 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * This operations are only executed by the main thread of the Task Dispatcher
      * ***************************************************************************************************************
      */
-
     /**
      * Returns the AA id
-     * 
+     *
      * @return
      */
     public final long getId() {
@@ -140,25 +138,25 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Returns the data predecessors
-     * 
+     *
      * @return
      */
-    public final LinkedList<AllocatableAction<P, T, I>> getDataPredecessors() {
+    public final LinkedList<AllocatableAction> getDataPredecessors() {
         return dataPredecessors;
     }
 
     /**
      * Returns the data successors
-     * 
+     *
      * @return
      */
-    public final LinkedList<AllocatableAction<P, T, I>> getDataSuccessors() {
+    public final LinkedList<AllocatableAction> getDataSuccessors() {
         return dataSuccessors;
     }
 
     /**
      * Returns if there is any existing data predecessor
-     * 
+     *
      * @return
      */
     public final boolean hasDataPredecessors() {
@@ -167,10 +165,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Adds a data predecessor
-     * 
+     *
      * @param predecessor
      */
-    public final void addDataPredecessor(AllocatableAction<P, T, I> predecessor) {
+    public final void addDataPredecessor(AllocatableAction predecessor) {
         if (predecessor.isPending()) {
             if (!dataPredecessors.contains(predecessor)) {
                 dataPredecessors.add(predecessor);
@@ -184,13 +182,13 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Updates the done predecessors
-     * 
+     *
      * @param finishedAction
      */
-    private final void dataPredecessorDone(AllocatableAction<P, T, I> finishedAction) {
-        Iterator<AllocatableAction<P, T, I>> it = dataPredecessors.iterator();
+    private void dataPredecessorDone(AllocatableAction finishedAction) {
+        Iterator<AllocatableAction> it = dataPredecessors.iterator();
         while (it.hasNext()) {
-            AllocatableAction<P, T, I> aa = it.next();
+            AllocatableAction aa = it.next();
             if (aa == finishedAction) {
                 it.remove();
             }
@@ -202,11 +200,25 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      * RESOURCES MANAGEMENT OPERATIONS
      * ***************************************************************************************************************
      */
+    /**
+     * Tells if the action has to run in the same resource as another action.
+     *
+     * @return {@literal true} if the action scheduling is constrained to a
+     * certain resource.
+     */
+    public final boolean isTargetResourceEnforced() {
+        return schedulingInfo.getEnforcedTargetResource() != null;
+    }
+
+    public final ResourceScheduler<? extends WorkerResourceDescription> getEnforcedTargetResource() {
+        return schedulingInfo.getEnforcedTargetResource();
+    }
 
     /**
      * Tells if the action has to run in the same resource as another action.
      *
-     * @return {@literal true} if the action scheduling is constrained to a certain resource.
+     * @return {@literal true} if the action scheduling is constrained to a
+     * certain resource.
      */
     public final boolean isSchedulingConstrained() {
         return !schedulingInfo.getConstrainingPredecessors().isEmpty();
@@ -214,20 +226,20 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Adds a resource predecessor
-     * 
+     *
      * @param predecessor
      */
-    public final void addResourceConstraint(AllocatableAction<P, T, I> predecessor) {
+    public final void addResourceConstraint(AllocatableAction predecessor) {
         schedulingInfo.addResourceConstraint(predecessor);
     }
 
     /**
      * Returns if a resource is not needed for the current AllocatableAction
-     * 
+     *
      * @return
      */
     public final boolean unrequiredResource() {
-        for (AllocatableAction<P, T, I> a : this.getConstrainingPredecessors()) {
+        for (AllocatableAction a : this.getConstrainingPredecessors()) {
             if (a.getAssignedResource() == selectedResource) {
                 return false;
             }
@@ -241,26 +253,26 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      *
      * @return action that constraints the scheduling of the action.
      */
-    public final List<AllocatableAction<P, T, I>> getConstrainingPredecessors() {
+    public final List<AllocatableAction> getConstrainingPredecessors() {
         return schedulingInfo.getConstrainingPredecessors();
     }
 
     /**
      * Returns the coreElement executors
-     * 
+     *
      * @param coreId
      * @return
      */
-    protected final LinkedList<ResourceScheduler<P, T, I>> getCoreElementExecutors(int coreId) {
+    protected final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCoreElementExecutors(int coreId) {
         return SchedulingInformation.getCoreElementExecutors(coreId);
     }
 
     /**
      * Returns the scheduling information
-     * 
+     *
      * @return
      */
-    public final SchedulingInformation<P, T, I> getSchedulingInfo() {
+    public final SchedulingInformation getSchedulingInfo() {
         return schedulingInfo;
     }
 
@@ -271,7 +283,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      */
     /**
      * Returns if the AllocatableAction is pending or not
-     * 
+     *
      * @return
      */
     public final boolean isPending() {
@@ -280,7 +292,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Returns if the AllocatableAction is running or not
-     * 
+     *
      * @return
      */
     public final boolean isRunning() {
@@ -289,7 +301,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Returns if the action is locked for another scheduling or not
-     * 
+     *
      * @return
      */
     public final boolean isLocked() {
@@ -297,16 +309,8 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     }
 
     /**
-     * Locks the action scheduling
-     * 
-     */
-    public final void lockAction() {
-        lock.lock();
-    }
-
-    /**
      * Returns if the allocatable action is not beeing scheduled
-     * 
+     *
      * @return
      */
     public final boolean isNotScheduling() {
@@ -315,7 +319,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Returns the start time (ms) of the allocatable action
-     * 
+     *
      * @return
      */
     public final Long getStartTime() {
@@ -327,10 +331,10 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Assigned an implementation to the allocatable action
-     * 
+     *
      * @param impl
      */
-    public final void assignImplementation(I impl) {
+    public final void assignImplementation(Implementation impl) {
         if (state == State.RUNNABLE) {
             selectedImpl = impl;
         }
@@ -341,16 +345,16 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      *
      * @return
      */
-    public final I getAssignedImplementation() {
+    public final Implementation getAssignedImplementation() {
         return selectedImpl;
     }
 
     /**
      * Assign resources to the allocatable action
-     * 
+     *
      * @param resource
      */
-    public final void assignResources(ResourceScheduler<P, T, I> resource) {
+    public final <T extends WorkerResourceDescription> void assignResource(ResourceScheduler<T> resource) {
         if (state == State.RUNNABLE) {
             selectedResource = resource;
         }
@@ -361,54 +365,52 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      *
      * @return
      */
-    public final ResourceScheduler<P, T, I> getAssignedResource() {
+    public final ResourceScheduler<? extends WorkerResourceDescription> getAssignedResource() {
         return selectedResource;
     }
 
     /**
      * Tries to schedule the current action
-     * 
+     *
      * @throws InvalidSchedulingException
      */
     public final void tryToLaunch() throws InvalidSchedulingException {
-        // LOGGER.debug("Getting the action log");
-        if (!isLocked()) {
-            // Gets the lock on the action
-            lock.lock();
-            // LOGGER.debug("Checking conditions " + selectedResource + " " + state + " " + hasDataPredecessors() + " "
-            // + schedulingInfo.isExecutable());
-            if ( // has an assigned resource where to run
-            selectedResource != null && // has not been started yet
-                    state == State.RUNNABLE && // has no data dependencies with other methods
-                    !hasDataPredecessors() && // scheduler does not block the execution
-                    schedulingInfo.isExecutable()) {
+        // Gets the lock on the action
+        lock.lock();
+        if ( // has an assigned resource where to run
+                selectedResource != null
+                && // has not been started yet
+                state == State.RUNNABLE
+                && // has no data dependencies with other methods
+                !hasDataPredecessors()
+                && // scheduler does not block the execution
+                schedulingInfo.isExecutable()) {
 
-                // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
-                if (isSchedulingConstrained() && unrequiredResource()) {
-                    // Allow other threads to access the action
-                    lock.unlock();
-                    // Notify invalid scheduling
-                    throw new InvalidSchedulingException();
-                }
-                // Correct resource and task ready to run
-                execute();
-            } else {
+            // Invalid scheduling -> Should run in a specific resource and the assigned resource is not the required
+            if (isSchedulingConstrained() && unrequiredResource()
+                    || isTargetResourceEnforced() && selectedResource != schedulingInfo.getEnforcedTargetResource()) {
+                // Allow other threads to access the action
                 lock.unlock();
+                // Notify invalid scheduling
+                throw new InvalidSchedulingException();
             }
+            // Correct resource and task ready to run
+            execute();
+        } else {
+            lock.unlock();
         }
     }
 
-    private final void execute() {
+    private void execute() {
         // LOGGER.info(this + " execution starts on worker " + selectedResource.getName());
-
         // there are enough resources to host the actions and no waiting tasks in the queue
-        if (!selectedResource.hasBlockedActions() && areEnoughResources()) {
+        if (!isToReserveResources() || (!selectedResource.hasBlockedActions() && areEnoughResources())) {
             // register executing resource
             executingResources.add(selectedResource);
             // Run action
             run();
         } else {
-            // LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
+            LOGGER.info(this + " execution paused due to lack of resources on worker " + selectedResource.getName());
             // Task waits on the resource queue
             // It can only be resumed because of a task completion or error.
             // execute won't be executed again since tryToLaunch is blocked
@@ -420,7 +422,18 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         }
     }
 
-    public final void run() {
+    public final void resumeExecution() throws ActionNotWaitingException {
+        lock.lock();
+        if (state == State.WAITING) {
+            LOGGER.info(this + " execution resumed on worker " + selectedResource.getName());
+            run();
+        } else {
+            lock.unlock();
+            throw new ActionNotWaitingException();
+        }
+    }
+
+    private void run() {
         // Actually runs the action. This function is called only once per action (except for reschedules)
         // Blocks other tryToLaunch
         state = State.RUNNING;
@@ -428,49 +441,89 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
         lock.unlock();
 
         reserveResources();
-        profile = selectedResource.generateProfileForAllocatable();
+        profile = selectedResource.generateProfileForRun(this);
         selectedResource.hostAction(this);
 
         doAction();
     }
 
     /**
-     * Returns if there are enough resources to run the action or not
-     * 
+     * Returns if the AllocatableAction needs to reserve some resources for its
+     * execution
+     *
      * @return
      */
-    public abstract boolean areEnoughResources();
+    public abstract boolean isToReserveResources();
+
+    /**
+     * Returns if there are enough resources to run the action or not
+     *
+     * @return
+     */
+    private boolean areEnoughResources() {
+        Worker<WorkerResourceDescription> w = (Worker<WorkerResourceDescription>) selectedResource.getResource();
+        return w.canRunNow(selectedImpl.getRequirements());
+    }
+
+    /**
+     * Returns if the AllocatableAction releases some resources after its
+     * execution
+     *
+     * @return
+     */
+    public abstract boolean isToReleaseResources();
 
     /**
      * Reserves the needed resources to run the action
-     * 
+     *
      */
-    protected abstract void reserveResources();
+    private void reserveResources() {
+        if (isToReserveResources()) {
+            Worker<WorkerResourceDescription> w = (Worker< WorkerResourceDescription>) selectedResource.getResource();
+            resourceConsumption = w.runTask(selectedImpl.getRequirements());
+        }
+    }
+
+    /**
+     *
+     * @return description of the resources occupied during the action execution
+     */
+    protected final WorkerResourceDescription getResourceConsumption() {
+        return resourceConsumption;
+    }
 
     /**
      * Releases the needed resources to run the action
-     * 
+     *
      */
-    protected abstract void releaseResources();
+    private void releaseResources() {
+        if (isToReleaseResources()) {
+            Worker<WorkerResourceDescription> w = (Worker< WorkerResourceDescription>) selectedResource.getResource();
+            w.endTask(resourceConsumption);
+        }
+    }
 
-    /**
-     * Triggers the action
-     */
-    protected abstract void doAction();
+    public final LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getExecutingResources() {
+        return executingResources;
+    }
 
     /*
      * ***************************************************************************************************************
      * EXECUTION TRIGGERS
      * ***************************************************************************************************************
      */
+    /**
+     * Triggers the action execution
+     */
+    protected abstract void doAction();
 
     /**
-     * Operations to perform when AA has been successfully completed Calls specific operation doCompleted
-     * 
+     * Operations to perform when AA has been successfully completed. It calls
+     * specific operation doCompleted
+     *
      * @return
      */
-    public final LinkedList<AllocatableAction<P, T, I>> completed() {
-        LOGGER.info(this + " execution completed");
+    public final LinkedList<AllocatableAction> completed() {
         // Mark as finished
         state = State.FINISHED;
 
@@ -481,26 +534,23 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
         // Action notification
         doCompleted();
-
         // Release data dependencies of the task
-        LinkedList<AllocatableAction<P, T, I>> freeTasks = new LinkedList<>();
-        for (AllocatableAction<P, T, I> aa : dataSuccessors) {
+        LinkedList<AllocatableAction> freeTasks = new LinkedList<>();
+        for (AllocatableAction aa : dataSuccessors) {
             aa.dataPredecessorDone(this);
             if (!aa.hasDataPredecessors()) {
-                if (!aa.isLocked() && !aa.isRunning()) {
-                    freeTasks.add(aa);
-                }
+                freeTasks.add(aa);
             }
         }
         dataSuccessors.clear();
-
         return freeTasks;
     }
 
     /**
-     * Operations to perform when AA has raised an error Calls specific operation doError
-     * 
-     * @return
+     * Operations to perform when AA has raised an error. Calls specific
+     * operation doError
+     *
+     * @throws integratedtoolkit.scheduler.exceptions.FailedActionException
      */
     public final void error() throws FailedActionException {
         // Mark as runnable since we can retry its execution
@@ -516,26 +566,37 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
     }
 
     /**
-     * Operations to perform when AA has totally failed Calls specific operation doFailed
-     * 
+     * Operations to perform when AA has totally failed Calls specific operation
+     * doFailed
+     *
      * @return
      */
-    public final LinkedList<AllocatableAction<P, T, I>> failed() {
+    public final LinkedList<AllocatableAction> failed() {
         // Mark as failed
         this.state = State.FAILED;
 
-        // Release resources and cancel action
-        releaseResources();
-        selectedResource.cancelAction(this);
-
+        // Cancel action
+        boolean cancelled = false;
+        while (!cancelled) {
+            try {
+                selectedResource.cancelAction(this);
+                cancelled = true;
+            } catch (ActionNotFoundException anfe) {
+                //Action could not be cancelled since it was not scheduled to the resource
+                //Wait until a new resource is assigned
+                while (selectedResource != null) {
+                }
+                //Try to cancel its execution on the new resource
+            }
+        }
         // Predecessors -> ignore Action
-        for (AllocatableAction<P, T, I> pred : dataPredecessors) {
+        for (AllocatableAction pred : dataPredecessors) {
             pred.dataSuccessors.remove(this);
         }
 
         // Triggering failure on Data Successors
-        LinkedList<AllocatableAction<P, T, I>> failed = new LinkedList<>();
-        for (AllocatableAction<P, T, I> succ : dataSuccessors) {
+        LinkedList<AllocatableAction> failed = new LinkedList<>();
+        for (AllocatableAction succ : dataSuccessors) {
             failed.addAll(succ.failed());
         }
         failed.add(this);
@@ -556,7 +617,7 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Triggers a retry on a job completion
-     * 
+     *
      * @throws FailedActionException
      */
     protected abstract void doError() throws FailedActionException;
@@ -579,54 +640,58 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
      *
      * @return list of resources able to run the action
      */
-    public abstract LinkedList<ResourceScheduler<P, T, I>> getCompatibleWorkers();
+    public abstract LinkedList<ResourceScheduler<? extends WorkerResourceDescription>> getCompatibleWorkers();
 
     /**
      * Returns all the possible implementations for the action.
      *
      * @return a list of implementations that can be executed to run the action.
      */
-    public abstract Implementation<?>[] getImplementations();
+    public abstract Implementation[] getImplementations();
 
     /**
      * Tells is the action can run in a given resource.
      *
-     * @param r
-     *            Resource where the action should run.
+     * @param <W>
+     * @param r Resource where the action should run.
      *
      * @return {@literal true} if the action can run in the given resource.
      */
-    public abstract boolean isCompatible(Worker<T, I> r);
+    public abstract <W extends WorkerResourceDescription> boolean isCompatible(Worker<W> r);
 
     /**
-     * Returns all the implementations for the action that can run on the given resource.
+     * Returns all the implementations for the action that can run on the given
+     * resource.
      *
-     * @param r
-     *            resource that should run the action
+     * @param <T>
+     * @param r resource that should run the action
      *
      * @return list of the action implementations that can run on the resource.
      */
-    public abstract LinkedList<I> getCompatibleImplementations(ResourceScheduler<P, T, I> r);
+    public abstract <T extends WorkerResourceDescription> LinkedList<Implementation> getCompatibleImplementations(ResourceScheduler<T> r);
 
     /**
      * Returns the action priority
-     * 
+     *
      * @return
      */
     public abstract int getPriority();
 
     /**
-     * Returns the scheduling score of the action for a given worker @targetWorker
-     * 
+     * Returns the scheduling score of the action for a given worker
+     *
+     * @param <T>
+     * @targetWorker
+     *
      * @param targetWorker
      * @param actionScore
      * @return
      */
-    public abstract Score schedulingScore(ResourceScheduler<P, T, I> targetWorker, Score actionScore);
+    public abstract <T extends WorkerResourceDescription> Score schedulingScore(ResourceScheduler<T> targetWorker, Score actionScore);
 
     /**
      * Schedules the action considering the @actionScore
-     * 
+     *
      * @param actionScore
      * @throws BlockedActionException
      * @throws UnassignedActionException
@@ -635,23 +700,44 @@ public abstract class AllocatableAction<P extends Profile, T extends WorkerResou
 
     /**
      * Schedules the action to a given @targetWorker with score @actionScore
-     * 
+     *
+     * @param <T>
      * @param targetWorker
      * @param actionScore
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
-    public abstract void schedule(ResourceScheduler<P, T, I> targetWorker, Score actionScore)
+    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Score actionScore)
             throws BlockedActionException, UnassignedActionException;
 
     /**
      * Schedules the implementation @impl of the action to a given @targetWorker
-     * 
+     *
+     * @param <T>
      * @param targetWorker
      * @param impl
      * @throws BlockedActionException
      * @throws UnassignedActionException
      */
-    public abstract void schedule(ResourceScheduler<P, T, I> targetWorker, I impl) throws BlockedActionException, UnassignedActionException;
+    public abstract <T extends WorkerResourceDescription> void schedule(ResourceScheduler<T> targetWorker, Implementation impl)
+            throws BlockedActionException, UnassignedActionException;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HashCode ").append(this.hashCode()).append("\n");
+        sb.append("\tdataPredecessors:");
+        for (AllocatableAction aa : dataPredecessors) {
+            sb.append(" ").append(aa.hashCode());
+        }
+        sb.append("\n");
+        sb.append("\tdataSuccessors: ");
+        for (AllocatableAction aa : dataSuccessors) {
+            sb.append(" ").append(aa.hashCode());
+        }
+        sb.append("\n");
+        sb.append(schedulingInfo);
+        sb.append("\n");
+        return sb.toString();
+    }
 }

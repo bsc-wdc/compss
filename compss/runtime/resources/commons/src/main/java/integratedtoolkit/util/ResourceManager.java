@@ -1,47 +1,46 @@
 package integratedtoolkit.util;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import integratedtoolkit.ITConstants;
 import integratedtoolkit.comm.Comm;
-import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
-import integratedtoolkit.types.resources.configuration.MethodConfiguration;
-import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
-import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
-import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
 import integratedtoolkit.components.ResourceUser;
-import integratedtoolkit.components.ResourceUser.WorkloadStatus;
-import integratedtoolkit.log.Loggers;
 import integratedtoolkit.connectors.ConnectorException;
 import integratedtoolkit.exceptions.InitNodeException;
 import integratedtoolkit.exceptions.NoResourceAvailableException;
+import integratedtoolkit.log.Loggers;
 import integratedtoolkit.types.ResourceCreationRequest;
 import integratedtoolkit.types.ResourcesState;
-import integratedtoolkit.types.implementations.Implementation;
+import integratedtoolkit.types.project.exceptions.ProjectFileValidationException;
 import integratedtoolkit.types.resources.CloudMethodWorker;
 import integratedtoolkit.types.resources.Resource.Type;
 import integratedtoolkit.types.resources.MethodResourceDescription;
 import integratedtoolkit.types.resources.MethodWorker;
-import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.ServiceResourceDescription;
+import integratedtoolkit.types.resources.ServiceWorker;
 import integratedtoolkit.types.resources.ShutdownListener;
 import integratedtoolkit.types.resources.Worker;
 import integratedtoolkit.types.resources.WorkerResourceDescription;
-import integratedtoolkit.types.resources.ServiceWorker;
+import integratedtoolkit.types.resources.configuration.MethodConfiguration;
+import integratedtoolkit.types.resources.configuration.ServiceConfiguration;
+import integratedtoolkit.types.resources.description.CloudMethodResourceDescription;
+import integratedtoolkit.types.resources.exceptions.ResourcesFileValidationException;
+import integratedtoolkit.types.resources.updates.PendingReduction;
+import integratedtoolkit.types.resources.updates.PerformedIncrease;
+import integratedtoolkit.types.resources.updates.ResourceUpdate;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 /**
- * The ResourceManager class is an utility to manage all the resources available for the cores execution. It keeps
- * information about the features of each resource and is used as an endpoint to discover which resources can run a core
- * in a certain moment, the total and the available number of slots.
+ * The ResourceManager class is an utility to manage all the resources available
+ * for the cores execution. It keeps information about the features of each
+ * resource and is used as an endpoint to discover which resources can run a
+ * core in a certain moment, the total and the available number of slots.
  *
  */
 public class ResourceManager {
@@ -63,42 +62,47 @@ public class ResourceManager {
     private static WorkerPool pool;
     private static int[] poolCoreMaxConcurrentTasks;
     private static ResourceUser resourceUser;
-    private static ResourceOptimizer ro;
-    static int maxTasks = 0;
 
     // Loggers
     private static final Logger resourcesLogger = LogManager.getLogger(Loggers.RESOURCES);
     private static final Logger runtimeLogger = LogManager.getLogger(Loggers.RM_COMP);
 
 
-    /*
-     * **********************************************************************************************************
+    /* ********************************************************************
      * INITIALIZER METHOD
-     ************************************************************************************************************/
+     * ********************************************************************/
     /**
-     * Constructs a new ResourceManager using the Resources xml file content. First of all, an empty resource pool is
-     * created and the Cloud Manager is initialized without any providers. Secondly the resource file is validated and
-     * parsed and the toplevel xml nodes are processed in different ways depending on its type: - Resource: a new
-     * Physical resource is added to the resource pool with the same id as its Name attribute and as many slots as
-     * indicated in the project file. If it has 0 slots or it is not on the project xml, the resource is not included.
+     * Constructs a new ResourceManager using the Resources xml file content.
+     * First of all, an empty resource pool is created and the Cloud Manager is
+     * initialized without any providers. Secondly the resource file is
+     * validated and parsed and the toplevel xml nodes are processed in
+     * different ways depending on its type: - Resource: a new Physical resource
+     * is added to the resource pool with the same id as its Name attribute and
+     * as many slots as indicated in the project file. If it has 0 slots or it
+     * is not on the project xml, the resource is not included.
      *
-     * - Service: a new Physical resource is added to the resource pool with the same id as its wsdl attribute and as
-     * many slots as indicated in the project file. If it has 0 slots or it is not on the project xml, the resource is
-     * not included.
+     * - Service: a new Physical resource is added to the resource pool with the
+     * same id as its wsdl attribute and as many slots as indicated in the
+     * project file. If it has 0 slots or it is not on the project xml, the
+     * resource is not included.
      *
-     * - Cloud Provider: if there is any CloudProvider in the project file with the same name, a new Cloud Provider is
-     * added to the CloudManager with its name attribute value as identifier. The CloudManager is configured as
-     * described between the project xml and the resources file. From the resource file it gets the properties which
-     * describe how to connect with it: the connector path, the endpoint, ... Other properties required to manage the
-     * resources are specified on the project file: i.e. the maximum amount of resource deployed on that provider. Some
-     * configurations depend on both files. One of them is the list of usable images. The images offered by the cloud
-     * provider are on a list on the resources file, where there are specified the name and the software description of
-     * that image. On the project file there is a description of how the resources created with that image must be used:
-     * username, working directory,... Only the images that have been described in both files are added to the
+     * - Cloud Provider: if there is any CloudProvider in the project file with
+     * the same name, a new Cloud Provider is added to the CloudManager with its
+     * name attribute value as identifier. The CloudManager is configured as
+     * described between the project xml and the resources file. From the
+     * resource file it gets the properties which describe how to connect with
+     * it: the connector path, the endpoint, ... Other properties required to
+     * manage the resources are specified on the project file: i.e. the maximum
+     * amount of resource deployed on that provider. Some configurations depend
+     * on both files. One of them is the list of usable images. The images
+     * offered by the cloud provider are on a list on the resources file, where
+     * there are specified the name and the software description of that image.
+     * On the project file there is a description of how the resources created
+     * with that image must be used: username, working directory,... Only the
+     * images that have been described in both files are added to the
      * CloudManager
      *
-     * @param resUser
-     *            class to notify resource changes
+     * @param resUser class to notify resource changes
      *
      */
     public static void load(ResourceUser resUser) {
@@ -123,33 +127,20 @@ public class ResourceManager {
             ErrorManager.fatal(ERROR_NO_RES, e);
         }
 
-        // Start ResourceOptimizer
-        ro = new ResourceOptimizer(resourceUser);
-        ro.setName("Resource Optimizer");
-        ro.start();
     }
 
-    /*
-     * **********************************************************************************************************
+    /* ********************************************************************
      * SHUTDOWN METHOD
-     ***********************************************************************************************************/
+     * ********************************************************************/
     /**
      * Stops all the nodes within the pool
      *
-     * @param status
      */
-    public static void stopNodes(WorkloadStatus status) {
+    public static void stopNodes() {
         // Log resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [Stopping all workers]");
         runtimeLogger.info("Stopping all workers");
-
-        // Stop Resource Optimizer
-        if (ro != null) {
-            ro.shutdown(status);
-        } else {
-            runtimeLogger.info("Resource Optimizer was not initialized");
-        }
 
         // Stop all Cloud VM
         if (CloudManager.isUseCloud()) {
@@ -168,13 +159,13 @@ public class ResourceManager {
         // Physical worker (COMM) is erased now - because of cloud
         if (pool != null && !pool.getStaticResources().isEmpty()) {
             resourcesLogger.debug("DEBUG_MSG = [Resource Manager retrieving data from workers...]");
-            for (Worker<?, ?> r : pool.getStaticResources()) {
+            for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
                 r.retrieveData(false);
             }
             Semaphore sem = new Semaphore(0);
             ShutdownListener sl = new ShutdownListener(sem);
             resourcesLogger.debug("DEBUG_MSG = [Resource Manager stopping workers...]");
-            for (Worker<?, ?> r : pool.getStaticResources()) {
+            for (Worker<? extends WorkerResourceDescription> r : pool.getStaticResources()) {
                 r.stop(sl);
             }
 
@@ -190,17 +181,16 @@ public class ResourceManager {
         }
     }
 
-    /*
-     * ********************************************************************************************************** STATIC
-     * POOL METHODS
-     ***********************************************************************************************************/
+    /* ********************************************************************
+     * STATIC POOL METHODS
+     * ********************************************************************/
     /**
      * Returns a worker instance with the given name @name
      *
      * @param name
      * @return
      */
-    public static Worker<?, ?> getWorker(String name) {
+    public static Worker<? extends WorkerResourceDescription> getWorker(String name) {
         return pool.getResource(name);
     }
 
@@ -209,13 +199,13 @@ public class ResourceManager {
      *
      * @return list of all the resources
      */
-    public static LinkedList<Worker<?, ?>> getAllWorkers() {
+    public static LinkedList<Worker<? extends WorkerResourceDescription>> getAllWorkers() {
         return pool.findAllResources();
     }
 
     /**
      * Returns the number of available workers
-     * 
+     *
      * @return the number of available workers
      */
     public static int getTotalNumberOfWorkers() {
@@ -225,8 +215,7 @@ public class ResourceManager {
     /**
      * Reconfigures the master node adding its shared disks
      *
-     * @param sharedDisks
-     *            Shared Disk descriptions (diskName->mountpoint)
+     * @param sharedDisks Shared Disk descriptions (diskName->mountpoint)
      */
     public static void updateMasterConfiguration(HashMap<String, String> sharedDisks) {
         Comm.getAppHost().updateSharedDisk(sharedDisks);
@@ -246,8 +235,8 @@ public class ResourceManager {
      * @param sharedDisks
      * @param mc
      */
-    public static void newMethodWorker(String name, MethodResourceDescription rd, HashMap<String, String> sharedDisks,
-            MethodConfiguration mc) {
+    public static void newMethodWorker(String name, MethodResourceDescription rd,
+            HashMap<String, String> sharedDisks, MethodConfiguration mc) {
         // Compute task count
         int taskCount;
         int limitOfTasks = mc.getLimitOfTasks();
@@ -292,12 +281,12 @@ public class ResourceManager {
         mc.setLimitOfOTHERSTasks(taskCount);
 
         MethodWorker newResource = new MethodWorker(name, rd, mc, sharedDisks);
-        maxTasks = maxTasks + newResource.getMaxTaskCount();
         addStaticResource(newResource);
     }
 
     /**
-     * Initializes a new Service Worker. Returns true if the worker has been created, false otherwise
+     * Initializes a new Service Worker. Returns true if the worker has been
+     * created, false otherwise
      *
      * @param wsdl
      * @param sd
@@ -308,7 +297,7 @@ public class ResourceManager {
         addStaticResource(newResource);
     }
 
-    private static <T extends WorkerResourceDescription, I extends Implementation<T>> void addStaticResource(Worker<T, I> worker) {
+    private static <T extends WorkerResourceDescription> void addStaticResource(Worker<T> worker) {
         synchronized (pool) {
             worker.updatedFeatures();
             pool.addStaticResource(worker);
@@ -326,9 +315,8 @@ public class ResourceManager {
                 + worker.getName());
     }
 
-    public static void removeWorker(Worker<?, ?> r) {
+    public static void removeWorker(Worker<? extends WorkerResourceDescription> r) {
         pool.delete(r);
-        maxTasks = maxTasks - r.getMaxTaskCount();
         int[] maxTaskCount = r.getSimultaneousTasks();
         for (int coreId = 0; coreId < maxTaskCount.length; ++coreId) {
             poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
@@ -347,10 +335,14 @@ public class ResourceManager {
         }
     }
 
-    /*
-     * ************************************************************************************************************
+
+    /* ********************************************************************
      * CLOUD METHODS
-     **************************************************************************************************************/
+     * ********************************************************************/
+    public static void createResources(String provider, String instanceType, String imageName) {
+        CloudManager.askForResources(provider, instanceType, imageName);
+    }
+
     /**
      * Adds a cloud worker
      *
@@ -361,7 +353,6 @@ public class ResourceManager {
         synchronized (pool) {
             CloudManager.confirmedRequest(origin, worker);
             worker.updatedFeatures();
-            maxTasks = maxTasks + worker.getMaxTaskCount();
             pool.addDynamicResource(worker);
             pool.defineCriticalSet();
 
@@ -370,8 +361,8 @@ public class ResourceManager {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
         }
-
-        resourceUser.updatedResource((Resource) worker);
+        ResourceUpdate ru = new PerformedIncrease(worker.getDescription());
+        resourceUser.updatedResource(worker, ru);
 
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
@@ -395,9 +386,7 @@ public class ResourceManager {
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
-            maxTasks = maxTasks - worker.getMaxTaskCount();
             worker.increaseFeatures(extension);
-            maxTasks = maxTasks + worker.getMaxTaskCount();
 
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
@@ -405,7 +394,8 @@ public class ResourceManager {
             }
             pool.defineCriticalSet();
         }
-        resourceUser.updatedResource(worker);
+        ResourceUpdate ru = new PerformedIncrease(extension);
+        resourceUser.updatedResource(worker, ru);
 
         // Log modified resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
@@ -418,33 +408,41 @@ public class ResourceManager {
      *
      * @param worker
      * @param reduction
-     * @return
      */
-    public static Semaphore reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
-        Semaphore sem;
+    public static void reduceCloudWorker(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+        ResourceUpdate modification = new PendingReduction(reduction);
+        resourceUser.updatedResource(worker, modification);
+    }
+
+    /**
+     * Decreases the capabilities of a given cloud worker
+     *
+     * @param worker
+     * @param modification
+     */
+    public static void reduceResource(CloudMethodWorker worker, PendingReduction<WorkerResourceDescription> modification) {
         synchronized (pool) {
             int[] maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] -= maxTaskCount[coreId];
             }
-            maxTasks = maxTasks - worker.getMaxTaskCount();
-            sem = worker.reduceFeatures(reduction);
-            maxTasks = maxTasks + worker.getMaxTaskCount();
+            worker.applyReduction(modification);
             maxTaskCount = worker.getSimultaneousTasks();
             for (int coreId = 0; coreId < maxTaskCount.length; coreId++) {
                 poolCoreMaxConcurrentTasks[coreId] += maxTaskCount[coreId];
             }
             pool.defineCriticalSet();
-
-            //
-            resourceUser.updatedResource(worker);
         }
+
         // Log new resource
         resourcesLogger.info("TIMESTAMP = " + String.valueOf(System.currentTimeMillis()));
         resourcesLogger.info("INFO_MSG = [Resource removed from the pool. Name = " + worker.getName() + "]");
         runtimeLogger.info("Resource removed from the pool. Name = " + worker.getName());
+    }
 
-        return sem;
+    public static void terminateResource(CloudMethodWorker worker, CloudMethodResourceDescription reduction) {
+        pool.delete(worker);
+        CloudManager.destroyResources(worker, reduction);
     }
 
     /**
@@ -523,7 +521,7 @@ public class ResourceManager {
      *
      * @return
      */
-    public static Collection<Worker<?, ?>> getStaticResources() {
+    public static Collection<Worker<? extends WorkerResourceDescription>> getStaticResources() {
         synchronized (pool) {
             return pool.getStaticResources();
         }
@@ -541,7 +539,8 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are in the critical set
+     * Returns the dynamic resources available at the pool that are in the
+     * critical set
      *
      * @return
      */
@@ -552,7 +551,8 @@ public class ResourceManager {
     }
 
     /**
-     * Returns the dynamic resources available at the pool that are NOT in the critical set
+     * Returns the dynamic resources available at the pool that are NOT in the
+     * critical set
      *
      * @return
      */
@@ -583,6 +583,10 @@ public class ResourceManager {
         CloudManager.refusedRequest(rcr);
     }
 
+    public static LinkedList<ResourceCreationRequest> getPendingCreationRequests() {
+        return CloudManager.getPendingRequests();
+    }
+
     /*
      * ************************************************************************************************************
      * LOGGER METHODS
@@ -596,7 +600,7 @@ public class ResourceManager {
         ResourcesState state = new ResourcesState();
         synchronized (pool) {
             // Set resources information
-            for (Worker<?, ?> resource : pool.findAllResources()) {
+            for (Worker<? extends WorkerResourceDescription> resource : pool.findAllResources()) {
                 if (resource.getType().equals(Type.WORKER)) {
                     int cores = ((MethodResourceDescription) resource.getDescription()).getTotalCPUComputingUnits();
                     float memory = ((MethodResourceDescription) resource.getDescription()).getMemorySize();
@@ -664,14 +668,6 @@ public class ResourceManager {
     }
 
     /**
-     * Prints out the load information
-     *
-     */
-    public static void printLoadInfo() {
-        resourcesLogger.info(resourceUser.getWorkload().toString());
-    }
-
-    /**
      * Prints out the resources state
      *
      */
@@ -692,10 +688,6 @@ public class ResourceManager {
         sb.append(pool.getCurrentState(prefix)).append("\n");
         sb.append(CloudManager.getCurrentState(prefix));
         return sb.toString();
-    }
-
-    public static long getMaxTasks() {
-        return maxTasks;
     }
 
 }

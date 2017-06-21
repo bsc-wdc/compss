@@ -13,28 +13,26 @@ import integratedtoolkit.types.parameter.Parameter;
 import integratedtoolkit.types.resources.Resource;
 import integratedtoolkit.types.resources.Worker;
 
-
 /**
  * Action score representation
  *
  */
 public class Score implements Comparable<Score> {
 
-    protected double actionScore; // Action Priority
-    protected double resourceScore; // Resource Priority
-    protected double waitingScore; // Resource Blocked Priority
-    protected double implementationScore; // Implementation Priority
-
+    protected long actionScore; // Action Priority
+    protected long resourceScore; // Resource Priority
+    protected long waitingScore; // Resource Blocked Priority
+    protected long implementationScore; // Implementation Priority
 
     /**
      * Constructor
-     * 
+     *
      * @param actionScore
      * @param waiting
      * @param res
      * @param impl
      */
-    public Score(double actionScore, double res, double waiting, double impl) {
+    public Score(long actionScore, long res, long waiting, long impl) {
         this.actionScore = actionScore;
         this.resourceScore = res;
         this.waitingScore = waiting;
@@ -43,7 +41,7 @@ public class Score implements Comparable<Score> {
 
     /**
      * Clone
-     * 
+     *
      * @param clone
      */
     public Score(Score clone) {
@@ -55,43 +53,44 @@ public class Score implements Comparable<Score> {
 
     /**
      * Returns the action priority
-     * 
+     *
      * @return
      */
-    public double getActionScore() {
+    public long getActionScore() {
         return this.actionScore;
     }
 
     /**
      * Returns the estimated time of wait in the resource
-     * 
+     *
      * @return
      */
-    public double getWaitingScore() {
+    public long getWaitingScore() {
         return this.waitingScore;
     }
 
     /**
      * Returns the score of the resource (number of data in that resource)
-     * 
+     *
      * @return
      */
-    public double getResourceScore() {
+    public long getResourceScore() {
         return this.resourceScore;
     }
 
     /**
      * Returns the implementation score
-     * 
+     *
      * @return
      */
-    public double getImplementationScore() {
+    public long getImplementationScore() {
         return this.implementationScore;
     }
 
     /**
-     * Checks whether a score is better than another. Returns true if @a is better than @b
-     * 
+     * Checks whether a score is better than another. Returns true if @a is
+     * better than @b
+     *
      * @param a
      * @param b
      * @return
@@ -107,8 +106,10 @@ public class Score implements Comparable<Score> {
     }
 
     /**
-     * Checks if the current score is better than the given. Returns true if @implicit is better than @other
-     * 
+     * Checks if the current score is better than the given. Returns true if
+     *
+     * @implicit is better than @other
+     *
      * @param other
      * @return
      */
@@ -127,7 +128,12 @@ public class Score implements Comparable<Score> {
 
     @Override
     public int hashCode() {
-        return this.hashCode();
+        int result = 17;
+        result = 31 * result + Long.hashCode(actionScore);
+        result = 31 * result + Long.hashCode(resourceScore);
+        result = 31 * result + Long.hashCode(waitingScore);
+        result = 31 * result + Long.hashCode(implementationScore);
+        return result;
     }
 
     @Override
@@ -152,7 +158,16 @@ public class Score implements Comparable<Score> {
         }
     }
 
-    public double calculateResourceScore(TaskDescription params, Worker<?, ?> w) {
+    /**
+     * Calculates the number of Parameters in @params located in a given worker
+     *
+     * @w.
+     *
+     * @param params
+     * @param w
+     * @return
+     */
+    public static long calculateDataLocalityScore(TaskDescription params, Worker<?> w) {
         long resourceScore = 0;
         if (params != null) {
             Parameter[] parameters = params.getParameters();
@@ -197,8 +212,12 @@ public class Score implements Comparable<Score> {
 
     @Override
     public String toString() {
-        return "[Score = [action:" + this.actionScore + ", resource:" + this.resourceScore + ", load:" + this.waitingScore
-                + ", implementation:" + this.implementationScore + "]" + "]";
+        return "[Score = ["
+                + "action:" + this.actionScore + ", "
+                + "resource:" + this.resourceScore + ", "
+                + "load:" + this.waitingScore + ", "
+                + "implementation:" + this.implementationScore
+                + "]" + "]";
     }
 
 }
